@@ -1,14 +1,14 @@
 [gd_resource type="Resource" script_class="Placeable" load_steps=5 format=3 uid="uid://jgmywi04ib7c"]
 
-[ext_resource type="PackedScene" uid="uid://de1ck3cvdtww0" path="res://test/grid_building_testing/scenes/2d_test_object.tscn" id="1_opdc4"]
-[ext_resource type="Script" uid="uid://cw5c2e65oen8t" path="res://addons/grid_building/placement/placement_rules/placement_rule.gd" id="2_emiih"]
-[ext_resource type="Script" uid="uid://dn1rkse5os3tk" path="res://addons/grid_building/placement/placeable/placeable.gd" id="2_gn3p4"]
-[ext_resource type="Script" uid="uid://csfgst8ggbg0n" path="res://addons/grid_building/placement/placeable/categorical_tag.gd" id="4_1ydwc"]
+[ext_resource type="PackedScene" uid="uid://de1ck3cvdtww0" path="res://test/grid_building_testing/scenes/2d_test_object.tscn" id="1_nkl8i"]
+[ext_resource type="Script" uid="uid://ceem2vqcha7ki" path="res://addons/grid_building/placement/placement_rules/placement_rule.gd" id="2_7x67s"]
+[ext_resource type="Script" uid="uid://b01uvfnfuldd6" path="res://addons/grid_building/placement/placeable/placeable.gd" id="3_1ujtc"]
+[ext_resource type="Script" uid="uid://b064bdpoigkqi" path="res://addons/grid_building/placement/placeable/categorical_tag.gd" id="4_we7ll"]
 
 [resource]
-script = ExtResource("2_gn3p4")
+script = ExtResource("3_1ujtc")
 display_name = &""
-packed_scene = ExtResource("1_opdc4")
-tags = Array[ExtResource("4_1ydwc")]([])
-placement_rules = Array[ExtResource("2_emiih")]([])
+packed_scene = ExtResource("1_nkl8i")
+tags = Array[ExtResource("4_we7ll")]([])
+placement_rules = Array[ExtResource("2_7x67s")]([])
 ignore_base_rules = false

@@ -1,11 +1,11 @@
 [gd_resource type="Resource" script_class="ManipulatableSettings" load_steps=3 format=3 uid="uid://jonw4f3w8ofn"]
 
-[ext_resource type="Script" path="res://addons/grid_building/placement/placement_rules/tile_check_rule.gd" id="1_jgurg"]
-[ext_resource type="Script" path="res://addons/grid_building/placement/manipulatable_settings.gd" id="2_ias07"]
+[ext_resource type="Script" uid="uid://cddjwc7btgmqk" path="res://addons/grid_building/placement/placement_rules/tile_check_rule.gd" id="1_0tp1t"]
+[ext_resource type="Script" uid="uid://0u11g3ef6ucf" path="res://addons/grid_building/placement/manipulatable_settings.gd" id="2_shjxr"]
 
 [resource]
-script = ExtResource("2_ias07")
-move_rules = Array[ExtResource("1_jgurg")]([])
+script = ExtResource("2_shjxr")
+move_rules = Array[ExtResource("1_0tp1t")]([])
 ignore_base_rules = false
 rotateable = false
 flip_horizontal = false
