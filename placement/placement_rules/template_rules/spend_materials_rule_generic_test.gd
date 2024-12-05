@@ -11,14 +11,14 @@ var generic_rule : SpendMaterialsRuleGeneric
 var building_state : BuildingState
 var positioner : Node2D
 var test_map : Node2D
-var test_item : BaseItem
+var test_item : Resource
 var test_stack : ResourceStack
 var test_item_name : String = "Test Item"
 
 func before():
 	var inventory_locator = NodeLocator.new(NodeLocator.SEARCH_METHOD.SCRIPT_NAME_WITH_EXTENSION, "item_container.gd")
 	
-	test_item = BaseItem.new(test_item_name, null, [], 100)
+	test_item = Resource.new()
 	test_stack = ResourceStack.new(test_item, 1)
 	generic_rule = SpendMaterialsRuleGeneric.new(
 		[test_stack],
