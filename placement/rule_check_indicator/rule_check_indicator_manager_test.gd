@@ -9,7 +9,7 @@ const __source = 'res://addons/grid_building/placement/rule_check_indicator/rule
 
 var library : TestSceneLibrary
 var rci_manager : RuleCheckIndicatorManager
-var tile_set : TileSet = load("res://addons/grid_building/test/resources/test_tile_set.tres")
+var tile_set : TileSet = load("res://test/grid_building_test/resources/test_tile_set.tres")
 var tile_map : TileMap
 var placement_validator : PlacementValidator
 var base_rules : Array[PlacementRule]
@@ -24,7 +24,7 @@ var positioner : GridPositioner2D
 
 var global_snap_pos
 
-const eclipse_scene_path = "res://addons/grid_building/test/scenes/test_elipse.tscn"
+const eclipse_scene_path = "res://test/grid_building_test/scenes/test_elipse.tscn"
 
 func before():
 	library = auto_free(TestSceneLibrary.instance_library())
@@ -123,7 +123,7 @@ func test_indicator_generation_distance(p_shape_scene_path : String, p_expected_
 	
 func test_rect_15_tile_shape_count():
 	#region Setup
-	var test_rect_15_tiles = load("res://addons/grid_building/test/scenes/test_rect_15_tiles.tscn").instantiate()
+	var test_rect_15_tiles = load("res://test/grid_building_test/scenes/test_rect_15_tiles.tscn").instantiate()
 	add_child(test_rect_15_tiles)
 	test_rect_15_tiles.global_position = global_snap_pos
 	#endregion
@@ -185,7 +185,7 @@ func _compare_transform_adjusted_rects(p_test_rect : Rect2, p_transform : Transf
 
 func test_setup_indicators_rotated_elipse():
 	#region setup
-	var test_object = auto_free(load("res://addons/grid_building/test/scenes/test_elipse.tscn").instantiate())
+	var test_object = auto_free(load("res://test/grid_building_test/scenes/test_elipse.tscn").instantiate())
 	var rules : Array[PlacementRule] = [CollisionsCheckRule.new()]
 	add_child(test_object)
 	

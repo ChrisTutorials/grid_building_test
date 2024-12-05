@@ -78,7 +78,7 @@ func test_no_col_valid_placement_both_pass_with_test_resources():
 	assert_bool(validation_results.is_successful).append_failure_message("One or more rules failed validation.").is_true()
 
 func create_indicator(p_rules_to_evaluate : Array[TileCheckRule]) -> RuleCheckIndicator:
-	var indicator : RuleCheckIndicator = auto_free(load("res://addons/grid_building/test/scenes/indicators/test_indicator.tscn").instantiate())
+	var indicator : RuleCheckIndicator = auto_free(load("res://test/grid_building_test/scenes/indicators/test_indicator.tscn").instantiate())
 	indicator.rules = p_rules_to_evaluate
 	indicator.shape = RectangleShape2D.new()
 	indicator.shape.size = Vector2(16,16)

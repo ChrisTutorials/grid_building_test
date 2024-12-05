@@ -7,7 +7,7 @@ extends GdUnitTestSuite
 # TestSuite generated from
 const __source = 'res://addons/grid_building/components/placeable_instance.gd'
 
-var placeable_path = "res://addons/grid_building/test/resources/placeable/test_placeable_rect_15_tiles.tres"
+var placeable_path = "res://test/grid_building_test/resources/placeable/test_placeable_rect_15_tiles.tres"
 
 func test_instance_from_save_does_not_duplicate_node():
 	var save = {

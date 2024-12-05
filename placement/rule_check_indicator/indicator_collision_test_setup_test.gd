@@ -21,13 +21,13 @@ func before_test():
 	tile_map_16px.tile_set = TileSet.new()
 	tile_map_16px.tile_set.tile_size = Vector2(16,16)
 	
-	eclipse_obj = auto_free(load("res://addons/grid_building/test/scenes/test_elipse.tscn").instantiate())
+	eclipse_obj = auto_free(load("res://test/grid_building_test/scenes/test_elipse.tscn").instantiate())
 	add_child(eclipse_obj)
 	
-	rect_8_tiles_obj = auto_free(load("res://addons/grid_building/test/scenes/test_rect_15_tiles.tscn").instantiate())
+	rect_8_tiles_obj = auto_free(load("res://test/grid_building_test/scenes/test_rect_15_tiles.tscn").instantiate())
 	add_child(rect_8_tiles_obj)
 
-	test_skew_rotation_rect_obj = auto_free(load("res://addons/grid_building/test/scenes/test_skew_rotation_rect.tscn").instantiate())
+	test_skew_rotation_rect_obj = auto_free(load("res://test/grid_building_test/scenes/test_skew_rotation_rect.tscn").instantiate())
 	add_child(test_skew_rotation_rect_obj)
 	
 	pillar_obj = auto_free(load("res://demos/top_down/objects/pillar.tscn").instantiate())

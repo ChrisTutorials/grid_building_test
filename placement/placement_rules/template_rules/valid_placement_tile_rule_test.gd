@@ -15,7 +15,7 @@ var valid_indicator : RuleCheckIndicator
 var map : Node2D
 
 func before():
-	library = auto_free(preload("res://addons/grid_building/test/scenes/test_scene_library.tscn").instantiate())
+	library = auto_free(preload("res://test/grid_building_test/scenes/test_scene_library.tscn").instantiate())
 
 func before_test():
 	rule = ValidPlacementTileRule.new()

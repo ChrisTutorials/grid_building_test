@@ -20,7 +20,7 @@ func before_test():
 	indicator.invalid_settings = IndicatorVisualSettings.new()
 	indicator.shape = RectangleShape2D.new()
 	indicator.shape.size = Vector2(15.9, 15.9)
-	indicator.invalid_settings = load("res://addons/grid_building/test/resources/settings/indicator_visual/invalid_visual.tres")
+	indicator.invalid_settings = load("res://test/grid_building_test/resources/settings/indicator_visual/invalid_visual.tres")
 	
 	collision_shape = CollisionShape2D.new()
 	collision_body.add_child(collision_shape)
@@ -54,7 +54,7 @@ func test_indicator_collide_and_get_contacts(p_move_shape_size_multiplier : Vect
 
 
 func test__update_visuals(p_settings : IndicatorVisualSettings, test_parameters = [
-	[load("res://addons/grid_building/test/resources/settings/indicator_visual/orange_visual.tres")]
+	[load("res://test/grid_building_test/resources/settings/indicator_visual/orange_visual.tres")]
 ]) -> void:
 	var updated_sprite = indicator._update_visuals(p_settings)
 	assert_that(updated_sprite.modulate).is_equal(p_settings.modulate)

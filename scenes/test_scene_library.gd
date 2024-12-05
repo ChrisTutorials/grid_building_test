@@ -35,7 +35,7 @@ extends GdUnitTestSuite
 @export_group("Tile Maps")
 @export var tile_map_buildable : PackedScene
 
-const library_path = "res://addons/grid_building/test/scenes/test_scene_library.tscn"
+const library_path = "res://test/grid_building_test/scenes/test_scene_library.tscn"
 
 ## Creates an instance of the library scene (orphan, be sure to free)
 static func instance_library() -> TestSceneLibrary:

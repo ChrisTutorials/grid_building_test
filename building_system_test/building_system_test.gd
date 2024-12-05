@@ -200,7 +200,7 @@ func test_try_build(p_placeable : Placeable, p_expected : Object, test_parameter
 
 func test__build(p_placeable : Placeable, p_expected, test_parameters = [
 	[null, null],
-	[load("res://addons/grid_building/test/resources/placeable/test_2d_placeable.tres"), any_object()]
+	[load("res://test/grid_building_test/resources/placeable/test_2d_placeable.tres"), any_object()]
 ]) -> void:
 	system.selected_placeable = p_placeable
 	

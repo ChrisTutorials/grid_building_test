@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="Placeable" load_steps=5 format=3 uid="uid://cmuqt7ovi8si3"]
 
-[ext_resource type="PackedScene" uid="uid://b82nv1wlsv8wa" path="res://test/grid_building_testing/scenes/test_skew_rotation_rect.tscn" id="1_kgvbt"]
+[ext_resource type="PackedScene" uid="uid://b82nv1wlsv8wa" path="res://test/grid_building_test/scenes/test_skew_rotation_rect.tscn" id="1_kgvbt"]
 [ext_resource type="Script" uid="uid://ceem2vqcha7ki" path="res://addons/grid_building/placement/placement_rules/placement_rule.gd" id="2_bvm6l"]
 [ext_resource type="Script" uid="uid://b01uvfnfuldd6" path="res://addons/grid_building/placement/placeable/placeable.gd" id="3_udshk"]
 [ext_resource type="Script" uid="uid://b064bdpoigkqi" path="res://addons/grid_building/placement/placeable/categorical_tag.gd" id="4_4a4gb"]

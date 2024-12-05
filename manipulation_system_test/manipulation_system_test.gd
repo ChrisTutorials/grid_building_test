@@ -16,7 +16,7 @@ var positioner : Node2D
 var manipulator : Node
 var library : TestSceneLibrary
 
-var test_system = load("res://addons/grid_building/test/manipulation_system_test/scenes/TEST_manipulation_system.tscn")
+var test_system = load("res://test/grid_building_test/manipulation_system_test/scenes/TEST_manipulation_system.tscn")
 
 var all_manipulatable : Manipulatable
 
