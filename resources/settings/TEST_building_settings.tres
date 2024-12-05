@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="BuildingSettings" load_steps=2 format=3 uid="uid://b02r1bgby2hcx"]
+
+[ext_resource type="Script" path="res://addons/grid_building/building_system/building_settings.gd" id="2_0wsa6"]
+
+[resource]
+script = ExtResource("2_0wsa6")
+preview_kept_script_types = Array[String](["Manipulatable"])
+add_placeable_instance = true
+preview_instance_z_index = 100
+drag_multi_build = false
+show_debug = false

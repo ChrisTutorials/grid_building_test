@@ -1,0 +1,11 @@
+[gd_scene load_steps=2 format=3 uid="uid://b82nv1wlsv8wa"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_0y8p1"]
+size = Vector2(50, 50)
+
+[node name="elipse" type="StaticBody2D"]
+rotation = 0.523599
+skew = 0.523599
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_0y8p1")

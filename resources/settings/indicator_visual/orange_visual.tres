@@ -1,0 +1,7 @@
+[gd_resource type="Resource" script_class="IndicatorVisualSettings" load_steps=2 format=3 uid="uid://dpph3i22e5qev"]
+
+[ext_resource type="Script" path="res://addons/grid_building/placement/rule_check_indicator/indicator_visual_settings.gd" id="1_vht1i"]
+
+[resource]
+script = ExtResource("1_vht1i")
+modulate = Color(1, 0.647, 0, 1)

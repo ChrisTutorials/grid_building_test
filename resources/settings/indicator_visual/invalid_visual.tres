@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="IndicatorVisualSettings" load_steps=3 format=3 uid="uid://h8lvjoarxq4k"]
+
+[ext_resource type="Script" path="res://addons/grid_building/placement/rule_check_indicator/indicator_visual_settings.gd" id="1_02qwa"]
+[ext_resource type="Texture2D" uid="uid://dxhx8bt4x1dww" path="res://addons/grid_building/placement/rule_check_indicator/tile_textures/grey_scale_tile_b.png" id="2_hq2q8"]
+
+[resource]
+script = ExtResource("1_02qwa")
+texture = ExtResource("2_hq2q8")
+modulate = Color(0.859, 0.439, 0.576, 1)

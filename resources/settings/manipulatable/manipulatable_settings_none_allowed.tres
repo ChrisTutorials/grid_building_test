@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ManipulatableSettings" load_steps=3 format=3 uid="uid://jonw4f3w8ofn"]
+
+[ext_resource type="Script" path="res://addons/grid_building/placement/placement_rules/tile_check_rule.gd" id="1_jgurg"]
+[ext_resource type="Script" path="res://addons/grid_building/placement/manipulatable_settings.gd" id="2_ias07"]
+
+[resource]
+script = ExtResource("2_ias07")
+move_rules = Array[ExtResource("1_jgurg")]([])
+ignore_base_rules = false
+rotateable = false
+flip_horizontal = false
+flip_vertical = false
+movable = false
+demolishable = false

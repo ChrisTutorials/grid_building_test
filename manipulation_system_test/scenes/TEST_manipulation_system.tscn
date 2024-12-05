@@ -1,0 +1,29 @@
+[gd_scene load_steps=11 format=3 uid="uid://wh23y2c2nv8s"]
+
+[ext_resource type="Script" path="res://addons/grid_building/manipulation_system/manipulation_system.gd" id="1_v3fhe"]
+[ext_resource type="Resource" uid="uid://v3jkpx5x5si1" path="res://demos/shared/state/manipulation_state.tres" id="2_6u1i1"]
+[ext_resource type="Resource" uid="uid://q7ijvntxmcep" path="res://demos/shared/settings/manipulation_settings.tres" id="3_82e8p"]
+[ext_resource type="Resource" uid="uid://c47mr6w5q844j" path="res://demos/shared/settings/manipulation_messages.tres" id="4_f6wm2"]
+[ext_resource type="Resource" uid="uid://cor3j36tkls2i" path="res://demos/shared/settings/manipulation_actions.tres" id="5_edc7d"]
+[ext_resource type="Resource" uid="uid://bs55u8svvrwjg" path="res://demos/shared/state/grid_targeting_state.tres" id="7_a6yvd"]
+[ext_resource type="Resource" uid="uid://d3ltu8o6o6oyr" path="res://demos/shared/settings/mode_input_actions.tres" id="7_l87vy"]
+[ext_resource type="Script" path="res://addons/grid_building/components/target_highlighter.gd" id="8_7kp05"]
+[ext_resource type="Resource" uid="uid://c3lgdolvfxsr1" path="res://demos/shared/state/mode_state.tres" id="8_ea3e3"]
+[ext_resource type="Resource" uid="uid://dggqunhqpaiyq" path="res://demos/shared/settings/highlight_settings.tres" id="9_ryq3y"]
+
+[node name="ManipulationSystem" type="Node"]
+script = ExtResource("1_v3fhe")
+state = ExtResource("2_6u1i1")
+settings = ExtResource("3_82e8p")
+messages = ExtResource("4_f6wm2")
+actions = ExtResource("5_edc7d")
+targeting_state = ExtResource("7_a6yvd")
+mode_state = ExtResource("8_ea3e3")
+mode_actions = ExtResource("7_l87vy")
+
+[node name="TargetHighlighter" type="Node" parent="."]
+script = ExtResource("8_7kp05")
+mode_state = ExtResource("8_ea3e3")
+targeting_state = ExtResource("7_a6yvd")
+manipulation_state = ExtResource("2_6u1i1")
+highlight_settings = ExtResource("9_ryq3y")

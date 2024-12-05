@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ManipulatableSettings" load_steps=3 format=3 uid="uid://dn881lunp3lrm"]
+
+[ext_resource type="Script" path="res://addons/grid_building/placement/placement_rules/tile_check_rule.gd" id="1_t4kms"]
+[ext_resource type="Script" path="res://addons/grid_building/placement/manipulatable_settings.gd" id="2_aoyx4"]
+
+[resource]
+script = ExtResource("2_aoyx4")
+move_rules = Array[ExtResource("1_t4kms")]([])
+ignore_base_rules = false
+rotateable = true
+flip_horizontal = true
+flip_vertical = true
+movable = true
+demolishable = true

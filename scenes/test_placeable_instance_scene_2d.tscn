@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3 uid="uid://cbnftuwi8gyvo"]
+
+[ext_resource type="Script" path="res://addons/grid_building/components/placeable_instance.gd" id="1_i14u4"]
+
+[node name="TestPlaceableInstanceScene2d" type="Node2D"]
+
+[node name="PlaceableInstance" type="Node" parent="."]
+script = ExtResource("1_i14u4")
+file_path = "res://addons/grid_building/test/resources/placeable/test_placeable_rect_15_tiles.tres"

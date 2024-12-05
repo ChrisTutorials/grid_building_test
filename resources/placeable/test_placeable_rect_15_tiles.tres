@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="Placeable" load_steps=3 format=3 uid="uid://cqknt0ejxvq4m"]
+
+[ext_resource type="PackedScene" uid="uid://blgwelirrimr1" path="res://test/grid_building_testing/scenes/test_rect_15_tiles.tscn" id="1_v0lae"]
+[ext_resource type="Script" uid="uid://dn1rkse5os3tk" path="res://addons/grid_building/placement/placeable/placeable.gd" id="2_trbb8"]
+
+[resource]
+script = ExtResource("2_trbb8")
+display_name = &"15 Tiles Rect"
+packed_scene = ExtResource("1_v0lae")
+tags = Array[Resource]([])

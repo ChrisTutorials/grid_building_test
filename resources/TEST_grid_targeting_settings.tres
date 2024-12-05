@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="GridTargetingSettings" load_steps=2 format=3 uid="uid://darxogdvpfk81"]
+
+[ext_resource type="Script" path="res://addons/grid_building/grid_targeting_system/grid_targeting_settings.gd" id="1_nnuqo"]
+
+[resource]
+script = ExtResource("1_nnuqo")
+limit_to_adjacent = false
+max_tile_distance = 3
+diaganol_mode = 0
+hide_on_handled = true
+show_debug = false

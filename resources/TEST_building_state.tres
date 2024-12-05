@@ -1,0 +1,6 @@
+[gd_resource type="Resource" script_class="BuildingState" load_steps=2 format=3 uid="uid://dw4ugrxmh3s5e"]
+
+[ext_resource type="Script" path="res://addons/grid_building/building_system/building_state.gd" id="1_s6vgj"]
+
+[resource]
+script = ExtResource("1_s6vgj")

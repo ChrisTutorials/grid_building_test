@@ -1,0 +1,30 @@
+[gd_scene load_steps=8 format=3 uid="uid://dhox8mb8kuaxa"]
+
+[ext_resource type="Script" path="res://addons/grid_building/placement/rule_check_indicator/rule_check_indicator.gd" id="1_fdkm5"]
+[ext_resource type="Script" path="res://addons/grid_building/placement/rule_check_indicator/indicator_visual_settings.gd" id="2_ootu6"]
+[ext_resource type="Texture2D" uid="uid://2odn6on7s512" path="res://addons/grid_building/placement/rule_check_indicator/tile_textures/green_tile_overlay_16x16_100_opacity.png" id="3_81t62"]
+[ext_resource type="Texture2D" uid="uid://vf5d73isjqo5" path="res://addons/grid_building/placement/rule_check_indicator/tile_textures/red_collision_tile_overlay_16x16_100_opacity.png" id="4_8sv5w"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_60gng"]
+size = Vector2(15.9, 15.9)
+
+[sub_resource type="Resource" id="Resource_4uiwh"]
+script = ExtResource("2_ootu6")
+texture = ExtResource("3_81t62")
+modulate = Color(1, 1, 1, 1)
+
+[sub_resource type="Resource" id="Resource_aq8an"]
+script = ExtResource("2_ootu6")
+texture = ExtResource("4_8sv5w")
+modulate = Color(1, 1, 1, 1)
+
+[node name="TestIndicator" type="ShapeCast2D" node_paths=PackedStringArray("validity_sprite")]
+shape = SubResource("RectangleShape2D_60gng")
+target_position = Vector2(0, 0)
+script = ExtResource("1_fdkm5")
+validity_sprite = NodePath("Sprite2D")
+valid_settings = SubResource("Resource_4uiwh")
+invalid_settings = SubResource("Resource_aq8an")
+debug_mode = true
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
