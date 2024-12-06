@@ -30,6 +30,9 @@ func before_test():
 	
 	mode_state = ModeState.new()
 	system = auto_free(BuildingSystem.new())
+	building_actions = BuildingActions.new()
+	system.actions = building_actions
+	system.mode_actions = ModeInputActions.new()
 	system.mode_state = mode_state
 	add_child(system)
 	
@@ -50,8 +53,6 @@ func before_test():
 	targeting_state.target_map = tile_map
 	
 	
-	building_actions = BuildingActions.new()
-	
 	system.placement_validator = PlacementValidator.new()
 	rci_manager = auto_free(RuleCheckIndicatorManager.new(library.indicator, targeting_state, system.placement_validator))
 	rci_manager.name = "RuleCheckIndicatorManager"
@@ -62,9 +63,9 @@ func before_test():
 	system.state.placer_state = user_state
 	system.state.placed_parent = placed_parent
 	system.settings = library.building_settings.duplicate(true)
-	system.actions = building_actions
-	system.mode_actions = ModeInputActions.new()
 	
+func test_before_test_setup():
+	assert_object(system).is_not_null()
 	var valid = system.validate_setup()
 	assert_bool(valid).override_failure_message("System should be valid before running tests.").is_true()
 
