@@ -1,29 +1,34 @@
-[gd_resource type="Resource" script_class="Placeable" load_steps=12 format=3 uid="uid://dirh6mcrgdm3w"]
+[gd_resource type="Resource" script_class="Placeable" load_steps=13 format=3 uid="uid://dirh6mcrgdm3w"]
 
-[ext_resource type="PackedScene" uid="uid://c673aj2ivgljp" path="res://demos/top_down/objects/smithy.tscn" id="2_iyfep"]
+[ext_resource type="PackedScene" uid="uid://ch0nkdmph7s3r" path="res://test/grid_building_test/scenes/objects/smithy.tscn" id="1_xto6q"]
 [ext_resource type="Script" uid="uid://ceem2vqcha7ki" path="res://addons/grid_building/placement/placement_rules/placement_rule.gd" id="3_tuxu5"]
-[ext_resource type="Resource" uid="uid://clvl508bnjc8y" path="res://demos/top_down/rules/materials_container_locator.tres" id="4_ibhup"]
+[ext_resource type="Script" uid="uid://b1evmem7gcfml" path="res://addons/grid_building/placement/placement_rules/template_rules/resources/node_locator.gd" id="3_xto6q"]
 [ext_resource type="Script" uid="uid://cf7goamu2xxub" path="res://addons/grid_building/placement/placement_rules/template_rules/resources/resource_stack.gd" id="5_wlomv"]
-[ext_resource type="Resource" uid="uid://dkjjocuedn043" path="res://demos/top_down/materials/material_gold.tres" id="6_0vtv4"]
+[ext_resource type="Resource" uid="uid://dsk2popuxnjc7" path="res://test/grid_building_test/resources/materials/material_test_gold.tres" id="5_xto6q"]
 [ext_resource type="Script" uid="uid://2co8g78q755p" path="res://addons/grid_building/placement/placement_rules/template_rules/spend_materials_rule_generic.gd" id="7_bf47l"]
 [ext_resource type="Script" uid="uid://b01uvfnfuldd6" path="res://addons/grid_building/placement/placeable/placeable.gd" id="8_hyss6"]
 [ext_resource type="Script" uid="uid://b064bdpoigkqi" path="res://addons/grid_building/placement/placeable/categorical_tag.gd" id="9_rjlkh"]
 [ext_resource type="Resource" uid="uid://d2mfmu71p1f8h" path="res://test/grid_building_test/resources/tags/tag_test_building.tres" id="9_xto6q"]
 
+[sub_resource type="Resource" id="Resource_suxai"]
+script = ExtResource("3_xto6q")
+method = 0
+search_string = "MaterialsContainer"
+
 [sub_resource type="Resource" id="Resource_mi82l"]
 script = ExtResource("5_wlomv")
-type = ExtResource("6_0vtv4")
+type = ExtResource("5_xto6q")
 count = 100
 
 [sub_resource type="Resource" id="Resource_s4dmr"]
 script = ExtResource("7_bf47l")
 resource_stacks_to_spend = Array[ExtResource("5_wlomv")]([SubResource("Resource_mi82l")])
-locator = ExtResource("4_ibhup")
+locator = SubResource("Resource_suxai")
 
 [resource]
 script = ExtResource("8_hyss6")
 display_name = &"Smithy"
-packed_scene = ExtResource("2_iyfep")
+packed_scene = ExtResource("1_xto6q")
 tags = Array[ExtResource("9_rjlkh")]([ExtResource("9_xto6q")])
 placement_rules = Array[ExtResource("3_tuxu5")]([SubResource("Resource_s4dmr")])
 ignore_base_rules = false

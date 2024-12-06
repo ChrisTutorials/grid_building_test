@@ -1,7 +1,19 @@
-[gd_scene load_steps=3 format=3 uid="uid://be5sd0kpcvj0h"]
+[gd_scene load_steps=5 format=3 uid="uid://be5sd0kpcvj0h"]
 
 [ext_resource type="Script" uid="uid://bib4d58jc2hi1" path="res://addons/grid_building/components/manipulatable.gd" id="2_8h8sl"]
-[ext_resource type="Resource" uid="uid://bi2seuli7k4wf" path="res://demos/isometric/settings/isometric_move_settings.tres" id="3_pra8e"]
+[ext_resource type="Script" uid="uid://0u11g3ef6ucf" path="res://addons/grid_building/placement/manipulatable_settings.gd" id="2_ttfqu"]
+[ext_resource type="Script" uid="uid://cddjwc7btgmqk" path="res://addons/grid_building/placement/placement_rules/tile_check_rule.gd" id="3_ymn57"]
+
+[sub_resource type="Resource" id="Resource_wf603"]
+script = ExtResource("2_ttfqu")
+move_rules = Array[ExtResource("3_ymn57")]([])
+ignore_base_rules = false
+rotateable = false
+flip_horizontal = false
+flip_vertical = false
+movable = true
+demolishable = true
+metadata/_custom_type_script = ExtResource("2_ttfqu")
 
 [node name="IsometricBuilding" type="StaticBody2D"]
 collision_layer = 2560
@@ -15,5 +27,5 @@ polygon = PackedVector2Array(0, -24, 41, 0, 0, 23, -41, 0)
 
 [node name="Manipulatable" type="Node" parent="." node_paths=PackedStringArray("root")]
 script = ExtResource("2_8h8sl")
-settings = ExtResource("3_pra8e")
+settings = SubResource("Resource_wf603")
 root = NodePath("..")
