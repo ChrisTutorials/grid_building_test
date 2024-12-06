@@ -30,7 +30,7 @@ func before_test():
 	test_skew_rotation_rect_obj = auto_free(preload("res://test/grid_building_test/scenes/test_skew_rotation_rect.tscn").instantiate())
 	add_child(test_skew_rotation_rect_obj)
 	
-	pillar_obj = auto_free(preload("res://demos/top_down/objects/pillar.tscn").instantiate())
+	pillar_obj = auto_free(preload("res://test/grid_building_test/scenes/objects/test_pillar.tscn").instantiate())
 	add_child(pillar_obj)
 	
 	create_test_setups(eclipse_obj)
