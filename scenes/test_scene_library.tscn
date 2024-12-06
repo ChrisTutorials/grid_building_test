@@ -18,13 +18,9 @@
 [ext_resource type="PackedScene" uid="uid://bp22b3deiiyer" path="res://test/grid_building_test/scenes/script_keep_scene.tscn" id="11_1lbb3"]
 [ext_resource type="PackedScene" uid="uid://3shi30ob8pna" path="res://test/grid_building_test/scenes/tile_map/TEST_buildable_10x10_tile_map.tscn" id="11_ldbd8"]
 [ext_resource type="Resource" uid="uid://bdyqov56dermv" path="res://test/grid_building_test/resources/placeable/test_elipse_placeable.tres" id="12_bgrnx"]
+[ext_resource type="Resource" uid="uid://b4s35gca8r3ep" path="res://test/grid_building_test/resources/placeable/placeable_isometric_building.tres" id="12_dl10r"]
+[ext_resource type="Resource" uid="uid://dirh6mcrgdm3w" path="res://test/grid_building_test/resources/placeable/placeable_smithy.tres" id="16_60fh6"]
 [ext_resource type="PackedScene" uid="uid://j5837ml5dduu" path="res://test/grid_building_test/scenes/test_elipse.tscn" id="16_w4obq"]
-
-[sub_resource type="Resource" id="Resource_7eran"]
-metadata/__load_path__ = "res://demos/isometric/objects/buildings/placeable_blacksmith_blue.tres"
-
-[sub_resource type="Resource" id="Resource_dl10r"]
-metadata/__load_path__ = "res://demos/top_down/placement/placeables/placeable_smithy.tres"
 
 [node name="TestSceneLibrary" type="Node"]
 script = ExtResource("1_agdtk")
@@ -38,11 +34,11 @@ placement_validator_platformer = ExtResource("8_xh51g")
 manipulatable_settings_all_allowed = ExtResource("9_tqnys")
 manipulatable_settings_none_allowed = ExtResource("10_u2ly6")
 rules_2_rules_1_tile_check = ExtResource("9_kjt20")
-placeable_blue_blacksmith = SubResource("Resource_7eran")
+placeable_isometric_building = ExtResource("12_dl10r")
 placeable_2d_test = ExtResource("6_05q41")
 placeable_eclipse_skew_rotate = ExtResource("7_t1rup")
 placeable_eclipse = ExtResource("12_bgrnx")
-placeable_smithy = SubResource("Resource_dl10r")
+placeable_smithy = ExtResource("16_60fh6")
 placeable_instance_script = ExtResource("10_k02hw")
 box_scripted = ExtResource("8_npblc")
 keep_script_scene = ExtResource("11_1lbb3")

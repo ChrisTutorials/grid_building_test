@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="CategoricalTag" load_steps=2 format=3 uid="uid://d2mfmu71p1f8h"]
+
+[ext_resource type="Script" uid="uid://b064bdpoigkqi" path="res://addons/grid_building/placement/placeable/categorical_tag.gd" id="1_ehp25"]
+
+[resource]
+script = ExtResource("1_ehp25")
+display_name = &""
+metadata/_custom_type_script = ExtResource("1_ehp25")

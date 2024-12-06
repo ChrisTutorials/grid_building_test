@@ -18,7 +18,7 @@ extends GdUnitTestSuite
 @export var rules_2_rules_1_tile_check : ManipulatableSettings
 
 @export_group("Placeables")
-@export var placeable_blue_blacksmith : Placeable
+@export var placeable_isometric_building : Placeable
 @export var placeable_2d_test : Placeable
 @export var placeable_eclipse_skew_rotate : Placeable # Skewed and rotated eclipse shape scene
 @export var placeable_eclipse : Placeable 
