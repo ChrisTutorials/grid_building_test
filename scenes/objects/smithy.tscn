@@ -1,6 +1,5 @@
-[gd_scene load_steps=5 format=3 uid="uid://ch0nkdmph7s3r"]
+[gd_scene load_steps=4 format=3 uid="uid://ch0nkdmph7s3r"]
 
-[ext_resource type="Texture2D" uid="uid://c131kxlvryehv" path="res://demos/top_down/art/smithy_td.png" id="1_ibfd1"]
 [ext_resource type="Script" uid="uid://bib4d58jc2hi1" path="res://addons/grid_building/components/manipulatable.gd" id="2_2e4hm"]
 [ext_resource type="Resource" uid="uid://dn881lunp3lrm" path="res://test/grid_building_test/resources/settings/manipulatable/manipulatable_settings_all_allowed.tres" id="3_byjoc"]
 
@@ -18,7 +17,6 @@ shape = SubResource("RectangleShape2D_0iohm")
 [node name="StaticBody2D" type="StaticBody2D" parent="."]
 
 [node name="Sprite2D" type="Sprite2D" parent="StaticBody2D"]
-texture = ExtResource("1_ibfd1")
 
 [node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="StaticBody2D"]
 position = Vector2(0, 32)
