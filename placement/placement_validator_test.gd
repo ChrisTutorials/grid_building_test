@@ -22,6 +22,8 @@ var rule_check_indicator_template : PackedScene
 var test_rules : Array[PlacementRule]
 var user_state : UserState
 
+var empty_rules_array : Array[PlacementRule] = []
+
 func before():
 	library = auto_free(TestSceneLibrary.instance_library())
 	rule_check_indicator_template = library.indicator_min.duplicate(true)
@@ -86,7 +88,7 @@ func test_setup_rules_with_debug():
 		verify(rule, 1).setup()
 
 func test_get_combined_rules(p_added_rules : Array[PlacementRule], p_validator : PlacementValidator, test_parameters = [
-	[null, library.placement_validator_platformer],
+	[empty_rules_array, library.placement_validator_platformer],
 	[library.placeable_smithy.placement_rules, library.placement_validator_platformer]
 ]) -> void:
 	var expected_count = 0
