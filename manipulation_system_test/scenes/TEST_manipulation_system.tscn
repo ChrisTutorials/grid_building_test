@@ -1,29 +1,124 @@
-[gd_scene load_steps=11 format=3 uid="uid://wh23y2c2nv8s"]
+[gd_scene load_steps=26 format=3 uid="uid://wh23y2c2nv8s"]
 
-[ext_resource type="Script" path="res://addons/grid_building/manipulation_system/manipulation_system.gd" id="1_v3fhe"]
-[ext_resource type="Resource" uid="uid://v3jkpx5x5si1" path="res://demos/shared/state/manipulation_state.tres" id="2_6u1i1"]
-[ext_resource type="Resource" uid="uid://q7ijvntxmcep" path="res://demos/shared/settings/manipulation_settings.tres" id="3_82e8p"]
-[ext_resource type="Resource" uid="uid://c47mr6w5q844j" path="res://demos/shared/settings/manipulation_messages.tres" id="4_f6wm2"]
-[ext_resource type="Resource" uid="uid://cor3j36tkls2i" path="res://demos/shared/settings/manipulation_actions.tres" id="5_edc7d"]
-[ext_resource type="Resource" uid="uid://bs55u8svvrwjg" path="res://demos/shared/state/grid_targeting_state.tres" id="7_a6yvd"]
-[ext_resource type="Resource" uid="uid://d3ltu8o6o6oyr" path="res://demos/shared/settings/mode_input_actions.tres" id="7_l87vy"]
-[ext_resource type="Script" path="res://addons/grid_building/components/target_highlighter.gd" id="8_7kp05"]
-[ext_resource type="Resource" uid="uid://c3lgdolvfxsr1" path="res://demos/shared/state/mode_state.tres" id="8_ea3e3"]
-[ext_resource type="Resource" uid="uid://dggqunhqpaiyq" path="res://demos/shared/settings/highlight_settings.tres" id="9_ryq3y"]
+[ext_resource type="Script" uid="uid://c2tafmcbbiujk" path="res://addons/grid_building/manipulation_system/manipulation_system.gd" id="1_v3fhe"]
+[ext_resource type="Script" uid="uid://tkxv7xnag6p" path="res://addons/grid_building/manipulation_system/manipulation_state.gd" id="2_af683"]
+[ext_resource type="Script" uid="uid://dd2upd0f43el6" path="res://addons/grid_building/manipulation_system/manipulation_settings.gd" id="3_fp2q6"]
+[ext_resource type="Script" uid="uid://bbs0ae8dfmykd" path="res://addons/grid_building/manipulation_system/manipulation_messages.gd" id="4_37tvi"]
+[ext_resource type="Script" uid="uid://csdqshkhrm6w2" path="res://addons/grid_building/building_system/manipulation_actions.gd" id="5_uxs2b"]
+[ext_resource type="Script" uid="uid://ceem2vqcha7ki" path="res://addons/grid_building/placement/placement_rules/placement_rule.gd" id="6_ypdbk"]
+[ext_resource type="Script" uid="uid://dvmax3raus7dd" path="res://addons/grid_building/placement/placement_validator.gd" id="7_u87cg"]
+[ext_resource type="Script" uid="uid://b8uqw4y2hgns3" path="res://addons/grid_building/components/target_highlighter.gd" id="8_7kp05"]
+[ext_resource type="Script" uid="uid://c8hw374osd1hc" path="res://addons/grid_building/grid_targeting_system/grid_targeting_state.gd" id="8_d71sv"]
+[ext_resource type="Script" uid="uid://c4po6ss2qlr6i" path="res://addons/grid_building/mode/mode_state.gd" id="9_x0ype"]
+[ext_resource type="Script" uid="uid://cofn410axohgc" path="res://addons/grid_building/building_system/building_state.gd" id="10_huuel"]
+[ext_resource type="Script" uid="uid://biy0g1ayuhirh" path="res://addons/grid_building/mode/mode_input_actions.gd" id="11_wp7ak"]
+
+[sub_resource type="Resource" id="Resource_yie1f"]
+script = ExtResource("2_af683")
+metadata/_custom_type_script = ExtResource("2_af683")
+
+[sub_resource type="Resource" id="Resource_5e5jh"]
+script = ExtResource("3_fp2q6")
+rotate_increment_degrees = 90.0
+enable_demolish = false
+demolish_while_moving = false
+enable_rotate = true
+enable_flip_horizontal = true
+enable_flip_vertical = true
+reset_transform_on_manipulation = false
+disable_layer_in_manipulation = false
+disabled_physics_layer = 0
+metadata/_custom_type_script = ExtResource("3_fp2q6")
+
+[sub_resource type="Resource" id="Resource_r5nry"]
+script = ExtResource("4_37tvi")
+no_move_target = "There is no target to move."
+target_not_manipulatable = "Target is not manipulatable."
+demolish_already_deleted = "Target of demolish_data %s was already deleted."
+unsupported_node_type = "Unsupported node type %s"
+demolish_success = "%s was demolished successfully."
+failed_not_demolishable = "%s is not demolishable"
+move_started = "Move action started on %s"
+move_success = "%s moved to new location successfully."
+invalid_data = "%s is not valid. Cannot move object"
+failed_placement_invalid = "Cannot place %s here."
+failed_manipulation_state_invalid = "Manipulation state failed to validate. Check warnings for possible missing properties."
+failed_object_not_manipulatable = "%s is not manipulatable."
+failed_root_not_assigned = "%s's root has not been assigned"
+failed_root_not_node2D = "%s's root is not a Node2D"
+failed_to_start_move = "%s was unable to start move successfully."
+failed_no_target_object = "There is no target object."
+target_not_rotatable = "%s cannot be rotated."
+target_not_flippable_horizontally = "%s target cannot be flipped horizontally."
+target_not_flippable_vertically = "%s target cannot be flipped vertically."
+metadata/_custom_type_script = ExtResource("4_37tvi")
+
+[sub_resource type="Resource" id="Resource_i6che"]
+script = ExtResource("5_uxs2b")
+confirm = &"confirm"
+rotate_right = &"rotate_right"
+rotate_left = &"rotate_left"
+flip_horizontal = &"flip_horizontal"
+flip_vertical = &"flip_vertical"
+metadata/_custom_type_script = ExtResource("5_uxs2b")
+
+[sub_resource type="Resource" id="Resource_32qg8"]
+script = ExtResource("7_u87cg")
+base_rules = Array[ExtResource("6_ypdbk")]([])
+all_succeeded_message = "All rule checks passed"
+failed_validations_message = "--- Rules Failed ---"
+failed_message_base = "Failed Placement"
+show_debug = false
+metadata/_custom_type_script = ExtResource("7_u87cg")
+
+[sub_resource type="Resource" id="Resource_w6781"]
+script = ExtResource("8_d71sv")
+metadata/_custom_type_script = ExtResource("8_d71sv")
+
+[sub_resource type="Resource" id="Resource_fflox"]
+script = ExtResource("9_x0ype")
+mode = 0
+metadata/_custom_type_script = ExtResource("9_x0ype")
+
+[sub_resource type="Resource" id="Resource_d7ddo"]
+script = ExtResource("10_huuel")
+metadata/_custom_type_script = ExtResource("10_huuel")
+
+[sub_resource type="Resource" id="Resource_hpm7b"]
+script = ExtResource("11_wp7ak")
+off_mode = &"off_mode"
+build_mode = &"build_mode"
+moving_mode = &"moving_mode"
+demolish_mode = &"demolish_mode"
+metadata/_custom_type_script = ExtResource("11_wp7ak")
+
+[sub_resource type="Resource" id="Resource_bfbdd"]
+metadata/__load_path__ = "res://demos/shared/state/mode_state.tres"
+
+[sub_resource type="Resource" id="Resource_ck8gx"]
+metadata/__load_path__ = "res://demos/shared/state/grid_targeting_state.tres"
+
+[sub_resource type="Resource" id="Resource_pgoqf"]
+metadata/__load_path__ = "res://demos/shared/state/manipulation_state.tres"
+
+[sub_resource type="Resource" id="Resource_geuh2"]
+metadata/__load_path__ = "res://demos/shared/settings/highlight_settings.tres"
 
 [node name="ManipulationSystem" type="Node"]
 script = ExtResource("1_v3fhe")
-state = ExtResource("2_6u1i1")
-settings = ExtResource("3_82e8p")
-messages = ExtResource("4_f6wm2")
-actions = ExtResource("5_edc7d")
-targeting_state = ExtResource("7_a6yvd")
-mode_state = ExtResource("8_ea3e3")
-mode_actions = ExtResource("7_l87vy")
+state = SubResource("Resource_yie1f")
+settings = SubResource("Resource_5e5jh")
+messages = SubResource("Resource_r5nry")
+actions = SubResource("Resource_i6che")
+placement_validator = SubResource("Resource_32qg8")
+targeting_state = SubResource("Resource_w6781")
+mode_state = SubResource("Resource_fflox")
+building_state = SubResource("Resource_d7ddo")
+mode_actions = SubResource("Resource_hpm7b")
 
 [node name="TargetHighlighter" type="Node" parent="."]
 script = ExtResource("8_7kp05")
-mode_state = ExtResource("8_ea3e3")
-targeting_state = ExtResource("7_a6yvd")
-manipulation_state = ExtResource("2_6u1i1")
-highlight_settings = ExtResource("9_ryq3y")
+mode_state = SubResource("Resource_bfbdd")
+targeting_state = SubResource("Resource_ck8gx")
+manipulation_state = SubResource("Resource_pgoqf")
+highlight_settings = SubResource("Resource_geuh2")

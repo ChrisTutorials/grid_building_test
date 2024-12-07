@@ -20,6 +20,8 @@ var placer : Node2D
 var placed_parent : Node2D
 var building_actions : BuildingActions
 
+var test_2d_placeable = load("res://test/grid_building_test/resources/placeable/test_2d_placeable.tres")
+
 func before_test():
 	library = auto_free(TestSceneLibrary.instance_library())
 	placer = auto_free(Node2D.new())
@@ -201,7 +203,7 @@ func test_try_build(p_placeable : Placeable, p_expected : Object, test_parameter
 
 func test__build(p_placeable : Placeable, p_expected, test_parameters = [
 	[null, null],
-	[load("res://test/grid_building_test/resources/placeable/test_2d_placeable.tres"), any_object()]
+	[test_2d_placeable, any_object()]
 ]) -> void:
 	system.selected_placeable = p_placeable
 	

@@ -24,8 +24,6 @@ func before():
 	library = auto_free(TestSceneLibrary.instance_library())
 
 func before_test():
-	
-	
 	# Setup user state
 	user_state = UserState.new()
 	manipulator = auto_free(Node.new())
