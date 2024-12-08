@@ -1,4 +1,4 @@
-[gd_scene load_steps=26 format=3 uid="uid://wh23y2c2nv8s"]
+[gd_scene load_steps=25 format=3 uid="uid://wh23y2c2nv8s"]
 
 [ext_resource type="Script" uid="uid://c2tafmcbbiujk" path="res://addons/grid_building/manipulation_system/manipulation_system.gd" id="1_v3fhe"]
 [ext_resource type="Script" uid="uid://tkxv7xnag6p" path="res://addons/grid_building/manipulation_system/manipulation_state.gd" id="2_af683"]
@@ -12,6 +12,7 @@
 [ext_resource type="Script" uid="uid://c4po6ss2qlr6i" path="res://addons/grid_building/mode/mode_state.gd" id="9_x0ype"]
 [ext_resource type="Script" uid="uid://cofn410axohgc" path="res://addons/grid_building/building_system/building_state.gd" id="10_huuel"]
 [ext_resource type="Script" uid="uid://biy0g1ayuhirh" path="res://addons/grid_building/mode/mode_input_actions.gd" id="11_wp7ak"]
+[ext_resource type="Script" uid="uid://b4kfcjekrmwxx" path="res://addons/grid_building/grid_targeting_system/highlight_settings.gd" id="13_fp2q6"]
 
 [sub_resource type="Resource" id="Resource_yie1f"]
 script = ExtResource("2_af683")
@@ -92,17 +93,20 @@ moving_mode = &"moving_mode"
 demolish_mode = &"demolish_mode"
 metadata/_custom_type_script = ExtResource("11_wp7ak")
 
-[sub_resource type="Resource" id="Resource_bfbdd"]
-metadata/__load_path__ = "res://demos/shared/state/mode_state.tres"
+[sub_resource type="Resource" id="Resource_37tvi"]
+script = ExtResource("2_af683")
+metadata/_custom_type_script = ExtResource("2_af683")
 
-[sub_resource type="Resource" id="Resource_ck8gx"]
-metadata/__load_path__ = "res://demos/shared/state/grid_targeting_state.tres"
-
-[sub_resource type="Resource" id="Resource_pgoqf"]
-metadata/__load_path__ = "res://demos/shared/state/manipulation_state.tres"
-
-[sub_resource type="Resource" id="Resource_geuh2"]
-metadata/__load_path__ = "res://demos/shared/settings/highlight_settings.tres"
+[sub_resource type="Resource" id="Resource_uxs2b"]
+script = ExtResource("13_fp2q6")
+build_preview_color = Color(0.6, 0.6, 1, 0.8)
+move_valid_color = Color(0.2, 1, 0.2, 1)
+move_invalid_color = Color(1, 0.2, 0.2, 1)
+active_manipulation_color = Color(0.2, 0.2, 1, 0.7)
+demolish_valid_color = Color(0.2, 1, 0.2, 1)
+demolish_invalid_color = Color(1, 0.2, 0.2, 1)
+reset_color = Color(1, 1, 1, 1)
+metadata/_custom_type_script = ExtResource("13_fp2q6")
 
 [node name="ManipulationSystem" type="Node"]
 script = ExtResource("1_v3fhe")
@@ -118,7 +122,7 @@ mode_actions = SubResource("Resource_hpm7b")
 
 [node name="TargetHighlighter" type="Node" parent="."]
 script = ExtResource("8_7kp05")
-mode_state = SubResource("Resource_bfbdd")
-targeting_state = SubResource("Resource_ck8gx")
-manipulation_state = SubResource("Resource_pgoqf")
-highlight_settings = SubResource("Resource_geuh2")
+mode_state = SubResource("Resource_fflox")
+targeting_state = SubResource("Resource_w6781")
+manipulation_state = SubResource("Resource_37tvi")
+highlight_settings = SubResource("Resource_uxs2b")

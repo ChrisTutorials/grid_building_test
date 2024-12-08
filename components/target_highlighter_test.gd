@@ -23,6 +23,7 @@ func before_test():
 	highlighter = TargetHighlighter.new()
 	settings = HighlightSettings.new()
 	manipulation_state = ManipulationState.new()
+	highlighter.targeting_state = GridTargetingState.new()
 	highlighter.highlight_settings = settings
 	highlighter.manipulation_state = manipulation_state
 	mode = ModeState.new()

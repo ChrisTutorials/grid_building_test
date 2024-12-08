@@ -77,6 +77,7 @@ func test_before_test_setup():
 	assert_bool(valid).override_failure_message("System should be valid before running tests.").is_true()
 
 func test_instantiate_placeable_preview() -> void:
+	
 	var null_result = system.instantiate_placeable_preview(null)
 	assert_object(null_result).is_null()
 	

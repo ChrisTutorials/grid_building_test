@@ -45,11 +45,11 @@ func before_test():
 	targeting_state.maps = [targeting_state.target_map]
 	targeting_state.origin_state = user_state
 	
-	
 	placement_validator = PlacementValidator.new()
 	system.state = manipulation_state
 	system.targeting_state = targeting_state
 	system.placement_validator = placement_validator
+	system.mode_state = ModeState.new()
 	add_child(system)
 	
 	var rci_manager = auto_free(RuleCheckIndicatorManager.new(null, targeting_state, placement_validator))
@@ -221,7 +221,7 @@ func test_try_placement(p_settings : ManipulatableSettings, p_expected : bool, t
 	assert_vector(source.root.global_position).append_failure_message("Should have moved to test location").is_equal(test_location)
 
 @warning_ignore("unused_parameter")
-func test_try_move(p_target_root : Node, p_expected : GBEnums.Status, test_parameters = [
+func test_try_move(p_target_root : Variant, p_expected : GBEnums.Status, test_parameters = [
 	[null, GBEnums.Status.FAILED],
 	[auto_free(Node.new()), GBEnums.Status.FAILED],
 	[auto_free(Manipulatable.new()), GBEnums.Status.FAILED],
