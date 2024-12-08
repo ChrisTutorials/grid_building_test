@@ -28,30 +28,36 @@ func before_test():
 	placed_parent = auto_free(Node2D.new())
 	add_child(placed_parent)
 	
+	
+	grid_positioner = auto_free(Node2D.new())
+	add_child(grid_positioner)
+	
+	
+	tile_map = auto_free(TileMap.new())
+	add_child(tile_map)
+	tile_set = TileSet.new()
+	tile_map.tile_set = tile_set
+	
+	targeting_state = auto_free(GridTargetingState.new())
+	targeting_state.positioner = grid_positioner
+	targeting_state.target_map = tile_map
+	targeting_state.maps = [tile_map]
+	
 	mode_state = ModeState.new()
 	system = auto_free(BuildingSystem.new())
 	building_actions = BuildingActions.new()
 	system.actions = building_actions
 	system.mode_actions = ModeInputActions.new()
 	system.mode_state = mode_state
+	system.state = BuildingState.new()
+	system.placement_validator = PlacementValidator.new()
+	system.targeting_state = targeting_state
 	
 	add_child(system)
 	
-	grid_positioner = auto_free(Node2D.new())
-	add_child(grid_positioner)
-	
-	targeting_state = auto_free(GridTargetingState.new())
-	system.targeting_state = targeting_state
-	system.targeting_state.positioner = grid_positioner
 	user_state = UserState.new()
 	user_state.user = placer
 	system.targeting_state.origin_state = user_state
-	
-	tile_map = auto_free(TileMap.new())
-	add_child(tile_map)
-	tile_set = TileSet.new()
-	tile_map.tile_set = tile_set
-	targeting_state.target_map = tile_map
 	
 	
 	system.placement_validator = PlacementValidator.new()
@@ -146,7 +152,7 @@ func test_set_buildable_preview():
 	assert_bool(test_placeable.validate()).is_true()
 	var successful = system.set_buildable_preview(test_placeable)
 	
-	if(not successful):
+	if not successful:
 		fail("Buildable preview should have successfully instanced")
 		return
 		
