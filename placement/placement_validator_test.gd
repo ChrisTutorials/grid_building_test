@@ -87,6 +87,7 @@ func test_setup_rules_with_debug():
 	for rule in validator.base_rules:
 		verify(rule, 1).setup()
 
+@warning_ignore("unused_parameter")
 func test_get_combined_rules(p_added_rules : Array[PlacementRule], p_validator : PlacementValidator, test_parameters = [
 	[empty_rules_array, library.placement_validator_platformer],
 	[library.placeable_smithy.placement_rules, library.placement_validator_platformer]

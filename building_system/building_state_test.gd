@@ -25,8 +25,8 @@ func after_test():
 	placer.free()
 	placed_parent.free()
 
-func test_validate_setup() -> void:
-	assert_bool(state.validate_setup()).append_failure_message("Is false because placed parent etc have not been set").is_false()
+func test_validate() -> void:
+	assert_bool(state.validate()).append_failure_message("Is false because placed parent etc have not been set").is_false()
 	
 func test_placer_dereference_on_exit():
 	var test_placer = Node.new()

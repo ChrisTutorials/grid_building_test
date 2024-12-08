@@ -28,6 +28,7 @@ func before_test():
 	map = auto_free(library.tile_map_buildable.instantiate())
 	add_child(map)
 
+@warning_ignore("unused_parameter")
 func test_does_tile_have_valid_data(p_indicator : RuleCheckIndicator, p_expected : bool, test_parameters = [
 	[null, false],
 	[no_setup_indicator, true],

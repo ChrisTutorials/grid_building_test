@@ -13,7 +13,7 @@ var manipulation_state : ManipulationState
 var mode : ModeState
 var targeting_state : GridTargetingState
 
-var target : Node2D
+var highlight_target : Node2D
 
 var data_source_is_target : ManipulationData
 var data_source_is_not_target : ManipulationData
@@ -33,9 +33,9 @@ func before_test():
 	targeting_state = GridTargetingState.new()
 	highlighter.targeting_state = targeting_state
 	
-	target = auto_free(Node2D.new())
-	add_child(target)
-	targeting_state.target = target	
+	highlight_target = auto_free(Node2D.new())
+	add_child(highlight_target)
+	targeting_state.target = highlight_target	
 	#endregion
 	
 	factory = auto_free(TestingManipulatableFactory.new())
@@ -56,6 +56,7 @@ func test_target_modulate_clears_on_target_null() -> void:
 	assert_that(target).is_not_null()
 	assert_that(target.modulate).is_equal(settings.reset_color)
 
+@warning_ignore("unused_parameter")
 func test__on_target_changed(p_mode : GBEnums.Mode, p_expected_invalid : Color, p_expected_valid : Color, test_parameters = [
 	[GBEnums.Mode.OFF, settings.reset_color, settings.reset_color],
 	[GBEnums.Mode.BUILD, settings.build_preview_color, settings.build_preview_color], # NOTE: There is no invalid build preview so color is the same
@@ -86,6 +87,7 @@ func test__on_target_changed(p_mode : GBEnums.Mode, p_expected_invalid : Color, 
 	
 	assert_object(target.modulate).is_equal(p_expected_valid)
 
+@warning_ignore("unused_parameter")
 func test_set_movable_display(p_moveable : bool, p_expected_color : Color, p_target, test_parameters = [
 	[true, settings.move_valid_color, auto_free(Node2D.new())],
 	[false, settings.move_invalid_color, auto_free(Node2D.new())],
@@ -95,6 +97,7 @@ func test_set_movable_display(p_moveable : bool, p_expected_color : Color, p_tar
 	var result_color = highlighter.set_movable_display(p_target, p_moveable)
 	assert_that(result_color).is_equal(p_expected_color)
 	
+@warning_ignore("unused_parameter")
 func test_set_demolish_display(p_moveable : bool, p_expected_color : Color, p_target, test_parameters = [
 	[true, settings.demolish_valid_color, auto_free(Node2D.new())],
 	[false, settings.demolish_invalid_color, auto_free(Node2D.new())],
@@ -104,6 +107,7 @@ func test_set_demolish_display(p_moveable : bool, p_expected_color : Color, p_ta
 		assert_that(color).is_equal(p_expected_color)
 
 
+@warning_ignore("unused_parameter")
 func test_set_actionable_colors(p_mode : GBEnums.Mode, p_add_manipulatable_settings : bool, p_expected : Color, test_parameters = [
 	[GBEnums.Mode.OFF,	 	false, Color.WHITE],
 	[GBEnums.Mode.MOVE, 		false, settings.move_invalid_color],
@@ -128,9 +132,10 @@ func test_set_actionable_colors(p_mode : GBEnums.Mode, p_add_manipulatable_setti
 func add_child_manipulatable_with_settings(p_target : Node):
 	var manipulatable = auto_free(Manipulatable.new())
 	p_target.add_child(manipulatable)
-	var settings = ManipulatableSettings.new()
-	manipulatable.settings = settings
+	var manipulatable_settings = ManipulatableSettings.new()
+	manipulatable.settings = manipulatable_settings
 
+@warning_ignore("unused_parameter")
 func test_should_highlight(p_data : ManipulationData, p_new_target : CanvasItem, p_expected : bool, test_parameters = [
 	[null, null, false],
 	[null, auto_free(Node2D.new()), true],

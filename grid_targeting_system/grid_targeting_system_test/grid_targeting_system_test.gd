@@ -40,10 +40,10 @@ func before_test():
 	var origin_state = UserState.new()
 	state.origin_state = origin_state
 	origin_state.user = placer
-	assert_bool(state.validator.validate()).append_failure_message("State passes validation check.").is_true()
+	assert_bool(state.validate()).append_failure_message("State passes validation check.").is_true()
 	
 	settings = library.grid_targeting_settings.duplicate(true)
-	assert_bool(settings.validator.validate()).append_failure_message("Settings passes validation check.").is_true()
+	assert_bool(settings.validate()).append_failure_message("Settings passes validation check.").is_true()
 	system = auto_free(GridTargetingSystem.new())
 	system.state = state
 	system.settings = settings
@@ -52,12 +52,13 @@ func before_test():
 
 func test_has_valid_setup():
 	assert_object(system.state).append_failure_message("Building state must be set.").is_not_null()
-	assert_bool(system.state.validate_setup()).is_true()
+	assert_bool(system.state.validate()).is_true()
 	assert_object(system.astar_grid).append_failure_message("Astar grid was not generated").is_not_null()
 	assert_vector(system.astar_grid.region.size).is_equal(Vector2i(50,50))
 	assert_int(settings.max_tile_distance).append_failure_message("Tests by default expect this to be 3").is_equal(3)
 
 # Test the System's astar grid to see that certain locations are in or out of bounds
+@warning_ignore("unused_parameter")
 func test_is_in_bounds(p_tile_location : Vector2i, p_expected : bool, test_parameters = [
 	[Vector2i(49,49), true],
 	[Vector2i(50,50), false],
@@ -73,6 +74,7 @@ func test_is_in_bounds(p_tile_location : Vector2i, p_expected : bool, test_param
 	var is_in_bounds = system.astar_grid.is_in_bounds(p_tile_location.x, p_tile_location.y)
 	assert_bool(is_in_bounds).is_equal(p_expected)
 
+@warning_ignore("unused_parameter")
 func test_get_max_tile_distance_tile_to_target(p_tile_location : Vector2i, p_expected_in_bounds : bool, p_expected_tile_distance : Variant, test_parameters = [
 	[Vector2i(50,50), false, null],
 	[Vector2i(20,20), true, Vector2(settings.max_tile_distance, settings.max_tile_distance)]
@@ -90,6 +92,7 @@ func test_get_max_tile_distance_tile_to_target(p_tile_location : Vector2i, p_exp
 	assert_that(tile_distance).is_equal(p_expected_tile_distance)
 
 ## Test get max tile distance when AStar grid is set to no diaganols and manhattan search pattern
+@warning_ignore("unused_parameter")
 func test_get_max_tile_distance_tile_to_target_no_diaganols(p_test_location : Vector2i, p_expected_tile : Variant, test_parameters = [
 	[Vector2i(-1,0), Vector2.ZERO],
 	[Vector2i(0,-1), Vector2.ZERO],
@@ -103,6 +106,7 @@ func test_get_max_tile_distance_tile_to_target_no_diaganols(p_test_location : Ve
 	var no_diag_limited_tile = system.get_max_tile_distance_tile_to_target(positioner, p_test_location)
 	assert_that(no_diag_limited_tile).is_equal(p_expected_tile)
 
+@warning_ignore("unused_parameter")
 func test_move_node_to_closest_valid_tile(p_target : Vector2i, p_expected_error : int, test_parameters = [
 	[Vector2i(-200,-200), OK]
 ]):
@@ -111,12 +115,12 @@ func test_move_node_to_closest_valid_tile(p_target : Vector2i, p_expected_error 
 	var off_map_result = system.move_node_to_closest_valid_tile(p_target, positioner, placer)
 	assert_that(off_map_result).append_failure_message("Did not run successfully").is_equal(p_expected_error)
 
+@warning_ignore("unused_parameter")
 func test_snap_tile_to_region(p_snap_tile : Vector2i, p_expected_tile : Vector2i, test_parameters = [
 	[Vector2i(26,26), Vector2i(25,25)],
 	[Vector2i(-26,-26), Vector2i(-25, -25)]
 ]):
 	var grid : AStarGrid2D = create_astar_grid_centered_on_0_size_50()
-	var test_tile_bottom_right = Vector2i(26,26)
 	var result = system.snap_tile_to_region(p_snap_tile, grid.region)
 	assert_vector(result).is_equal(p_expected_tile)
 

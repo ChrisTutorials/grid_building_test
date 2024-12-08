@@ -30,7 +30,7 @@ func before():
 	library = auto_free(TestSceneLibrary.instance_library())
 	assert_object(library.indicator).is_not_null()
 	
-	tile_map = TileMap.new()
+	tile_map = auto_free(TileMap.new())
 	add_child(tile_map)
 	tile_map.tile_set = tile_set
 	tile_map.add_layer(0)
@@ -41,26 +41,22 @@ func before():
 			var cords = Vector2i(x, y)
 			tile_map.set_cell(0, cords, 0, Vector2i(0,0))
 			
-	placer = Node2D.new()
+	placer = auto_free(Node2D.new())
 	add_child(placer)
 	user_state = UserState.new()
 	user_state.user = placer
 	
-	placed_parent = Node2D.new()
+	placed_parent = auto_free(Node2D.new())
 	add_child(placed_parent)
 	
 	base_rules = [CollisionsCheckRule.new()]
 	col_checking_rules = RuleFilters.only_tile_check(base_rules)
 	placement_validator = PlacementValidator.new()
 
-func after():
-	tile_map.free()
-	placer.free()
-	placed_parent.free()
-
 func before_test():
 	targeting_state = GridTargetingState.new()
 	targeting_state.target_map = tile_map
+	targeting_state.maps = [tile_map]
 	
 	#region Positioner Node2D Setup
 	positioner = auto_free(GridPositioner2D.new())
@@ -99,6 +95,7 @@ func after_test():
 	placement_validator.tear_down()
 
 ## Tests that the number of indicators generated for p_shape_scene matches the p_expected_indicators
+@warning_ignore("unused_parameter")
 func test_setup_indicators(p_shape_scene_path : String, p_expected_indicators : int, test_parameters = [
 	[eclipse_scene_path, 27]
 ]):
@@ -110,6 +107,7 @@ func test_setup_indicators(p_shape_scene_path : String, p_expected_indicators : 
 
 
 # Check that the distance between indicators 0 and 1 is the expected value
+@warning_ignore("unused_parameter")
 func test_indicator_generation_distance(p_shape_scene_path : String, p_expected_distance : float, test_parameters = [
 	[eclipse_scene_path, 16.0]
 ]):
@@ -119,7 +117,7 @@ func test_indicator_generation_distance(p_shape_scene_path : String, p_expected_
 	var indicator_0 = rci_manager.indicators[0]
 	var indicator_1 = rci_manager.indicators[1]
 	var distance_to = indicator_0.global_position.distance_to(indicator_1.global_position)
-	assert_float(distance_to).append_failure_message("16x16 tile spacing").is_equal(16.0)
+	assert_float(distance_to).append_failure_message("16x16 tile spacing").is_equal(p_expected_distance)
 	
 func test_rect_15_tile_shape_count():
 	#region Setup

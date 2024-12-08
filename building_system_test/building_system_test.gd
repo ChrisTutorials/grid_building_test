@@ -20,8 +20,6 @@ var placer : Node2D
 var placed_parent : Node2D
 var building_actions : BuildingActions
 
-var test_2d_placeable = load("res://test/grid_building_test/resources/placeable/test_2d_placeable.tres")
-
 func before_test():
 	library = auto_free(TestSceneLibrary.instance_library())
 	placer = auto_free(Node2D.new())
@@ -36,6 +34,7 @@ func before_test():
 	system.actions = building_actions
 	system.mode_actions = ModeInputActions.new()
 	system.mode_state = mode_state
+	
 	add_child(system)
 	
 	grid_positioner = auto_free(Node2D.new())
@@ -68,7 +67,7 @@ func before_test():
 	
 func test_before_test_setup():
 	assert_object(system).is_not_null()
-	var valid = system.validate_setup()
+	var valid = system.validate()
 	assert_bool(valid).override_failure_message("System should be valid before running tests.").is_true()
 
 func test_instantiate_placeable_preview() -> void:
@@ -144,7 +143,7 @@ func test_validate_input_map():
 func test_set_buildable_preview():
 	var test_placeable = Placeable.new()
 	test_placeable.packed_scene = library.box_scripted
-	assert_bool(test_placeable.validator.validate()).is_true()
+	assert_bool(test_placeable.validate()).is_true()
 	var successful = system.set_buildable_preview(test_placeable)
 	
 	if(not successful):
@@ -162,6 +161,7 @@ func test_set_buildable_preview():
 	for child in preview_instance.get_children():
 		assert_object(child.get_script()).is_null()
 
+@warning_ignore("unused_parameter")
 func test_set_buildable_preview_keep_script_test(p_script : Script, test_parameters = [
 	[library.placeable_instance_script]
 ]):
@@ -188,6 +188,7 @@ func test_set_buildable_preview_keep_script_test(p_script : Script, test_paramet
 	for child in preview_instance.get_children():
 		assert_object(child.get_script()).is_same(p_script)
 
+@warning_ignore("unused_parameter")
 func test_try_build(p_placeable : Placeable, p_expected : Object, test_parameters = [
 	[null, null],
 	[library.placeable_2d_test, any_object()]
@@ -201,9 +202,10 @@ func test_try_build(p_placeable : Placeable, p_expected : Object, test_parameter
 	var result = system.try_build()
 	assert_object(result).is_equal(p_expected)
 
+@warning_ignore("unused_parameter")
 func test__build(p_placeable : Placeable, p_expected, test_parameters = [
 	[null, null],
-	[test_2d_placeable, any_object()]
+	[load("res://test/grid_building_test/resources/placeable/test_2d_placeable.tres"), any_object()]
 ]) -> void:
 	system.selected_placeable = p_placeable
 	

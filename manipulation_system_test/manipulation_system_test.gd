@@ -24,6 +24,8 @@ func before():
 	library = auto_free(TestSceneLibrary.instance_library())
 
 func before_test():
+	
+	
 	# Setup user state
 	user_state = UserState.new()
 	manipulator = auto_free(Node.new())
@@ -58,11 +60,13 @@ func before_test():
 	add_child(positioner)
 	targeting_state.positioner = positioner
 	
-	var validate_result = system.validate_setup()
+	var validate_result = system.validate()
 	assert_bool(validate_result).append_failure_message("System must validate true for tests to pass").is_true()
 	
 	all_manipulatable = create_manipulatable_object(library.manipulatable_settings_all_allowed)
 
+
+@warning_ignore("unused_parameter")
 func test__start_move(p_data : ManipulationData, p_expected : bool, test_parameters = [
 	[create_move_data(null), true],
 	[create_move_data(library.rules_2_rules_1_tile_check), true],
@@ -76,6 +80,8 @@ func test__start_move(p_data : ManipulationData, p_expected : bool, test_paramet
 		
 	assert_vector(p_data.source.root.global_position).is_equal(p_data.target.root.global_position)
 
+
+@warning_ignore("unused_parameter")
 func test_move_already_moving(p_data : ManipulationData, p_expected, test_parameters = [
 	[create_move_data(library.manipulatable_settings_all_allowed), true]
 	]) -> void:
@@ -99,10 +105,12 @@ func test_cancel() -> void:
 	assert_float(origin.x).append_failure_message("Source root should not have changed position.").is_equal_approx(0, 0.01)
 	assert_float(origin.y).append_failure_message("Source root should not have changed position.").is_equal_approx(0, 0.01)
 	 
-	var cancel_result = system.cancel()
+	system.cancel()
 	assert_object(system.state.data).is_null()
 	assert_vector(data.source.root.global_position).is_equal(Vector2.ZERO)
 
+
+@warning_ignore("unused_parameter")
 func test_demolish(p_demolish_target : Manipulatable, p_expected : bool, test_parameters = [
 	[create_manipulatable_object(library.manipulatable_settings_none_allowed), false], # Manipulatable that denies all test
 	[create_manipulatable_object(library.manipulatable_settings_all_allowed), true]	  # Manipulatable that allows all test
@@ -113,8 +121,10 @@ func test_demolish(p_demolish_target : Manipulatable, p_expected : bool, test_pa
 	#if p_expected == false:
 	#	await assert_signal(manipulation_state).append_failure_message("Expected failed signal in test_demolish in ManipulationSystemTest").wait_until(200).is_emitted(manipulation_state.failed.get_name(), [any(), any()])
 
-func test_flip_horizontal(p_manipulatable : Manipulatable, p_expected : bool, test_parameters = [
-	[create_manipulatable_object(library.manipulatable_settings_all_allowed), true]
+
+@warning_ignore("unused_parameter")
+func test_flip_horizontal(p_manipulatable : Manipulatable, test_parameters = [
+	[create_manipulatable_object(library.manipulatable_settings_all_allowed)]
 ]) -> void:
 	var target = p_manipulatable.root
 	
@@ -123,8 +133,10 @@ func test_flip_horizontal(p_manipulatable : Manipulatable, p_expected : bool, te
 	assert_float(target.scale.x).is_equal_approx(original_scale.x * -1, 0.01)
 	assert_float(target.scale.y).is_equal_approx(original_scale.y, 0.01)
 	
-func test_flip_vertical(p_manipulatable : Manipulatable, p_expected : bool, test_parameters = [
-	[create_manipulatable_object(library.manipulatable_settings_all_allowed), true]
+
+@warning_ignore("unused_parameter")
+func test_flip_vertical(p_manipulatable : Manipulatable, test_parameters = [
+	[create_manipulatable_object(library.manipulatable_settings_all_allowed)]
 ]) -> void:
 	var target = p_manipulatable.root
 	
@@ -133,6 +145,8 @@ func test_flip_vertical(p_manipulatable : Manipulatable, p_expected : bool, test
 	assert_float(target.scale.x).is_equal_approx(original_scale.x, 0.01)
 	assert_float(target.scale.y).is_equal_approx(original_scale.y * -1, 0.01)
 
+
+@warning_ignore("unused_parameter")
 func test_rotate(p_manipulatable : Manipulatable, p_expected : bool, test_parameters = [
 	[create_manipulatable_object(library.manipulatable_settings_all_allowed), true]
 	]) -> void:
@@ -145,7 +159,7 @@ func test_rotate(p_manipulatable : Manipulatable, p_expected : bool, test_parame
 	
 	for i in range(0, 10, 1):
 		total_rotation = fmod(total_rotation + rotation_per_time, 360.0)
-		system.rotate(target, rotation_per_time)
+		assert_bool(system.rotate(target, rotation_per_time)).is_equal(p_expected)
 		var remainder_preview = fmod(target.rotation_degrees, rotation_per_time)
 		var remainder_rci = fmod(rci_manager.rotation_degrees, rotation_per_time)
 		assert_float(remainder_preview).is_equal_approx(0.0, 0.0001)
@@ -154,6 +168,8 @@ func test_rotate(p_manipulatable : Manipulatable, p_expected : bool, test_parame
 	preview.free()
 	rci_manager.free()
 	
+
+@warning_ignore("unused_parameter")
 func test_rotate_negative(p_manipulatable : Manipulatable, p_expected : bool, test_parameters = [
 	[create_manipulatable_object(library.manipulatable_settings_all_allowed), true]
 ]):
@@ -166,7 +182,7 @@ func test_rotate_negative(p_manipulatable : Manipulatable, p_expected : bool, te
 	
 	for i in range(0, 10, 1):
 		total_rotation = total_rotation + rotation_per_time
-		system.rotate(target, rotation_per_time)
+		assert_bool(system.rotate(target, rotation_per_time)).is_equal(p_expected)
 		var remainder_preview = fmod(preview.rotation_degrees, rotation_per_time)
 		var remainder_rci = fmod(rci_manager.rotation_degrees, rotation_per_time)
 		assert_float(remainder_preview).is_between(-360.0, 360.0)
@@ -175,6 +191,8 @@ func test_rotate_negative(p_manipulatable : Manipulatable, p_expected : bool, te
 	preview.free()
 	rci_manager.free()
 
+
+@warning_ignore("unused_parameter")
 func test_try_placement(p_settings : ManipulatableSettings, p_expected : bool, test_parameters = [
 	[library.manipulatable_settings_all_allowed, true]
 ]) -> void:
@@ -195,13 +213,14 @@ func test_try_placement(p_settings : ManipulatableSettings, p_expected : bool, t
 	copy.root.global_position = test_location
 	var placement_results : ValidationResults = await system.try_placement(move_data)
 	
-	assert_bool(placement_results.is_successful).append_failure_message(placement_results.message).is_true()
+	assert_bool(placement_results.is_successful).append_failure_message(placement_results.message).is_equal(p_expected)
 	assert_that(copy_root).append_failure_message("Should have been freed after placement").is_null()
 	assert_that(copy).append_failure_message("Copied manipulatable is null").is_null()
 	assert_object(source).append_failure_message("Should still exist after placement").is_not_null()
 	assert_object(source.root).append_failure_message("Should still exist after placement").is_not_null()
 	assert_vector(source.root.global_position).append_failure_message("Should have moved to test location").is_equal(test_location)
 
+@warning_ignore("unused_parameter")
 func test_try_move(p_target_root : Node, p_expected : GBEnums.Status, test_parameters = [
 	[null, GBEnums.Status.FAILED],
 	[auto_free(Node.new()), GBEnums.Status.FAILED],

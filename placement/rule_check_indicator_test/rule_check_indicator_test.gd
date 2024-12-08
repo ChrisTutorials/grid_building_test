@@ -32,6 +32,7 @@ func test_setup_indicator_defaults():
 	assert_vector(indicator.target_position).is_equal(Vector2.ZERO)
 
 ## Testing move distance for an indicator compared to where it will still have collisions with it's shape at the starting position or not
+@warning_ignore("unused_parameter")
 func test_indicator_collide_and_get_contacts(p_move_shape_size_multiplier : Vector2, p_expected_empty : bool, test_parameters = [
 	[Vector2(0, 0), false],
 	[Vector2(0, -1), false],
@@ -53,6 +54,7 @@ func test_indicator_collide_and_get_contacts(p_move_shape_size_multiplier : Vect
 	#endregion
 
 
+@warning_ignore("unused_parameter")
 func test__update_visuals(p_settings : IndicatorVisualSettings, test_parameters = [
 	[load("res://test/grid_building_test/resources/settings/indicator_visual/orange_visual.tres")]
 ]) -> void:

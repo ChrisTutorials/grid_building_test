@@ -9,5 +9,5 @@ const __source = 'res://addons/grid_building/building_system/utilities/gb_search
 
 func test_find_first_when_parent_null() -> void:
 	var parent = null
-	var result = GBSearchUtils.find_first(null, Node)
+	var result = GBSearchUtils.find_first(parent, Node)
 	assert_that(result).is_null()

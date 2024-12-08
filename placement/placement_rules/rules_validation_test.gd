@@ -20,7 +20,7 @@ var library : TestSceneLibrary
 func before():
 	# Loading Setup
 	library = auto_free(TestSceneLibrary.instance_library())
-	assert_bool(library.placeable_eclipse.validator.validate()).is_true()
+	assert_bool(library.placeable_eclipse.validate()).is_true()
 	assert_object(library.eclipse_scene).is_not_null()
 	assert_object(library.indicator).is_instanceof(PackedScene)
 	building_settings = BuildingSettings.new()
@@ -52,7 +52,7 @@ func before_test():
 	targeting_state.target_map = tile_map
 	targeting_state.maps = [tile_map]
 	targeting_state.positioner = positioner
-	assert_bool(targeting_state.validate_setup()).append_failure_message("Targeting state is not set up to be valid. Check warnings.").is_true()
+	assert_bool(targeting_state.validate()).append_failure_message("Targeting state is not set up to be valid. Check warnings.").is_true()
 	
 	placement_validator = PlacementValidator.new()
 	rci_manager = auto_free(RuleCheckIndicatorManager.new(rule_check_indicator_template, targeting_state, placement_validator))
@@ -67,7 +67,7 @@ func before_test():
 ## rule passes the object is allowed to be placed
 func test_no_col_valid_placement_both_pass_with_test_resources():
 	var test_obj = auto_free(Node2D.new())
-	var test_params = setup_validation_no_col_and_buildable(test_obj)
+	var _test_params = setup_validation_no_col_and_buildable(test_obj)
 	
 	var validation_results = placement_validator.validate()
 	assert_object(validation_results).append_failure_message("Placement validator %s failed validation." % placement_validator.resource_path).is_not_null()
@@ -114,6 +114,6 @@ func setup_validation_no_col_and_buildable(p_test_object : Node2D) -> RuleValida
 	assert_bool(valid_setup).append_failure_message("Placement validator failed to setup rules properly.").is_true()
 	
 	# Create indicator AFTER test setup so that rules are ready to evaluate immediately
-	var test_indicator = create_indicator(tile_check_rules)
+	var _test_indicator = create_indicator(tile_check_rules)
 
 	return test_params
