@@ -76,12 +76,18 @@ func test_before_test_setup():
 	var valid = system.validate()
 	assert_bool(valid).override_failure_message("System should be valid before running tests.").is_true()
 
-func test_instantiate_placeable_preview() -> void:
-	
-	var null_result = system.instantiate_placeable_preview(null)
-	assert_object(null_result).is_null()
-	
-	var preview = auto_free(system.instantiate_placeable_preview(library.placeable_2d_test))
+@warning_ignore("unused_parameter")
+func test_instantiate_placeable_preview_fails(p_placeable : Variant, p_warning : String, test_parameters = [
+	[null, system._WARNING_INVALID_PLACEABLE],
+]):
+	var instantiate = func(): system.instantiate_placeable_preview(p_placeable)
+	auto_free(await assert_error(instantiate).is_push_warning(p_warning % p_placeable))
+
+@warning_ignore("unused_parameter")
+func test_instantiate_placeable_preview(p_placeable : Placeable, test_parameters = [
+	[library.placeable_2d_test]
+]) -> void:
+	var preview = auto_free(system.instantiate_placeable_preview(p_placeable))
 	assert_object(preview).is_not_null()
 	
 
