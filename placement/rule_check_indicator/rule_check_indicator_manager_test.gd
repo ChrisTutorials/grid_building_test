@@ -9,7 +9,7 @@ const __source = 'res://addons/grid_building/placement/rule_check_indicator/rule
 
 var library : TestSceneLibrary
 var rci_manager : RuleCheckIndicatorManager
-var tile_set : TileSet = load("res://test/grid_building_test/resources/test_tile_set.tres")
+var tile_set : TileSet = preload("res://test/grid_building_test/resources/test_tile_set.tres")
 var tile_map : TileMap
 var placement_validator : PlacementValidator
 var base_rules : Array[PlacementRule]
