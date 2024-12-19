@@ -24,6 +24,7 @@ var positioner : GridPositioner2D
 
 var global_snap_pos
 
+var test_indicator = preload("res://test/grid_building_test/scenes/indicators/test_indicator.tscn")
 const eclipse_scene_path = "res://test/grid_building_test/scenes/test_elipse.tscn"
 
 func before():
@@ -105,6 +106,17 @@ func test_setup_indicators(p_shape_scene_path : String, p_expected_indicators : 
 	var indicators : Array[RuleCheckIndicator] = rci_manager.setup_indicators(shape_scene, col_checking_rules)
 	assert_int(indicators.size()).append_failure_message("Generated indicator count did not match expected count.").is_equal(p_expected_indicators)
 
+## Ensure proper freeing of objects after using get_or_create_testing_indicator
+## followed by freeing the rci_manager
+func test_get_or_create_testing_indicator_on_free():
+	## Setup
+	rci_manager.get_or_create_testing_indicator(test_indicator)
+	var testing_indicator = rci_manager._testing_indicator
+	assert_object(testing_indicator).is_not_null()
+	
+	## Free Test
+	rci_manager.free()
+	assert_that(testing_indicator).is_null()
 
 # Check that the distance between indicators 0 and 1 is the expected value
 @warning_ignore("unused_parameter")
