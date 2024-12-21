@@ -11,3 +11,6 @@ var state : GridTargetingState
 
 func before_test():
 	state = GridTargetingState.new()
+
+func test_init():
+	assert_object(state).is_not_null()

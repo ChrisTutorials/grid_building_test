@@ -29,6 +29,7 @@ enable_flip_vertical = true
 reset_transform_on_manipulation = false
 disable_layer_in_manipulation = false
 disabled_physics_layer = 0
+move_suffix = "_Move"
 metadata/_custom_type_script = ExtResource("3_fp2q6")
 
 [sub_resource type="Resource" id="Resource_r5nry"]
