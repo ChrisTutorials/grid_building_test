@@ -29,8 +29,17 @@ enable_flip_vertical = true
 reset_transform_on_manipulation = false
 disable_layer_in_manipulation = false
 disabled_physics_layer = 0
-move_suffix = "_Move"
+move_suffix = ""
 metadata/_custom_type_script = ExtResource("3_fp2q6")
+
+[sub_resource type="Resource" id="Resource_i6che"]
+script = ExtResource("5_uxs2b")
+confirm = &"confirm"
+rotate_right = &"rotate_right"
+rotate_left = &"rotate_left"
+flip_horizontal = &"flip_horizontal"
+flip_vertical = &"flip_vertical"
+metadata/_custom_type_script = ExtResource("5_uxs2b")
 
 [sub_resource type="Resource" id="Resource_r5nry"]
 script = ExtResource("4_37tvi")
@@ -54,15 +63,6 @@ target_not_rotatable = "%s cannot be rotated."
 target_not_flippable_horizontally = "%s target cannot be flipped horizontally."
 target_not_flippable_vertically = "%s target cannot be flipped vertically."
 metadata/_custom_type_script = ExtResource("4_37tvi")
-
-[sub_resource type="Resource" id="Resource_i6che"]
-script = ExtResource("5_uxs2b")
-confirm = &"confirm"
-rotate_right = &"rotate_right"
-rotate_left = &"rotate_left"
-flip_horizontal = &"flip_horizontal"
-flip_vertical = &"flip_vertical"
-metadata/_custom_type_script = ExtResource("5_uxs2b")
 
 [sub_resource type="Resource" id="Resource_32qg8"]
 script = ExtResource("7_u87cg")
@@ -113,8 +113,8 @@ metadata/_custom_type_script = ExtResource("13_fp2q6")
 script = ExtResource("1_v3fhe")
 state = SubResource("Resource_yie1f")
 settings = SubResource("Resource_5e5jh")
-messages = SubResource("Resource_r5nry")
 actions = SubResource("Resource_i6che")
+messages = SubResource("Resource_r5nry")
 placement_validator = SubResource("Resource_32qg8")
 targeting_state = SubResource("Resource_w6781")
 mode_state = SubResource("Resource_fflox")
