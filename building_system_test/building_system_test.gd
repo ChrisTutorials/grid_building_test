@@ -20,6 +20,8 @@ var placer : Node2D
 var placed_parent : Node2D
 var building_actions : BuildingActions
 
+var default_preview_script : GDScript = preload("res://addons/grid_building/components/building_node.gd")
+
 func before_test():
 	library = auto_free(TestSceneLibrary.instance_library())
 	placer = auto_free(Node2D.new())
@@ -168,8 +170,9 @@ func test_set_buildable_preview():
 	if not preview_instance:
 		fail("Preview instance should have been instanced. Stopping test.")
 		return 
-		
-	assert_object(preview_instance.get_script()).is_null()
+	
+	var source_code : String = preview_instance.get_script().source_code
+	assert_str(source_code).is_equal(default_preview_script.source_code)
 	
 	for child in preview_instance.get_children():
 		assert_object(child.get_script()).is_null()
