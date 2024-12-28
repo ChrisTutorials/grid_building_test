@@ -11,6 +11,7 @@ func before_test():
 	test_node = auto_free(Node.new())
 	add_child(test_node)
 	
+@warning_ignore("unused_parameter")
 func test_get_display_name(p_name : String, p_method_name : String, p_ex : String, p_ex_start_with : bool, test_parameters = [
 	["TestNode_500", "", "Test Node", false],
 	["TestNode_500", "to_string", "TestNode_500:<Node", true]
@@ -25,6 +26,7 @@ func test_get_display_name(p_name : String, p_method_name : String, p_ex : Strin
 		assert_str(display_name).is_equal(p_ex)
 
 # Tests for building_node.gd the default script attached to preview instance root nodes during building preview
+@warning_ignore("unused_parameter")
 func test_building_node_get_display_name(p_name : String, p_ex : String, test_parameters = [
 	["TestNode_500", "Test Node"]
 ]):
