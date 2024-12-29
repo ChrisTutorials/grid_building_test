@@ -6,18 +6,24 @@ extends GdUnitTestSuite
 # TestSuite generated from
 const __source = 'res://addons/grid_building/utilities/gb_string.gd'
 
-func before_test():
-	var project_num_seperator = ProjectSettings.get_setting("editor/naming/node_name_num_separator")
-	assert_int(project_num_seperator).append_failure_message("EXPECTED UNDERSCORE").is_equal(2) 
+var project_name_num_seperator : int
 
-func test_convert_name_to_readable(p_name : String, p_expected : String, test_parameters = [
+func before_test():
+	project_name_num_seperator = ProjectSettings.get_setting("editor/naming/node_name_num_separator")
+
+func after_test():
+	ProjectSettings.set_setting("editor/naming/node_name_num_separator", project_name_num_seperator)
+
+func test_convert_name_to_readable_underscore(p_name : String, p_expected : String, test_parameters = [
 	["Smithy", "Smithy"],
 	["HelloFriend", "Hello Friend"],
 	["SadBearBearFish", "Sad Bear Bear Fish"],
 	["Smithy_55", "Smithy"]
 ]):
+	ProjectSettings.set_setting("editor/naming/node_name_num_separator", 2)
 	var result : String = GBString.convert_name_to_readable(p_name)
 	assert_str(result).is_equal(p_expected)
+	
 
 func test_match_num_seperator(p_test_char : String, p_seperator : int, p_expected : bool, test_parameters = [
 	[" ", 0, false],

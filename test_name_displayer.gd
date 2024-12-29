@@ -5,11 +5,17 @@ var test_node : Node
 
 
 var building_node_script = preload("res://addons/grid_building/components/building_node.gd")
+var project_name_num_seperator : int
 
 func before_test():
 	name_displayer = NameDisplayer.new()
 	test_node = auto_free(Node.new())
 	add_child(test_node)
+	project_name_num_seperator = ProjectSettings.get_setting("editor/naming/node_name_num_separator")
+	ProjectSettings.set_setting("editor/naming/node_name_num_separator", 2) 
+
+func after_test():
+	ProjectSettings.set_setting("editor/naming/node_name_num_separator", project_name_num_seperator)
 	
 @warning_ignore("unused_parameter")
 func test_get_display_name(p_name : String, p_method_name : String, p_ex : String, p_ex_start_with : bool, test_parameters = [
