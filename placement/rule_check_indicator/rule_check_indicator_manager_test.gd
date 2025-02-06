@@ -91,9 +91,6 @@ func before_test():
 	assert_bool(setup_result).append_failure_message("Setup failed to run successfully on placement_validator").is_true()
 	assert_object(rci_manager.indicator_template).append_failure_message("Indicator template expected to be set on rci_manager.").is_not_null()
 	
-func after_test():
-	positioner.free()
-	placement_validator.tear_down()
 
 ## Tests that the number of indicators generated for p_shape_scene matches the p_expected_indicators
 @warning_ignore("unused_parameter")
