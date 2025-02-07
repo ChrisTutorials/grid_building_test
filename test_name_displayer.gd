@@ -4,7 +4,7 @@ var name_displayer : NameDisplayer
 var test_node : Node
 
 
-var building_node_script = preload("res://addons/grid_building/components/building_node.gd")
+var building_node_script = load("res://addons/grid_building/components/building_node.gd")
 var project_name_num_seperator : int
 
 func before_test():

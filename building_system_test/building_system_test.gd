@@ -20,7 +20,7 @@ var placer : Node2D
 var placed_parent : Node2D
 var building_actions : BuildingActions
 
-var default_preview_script : GDScript = preload("res://addons/grid_building/components/building_node.gd")
+var default_preview_script : GDScript = load("res://addons/grid_building/components/building_node.gd")
 
 func before_test():
 	library = auto_free(TestSceneLibrary.instance_library())
