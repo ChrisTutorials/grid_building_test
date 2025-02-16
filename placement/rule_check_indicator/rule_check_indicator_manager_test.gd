@@ -25,7 +25,8 @@ var positioner : GridPositioner2D
 var global_snap_pos
 
 var test_indicator = load("res://test/grid_building_test/scenes/indicators/test_indicator.tscn")
-const eclipse_scene_path = "res://test/grid_building_test/scenes/test_elipse.tscn"
+var eclipse_scene = load("res://test/grid_building_test/scenes/test_elipse.tscn")
+var offset_logo = load("res://test/grid_building_test/offset_logo.tscn")
 
 func before():
 	library = auto_free(TestSceneLibrary.instance_library())
@@ -94,14 +95,25 @@ func before_test():
 
 ## Tests that the number of indicators generated for p_shape_scene matches the p_expected_indicators
 @warning_ignore("unused_parameter")
-func test_setup_indicators(p_shape_scene_path : String, p_expected_indicators : int, test_parameters = [
-	[eclipse_scene_path, 27]
+func test_setup_indicators(p_test_obj_scene : PackedScene, p_expected_indicators : int, test_parameters = [
+	[eclipse_scene, 27],
+	[offset_logo, 4]
 ]):
-	var shape_scene = auto_free(load(p_shape_scene_path).instantiate())
+	var shape_scene = auto_free(p_test_obj_scene.instantiate())
 	add_child(shape_scene)
 	shape_scene.global_position = global_snap_pos
 	var indicators : Array[RuleCheckIndicator] = rci_manager.setup_indicators(shape_scene, col_checking_rules)
 	assert_int(indicators.size()).append_failure_message("Generated indicator count did not match expected count.").is_equal(p_expected_indicators)
+
+## Asserts that the number of found objects in the test scene instance is equal to the manually counted expected objects
+@warning_ignore("unused_parameter")
+func test_find_collision_objects(p_test_obj_scene : PackedScene, p_expected_objects : int, test_parameters = [
+	[offset_logo, 1]
+]):
+	var shape_scene = auto_free(p_test_obj_scene.instantiate())
+	add_child(shape_scene)
+	var objects : Array[CollisionObject2D] = rci_manager._find_collision_objects(shape_scene)
+	assert_int(objects.size()).is_equal(p_expected_objects)
 
 ## Ensure proper freeing of objects after using get_or_create_testing_indicator
 ## followed by freeing the rci_manager
@@ -117,10 +129,10 @@ func test_get_or_create_testing_indicator_on_free():
 
 # Check that the distance between indicators 0 and 1 is the expected value
 @warning_ignore("unused_parameter")
-func test_indicator_generation_distance(p_shape_scene_path : String, p_expected_distance : float, test_parameters = [
-	[eclipse_scene_path, 16.0]
+func test_indicator_generation_distance(p_test_scene : PackedScene, p_expected_distance : float, test_parameters = [
+	[eclipse_scene, 16.0]
 ]):
-	var shape_scene = auto_free(load(p_shape_scene_path).instantiate())
+	var shape_scene = auto_free(p_test_scene.instantiate())
 	add_child(shape_scene)
 	var indicators : Array[RuleCheckIndicator] = rci_manager.setup_indicators(shape_scene, col_checking_rules)
 	var indicator_0 = rci_manager.indicators[0]

@@ -1,0 +1,37 @@
+[gd_scene load_steps=7 format=3 uid="uid://bqq7otaevtlqu"]
+
+[ext_resource type="Texture2D" uid="uid://bnqyeoyyy88wy" path="res://icon.svg" id="1_2u5xv"]
+[ext_resource type="Script" uid="uid://bib4d58jc2hi1" path="res://addons/grid_building/components/manipulatable.gd" id="2_xc01s"]
+[ext_resource type="Script" uid="uid://cddjwc7btgmqk" path="res://addons/grid_building/placement/placement_rules/tile_check_rule.gd" id="3_7iosu"]
+[ext_resource type="Script" uid="uid://0u11g3ef6ucf" path="res://addons/grid_building/placement/manipulatable_settings.gd" id="4_w5adq"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_barqe"]
+size = Vector2(30, 30)
+
+[sub_resource type="Resource" id="Resource_yk7gq"]
+script = ExtResource("4_w5adq")
+move_rules = Array[ExtResource("3_7iosu")]([])
+ignore_base_rules = false
+rotateable = true
+flip_horizontal = true
+flip_vertical = true
+movable = true
+demolishable = true
+
+[node name="OffsetLogo" type="StaticBody2D"]
+collision_layer = 2561
+collision_mask = 513
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(-8, -8)
+scale = Vector2(0.25, 0.25)
+texture = ExtResource("1_2u5xv")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(-8, -8)
+shape = SubResource("RectangleShape2D_barqe")
+
+[node name="Manipulatable" type="Node" parent="." node_paths=PackedStringArray("root")]
+script = ExtResource("2_xc01s")
+settings = SubResource("Resource_yk7gq")
+root = NodePath("..")

@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="Placeable" load_steps=7 format=3 uid="uid://nx84n8rejsug"]
+
+[ext_resource type="Texture2D" uid="uid://bnqyeoyyy88wy" path="res://icon.svg" id="1_kme0d"]
+[ext_resource type="PackedScene" uid="uid://bqq7otaevtlqu" path="res://test/grid_building_test/offset_logo.tscn" id="2_mab7d"]
+[ext_resource type="Script" uid="uid://ceem2vqcha7ki" path="res://addons/grid_building/placement/placement_rules/placement_rule.gd" id="3_mcp50"]
+[ext_resource type="Script" uid="uid://b01uvfnfuldd6" path="res://addons/grid_building/placement/placeable/placeable.gd" id="8_ukk6f"]
+[ext_resource type="Script" uid="uid://b064bdpoigkqi" path="res://addons/grid_building/placement/placeable/categorical_tag.gd" id="9_0n52p"]
+[ext_resource type="Resource" uid="uid://di5rsw2swfnvn" path="res://demos/top_down/placement/tags/tag_fun.tres" id="10_80l0t"]
+
+[resource]
+script = ExtResource("8_ukk6f")
+display_name = &"OffsetLogo"
+icon = ExtResource("1_kme0d")
+packed_scene = ExtResource("2_mab7d")
+tags = Array[ExtResource("9_0n52p")]([ExtResource("10_80l0t")])
+placement_rules = Array[ExtResource("3_mcp50")]([])
+ignore_base_rules = false
