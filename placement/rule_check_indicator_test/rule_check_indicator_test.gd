@@ -34,8 +34,8 @@ func test_indicator_collide_and_get_contacts(p_move_shape_size_multiplier : Vect
 	[Vector2(-2, 0), true]
 ]):
 	#region Setup
-	var body = _create_test_body()
-	var shape = body.get_child("CollisionShape2D") as CollisionShape2D
+	var body : StaticBody2D = _create_test_body()
+	var shape : CollisionShape2D = body.get_child(0)
 	var original_position = indicator.global_position
 	var indicator_shape_size : Vector2 = indicator.shape.get_rect().size
 	indicator.global_position = Vector2.ZERO
@@ -68,7 +68,7 @@ func test__update_visuals(p_settings : IndicatorVisualSettings, test_parameters 
 	assert_that(updated_sprite.modulate).is_equal(p_settings.modulate)
 
 
-func _create_test_body():
+func _create_test_body() -> StaticBody2D:
 	var collision_body = auto_free(StaticBody2D.new())
 	collision_body.collision_layer = test_layers
 	add_child(collision_body)
@@ -76,3 +76,4 @@ func _create_test_body():
 	var collision_shape = auto_free(CollisionShape2D.new())
 	collision_body.add_child(collision_shape)
 	collision_shape.shape = RectangleShape2D.new()
+	return collision_body
