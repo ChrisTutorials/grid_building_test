@@ -76,16 +76,17 @@ func test_setup():
 	var result = validator.setup(test_rules, test_params)
 	assert_bool(result).is_true()
 
-func test_setup_rules_with_debug():
-	validator.show_debug = true
+## The rules should receive the validator.debug GBDebugSettings object.
+## In this test, debug is set on so the rule.debug.show should be on too
+func test_setup_rules_passes_debug_object():
+	# Ensure it has a valid debug settings set to on
+	validator.debug = GBDebugSettings.new(true)
 	validator.setup(test_rules, test_params)
-	var rules : Array[PlacementRule] = []
-	rules.append_array([mock(CollisionsCheckRule)])
-	validator._setup_rules(test_rules, test_params)
-	assert_object(validator.indicator_manager.test_setup).is_not_null()
 	
-	for rule in validator.base_rules:
-		verify(rule, 1).setup()
+	## Assert that the debug object was passed and set true
+	for rule in test_rules:
+		assert_object(validator.debug).is_equal(rule.debug)
+		assert_bool(rule.debug.show).is_true()
 
 @warning_ignore("unused_parameter")
 func test_get_combined_rules(p_added_rules : Array[PlacementRule], p_validator : PlacementValidator, test_parameters = [

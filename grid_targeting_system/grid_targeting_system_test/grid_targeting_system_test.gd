@@ -40,10 +40,11 @@ func before_test():
 	var origin_state = UserState.new()
 	state.origin_state = origin_state
 	origin_state.user = placer
-	assert_bool(state.validate()).append_failure_message("State passes validation check.").is_true()
+	assert_array(state.validate()).append_failure_message("Problems in setup found").is_empty()
 	
 	settings = library.grid_targeting_settings.duplicate(true)
-	assert_bool(settings.validate()).append_failure_message("Settings passes validation check.").is_true()
+	
+	assert_array(settings.validate()).append_failure_message("Settings passes validation check.").is_empty()
 	system = auto_free(GridTargetingSystem.new())
 	system.state = state
 	system.settings = settings
@@ -52,7 +53,7 @@ func before_test():
 
 func test_has_valid_setup():
 	assert_object(system.state).append_failure_message("Building state must be set.").is_not_null()
-	assert_bool(system.state.validate()).is_true()
+	assert_array(system.state.validate()).is_empty()
 	assert_object(system.astar_grid).append_failure_message("Astar grid was not generated").is_not_null()
 	assert_vector(system.astar_grid.region.size).is_equal(Vector2i(50,50))
 	assert_int(settings.max_tile_distance).append_failure_message("Tests by default expect this to be 3").is_equal(3)

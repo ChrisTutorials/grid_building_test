@@ -61,7 +61,7 @@ func before_test():
 	targeting_state.positioner = positioner
 	
 	var validate_result = system.validate()
-	assert_bool(validate_result).append_failure_message("System must validate true for tests to pass").is_true()
+	assert_array(validate_result).append_failure_message("System must validate true for tests to pass").is_empty()
 	
 	all_manipulatable = create_manipulatable_object(library.manipulatable_settings_all_allowed)
 
