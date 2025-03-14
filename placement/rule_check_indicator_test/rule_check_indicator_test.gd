@@ -48,6 +48,7 @@ func test_indicator_collide_and_get_contacts(p_move_shape_size_multiplier : Vect
 	assert_bool(result.is_empty()).append_failure_message("If false, is inside shape. If true, is outside.").is_equal(p_expected_empty)
 	#endregion
 
+@warning_ignore("unused_parameter")
 ## Count the number of collisions when instancing a p_test_scene at the origin 0,0 and seeing
 ## if it matches the expected number
 func test_instance_collisions(p_test_scene : PackedScene, p_expected_collisions : int, test_parameters = [

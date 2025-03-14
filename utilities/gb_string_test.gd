@@ -14,6 +14,7 @@ func before_test():
 func after_test():
 	ProjectSettings.set_setting("editor/naming/node_name_num_separator", project_name_num_seperator)
 
+@warning_ignore('unused_parameter')
 func test_convert_name_to_readable_underscore(p_name : String, p_expected : String, test_parameters = [
 	["Smithy", "Smithy"],
 	["HelloFriend", "Hello Friend"],
@@ -24,7 +25,7 @@ func test_convert_name_to_readable_underscore(p_name : String, p_expected : Stri
 	var result : String = GBString.convert_name_to_readable(p_name)
 	assert_str(result).is_equal(p_expected)
 	
-
+@warning_ignore('unused_parameter')
 func test_match_num_seperator(p_test_char : String, p_seperator : int, p_expected : bool, test_parameters = [
 	[" ", 0, false],
 	["_", 0, false],
