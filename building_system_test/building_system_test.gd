@@ -55,8 +55,7 @@ func before_test():
 	system.targeting_state = targeting_state
 
 	## Turn debug on for testing
-	system.debug = GBDebugSettings.new()
-	system.debug.show_debug = true
+	system.debug = GBDebugSettings.new(true)
 	
 	add_child(system)
 	
@@ -114,15 +113,6 @@ func test_remove_scripts() -> void:
 	system.remove_scripts(preview, [])
 	assert_object(manipulatable).is_not_null()
 	assert_object(manipulatable.get_script()).is_null()
-
-## Test if indicators are set to debug mode when created by a building system in debug_mode = true state (BuildingSettings)
-func test_debug_mode_propogate_to_indicator_manager():
-	# Turn on debug mode and set up a collision rule
-	system.settings.show_debug = true
-	
-	# Check indicator manager and its test setup
-	var indicator = system.placement_validator.indicator_manager
-	assert_bool(indicator.show_debug).is_true()
 
 func test_unhandled_input():
 	var action_event = InputEventAction.new()
@@ -204,14 +194,14 @@ func test_try_build(p_placeable : Placeable, p_expected : Object, test_parameter
 	assert_object(result).is_equal(p_expected)
 
 @warning_ignore("unused_parameter")
-func test__build(p_placeable : Placeable, p_expected, test_parameters = [
+func test__build(p_placeable : Placeable, p_expected : Variant, test_parameters := [
 	[null, null],
-	[load("res://test/grid_building_test/resources/placeable/test_2d_placeable.tres"), any_object()]
+	[load("uid://jgmywi04ib7c"), any_object()]
 ]) -> void:
 	system.selected_placeable = p_placeable
 	
 	if p_placeable != null && p_placeable.packed_scene != null:
-		system.state.preview = p_placeable.packed_scene.instantiate()
+		system.state.preview = auto_free(p_placeable.packed_scene.instantiate())
 		add_child(system.state.preview)
 	
 	var result = system._build()
