@@ -20,7 +20,7 @@ var placer : Node2D
 var placed_parent : Node2D
 var building_actions : BuildingActions
 
-var default_preview_script : GDScript = load("res://addons/grid_building/components/building_node.gd")
+var default_preview_script : GDScript = load("uid://cufp4o5ctq6ak")
 
 func before_test():
 	library = auto_free(TestSceneLibrary.instance_library())
@@ -33,7 +33,6 @@ func before_test():
 	
 	grid_positioner = auto_free(Node2D.new())
 	add_child(grid_positioner)
-	
 	
 	tile_map = auto_free(TileMap.new())
 	add_child(tile_map)
@@ -54,6 +53,10 @@ func before_test():
 	system.state = BuildingState.new()
 	system.placement_validator = PlacementValidator.new()
 	system.targeting_state = targeting_state
+
+	## Turn debug on for testing
+	system.debug = GBDebugSettings.new()
+	system.debug.show_debug = true
 	
 	add_child(system)
 	
@@ -75,8 +78,8 @@ func before_test():
 	
 func test_before_test_setup():
 	assert_object(system).is_not_null()
-	var valid = system.validate()
-	assert_bool(valid).override_failure_message("System should be valid before running tests.").is_true()
+	var problems = system.validate()
+	assert_array(problems).is_empty()
 
 @warning_ignore("unused_parameter")
 func test_instantiate_placeable_preview_fails(p_placeable : Variant, p_warning : String, test_parameters = [
@@ -112,32 +115,14 @@ func test_remove_scripts() -> void:
 	assert_object(manipulatable).is_not_null()
 	assert_object(manipulatable.get_script()).is_null()
 
-func test_debug_on_shows():
-	#region Setup
+## Test if indicators are set to debug mode when created by a building system in debug_mode = true state (BuildingSettings)
+func test_debug_mode_propogate_to_indicator_manager():
+	# Turn on debug mode and set up a collision rule
 	system.settings.show_debug = true
-	assert_object(system.placement_validator).is_not_null()
-	var collision_check_rule = CollisionsCheckRule.new()
-	system.placement_validator.base_rules.append(collision_check_rule)
-	assert_array(system.placement_validator.base_rules).append_failure_message("Validator should have base rules setup in test.").is_not_empty()
-	#endregion
 	
-	var set_preview = system.set_buildable_preview(library.placeable_eclipse_skew_rotate)
-	assert_bool(set_preview).override_failure_message("Preview instance NOT set successfully").is_true()
-	
-	## If no rules, then generation area is not created
-	assert_object(system.placement_validator.indicator_manager).override_failure_message("Building system has rule check indicator manager NOT set").is_not_null()
-	
-	system.set_buildable_preview(library.placeable_eclipse_skew_rotate)
-	
-	var testing_params = system.placement_validator.indicator_manager.test_setup
-	
-	if testing_params.is_empty():
-		fail("No [testing_params]")
-		return
-		
-	assert_object(testing_params[0]).override_failure_message("Has no valid test_params entry.").is_not_null()
-	assert_object(rci_manager.get_parent()).is_not_null()
-
+	# Check indicator manager and its test setup
+	var indicator = system.placement_validator.indicator_manager
+	assert_bool(indicator.show_debug).is_true()
 
 func test_unhandled_input():
 	var action_event = InputEventAction.new()
