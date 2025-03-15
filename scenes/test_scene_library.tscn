@@ -1,4 +1,4 @@
-[gd_scene load_steps=22 format=3 uid="uid://ct16sdntvm8ow"]
+[gd_scene load_steps=23 format=3 uid="uid://ct16sdntvm8ow"]
 
 [ext_resource type="Script" uid="uid://bxxu2njefe2hv" path="res://test/grid_building_test/scenes/test_scene_library.gd" id="1_agdtk"]
 [ext_resource type="PackedScene" uid="uid://l00rt6twodlt" path="res://templates/grid_building_templates/indicator/rule_check_indicator_16x16.tscn" id="2_7eran"]
@@ -21,6 +21,7 @@
 [ext_resource type="Resource" uid="uid://b4s35gca8r3ep" path="res://test/grid_building_test/resources/placeable/placeable_isometric_building.tres" id="12_dl10r"]
 [ext_resource type="Resource" uid="uid://dirh6mcrgdm3w" path="res://test/grid_building_test/resources/placeable/placeable_smithy.tres" id="16_60fh6"]
 [ext_resource type="PackedScene" uid="uid://j5837ml5dduu" path="res://test/grid_building_test/scenes/test_elipse.tscn" id="16_w4obq"]
+[ext_resource type="TileSet" uid="uid://b0shp63l248fm" path="res://test/grid_building_test/resources/tileset/custom_data_tileset_for_tests.tres" id="22_xh51g"]
 
 [node name="TestSceneLibrary" type="Node"]
 script = ExtResource("1_agdtk")
@@ -44,3 +45,4 @@ box_scripted = ExtResource("8_npblc")
 keep_script_scene = ExtResource("11_1lbb3")
 eclipse_scene = ExtResource("16_w4obq")
 tile_map_buildable = ExtResource("11_ldbd8")
+custom_data_tile_set = ExtResource("22_xh51g")

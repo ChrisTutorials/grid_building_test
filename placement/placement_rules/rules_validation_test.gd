@@ -52,7 +52,7 @@ func before_test():
 	targeting_state.target_map = tile_map
 	targeting_state.maps = [tile_map]
 	targeting_state.positioner = positioner
-	assert_bool(targeting_state.validate()).append_failure_message("Targeting state is not set up to be valid. Check warnings.").is_true()
+	assert_array(targeting_state.validate()).append_failure_message("Targeting state is not set up to be valid. Check warnings.").is_empty()
 	
 	placement_validator = PlacementValidator.new()
 	rci_manager = auto_free(RuleCheckIndicatorManager.new(rule_check_indicator_template, targeting_state, placement_validator))

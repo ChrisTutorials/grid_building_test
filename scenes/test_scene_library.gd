@@ -35,6 +35,9 @@ extends GdUnitTestSuite
 @export_group("Tile Maps")
 @export var tile_map_buildable : PackedScene
 
+## Tileset with "type", "color", "height" custom data properties for tiles
+@export var custom_data_tile_set : TileSet
+
 const library_path = "res://test/grid_building_test/scenes/test_scene_library.tscn"
 
 ## Creates an instance of the library scene (orphan, be sure to free)

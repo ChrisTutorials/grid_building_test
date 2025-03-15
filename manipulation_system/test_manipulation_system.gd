@@ -17,7 +17,6 @@ func before():
 	placement_validator = auto_free(PlacementValidator.new())
 	system_parent = auto_free(Node2D.new())
 	manipulation_system = auto_free(ManipulationSystem.new())
-	add_child(manipulation_system)
 	
 	add_child(system_parent)
 	
@@ -31,6 +30,9 @@ func before():
 	manipulation_system.actions = auto_free(ManipulationActions.new())
 	manipulation_system.mode_actions = auto_free(ModeInputActions.new())
 	state.parent = system_parent
+	
+	## Add at the end after the system has had it's dependencies added in
+	add_child(manipulation_system)
 
 func after():
 	manipulation_system.free()
