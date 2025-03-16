@@ -88,8 +88,8 @@ func before_test():
 	)
 	
 	placement_validator.indicator_manager = rci_manager
-	var setup_result = placement_validator.setup(base_rules, validation_rules)
-	assert_bool(setup_result).append_failure_message("Setup failed to run successfully on placement_validator").is_true()
+	var setup_result : Dictionary[PlacementRule, Array] = placement_validator.setup(base_rules, validation_rules)
+	assert_dict(setup_result).append_failure_message("Setup failed to run successfully on placement_validator %s" % setup_result).is_empty()
 	assert_object(rci_manager.indicator_template).append_failure_message("Indicator template expected to be set on rci_manager.").is_not_null()
 	
 

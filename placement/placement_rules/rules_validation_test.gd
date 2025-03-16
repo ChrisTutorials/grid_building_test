@@ -1,3 +1,4 @@
+# rule_validation_test.gd
 extends GdUnitTestSuite
 
 var eclipse_placeable : Placeable
@@ -110,8 +111,8 @@ func setup_validation_no_col_and_buildable(p_test_object : Node2D) -> RuleValida
 		targeting_state
 	)
 
-	var valid_setup = placement_validator.setup(test_rules,test_params)
-	assert_bool(valid_setup).append_failure_message("Placement validator failed to setup rules properly.").is_true()
+	var valid_setup : Dictionary[PlacementRule, Array] = placement_validator.setup(test_rules,test_params)
+	assert_dict(valid_setup).append_failure_message("Placement validator failed to setup rules properly. %s" % valid_setup).is_empty()
 	
 	# Create indicator AFTER test setup so that rules are ready to evaluate immediately
 	var _test_indicator = create_indicator(tile_check_rules)

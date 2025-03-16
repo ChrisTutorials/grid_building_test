@@ -73,8 +73,8 @@ func after():
 	pass
 	
 func test_setup():
-	var result = validator.setup(test_rules, test_params)
-	assert_bool(result).is_true()
+	var result : Dictionary[PlacementRule, Array] = validator.setup(test_rules, test_params)
+	assert_dict(result).append_failure_message(str(result)).is_empty()
 
 ## The rules should receive the validator.debug GBDebugSettings object.
 ## In this test, debug is set on so the rule.debug.show should be on too

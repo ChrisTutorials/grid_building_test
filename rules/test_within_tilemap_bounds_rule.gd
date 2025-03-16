@@ -18,6 +18,8 @@ func before_test():
 	add_child(tile_map)
 	
 	targeting_state = GridTargetingState.new()
+	targeting_state.target_map = tile_map
+	targeting_state.maps = [tile_map]
 	
 	rule = WithinTilemapBoundsRule.new()
 	var target : Node2D = auto_free(Node2D.new())
@@ -35,10 +37,8 @@ func test_validate_condition(indicator_setup: Array[Dictionary], expected_succes
 	[[{"pos": Vector2.ZERO}], true],
 	[[{"pos": Vector2(7000, 7000), "valid": false}], false] # Way out of bounds
 ]) -> void:
-	targeting_state.target_map = tile_map
-	
-	# Create indicators using create_indicators
-	var test_indicators := create_indicators(indicator_setup)
+	# Create indicators using _create_indicators
+	var test_indicators := _create_indicators(indicator_setup)
 	rule.indicators = test_indicators
 	
 	var result = rule.validate_condition()
@@ -46,17 +46,17 @@ func test_validate_condition(indicator_setup: Array[Dictionary], expected_succes
 
 # Updated test__get_failing_indicators (mostly unchanged, already correct)
 @warning_ignore("unused_parameter")
-func test__get_failing_indicators(indicator_setup: Array[Dictionary], target_map: Node2D, expected_failing_count: int, test_parameters := [
-	[[], null, 0],
-	[[{"pos": Vector2.ZERO}], null, 1],
-	[[{"pos": Vector2.ZERO}], auto_free(TileMapLayer.new()), 0],
-	[[{"pos": Vector2.ZERO}], auto_free(TileMapLayer.new()), 1],
-	[[null], auto_free(TileMapLayer.new()), 0],
-	[[{"pos": Vector2.ZERO}, {"pos": Vector2(32,32)}], auto_free(TileMapLayer.new()), 1]
+func test__get_failing_indicators(indicator_setup: Array[Dictionary], expected_failing_count: int, test_parameters := [
+	[[], 0],												# No indicators = no failures
+	[[{"pos": Vector2.ZERO}], 0], 							# One at 0 passes
+	[[{"pos": Vector2i(-1000, -1000)}], 1], 				# Distant off of tilemap = fail
+	[[{"pos": Vector2i(1000, 0)}], 1], 						# Distant one direction = fail
+	[[null], 0], 											# Null indicator is null, so ignored, no fails
+	[[{"pos": Vector2.ZERO}, {"pos": Vector2(32,32)}], 0], 	# Both are within bounds, 0 fails
+	[[{"pos": Vector2.ZERO}, {"pos": Vector2(320,320)}], 1] # One is out of bounds, 1 fail 1 pass
 ]) -> void:
-	targeting_state.target_map = target_map
 	
-	var test_indicators := create_indicators(indicator_setup)
+	var test_indicators := _create_indicators(indicator_setup)
 	var failing := rule._get_failing_indicators(test_indicators)
 	assert_int(failing.size()).is_equal(expected_failing_count)
 	
@@ -65,25 +65,23 @@ func test__get_failing_indicators(indicator_setup: Array[Dictionary], target_map
 
 # Updated test__is_over_valid_tile
 @warning_ignore("unused_parameter")
-func test__is_over_valid_tile(indicator_setup: Array[Dictionary], target_map: Node2D, tile_data_exists: bool, expected_result: bool, test_parameters := [
-	[[], auto_free(TileMapLayer.new()), false, false],  # Empty setup for null indicator
+func test__is_over_valid_tile(indicator_setup: Array[Dictionary], p_map_obj : Node2D, tile_data_exists: bool, expected_result: bool, test_parameters := [
+	[[], tile_map, false, false],  # Empty setup for null indicator
 	[[{"pos": Vector2.ZERO}], null, false, false],  # Null map
-	[[{"pos": Vector2.ZERO}], auto_free(TileMapLayer.new()), false, false],  # No tile data
-	[[{"pos": Vector2.ZERO}], tile_map, true, true],  # Tile data exists
-	[[{"pos": Vector2.ZERO, "valid": false}], auto_free(TileMapLayer.new()), false, false]  # Invalid indicator
+	[[{"pos": Vector2.ZERO}], _create_empty_tile_map_layer(), false, false],  # No tile data
 ]) -> void:
-	if tile_data_exists and target_map is TileMap:
-		target_map.set_cell(0, Vector2i.ZERO, 0, Vector2i.ZERO)
 	
-	# Create indicators using create_indicators, take first one or null if empty
-	var test_indicators := create_indicators(indicator_setup)
+	# Create indicators using _create_indicators, take first one or null if empty
+	var test_indicators := _create_indicators(indicator_setup)
 	var indicator = test_indicators[0] if not test_indicators.is_empty() else null
 	
-	var result = rule._is_over_valid_tile(indicator, target_map)
-	assert_bool(result).is_equal(expected_result)
+	var result = rule._is_over_valid_tile(indicator, p_map_obj)
+	assert_bool(result).append_failure_message("Were the indicators able to validate").is_equal(expected_result)
 
-# Updated create_indicators to handle null cases and optional validity
-func create_indicators(p_setup: Array[Dictionary]) -> Array[RuleCheckIndicator]:
+
+#region Helper Functions
+# Updated _create_indicators to handle null cases and optional validity
+func _create_indicators(p_setup: Array[Dictionary]) -> Array[RuleCheckIndicator]:
 	var indicators: Array[RuleCheckIndicator] = []
 	var test_shape : Shape2D = RectangleShape2D.new()
 	test_shape.size = Vector2i(16,16)
@@ -97,3 +95,10 @@ func create_indicators(p_setup: Array[Dictionary]) -> Array[RuleCheckIndicator]:
 			indicators.append(indicator)
 	
 	return indicators
+	
+func _create_empty_tile_map_layer() -> TileMapLayer:
+	var layer : TileMapLayer = auto_free(TileMapLayer.new())
+	layer.tile_set = TileSet.new()
+
+	return layer
+#endregion
