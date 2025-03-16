@@ -38,10 +38,11 @@ func test_validate_condition(indicator_setup: Array[Dictionary], expected_succes
 	[[{"pos": Vector2(7000, 7000), "valid": false}], false] # Way out of bounds
 ]) -> void:
 	# Create indicators using _create_indicators
-	var test_indicators := _create_indicators(indicator_setup)
+	var test_indicators := _create_indicators(indicator_setup, [rule])
 	rule.indicators = test_indicators
 	
 	var result = rule.validate_condition()
+	
 	assert_bool(result.is_successful).append_failure_message(result.reason).is_equal(expected_success)
 
 # Updated test__get_failing_indicators (mostly unchanged, already correct)
@@ -56,7 +57,7 @@ func test__get_failing_indicators(indicator_setup: Array[Dictionary], expected_f
 	[[{"pos": Vector2.ZERO}, {"pos": Vector2(320,320)}], 1] # One is out of bounds, 1 fail 1 pass
 ]) -> void:
 	
-	var test_indicators := _create_indicators(indicator_setup)
+	var test_indicators := _create_indicators(indicator_setup, [rule])
 	var failing := rule._get_failing_indicators(test_indicators)
 	assert_int(failing.size()).is_equal(expected_failing_count)
 	
@@ -72,16 +73,16 @@ func test__is_over_valid_tile(indicator_setup: Array[Dictionary], p_map_obj : No
 ]) -> void:
 	
 	# Create indicators using _create_indicators, take first one or null if empty
-	var test_indicators := _create_indicators(indicator_setup)
+	var test_indicators := _create_indicators(indicator_setup, [rule])
 	var indicator = test_indicators[0] if not test_indicators.is_empty() else null
 	
-	var result = rule._is_over_valid_tile(indicator, p_map_obj)
-	assert_bool(result).append_failure_message("Were the indicators able to validate").is_equal(expected_result)
+	var result : ValidationResults = rule._is_over_valid_tile(indicator, p_map_obj)
+	assert_bool(result.is_successful).append_failure_message("Were the indicators able to validate").is_equal(expected_result)
 
 
 #region Helper Functions
 # Updated _create_indicators to handle null cases and optional validity
-func _create_indicators(p_setup: Array[Dictionary]) -> Array[RuleCheckIndicator]:
+func _create_indicators(p_setup: Array[Dictionary], p_rules : Array[TileCheckRule]) -> Array[RuleCheckIndicator]:
 	var indicators: Array[RuleCheckIndicator] = []
 	var test_shape : Shape2D = RectangleShape2D.new()
 	test_shape.size = Vector2i(16,16)
@@ -91,8 +92,10 @@ func _create_indicators(p_setup: Array[Dictionary]) -> Array[RuleCheckIndicator]
 			var indicator : RuleCheckIndicator = auto_free(RuleCheckIndicator.new())
 			indicator.shape = test_shape
 			indicator.global_position = case["pos"]
+			indicator.rules = p_rules
 			add_child(indicator)
 			indicators.append(indicator)
+			assert_array(indicator.validate()).is_empty()
 	
 	return indicators
 	
