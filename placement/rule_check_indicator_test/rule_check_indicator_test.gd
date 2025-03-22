@@ -13,7 +13,6 @@ func before_test():
 	add_child(indicator)
 	indicator.shape = RectangleShape2D.new()
 	
-	
 	indicator.validity_sprite = auto_free(Sprite2D.new())
 	indicator.invalid_settings = IndicatorVisualSettings.new()
 	indicator.shape = RectangleShape2D.new()
@@ -68,6 +67,12 @@ func test__update_visuals(p_settings : IndicatorVisualSettings, test_parameters 
 	var updated_sprite = indicator._update_visuals(p_settings)
 	assert_that(updated_sprite.modulate).is_equal(p_settings.modulate)
 
+## Test the default return of get_tile_positon
+func test_get_tile_position_default() -> void:
+	var test_tile_map := auto_free(load("uid://3shi30ob8pna").instantiate()) as TileMap
+	add_child(test_tile_map)
+	var position := indicator.get_tile_position(test_tile_map)
+	assert_vector(position).is_equal(Vector2i.ZERO)
 
 func _create_test_body() -> StaticBody2D:
 	var collision_body = auto_free(StaticBody2D.new())
