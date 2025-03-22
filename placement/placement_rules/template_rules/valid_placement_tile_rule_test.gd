@@ -42,7 +42,12 @@ func before_test():
 	targeting_state.target_map = map
 	targeting_state.maps = [map]
 	
-	rule.setup(RuleValidationParameters.new(null, null, targeting_state))
+	var placer : Node = auto_free(Node.new())
+	var placement_node : Node2D =  auto_free(Node2D.new())
+	
+	## This must validate successfully
+	var problems := rule.setup(RuleValidationParameters.new(placer, placement_node, targeting_state))
+	assert_array(problems).is_empty()
 	
 	# Assign the TileSet to the TileMap
 	map.tile_set = library.custom_data_tile_set
