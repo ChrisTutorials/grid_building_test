@@ -4,8 +4,6 @@ extends GdUnitTestSuite
 @warning_ignore('unused_parameter')
 @warning_ignore('return_value_discarded')
 
-# TestSuite generated from
-const __source = 'res://addons/grid_building/components/placeable_instance.gd'
 
 var placeable_path = "res://test/grid_building_test/resources/placeable/test_placeable_rect_15_tiles.tres"
 

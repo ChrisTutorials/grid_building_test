@@ -25,7 +25,7 @@ func test_setup_indicator_defaults():
 
 ## Testing move distance for an indicator compared to where it will still have collisions with it's shape at the starting position or not
 @warning_ignore("unused_parameter")
-func test_indicator_collide_and_get_contacts(p_move_shape_size_multiplier : Vector2, p_expected_empty : bool, test_parameters = [
+func test_indicator_collide_and_get_contacts(p_move_shape_size_multiplier : Vector2, p_expected_empty : bool, test_parameters := [
 	[Vector2(0, 0), false],
 	[Vector2(0, -1), false],
 	[Vector2(0, -2), true],
@@ -50,7 +50,7 @@ func test_indicator_collide_and_get_contacts(p_move_shape_size_multiplier : Vect
 @warning_ignore("unused_parameter")
 ## Count the number of collisions when instancing a p_test_scene at the origin 0,0 and seeing
 ## if it matches the expected number
-func test_instance_collisions(p_test_scene : PackedScene, p_expected_collisions : int, test_parameters = [
+func test_instance_collisions(p_test_scene : PackedScene, p_expected_collisions : int, test_parameters := [
 	[offset_logo, 1]
 ]):
 	var instance : PhysicsBody2D = auto_free(p_test_scene.instantiate())
@@ -61,7 +61,7 @@ func test_instance_collisions(p_test_scene : PackedScene, p_expected_collisions 
 	assert_int(collision_count).is_equal(p_expected_collisions)
 
 @warning_ignore("unused_parameter")
-func test__update_visuals(p_settings : IndicatorVisualSettings, test_parameters = [
+func test__update_visuals(p_settings : IndicatorVisualSettings, test_parameters := [
 	[load("res://test/grid_building_test/resources/settings/indicator_visual/orange_visual.tres")]
 ]) -> void:
 	var updated_sprite = indicator._update_visuals(p_settings)

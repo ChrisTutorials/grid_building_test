@@ -5,7 +5,6 @@ extends GdUnitTestSuite
 @warning_ignore('return_value_discarded')
 
 # TestSuite generated from
-const __source = 'res://addons/grid_building/placement/placement_rules/template_rules/valid_placement_tile_rule.gd'
 
 var library : TestSceneLibrary
 var rule : ValidPlacementTileRule
@@ -61,7 +60,7 @@ func before_test():
 
 # Existing test (kept for context)
 @warning_ignore("unused_parameter")
-func test_does_tile_have_valid_data(p_indicator : RuleCheckIndicator, p_expected : bool, test_parameters = [
+func test_does_tile_have_valid_data(p_indicator : RuleCheckIndicator, p_expected : bool, test_parameters := [
 	[null, false],
 	[no_setup_indicator, true],
 	[valid_indicator, true]
@@ -71,7 +70,7 @@ func test_does_tile_have_valid_data(p_indicator : RuleCheckIndicator, p_expected
 
 # Parameterized test using pre-initialized TileData objects
 @warning_ignore("unused_parameter")
-func test_test_tile_data_for_all_matches(p_tile_data : TileData, p_expected : bool, test_parameters = [
+func test_test_tile_data_for_all_matches(p_tile_data : TileData, p_expected : bool, test_parameters := [
 	[tile_data_extra, true],      	   # Full match
 	[tile_data_partial_match, false],  # Partial match (color mismatch)
 	[tile_data_missing_key, false],    # Missing key

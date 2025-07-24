@@ -4,7 +4,6 @@ extends GdUnitTestSuite
 @warning_ignore('return_value_discarded')
 
 # TestSuite generated from
-const __source = 'res://addons/grid_building/utilities/gb_string.gd'
 
 var project_name_num_seperator : int
 
@@ -15,7 +14,7 @@ func after_test():
 	ProjectSettings.set_setting("editor/naming/node_name_num_separator", project_name_num_seperator)
 
 @warning_ignore('unused_parameter')
-func test_convert_name_to_readable_underscore(p_name : String, p_expected : String, test_parameters = [
+func test_convert_name_to_readable_underscore(p_name : String, p_expected : String, test_parameters := [
 	["Smithy", "Smithy"],
 	["HelloFriend", "Hello Friend"],
 	["SadBearBearFish", "Sad Bear Bear Fish"],
@@ -26,7 +25,7 @@ func test_convert_name_to_readable_underscore(p_name : String, p_expected : Stri
 	assert_str(result).is_equal(p_expected)
 	
 @warning_ignore('unused_parameter')
-func test_match_num_seperator(p_test_char : String, p_seperator : int, p_expected : bool, test_parameters = [
+func test_match_num_seperator(p_test_char : String, p_seperator : int, p_expected : bool, test_parameters := [
 	[" ", 0, false],
 	["_", 0, false],
 	[" ", 1, true],

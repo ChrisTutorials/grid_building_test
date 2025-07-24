@@ -5,7 +5,6 @@ extends GdUnitTestSuite
 @warning_ignore('return_value_discarded')
 
 # TestSuite generated from
-const __source = 'res://addons/grid_building/placement/placement_rules/placement_validator.gd'
 
 var library : TestSceneLibrary
 var test_params : RuleValidationParameters
@@ -89,7 +88,7 @@ func test_setup_rules_passes_debug_object():
 		assert_bool(rule.debug.show).is_true()
 
 @warning_ignore("unused_parameter")
-func test_get_combined_rules(p_added_rules : Array[PlacementRule], p_validator : PlacementValidator, test_parameters = [
+func test_get_combined_rules(p_added_rules : Array[PlacementRule], p_validator : PlacementValidator, test_parameters := [
 	[empty_rules_array, library.placement_validator_platformer],
 	[library.placeable_smithy.placement_rules, library.placement_validator_platformer]
 ]) -> void:

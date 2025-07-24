@@ -4,9 +4,6 @@ extends GdUnitTestSuite
 @warning_ignore('unused_parameter')
 @warning_ignore('return_value_discarded')
 
-# TestSuite generated from
-const __source = 'res://addons/grid_building/manipulation_system/manipulation_data.gd'
-
 func test_queue_free_manipulation_objects() -> void:
 	var data = create_manipulation(GBEnums.Action.MOVE)
 	data.target = Manipulatable.new()

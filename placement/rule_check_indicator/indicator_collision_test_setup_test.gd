@@ -5,7 +5,6 @@ extends GdUnitTestSuite
 @warning_ignore('return_value_discarded')
 
 # TestSuite generated from
-const __source = 'res://addons/grid_building/placement/rule_check_indicator/indicator_collision_test_setup.gd'
 
 const TILE_SIZE = Vector2(16,16)
 
@@ -42,7 +41,7 @@ func before_test():
 ## returns rects with the correct size 
 ## Expected adjusted size to be original rect + TileSize * 1
 @warning_ignore("unused_parameter")
-func test_adjust_rect_to_testing_size(p_setups : Array[IndicatorCollisionTestSetup], test_parameters = [
+func test_adjust_rect_to_testing_size(p_setups : Array[IndicatorCollisionTestSetup], test_parameters := [
 	[create_test_setups(eclipse_obj)],
 	[create_test_setups(rect_8_tiles_obj)],
 	[create_test_setups(test_skew_rotation_rect_obj)],

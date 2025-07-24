@@ -5,7 +5,6 @@ extends GdUnitTestSuite
 @warning_ignore('return_value_discarded')
 
 # TestSuite generated from
-const __source = 'res://addons/grid_building/grid_targeting_system/grid_targeting_system.gd'
 
 var library : TestSceneLibrary
 var system : GridTargetingSystem
@@ -60,7 +59,7 @@ func test_has_valid_setup():
 
 # Test the System's astar grid to see that certain locations are in or out of bounds
 @warning_ignore("unused_parameter")
-func test_is_in_bounds(p_tile_location : Vector2i, p_expected : bool, test_parameters = [
+func test_is_in_bounds(p_tile_location : Vector2i, p_expected : bool, test_parameters := [
 	[Vector2i(49,49), true],
 	[Vector2i(50,50), false],
 	[Vector2i(30,30), true],
@@ -76,7 +75,7 @@ func test_is_in_bounds(p_tile_location : Vector2i, p_expected : bool, test_param
 	assert_bool(is_in_bounds).is_equal(p_expected)
 
 @warning_ignore("unused_parameter")
-func test_get_max_tile_distance_tile_to_target(p_tile_location : Vector2i, p_expected_in_bounds : bool, p_expected_tile_distance : Variant, test_parameters = [
+func test_get_max_tile_distance_tile_to_target(p_tile_location : Vector2i, p_expected_in_bounds : bool, p_expected_tile_distance : Variant, test_parameters := [
 	[Vector2i(50,50), false, null],
 	[Vector2i(20,20), true, Vector2(settings.max_tile_distance, settings.max_tile_distance)]
 ]) -> void:
@@ -94,7 +93,7 @@ func test_get_max_tile_distance_tile_to_target(p_tile_location : Vector2i, p_exp
 
 ## Test get max tile distance when AStar grid is set to no diaganols and manhattan search pattern
 @warning_ignore("unused_parameter")
-func test_get_max_tile_distance_tile_to_target_no_diaganols(p_test_location : Vector2i, p_expected_tile : Variant, test_parameters = [
+func test_get_max_tile_distance_tile_to_target_no_diaganols(p_test_location : Vector2i, p_expected_tile : Variant, test_parameters := [
 	[Vector2i(-1,0), Vector2.ZERO],
 	[Vector2i(0,-1), Vector2.ZERO],
 	[Vector2i(4, 4), Vector2(3,0)],
@@ -108,7 +107,7 @@ func test_get_max_tile_distance_tile_to_target_no_diaganols(p_test_location : Ve
 	assert_that(no_diag_limited_tile).is_equal(p_expected_tile)
 
 @warning_ignore("unused_parameter")
-func test_move_node_to_closest_valid_tile(p_target : Vector2i, p_expected_error : int, test_parameters = [
+func test_move_node_to_closest_valid_tile(p_target : Vector2i, p_expected_error : int, test_parameters := [
 	[Vector2i(-200,-200), OK]
 ]):
 	settings.limit_to_adjacent = false
@@ -117,7 +116,7 @@ func test_move_node_to_closest_valid_tile(p_target : Vector2i, p_expected_error 
 	assert_that(off_map_result).append_failure_message("Did not run successfully").is_equal(p_expected_error)
 
 @warning_ignore("unused_parameter")
-func test_snap_tile_to_region(p_snap_tile : Vector2i, p_expected_tile : Vector2i, test_parameters = [
+func test_snap_tile_to_region(p_snap_tile : Vector2i, p_expected_tile : Vector2i, test_parameters := [
 	[Vector2i(26,26), Vector2i(25,25)],
 	[Vector2i(-26,-26), Vector2i(-25, -25)]
 ]):

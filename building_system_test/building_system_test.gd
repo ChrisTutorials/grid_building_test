@@ -5,7 +5,6 @@ extends GdUnitTestSuite
 @warning_ignore('return_value_discarded')
 
 # TestSuite generated from
-const __source = 'res://addons/grid_building/system/system.gd'
 
 var library : TestSceneLibrary
 var system : BuildingSystem
@@ -81,14 +80,14 @@ func test_before_test_setup():
 	assert_array(problems).is_empty()
 
 @warning_ignore("unused_parameter")
-func test_instantiate_placeable_preview_fails(p_placeable : Variant, p_warning : String, test_parameters = [
+func test_instantiate_placeable_preview_fails(p_placeable : Variant, p_warning : String, test_parameters := [
 	[null, system._WARNING_INVALID_PLACEABLE],
 ]):
 	var instantiate = func(): system.instantiate_placeable_preview(p_placeable)
 	auto_free(await assert_error(instantiate).is_push_warning(p_warning % p_placeable))
 
 @warning_ignore("unused_parameter")
-func test_instantiate_placeable_preview(p_placeable : Placeable, test_parameters = [
+func test_instantiate_placeable_preview(p_placeable : Placeable, test_parameters := [
 	[library.placeable_2d_test]
 ]) -> void:
 	var preview = auto_free(system.instantiate_placeable_preview(p_placeable))
@@ -153,7 +152,7 @@ func test_set_buildable_preview():
 		assert_object(child.get_script()).is_null()
 
 @warning_ignore("unused_parameter")
-func test_set_buildable_preview_keep_script_test(p_script : Script, test_parameters = [
+func test_set_buildable_preview_keep_script_test(p_script : Script, test_parameters := [
 	[library.placeable_instance_script]
 ]):
 	var placeable_test = Placeable.new()
@@ -180,7 +179,7 @@ func test_set_buildable_preview_keep_script_test(p_script : Script, test_paramet
 		assert_object(child.get_script()).is_same(p_script)
 
 @warning_ignore("unused_parameter")
-func test_try_build(p_placeable : Placeable, p_expected : Object, test_parameters = [
+func test_try_build(p_placeable : Placeable, p_expected : Object, test_parameters := [
 	[null, null],
 	[library.placeable_2d_test, any_object()]
 ]) -> void:

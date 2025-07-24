@@ -18,7 +18,7 @@ func after_test():
 	ProjectSettings.set_setting("editor/naming/node_name_num_separator", project_name_num_seperator)
 	
 @warning_ignore("unused_parameter")
-func test_get_display_name(p_name : String, p_method_name : String, p_ex : String, p_ex_start_with : bool, test_parameters = [
+func test_get_display_name(p_name : String, p_method_name : String, p_ex : String, p_ex_start_with : bool, test_parameters := [
 	["TestNode_500", "", "Test Node", false],
 	["TestNode_500", "to_string", "TestNode_500:<Node", true]
 ]):
@@ -33,7 +33,7 @@ func test_get_display_name(p_name : String, p_method_name : String, p_ex : Strin
 
 # Tests for building_node.gd the default script attached to preview instance root nodes during building preview
 @warning_ignore("unused_parameter")
-func test_building_node_get_display_name(p_name : String, p_ex : String, test_parameters = [
+func test_building_node_get_display_name(p_name : String, p_ex : String, test_parameters := [
 	["TestNode_500", "Test Node"]
 ]):
 	var building_node : Node = auto_free(building_node_script.new())

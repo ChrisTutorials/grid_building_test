@@ -4,9 +4,6 @@ extends GdUnitTestSuite
 @warning_ignore('unused_parameter')
 @warning_ignore('return_value_discarded')
 
-# TestSuite generated from
-const __source = 'res://addons/grid_building/placement/rule_check_indicator/rule_check_indicator_manager.gd'
-
 var library : TestSceneLibrary
 var rci_manager : RuleCheckIndicatorManager
 var tile_set : TileSet = load("res://test/grid_building_test/resources/test_tile_set.tres")
@@ -95,7 +92,7 @@ func before_test():
 
 ## Tests that the number of indicators generated for p_shape_scene matches the p_expected_indicators
 @warning_ignore("unused_parameter")
-func test_setup_indicators(p_test_obj_scene : PackedScene, p_expected_indicators : int, test_parameters = [
+func test_setup_indicators(p_test_obj_scene : PackedScene, p_expected_indicators : int, test_parameters := [
 	[eclipse_scene, 27],
 	[offset_logo, 4]
 ]):
@@ -107,7 +104,7 @@ func test_setup_indicators(p_test_obj_scene : PackedScene, p_expected_indicators
 
 ## Asserts that the number of found objects in the test scene instance is equal to the manually counted expected objects
 @warning_ignore("unused_parameter")
-func test_find_collision_objects(p_test_obj_scene : PackedScene, p_expected_objects : int, test_parameters = [
+func test_find_collision_objects(p_test_obj_scene : PackedScene, p_expected_objects : int, test_parameters := [
 	[offset_logo, 1]
 ]):
 	var shape_scene = auto_free(p_test_obj_scene.instantiate())
@@ -129,7 +126,7 @@ func test_get_or_create_testing_indicator_on_free():
 
 # Check that the distance between indicators 0 and 1 is the expected value
 @warning_ignore("unused_parameter")
-func test_indicator_generation_distance(p_test_scene : PackedScene, p_expected_distance : float, test_parameters = [
+func test_indicator_generation_distance(p_test_scene : PackedScene, p_expected_distance : float, test_parameters := [
 	[eclipse_scene, 16.0]
 ]):
 	var shape_scene = auto_free(p_test_scene.instantiate())

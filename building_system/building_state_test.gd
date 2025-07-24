@@ -5,7 +5,6 @@ extends GdUnitTestSuite
 @warning_ignore('return_value_discarded')
 
 # TestSuite generated from
-const __source = 'res://addons/grid_building/building_system/building_state.gd'
 
 var state : BuildingState
 var placer : Node2D

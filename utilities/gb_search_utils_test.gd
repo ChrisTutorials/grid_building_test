@@ -5,7 +5,6 @@ extends GdUnitTestSuite
 @warning_ignore('return_value_discarded')
 
 # TestSuite generated from
-const __source = 'res://addons/grid_building/building_system/utilities/gb_search_utils.gd'
 
 func test_find_first_when_parent_null() -> void:
 	var parent = null

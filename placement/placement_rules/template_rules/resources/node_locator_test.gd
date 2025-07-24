@@ -4,9 +4,6 @@ extends GdUnitTestSuite
 @warning_ignore('unused_parameter')
 @warning_ignore('return_value_discarded')
 
-# TestSuite generated from
-const __source = 'res://addons/grid_building/placement/placement_rules/template_rules/resources/node_locator.gd'
-
 var inventory_locator : NodeLocator
 var owner_node : TestItemContainerOwner
 var item_container : Node
@@ -47,7 +44,7 @@ func test_search_by_script_name_with_extension():
 	assert_object(found_node_1.get_script()).is_same(owner_node.get_script())
 
 @warning_ignore("unused_parameter")
-func test_get_script_name(p_node : Object, p_expected : String, test_parameters = [
+func test_get_script_name(p_node : Object, p_expected : String, test_parameters := [
 	[item_container, script_name]
 ]):
 	var test_locator = NodeLocator.new(NodeLocator.SEARCH_METHOD.SCRIPT_NAME_WITH_EXTENSION, "")
