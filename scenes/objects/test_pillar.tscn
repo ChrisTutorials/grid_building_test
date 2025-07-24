@@ -1,0 +1,24 @@
+[gd_scene load_steps=4 format=3 uid="uid://enlg28ry7lxk"]
+
+[ext_resource type="Script" uid="uid://bib4d58jc2hi1" path="res://addons/grid_building/components/manipulatable.gd" id="2_mb83n"]
+[ext_resource type="Resource" uid="uid://dn881lunp3lrm" path="res://test/grid_building_test/resources/settings/manipulatable/manipulatable_settings_all_allowed.tres" id="3_caf8j"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_kwor0"]
+radius = 7.0
+height = 22.0
+
+[node name="Pillar" type="StaticBody2D"]
+collision_layer = 2561
+collision_mask = 2561
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(0, -20)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -14)
+shape = SubResource("CapsuleShape2D_kwor0")
+
+[node name="Manipulatable" type="Node" parent="." node_paths=PackedStringArray("root")]
+script = ExtResource("2_mb83n")
+settings = ExtResource("3_caf8j")
+root = NodePath("..")

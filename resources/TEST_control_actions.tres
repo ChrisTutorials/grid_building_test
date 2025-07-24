@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="ManipulationActions" load_steps=2 format=3 uid="uid://14vxiwcud3ln"]
+
+[ext_resource type="Script" uid="uid://csdqshkhrm6w2" path="res://addons/grid_building/resources/settings/actions/manipulation_actions.gd" id="1_ouem7"]
+
+[resource]
+script = ExtResource("1_ouem7")
+exit_build_mode_action = &"ui_cancel"
+build_action = &"build"
+rotate_right_action = &"rotate_right"
+rotate_left_action = &"rotate_left"
+flip_horizontally_action = &"flip_horizontal"
+flip_vertically_action = &"flip_vertical"

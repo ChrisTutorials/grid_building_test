@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3 uid="uid://cgbwvur77ex84"]
+
+[ext_resource type="Script" uid="uid://c2g8mw5n8let8" path="res://test/grid_building_test/scenes/error_on_ready.gd" id="1_wod5a"]
+
+[node name="TestScriptedBox" type="Node2D"]
+script = ExtResource("1_wod5a")
+
+[node name="Component" type="Node" parent="."]
+script = ExtResource("1_wod5a")
