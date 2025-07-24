@@ -12,14 +12,8 @@ func before_each():
 	placer_state = UserState.new()
 	state.placer_state = placer_state
 
-	placer = autofree(Node2D.new())
-	# Add to the current test scene; GUT will automatically queue_free it after the test
-	add_child(placer)
-
-	placed_parent = autofree(Node2D.new())
-	# Add to the current test scene; GUT will automatically queue_free it after the test
-	
-	add_child(placed_parent)
+	placer = add_child_autofree(Node2D.new())
+	placed_parent = add_child_autofree(Node2D.new())
 
 	placer_state.user = placer
 
