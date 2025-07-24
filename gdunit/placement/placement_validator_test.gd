@@ -1,0 +1,104 @@
+# GdUnit generated TestSuite
+class_name PlacementValidatorTest
+extends GdUnitTestSuite
+@warning_ignore('unused_parameter')
+@warning_ignore('return_value_discarded')
+
+# TestSuite generated from
+
+var library : TestSceneLibrary
+var test_params : RuleValidationParameters
+var rci_manager : RuleCheckIndicatorManager
+var preview_instance : Node2D
+var placer : Node
+var state : BuildingState
+var targeting_state : GridTargetingState
+var validator : PlacementValidator
+var tile_map : TileMap
+var building_state : BuildingState
+var building_settings : BuildingSettings
+var rule_check_indicator_template : PackedScene
+var test_rules : Array[PlacementRule]
+var user_state : UserState
+
+var empty_rules_array : Array[PlacementRule] = []
+
+func before():
+	library = auto_free(TestSceneLibrary.instance_library())
+	rule_check_indicator_template = library.indicator_min.duplicate(true)
+	building_state = library.building_state.duplicate(true)
+	building_settings = library.building_settings.duplicate(true)
+
+func before_test():
+	placer = auto_free(Node.new())
+	targeting_state = GridTargetingState.new()
+	validator = PlacementValidator.new()
+	assert_object(validator).is_not_null()
+	
+	tile_map = TileMap.new()
+	add_child(tile_map)
+	tile_map.tile_set = TileSet.new()
+	tile_map.tile_set.tile_size = Vector2i(16, 16)
+	
+	targeting_state.target_map = tile_map
+	targeting_state.maps = [tile_map]
+	targeting_state.positioner = auto_free(Node2D.new())
+	add_child(targeting_state.positioner)
+	user_state = UserState.new()
+	user_state.user = placer
+	targeting_state.origin_state = user_state
+	
+	
+	rci_manager = auto_free(RuleCheckIndicatorManager.new(rule_check_indicator_template, targeting_state, validator))
+	add_child(rci_manager)
+	rci_manager.placement_validator = validator
+	assert_object(validator.indicator_manager).append_failure_message("[indicator_manager] should  be automatically set up when positioner is set on targeting_state").is_not_null()
+	
+	preview_instance = library.placeable_eclipse.packed_scene.instantiate() as Node2D
+	validator.indicator_manager.add_child(preview_instance)
+	assert_object(preview_instance).is_not_null()
+	
+	test_rules = validator.get_combined_rules(library.placeable_eclipse.placement_rules)
+	
+	test_params = RuleValidationParameters.new(
+		placer, preview_instance, targeting_state
+	)
+	
+func after_test():
+	tile_map.free()
+	validator.indicator_manager.free()
+	
+func after():
+	pass
+	
+func test_setup():
+	var result : Dictionary[PlacementRule, Array] = validator.setup(test_rules, test_params)
+	assert_dict(result).append_failure_message(str(result)).is_empty()
+
+## The rules should receive the validator.debug GBDebugSettings object.
+## In this test, debug is set on so the rule.debug.show should be on too
+func test_setup_rules_passes_debug_object():
+	# Ensure it has a valid debug settings set to on
+	validator.debug = GBDebugSettings.new(true)
+	validator.setup(test_rules, test_params)
+	
+	## Assert that the debug object was passed and set true
+	for rule in test_rules:
+		assert_object(validator.debug).is_equal(rule.debug)
+		assert_bool(rule.debug.show).is_true()
+
+@warning_ignore("unused_parameter")
+func test_get_combined_rules(p_added_rules : Array[PlacementRule], p_validator : PlacementValidator, test_parameters := [
+	[empty_rules_array, library.placement_validator_platformer],
+	[library.placeable_smithy.placement_rules, library.placement_validator_platformer]
+]) -> void:
+	var expected_count = 0
+	
+	if p_added_rules:
+		expected_count += p_added_rules.size()
+	
+	if p_validator:
+		expected_count += p_validator.base_rules.size()
+	
+	var result : Array = p_validator.get_combined_rules(p_added_rules, false)
+	assert_int(result.size()).is_equal(expected_count)
