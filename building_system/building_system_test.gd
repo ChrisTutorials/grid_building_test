@@ -80,16 +80,16 @@ func test_before_test_setup():
 	assert_array(problems).is_empty()
 
 @warning_ignore("unused_parameter")
-func test_instantiate_placeable_preview_fails(p_placeable : Variant, p_warning : String, test_parameters := [
+func test_instance_preview_fails(p_placeable : Variant, p_warning : String, test_parameters := [
 	[null, system._WARNING_INVALID_PLACEABLE],
 ]):
-	var instantiate = func(): system.instantiate_placeable_preview(p_placeable)
+	var instantiate = func(): system.instance_preview(p_placeable)
 	assert_error(instantiate).is_push_warning(p_warning % p_placeable)
 
 @warning_ignore("unused_parameter")
-func test_instantiate_placeable_preview() -> void:
+func test_instance_preview() -> void:
 	var placeable = TestSceneLibrary.placeable_2d_test
-	var preview = auto_free(system.instantiate_placeable_preview(placeable))
+	var preview = auto_free(system.instance_preview(placeable))
 	assert_object(preview).is_not_null()
 	
 
