@@ -1,35 +1,30 @@
 extends GdUnitTestSuite
 
 var rule : WithinTilemapBoundsRule
-var tile_map : TileMap
+var tile_map : TileMapLayer
 var tile_map_layer : TileMapLayer
 var params : RuleValidationParameters
 var targeting_state : GridTargetingState
 var test_parameters : RuleValidationParameters
 
-var library : TestSceneLibrary
-var library_scene : PackedScene = load("uid://ct16sdntvm8ow")
-
-func before():
-	library = auto_free(library_scene.instantiate()) as TestSceneLibrary
 
 func before_test():
-	tile_map = library.tile_map_buildable.instantiate()
+	tile_map = TestSceneLibrary.tile_map_layer_buildable.instantiate()
 	add_child(tile_map)
-	
+
 	targeting_state = GridTargetingState.new()
 	targeting_state.target_map = tile_map
 	targeting_state.maps = [tile_map]
-	
+
 	rule = WithinTilemapBoundsRule.new()
 	var target : Node2D = auto_free(Node2D.new())
 	add_child(target)
 	test_parameters = RuleValidationParameters.new(self, target, targeting_state)
-	
+
 	## Setup & Assert Check!
 	var results : Array[String] = rule.setup(test_parameters)
 	assert_array(results).append_failure_message(str(results)).is_empty()
-	
+
 # Updated test_validate_condition
 @warning_ignore("unused_parameter")
 func test_validate_condition(indicator_setup: Array[Dictionary], expected_success: bool, test_parameters := [

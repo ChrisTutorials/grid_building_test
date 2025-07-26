@@ -12,11 +12,11 @@ var user_state : UserState
 var rci_manager : RuleCheckIndicatorManager
 var mode_state : ModeState
 var grid_positioner : Node2D
-var tile_map : TileMap
+var map_layer : TileMapLayer
 var tile_set : TileSet
 var placer : Node2D
 var placed_parent : Node2D
-var building_actions : BuildingActions
+var actions : GridBuildingActions
 
 var placeable_instance_script : Script = load("uid://dvt7wrugafo5o")
 var placeable_2d_test : Placeable = load("uid://jgmywi04ib7c")
@@ -33,21 +33,20 @@ func before_test():
 	grid_positioner = auto_free(Node2D.new())
 	add_child(grid_positioner)
 	
-	tile_map = auto_free(TileMap.new())
-	add_child(tile_map)
+	map_layer = auto_free(TileMapLayer.new())
+	add_child(map_layer)
 	tile_set = TileSet.new()
-	tile_map.tile_set = tile_set
+	map_layer.tile_set = tile_set
 	
 	targeting_state = auto_free(GridTargetingState.new())
 	targeting_state.positioner = grid_positioner
-	targeting_state.target_map = tile_map
-	targeting_state.maps = [tile_map]
+	targeting_state.target_map = map_layer
+	targeting_state.maps = [map_layer]
 	
 	mode_state = ModeState.new()
 	system = auto_free(BuildingSystem.new())
-	building_actions = BuildingActions.new()
-	system.actions = building_actions
-	system.mode_actions = ModeInputActions.new()
+	actions = GridBuildingActions.new()
+	system.actions = actions
 	system.mode_state = mode_state
 	system.state = BuildingState.new()
 	system.placement_validator = PlacementValidator.new()
@@ -114,7 +113,7 @@ func test_remove_scripts() -> void:
 
 func test_unhandled_input():
 	var action_event = InputEventAction.new()
-	action_event.action = building_actions.confirm
+	action_event.action = actions.confirm
 	action_event.pressed = true
 	
 	system._unhandled_input(action_event)

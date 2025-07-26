@@ -13,7 +13,7 @@ var settings : GridTargetingSettings
 var positioner : Node2D
 var placer : Node2D
 var placed_parent : Node2D
-var tile_map : TileMap
+var map_layer : TileMapLayer
 var vec_max_tile_distance : Vector2
 
 func before_test():
@@ -28,11 +28,11 @@ func before_test():
 	placed_parent = auto_free(Node2D.new())
 	add_child(placed_parent)
 	
-	tile_map = auto_free(library.tile_map_buildable.instantiate())
-	add_child(tile_map)
+	map_layer = auto_free(library.map_layer_buildable.instantiate())
+	add_child(map_layer)
 	
-	state.target_map = tile_map
-	state.maps = [tile_map]
+	state.target_map = map_layer
+	state.maps = [map_layer]
 	state.positioner = positioner
 	var origin_state = UserState.new()
 	state.origin_state = origin_state

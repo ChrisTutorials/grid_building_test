@@ -4,10 +4,9 @@ extends GdUnitTestSuite
 @warning_ignore('unused_parameter')
 @warning_ignore('return_value_discarded')
 
-var library : TestSceneLibrary
 var rci_manager : RuleCheckIndicatorManager
 var tile_set : TileSet = load("res://test/grid_building_test/resources/test_tile_set.tres")
-var tile_map : TileMap
+var map_layer : TileMapLayer
 var placement_validator : PlacementValidator
 var base_rules : Array[PlacementRule]
 var col_checking_rules : Array[TileCheckRule] = RuleFilters.only_tile_check(base_rules)
@@ -26,19 +25,18 @@ var eclipse_scene = load("res://test/grid_building_test/scenes/test_elipse.tscn"
 var offset_logo = load("res://test/grid_building_test/offset_logo.tscn")
 
 func before():
-	library = auto_free(TestSceneLibrary.instance_library())
-	assert_object(library.indicator).is_not_null()
+	assert_object(TestSceneLibrary.indicator).is_not_null()
 	
-	tile_map = auto_free(TileMap.new())
-	add_child(tile_map)
-	tile_map.tile_set = tile_set
-	tile_map.add_layer(0)
+	map_layer = auto_free(TileMap.new())
+	add_child(map_layer)
+	map_layer.tile_set = tile_set
+	map_layer.add_layer(0)
 	
-	# Fill tile_map
+	# Fill map_layer
 	for x in range(-100, 100, 1):
 		for y in range (-100, 100, 1):
 			var cords = Vector2i(x, y)
-			tile_map.set_cell(0, cords, 0, Vector2i(0,0))
+			map_layer.set_cell(cords, 0, Vector2i(0,0))
 			
 	placer = auto_free(Node2D.new())
 	add_child(placer)
@@ -54,8 +52,8 @@ func before():
 
 func before_test():
 	targeting_state = GridTargetingState.new()
-	targeting_state.target_map = tile_map
-	targeting_state.maps = [tile_map]
+	targeting_state.target_map = map_layer
+	targeting_state.maps = [map_layer]
 	
 	#region Positioner Node2D Setup
 	positioner = auto_free(GridPositioner2D.new())
@@ -70,13 +68,13 @@ func before_test():
 	targeting_state.positioner = positioner
 	targeting_state.origin_state = user_state
 	
-	building_settings = library.building_settings.duplicate(true)
+	building_settings = TestSceneLibrary.building_settings.duplicate(true)
 	
-	rci_manager = auto_free(RuleCheckIndicatorManager.new(library.indicator, targeting_state))
+	rci_manager = auto_free(RuleCheckIndicatorManager.new(TestSceneLibrary.indicator, targeting_state))
 	add_child(rci_manager)
 	
 	# Snap rule indicator to tilemap 0,0
-	global_snap_pos = tile_map.map_to_local(Vector2i(0,0))
+	global_snap_pos = map_layer.map_to_local(Vector2i(0,0))
 	
 	var validation_rules = RuleValidationParameters.new(
 		placer,
@@ -166,7 +164,7 @@ func test_track_indicators():
 	rci_manager.free_indicators([])
 	assert_int(rci_manager.indicators.size()).is_equal(0)
 	
-	var indicator = library.indicator.instantiate()
+	var indicator = TestSceneLibrary.indicator.instantiate()
 	rci_manager.track_indicators([indicator])
 	assert_int(rci_manager.indicators.size()).is_equal(1)
 	
@@ -176,7 +174,7 @@ func test_track_indicators():
 	var indicators_to_remove : Array[RuleCheckIndicator] = []
 	
 	for i in range(0,10,1):
-		var new_indicator = library.indicator.instantiate()
+		var new_indicator = TestSceneLibrary.indicator.instantiate()
 		rci_manager.track_indicators([new_indicator])
 		indicators_to_remove.append(new_indicator)
 		

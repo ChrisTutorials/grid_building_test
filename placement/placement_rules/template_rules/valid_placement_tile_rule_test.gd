@@ -6,11 +6,10 @@ extends GdUnitTestSuite
 
 # TestSuite generated from
 
-var library : TestSceneLibrary
 var rule : ValidPlacementTileRule
 var no_setup_indicator : RuleCheckIndicator
 var valid_indicator : RuleCheckIndicator
-var map : TileMap  # Explicitly typed as TileMap for clarity
+var map_layer : TileMapLayer
 
 # TileData instances for test cases
 var tile_data_extra : TileData
@@ -19,27 +18,24 @@ var tile_data_missing_key : TileData
 var tile_data_full_match : TileData
 var tile_data_none : TileData
 
-func before():
-	library = auto_free(load("res://test/grid_building_test/scenes/test_scene_library.tscn").instantiate())
-
 func before_test():
 	# Rule and indicator setup. Rule requires the tile data to be grass and Green
 	rule = ValidPlacementTileRule.new()
 	rule.expected_tile_custom_data = {"type": "grass", "color": Color.GREEN}
-	no_setup_indicator = auto_free(library.indicator.instantiate()) as RuleCheckIndicator
+	no_setup_indicator = auto_free(TestSceneLibrary.indicator.instantiate()) as RuleCheckIndicator
 	no_setup_indicator.add_rule(rule)
 	add_child(no_setup_indicator)
 	
-	valid_indicator = auto_free(library.indicator.instantiate()) as RuleCheckIndicator
+	valid_indicator = auto_free(TestSceneLibrary.indicator.instantiate()) as RuleCheckIndicator
 	valid_indicator.add_rule(rule)
 	add_child(valid_indicator)
 	
 	# Map and targeting state setup
-	map = auto_free(library.tile_map_buildable.instantiate()) as TileMap
-	add_child(map)
+	map_layer = auto_free(TestSceneLibrary.tile_map_layer_buildable.instantiate()) as TileMapLayer
+	add_child(map_layer)
 	var targeting_state := GridTargetingState.new()
-	targeting_state.target_map = map
-	targeting_state.maps = [map]
+	targeting_state.target_map = map_layer
+	targeting_state.maps = [map_layer]
 	
 	var placer : Node = auto_free(Node.new())
 	var placement_node : Node2D =  auto_free(Node2D.new())
@@ -49,7 +45,7 @@ func before_test():
 	assert_array(problems).is_empty()
 	
 	# Assign the TileSet to the TileMap
-	map.tile_set = library.custom_data_tile_set
+	map_layer.tile_set = TestSceneLibrary.custom_data_tile_set
 
 	# Initialize TileData objects for test cases using different tile positions
 	tile_data_full_match = _create_tile_data.call(Vector2i(0, 0), {"type": "grass", "color": Color.GREEN})
@@ -65,7 +61,7 @@ func test_does_tile_have_valid_data(p_indicator : RuleCheckIndicator, p_expected
 	[no_setup_indicator, true],
 	[valid_indicator, true]
 ]) -> void:
-	var result = rule.does_tile_have_valid_data(p_indicator, [map])
+	var result = rule.does_tile_have_valid_data(p_indicator, [map_layer])
 	assert_bool(result).is_equal(p_expected)
 
 # Parameterized test using pre-initialized TileData objects
@@ -86,13 +82,13 @@ func after_test():
 	pass
 
 func after():
-	# Clean up library
+	# Clean up TestSceneLibrary
 	pass
 
 # Helper function to create TileData at a specific tile position
 func _create_tile_data(coords: Vector2i, custom_data: Dictionary) -> TileData:
-	map.set_cell(0, coords, 0, coords)
-	var tile_data = map.get_cell_tile_data(0, coords)
+	map_layer.set_cell(coords, 0, coords)
+	var tile_data = map_layer.get_cell_tile_data(coords)
 	for key in custom_data:
 		tile_data.set_custom_data(key, custom_data[key])
 	return tile_data

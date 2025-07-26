@@ -6,7 +6,6 @@ extends GdUnitTestSuite
 
 # TestSuite generated from
 
-var library : TestSceneLibrary
 var test_params : RuleValidationParameters
 var rci_manager : RuleCheckIndicatorManager
 var preview_instance : Node2D
@@ -14,7 +13,7 @@ var placer : Node
 var state : BuildingState
 var targeting_state : GridTargetingState
 var validator : PlacementValidator
-var tile_map : TileMap
+var map_layer : TileMapLayer
 var building_state : BuildingState
 var building_settings : BuildingSettings
 var rule_check_indicator_template : PackedScene
@@ -24,10 +23,9 @@ var user_state : UserState
 var empty_rules_array : Array[PlacementRule] = []
 
 func before():
-	library = auto_free(TestSceneLibrary.instance_library())
-	rule_check_indicator_template = library.indicator_min.duplicate(true)
-	building_state = library.building_state.duplicate(true)
-	building_settings = library.building_settings.duplicate(true)
+	rule_check_indicator_template = TestSceneLibrary.indicator_min.duplicate(true)
+	building_state = TestSceneLibrary.building_state.duplicate(true)
+	building_settings = TestSceneLibrary.building_settings.duplicate(true)
 
 func before_test():
 	placer = auto_free(Node.new())
@@ -35,13 +33,13 @@ func before_test():
 	validator = PlacementValidator.new()
 	assert_object(validator).is_not_null()
 	
-	tile_map = TileMap.new()
-	add_child(tile_map)
-	tile_map.tile_set = TileSet.new()
-	tile_map.tile_set.tile_size = Vector2i(16, 16)
+	map_layer = TileMapLayer.new()
+	add_child(map_layer)
+	map_layer.tile_set = TileSet.new()
+	map_layer.tile_set.tile_size = Vector2i(16, 16)
 	
-	targeting_state.target_map = tile_map
-	targeting_state.maps = [tile_map]
+	targeting_state.target_map = map_layer
+	targeting_state.maps = [map_layer]
 	targeting_state.positioner = auto_free(Node2D.new())
 	add_child(targeting_state.positioner)
 	user_state = UserState.new()
@@ -54,18 +52,18 @@ func before_test():
 	rci_manager.placement_validator = validator
 	assert_object(validator.indicator_manager).append_failure_message("[indicator_manager] should  be automatically set up when positioner is set on targeting_state").is_not_null()
 	
-	preview_instance = library.placeable_eclipse.packed_scene.instantiate() as Node2D
+	preview_instance = TestSceneLibrary.placeable_eclipse.packed_scene.instantiate() as Node2D
 	validator.indicator_manager.add_child(preview_instance)
 	assert_object(preview_instance).is_not_null()
 	
-	test_rules = validator.get_combined_rules(library.placeable_eclipse.placement_rules)
+	test_rules = validator.get_combined_rules(TestSceneLibrary.placeable_eclipse.placement_rules)
 	
 	test_params = RuleValidationParameters.new(
 		placer, preview_instance, targeting_state
 	)
 	
 func after_test():
-	tile_map.free()
+	map_layer.free()
 	validator.indicator_manager.free()
 	
 func after():
@@ -89,8 +87,8 @@ func test_setup_rules_passes_debug_object():
 
 @warning_ignore("unused_parameter")
 func test_get_combined_rules(p_added_rules : Array[PlacementRule], p_validator : PlacementValidator, test_parameters := [
-	[empty_rules_array, library.placement_validator_platformer],
-	[library.placeable_smithy.placement_rules, library.placement_validator_platformer]
+	[empty_rules_array, TestSceneLibrary.placement_validator_platformer],
+	[TestSceneLibrary.placeable_smithy.placement_rules, TestSceneLibrary.placement_validator_platformer]
 ]) -> void:
 	var expected_count = 0
 	

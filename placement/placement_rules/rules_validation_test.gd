@@ -13,24 +13,22 @@ var placement_validator : PlacementValidator
 var object_placer : Node2D
 var positioner : Node2D
 var test_instance : Node2D
-var tile_map : TileMap
+var map_layer : TileMapLayer
 var tile_set : TileSet
 var rci_manager : RuleCheckIndicatorManager
-var library : TestSceneLibrary
 
 func before():
 	# Loading Setup
-	library = auto_free(TestSceneLibrary.instance_library())
-	assert_bool(library.placeable_eclipse.validate()).is_true()
-	assert_object(library.eclipse_scene).is_not_null()
-	assert_object(library.indicator).is_instanceof(PackedScene)
+	assert_bool(TestSceneLibrary.placeable_eclipse.validate()).is_true()
+	assert_object(TestSceneLibrary.eclipse_scene).is_not_null()
+	assert_object(TestSceneLibrary.indicator).is_instanceof(PackedScene)
 	building_settings = BuildingSettings.new()
 	targeting_state = GridTargetingState.new()
 	placement_validator = PlacementValidator.new()
 	
 	#region Setup Tile Map
-	tile_map = auto_free(library.tile_map_buildable.instantiate())
-	add_child(tile_map)
+	map_layer = auto_free(TestSceneLibrary.tile_map_layer_buildable.instantiate())
+	add_child(map_layer)
 	#endregion
 
 func before_test():
@@ -50,8 +48,8 @@ func before_test():
 	
 	targeting_state = GridTargetingState.new()
 	targeting_state.origin_state = user_state
-	targeting_state.target_map = tile_map
-	targeting_state.maps = [tile_map]
+	targeting_state.target_map = map_layer
+	targeting_state.maps = [map_layer]
 	targeting_state.positioner = positioner
 	assert_array(targeting_state.validate()).append_failure_message("Targeting state is not set up to be valid. Check warnings.").is_empty()
 	

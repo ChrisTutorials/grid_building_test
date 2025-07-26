@@ -33,7 +33,7 @@ static var keep_script_scene : PackedScene = load("uid://bp22b3deiiyer")
 static var eclipse_scene : PackedScene = load("uid://j5837ml5dduu")
 
 @export_group("Tile Maps")
-static var tile_map_buildable : PackedScene = load("uid://3shi30ob8pna")
+static var tile_map_layer_buildable : PackedScene = load("uid://3shi30ob8pna")
 
 ## Tileset with "type", "color", "height" custom data properties for tiles
 static var custom_data_tile_set : TileSet = load("uid://b0shp63l248fm")
