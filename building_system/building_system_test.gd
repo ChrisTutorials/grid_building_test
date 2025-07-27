@@ -9,7 +9,7 @@ extends GdUnitTestSuite
 var system : BuildingSystem
 var targeting_state : GridTargetingState
 var user_state : UserState
-var rci_manager : RuleCheckIndicatorManager
+var placement_manager : PlacementManager
 var mode_state : ModeState
 var grid_positioner : Node2D
 var map_layer : TileMapLayer
@@ -63,10 +63,10 @@ func before_test():
 	
 	
 	system.placement_validator = PlacementValidator.new()
-	rci_manager = auto_free(RuleCheckIndicatorManager.new(TestSceneLibrary.indicator, targeting_state, system.placement_validator))
-	rci_manager.name = "RuleCheckIndicatorManager"
-	grid_positioner.add_child(rci_manager)
-	system.placement_validator.indicator_manager = rci_manager
+	placement_manager = auto_free(PlacementManager.new(TestSceneLibrary.indicator, targeting_state, system.placement_validator))
+	placement_manager.name = "PlacementManager"
+	grid_positioner.add_child(placement_manager)
+	system.placement_validator.indicator_manager = placement_manager
 	
 	system.state = BuildingState.new()
 	system.state.placer_state = user_state

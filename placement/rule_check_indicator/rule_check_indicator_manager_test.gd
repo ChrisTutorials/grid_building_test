@@ -4,7 +4,7 @@ extends GdUnitTestSuite
 @warning_ignore('unused_parameter')
 @warning_ignore('return_value_discarded')
 
-var rci_manager : RuleCheckIndicatorManager
+var placement_manager : PlacementManager
 var tile_set : TileSet = load("res://test/grid_building_test/resources/test_tile_set.tres")
 var map_layer : TileMapLayer
 var placement_validator : PlacementValidator
@@ -70,8 +70,8 @@ func before_test():
 	
 	building_settings = TestSceneLibrary.building_settings.duplicate(true)
 	
-	rci_manager = auto_free(RuleCheckIndicatorManager.new(TestSceneLibrary.indicator, targeting_state))
-	add_child(rci_manager)
+	placement_manager = auto_free(PlacementManager.new(TestSceneLibrary.indicator, targeting_state))
+	add_child(placement_manager)
 	
 	# Snap rule indicator to tilemap 0,0
 	global_snap_pos = map_layer.map_to_local(Vector2i(0,0))
@@ -82,10 +82,10 @@ func before_test():
 		targeting_state
 	)
 	
-	placement_validator.indicator_manager = rci_manager
+	placement_validator.indicator_manager = placement_manager
 	var setup_result : Dictionary[PlacementRule, Array] = placement_validator.setup(base_rules, validation_rules)
 	assert_dict(setup_result).append_failure_message("Setup failed to run successfully on placement_validator %s" % setup_result).is_empty()
-	assert_object(rci_manager.indicator_template).append_failure_message("Indicator template expected to be set on rci_manager.").is_not_null()
+	assert_object(placement_manager.indicator_template).append_failure_message("Indicator template expected to be set on placement_manager.").is_not_null()
 	
 
 ## Tests that the number of indicators generated for p_shape_scene matches the p_expected_indicators
@@ -97,7 +97,7 @@ func test_setup_indicators(p_test_obj_scene : PackedScene, p_expected_indicators
 	var shape_scene = auto_free(p_test_obj_scene.instantiate())
 	add_child(shape_scene)
 	shape_scene.global_position = global_snap_pos
-	var indicators : Array[RuleCheckIndicator] = rci_manager.setup_indicators(shape_scene, col_checking_rules)
+	var indicators : Array[RuleCheckIndicator] = placement_manager.setup_indicators(shape_scene, col_checking_rules)
 	assert_int(indicators.size()).append_failure_message("Generated indicator count did not match expected count.").is_equal(p_expected_indicators)
 
 ## Asserts that the number of found objects in the test scene instance is equal to the manually counted expected objects
@@ -107,19 +107,19 @@ func test_find_collision_objects(p_test_obj_scene : PackedScene, p_expected_obje
 ]):
 	var shape_scene = auto_free(p_test_obj_scene.instantiate())
 	add_child(shape_scene)
-	var objects : Array[CollisionObject2D] = rci_manager._find_collision_objects(shape_scene)
+	var objects : Array[CollisionObject2D] = placement_manager._find_collision_objects(shape_scene)
 	assert_int(objects.size()).is_equal(p_expected_objects)
 
 ## Ensure proper freeing of objects after using get_or_create_testing_indicator
-## followed by freeing the rci_manager
+## followed by freeing the placement_manager
 func test_get_or_create_testing_indicator_on_free():
 	## Setup
-	rci_manager.get_or_create_testing_indicator(test_indicator)
-	var testing_indicator = rci_manager._testing_indicator
+	placement_manager.get_or_create_testing_indicator(test_indicator)
+	var testing_indicator = placement_manager._testing_indicator
 	assert_object(testing_indicator).is_not_null()
 	
 	## Free Test
-	rci_manager.free()
+	placement_manager.free()
 	assert_that(testing_indicator).is_null()
 
 # Check that the distance between indicators 0 and 1 is the expected value
@@ -129,9 +129,9 @@ func test_indicator_generation_distance(p_test_scene : PackedScene, p_expected_d
 ]):
 	var shape_scene = auto_free(p_test_scene.instantiate())
 	add_child(shape_scene)
-	var indicators : Array[RuleCheckIndicator] = rci_manager.setup_indicators(shape_scene, col_checking_rules)
-	var indicator_0 = rci_manager.indicators[0]
-	var indicator_1 = rci_manager.indicators[1]
+	var indicators : Array[RuleCheckIndicator] = placement_manager.setup_indicators(shape_scene, col_checking_rules)
+	var indicator_0 = placement_manager.indicators[0]
+	var indicator_1 = placement_manager.indicators[1]
 	var distance_to = indicator_0.global_position.distance_to(indicator_1.global_position)
 	assert_float(distance_to).append_failure_message("16x16 tile spacing").is_equal(p_expected_distance)
 	
@@ -143,48 +143,48 @@ func test_rect_15_tile_shape_count():
 	#endregion
 	
 	#region Execution
-	var col_objects : Array[CollisionObject2D] = rci_manager._find_collision_objects(test_rect_15_tiles)
+	var col_objects : Array[CollisionObject2D] = placement_manager._find_collision_objects(test_rect_15_tiles)
 	assert_array(col_objects).is_not_empty()
 	var expected_collisions = 15
-	var tile_positions = rci_manager._get_collision_tile_positions_with_mask(col_objects, 1)
+	var tile_positions = placement_manager._get_collision_tile_positions_with_mask(col_objects, 1)
 	assert_int(tile_positions.size()).append_failure_message("Expected to have %d positions where tiles collide" % expected_collisions).is_equal(expected_collisions)
-	var generated_indicators = rci_manager.setup_indicators(test_rect_15_tiles, col_checking_rules)
+	var generated_indicators = placement_manager.setup_indicators(test_rect_15_tiles, col_checking_rules)
 	assert_int(generated_indicators.size()).is_equal(15)
-	var distance_to = rci_manager.indicators[0].global_position.distance_to(rci_manager.indicators[1].global_position)
+	var distance_to = placement_manager.indicators[0].global_position.distance_to(placement_manager.indicators[1].global_position)
 	assert_float(distance_to).append_failure_message("16x16 tile spacing").is_equal(16.0)
 	#endregion
 	
 	#region Cleanup
-	rci_manager.clear()
+	placement_manager.clear()
 	test_rect_15_tiles.free()
 	#endregion
 	
 func test_track_indicators():
-	assert_int(rci_manager.indicators.size()).is_equal(0)
-	rci_manager.free_indicators([])
-	assert_int(rci_manager.indicators.size()).is_equal(0)
+	assert_int(placement_manager.indicators.size()).is_equal(0)
+	placement_manager.free_indicators([])
+	assert_int(placement_manager.indicators.size()).is_equal(0)
 	
 	var indicator = TestSceneLibrary.indicator.instantiate()
-	rci_manager.track_indicators([indicator])
-	assert_int(rci_manager.indicators.size()).is_equal(1)
+	placement_manager.track_indicators([indicator])
+	assert_int(placement_manager.indicators.size()).is_equal(1)
 	
-	rci_manager.free_indicators([indicator])
-	assert_int(rci_manager.indicators.size()).is_equal(0)
+	placement_manager.free_indicators([indicator])
+	assert_int(placement_manager.indicators.size()).is_equal(0)
 	
 	var indicators_to_remove : Array[RuleCheckIndicator] = []
 	
 	for i in range(0,10,1):
 		var new_indicator = TestSceneLibrary.indicator.instantiate()
-		rci_manager.track_indicators([new_indicator])
+		placement_manager.track_indicators([new_indicator])
 		indicators_to_remove.append(new_indicator)
 		
-	assert_int(rci_manager.indicators.size()).is_equal(10)
-	rci_manager.free_indicators(indicators_to_remove)
-	assert_int(rci_manager.indicators.size()).is_equal(0)
+	assert_int(placement_manager.indicators.size()).is_equal(10)
+	placement_manager.free_indicators(indicators_to_remove)
+	assert_int(placement_manager.indicators.size()).is_equal(0)
 
 func _compare_transform_adjusted_rects(p_test_rect : Rect2, p_transform : Transform2D, p_col_object : CollisionObject2D):
-	rci_manager.indicator_creation_testing_parameters.clear()
-	var setup : IndicatorCollisionTestSetup = rci_manager._get_or_create_test_params(p_col_object)
+	placement_manager.indicator_creation_testing_parameters.clear()
+	var setup : IndicatorCollisionTestSetup = placement_manager._get_or_create_test_params(p_col_object)
 	
 	for rect_test in setup.rect_collision_test_setups:
 		var shape_owner = rect_test.shape_owner
@@ -212,7 +212,7 @@ func test_setup_indicators_rotated_elipse():
 	var tile_check_rules = RuleFilters.only_tile_check(rules)
 	#endregion
 	
-	var indicators = rci_manager.setup_indicators(test_object, tile_check_rules)
+	var indicators = placement_manager.setup_indicators(test_object, tile_check_rules)
 	assert_array(indicators).has_size(24)
 	
 	for indicator in indicators:
@@ -221,5 +221,5 @@ func test_setup_indicators_rotated_elipse():
 	assert_int(indicators.size()).is_equal(24)
 
 func test_expected_connections() -> void:
-	assert_array(rci_manager.tree_entered.get_connections()).is_not_empty() # Tree entered to setup placement validator
-	assert_array(rci_manager.tree_exited.get_connections()).is_not_empty() # Tree exited to clear self from placement validator
+	assert_array(placement_manager.tree_entered.get_connections()).is_not_empty() # Tree entered to setup placement validator
+	assert_array(placement_manager.tree_exited.get_connections()).is_not_empty() # Tree exited to clear self from placement validator

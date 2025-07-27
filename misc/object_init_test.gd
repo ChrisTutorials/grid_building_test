@@ -32,11 +32,11 @@ func test_rule_check_indicator_init():
 	rule_check_indicator.free()
 
 func test_rule_check_indicator_manager_init():
-	var rule_check_indicator_manager = RuleCheckIndicatorManager.new()
+	var placement_manager = PlacementManager.new()
 	
-	assert_object(rule_check_indicator_manager).is_not_null()
+	assert_object(placement_manager).is_not_null()
 	
-	rule_check_indicator_manager.free()
+	placement_manager.free()
 	
 func test_node_locator_init():
 	var node_locator = NodeLocator.new()

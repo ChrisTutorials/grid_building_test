@@ -45,8 +45,8 @@ func before_test():
 	system.mode_state = ModeState.new()
 	add_child(system)
 	
-	var rci_manager = auto_free(RuleCheckIndicatorManager.new(null, targeting_state, placement_validator))
-	add_child(rci_manager)
+	var placement_manager = auto_free(PlacementManager.new(null, targeting_state, placement_validator))
+	add_child(placement_manager)
 	
 	## Set targeting_state dependencies
 	positioner = auto_free(Node2D.new())
@@ -172,7 +172,7 @@ func test_rotate_negative(p_manipulatable : Manipulatable, p_expected : bool, te
 	[all_manipulatable, true]
 ]):
 	var preview = Node2D.new()
-	var rci_manager = RuleCheckIndicatorManager.new()
+	var placement_manager = PlacementManager.new()
 	var target = p_manipulatable.root
 	
 	var rotation_per_time = -33.3333
@@ -182,12 +182,12 @@ func test_rotate_negative(p_manipulatable : Manipulatable, p_expected : bool, te
 		total_rotation = total_rotation + rotation_per_time
 		assert_bool(system.rotate(target, rotation_per_time)).is_equal(p_expected)
 		var remainder_preview = fmod(preview.rotation_degrees, rotation_per_time)
-		var remainder_rci = fmod(rci_manager.rotation_degrees, rotation_per_time)
+		var remainder_rci = fmod(placement_manager.rotation_degrees, rotation_per_time)
 		assert_float(remainder_preview).is_between(-360.0, 360.0)
 		assert_float(remainder_rci).is_between(-360.0, 360.0)
 
 	preview.free()
-	rci_manager.free()
+	placement_manager.free()
 
 
 @warning_ignore("unused_parameter")

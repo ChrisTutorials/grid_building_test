@@ -15,7 +15,7 @@ var positioner : Node2D
 var test_instance : Node2D
 var map_layer : TileMapLayer
 var tile_set : TileSet
-var rci_manager : RuleCheckIndicatorManager
+var placement_manager : PlacementManager
 
 func before():
 	# Loading Setup
@@ -54,8 +54,8 @@ func before_test():
 	assert_array(targeting_state.validate()).append_failure_message("Targeting state is not set up to be valid. Check warnings.").is_empty()
 	
 	placement_validator = PlacementValidator.new()
-	rci_manager = auto_free(RuleCheckIndicatorManager.new(rule_check_indicator_template, targeting_state, placement_validator))
-	add_child(rci_manager)
+	placement_manager = auto_free(PlacementManager.new(rule_check_indicator_template, targeting_state, placement_validator))
+	add_child(placement_manager)
 
 ##  I would like to report a possible bug in the grid building addon,
 ## unless I am missing something.. but I can't have two rules in the 
@@ -81,7 +81,7 @@ func create_indicator(p_rules_to_evaluate : Array[TileCheckRule]) -> RuleCheckIn
 	indicator.rules = p_rules_to_evaluate
 	indicator.shape = RectangleShape2D.new()
 	indicator.shape.size = Vector2(16,16)
-	rci_manager.add_child(indicator)
+	placement_manager.add_child(indicator)
 	return indicator
 
 ## Sets up the placement validator and rules

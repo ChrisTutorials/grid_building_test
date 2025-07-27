@@ -7,7 +7,7 @@ extends GdUnitTestSuite
 # TestSuite generated from
 
 var test_params : RuleValidationParameters
-var rci_manager : RuleCheckIndicatorManager
+var placement_manager : PlacementManager
 var preview_instance : Node2D
 var placer : Node
 var state : BuildingState
@@ -47,9 +47,9 @@ func before_test():
 	targeting_state.origin_state = user_state
 	
 	
-	rci_manager = auto_free(RuleCheckIndicatorManager.new(rule_check_indicator_template, targeting_state, validator))
-	add_child(rci_manager)
-	rci_manager.placement_validator = validator
+	placement_manager = auto_free(PlacementManager.new(rule_check_indicator_template, targeting_state, validator))
+	add_child(placement_manager)
+	placement_manager.placement_validator = validator
 	assert_object(validator.indicator_manager).append_failure_message("[indicator_manager] should  be automatically set up when positioner is set on targeting_state").is_not_null()
 	
 	preview_instance = TestSceneLibrary.placeable_eclipse.packed_scene.instantiate() as Node2D
