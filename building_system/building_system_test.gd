@@ -16,7 +16,7 @@ var map_layer : TileMapLayer
 var tile_set : TileSet
 var placer : Node2D
 var placed_parent : Node2D
-var actions : GridBuildingActions
+var actions : GBActions
 
 var placeable_instance_script : Script = load("uid://dvt7wrugafo5o")
 var placeable_2d_test : Placeable = load("uid://jgmywi04ib7c")
@@ -45,7 +45,7 @@ func before_test():
 	
 	mode_state = ModeState.new()
 	system = auto_free(BuildingSystem.new())
-	actions = GridBuildingActions.new()
+	actions = GBActions.new()
 	system.actions = actions
 	system.mode_state = mode_state
 	system.state = BuildingState.new()
