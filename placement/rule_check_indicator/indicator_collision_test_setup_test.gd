@@ -60,13 +60,13 @@ func test_adjust_rect_to_testing_size(p_setups : Array[IndicatorCollisionTestSet
 			assert_float(result_rect.size.y).is_greater_equal(minimum_expected_size.y)
 	
 
-func create_test_setups(p_root : Node) -> Array[IndicatorCollisionTestSetup]:
+func create_test_setups(p_container : Node) -> Array[IndicatorCollisionTestSetup]:
 	var test_setups : Array[IndicatorCollisionTestSetup] = []
 	
-	if(p_root is CollisionObject2D):
-		test_setups.append(IndicatorCollisionTestSetup.new(p_root, Vector2(16,16)))
+	if(p_container is CollisionObject2D):
+		test_setups.append(IndicatorCollisionTestSetup.new(p_container, Vector2(16,16)))
 	
-	for collision_object in p_root.find_children("", "CollisionObject2D"):
+	for collision_object in p_container.find_children("", "CollisionObject2D"):
 		test_setups.append(IndicatorCollisionTestSetup.new(collision_object, Vector2(16,16)))
 
 	return test_setups

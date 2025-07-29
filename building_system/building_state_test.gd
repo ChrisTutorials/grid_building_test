@@ -9,11 +9,11 @@ extends GdUnitTestSuite
 var state : BuildingState
 var placer : Node2D
 var placed_parent : Node2D
-var placer_state : UserState
+var placer_state : GBOwnerContext
 
 func before_test():
 	state = BuildingState.new()
-	placer_state = UserState.new()
+	placer_state = GBOwnerContext.new()
 	state.placer_state = placer_state
 	placer = Node2D.new()
 	add_child(placer)

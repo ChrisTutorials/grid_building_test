@@ -12,7 +12,7 @@ var base_rules : Array[PlacementRule]
 var col_checking_rules : Array[TileCheckRule] = RuleFilters.only_tile_check(base_rules)
 var targeting_state : GridTargetingState
 var building_settings : BuildingSettings
-var user_state : UserState
+var user_state : GBOwnerContext
 
 var placer : Node
 var placed_parent : Node2D
@@ -40,7 +40,7 @@ func before():
 			
 	placer = auto_free(Node2D.new())
 	add_child(placer)
-	user_state = UserState.new()
+	user_state = GBOwnerContext.new()
 	user_state.user = placer
 	
 	placed_parent = auto_free(Node2D.new())

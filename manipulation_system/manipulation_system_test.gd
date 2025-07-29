@@ -9,7 +9,7 @@ extends GdUnitTestSuite
 var system : ManipulationSystem
 var manipulation_state : ManipulationState
 var targeting_state : GridTargetingState
-var user_state : UserState
+var user_state : GBOwnerContext
 var placement_validator : PlacementValidator
 var positioner : Node2D
 var manipulator : Node
@@ -20,7 +20,7 @@ var all_manipulatable : Manipulatable
 
 func before_test():
 	# Setup user state
-	user_state = UserState.new()
+	user_state = GBOwnerContext.new()
 	manipulator = auto_free(Node.new())
 	add_child(manipulator)
 	user_state.user = manipulator

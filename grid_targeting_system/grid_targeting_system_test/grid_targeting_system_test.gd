@@ -34,7 +34,7 @@ func before_test():
 	state.target_map = map_layer
 	state.maps = [map_layer]
 	state.positioner = positioner
-	var origin_state = UserState.new()
+	var origin_state = GBOwnerContext.new()
 	state.origin_state = origin_state
 	origin_state.user = placer
 	assert_array(state.validate()).append_failure_message("Problems in setup found").is_empty()

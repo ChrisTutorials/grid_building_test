@@ -8,7 +8,7 @@ extends GdUnitTestSuite
 
 var system : BuildingSystem
 var targeting_state : GridTargetingState
-var user_state : UserState
+var user_state : GBOwnerContext
 var placement_manager : PlacementManager
 var mode_state : ModeState
 var grid_positioner : Node2D
@@ -57,7 +57,7 @@ func before_test():
 	
 	add_child(system)
 	
-	user_state = UserState.new()
+	user_state = GBOwnerContext.new()
 	user_state.user = placer
 	system.targeting_state.origin_state = user_state
 	

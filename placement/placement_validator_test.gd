@@ -18,7 +18,7 @@ var building_state : BuildingState
 var building_settings : BuildingSettings
 var rule_check_indicator_template : PackedScene
 var test_rules : Array[PlacementRule]
-var user_state : UserState
+var user_state : GBOwnerContext
 
 var empty_rules_array : Array[PlacementRule] = []
 
@@ -42,7 +42,7 @@ func before_test():
 	targeting_state.maps = [map_layer]
 	targeting_state.positioner = auto_free(Node2D.new())
 	add_child(targeting_state.positioner)
-	user_state = UserState.new()
+	user_state = GBOwnerContext.new()
 	user_state.user = placer
 	targeting_state.origin_state = user_state
 	

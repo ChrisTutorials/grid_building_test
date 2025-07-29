@@ -7,7 +7,7 @@ var rule_check_indicator_template : PackedScene
 
 var building_state : BuildingState
 var targeting_state : GridTargetingState
-var user_state : UserState
+var user_state : GBOwnerContext
 var building_settings : BuildingSettings
 var placement_validator : PlacementValidator
 var object_placer : Node2D
@@ -39,7 +39,7 @@ func before_test():
 	positioner = auto_free(Node2D.new())
 	add_child(positioner)
 	
-	user_state = UserState.new()
+	user_state = GBOwnerContext.new()
 	user_state.user = object_placer
 	
 	building_state = BuildingState.new()
