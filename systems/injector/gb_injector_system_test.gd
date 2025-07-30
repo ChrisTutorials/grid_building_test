@@ -10,7 +10,6 @@ class MockInjectableNode:
 		called_with = arg
 
 func test_should_inject_existing_nodes_on_ready() -> void:
-
 	var node := MockInjectableNode.new()
 	add_child_to_root(node)
 
@@ -56,6 +55,28 @@ func test_should_inject_subtree_nodes() -> void:
 	
 	# Both parent and child should be injected recursively
 	assert_that(parent_node.called_with).is_equal(composition_container)
+	assert_that(child_node.called_with).is_equal(composition_container)
+
+func test_should_inject_child_when_parent_lacks_resolve_method() -> void:
+	# Create a plain Node (no resolve_gb_dependencies)
+	var parent_node := Node.new()
+	
+	# Child with resolve_gb_dependencies method
+	var child_node := MockInjectableNode.new()
+	parent_node.add_child(child_node)
+	
+	var injector := GBInjectorSystem.new()
+	injector.composition_container = composition_container
+	add_child_to_root(injector)
+	
+	await get_tree().process_frame # Let injector initialize
+	
+	# Add parent_node (which lacks resolve method) with child to scene root
+	add_child_to_root(parent_node)
+	
+	await get_tree().process_frame # Wait for injection propagation
+	
+	# The child should still be injected despite parent lacking resolve method
 	assert_that(child_node.called_with).is_equal(composition_container)
 
 func add_child_to_root(node: Node) -> void:
