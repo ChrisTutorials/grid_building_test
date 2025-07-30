@@ -18,7 +18,7 @@ func _create_test_parent_node(with_existing: bool) -> Array:
 
 	return [parent, internal_var]
 
-# Parameterized test case
+@warning_ignore("unused_parameter")
 func test_lazy_load_drag_build_manager_case(with_existing: bool, expected_child_count: int, test_parameters := [
 	[false, 1],  # create new
 	[true, 1],   # reuse existing

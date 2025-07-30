@@ -5,7 +5,7 @@ var tile_map : TileMapLayer
 var tile_map_layer : TileMapLayer
 var params : RuleValidationParameters
 var targeting_state : GridTargetingState
-var test_parameters : RuleValidationParameters
+var rule_validation_params : RuleValidationParameters
 
 
 func before_test():
@@ -19,10 +19,10 @@ func before_test():
 	rule = WithinTilemapBoundsRule.new()
 	var target : Node2D = auto_free(Node2D.new())
 	add_child(target)
-	test_parameters = RuleValidationParameters.new(self, target, targeting_state)
+	rule_validation_params = RuleValidationParameters.new(self, target, targeting_state)
 
 	## Setup & Assert Check!
-	var results : Array[String] = rule.setup(test_parameters)
+	var results : Array[String] = rule.setup(rule_validation_params)
 	assert_array(results).append_failure_message(str(results)).is_empty()
 
 # Updated test_validate_condition
