@@ -8,7 +8,6 @@ static var indicator_iso : PackedScene = load("uid://cfvuw0dd8twce")
 
 @export_group("Resources")
 static var building_settings : BuildingSettings = load("uid://b02r1bgby2hcx")
-static var building_state : BuildingState = load("uid://dw4ugrxmh3s5e")
 static var grid_targeting_settings : GridTargetingSettings = load("uid://cob2kk7haei2t")
 static var placement_validator_platformer : PlacementValidator = load("uid://bhk3251n317e")
 
@@ -25,7 +24,6 @@ static var placeable_eclipse : Placeable = load("uid://bdyqov56dermv")
 static var placeable_smithy : Placeable = load("uid://dirh6mcrgdm3w")
 
 @export_group("Scripts")
-
 
 @export_group("Test Scenes")
 static var box_scripted : PackedScene = load("uid://cgbwvur77ex84")

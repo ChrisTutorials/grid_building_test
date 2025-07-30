@@ -1,10 +1,11 @@
 # GdUnit generated TestSuite
-class_name RuleCheckIndicatorManagerTest
+class_name PlacementManagerTest
 extends GdUnitTestSuite
 @warning_ignore('unused_parameter')
 @warning_ignore('return_value_discarded')
 
 var placement_manager : PlacementManager
+var _placement_context : PlacementContext
 var tile_set : TileSet = load("res://test/grid_building_test/resources/test_tile_set.tres")
 var map_layer : TileMapLayer
 var placement_validator : PlacementValidator
@@ -70,7 +71,8 @@ func before_test():
 	
 	building_settings = TestSceneLibrary.building_settings.duplicate(true)
 	
-	placement_manager = auto_free(PlacementManager.new(TestSceneLibrary.indicator, targeting_state))
+	_placement_context = PlacementContext.new()
+	placement_manager = auto_free(PlacementManager.new(TestSceneLibrary.indicator, _placement_context, targeting_state))
 	add_child(placement_manager)
 	
 	# Snap rule indicator to tilemap 0,0

@@ -19,12 +19,12 @@ var building_settings : BuildingSettings
 var rule_check_indicator_template : PackedScene
 var test_rules : Array[PlacementRule]
 var user_state : GBOwnerContext
+var _placement_context : PlacementContext
 
 var empty_rules_array : Array[PlacementRule] = []
 
 func before():
 	rule_check_indicator_template = TestSceneLibrary.indicator_min.duplicate(true)
-	building_state = TestSceneLibrary.building_state.duplicate(true)
 	building_settings = TestSceneLibrary.building_settings.duplicate(true)
 
 func before_test():
@@ -46,10 +46,10 @@ func before_test():
 	user_state.user = placer
 	targeting_state.origin_state = user_state
 	
-	
-	placement_manager = auto_free(PlacementManager.new(rule_check_indicator_template, targeting_state, validator))
+	_placement_context = PlacementContext.new()
+	## TODO: Placement Validator test SHOULD NOT require PlacementManager
+	placement_manager = auto_free(PlacementManager.new(rule_check_indicator_template, _placement_context, targeting_state))
 	add_child(placement_manager)
-	placement_manager.placement_validator = validator
 	assert_object(validator.indicator_manager).append_failure_message("[indicator_manager] should  be automatically set up when positioner is set on targeting_state").is_not_null()
 	
 	preview_instance = TestSceneLibrary.placeable_eclipse.packed_scene.instantiate() as Node2D

@@ -17,6 +17,8 @@ var manipulator : Node
 var test_system = load("uid://wh23y2c2nv8s")
 
 var all_manipulatable : Manipulatable
+var _placement_context : PlacementContext
+
 
 func before_test():
 	# Setup user state
@@ -45,7 +47,7 @@ func before_test():
 	system.mode_state = ModeState.new()
 	add_child(system)
 	
-	var placement_manager = auto_free(PlacementManager.new(null, targeting_state, placement_validator))
+	var placement_manager = auto_free(PlacementManager.new(null, _placement_context,targeting_state))
 	add_child(placement_manager)
 	
 	## Set targeting_state dependencies
