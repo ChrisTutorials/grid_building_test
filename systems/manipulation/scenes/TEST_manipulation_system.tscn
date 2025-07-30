@@ -1,0 +1,10 @@
+[gd_scene load_steps=3 format=3 uid="uid://wh23y2c2nv8s"]
+
+[ext_resource type="Script" uid="uid://c2tafmcbbiujk" path="res://addons/grid_building/systems/manipulation/manipulation_system.gd" id="1_s0xha"]
+[ext_resource type="Script" uid="uid://b8uqw4y2hgns3" path="res://addons/grid_building/components/target_highlighter.gd" id="2_ijvnh"]
+
+[node name="ManipulationSystem" type="Node"]
+script = ExtResource("1_s0xha")
+
+[node name="TargetHighlighter" type="Node" parent="."]
+script = ExtResource("2_ijvnh")
