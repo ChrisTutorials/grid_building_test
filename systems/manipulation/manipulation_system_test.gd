@@ -14,8 +14,6 @@ var placement_validator : PlacementValidator
 var positioner : Node2D
 var manipulator : Node
 
-var test_system = load("uid://wh23y2c2nv8s")
-
 var all_manipulatable : Manipulatable
 var _placement_context : PlacementContext
 var _container : GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
@@ -29,27 +27,28 @@ func before_test():
 	owner_context.user = manipulator
 	
 	# Setup manipulation test system
-	system = test_system.instantiate()
 	var states = _container.get_states()
-	manipulation_state = ManipulationState.new()
+	manipulation_state = states.manipulation
 	var manipulation_parent = auto_free(Node2D.new())
 	add_child(manipulation_parent)
 	manipulation_state.parent = manipulation_parent
 	manipulation_state.manipulator_state = owner_context
 	
-	targeting_state = GridTargetingState.new()
+	targeting_state = states.targeting
 	targeting_state.target_map = auto_free(TileMapLayer.new())
 	targeting_state.maps = [targeting_state.target_map]
 	targeting_state.origin_state = owner_context
 	
-	placement_validator = PlacementValidator.new()
-	system.state = manipulation_state
-	system.targeting_state = targeting_state
-	system.placement_validator = placement_validator
-	system.mode_state = ModeState.new()
+	#placement_validator = PlacementValidator.new()
+	var placement_context := _container.get_placement_context()
+	var placement_manager := PlacementManager.new(null, placement_context, targeting_state)
+	placement_manager.resolve_gb_dependencies(_container)
+	add_child(placement_manager)
+
+	system = ManipulationSystem.new()
+	system.resolve_gb_dependencies(_container)
 	add_child(system)
 	
-	var placement_manager = auto_free(PlacementManager.new(null, _placement_context,targeting_state))
 	add_child(placement_manager)
 	
 	## Set targeting_state dependencies
@@ -58,8 +57,7 @@ func before_test():
 	targeting_state.positioner = positioner
 	
 	var validate_result = system.validate()
-	assert_array(validate_result).append_failure_message("System must validate true for tests to pass").is_empty()+
-	90.
+	assert_array(validate_result).append_failure_message("System must validate true for tests to pass").is_empty()
 	
 	all_manipulatable = create_manipulatable_object(TestSceneLibrary.manipulatable_settings_all_allowed)
 

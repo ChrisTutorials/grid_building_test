@@ -1,5 +1,4 @@
-# GdUnit generated TestSuite
-class_name PlacementManagerTest
+## GdUnit generated TestSuite
 extends GdUnitTestSuite
 @warning_ignore('unused_parameter')
 @warning_ignore('return_value_discarded')
@@ -8,17 +7,7 @@ var placement_manager : PlacementManager
 var _placement_context : PlacementContext
 var tile_set : TileSet = load("res://test/grid_building_test/resources/test_tile_set.tres")
 var map_layer : TileMapLayer
-var placement_validator : PlacementValidator
-var base_rules : Array[PlacementRule]
-var col_checking_rules : Array[TileCheckRule] = RuleFilters.only_tile_check(base_rules)
-var targeting_state : GridTargetingState
-var building_settings : BuildingSettings
-var user_state : GBOwnerContext
-
-var placer : Node
-var placed_parent : Node2D
-var positioner : GridPositioner2D
-
+var col_checking_rules : Array[TileCheckRule]
 var global_snap_pos
 
 var test_indicator = load("res://test/grid_building_test/scenes/indicators/test_indicator.tscn")
@@ -27,36 +16,36 @@ var offset_logo = load("res://test/grid_building_test/offset_logo.tscn")
 
 func before():
 	assert_object(TestSceneLibrary.indicator).is_not_null()
-	
+
 	map_layer = auto_free(TileMap.new())
 	add_child(map_layer)
 	map_layer.tile_set = tile_set
 	map_layer.add_layer(0)
-	
+
 	# Fill map_layer
 	for x in range(-100, 100, 1):
 		for y in range (-100, 100, 1):
 			var cords = Vector2i(x, y)
 			map_layer.set_cell(cords, 0, Vector2i(0,0))
-			
-	placer = auto_free(Node2D.new())
+
+	var placer = auto_free(Node2D.new())
 	add_child(placer)
-	user_state = GBOwnerContext.new()
+	var user_state := GBOwnerContext.new()
 	user_state.user = placer
-	
-	placed_parent = auto_free(Node2D.new())
+
+	var placed_parent = auto_free(Node2D.new())
 	add_child(placed_parent)
-	
-	base_rules = [CollisionsCheckRule.new()]
+
+	var base_rules = [CollisionsCheckRule.new()]
 	col_checking_rules = RuleFilters.only_tile_check(base_rules)
 
 func before_test():
-	targeting_state = GridTargetingState.new(GBOwnerContext.new())
+	var targeting_state := GridTargetingState.new(GBOwnerContext.new())
 	targeting_state.target_map = map_layer
 	targeting_state.maps = [map_layer]
-	
+
 	#region Positioner Node2D Setup
-	positioner = auto_free(GridPositioner2D.new())
+	var positioner = auto_free(GridPositioner2D.new())
 	positioner.name = "GridPositioner2D"
 	positioner.shape = RectangleShape2D.new()
 	positioner.shape.size = Vector2(16.0, 16.0)
@@ -64,30 +53,27 @@ func before_test():
 	positioner.targeting_settings = GridTargetingSettings.new()
 	add_child(positioner)
 	#endregion
-	
 	targeting_state.positioner = positioner
-	targeting_state.origin_state = user_state
-	
-	building_settings = TestSceneLibrary.building_settings.duplicate(true)
-	
+	targeting_state.origin_state.user = Node2D.new()
+
 	_placement_context = PlacementContext.new()
 	placement_manager = auto_free(PlacementManager.new(TestSceneLibrary.indicator, _placement_context, targeting_state))
 	add_child(placement_manager)
-	
+
 	# Snap rule indicator to tilemap 0,0
 	global_snap_pos = map_layer.map_to_local(Vector2i(0,0))
-	
+
 	var validation_rules = RuleValidationParameters.new(
-		placer,
+		targeting_state.origin_state.user,
 		auto_free(Node2D.new()),
 		targeting_state
 	)
-	
+
+	var placement_validator = PlacementValidator.new()
 	placement_validator.indicator_manager = placement_manager
-	var setup_result : Dictionary[PlacementRule, Array] = placement_validator.setup(base_rules, validation_rules)
+	var setup_result : Dictionary[PlacementRule, Array] = placement_validator.setup([CollisionsCheckRule.new()], validation_rules)
 	assert_dict(setup_result).append_failure_message("Setup failed to run successfully on placement_validator %s" % setup_result).is_empty()
 	assert_object(placement_manager.indicator_template).append_failure_message("Indicator template expected to be set on placement_manager.").is_not_null()
-	
 
 ## Tests that the number of indicators generated for p_shape_scene matches the p_expected_indicators
 @warning_ignore("unused_parameter")
