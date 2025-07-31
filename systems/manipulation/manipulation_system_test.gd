@@ -31,17 +31,18 @@ func before_test():
 	# Setup manipulation test system
 	system = test_system.instantiate()
 	var states = _container.get_states()
-	manipulation_state = states.manipulation
+	manipulation_state = ManipulationState.new()
 	var manipulation_parent = auto_free(Node2D.new())
 	add_child(manipulation_parent)
 	manipulation_state.parent = manipulation_parent
 	manipulation_state.manipulator_state = owner_context
 	
-	targeting_state = states.targeting
+	targeting_state = GridTargetingState.new()
 	targeting_state.target_map = auto_free(TileMapLayer.new())
 	targeting_state.maps = [targeting_state.target_map]
 	targeting_state.origin_state = owner_context
 	
+	placement_validator = PlacementValidator.new()
 	system.state = manipulation_state
 	system.targeting_state = targeting_state
 	system.placement_validator = placement_validator
@@ -57,7 +58,8 @@ func before_test():
 	targeting_state.positioner = positioner
 	
 	var validate_result = system.validate()
-	assert_array(validate_result).append_failure_message("System must validate true for tests to pass").is_empty()
+	assert_array(validate_result).append_failure_message("System must validate true for tests to pass").is_empty()+
+	90.
 	
 	all_manipulatable = create_manipulatable_object(TestSceneLibrary.manipulatable_settings_all_allowed)
 
