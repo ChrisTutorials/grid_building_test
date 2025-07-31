@@ -13,8 +13,11 @@ var global_snap_pos
 var test_indicator = load("res://test/grid_building_test/scenes/indicators/test_indicator.tscn")
 var eclipse_scene = load("res://test/grid_building_test/scenes/test_elipse.tscn")
 var offset_logo = load("res://test/grid_building_test/offset_logo.tscn")
+var _container : GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
 
 func before():
+	var injector = GdUnitInjector.new(_container)
+	add_child(injector) # Handles DI
 	assert_object(TestSceneLibrary.indicator).is_not_null()
 
 	map_layer = auto_free(TileMap.new())
@@ -57,7 +60,7 @@ func before_test():
 	targeting_state.origin_state.user = Node2D.new()
 
 	_placement_context = PlacementContext.new()
-	placement_manager = auto_free(PlacementManager.new(TestSceneLibrary.indicator, _placement_context, targeting_state))
+	placement_manager = auto_free(PlacementManager.new())
 	add_child(placement_manager)
 
 	# Snap rule indicator to tilemap 0,0
