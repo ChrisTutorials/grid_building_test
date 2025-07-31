@@ -17,15 +17,16 @@ var map_layer : TileMapLayer
 var tile_set : TileSet
 var placement_manager : PlacementManager
 var _placement_context : PlacementContext
+var _container : GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
 
 func before():
 	# Loading Setup
 	assert_bool(TestSceneLibrary.placeable_eclipse.validate()).is_true()
 	assert_object(TestSceneLibrary.eclipse_scene).is_not_null()
 	assert_object(TestSceneLibrary.indicator).is_instanceof(PackedScene)
+	var states := _container.get_states()
 	building_settings = BuildingSettings.new()
-	targeting_state = GridTargetingState.new()
-	placement_validator = PlacementValidator.new()
+	targeting_state = states.targeting_state
 	
 	#region Setup Tile Map
 	map_layer = auto_free(TestSceneLibrary.tile_map_layer_buildable.instantiate())
@@ -43,11 +44,12 @@ func before_test():
 	user_state = GBOwnerContext.new()
 	user_state.user = object_placer
 	
-	building_state = BuildingState.new()
+	var states := _container.get_states()
+	building_state = states.building
 	building_state.placer_state = user_state
 	building_state.placer_state.user = object_placer
 	
-	targeting_state = GridTargetingState.new()
+	targeting_state = states.targeting
 	targeting_state.origin_state = user_state
 	targeting_state.target_map = map_layer
 	targeting_state.maps = [map_layer]

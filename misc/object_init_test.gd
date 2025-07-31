@@ -19,11 +19,6 @@ func test_grid_targeter_system_init():
 	
 	grid_targeter_system.free()
 	
-func test_placement_validator_init():
-	var placement_validator = PlacementValidator.new()
-	
-	assert_object(placement_validator).is_not_null()
-	
 func test_rule_check_indicator_init():
 	var rule_check_indicator = RuleCheckIndicator.new()
 	

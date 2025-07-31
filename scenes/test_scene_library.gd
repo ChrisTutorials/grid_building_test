@@ -9,7 +9,6 @@ static var indicator_iso : PackedScene = load("uid://cfvuw0dd8twce")
 @export_group("Resources")
 static var building_settings : BuildingSettings = load("uid://b02r1bgby2hcx")
 static var grid_targeting_settings : GridTargetingSettings = load("uid://cob2kk7haei2t")
-static var placement_validator_platformer : PlacementValidator = load("uid://bhk3251n317e")
 
 @export_group("ManipulatableSettings")
 static var manipulatable_settings_all_allowed : ManipulatableSettings = load("uid://dn881lunp3lrm")

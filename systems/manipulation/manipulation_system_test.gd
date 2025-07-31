@@ -9,7 +9,7 @@ extends GdUnitTestSuite
 var system : ManipulationSystem
 var manipulation_state : ManipulationState
 var targeting_state : GridTargetingState
-var user_state : GBOwnerContext
+var owner_context : GBOwnerContext
 var placement_validator : PlacementValidator
 var positioner : Node2D
 var manipulator : Node
@@ -18,29 +18,30 @@ var test_system = load("uid://wh23y2c2nv8s")
 
 var all_manipulatable : Manipulatable
 var _placement_context : PlacementContext
+var _container : GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
 
 
 func before_test():
 	# Setup user state
-	user_state = GBOwnerContext.new()
+	owner_context = GBOwnerContext.new()
 	manipulator = auto_free(Node.new())
 	add_child(manipulator)
-	user_state.user = manipulator
+	owner_context.user = manipulator
 	
 	# Setup manipulation test system
 	system = test_system.instantiate()
-	manipulation_state = ManipulationState.new()
+	var states = _container.get_states()
+	manipulation_state = states.manipulation
 	var manipulation_parent = auto_free(Node2D.new())
 	add_child(manipulation_parent)
 	manipulation_state.parent = manipulation_parent
-	manipulation_state.manipulator_state = user_state
+	manipulation_state.manipulator_state = owner_context
 	
-	targeting_state = GridTargetingState.new()
+	targeting_state = states.targeting
 	targeting_state.target_map = auto_free(TileMapLayer.new())
 	targeting_state.maps = [targeting_state.target_map]
-	targeting_state.origin_state = user_state
+	targeting_state.origin_state = owner_context
 	
-	placement_validator = PlacementValidator.new()
 	system.state = manipulation_state
 	system.targeting_state = targeting_state
 	system.placement_validator = placement_validator

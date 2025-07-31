@@ -49,10 +49,9 @@ func before():
 	
 	base_rules = [CollisionsCheckRule.new()]
 	col_checking_rules = RuleFilters.only_tile_check(base_rules)
-	placement_validator = PlacementValidator.new()
 
 func before_test():
-	targeting_state = GridTargetingState.new()
+	targeting_state = GridTargetingState.new(GBOwnerContext.new())
 	targeting_state.target_map = map_layer
 	targeting_state.maps = [map_layer]
 	

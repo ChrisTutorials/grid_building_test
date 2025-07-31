@@ -7,7 +7,7 @@ extends GdUnitTestSuite
 var state : GridTargetingState
 
 func before_test():
-	state = GridTargetingState.new()
+	state = GridTargetingState.new(GBOwnerContext.new())
 
 func test_init():
 	assert_object(state).is_not_null()

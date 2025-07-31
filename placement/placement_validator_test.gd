@@ -18,8 +18,9 @@ var building_state : BuildingState
 var building_settings : BuildingSettings
 var rule_check_indicator_template : PackedScene
 var test_rules : Array[PlacementRule]
-var user_state : GBOwnerContext
+var _owner_context : GBOwnerContext
 var _placement_context : PlacementContext
+var _container : GBCompositionContainer
 
 var empty_rules_array : Array[PlacementRule] = []
 
@@ -28,10 +29,10 @@ func before():
 	building_settings = TestSceneLibrary.building_settings.duplicate(true)
 
 func before_test():
+	_container = GBCompositionContainer.new()
+	var states := _container.get_states()
 	placer = auto_free(Node.new())
-	targeting_state = GridTargetingState.new()
-	validator = PlacementValidator.new()
-	assert_object(validator).is_not_null()
+	targeting_state = states.targeting
 	
 	map_layer = TileMapLayer.new()
 	add_child(map_layer)
@@ -42,15 +43,11 @@ func before_test():
 	targeting_state.maps = [map_layer]
 	targeting_state.positioner = auto_free(Node2D.new())
 	add_child(targeting_state.positioner)
-	user_state = GBOwnerContext.new()
-	user_state.user = placer
-	targeting_state.origin_state = user_state
+	_owner_context = GBOwnerContext.new()
+	_owner_context.user = placer
+	targeting_state.origin_state = _owner_context
 	
 	_placement_context = PlacementContext.new()
-	## TODO: Placement Validator test SHOULD NOT require PlacementManager
-	placement_manager = auto_free(PlacementManager.new(rule_check_indicator_template, _placement_context, targeting_state))
-	add_child(placement_manager)
-	assert_object(validator.indicator_manager).append_failure_message("[indicator_manager] should  be automatically set up when positioner is set on targeting_state").is_not_null()
 	
 	preview_instance = TestSceneLibrary.placeable_eclipse.packed_scene.instantiate() as Node2D
 	validator.indicator_manager.add_child(preview_instance)
@@ -61,6 +58,9 @@ func before_test():
 	test_params = RuleValidationParameters.new(
 		placer, preview_instance, targeting_state
 	)
+	
+	validator = PlacementValidator.new([], GBMessages.new(), GBDebugSettings.new(GBDebugSettings.DebugLevel.VERBOSE))
+	assert_object(validator).is_not_null()
 	
 func after_test():
 	map_layer.free()
@@ -77,7 +77,7 @@ func test_setup():
 ## In this test, debug is set on so the rule.debug.show should be on too
 func test_setup_rules_passes_debug_object():
 	# Ensure it has a valid debug settings set to on
-	validator.debug = GBDebugSettings.new(true)
+	validator.debug = _container.get_settings().debug
 	validator.setup(test_rules, test_params)
 	
 	## Assert that the debug object was passed and set true
@@ -86,17 +86,16 @@ func test_setup_rules_passes_debug_object():
 		assert_bool(rule.debug.show).is_true()
 
 @warning_ignore("unused_parameter")
-func test_get_combined_rules(p_added_rules : Array[PlacementRule], p_validator : PlacementValidator, test_parameters := [
-	[empty_rules_array, TestSceneLibrary.placement_validator_platformer],
-	[TestSceneLibrary.placeable_smithy.placement_rules, TestSceneLibrary.placement_validator_platformer]
+func test_get_combined_rules(p_added_rules : Array[PlacementRule], p_base_rules : Array[PlacementRule], test_parameters := [
+	[empty_rules_array, [PlacementRule.new()]],
+	[TestSceneLibrary.placeable_smithy.placement_rules, [PlacementRule.new()]]
 ]) -> void:
 	var expected_count = 0
 	
 	if p_added_rules:
 		expected_count += p_added_rules.size()
 	
-	if p_validator:
-		expected_count += p_validator.base_rules.size()
+	expected_count += validator.base_rules.size()
 	
-	var result : Array = p_validator.get_combined_rules(p_added_rules, false)
+	var result : Array = validator.get_combined_rules(p_added_rules, false)
 	assert_int(result.size()).is_equal(expected_count)

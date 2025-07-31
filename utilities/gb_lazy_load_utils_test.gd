@@ -1,6 +1,6 @@
 extends GdUnitTestSuite
 
-var dummy_targeting_state: GridTargetingState = GridTargetingState.new()
+var dummy_targeting_state: GridTargetingState = GridTargetingState.new(GBOwnerContext.new())
 
 # Returns [Node parent, DragBuildManager | null internal_var]
 func _create_test_parent_node(with_existing: bool) -> Array:

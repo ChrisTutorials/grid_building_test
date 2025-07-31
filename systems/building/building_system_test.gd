@@ -18,12 +18,15 @@ var placer : Node2D
 var placed_parent : Node2D
 var actions : GBActions
 var _placement_context : PlacementContext
+var _container : GBCompositionContainer
 
 var placeable_instance_script : Script = load("uid://dvt7wrugafo5o")
 var placeable_2d_test : Placeable = load("uid://jgmywi04ib7c")
 var default_preview_script : GDScript = load("uid://cufp4o5ctq6ak")
 
 func before_test():
+	_container = GBCompositionContainer.new()
+	
 	placer = auto_free(Node2D.new())
 	add_child(placer)
 	
@@ -38,8 +41,8 @@ func before_test():
 	add_child(map_layer)
 	tile_set = TileSet.new()
 	map_layer.tile_set = tile_set
-	
-	targeting_state = auto_free(GridTargetingState.new())
+	var states := _container.get_states()
+	targeting_state = auto_free(states.targeting)
 	targeting_state.positioner = grid_positioner
 	targeting_state.target_map = map_layer
 	targeting_state.maps = [map_layer]
@@ -49,12 +52,11 @@ func before_test():
 	actions = GBActions.new()
 	system.actions = actions
 	system.mode_state = mode_state
-	system.state = BuildingState.new()
-	system.placement_validator = PlacementValidator.new()
+	system.state = states.building
 	system.targeting_state = targeting_state
 
 	## Turn debug on for testing
-	system.debug = GBDebugSettings.new(true)
+	system.debug = GBDebugSettings.new(GBDebugSettings.DebugLevel.INFO)
 	
 	add_child(system)
 	
@@ -67,7 +69,7 @@ func before_test():
 	grid_positioner.add_child(placement_manager)
 	system.placement_validator.indicator_manager = placement_manager
 	
-	system.state = BuildingState.new()
+	system.state = states.building
 	system.state.placer_state = user_state
 	system.state.placed_parent = placed_parent
 	system.settings = TestSceneLibrary.building_settings.duplicate(true)

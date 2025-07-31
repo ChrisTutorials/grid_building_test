@@ -15,9 +15,10 @@ var placer : Node2D
 var placed_parent : Node2D
 var map_layer : TileMapLayer
 var vec_max_tile_distance : Vector2
+var _container : GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
 
 func before_test():
-	state = GridTargetingState.new()
+	state = _container.get_states().targeting
 	
 	positioner = auto_free(Node2D.new())
 	add_child(positioner)

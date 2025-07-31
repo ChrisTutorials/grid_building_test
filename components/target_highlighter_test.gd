@@ -17,12 +17,15 @@ var highlight_target : Node2D
 var data_source_is_target : ManipulationData
 var data_source_is_not_target : ManipulationData
 var factory : TestingManipulatableFactory
+var composition_container : GBCompositionContainer
 
 func before_test():
 	highlighter = TargetHighlighter.new()
 	settings = HighlightSettings.new()
-	manipulation_state = ManipulationState.new()
-	highlighter.targeting_state = GridTargetingState.new()
+	composition_container = GBCompositionContainer.new()
+	var states := composition_container.get_states()
+	manipulation_state = states.manipulation
+	highlighter.targeting_state = states.targeting
 	highlighter.highlight_settings = settings
 	highlighter.manipulation_state = manipulation_state
 	mode = ModeState.new()
@@ -30,7 +33,7 @@ func before_test():
 	add_child(highlighter)
 	
 	#region targeting setup
-	targeting_state = GridTargetingState.new()
+	targeting_state = states.targeting
 	highlighter.targeting_state = targeting_state
 	
 	highlight_target = auto_free(Node2D.new())

@@ -17,6 +17,7 @@ var tile_data_partial_match : TileData
 var tile_data_missing_key : TileData
 var tile_data_full_match : TileData
 var tile_data_none : TileData
+var _container : GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
 
 func before_test():
 	# Rule and indicator setup. Rule requires the tile data to be grass and Green
@@ -33,7 +34,7 @@ func before_test():
 	# Map and targeting state setup
 	map_layer = auto_free(TestSceneLibrary.tile_map_layer_buildable.instantiate()) as TileMapLayer
 	add_child(map_layer)
-	var targeting_state := GridTargetingState.new()
+	var targeting_state := _container.get_states().targeting
 	targeting_state.target_map = map_layer
 	targeting_state.maps = [map_layer]
 	
