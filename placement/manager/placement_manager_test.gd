@@ -14,9 +14,11 @@ var test_indicator = load("res://test/grid_building_test/scenes/indicators/test_
 var eclipse_scene = load("res://test/grid_building_test/scenes/test_elipse.tscn")
 var offset_logo = load("res://test/grid_building_test/offset_logo.tscn")
 var _container : GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
+var _base_rules : Array[PlacementRule]
+var _placer : Node2D
 
 func before():
-	var injector = GdUnitInjector.new(_container)
+	var injector = GBInjectorSystem.new(_container)
 	add_child(injector) # Handles DI
 	assert_object(TestSceneLibrary.indicator).is_not_null()
 
@@ -31,16 +33,16 @@ func before():
 			var cords = Vector2i(x, y)
 			map_layer.set_cell(cords, 0, Vector2i(0,0))
 
-	var placer = auto_free(Node2D.new())
-	add_child(placer)
-	var user_state := GBOwnerContext.new()
-	user_state.user = placer
+	_placer = auto_free(Node2D.new())
+	add_child(_placer)
+	var owner_context := GBOwnerContext.new()
+	owner_context.user = _placer
 
 	var placed_parent = auto_free(Node2D.new())
 	add_child(placed_parent)
 
-	var base_rules = [CollisionsCheckRule.new()]
-	col_checking_rules = RuleFilters.only_tile_check(base_rules)
+	_base_rules = [CollisionsCheckRule.new()]
+	col_checking_rules = RuleFilters.only_tile_check(_base_rules)
 
 func before_test():
 	var targeting_state := GridTargetingState.new(GBOwnerContext.new())
@@ -72,7 +74,7 @@ func before_test():
 		targeting_state
 	)
 
-	var placement_validator = PlacementValidator.new()
+	var placement_validator = PlacementValidator.new(_base_rules, _container.get_messages(), _container.get_logger())
 	placement_validator.indicator_manager = placement_manager
 	var setup_result : Dictionary[PlacementRule, Array] = placement_validator.setup([CollisionsCheckRule.new()], validation_rules)
 	assert_dict(setup_result).append_failure_message("Setup failed to run successfully on placement_validator %s" % setup_result).is_empty()
@@ -155,7 +157,7 @@ func test_track_indicators():
 	assert_int(placement_manager.indicators.size()).is_equal(0)
 	
 	var indicator = TestSceneLibrary.indicator.instantiate()
-	placement_manager.track_indicators([indicator])
+	placement_manager.add_indicators([indicator])
 	assert_int(placement_manager.indicators.size()).is_equal(1)
 	
 	placement_manager.free_indicators([indicator])
@@ -165,7 +167,7 @@ func test_track_indicators():
 	
 	for i in range(0,10,1):
 		var new_indicator = TestSceneLibrary.indicator.instantiate()
-		placement_manager.track_indicators([new_indicator])
+		placement_manager.add_indicators([new_indicator])
 		indicators_to_remove.append(new_indicator)
 		
 	assert_int(placement_manager.indicators.size()).is_equal(10)
@@ -194,7 +196,7 @@ func test_setup_indicators_rotated_elipse():
 	add_child(test_object)
 	
 	var test_params = RuleValidationParameters.new(
-		placer, test_object, targeting_state
+		_placer, test_object, _container.get_targeting_state()
 	)
 	
 	for rule in rules:

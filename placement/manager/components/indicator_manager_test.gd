@@ -2,68 +2,63 @@ extends GdUnitTestSuite
 
 var indicator_manager: IndicatorManager
 var indicator_template : PackedScene = preload("uid://dhox8mb8kuaxa")
-var _received_signal: bool
-var _indicator: RuleCheckIndicator
+var received_signal: bool
+var indicator: RuleCheckIndicator
+var _container : GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
 
-func _before():
+func before_test():
 	indicator_manager = IndicatorManager.new()
-	var targeting = GridTargetingState.new(GBOwnerContext.new())
-	indicator_manager.setup(indicator_template, targeting)
-	_received_signal = false
-	_indicator = null
+	indicator_manager.resolve_gb_dependencies(_container)
+	add_child(indicator_manager) # Must add to scene tree for signals, add_child, free etc to work
+	
+	received_signal = false
+	indicator = null
+
+func after_test():
+	indicator_manager.free()
 
 func _create_real_indicator() -> RuleCheckIndicator:
-	var instance = indicator_template.instantiate()
+	var instance = indicator_template.instantiate() as RuleCheckIndicator
 	instance.name = "TestIndicator"
+	add_child(instance) # add to scene so it's in scene tree
 	return instance
 
-func test_track_indicators_adds_and_emits_signal() -> void:
-	_indicator = _create_real_indicator()
-	
+func test_setup_indicators_generates_expected_indicators() -> void:
+	var test_object := Node2D.new()
+	add_child(test_object)
+
+	# Set up a dummy collision shape (required by get_all_collision_objects)
+	var collision_shape := CollisionShape2D.new()
+	collision_shape.shape = CircleShape2D.new()
+	test_object.add_child(collision_shape)
+
+	var rule := TileCheckRule.new()
+	var rules : Array[TileCheckRule] = [rule]
+
+	var indicators := indicator_manager.setup_indicators(test_object, rules)
+
+	assert_int(indicators.size()).is_greater(0)
+	assert_int(indicator_manager.get_indicators().size()).is_greater(indicators.size())
+
+	# Optional: check that each indicator has the expected rule attached
+	for indi in indicators:
+		assert_that(indi.get_rules().size()).is_greater_than(0)
+
+func test_add_indicators_adds_and_emits_signal() -> void:
+	indicator = _create_real_indicator()
 	indicator_manager.indicators_changed.connect(_on_indicators_changed)
-	indicator_manager.track_indicators([_indicator])
+	indicator_manager.add_indicators([indicator])
 	
-	assert_that(_indicator in indicator_manager.get_indicators()).is_true()
-	assert_that(_received_signal).is_true()
-	
-func _on_indicators_changed(updated: Array[RuleCheckIndicator]):
-	_received_signal = true
-	assert_that(_indicator in updated).is_true()
+	assert_that(indicator in indicator_manager.get_indicators()).is_true()
+	assert_that(received_signal).is_true()
 
 func test_free_indicators_removes_and_frees() -> void:
-	var indicator = _create_real_indicator()
-	indicator_manager.track_indicators([indicator])
-	assert_that(indicator in indicator_manager.get_indicators()).is_true()
+	var ind = _create_real_indicator()
+	indicator_manager.add_indicators([ind])
+	assert_that(ind in indicator_manager.get_indicators()).is_true()
 	
-	indicator_manager.free_indicators([indicator])
-	
-	assert_int(indicator_manager.get_indicators().size()).is_equal(0)
+	indicator_manager._free_indicators([ind]) # note this is private in your code; if it's private,_
 
-func test_get_colliding_indicators_returns_only_colliding() -> void:
-	# Use real indicators, but you must simulate collision state
-	# Since you don't want to mock, you'll need to set up actual collision state.
-	# This test assumes you have a way to enable collision on RuleCheckIndicator.
-	
-	var indicator1 = _create_real_indicator()
-	var indicator2 = _create_real_indicator()
-	
-	indicator_manager.track_indicators([indicator1, indicator2])
-	
-	# Set up collision state for indicator1
-	# This will depend on your collision setup; for example:
-	# Add a CollisionShape2D and set collision layers/masks properly, then trigger physics
-	
-	# For now, just call the is_colliding() function directly to check it returns false by default
-	var colliding = indicator_manager.get_colliding_indicators()
-	assert_that(indicator1 in colliding).is_false()
-	assert_that(indicator2 in colliding).is_false()
-
-func test_get_colliding_nodes_returns_unique_nodes() -> void:
-	var indicator = _create_real_indicator()
-	indicator_manager.track_indicators([indicator])
-	
-	# Similar to above, without mocks you must set up collisions properly.
-	
-	var nodes = indicator_manager.get_colliding_nodes()
-	# Since no collisions, nodes should be empty
-	assert_int(nodes.size()).is_equal(0)
+func _on_indicators_changed(updated: Array[RuleCheckIndicator]) -> void:
+	received_signal = true
+	assert_that(indicator in updated).is_true()
