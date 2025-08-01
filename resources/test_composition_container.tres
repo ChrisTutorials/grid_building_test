@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="GBCompositionContainer" load_steps=24 format=3 uid="uid://dy6e5p5d6ax6n"]
+[gd_resource type="Resource" script_class="GBCompositionContainer" load_steps=26 format=3 uid="uid://dy6e5p5d6ax6n"]
 
 [ext_resource type="Script" uid="uid://des845magnt6c" path="res://addons/grid_building/resources/gb_composition_container.gd" id="1_dmsol"]
 [ext_resource type="Script" uid="uid://b8qexmaqap2qt" path="res://addons/grid_building/resources/actions/gb_actions.gd" id="1_ytodv"]
@@ -9,6 +9,7 @@
 [ext_resource type="Script" uid="uid://dd2upd0f43el6" path="res://addons/grid_building/systems/manipulation/manipulation_settings.gd" id="6_mtygo"]
 [ext_resource type="Script" uid="uid://c0v8dvw42wlsx" path="res://addons/grid_building/resources/messages/gb_messages.gd" id="7_qkte0"]
 [ext_resource type="Script" uid="uid://ceem2vqcha7ki" path="res://addons/grid_building/placement/placement_rules/placement_rule.gd" id="8_ytodv"]
+[ext_resource type="Script" uid="uid://canj8n1of5xmx" path="res://addons/grid_building/placement/placement_rules/template_rules/collisions_check_rule.gd" id="9_e2vnu"]
 [ext_resource type="Script" uid="uid://c07xmsvybhcx7" path="res://addons/grid_building/resources/settings/gb_settings.gd" id="9_ku23n"]
 [ext_resource type="Resource" uid="uid://darxogdvpfk81" path="res://test/grid_building_test/resources/TEST_grid_targeting_settings.tres" id="10_4v08y"]
 [ext_resource type="Script" uid="uid://covy88fxfbhlc" path="res://addons/grid_building/resources/settings/gb_visual_settings.gd" id="11_pree3"]
@@ -36,6 +37,10 @@ metadata/_custom_type_script = "uid://dd2upd0f43el6"
 script = ExtResource("7_qkte0")
 metadata/_custom_type_script = "uid://c0v8dvw42wlsx"
 
+[sub_resource type="Resource" id="Resource_4haak"]
+script = ExtResource("9_e2vnu")
+metadata/_custom_type_script = "uid://canj8n1of5xmx"
+
 [sub_resource type="Resource" id="Resource_2w8xp"]
 script = ExtResource("11_pree3")
 metadata/_custom_type_script = "uid://covy88fxfbhlc"
@@ -47,6 +52,7 @@ manipulation = SubResource("Resource_2wnb5")
 targeting = ExtResource("10_4v08y")
 visual = SubResource("Resource_2w8xp")
 messages = SubResource("Resource_2l661")
+placement_rules = Array[ExtResource("8_ytodv")]([SubResource("Resource_4haak")])
 debug = SubResource("Resource_qmmuh")
 metadata/_custom_type_script = "uid://c07xmsvybhcx7"
 

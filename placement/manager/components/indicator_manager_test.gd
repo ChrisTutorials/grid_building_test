@@ -4,9 +4,11 @@ var indicator_manager: IndicatorManager
 var indicator_template : PackedScene = preload("uid://dhox8mb8kuaxa")
 var received_signal: bool
 var indicator: RuleCheckIndicator
+var _injector : GBInjectorSystem
 
 func before_test():
-	indicator_manager = IndicatorManager.new(indicator_template, GBDoubleFactory.create_double_targeting_state(self), GBDoubleFactory.create_test_logger())
+	_injector = GBDoubleFactory.create_test_injector(self)
+	indicator_manager = IndicatorManager.new()
 	add_child(indicator_manager) # Must add to scene tree for signals, add_child, free etc to work
 	
 	received_signal = false

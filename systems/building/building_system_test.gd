@@ -65,7 +65,7 @@ func before_test():
 	system.targeting_state.origin_state = user_state
 	
 	_placement_context = PlacementContext.new()
-	placement_manager = auto_free(PlacementManager.new(TestSceneLibrary.indicator, _placement_context, targeting_state))
+	placement_manager = auto_free(PlacementManager.new(_placement_context, null, TestSceneLibrary.indicator, targeting_state))
 	grid_positioner.add_child(placement_manager)
 	system.placement_validator.indicator_manager = placement_manager
 	

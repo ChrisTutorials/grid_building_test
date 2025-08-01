@@ -2,7 +2,7 @@
 
 [ext_resource type="Texture2D" uid="uid://bnqyeoyyy88wy" path="res://icon.svg" id="1_2u5xv"]
 [ext_resource type="Script" uid="uid://bib4d58jc2hi1" path="res://addons/grid_building/components/manipulatable.gd" id="2_xc01s"]
-[ext_resource type="Script" uid="uid://cddjwc7btgmqk" path="res://addons/grid_building/placement/placement_rules/tile_check_rule.gd" id="3_7iosu"]
+[ext_resource type="Script" uid="uid://cddjwc7btgmqk" path="res://addons/grid_building/placement/placement_rules/tile_check_rule.gd" id="3_qcsol"]
 [ext_resource type="Script" uid="uid://0u11g3ef6ucf" path="res://addons/grid_building/placement/manipulatable_settings.gd" id="4_w5adq"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_barqe"]
@@ -10,13 +10,9 @@ size = Vector2(30, 30)
 
 [sub_resource type="Resource" id="Resource_yk7gq"]
 script = ExtResource("4_w5adq")
-move_rules = Array[ExtResource("3_7iosu")]([])
-ignore_base_rules = false
 rotateable = true
 flip_horizontal = true
 flip_vertical = true
-movable = true
-demolishable = true
 
 [node name="OffsetLogo" type="StaticBody2D"]
 collision_layer = 2561

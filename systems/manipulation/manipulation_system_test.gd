@@ -15,7 +15,6 @@ var positioner : Node2D
 var manipulator : Node
 
 var all_manipulatable : Manipulatable
-var _placement_context : PlacementContext
 var _container : GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
 
 
@@ -41,7 +40,7 @@ func before_test():
 	
 	#placement_validator = PlacementValidator.new()
 	var placement_context := _container.get_placement_context()
-	var placement_manager := PlacementManager.new(null, placement_context, targeting_state)
+	var placement_manager := PlacementManager.new(placement_context, null, targeting_state, GBDoubleFactory.create_test_logger())
 	placement_manager.resolve_gb_dependencies(_container)
 	add_child(placement_manager)
 

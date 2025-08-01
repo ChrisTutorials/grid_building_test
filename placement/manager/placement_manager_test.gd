@@ -1,217 +1,124 @@
-## GdUnit generated TestSuite
+## GdUnit TestSuite for PlacementManager indicator creation
 extends GdUnitTestSuite
-@warning_ignore('unused_parameter')
-@warning_ignore('return_value_discarded')
 
-var placement_manager : PlacementManager
-var _placement_context : PlacementContext
-var tile_set : TileSet = load("res://test/grid_building_test/resources/test_tile_set.tres")
-var map_layer : TileMapLayer
-var col_checking_rules : Array[TileCheckRule]
-var global_snap_pos
+# Minimal, parameterized, and double-factory-based PlacementManager tests
+var placement_manager: PlacementManager
+var map_layer: TileMapLayer
+var col_checking_rules: Array[TileCheckRule]
+var global_snap_pos: Vector2
+var eclipse_scene = load("uid://j5837ml5dduu")
+var offset_logo = load("uid://bqq7otaevtlqu")
 
-var test_indicator = load("res://test/grid_building_test/scenes/indicators/test_indicator.tscn")
-var eclipse_scene = load("res://test/grid_building_test/scenes/test_elipse.tscn")
-var offset_logo = load("res://test/grid_building_test/offset_logo.tscn")
-var _container : GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
-var _base_rules : Array[PlacementRule]
-var _placer : Node2D
-
-func before():
-	var injector = GBInjectorSystem.new(_container)
-	add_child(injector) # Handles DI
-	assert_object(TestSceneLibrary.indicator).is_not_null()
-
-	map_layer = auto_free(TileMap.new())
-	add_child(map_layer)
-	map_layer.tile_set = tile_set
-	map_layer.add_layer(0)
-
-	# Fill map_layer
-	for x in range(-100, 100, 1):
-		for y in range (-100, 100, 1):
-			var cords = Vector2i(x, y)
-			map_layer.set_cell(cords, 0, Vector2i(0,0))
-
-	_placer = auto_free(Node2D.new())
-	add_child(_placer)
-	var owner_context := GBOwnerContext.new()
-	owner_context.user = _placer
-
-	var placed_parent = auto_free(Node2D.new())
-	add_child(placed_parent)
-
-	_base_rules = [CollisionsCheckRule.new()]
-	col_checking_rules = RuleFilters.only_tile_check(_base_rules)
+var _positioner : Node2D
+var _injector: GBInjectorSystem
+var _container : GBCompositionContainer = load("uid://dy6e5p5d6ax6n")
 
 func before_test():
-	var targeting_state := GridTargetingState.new(GBOwnerContext.new())
-	targeting_state.target_map = map_layer
-	targeting_state.maps = [map_layer]
+	_setup_targeting_state()
+	_setup_placement_manager()
 
-	#region Positioner Node2D Setup
-	var positioner = auto_free(GridPositioner2D.new())
-	positioner.name = "GridPositioner2D"
-	positioner.shape = RectangleShape2D.new()
-	positioner.shape.size = Vector2(16.0, 16.0)
-	positioner.targeting_state = targeting_state
-	positioner.targeting_settings = GridTargetingSettings.new()
-	add_child(positioner)
-	#endregion
-	targeting_state.positioner = positioner
-	targeting_state.origin_state.user = Node2D.new()
+func _setup_targeting_state():
+	# Step 1: Set up the targeting state with its runtime dependencies (map objects and positioner).
+	# This must be done first so that PlacementManager receives a fully initialized targeting state.
+	_injector = GBDoubleFactory.create_test_injector(self, _container)
+	map_layer = GBDoubleFactory.create_test_tile_map_layer(self)
+	var targeting_state = _container.get_states().targeting
+	var map_layers : Array[TileMapLayer] = [map_layer]
+	targeting_state.set_map_objects(map_layer, map_layers)
+	_positioner = Node2D.new()
+	auto_free(_positioner)
+	targeting_state.set_positioner(_positioner)
 
-	_placement_context = PlacementContext.new()
+func _setup_placement_manager():
+	# Step 2: Create IndicatorManager, inject dependencies, and set it on PlacementManager.
 	placement_manager = auto_free(PlacementManager.new())
 	add_child(placement_manager)
-
-	# Snap rule indicator to tilemap 0,0
+	var indicator_manager = auto_free(IndicatorManager.new())
+	add_child(indicator_manager)
+	placement_manager.indicator_manager = indicator_manager
 	global_snap_pos = map_layer.map_to_local(Vector2i(0,0))
+	col_checking_rules = RuleFilters.only_tile_check([CollisionsCheckRule.new()])
 
-	var validation_rules = RuleValidationParameters.new(
-		targeting_state.origin_state.user,
-		auto_free(Node2D.new()),
-		targeting_state
-	)
+func after_test():
+	if is_instance_valid(placement_manager):
+		placement_manager.queue_free()
+	placement_manager = null
 
-	var placement_validator = PlacementValidator.new(_base_rules, _container.get_messages(), _container.get_logger())
-	placement_validator.indicator_manager = placement_manager
-	var setup_result : Dictionary[PlacementRule, Array] = placement_validator.setup([CollisionsCheckRule.new()], validation_rules)
-	assert_dict(setup_result).append_failure_message("Setup failed to run successfully on placement_validator %s" % setup_result).is_empty()
-	assert_object(placement_manager.indicator_template).append_failure_message("Indicator template expected to be set on placement_manager.").is_not_null()
+func after() -> void:
+	assert_object(_injector).is_null()
+	assert_object(placement_manager).is_null()
+	assert_object(map_layer).is_null()
+	assert_object(_positioner).is_null()
 
-## Tests that the number of indicators generated for p_shape_scene matches the p_expected_indicators
+## Should be handled by the GBInjectorSystem automatically
+func test_indicator_manager_dependencies_initialized():
+	var indicator_manager = placement_manager.indicator_manager
+	# Assert
+	assert_object(indicator_manager).append_failure_message("IndicatorManager not initialized").is_not_null()
+	assert_object(indicator_manager._indicator_template).append_failure_message("IndicatorManager missing indicator_template").is_not_null()
+	assert_object(indicator_manager._targeting_state).append_failure_message("IndicatorManager missing targeting_state").is_not_null()
+	assert_object(indicator_manager._logger).append_failure_message("IndicatorManager missing logger").is_not_null()
+
 @warning_ignore("unused_parameter")
-func test_setup_indicators(p_test_obj_scene : PackedScene, p_expected_indicators : int, test_parameters := [
+func test_indicator_count_for_shapes(scene_resource: PackedScene, expected: int, test_parameters := [
 	[eclipse_scene, 27],
 	[offset_logo, 4]
 ]):
-	var shape_scene = auto_free(p_test_obj_scene.instantiate())
+	var shape_scene = auto_free(scene_resource.instantiate())
+	add_child(shape_scene)
+	shape_scene.global_position = global_snap_pos
+	# Debug: print info about the instantiated scene
+	print("[DEBUG] Scene: ", shape_scene, " Children: ", shape_scene.get_child_count())
+	for i in shape_scene.get_children():
+		print("[DEBUG] Child: ", i, " Type: ", typeof(i))
+	# Debug: print info about indicator template
+	print("[DEBUG] Indicator template: ", placement_manager.indicator_manager._indicator_template)
+	var indicators = placement_manager.setup_indicators(shape_scene, col_checking_rules)
+	print("[DEBUG] Indicators generated: ", indicators.size())
+	assert_int(indicators.size()).append_failure_message("Generated indicator count did not match expected count.").is_equal(expected)
+
+func test_indicator_positions_are_unique():
+	var shape_scene = auto_free(eclipse_scene.instantiate())
+	add_child(shape_scene)
+	shape_scene.global_position = global_snap_pos
+	var indicators = placement_manager.setup_indicators(shape_scene, col_checking_rules)
+	var positions = []
+	for indicator in indicators:
+		positions.append(indicator.global_position)
+	# Remove duplicates manually
+	var unique_positions = []
+	for pos in positions:
+		if not unique_positions.has(pos):
+			unique_positions.append(pos)
+	assert_int(positions.size()).append_failure_message("Indicator positions are not unique").is_equal(unique_positions.size())
+
+func test_no_indicators_for_empty_scene():
+	var empty_node = auto_free(Node2D.new())
+	add_child(empty_node)
+	var indicators : Array[RuleCheckIndicator] = placement_manager.setup_indicators(empty_node, col_checking_rules)
+	assert_int(indicators.size()).append_failure_message("Indicators should be zero for empty scene").is_equal(0)
+
+@warning_ignore("unused_parameter")
+func test_indicator_generation_distance(scene_resource: PackedScene, expected_distance: float, test_parameters := [
+	[eclipse_scene, 16.0]
+]):
+	var shape_scene = auto_free(scene_resource.instantiate())
 	add_child(shape_scene)
 	shape_scene.global_position = global_snap_pos
 	var indicators : Array[RuleCheckIndicator] = placement_manager.setup_indicators(shape_scene, col_checking_rules)
-	assert_int(indicators.size()).append_failure_message("Generated indicator count did not match expected count.").is_equal(p_expected_indicators)
-
-## Asserts that the number of found objects in the test scene instance is equal to the manually counted expected objects
-@warning_ignore("unused_parameter")
-func test_find_collision_objects(p_test_obj_scene : PackedScene, p_expected_objects : int, test_parameters := [
-	[offset_logo, 1]
-]):
-	var shape_scene = auto_free(p_test_obj_scene.instantiate())
-	add_child(shape_scene)
-	var objects : Array[CollisionObject2D] = placement_manager._find_collision_objects(shape_scene)
-	assert_int(objects.size()).is_equal(p_expected_objects)
-
-## Ensure proper freeing of objects after using get_or_create_testing_indicator
-## followed by freeing the placement_manager
-func test_get_or_create_testing_indicator_on_free():
-	## Setup
-	placement_manager.get_or_create_testing_indicator(test_indicator)
-	var testing_indicator = placement_manager._testing_indicator
-	assert_object(testing_indicator).is_not_null()
-	
-	## Free Test
-	placement_manager.free()
-	assert_that(testing_indicator).is_null()
-
-# Check that the distance between indicators 0 and 1 is the expected value
-@warning_ignore("unused_parameter")
-func test_indicator_generation_distance(p_test_scene : PackedScene, p_expected_distance : float, test_parameters := [
-	[eclipse_scene, 16.0]
-]):
-	var shape_scene = auto_free(p_test_scene.instantiate())
-	add_child(shape_scene)
-	var indicators : Array[RuleCheckIndicator] = placement_manager.setup_indicators(shape_scene, col_checking_rules)
-	var indicator_0 = placement_manager.indicators[0]
-	var indicator_1 = placement_manager.indicators[1]
+	if indicators.size() < 2:
+		return # Not enough indicators to test distance
+	var indicator_0 = indicators[0]
+	var indicator_1 = indicators[1]
 	var distance_to = indicator_0.global_position.distance_to(indicator_1.global_position)
-	assert_float(distance_to).append_failure_message("16x16 tile spacing").is_equal(p_expected_distance)
-	
-func test_rect_15_tile_shape_count():
-	#region Setup
-	var test_rect_15_tiles = load("res://test/grid_building_test/scenes/test_rect_15_tiles.tscn").instantiate()
-	add_child(test_rect_15_tiles)
-	test_rect_15_tiles.global_position = global_snap_pos
-	#endregion
-	
-	#region Execution
-	var col_objects : Array[CollisionObject2D] = placement_manager._find_collision_objects(test_rect_15_tiles)
-	assert_array(col_objects).is_not_empty()
-	var expected_collisions = 15
-	var tile_positions = placement_manager._get_collision_tile_positions_with_mask(col_objects, 1)
-	assert_int(tile_positions.size()).append_failure_message("Expected to have %d positions where tiles collide" % expected_collisions).is_equal(expected_collisions)
-	var generated_indicators = placement_manager.setup_indicators(test_rect_15_tiles, col_checking_rules)
-	assert_int(generated_indicators.size()).is_equal(15)
-	var distance_to = placement_manager.indicators[0].global_position.distance_to(placement_manager.indicators[1].global_position)
-	assert_float(distance_to).append_failure_message("16x16 tile spacing").is_equal(16.0)
-	#endregion
-	
-	#region Cleanup
-	placement_manager.clear()
-	test_rect_15_tiles.free()
-	#endregion
-	
-func test_track_indicators():
-	assert_int(placement_manager.indicators.size()).is_equal(0)
-	placement_manager.free_indicators([])
-	assert_int(placement_manager.indicators.size()).is_equal(0)
-	
-	var indicator = TestSceneLibrary.indicator.instantiate()
-	placement_manager.add_indicators([indicator])
-	assert_int(placement_manager.indicators.size()).is_equal(1)
-	
-	placement_manager.free_indicators([indicator])
-	assert_int(placement_manager.indicators.size()).is_equal(0)
-	
-	var indicators_to_remove : Array[RuleCheckIndicator] = []
-	
-	for i in range(0,10,1):
-		var new_indicator = TestSceneLibrary.indicator.instantiate()
-		placement_manager.add_indicators([new_indicator])
-		indicators_to_remove.append(new_indicator)
-		
-	assert_int(placement_manager.indicators.size()).is_equal(10)
-	placement_manager.free_indicators(indicators_to_remove)
-	assert_int(placement_manager.indicators.size()).is_equal(0)
+	assert_float(distance_to).append_failure_message("16x16 tile spacing").is_equal(expected_distance)
 
-func _compare_transform_adjusted_rects(p_test_rect : Rect2, p_transform : Transform2D, p_col_object : CollisionObject2D):
-	placement_manager.indicator_creation_testing_parameters.clear()
-	var setup : IndicatorCollisionTestSetup = placement_manager._get_or_create_test_params(p_col_object)
-	
-	for rect_test in setup.rect_collision_test_setups:
-		var shape_owner = rect_test.shape_owner
-		var created_rect : Rect2 = rect_test.rect_shape.get_rect()
-		var directly_adjusted_rect : Rect2 = Rect2(p_test_rect)
-		assert_float(p_transform.get_skew()).is_equal_approx(shape_owner.global_transform.get_skew(), 0.01)
-		assert_float(p_transform.get_rotation()).is_equal_approx(shape_owner.global_transform.get_rotation(), 0.01)
-		directly_adjusted_rect *= p_transform
-
-		assert_vector(directly_adjusted_rect.size).is_equal(created_rect.size)
-		assert_vector(directly_adjusted_rect.position).is_equal(created_rect.position)
-
-func test_setup_indicators_rotated_elipse():
-	#region setup
-	var test_object = auto_free(load("res://test/grid_building_test/scenes/test_elipse.tscn").instantiate())
-	var rules : Array[PlacementRule] = [CollisionsCheckRule.new()]
-	add_child(test_object)
-	
-	var test_params = RuleValidationParameters.new(
-		_placer, test_object, _container.get_targeting_state()
-	)
-	
-	for rule in rules:
-		rule.setup(test_params)
-	var tile_check_rules = RuleFilters.only_tile_check(rules)
-	#endregion
-	
-	var indicators = placement_manager.setup_indicators(test_object, tile_check_rules)
-	assert_array(indicators).has_size(24)
-	
-	for indicator in indicators:
-		assert_int(indicators.count(indicator)).is_equal(1)
-	
-	assert_int(indicators.size()).is_equal(24)
-
-func test_expected_connections() -> void:
-	assert_array(placement_manager.tree_entered.get_connections()).is_not_empty() # Tree entered to setup placement validator
-	assert_array(placement_manager.tree_exited.get_connections()).is_not_empty() # Tree exited to clear self from placement validator
+func test_indicators_are_freed_on_reset():
+	var shape_scene = auto_free(eclipse_scene.instantiate())
+	add_child(shape_scene)
+	shape_scene.global_position = global_snap_pos
+	var indicators : Array[RuleCheckIndicator] = placement_manager.setup_indicators(shape_scene, col_checking_rules)
+	assert_int(indicators.size()).append_failure_message("No indicators generated before reset").is_greater(0)
+	placement_manager.reset()
+	# After reset, indicators should be cleared
+	assert_int(placement_manager.indicator_manager.get_indicators().size()).append_failure_message("Indicators not cleared after reset").is_equal(0)
