@@ -4,11 +4,9 @@ var indicator_manager: IndicatorManager
 var indicator_template : PackedScene = preload("uid://dhox8mb8kuaxa")
 var received_signal: bool
 var indicator: RuleCheckIndicator
-var _container : GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
 
 func before_test():
-	indicator_manager = IndicatorManager.new()
-	indicator_manager.resolve_gb_dependencies(_container)
+	indicator_manager = IndicatorManager.new(indicator_template, GBDoubleFactory.create_double_targeting_state(self), GBDoubleFactory.create_test_logger())
 	add_child(indicator_manager) # Must add to scene tree for signals, add_child, free etc to work
 	
 	received_signal = false
