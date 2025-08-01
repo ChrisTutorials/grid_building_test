@@ -69,7 +69,7 @@ func test__update_visuals(p_settings : IndicatorVisualSettings, test_parameters 
 
 ## Test the default return of get_tile_positon
 func test_get_tile_position_default() -> void:
-	var test_tile_map := auto_free(load("uid://3shi30ob8pna").instantiate()) as TileMap
+	var test_tile_map : TileMapLayer = auto_free(load("uid://3shi30ob8pna").instantiate())
 	add_child(test_tile_map)
 	var position := indicator.get_tile_position(test_tile_map)
 	assert_vector(position).is_equal(Vector2i.ZERO)

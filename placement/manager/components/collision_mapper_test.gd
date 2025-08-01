@@ -28,7 +28,7 @@ func rule(mask: int) -> TileCheckRule:
 	return r
 
 
-
+@warning_ignore("unused_parameter")
 func test_map_tile_positions_to_rules(
 	collision_objects_untyped: Array,
 	rules_untyped: Array,

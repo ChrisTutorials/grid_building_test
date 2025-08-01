@@ -33,12 +33,9 @@ func before_test():
 	targeting_state = states.targeting
 	assert_array(targeting_state.validate()).is_empty()
 
-	placement_validator = PlacementValidator.new([], _container.get_messages(), _container.get_debug_settings())
+	placement_validator = PlacementValidator.new([], _container.get_messages(), _container.get_logger())
 
 func test_no_col_valid_placement_both_pass_with_test_resources():
-	var test_node = auto_free(Node2D.new())
-	var validation_params = setup_validation_no_col_and_buildable(test_node)
-
 	var validation_results = placement_validator.validate()
 	assert_object(validation_results).is_not_null()
 
