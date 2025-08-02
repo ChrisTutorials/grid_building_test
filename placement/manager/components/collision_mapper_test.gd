@@ -61,3 +61,32 @@ func _create_area_2d(layer: int) -> Area2D:
 	shape.shape = RectangleShape2D.new()
 	area_2d.add_child(shape)
 	return area_2d
+
+func test_map_collision_positions_to_rules_returns_expected_map() -> void:
+	# Setup: create a StaticBody2D with a CollisionShape2D
+	var test_object := Node2D.new()
+	var body := StaticBody2D.new()
+	test_object.add_child(body)
+	var collision_shape := CollisionShape2D.new()
+	collision_shape.shape = CircleShape2D.new()
+	body.add_child(collision_shape)
+
+	# Create a dummy targeting state and collision mapper
+	var test_targeting_state := GridTargetingState.new(GBOwnerContext.new())
+	var test_collision_mapper := CollisionMapper.new(test_targeting_state)
+
+	# Create a rule
+	var test_rule := TileCheckRule.new()
+	var rules : Array[TileCheckRule] = [test_rule]
+
+	# Get collision objects
+	var col_objects := GBGeometryUtils.get_all_collision_objects(test_object)
+	assert_int(col_objects.size()).is_greater(0)
+
+	# Call the mapping function
+	var position_rules_map : Dictionary[Vector2i, Array] = test_collision_mapper.map_collision_positions_to_rules(col_objects, rules)
+
+	# Assert the map is not empty and contains expected keys/values
+	assert_that(position_rules_map.size()).is_greater(0)
+	for key in position_rules_map.keys():
+		assert_that(position_rules_map[key].size()).is_greater(0)
