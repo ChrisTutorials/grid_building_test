@@ -5,12 +5,16 @@ var indicator_template : PackedScene = preload("uid://dhox8mb8kuaxa")
 var received_signal: bool
 var indicator: RuleCheckIndicator
 var _injector : GBInjectorSystem
+var _container : GBCompositionContainer
 
 func before_test():
-	_injector = GBDoubleFactory.create_test_injector(self)
+	_container = load("uid://dy6e5p5d6ax6n")
+	_injector = GBDoubleFactory.create_test_injector(self, _container)
 	indicator_manager = IndicatorManager.new()
 	add_child(indicator_manager) # Must add to scene tree for signals, add_child, free etc to work
-	
+
+	_initialize_targeting_state(_container.get_targeting_state())
+
 	received_signal = false
 	indicator = null
 
@@ -22,6 +26,15 @@ func _create_real_indicator() -> RuleCheckIndicator:
 	instance.name = "TestIndicator"
 	add_child(instance) # add to scene so it's in scene tree
 	return instance
+
+func _initialize_targeting_state(targeting_state: GridTargetingState) -> void:
+	var map := GBDoubleFactory.create_test_tile_map_layer(self)
+	targeting_state.set_map_objects(
+		map, [map]
+	)
+
+	var positioner : Node2D = auto_free(Node2D.new())
+	targeting_state.positioner = positioner
 
 func test_setup_indicators_generates_expected_indicators() -> void:
 	var test_object := Node2D.new()

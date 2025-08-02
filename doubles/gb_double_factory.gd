@@ -2,9 +2,9 @@
 class_name GBDoubleFactory
 
 ## Factory for creating doubles for testing purposes
-const DEFAULT_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
+const TEST_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
 
-static func create_test_injector(test: GdUnitTestSuite, container: GBCompositionContainer = DEFAULT_CONTAINER) -> GBInjectorSystem:
+static func create_test_injector(test: GdUnitTestSuite, container: GBCompositionContainer) -> GBInjectorSystem:
 	var injector := GBInjectorSystem.new(container)
 	test.add_child(injector)
 	test.auto_free(injector)
