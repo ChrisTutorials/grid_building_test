@@ -1,4 +1,3 @@
-
 class_name GBDoubleFactory
 
 ## Factory for creating doubles for testing purposes
@@ -61,3 +60,69 @@ static func create_test_tile_map_layer(test: GdUnitTestSuite) -> TileMapLayer:
 	test.add_child(map_layer)
 	test.auto_free(map_layer)
 	return map_layer
+
+static func create_test_object_with_circle_shape(test: GdUnitTestSuite) -> Node2D:
+	var test_object: Node2D = Node2D.new()
+	test.auto_free(test_object)
+	var body: StaticBody2D = StaticBody2D.new()
+	test_object.add_child(body)
+	test.auto_free(body)
+	var collision_shape := CollisionShape2D.new()
+	collision_shape.shape = CircleShape2D.new()
+	body.add_child(collision_shape)
+	test.auto_free(collision_shape)
+	body.collision_layer = 1
+	return test_object
+
+static func create_test_indicator_rect(test: GdUnitTestSuite, tile_size: int = 16) -> RuleCheckIndicator:
+	var indicator: RuleCheckIndicator = RuleCheckIndicator.new()
+	test.auto_free(indicator)
+	var rect_shape := RectangleShape2D.new()
+	rect_shape.extents = Vector2(tile_size, tile_size)
+	indicator.shape = rect_shape
+	test.auto_free(rect_shape)
+	return indicator
+
+static func create_test_static_body_with_rect_shape(test: GdUnitTestSuite) -> StaticBody2D:
+	var body: StaticBody2D = test.auto_free(StaticBody2D.new())
+	var shape: CollisionShape2D = test.auto_free(CollisionShape2D.new())
+	var rect: RectangleShape2D = RectangleShape2D.new()
+	rect.extents = Vector2(8, 8)
+	shape.shape = rect
+	test.add_child(body)
+	body.add_child(shape)
+	return body
+
+static func create_test_collision_polygon(test: GdUnitTestSuite) -> CollisionPolygon2D:
+	var poly: CollisionPolygon2D = CollisionPolygon2D.new()
+	test.auto_free(poly)
+	poly.polygon = PackedVector2Array([Vector2(0,0), Vector2(16,0), Vector2(8,16)])
+	test.add_child(poly)
+	return poly
+
+static func create_test_parent_with_body_and_polygon(test: GdUnitTestSuite) -> Node2D:
+	var parent: Node2D = Node2D.new()
+	test.auto_free(parent)
+	test.add_child(parent)
+	var body: StaticBody2D = create_test_static_body_with_rect_shape(test)
+	var poly: CollisionPolygon2D = create_test_collision_polygon(test)
+	if body.get_parent() != null:
+		body.get_parent().remove_child(body)
+	if poly.get_parent() != null:
+		poly.get_parent().remove_child(poly)
+	parent.add_child(body)
+	parent.add_child(poly)
+	return parent
+
+static func create_collision_object_test_setups(col_objects: Array) -> Dictionary[CollisionObject2D, IndicatorCollisionTestSetup]:
+	var setups: Dictionary[CollisionObject2D, IndicatorCollisionTestSetup] = {}
+	for obj in col_objects:
+		if obj is CollisionObject2D:
+			setups[obj] = IndicatorCollisionTestSetup.new(obj, Vector2.ZERO, GBDoubleFactory.create_test_logger())
+	return setups
+
+static func create_test_node2d(test: GdUnitTestSuite) -> Node2D:
+	var node: Node2D = Node2D.new()
+	test.add_child(node)
+	test.auto_free(node)
+	return node

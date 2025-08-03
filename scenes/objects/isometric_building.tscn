@@ -6,13 +6,6 @@
 
 [sub_resource type="Resource" id="Resource_wf603"]
 script = ExtResource("2_ttfqu")
-move_rules = Array[ExtResource("3_ymn57")]([])
-ignore_base_rules = false
-rotateable = false
-flip_horizontal = false
-flip_vertical = false
-movable = true
-demolishable = true
 metadata/_custom_type_script = ExtResource("2_ttfqu")
 
 [node name="IsometricBuilding" type="StaticBody2D"]
