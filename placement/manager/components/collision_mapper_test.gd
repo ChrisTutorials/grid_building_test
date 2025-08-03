@@ -1,7 +1,4 @@
-
 extends GdUnitTestSuite
-
-const GBDoubleFactory = preload("res://test/grid_building_test/doubles/gb_double_factory.gd")
 
 var mapper: CollisionMapper
 var targeting_state: GridTargetingState
@@ -41,7 +38,7 @@ func test_map_collision_positions_to_rules_param(
 		[[_create_area_2d(1)], [], false],
 		[[_create_area_2d(1)], [rule(1)], true],
 	]):
-	var collision_objects: Array[CollisionObject2D] = []
+var collision_objects: Array[Node2D] = []
 	for obj in collision_objects_untyped:
 		collision_objects.append(obj)
 		add_child(obj)
@@ -51,7 +48,7 @@ func test_map_collision_positions_to_rules_param(
 	for r in rules_untyped:
 		rules.append(r)
 
-	var collision_object_test_setups: Dictionary[CollisionObject2D, IndicatorCollisionTestSetup] = {}
+	var collision_object_test_setups: Dictionary[Node2D, IndicatorCollisionTestSetup] = {}
 	for obj in collision_objects:
 		collision_object_test_setups[obj] = IndicatorCollisionTestSetup.new(obj, indicator.position, logger)
 	mapper.setup(indicator, collision_object_test_setups)
@@ -80,15 +77,16 @@ func test_map_collision_positions_to_rules_returns_expected_map() -> void:
 	var test_targeting_state := GridTargetingState.new(GBOwnerContext.new())
 	test_targeting_state.target_map = GBDoubleFactory.create_test_tile_map_layer(self)
 	var test_collision_mapper := CollisionMapper.new(test_targeting_state)
-	var owner_col_shapes_map : Dictionary[Node2D, Array] = GBGeometryUtils.get_all_collision_objects(test_object)
-	assert_int(col_objects.size()).append_failure_message("Should find at least one collision object").is_greater(0)
-	var collision_object_test_setups: Dictionary[CollisionObject2D, IndicatorCollisionTestSetup] = GBDoubleFactory.create_collision_object_test_setups(col_objects)
-	var test_indicator: RuleCheckIndicator = GBDoubleFactory.create_test_indicator_rect(self, 16)
-	test_collision_mapper.setup(test_indicator, collision_object_test_setups)
-	var position_rules_map : Dictionary[Vector2i, Array] = test_collision_mapper.map_collision_positions_to_rules(col_objects, rules)
-	assert_that(position_rules_map.size()).append_failure_message("Should map at least one tile position").is_greater(0)
-	for key in position_rules_map.keys():
-		assert_that(position_rules_map[key].size()).append_failure_message("Each mapped tile should have at least one rule").is_greater(0)
+var _owner_col_shapes_map : Dictionary[Node2D, Array] = GBGeometryUtils.get_all_collision_shapes_by_owner(test_object)
+var col_objects: Array[Node2D] = _owner_col_shapes_map.keys()
+assert_int(col_objects.size()).append_failure_message("Should find at least one collision object").is_greater(0)
+var collision_object_test_setups: Dictionary[Node2D, IndicatorCollisionTestSetup] = GBDoubleFactory.create_collision_object_test_setups(col_objects)
+var test_indicator: RuleCheckIndicator = GBDoubleFactory.create_test_indicator_rect(self, 16)
+test_collision_mapper.setup(test_indicator, collision_object_test_setups)
+var position_rules_map : Dictionary[Vector2i, Array] = test_collision_mapper.map_collision_positions_to_rules(col_objects, rules)
+assert_that(position_rules_map.size()).append_failure_message("Should map at least one tile position").is_greater(0)
+for key in position_rules_map.keys():
+	assert_that(position_rules_map[key].size()).append_failure_message("Each mapped tile should have at least one rule").is_greater(0)
 
 @warning_ignore("unused_parameter")
 func test_get_collision_tile_positions_with_mask_param(
@@ -105,18 +103,18 @@ func test_get_collision_tile_positions_with_mask_param(
 		[[_create_area_2d(1), _create_area_2d(1)], 1, 1, [2]],
 	]
 ):
-	var collision_objects: Array[CollisionObject2D] = []
-	for obj in collision_objects_untyped:
-		collision_objects.append(obj)
-		add_child(obj)
-		auto_free(obj)
+var collision_objects: Array[Node2D] = []
+for obj in collision_objects_untyped:
+	collision_objects.append(obj)
+	add_child(obj)
+	auto_free(obj)
 
-	var collision_object_test_setups: Dictionary[CollisionObject2D, IndicatorCollisionTestSetup] = {}
-	for obj in collision_objects:
-		collision_object_test_setups[obj] = IndicatorCollisionTestSetup.new(obj, indicator.position, logger)
-	mapper.setup(indicator, collision_object_test_setups)
+var collision_object_test_setups: Dictionary[Node2D, IndicatorCollisionTestSetup] = {}
+for obj in collision_objects:
+	collision_object_test_setups[obj] = IndicatorCollisionTestSetup.new(obj, indicator.position, logger)
+mapper.setup(indicator, collision_object_test_setups)
 
-	var result = mapper.get_collision_tile_positions_with_mask(collision_objects, collision_mask)
+var result = mapper.get_collision_tile_positions_with_mask(collision_objects, collision_mask)
 	assert_int(result.size()).append_failure_message("Unexpected tile count").is_equal(expected_tile_count)
 	var keys := result.keys()
 	if keys.size() != expected_object_counts.size():

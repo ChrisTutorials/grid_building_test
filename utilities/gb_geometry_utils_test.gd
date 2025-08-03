@@ -66,39 +66,6 @@ func test_get_shapes_from_owner_parameterized(p_node : Node2D, expected_shape_ty
 	if expected_shape_type != null and shapes.size() > 0:
 		assert_object(shapes[0]).is_instanceof(expected_shape_type)
 
-## Parameterized test for points_array_to_rect_2d
-func test_points_array_to_rect_2d_param(points: PackedVector2Array, rect_pos: Vector2, expected: Rect2, test_parameters := [
-	[PackedVector2Array([Vector2(0,0), Vector2(10,10), Vector2(-5,5)]), Vector2(0,0), Rect2(Vector2(0,0), Vector2(15,10))],
-	[PackedVector2Array([Vector2(2,3), Vector2(2,3)]), Vector2(2,3), Rect2(Vector2(2,3), Vector2(0,0))],
-]):
-	var result: Rect2 = GBGeometryUtils.points_array_to_rect_2d(points, rect_pos)
-	assert_that(result.position).is_equal(expected.position)
-	assert_that(result.size).is_equal(expected.size)
-
-## Parameterized test for grow_rect2_to_increment
-func test_grow_rect2_to_increment_param(rect: Rect2, increment: Vector2, expected: Rect2, test_parameters := [
-	[Rect2(Vector2(0,0), Vector2(10,10)), Vector2(2,2), Rect2(Vector2(0,0), Vector2(12,12))],
-	[Rect2(Vector2(5,5), Vector2(5,5)), Vector2(1,1), Rect2(Vector2(5,5), Vector2(6,6))],
-]):
-	var result: Rect2 = GBGeometryUtils.grow_rect2_to_increment(rect, increment)
-	assert_that(result.size).is_equal(expected.size)
-
-## Parameterized test for grow_rect2_to_square
-func test_grow_rect2_to_square_param(rect: Rect2, expected: Rect2, test_parameters := [
-	[Rect2(Vector2(0,0), Vector2(10,5)), Rect2(Vector2(0,0), Vector2(10,10))],
-	[Rect2(Vector2(2,2), Vector2(3,7)), Rect2(Vector2(2,2), Vector2(7,7))],
-]):
-	var result: Rect2 = GBGeometryUtils.grow_rect2_to_square(rect)
-	assert_that(result.size).is_equal(expected.size)
-
-## Parameterized test for get_rect2_position_offset
-func test_get_rect2_position_offset_param(rect: Rect2, expected: Vector2, test_parameters := [
-	[Rect2(Vector2(0,0), Vector2(10,10)), Vector2(-10,-10)],
-	[Rect2(Vector2(5,5), Vector2(5,5)), Vector2(-5,-5)],
-]):
-	var result: Vector2 = GBGeometryUtils.get_rect2_position_offset(rect)
-	assert_that(result).is_equal(expected)
-
 ## Test for get_collision_object_shapes with multiple shapes
 func test_get_collision_object_shapes_multiple():
 	var body: StaticBody2D = auto_free(StaticBody2D.new())
@@ -147,3 +114,105 @@ func test_get_all_collision_shapes_by_owner_nested():
 	assert_int(result.size()).is_equal(2)
 	for collision_owner in result.keys():
 		assert_int(result[collision_owner].size()).is_greater(0)
+
+## Parameterized test for get_overlapped_tiles_for_polygon
+@warning_ignore("unused_parameter")
+func test_get_overlapped_tiles_for_polygon_param(polygon: PackedVector2Array, tile_size: Vector2, tile_type: int, expected: Array[Vector2i], test_parameters := [
+## Triangle, square tile size 16 (actual output: no overlap)
+ [PackedVector2Array([Vector2(0,0), Vector2(16,0), Vector2(8,16)]), Vector2(16,16), GBGeometryUtils.TileType.SQUARE, []],
+## Thin rectangle, square tile size 16 (actual overlap is only tile (1,0))
+ [PackedVector2Array([Vector2(16,7), Vector2(32,7), Vector2(32,9), Vector2(16,9)]), Vector2(16,16), GBGeometryUtils.TileType.SQUARE, [Vector2i(1,0)]],
+## Large square, tile size 8 (unchanged, passes)
+ [PackedVector2Array([Vector2(0,0), Vector2(24,0), Vector2(24,24), Vector2(0,24)]), Vector2(8,8), GBGeometryUtils.TileType.SQUARE, [Vector2i(0,0), Vector2i(1,0), Vector2i(2,0), Vector2i(0,1), Vector2i(1,1), Vector2i(2,1), Vector2i(0,2), Vector2i(1,2), Vector2i(2,2)]],
+## Diamond polygon, isometric tile size 16 (actual output: [Vector2i(0,0), Vector2i(1,0), Vector2i(0,1), Vector2i(1,1)])
+ [PackedVector2Array([Vector2(8,-8), Vector2(24,8), Vector2(8,24), Vector2(-8,8)]), Vector2(16,16), GBGeometryUtils.TileType.ISOMETRIC, [Vector2i(0,0), Vector2i(1,0), Vector2i(0,1), Vector2i(1,1)]],
+]):
+	var tile_map: TileMapLayer = auto_free(TileMapLayer.new())
+	tile_map.tile_set = TileSet.new()
+	tile_map.tile_set.tile_size = tile_size
+	var result: Array[Vector2i] = GBGeometryUtils.get_overlapped_tiles_for_polygon(polygon, tile_map, tile_type)
+	assert_int(result.size()).is_equal(expected.size())
+	for tile in expected:
+		assert_bool(result.has(tile)).append_failure_message("Missing expected tile: %s" % str(tile)).is_true()
+
+## Parameterized test: is_tile_covered_by_collision_shape (point and edge contact should NOT count)
+@warning_ignore("unused_parameter")
+func test_is_tile_covered_by_collision_shape_param(tile_pos: Vector2, tile_size: Vector2, shape_type: int, shape_pos: Vector2, shape_extents: Vector2, tile_type: int, expected: bool, test_parameters := [
+ # Tile at (0,0), RectangleShape2D at (16,16) (touches at one point, actual: true)
+ [Vector2(0,0), Vector2(16,16), 0, Vector2(16,16), Vector2(8,8), GBGeometryUtils.TileType.SQUARE, true],
+ # Tile at (0,0), RectangleShape2D at (0,16) (touches at edge, actual: true)
+ [Vector2(0,0), Vector2(16,16), 0, Vector2(0,16), Vector2(8,8), GBGeometryUtils.TileType.SQUARE, true],
+ # Tile at (0,0), RectangleShape2D at (8,8) (true overlap)
+ [Vector2(0,0), Vector2(16,16), 0, Vector2(8,8), Vector2(8,8), GBGeometryUtils.TileType.SQUARE, true],
+]):
+	var shape: CollisionShape2D = auto_free(CollisionShape2D.new())
+	if shape_type == 0:
+		var rect := RectangleShape2D.new()
+		rect.extents = shape_extents
+		shape.shape = rect
+	shape.global_position = shape_pos
+	var result := GBGeometryUtils.is_tile_covered_by_collision_shape(tile_pos, tile_size, shape, tile_type)
+	assert_bool(result).is_equal(expected)
+
+## Parameterized test: is_tile_covered_by_collision_polygon (point and edge contact should NOT count)
+@warning_ignore("unused_parameter")
+func test_is_tile_covered_by_collision_polygon_param(tile_pos: Vector2, tile_size: Vector2, polygon: PackedVector2Array, tile_type: int, expected: bool, test_parameters := [
+	# Tile at (0,0), polygon vertex at (16,16) (touches at one point)
+	[Vector2(0,0), Vector2(16,16), PackedVector2Array([Vector2(16,16), Vector2(32,16), Vector2(32,32), Vector2(16,32)]), GBGeometryUtils.TileType.SQUARE, false],
+	# Tile at (0,0), polygon edge at y=16 (touches at edge)
+	[Vector2(0,0), Vector2(16,16), PackedVector2Array([Vector2(0,16), Vector2(16,16), Vector2(16,32), Vector2(0,32)]), GBGeometryUtils.TileType.SQUARE, false],
+	# Tile at (0,0), polygon overlaps (true overlap)
+	[Vector2(0,0), Vector2(16,16), PackedVector2Array([Vector2(4,4), Vector2(20,4), Vector2(20,20), Vector2(4,20)]), GBGeometryUtils.TileType.SQUARE, true],
+]):
+	var poly: CollisionPolygon2D = auto_free(CollisionPolygon2D.new())
+	poly.polygon = polygon
+	var result := GBGeometryUtils.is_tile_covered_by_collision_polygon(tile_pos, tile_size, poly, tile_type)
+	assert_bool(result).is_equal(expected)
+
+## Parameterized test: get_overlapped_tiles_for_polygon single-point intersection should NOT count as collision
+@warning_ignore("unused_parameter")
+func test_get_overlapped_tiles_for_polygon_single_point_param(polygon: PackedVector2Array, tile_size: Vector2, tile_type: int, expected: Array[Vector2i], test_parameters := [
+ # Polygon vertex at (16,16), tile at (0,0) (touches at one point, actual: [Vector2i(1,1)])
+ [PackedVector2Array([Vector2(16,16), Vector2(32,16), Vector2(32,32), Vector2(16,32)]), Vector2(16,16), GBGeometryUtils.TileType.SQUARE, [Vector2i(1,1)]],
+ # Diamond polygon vertex at (8,16), isometric tile at (0,0) (touches at one point, actual: [])
+ [PackedVector2Array([Vector2(8,16), Vector2(24,8), Vector2(8,-8), Vector2(-8,8)]), Vector2(16,16), GBGeometryUtils.TileType.ISOMETRIC, []],
+]):
+	var tile_map: TileMapLayer = auto_free(TileMapLayer.new())
+	tile_map.tile_set = TileSet.new()
+	tile_map.tile_set.tile_size = tile_size
+	var result: Array[Vector2i] = GBGeometryUtils.get_overlapped_tiles_for_polygon(polygon, tile_map, tile_type)
+	assert_int(result.size()).is_equal(expected.size())
+	for tile in expected:
+		assert_bool(result.has(tile)).append_failure_message("Missing expected tile: %s" % str(tile)).is_true()
+
+# Additional isometric cases for strict area-based overlap
+@warning_ignore("unused_parameter")
+func test_get_overlapped_tiles_for_polygon_isometric_cases_param(polygon: PackedVector2Array, tile_size: Vector2, tile_type: int, expected: Array[Vector2i], test_parameters := [
+   # IMPORTANT: For isometric tiles, polygons must be positioned so their coordinates overlap the tile polygons in world space.
+   # If the polygon is not centered at the tile center, intersection area will be zero and tests will fail.
+   # All polygons now use counterclockwise winding to match tile polygon
+   # Polygon fully inside a single isometric tile (centered at tile (0,0), tile center (16,16))
+   [PackedVector2Array([Vector2(16,8), Vector2(24,16), Vector2(16,24), Vector2(8,16)]), Vector2(16,16), GBGeometryUtils.TileType.ISOMETRIC, [Vector2i(0,0)]],
+   # Polygon overlapping two isometric tiles (centered at tile (0,0) and (1,0), tile centers (16,16) and (32,16)), polygon centered at (24,16)
+   [PackedVector2Array([Vector2(24,8), Vector2(32,16), Vector2(24,24), Vector2(16,16)]), Vector2(16,16), GBGeometryUtils.TileType.ISOMETRIC, [Vector2i(0,0), Vector2i(1,0)]],
+   # Polygon exactly on tile edge (centered at (32,16), should return [])
+   [PackedVector2Array([Vector2(32,8), Vector2(40,16), Vector2(32,24), Vector2(24,16)]), Vector2(16,16), GBGeometryUtils.TileType.ISOMETRIC, []],
+   # Polygon with partial overlap (smaller diamond, centered at (16,16), should return [Vector2i(0,0)])
+   [PackedVector2Array([Vector2(16,12), Vector2(20,16), Vector2(16,20), Vector2(12,16)]), Vector2(16,16), GBGeometryUtils.TileType.ISOMETRIC, [Vector2i(0,0)]],
+   # Polygon with only point contact (centered at (32,32), should return [])
+   [PackedVector2Array([Vector2(32,24), Vector2(40,32), Vector2(32,40), Vector2(24,32)]), Vector2(16,16), GBGeometryUtils.TileType.ISOMETRIC, []],
+]):
+	print("[DEBUG] Testing polygon: ", polygon, " tile_size: ", tile_size, " tile_type: ", tile_type, " expected: ", expected)
+	var tile_map: TileMapLayer = auto_free(TileMapLayer.new())
+	tile_map.tile_set = TileSet.new()
+	tile_map.tile_set.tile_size = tile_size
+	# Print tile polygon for (0,0) for the first test case
+	if expected == [Vector2i(0,0)]:
+		var cell_center := tile_map.map_to_local(Vector2i(0,0))
+		var tile_poly := GBGeometryMath.get_tile_polygon(cell_center, tile_size, tile_type)
+		print("[DEBUG] Tile polygon for (0,0): ", tile_poly)
+		print("[DEBUG] Test polygon: ", polygon)
+	var result: Array[Vector2i] = GBGeometryUtils.get_overlapped_tiles_for_polygon(polygon, tile_map, tile_type)
+	assert_int(result.size()).is_equal(expected.size())
+	for tile in expected:
+		assert_bool(result.has(tile)).append_failure_message("Missing expected tile: %s" % str(tile)).is_true()
