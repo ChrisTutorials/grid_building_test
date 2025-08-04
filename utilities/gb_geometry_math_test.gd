@@ -80,3 +80,76 @@ func test_polygon_intersection_area_param(poly_a: PackedVector2Array, poly_b: Pa
 ]):
 	var area := GBGeometryMath.polygon_intersection_area(poly_a, poly_b)
 	assert_float(area).is_equal_approx(expected, 0.01)
+
+## Parameterized test for get_polygon_bounds
+func test_get_polygon_bounds_param(polygon: PackedVector2Array, expected: Rect2, test_parameters := [
+	[PackedVector2Array([Vector2(0,0), Vector2(2,0), Vector2(2,2), Vector2(0,2)]), Rect2(0, 0, 2, 2)], # Square
+	[PackedVector2Array([Vector2(1,1), Vector2(3,1), Vector2(3,3), Vector2(1,3)]), Rect2(1, 1, 2, 2)], # Offset square
+	[PackedVector2Array([Vector2(-1,-1), Vector2(1,-1), Vector2(1,1), Vector2(-1,1)]), Rect2(-1, -1, 2, 2)], # Centered square
+	[PackedVector2Array([Vector2(0,0), Vector2(4,0), Vector2(4,3)]), Rect2(0, 0, 4, 3)], # Triangle
+	[PackedVector2Array([]), Rect2()], # Empty polygon
+	[PackedVector2Array([Vector2(5,5)]), Rect2(5, 5, 0, 0)], # Single point
+]):
+	var bounds := GBGeometryMath.get_polygon_bounds(polygon)
+	assert_that(bounds).is_equal(expected)
+
+## Parameterized test for convert_shape_to_polygon with RectangleShape2D
+func test_convert_rectangle_shape_to_polygon_param(size: Vector2, transform: Transform2D, expected_size: int, test_parameters := [
+	[Vector2(2, 2), Transform2D.IDENTITY, 4], # 2x2 rectangle at origin
+	[Vector2(4, 6), Transform2D.IDENTITY, 4], # 4x6 rectangle at origin
+	[Vector2(2, 2), Transform2D(0, Vector2(10, 10)), 4], # 2x2 rectangle translated
+]):
+	var rect_shape: RectangleShape2D = auto_free(RectangleShape2D.new())
+	rect_shape.size = size
+	var polygon := GBGeometryMath.convert_shape_to_polygon(rect_shape, transform)
+	assert_int(polygon.size()).is_equal(expected_size)
+	# Verify it forms a proper rectangle (bounds check)
+	var bounds := GBGeometryMath.get_polygon_bounds(polygon)
+	assert_float(bounds.size.x).is_equal_approx(size.x, 0.01)
+	assert_float(bounds.size.y).is_equal_approx(size.y, 0.01)
+
+## Parameterized test for convert_shape_to_polygon with CircleShape2D
+func test_convert_circle_shape_to_polygon_param(radius: float, transform: Transform2D, expected_segments: int, test_parameters := [
+	[1.0, Transform2D.IDENTITY, 16], # Circle with radius 1
+	[5.0, Transform2D.IDENTITY, 16], # Circle with radius 5
+	[2.0, Transform2D(0, Vector2(5, 5)), 16], # Circle translated
+]):
+	var circle_shape: CircleShape2D = auto_free(CircleShape2D.new())
+	circle_shape.radius = radius
+	var polygon := GBGeometryMath.convert_shape_to_polygon(circle_shape, transform)
+	assert_int(polygon.size()).is_equal(expected_segments)
+	
+	# Verify the polygon approximates a circle by checking distance from center
+	var center = transform.origin
+	for point in polygon:
+		var distance = center.distance_to(point)
+		assert_float(distance).is_equal_approx(radius, 0.01)
+
+## Test for convert_shape_to_polygon with ConvexPolygonShape2D
+func test_convert_convex_polygon_shape():
+	var convex_shape: ConvexPolygonShape2D = auto_free(ConvexPolygonShape2D.new())
+	var original_points = PackedVector2Array([Vector2(0,0), Vector2(2,0), Vector2(1,2)])
+	convex_shape.points = original_points
+	
+	var transform = Transform2D(0, Vector2(10, 10))
+	var polygon := GBGeometryMath.convert_shape_to_polygon(convex_shape, transform)
+	
+	assert_int(polygon.size()).is_equal(3)
+	# Verify points are properly transformed
+	for i in range(polygon.size()):
+		var expected_point = transform * original_points[i]
+		assert_that(polygon[i]).is_equal(expected_point)
+
+## Test edge cases for polygon bounds
+func test_polygon_bounds_edge_cases():
+	# Test empty polygon
+	var empty_bounds := GBGeometryMath.get_polygon_bounds(PackedVector2Array([]))
+	assert_that(empty_bounds).is_equal(Rect2())
+	
+	# Test single point
+	var single_point_bounds := GBGeometryMath.get_polygon_bounds(PackedVector2Array([Vector2(5, 10)]))
+	assert_that(single_point_bounds).is_equal(Rect2(5, 10, 0, 0))
+	
+	# Test negative coordinates
+	var negative_bounds := GBGeometryMath.get_polygon_bounds(PackedVector2Array([Vector2(-5, -10), Vector2(-2, -3)]))
+	assert_that(negative_bounds).is_equal(Rect2(-5, -10, 3, 7))
