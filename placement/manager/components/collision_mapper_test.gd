@@ -232,3 +232,66 @@ func test_collision_layer_filtering() -> void:
 	# Should find layer 1 object but not layer 2
 	assert_int(layer1_result.size()).append_failure_message("Should find layer 1 collision").is_greater(0)
 	assert_int(layer2_result.size()).append_failure_message("Should find layer 2 collision").is_greater(0)
+
+## Test collision detection with CollisionPolygon2D shapes
+func test_collision_polygon_detection():
+	# Create a StaticBody2D with CollisionPolygon2D 
+	var static_body = auto_free(StaticBody2D.new())
+	add_child(static_body)
+	static_body.collision_layer = 1
+	
+	var collision_polygon = CollisionPolygon2D.new()
+	static_body.add_child(collision_polygon)
+	# Trapezoid shape similar to simple_trapezoid.tscn
+	collision_polygon.polygon = PackedVector2Array([Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)])
+	
+	# Setup collision mapper with both StaticBody2D and CollisionPolygon2D
+	var collision_objects: Array[Node2D] = [static_body, collision_polygon]
+	var collision_object_test_setups: Dictionary[Node2D, IndicatorCollisionTestSetup] = {}
+	# StaticBody2D gets proper test setup
+	collision_object_test_setups[static_body] = IndicatorCollisionTestSetup.new(static_body, Vector2(32, 32), logger)
+	# CollisionPolygon2D gets null (handled separately)
+	collision_object_test_setups[collision_polygon] = null
+	
+	mapper.setup(indicator, collision_object_test_setups)
+	
+	# Test collision detection
+	var result = mapper.get_collision_tile_positions_with_mask(collision_objects, 1)
+	
+	# Should detect collisions for the trapezoid shape
+	assert_int(result.size()).append_failure_message("Should find collision positions for trapezoid").is_greater(0)
+	
+	# Verify that positions make sense for the trapezoid (should cover area from x=-32 to x=32, y=-12 to y=12)
+	var found_positions = result.keys()
+	var has_center_position = false
+	for pos in found_positions:
+		var tile_pos = pos as Vector2i
+		if tile_pos.x >= -2 and tile_pos.x <= 2 and tile_pos.y >= -1 and tile_pos.y <= 1:
+			has_center_position = true
+			break
+	
+	assert_bool(has_center_position).append_failure_message("Should find center positions for trapezoid").is_true()
+
+## Test that collision detection uses appropriate epsilon thresholds
+func test_collision_epsilon_threshold():
+	# Create a small polygon that only barely touches tile edges
+	var static_body = auto_free(StaticBody2D.new())
+	add_child(static_body)
+	static_body.collision_layer = 1
+	
+	var collision_polygon = CollisionPolygon2D.new()
+	static_body.add_child(collision_polygon)
+	# Very thin line that barely touches tile boundaries
+	collision_polygon.polygon = PackedVector2Array([Vector2(0, 0), Vector2(0.1, 0), Vector2(0.1, 0.1), Vector2(0, 0.1)])
+	
+	var collision_objects: Array[Node2D] = [collision_polygon]
+	var collision_object_test_setups: Dictionary[Node2D, IndicatorCollisionTestSetup] = {}
+	collision_object_test_setups[collision_polygon] = null
+	
+	mapper.setup(indicator, collision_object_test_setups)
+	
+	# Test collision detection - should not detect minimal border touches
+	var result = mapper.get_collision_tile_positions_with_mask(collision_objects, 1)
+	
+	# With the new epsilon threshold (5% of tile area), this tiny overlap should be filtered out
+	assert_int(result.size()).append_failure_message("Should not detect minimal border touches with new epsilon").is_equal(0)
