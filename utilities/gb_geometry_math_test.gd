@@ -57,14 +57,26 @@ func test_does_polygon_overlap_tile_param(polygon: PackedVector2Array, tile_pos:
 	assert_bool(GBGeometryMath.does_polygon_overlap_tile(polygon, tile_pos, tile_size, tile_type, epsilon)).is_equal(expected)
 
 ## Parameterized test for intersection_polygon_area
-func test_intersection_polygon_area_param(points: PackedVector2Array, expected: float, test_parameters := [
-	[PackedVector2Array([Vector2(0,0), Vector2(4,0), Vector2(4,3)]), 6.0], # Right triangle, area = 0.5*4*3 = 6
-	[PackedVector2Array([Vector2(0,0), Vector2(4,0), Vector2(4,3), Vector2(0,3)]), 12.0], # Rectangle, area = 4*3 = 12
-	[PackedVector2Array([Vector2(0,0), Vector2(1,0), Vector2(0,1)]), 0.5], # Small triangle
-	[PackedVector2Array([Vector2(0,0), Vector2(1,0), Vector2(2,0)]), 0.0], # Degenerate (colinear)
-	[PackedVector2Array([Vector2(0,0), Vector2(0,0), Vector2(0,0)]), 0.0], # All points same
-	[PackedVector2Array([Vector2(0,0), Vector2(1,0)]), 0.0], # Less than 3 points
-	[PackedVector2Array([]), 0.0], # Empty
+# Note: For identical polygons, the intersection area is the polygon's area, not 0.0.
+# This test expects the true area for identical polygons and 0.0 for degenerate/no overlap cases.
+func test_intersection_polygon_area_param(poly_a: PackedVector2Array, poly_b: PackedVector2Array, expected: float, test_parameters := [
+	[PackedVector2Array([Vector2(0,0), Vector2(4,0), Vector2(4,3)]), PackedVector2Array([Vector2(0,0), Vector2(4,0), Vector2(4,3)]), 6.0], # Right triangle, area = 0.5*4*3 = 6
+	[PackedVector2Array([Vector2(0,0), Vector2(4,0), Vector2(4,3), Vector2(0,3)]), PackedVector2Array([Vector2(0,0), Vector2(4,0), Vector2(4,3), Vector2(0,3)]), 12.0], # Rectangle, area = 4*3 = 12
+	[PackedVector2Array([Vector2(0,0), Vector2(1,0), Vector2(0,1)]), PackedVector2Array([Vector2(0,0), Vector2(1,0), Vector2(0,1)]), 0.5], # Small triangle
+	[PackedVector2Array([Vector2(0,0), Vector2(1,0), Vector2(2,0)]), PackedVector2Array([Vector2(0,0), Vector2(1,0), Vector2(2,0)]), 0.0], # Degenerate (colinear)
+	[PackedVector2Array([Vector2(0,0), Vector2(0,0), Vector2(0,0)]), PackedVector2Array([Vector2(0,0), Vector2(0,0), Vector2(0,0)]), 0.0], # All points same
+	[PackedVector2Array([Vector2(0,0), Vector2(1,0)]), PackedVector2Array([Vector2(0,0), Vector2(1,0)]), 0.0], # Less than 3 points
+	[PackedVector2Array([]), PackedVector2Array([]), 0.0], # Empty
 ]):
-	var area = GBGeometryMath.intersection_polygon_area(points)
+	var area := GBGeometryMath.polygon_intersection_area(poly_a, poly_b)
+	assert_float(area).is_equal_approx(expected, 0.01)
+	
+## Parameterized test for polygon_intersection_area
+# Note: For overlapping polygons, the intersection area is the area of the overlap, not 0.0.
+# This test expects the true overlap area for partial overlaps and 0.0 for no overlap.
+func test_polygon_intersection_area_param(poly_a: PackedVector2Array, poly_b: PackedVector2Array, expected: float, test_parameters := [
+	[PackedVector2Array([Vector2(0,0), Vector2(2,0), Vector2(2,2), Vector2(0,2)]), PackedVector2Array([Vector2(1,1), Vector2(3,1), Vector2(3,3), Vector2(1,3)]), 1.0], # Partial overlap (rectangle inside rectangle)
+	[PackedVector2Array([Vector2(0,0), Vector2(2,0), Vector2(2,2), Vector2(0,2)]), PackedVector2Array([Vector2(3,3), Vector2(4,3), Vector2(4,4), Vector2(3,4)]), 0.0], # No overlap
+]):
+	var area := GBGeometryMath.polygon_intersection_area(poly_a, poly_b)
 	assert_float(area).is_equal_approx(expected, 0.01)
