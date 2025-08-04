@@ -51,7 +51,7 @@ func test_setup_indicators_generates_expected_indicators() -> void:
 	collision_shape.shape = CircleShape2D.new()
 	body.add_child(collision_shape)
 
-	var col_objects := GBGeometryUtils.get_all_collision_objects(test_object)
+	var col_objects := GBGeometryUtils.get_all_collision_shapes_by_owner(test_object)
 	assert_int(col_objects.size()).is_greater(0)
 
 	var rule := TileCheckRule.new()

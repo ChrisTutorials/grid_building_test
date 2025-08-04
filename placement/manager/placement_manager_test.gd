@@ -33,11 +33,20 @@ func _setup_placement_manager():
 	# Step 2: Create IndicatorManager, inject dependencies, and set it on PlacementManager.
 	placement_manager = auto_free(PlacementManager.new())
 	add_child(placement_manager)
-	var indicator_manager = auto_free(IndicatorManager.new())
-	add_child(indicator_manager)
-	placement_manager.indicator_manager = indicator_manager
+	
+	# Initialize PlacementManager with all required dependencies
+	var placement_context := PlacementContext.new()
+	auto_free(placement_context)
+	var indicator_template := load("uid://nhlp6ks003fp")
+	var targeting_state := _container.get_states().targeting
+	var logger := GBDoubleFactory.create_test_logger()
+	var rules: Array[PlacementRule] = []
+	var messages := GBMessages.new()
+	
+	placement_manager.initialize(placement_context, indicator_template, targeting_state, logger, rules, messages)
+	
 	global_snap_pos = map_layer.map_to_local(Vector2i(0,0))
-	col_checking_rules = RuleFilters.only_tile_check([CollisionsCheckRule.new()])
+	col_checking_rules = RuleFilters.only_tile_check([GBDoubleFactory.create_test_collisions_check_rule()])
 
 func after_test():
 	if is_instance_valid(placement_manager):

@@ -32,7 +32,7 @@ func before_test():
 	targeting_state = states.targeting
 	assert_array(targeting_state.validate()).is_empty()
 
-	placement_validator = PlacementValidator.new()
+	placement_validator = GBDoubleFactory.create_test_placement_validator(self)
 
 func test_no_col_valid_placement_both_pass_with_test_resources():
 	var test_node = auto_free(Node2D.new())

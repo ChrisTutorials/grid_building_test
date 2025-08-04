@@ -44,7 +44,7 @@ func before_test():
 	placement_manager.resolve_gb_dependencies(_container)
 	add_child(placement_manager)
 
-	system = ManipulationSystem.new()
+	system = GBDoubleFactory.create_test_manipulation_system(self)
 	system.resolve_gb_dependencies(_container)
 	add_child(system)
 	

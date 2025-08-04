@@ -126,3 +126,73 @@ static func create_test_node2d(test: GdUnitTestSuite) -> Node2D:
 	test.add_child(node)
 	test.auto_free(node)
 	return node
+
+## Creates a PlacementValidator with test dependencies
+static func create_test_placement_validator(_test: GdUnitTestSuite, rules: Array[PlacementRule] = []) -> PlacementValidator:
+	var messages := GBMessages.new()
+	var logger := create_test_logger()
+	var validator := PlacementValidator.new(rules, messages, logger)
+	return validator
+
+## Creates an IndicatorManager with test dependencies
+static func create_test_indicator_manager(test: GdUnitTestSuite, targeting_state: GridTargetingState = null) -> IndicatorManager:
+	var parent := create_test_node2d(test)
+	var template := load("uid://nhlp6ks003fp")
+	var state := targeting_state if targeting_state != null else create_double_targeting_state(test)
+	var logger := create_test_logger()
+	var manager := IndicatorManager.new(parent, state, template, logger)
+	return manager
+
+## Creates a BuildingSystem with test dependencies  
+static func create_test_building_system(test: GdUnitTestSuite) -> BuildingSystem:
+	var system := BuildingSystem.new()
+	test.auto_free(system)
+	test.add_child(system)
+	return system
+
+## Creates a ManipulationSystem with test dependencies
+static func create_test_manipulation_system(test: GdUnitTestSuite) -> ManipulationSystem:
+	var system := ManipulationSystem.new()
+	test.auto_free(system)
+	test.add_child(system)
+	return system
+
+## Creates a GBOwnerContext with test dependencies
+static func create_test_owner_context(test: GdUnitTestSuite) -> GBOwnerContext:
+	var context := GBOwnerContext.new()
+	var user := create_test_node2d(test)
+	context.user = user
+	return context
+
+## Creates an IndicatorCollisionTestSetup with test dependencies
+static func create_test_indicator_collision_setup(test: GdUnitTestSuite, collision_object: CollisionObject2D = null) -> IndicatorCollisionTestSetup:
+	var obj := collision_object if collision_object != null else create_test_static_body_with_rect_shape(test)
+	var shape_stretch := Vector2(16, 16)
+	var logger := create_test_logger()
+	return IndicatorCollisionTestSetup.new(obj, shape_stretch, logger)
+
+## Creates a NodeLocator with test dependencies
+static func create_test_node_locator(search_method: NodeLocator.SEARCH_METHOD = NodeLocator.SEARCH_METHOD.NODE_NAME, search_string: String = "test") -> NodeLocator:
+	return NodeLocator.new(search_method, search_string)
+
+## Creates a RuleCheckIndicator with test dependencies
+static func create_test_rule_check_indicator(test: GdUnitTestSuite, rules: Array[TileCheckRule] = []) -> RuleCheckIndicator:
+	var logger := create_test_logger()
+	var indicator := RuleCheckIndicator.new(rules, logger)
+	test.auto_free(indicator)
+	return indicator
+
+## Creates a ValidPlacementTileRule with test dependencies
+static func create_test_valid_placement_tile_rule(tile_data: Dictionary = {}) -> ValidPlacementTileRule:
+	return ValidPlacementTileRule.new(tile_data)
+
+## Creates a CollisionsCheckRule with no dependencies
+static func create_test_collisions_check_rule() -> CollisionsCheckRule:
+	return CollisionsCheckRule.new()
+
+## Creates a WithinTilemapBoundsRule with test dependencies
+static func create_test_within_tilemap_bounds_rule() -> WithinTilemapBoundsRule:
+	var rule := WithinTilemapBoundsRule.new()
+	var logger := create_test_logger()
+	rule.initialize(logger)
+	return rule

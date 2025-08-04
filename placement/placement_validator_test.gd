@@ -59,7 +59,7 @@ func before_test():
 		placer, preview_instance, targeting_state
 	)
 	
-	validator = PlacementValidator.new([], GBMessages.new(), GBDebugSettings.new(GBDebugSettings.DebugLevel.VERBOSE))
+	validator = GBDoubleFactory.create_test_placement_validator(self)
 	assert_object(validator).is_not_null()
 	
 func after_test():
