@@ -1,5 +1,4 @@
 # GdUnit generated TestSuite
-class_name PlacementValidatorTest
 extends GdUnitTestSuite
 @warning_ignore('unused_parameter')
 @warning_ignore('return_value_discarded')
@@ -59,7 +58,8 @@ func before_test():
 		placer, preview_instance, targeting_state
 	)
 	
-	validator = UnifiedTestFactory.create_test_placement_validator(self)
+	# Use static factory method with container instead of UnifiedTestFactory
+	validator = PlacementValidator.create_with_injection(_container)
 	assert_object(validator).is_not_null()
 	
 func after_test():

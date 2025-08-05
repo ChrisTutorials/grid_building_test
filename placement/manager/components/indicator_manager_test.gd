@@ -31,7 +31,15 @@ func _create_real_indicator() -> RuleCheckIndicator:
 	return instance
 
 func _initialize_targeting_state(p_targeting_state: GridTargetingState) -> void:
-	var map := UnifiedTestFactory.create_test_tile_map_layer(self)
+	# Create tile map layer directly
+	var map: TileMapLayer = auto_free(TileMapLayer.new())
+	map.tile_set = load("uid://d11t2vm1pby6y")
+	for x in range(-100, 100, 1):
+		for y in range(-100, 100, 1):
+			var cords = Vector2i(x, y)
+			map.set_cellv(cords, 0, Vector2i(0,0))
+	add_child(map)
+	
 	p_targeting_state.set_map_objects(
 		map, [map]
 	)

@@ -1,8 +1,9 @@
 # GdUnit generated TestSuite
-class_name TargetHighlighterTest
 extends GdUnitTestSuite
 @warning_ignore('unused_parameter')
 @warning_ignore('return_value_discarded')
+
+const GodotTestFactory = preload("res://test/grid_building_test/factories/godot_test_factory.gd")
 
 # TestSuite generated from
 
@@ -40,10 +41,16 @@ func before_test():
 	targeting_state.target = highlight_target	
 	#endregion
 	
-	var same_mani: Manipulatable = UnifiedTestFactory.create_test_manipulatable(self)
+	# Create manipulatables using factory
+	var same_mani: Manipulatable = GodotTestFactory.create_manipulatable(self, "ManipulatableRoot")
 	data_source_is_target = ManipulationData.new(auto_free(Node.new()), same_mani, same_mani, GBEnums.Action.BUILD)
-	var mani_dif_1: Manipulatable = UnifiedTestFactory.create_test_manipulatable(self)
-	var mani_dif_2: Manipulatable = UnifiedTestFactory.create_test_manipulatable(self)
+	
+	var mani_dif_1: Manipulatable = GodotTestFactory.create_manipulatable(self, "ManipulatableRoot1")
+	mani_dif_1.name = "Manipulatable1"
+	
+	var mani_dif_2: Manipulatable = GodotTestFactory.create_manipulatable(self, "ManipulatableRoot2")
+	mani_dif_2.name = "Manipulatable2"
+	
 	data_source_is_not_target = ManipulationData.new(auto_free(Node.new()), mani_dif_1, mani_dif_2, GBEnums.Action.BUILD)
 	
 func test_target_modulate_clears_on_target_null() -> void:

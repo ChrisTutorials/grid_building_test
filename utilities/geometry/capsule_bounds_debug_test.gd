@@ -1,4 +1,3 @@
-class_name CapsuleBoundsDebugTest
 extends GdUnitTestSuite
 
 ## Debug test to analyze the exact bounds being calculated for CapsuleShape2D

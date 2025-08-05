@@ -1,4 +1,3 @@
-class_name CollisionShapeOffsetTest
 extends GdUnitTestSuite
 
 ## Tests that collision detection correctly accounts for collision shape local offsets.

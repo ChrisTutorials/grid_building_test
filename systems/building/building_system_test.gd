@@ -1,8 +1,9 @@
 # GdUnit generated TestSuite
-class_name BuildingSystemTest
 extends GdUnitTestSuite
 @warning_ignore('unused_parameter')
 @warning_ignore('return_value_discarded')
+
+const GodotTestFactory = preload("res://test/grid_building_test/factories/godot_test_factory.gd")
 
 # TestSuite generated from
 
@@ -25,20 +26,13 @@ var default_preview_script : GDScript = load("uid://cufp4o5ctq6ak")
 
 func before_test():
 	
-	placer = auto_free(Node2D.new())
-	add_child(placer)
+	placer = GodotTestFactory.create_node2d(self)
 	
-	placed_parent = auto_free(Node2D.new())
-	add_child(placed_parent)
+	placed_parent = GodotTestFactory.create_node2d(self)
 	
+	grid_positioner = GodotTestFactory.create_node2d(self)
 	
-	grid_positioner = auto_free(Node2D.new())
-	add_child(grid_positioner)
-	
-	map_layer = auto_free(TileMapLayer.new())
-	add_child(map_layer)
-	tile_set = TileSet.new()
-	map_layer.tile_set = tile_set
+	map_layer = GodotTestFactory.create_tile_map_layer(self)
 	var states := _container.get_states()
 	targeting_state = auto_free(states.targeting)
 	targeting_state.positioner = grid_positioner

@@ -1,4 +1,3 @@
-class_name CollisionMapperPositionTest
 extends GdUnitTestSuite
 
 ## Tests that CollisionMapper calculates collision positions relative to the target position (positioner),

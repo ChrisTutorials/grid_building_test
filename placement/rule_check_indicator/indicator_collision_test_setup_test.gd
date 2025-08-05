@@ -1,5 +1,4 @@
 # GdUnit generated TestSuite
-class_name IndicatorCollisionTestSetupTest
 extends GdUnitTestSuite
 @warning_ignore('unused_parameter')
 @warning_ignore('return_value_discarded')
@@ -64,9 +63,15 @@ func create_test_setups(p_container : Node) -> Array[IndicatorCollisionTestSetup
 	var test_setups : Array[IndicatorCollisionTestSetup] = []
 	
 	if(p_container is CollisionObject2D):
-		test_setups.append(IndicatorCollisionTestSetup.new(p_container, Vector2(16,16), UnifiedTestFactory.create_test_logger()))
+		var debug_settings := GBDebugSettings.new()
+		debug_settings.level = GBDebugSettings.DebugLevel.VERBOSE
+		var logger := GBLogger.new(debug_settings)
+		test_setups.append(IndicatorCollisionTestSetup.new(p_container, Vector2(16,16), logger))
 	
 	for collision_object in p_container.find_children("", "CollisionObject2D"):
-		test_setups.append(IndicatorCollisionTestSetup.new(collision_object, Vector2(16,16), UnifiedTestFactory.create_test_logger()))
+		var debug_settings := GBDebugSettings.new()
+		debug_settings.level = GBDebugSettings.DebugLevel.VERBOSE
+		var logger := GBLogger.new(debug_settings)
+		test_setups.append(IndicatorCollisionTestSetup.new(collision_object, Vector2(16,16), logger))
 
 	return test_setups

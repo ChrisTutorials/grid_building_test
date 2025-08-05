@@ -1,4 +1,3 @@
-class_name PositionerAlignmentTest
 extends GdUnitTestSuite
 
 ## Tests that preview objects and indicators are aligned when positioned relative to the positioner

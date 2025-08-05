@@ -1,4 +1,3 @@
-class_name IndicatorPositioningTest
 extends GdUnitTestSuite
 
 ## Tests that RuleCheckIndicators are positioned correctly at tile centers in world space

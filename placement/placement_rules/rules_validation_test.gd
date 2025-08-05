@@ -32,7 +32,8 @@ func before_test():
 	targeting_state = states.targeting
 	assert_array(targeting_state.validate()).is_empty()
 
-	placement_validator = UnifiedTestFactory.create_test_placement_validator(self)
+	# Use static factory method with container instead of UnifiedTestFactory
+	placement_validator = PlacementValidator.create_with_injection(_container)
 
 func test_no_col_valid_placement_both_pass_with_test_resources():
 	var test_node = auto_free(Node2D.new())

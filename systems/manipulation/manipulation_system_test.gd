@@ -1,8 +1,9 @@
 # GdUnit generated TestSuite
-class_name ManipulationSystemTest
 extends GdUnitTestSuite
 @warning_ignore('unused_parameter')
 @warning_ignore('return_value_discarded')
+
+const GodotTestFactory = preload("res://test/grid_building_test/factories/godot_test_factory.gd")
 
 # TestSuite generated from
 
@@ -49,8 +50,7 @@ func before_test():
 	add_child(placement_manager)
 	
 	## Set targeting_state dependencies
-	positioner = auto_free(Node2D.new())
-	add_child(positioner)
+	positioner = GodotTestFactory.create_node2d(self)
 	targeting_state.positioner = positioner
 	
 	var validate_result = system.validate_dependencies()
@@ -232,9 +232,8 @@ func test_try_move(p_target_root : Variant, p_expected : GBEnums.Status, test_pa
 ## Creates a root with a [Manipulatable] attached
 ## and returns a reference to the [Manipulatable]
 func create_manipulatable_object(p_settings : ManipulatableSettings) -> Manipulatable:
-	var root = auto_free(Node2D.new()) 
+	var root = GodotTestFactory.create_node2d(self)
 	root.name = "ManipulatableRoot"
-	add_child(root)
 	var manipulatable = auto_free(Manipulatable.new())
 	manipulatable.name = "Manipulatable"
 	manipulatable.root = root

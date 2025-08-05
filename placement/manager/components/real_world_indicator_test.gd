@@ -1,4 +1,3 @@
-class_name RealWorldIndicatorTest
 extends GdUnitTestSuite
 
 ## Tests indicator positioning using the exact same setup as the real system
@@ -14,7 +13,16 @@ func before_test():
 	
 	# Set up targeting state with real tile map
 	targeting_state = container.get_states().targeting
-	var tile_map_layer = UnifiedTestFactory.create_test_tile_map_layer(self)
+	
+	# Create tile map layer directly
+	var tile_map_layer: TileMapLayer = auto_free(TileMapLayer.new())
+	tile_map_layer.tile_set = load("uid://d11t2vm1pby6y")
+	for x in range(-100, 100, 1):
+		for y in range(-100, 100, 1):
+			var cords = Vector2i(x, y)
+			tile_map_layer.set_cellv(cords, 0, Vector2i(0,0))
+	add_child(tile_map_layer)
+	
 	targeting_state.target_map = tile_map_layer
 	targeting_state.set_positioner(auto_free(Node2D.new()))
 	

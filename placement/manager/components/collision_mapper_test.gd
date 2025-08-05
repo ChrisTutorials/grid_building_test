@@ -1,6 +1,7 @@
 extends GdUnitTestSuite
 
 const TEST_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
+const GodotTestFactory = preload("res://test/grid_building_test/factories/godot_test_factory.gd")
 
 var mapper: CollisionMapper
 var targeting_state: GridTargetingState
@@ -85,12 +86,31 @@ func _create_area_2d_custom_size(layer: int, width: int, height: int) -> Area2D:
 	return area_2d
 
 func test_map_collision_positions_to_rules_returns_expected_map() -> void:
-	var test_object: Node2D = UnifiedTestFactory.create_test_object_with_circle_shape(self)
+	# Create test object with circle shape directly
+	var test_object: Node2D = auto_free(Node2D.new())
+	var body: StaticBody2D = auto_free(StaticBody2D.new())
+	test_object.add_child(body)
+	var collision_shape: CollisionShape2D = auto_free(CollisionShape2D.new())
+	collision_shape.shape = CircleShape2D.new()
+	body.add_child(collision_shape)
+	body.collision_layer = 1
+	add_child(test_object)
+	
 	var test_rule := TileCheckRule.new()
 	test_rule.apply_to_objects_mask = 1
 	var rules : Array[TileCheckRule] = [test_rule]
 	var test_targeting_state := GridTargetingState.new(GBOwnerContext.new())
-	test_targeting_state.target_map = UnifiedTestFactory.create_test_tile_map_layer(self)
+	
+	# Create tile map layer directly
+	var test_map_layer: TileMapLayer = auto_free(TileMapLayer.new())
+	test_map_layer.tile_set = load("uid://d11t2vm1pby6y")
+	for x in range(-100, 100, 1):
+		for y in range(-100, 100, 1):
+			var cords = Vector2i(x, y)
+			test_map_layer.set_cellv(cords, 0, Vector2i(0,0))
+	add_child(test_map_layer)
+	test_targeting_state.target_map = test_map_layer
+	
 	var test_collision_mapper := CollisionMapper.new(test_targeting_state, logger)
 	var _owner_col_shapes_map : Dictionary[Node2D, Array] = GBGeometryUtils.get_all_collision_shapes_by_owner(test_object)
 	var col_objects: Array[Node2D] = _owner_col_shapes_map.keys()
@@ -98,7 +118,13 @@ func test_map_collision_positions_to_rules_returns_expected_map() -> void:
 	var collision_object_test_setups: Dictionary[Node2D, IndicatorCollisionTestSetup] = {}
 	for col_obj in col_objects:
 		collision_object_test_setups[col_obj] = IndicatorCollisionTestSetup.new(col_obj as CollisionObject2D, Vector2.ZERO, logger)
-	var test_indicator: RuleCheckIndicator = UnifiedTestFactory.create_test_indicator_rect(self, 16)
+	
+	# Create test indicator directly  
+	var test_indicator: RuleCheckIndicator = auto_free(RuleCheckIndicator.new())
+	var rect_shape := RectangleShape2D.new()
+	rect_shape.extents = Vector2(16, 16)
+	test_indicator.shape = rect_shape
+	
 	test_collision_mapper.setup(test_indicator, collision_object_test_setups)
 	var position_rules_map : Dictionary[Vector2i, Array] = test_collision_mapper.map_collision_positions_to_rules(col_objects, rules)
 	assert_that(position_rules_map.size()).append_failure_message("Should map at least one tile position").is_greater(0)

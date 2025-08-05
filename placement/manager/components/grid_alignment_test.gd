@@ -1,4 +1,3 @@
-class_name GridAlignmentTest
 extends GdUnitTestSuite
 
 ## Tests grid alignment functionality to ensure positioner is always centered on tiles

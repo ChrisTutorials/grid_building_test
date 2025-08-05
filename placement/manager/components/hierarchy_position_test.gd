@@ -1,4 +1,3 @@
-class_name HierarchyPositionTest
 extends GdUnitTestSuite
 
 ## Test to understand the actual coordinate relationships in the hierarchy

@@ -1,6 +1,8 @@
 ## GdUnit TestSuite for GBGeometryUtils.get_all_collision_objects
 extends GdUnitTestSuite
 
+const GodotTestFactory = preload("res://test/grid_building_test/factories/godot_test_factory.gd")
+
 func test_get_all_collision_shapes_by_owner_for_scene():
 	var scene_uids := [
 		"uid://bqq7otaevtlqu", # offset_logo.tscn
@@ -57,9 +59,9 @@ func test_get_overlapped_tiles_for_rect_smaller_fit() -> void:
 
 @warning_ignore("unused_parameter")
 func test_get_shapes_from_owner_parameterized(p_node : Node2D, expected_shape_type: Variant, expected_count: int, test_parameters := [
-	[UnifiedTestFactory.create_test_static_body_with_rect_shape(self), RectangleShape2D, 1], # CollisionObject2D
-	[UnifiedTestFactory.create_test_collision_polygon(self), ConvexPolygonShape2D, 1], # CollisionPolygon2D
-	[UnifiedTestFactory.create_test_parent_with_body_and_polygon(self), null, 0], # Parent node (Node2D)
+	[create_test_static_body_with_rect_shape(), RectangleShape2D, 1], # CollisionObject2D
+	[create_test_collision_polygon(), ConvexPolygonShape2D, 1], # CollisionPolygon2D
+	[create_test_parent_with_body_and_polygon(), null, 0], # Parent node (Node2D)
 ]):
 	var shapes: Array[Shape2D] = GBGeometryUtils.get_shapes_from_owner(p_node)
 	assert_int(shapes.size()).is_equal(expected_count)
@@ -98,41 +100,30 @@ func test_get_shapes_from_owner_edge_param(node: Node2D, expected_count: int, te
 
 ## Helper function to create a basic Node2D for testing
 func create_test_node2d() -> Node2D:
-	var node: Node2D = auto_free(Node2D.new())
-	add_child(node)
-	return node
+	return GodotTestFactory.create_node2d(self)
 
 ## Helper function to create a StaticBody2D with rectangular collision shape
 func create_test_static_body_with_rect_shape() -> StaticBody2D:
-	var body: StaticBody2D = auto_free(StaticBody2D.new())
-	var shape: CollisionShape2D = auto_free(CollisionShape2D.new())
-	var rect: RectangleShape2D = RectangleShape2D.new()
-	rect.extents = Vector2(8, 8)
-	shape.shape = rect
-	add_child(body)
-	body.add_child(shape)
-	return body
+	return GodotTestFactory.create_static_body_with_rect_shape(self)
 
 ## Helper function to create a CollisionPolygon2D for testing
 func create_test_collision_polygon() -> CollisionPolygon2D:
-	var poly: CollisionPolygon2D = auto_free(CollisionPolygon2D.new())
-	poly.polygon = PackedVector2Array([Vector2(0,0), Vector2(16,0), Vector2(8,16)])
-	add_child(poly)
-	return poly
+	var triangle_points = PackedVector2Array([Vector2(0,0), Vector2(16,0), Vector2(8,16)])
+	return GodotTestFactory.create_collision_polygon(self, triangle_points)
+
+## Helper function to create a parent node with both body and polygon children
+func create_test_parent_with_body_and_polygon() -> Node2D:
+	return GodotTestFactory.create_parent_with_body_and_polygon(self)
 
 ## Test for get_all_collision_shapes_by_owner with nested children
 func test_get_all_collision_shapes_by_owner_nested():
-	var parent: Node2D = auto_free(Node2D.new())
-	add_child(parent)
-	var child1: StaticBody2D = auto_free(StaticBody2D.new())
-	var shape1: CollisionShape2D = auto_free(CollisionShape2D.new())
-	var rect1: RectangleShape2D = RectangleShape2D.new()
-	rect1.extents = Vector2(8,8)
-	shape1.shape = rect1
-	child1.add_child(shape1)
+	var parent: Node2D = GodotTestFactory.create_node2d(self)
+	var child1: StaticBody2D = GodotTestFactory.create_static_body_with_rect_shape(self)
+	var child2: CollisionPolygon2D = GodotTestFactory.create_collision_polygon(self)
+	# Move from test root to parent
+	child1.get_parent().remove_child(child1)
+	child2.get_parent().remove_child(child2)
 	parent.add_child(child1)
-	var child2: CollisionPolygon2D = auto_free(CollisionPolygon2D.new())
-	child2.polygon = PackedVector2Array([Vector2(0,0), Vector2(16,0), Vector2(8,16)])
 	parent.add_child(child2)
 	var result: Dictionary = GBGeometryUtils.get_all_collision_shapes_by_owner(parent)
 	assert_int(result.size()).is_equal(2)

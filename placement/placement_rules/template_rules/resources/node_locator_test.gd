@@ -1,5 +1,4 @@
 # GdUnit generated TestSuite
-class_name NodeLocatorTest
 extends GdUnitTestSuite
 @warning_ignore('unused_parameter')
 @warning_ignore('return_value_discarded')

@@ -1,9 +1,9 @@
 extends GdUnitTestSuite
 
+const TEST_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
+
 var rule : WithinTilemapBoundsRule
 var tile_map : TileMapLayer
-var tile_map_layer : TileMapLayer
-var params : RuleValidationParameters
 var targeting_state : GridTargetingState
 var rule_validation_params : RuleValidationParameters
 
@@ -16,7 +16,10 @@ func before_test():
 	targeting_state.target_map = tile_map
 	targeting_state.maps = [tile_map]
 
-	rule = UnifiedTestFactory.create_test_within_tilemap_bounds_rule()
+	# Create rule directly with container logger
+	rule = WithinTilemapBoundsRule.new()
+	var logger = TEST_CONTAINER.get_logger()
+	rule.initialize(logger)
 	var target : Node2D = auto_free(Node2D.new())
 	add_child(target)
 	rule_validation_params = RuleValidationParameters.new(self, target, targeting_state)

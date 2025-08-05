@@ -1,4 +1,3 @@
-class_name IndicatorActualPositioningTest
 extends GdUnitTestSuite
 
 var targeting_state: GridTargetingState
