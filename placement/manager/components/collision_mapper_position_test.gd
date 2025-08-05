@@ -53,12 +53,15 @@ func test_collision_polygon_uses_target_position():
 	print("Result keys: ", result.keys())
 	
 	# The collision should be detected at tiles around the positioner position (32, 32)
-	# With positioner at (32, 32) and shape spanning -8 to +8, it should affect tiles around (2, 2)
-	var expected_tiles = [Vector2i(1, 1), Vector2i(1, 2), Vector2i(2, 1), Vector2i(2, 2)]
+	# With positioner at (32, 32) = center tile (2, 2) and shape spanning -8 to +8,
+	# it should affect tiles (1,1), (1,2), (2,1), (2,2) in absolute coordinates
+	# But the function returns offsets from center, so: (-1,-1), (-1,0), (0,-1), (0,0)
+	var expected_offsets = [Vector2i(-1, -1), Vector2i(-1, 0), Vector2i(0, -1), Vector2i(0, 0)]
 	
-	# Verify that collision is detected at positioner position, not object's current position
-	assert_that(result.keys()).append_failure_message("Should detect collision at target position").contains_same(expected_tiles)
-	assert_that(result).append_failure_message("Should not detect collision at object's current position").not_contains_keys([Vector2i(6, 6)])  # 100/16 = 6
+	# Verify that collision is detected at positioner position (as offsets), not object's current position
+	assert_that(result.keys()).append_failure_message("Should detect collision at target position as offsets from center").contains_same(expected_offsets)
+	# Object is at (100, 100) = tile (6, 6), so offset from center (2, 2) would be (4, 4)
+	assert_that(result).append_failure_message("Should not detect collision at object's current position").not_contains_keys([Vector2i(4, 4)])
 
 ## Test that CollisionObject2D shapes use positioner position for collision detection
 func test_collision_object_uses_target_position():
@@ -84,22 +87,26 @@ func test_collision_object_uses_target_position():
 	# Get collision positions - should be relative to positioner (32, 32)
 	var result = collision_mapper._get_tile_offsets_for_collision_object(test_setup, tile_map_layer)
 	
-	# Should detect collision at positioner position, not object's current position
-	var expected_tile = Vector2i(2, 2)  # positioner at 32, 32 -> tile 2, 2
+	# Should detect collision at positioner position as offsets from center tile
+	# With positioner at (32, 32) = center tile (2, 2) and 16x16 shape centered at positioner,
+	# it should affect tiles (1,1), (1,2), (2,1), (2,2) in absolute coordinates
+	# But the function returns offsets from center, so: (-1,-1), (-1,0), (0,-1), (0,0)
+	var expected_offsets = [Vector2i(-1, -1), Vector2i(-1, 0), Vector2i(0, -1), Vector2i(0, 0)]
 	
 	print("CollisionObject2D result keys: ", result.keys())
 	
-	assert_that(result.keys()).append_failure_message("Should detect collision at target position").contains([expected_tile])
-	assert_that(result.keys()).append_failure_message("Should not detect collision at object's current position").not_contains([Vector2i(12, 12)])  # 200/16 = 12
+	assert_that(result.keys()).append_failure_message("Should detect collision at target position as offsets").contains_same(expected_offsets)
+	# Object is at (200, 200) = tile (12, 12), so offset from center (2, 2) would be (10, 10)
+	assert_that(result.keys()).append_failure_message("Should not detect collision at object's current position").not_contains([Vector2i(10, 10)])
 
 ## Test position calculation with different positioner positions
 func test_collision_position_follows_positioner_movement():
 	# Test different positioner positions
 	# Note: shape spans from -4 to +4, so it affects tiles based on overlap with 16x16 grid
 	var test_cases = [
-		[Vector2(0, 0), Vector2i(-1, -1)],    # At origin, shape from -4,-4 to 4,4 affects tile (-1,-1)
-		[Vector2(16, 16), Vector2i(0, 0)],    # At 16,16, shape from 12,12 to 20,20 affects tile (0,0)
-		[Vector2(48, 64), Vector2i(2, 3)]     # At 48,64, shape from 44,60 to 52,68 affects tile (2,3)
+		[Vector2(0, 0), Vector2i(-1, -1)],      # At origin, shape affects tiles around origin
+		[Vector2(16, 16), Vector2i(0, 0)],      # At 16,16, center tile (1,1), shape affects tiles around it  
+		[Vector2(48, 64), Vector2i(2, 3)]       # At 48,64, center tile (3,4), shape affects tiles around it
 	]
 	
 	for test_case in test_cases:
@@ -109,7 +116,7 @@ func test_collision_position_follows_positioner_movement():
 		# Move positioner to test position
 		positioner.global_position = positioner_pos
 		
-		# Create simple collision polygon
+		# Create NEW collision polygon for each test case
 		var collision_polygon: CollisionPolygon2D = auto_free(CollisionPolygon2D.new())
 		collision_polygon.polygon = PackedVector2Array([
 			Vector2(-4, -4), Vector2(4, -4), Vector2(4, 4), Vector2(-4, 4)
@@ -125,3 +132,34 @@ func test_collision_position_follows_positioner_movement():
 		
 		print("Positioner pos: %s, Expected: %s, Actual: %s" % [positioner_pos, expected_tile, result.keys()])
 		assert_that(result.keys()).append_failure_message("Should detect collision at expected tile for positioner position %s" % positioner_pos).contains([expected_tile])
+
+## Test that center tile calculation works correctly
+func test_center_tile_calculation():
+	# Given: Positioner at specific position with 16x16 tiles
+	positioner.global_position = Vector2(840, 680)
+	var expected_center_tile = Vector2i(52, 42)  # 840/16 = 52.5 -> 52, 680/16 = 42.5 -> 42
+
+	# When: Converting positioner position to tile coordinates
+	var actual_center_tile = tile_map_layer.local_to_map(positioner.global_position)
+
+	# Then: Should match expected tile coordinates
+	assert_that(actual_center_tile).is_equal(expected_center_tile)
+
+## Test basic collision detection using rect-based method
+func test_rect_based_collision_detection():
+	# Given: A capsule-like rectangular area
+	positioner.global_position = Vector2(840, 680)
+	var rect_size = Vector2(96, 128)  # Similar to capsule with radius=48, height=128
+
+	# When: Using the rect-based tile calculation method
+	var tile_positions = collision_mapper.get_rect_tile_positions(positioner.global_position, rect_size)
+
+	# Then: Should produce reasonable tile positions
+	assert_that(tile_positions.size()).is_greater(0).append_failure_message("Should detect at least one tile")
+
+	# All tile positions should be reasonable offsets from center
+	var center_tile = tile_map_layer.local_to_map(positioner.global_position)
+	for tile_pos in tile_positions:
+		var offset = tile_pos - center_tile
+		assert_that(abs(offset.x)).is_less_equal(6).append_failure_message("X offset too large: " + str(offset))
+		assert_that(abs(offset.y)).is_less_equal(8).append_failure_message("Y offset too large: " + str(offset))

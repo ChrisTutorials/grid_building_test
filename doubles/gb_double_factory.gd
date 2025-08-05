@@ -196,3 +196,14 @@ static func create_test_within_tilemap_bounds_rule() -> WithinTilemapBoundsRule:
 	var logger := create_test_logger()
 	rule.initialize(logger)
 	return rule
+
+## Creates a Manipulatable node with proper root hierarchy for testing
+static func create_test_manipulatable(test: GdUnitTestSuite) -> Manipulatable:
+	var root: Node2D = test.auto_free(Node2D.new())
+	test.add_child(root)
+	var manipulatable: Manipulatable = test.auto_free(Manipulatable.new())
+	manipulatable.root = root
+	root.add_child(manipulatable)
+	root.name = "FactoryManipulatableRoot"
+	manipulatable.name = "FactoryManipulatable"
+	return manipulatable

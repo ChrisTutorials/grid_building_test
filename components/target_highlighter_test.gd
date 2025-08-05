@@ -16,7 +16,6 @@ var highlight_target : Node2D
 
 var data_source_is_target : ManipulationData
 var data_source_is_not_target : ManipulationData
-var factory : TestingManipulatableFactory
 var composition_container : GBCompositionContainer
 
 func before_test():
@@ -41,11 +40,10 @@ func before_test():
 	targeting_state.target = highlight_target	
 	#endregion
 	
-	factory = auto_free(TestingManipulatableFactory.new())
-	var same_mani : Manipulatable = factory.create_manipulatable()
+	var same_mani: Manipulatable = GBDoubleFactory.create_test_manipulatable(self)
 	data_source_is_target = ManipulationData.new(auto_free(Node.new()), same_mani, same_mani, GBEnums.Action.BUILD)
-	var mani_dif_1 = factory.create_manipulatable()
-	var mani_dif_2 = factory.create_manipulatable()
+	var mani_dif_1: Manipulatable = GBDoubleFactory.create_test_manipulatable(self)
+	var mani_dif_2: Manipulatable = GBDoubleFactory.create_test_manipulatable(self)
 	data_source_is_not_target = ManipulationData.new(auto_free(Node.new()), mani_dif_1, mani_dif_2, GBEnums.Action.BUILD)
 	
 func test_target_modulate_clears_on_target_null() -> void:
