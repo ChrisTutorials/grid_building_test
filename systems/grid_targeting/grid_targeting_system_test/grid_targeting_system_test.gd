@@ -79,8 +79,8 @@ func test_get_max_tile_distance_tile_to_target(p_tile_location : Vector2i, p_exp
 	[Vector2i(50,50), false, null],
 	[Vector2i(20,20), true, vec_max_tile_distance]
 ]) -> void:
-	system.mode_state.mode = GBEnums.Mode.BUILD
-	assert_that(system.mode_state.mode).append_failure_message("Should be in build mode.").is_equal(GBEnums.Mode.BUILD)
+	system.mode_state.current = GBEnums.Mode.BUILD
+	assert_that(system.mode_state.current).append_failure_message("Should be in build mode.").is_equal(GBEnums.Mode.BUILD)
 	
 	var is_in_bounds = system.astar_grid.is_in_bounds(p_tile_location.x, p_tile_location.y)
 	assert_bool(is_in_bounds).is_equal(p_expected_in_bounds)

@@ -65,7 +65,7 @@ func before_test():
 	system.targeting_state.origin_state = user_state
 	
 	_placement_context = PlacementContext.new()
-	placement_manager = auto_free(PlacementManager.new(_placement_context, null, TestSceneLibrary.indicator, targeting_state))
+	placement_manager = UnifiedTestFactory.create_test_placement_manager(self)
 	grid_positioner.add_child(placement_manager)
 	system.placement_validator.indicator_manager = placement_manager
 	
@@ -119,7 +119,7 @@ func test_unhandled_input():
 	
 	system._unhandled_input(action_event)
 	
-	mode_state.mode = GBEnums.Mode.BUILD
+	mode_state.current = GBEnums.Mode.BUILD
 
 	action_event.action = system.mode_actions.off_mode
 	system._unhandled_input(action_event)

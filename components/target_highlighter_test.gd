@@ -64,7 +64,7 @@ func test__on_target_changed(p_mode : GBEnums.Mode, p_expected_invalid : Color, 
 	[GBEnums.Mode.MOVE, settings.move_invalid_color, settings.move_valid_color],
 	[GBEnums.Mode.DEMOLISH, settings.demolish_invalid_color, settings.demolish_valid_color]
 ]) -> void:
-	mode.mode = p_mode
+	mode.current = p_mode
 	
 	var target = auto_free(Node2D.new())
 	add_child(target)

@@ -39,8 +39,7 @@ func before_test():
 	targeting_state.origin_state = owner_context
 	
 	#placement_validator = PlacementValidator.new()
-	var placement_context := _container.get_placement_context()
-	var placement_manager := PlacementManager.new(placement_context, null, targeting_state, UnifiedTestFactory.create_test_logger())
+	var placement_manager := UnifiedTestFactory.create_test_placement_manager(self)
 	placement_manager.resolve_gb_dependencies(_container)
 	add_child(placement_manager)
 
