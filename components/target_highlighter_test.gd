@@ -118,12 +118,12 @@ func test_set_actionable_colors(p_mode : GBEnums.Mode, p_add_manipulatable_setti
 ]) -> void:
 	var canvas = auto_free(Node2D.new())
 	add_child(canvas)
-	highlighter.mode_state.mode = p_mode
+	highlighter.mode_state.current = p_mode
 	
 	if p_add_manipulatable_settings:
 		add_child_manipulatable_with_settings(canvas)
 	
-	assert_that(highlighter.mode_state.mode).is_equal(p_mode)
+	assert_that(highlighter.mode_state.current).is_equal(p_mode)
 	assert_that(canvas.modulate).is_equal(Color.WHITE)
 	var result = highlighter.set_actionable_colors(canvas)
 	assert_that(result).is_equal(p_expected)
@@ -148,3 +148,4 @@ func test_should_highlight(p_data : ManipulationData, p_new_target : CanvasItem,
 	[data_source_is_not_target, data_source_is_target.target.root, false]
 ]) -> void:
 	assert_bool(highlighter.should_highlight(p_data, p_new_target)).is_equal(p_expected)
+	p_new_target.free()

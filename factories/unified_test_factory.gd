@@ -329,7 +329,7 @@ static func create_test_tile_map_layer(test: GdUnitTestSuite) -> TileMapLayer:
 	for x in range(-100, 100, 1):
 		for y in range(-100, 100, 1):
 			var cords = Vector2i(x, y)
-			map_layer.set_cell(cords, 0, Vector2i(0,0))
+			map_layer.set_cellv(cords, 0, Vector2i(0,0))
 	test.add_child(map_layer)
 	test.auto_free(map_layer)
 	return map_layer
