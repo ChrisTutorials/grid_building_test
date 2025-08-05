@@ -1,17 +1,19 @@
 extends GdUnitTestSuite
 
+const TEST_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
+
 func test_generate_indicators_with_valid_map() -> void:
 	var position_rules_map := {
 		Vector2i(1, 2): [TileCheckRule.new()],
 		Vector2i(3, 4): [TileCheckRule.new(), TileCheckRule.new()]
 	}
 	var indicator_template := preload("uid://dhox8mb8kuaxa")
-	var logger := UnifiedTestFactory.create_test_logger()
+	var logger := GBLogger.create_with_injection(TEST_CONTAINER)
 	var parent_node: Node2D = auto_free(Node2D.new())
 	# Only add indicator if position is not null or not Vector2i.ZERO
-	var setup_child_func := func(indicator, pos, parent_node):
+	var setup_child_func := func(indicator, pos, parent):
 		if pos != null and pos != Vector2i.ZERO:
-			parent_node.add_child(auto_free(indicator))
+			parent.add_child(auto_free(indicator))
 
 	var indicators = IndicatorFactory.generate_indicators(
 		position_rules_map,

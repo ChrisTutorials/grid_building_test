@@ -88,13 +88,37 @@ func test_get_collision_object_shapes_multiple():
 ## Parameterized test for extract_shapes_from_node edge cases
 @warning_ignore("unused_parameter")
 func test_get_shapes_from_owner_edge_param(node: Node2D, expected_count: int, test_parameters := [
-	[UnifiedTestFactory.create_test_node2d(self), 0],
-	[UnifiedTestFactory.create_test_static_body_with_rect_shape(self), 1],
-	[UnifiedTestFactory.create_test_collision_polygon(self), 1],
+	[create_test_node2d(), 0],
+	[create_test_static_body_with_rect_shape(), 1],
+	[create_test_collision_polygon(), 1],
 ]):
 	var shapes: Array[Shape2D] = GBGeometryUtils.get_shapes_from_owner(node)
 	assert_int(shapes.size()).is_equal(expected_count)
 	node.free()
+
+## Helper function to create a basic Node2D for testing
+func create_test_node2d() -> Node2D:
+	var node: Node2D = auto_free(Node2D.new())
+	add_child(node)
+	return node
+
+## Helper function to create a StaticBody2D with rectangular collision shape
+func create_test_static_body_with_rect_shape() -> StaticBody2D:
+	var body: StaticBody2D = auto_free(StaticBody2D.new())
+	var shape: CollisionShape2D = auto_free(CollisionShape2D.new())
+	var rect: RectangleShape2D = RectangleShape2D.new()
+	rect.extents = Vector2(8, 8)
+	shape.shape = rect
+	add_child(body)
+	body.add_child(shape)
+	return body
+
+## Helper function to create a CollisionPolygon2D for testing
+func create_test_collision_polygon() -> CollisionPolygon2D:
+	var poly: CollisionPolygon2D = auto_free(CollisionPolygon2D.new())
+	poly.polygon = PackedVector2Array([Vector2(0,0), Vector2(16,0), Vector2(8,16)])
+	add_child(poly)
+	return poly
 
 ## Test for get_all_collision_shapes_by_owner with nested children
 func test_get_all_collision_shapes_by_owner_nested():

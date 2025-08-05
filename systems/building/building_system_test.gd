@@ -16,16 +16,14 @@ var map_layer : TileMapLayer
 var tile_set : TileSet
 var placer : Node2D
 var placed_parent : Node2D
-var actions : GBActions
 var _placement_context : PlacementContext
-var _container : GBCompositionContainer
+var _container : GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
 
 var placeable_instance_script : Script = load("uid://dvt7wrugafo5o")
 var placeable_2d_test : Placeable = load("uid://jgmywi04ib7c")
 var default_preview_script : GDScript = load("uid://cufp4o5ctq6ak")
 
 func before_test():
-	_container = GBCompositionContainer.new()
 	
 	placer = auto_free(Node2D.new())
 	add_child(placer)
@@ -48,9 +46,7 @@ func before_test():
 	targeting_state.maps = [map_layer]
 	
 	mode_state = ModeState.new()
-	system = UnifiedTestFactory.create_test_building_system(self)
-	actions = GBActions.new()
-	system.actions = actions
+	system = auto_free(BuildingSystem.create_with_injection(_container))
 	system.mode_state = mode_state
 	system.state = states.building
 	system.targeting_state = targeting_state
@@ -65,7 +61,8 @@ func before_test():
 	system.targeting_state.origin_state = user_state
 	
 	_placement_context = PlacementContext.new()
-	placement_manager = UnifiedTestFactory.create_test_placement_manager(self)
+	placement_manager = auto_free(PlacementManager.new())
+	placement_manager.resolve_gb_dependencies(_container)
 	grid_positioner.add_child(placement_manager)
 	system.placement_validator.indicator_manager = placement_manager
 	
@@ -113,8 +110,9 @@ func test_remove_scripts() -> void:
 	assert_object(manipulatable.get_script()).is_null()
 
 func test_unhandled_input():
+	var test_actions = _container.config.actions
 	var action_event = InputEventAction.new()
-	action_event.action = actions.confirm
+	action_event.action = test_actions.confirm
 	action_event.pressed = true
 	
 	system._unhandled_input(action_event)

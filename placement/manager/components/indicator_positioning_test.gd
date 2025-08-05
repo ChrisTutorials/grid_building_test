@@ -3,15 +3,20 @@ extends GdUnitTestSuite
 
 ## Tests that RuleCheckIndicators are positioned correctly at tile centers in world space
 
+const TEST_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
+
 var targeting_state: GridTargetingState
 var tile_map_layer: TileMapLayer
 var positioner: Node2D
 var logger: GBLogger
 
 func before_test():
-	logger = UnifiedTestFactory.create_test_logger()
+	logger = GBLogger.create_with_injection(TEST_CONTAINER)
 	targeting_state = auto_free(GridTargetingState.new(auto_free(GBOwnerContext.new())))
-	tile_map_layer = UnifiedTestFactory.create_test_tile_map_layer(self)
+	tile_map_layer = auto_free(TileMapLayer.new())
+	add_child(tile_map_layer)
+	tile_map_layer.tile_set = TileSet.new()
+	tile_map_layer.tile_set.tile_size = Vector2(16, 16)
 	targeting_state.target_map = tile_map_layer
 	
 	# Create positioner and set it to a specific target position

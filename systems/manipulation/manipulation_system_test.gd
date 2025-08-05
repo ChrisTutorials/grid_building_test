@@ -39,12 +39,11 @@ func before_test():
 	targeting_state.origin_state = owner_context
 	
 	#placement_validator = PlacementValidator.new()
-	var placement_manager := UnifiedTestFactory.create_test_placement_manager(self)
+	var placement_manager: PlacementManager = auto_free(PlacementManager.new())
 	placement_manager.resolve_gb_dependencies(_container)
 	add_child(placement_manager)
 
-	system = UnifiedTestFactory.create_test_manipulation_system(self)
-	system.resolve_gb_dependencies(_container)
+	system = auto_free(ManipulationSystem.create_with_injection(_container))
 	add_child(system)
 	
 	add_child(placement_manager)
