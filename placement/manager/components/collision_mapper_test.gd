@@ -12,15 +12,13 @@ var logger : GBLogger
 func before_test():
 	# Create targeting state directly
 	targeting_state = auto_free(GridTargetingState.new(GBOwnerContext.new()))
-	var positioner: Node2D = auto_free(Node2D.new())
+	var positioner: Node2D = GodotTestFactory.create_node2d(self)
 	targeting_state.positioner = positioner
-	var target_map: TileMapLayer = auto_free(TileMapLayer.new())
-	add_child(target_map)
-	target_map.tile_set = TileSet.new()
+	var target_map: TileMapLayer = GodotTestFactory.create_empty_tile_map_layer(self)
 	target_map.tile_set.tile_size = Vector2(16, 16)
 	targeting_state.target_map = target_map
-	var layer1: TileMapLayer = auto_free(TileMapLayer.new())
-	var layer2: TileMapLayer = auto_free(TileMapLayer.new())
+	var layer1: TileMapLayer = GodotTestFactory.create_empty_tile_map_layer(self)
+	var layer2: TileMapLayer = GodotTestFactory.create_empty_tile_map_layer(self)
 	targeting_state.maps = [layer1, layer2]
 	
 	logger = GBLogger.create_with_injection(TEST_CONTAINER)
@@ -31,9 +29,7 @@ func before_test():
 	indicator.shape = RectangleShape2D.new()
 	indicator.shape.size = Vector2(32, 32)  # Updated from extents to size
 
-	tile_map_layer = auto_free(TileMapLayer.new())
-	add_child(tile_map_layer)
-	tile_map_layer.tile_set = TileSet.new()
+	tile_map_layer = GodotTestFactory.create_empty_tile_map_layer(self)
 	targeting_state.target_map = tile_map_layer
 
 	assert(indicator.shape != null, "Indicator shape must not be null before tests")
@@ -86,28 +82,17 @@ func _create_area_2d_custom_size(layer: int, width: int, height: int) -> Area2D:
 	return area_2d
 
 func test_map_collision_positions_to_rules_returns_expected_map() -> void:
-	# Create test object with circle shape directly
-	var test_object: Node2D = auto_free(Node2D.new())
-	var body: StaticBody2D = auto_free(StaticBody2D.new())
-	test_object.add_child(body)
-	var collision_shape: CollisionShape2D = auto_free(CollisionShape2D.new())
-	collision_shape.shape = CircleShape2D.new()
-	body.add_child(collision_shape)
-	body.collision_layer = 1
-	add_child(test_object)
+	# Create test object with circle shape using factory
+	var test_object: Node2D = GodotTestFactory.create_object_with_circle_shape(self)
 	
 	var test_rule := TileCheckRule.new()
 	test_rule.apply_to_objects_mask = 1
 	var rules : Array[TileCheckRule] = [test_rule]
 	var test_targeting_state := GridTargetingState.new(GBOwnerContext.new())
 	
-	# Create tile map layer directly
-	var test_map_layer: TileMapLayer = auto_free(TileMapLayer.new())
+	# Create tile map layer with factory method
+	var test_map_layer: TileMapLayer = GodotTestFactory.create_tile_map_layer(self, 200)
 	test_map_layer.tile_set = load("uid://d11t2vm1pby6y")
-	for x in range(-100, 100, 1):
-		for y in range(-100, 100, 1):
-			var cords = Vector2i(x, y)
-			test_map_layer.set_cellv(cords, 0, Vector2i(0,0))
 	add_child(test_map_layer)
 	test_targeting_state.target_map = test_map_layer
 	

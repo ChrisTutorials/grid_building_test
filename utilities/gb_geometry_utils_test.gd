@@ -27,8 +27,7 @@ func test_get_all_collision_shapes_by_owner_for_scene():
 
 func test_get_overlapped_tiles_for_rect_exact_fit() -> void:
 	# Setup: 16x16 rectangle centered at (8,8) on a tilemap with 16x16 tiles
-	var tile_map : TileMapLayer = auto_free(TileMapLayer.new())
-	tile_map.tile_set = TileSet.new()
+	var tile_map: TileMapLayer = GodotTestFactory.create_empty_tile_map_layer(self)
 	tile_map.tile_set.tile_size = Vector2(16, 16)
 
 	var rect_center := Vector2(8, 8)
@@ -41,8 +40,7 @@ func test_get_overlapped_tiles_for_rect_exact_fit() -> void:
 
 func test_get_overlapped_tiles_for_rect_smaller_fit() -> void:
 	# Setup: 15x15 rectangle centered at (8,8) on a tilemap with 16x16 tiles
-	var tile_map : TileMapLayer= auto_free(TileMapLayer.new())
-	tile_map.tile_set = TileSet.new()
+	var tile_map: TileMapLayer = GodotTestFactory.create_empty_tile_map_layer(self)
 	tile_map.tile_set.tile_size = Vector2(16, 16)
 
 	var rect_center := Vector2(8, 8) # Offset to center of a tile
@@ -57,63 +55,57 @@ func test_get_overlapped_tiles_for_rect_smaller_fit() -> void:
 
 # Parameterized test for extract_shapes_from_node
 
+## Parameterized test for get_shapes_from_owner with different node types
 @warning_ignore("unused_parameter")
 func test_get_shapes_from_owner_parameterized(p_node : Node2D, expected_shape_type: Variant, expected_count: int, test_parameters := [
-	[create_test_static_body_with_rect_shape(), RectangleShape2D, 1], # CollisionObject2D
-	[create_test_collision_polygon(), ConvexPolygonShape2D, 1], # CollisionPolygon2D
-	[create_test_parent_with_body_and_polygon(), null, 0], # Parent node (Node2D)
+	# These functions are called at runtime, not during parameter definition
+	[null, RectangleShape2D, 1], # Will be replaced with StaticBody2D in test
+	[null, ConvexPolygonShape2D, 1], # Will be replaced with CollisionPolygon2D in test
+	[null, null, 0], # Will be replaced with parent node in test
 ]):
-	var shapes: Array[Shape2D] = GBGeometryUtils.get_shapes_from_owner(p_node)
+	# Create the actual test objects here since parameters can't call methods
+	var actual_node: Node2D
+	if expected_count == 1 and expected_shape_type == RectangleShape2D:
+		actual_node = GodotTestFactory.create_static_body_with_rect_shape(self)
+	elif expected_count == 1 and expected_shape_type == ConvexPolygonShape2D:
+		actual_node = GodotTestFactory.create_collision_polygon(self)
+	else:
+		actual_node = GodotTestFactory.create_parent_with_body_and_polygon(self)
+	
+	var shapes: Array[Shape2D] = GBGeometryUtils.get_shapes_from_owner(actual_node)
 	assert_int(shapes.size()).is_equal(expected_count)
 	if expected_shape_type != null and shapes.size() > 0:
 		assert_object(shapes[0]).is_instanceof(expected_shape_type)
 
 ## Test for get_collision_object_shapes with multiple shapes
 func test_get_collision_object_shapes_multiple():
-	var body: StaticBody2D = auto_free(StaticBody2D.new())
-	add_child(body)
-	var shape1: CollisionShape2D = auto_free(CollisionShape2D.new())
-	var rect1: RectangleShape2D = RectangleShape2D.new()
-	rect1.extents = Vector2(4,4)
-	shape1.shape = rect1
-	body.add_child(shape1)
+	var body: StaticBody2D = GodotTestFactory.create_static_body_with_rect_shape(self, Vector2(4, 4))
+	# Add second collision shape manually since factory only creates one
 	var shape2: CollisionShape2D = auto_free(CollisionShape2D.new())
-	var rect2: RectangleShape2D = RectangleShape2D.new()
-	rect2.extents = Vector2(8,8)
+	var rect2: RectangleShape2D = GodotTestFactory.create_rectangle_shape(Vector2(8, 8))
 	shape2.shape = rect2
 	body.add_child(shape2)
+	
 	var shapes: Array[Shape2D] = GBGeometryUtils.get_collision_object_shapes(body)
 	assert_int(shapes.size()).is_equal(2)
 	assert_object(shapes[0]).is_instanceof(RectangleShape2D)
 	assert_object(shapes[1]).is_instanceof(RectangleShape2D)
 
-## Parameterized test for extract_shapes_from_node edge cases
+## Parameterized test for get_shapes_from_owner edge cases
 @warning_ignore("unused_parameter")
-func test_get_shapes_from_owner_edge_param(node: Node2D, expected_count: int, test_parameters := [
-	[create_test_node2d(), 0],
-	[create_test_static_body_with_rect_shape(), 1],
-	[create_test_collision_polygon(), 1],
+func test_get_shapes_from_owner_edge_param(node_type: int, expected_count: int, test_parameters := [
+	[0, 0], # Node2D
+	[1, 1], # StaticBody2D with rect shape
+	[2, 1], # CollisionPolygon2D
 ]):
-	var shapes: Array[Shape2D] = GBGeometryUtils.get_shapes_from_owner(node)
+	var test_node: Node2D
+	match node_type:
+		0: test_node = GodotTestFactory.create_node2d(self)
+		1: test_node = GodotTestFactory.create_static_body_with_rect_shape(self)
+		2: test_node = GodotTestFactory.create_collision_polygon(self)
+	
+	var shapes: Array[Shape2D] = GBGeometryUtils.get_shapes_from_owner(test_node)
 	assert_int(shapes.size()).is_equal(expected_count)
-	node.free()
-
-## Helper function to create a basic Node2D for testing
-func create_test_node2d() -> Node2D:
-	return GodotTestFactory.create_node2d(self)
-
-## Helper function to create a StaticBody2D with rectangular collision shape
-func create_test_static_body_with_rect_shape() -> StaticBody2D:
-	return GodotTestFactory.create_static_body_with_rect_shape(self)
-
-## Helper function to create a CollisionPolygon2D for testing
-func create_test_collision_polygon() -> CollisionPolygon2D:
-	var triangle_points = PackedVector2Array([Vector2(0,0), Vector2(16,0), Vector2(8,16)])
-	return GodotTestFactory.create_collision_polygon(self, triangle_points)
-
-## Helper function to create a parent node with both body and polygon children
-func create_test_parent_with_body_and_polygon() -> Node2D:
-	return GodotTestFactory.create_parent_with_body_and_polygon(self)
 
 ## Test for get_all_collision_shapes_by_owner with nested children
 func test_get_all_collision_shapes_by_owner_nested():
@@ -142,8 +134,7 @@ func test_get_overlapped_tiles_for_polygon_param(polygon: PackedVector2Array, ti
 ## Diamond polygon, isometric tile size 16 (actual output: [Vector2i(0,0), Vector2i(1,0), Vector2i(0,1), Vector2i(1,1)])
  [PackedVector2Array([Vector2(8,-8), Vector2(24,8), Vector2(8,24), Vector2(-8,8)]), Vector2(16,16), GBGeometryUtils.TileType.ISOMETRIC, [Vector2i(0,0), Vector2i(1,0), Vector2i(0,1), Vector2i(1,1)]],
 ]):
-	var tile_map: TileMapLayer = auto_free(TileMapLayer.new())
-	tile_map.tile_set = TileSet.new()
+	var tile_map: TileMapLayer = GodotTestFactory.create_empty_tile_map_layer(self)
 	tile_map.tile_set.tile_size = tile_size
 	var result: Array[Vector2i] = GBGeometryUtils.get_overlapped_tiles_for_polygon(polygon, tile_map, tile_type)
 	assert_int(result.size()).is_equal(expected.size())
@@ -162,9 +153,7 @@ func test_is_tile_covered_by_collision_shape_param(tile_pos: Vector2, tile_size:
 ]):
 	var shape: CollisionShape2D = auto_free(CollisionShape2D.new())
 	if shape_type == 0:
-		var rect := RectangleShape2D.new()
-		rect.extents = shape_extents
-		shape.shape = rect
+		shape.shape = GodotTestFactory.create_rectangle_shape(shape_extents)
 	shape.global_position = shape_pos
 	var result := GBGeometryUtils.is_tile_covered_by_collision_shape(tile_pos, tile_size, shape, tile_type)
 	assert_bool(result).is_equal(expected)
@@ -179,8 +168,7 @@ func test_is_tile_covered_by_collision_polygon_param(tile_pos: Vector2, tile_siz
 	# Tile at (0,0), polygon overlaps (true overlap)
 	[Vector2(0,0), Vector2(16,16), PackedVector2Array([Vector2(4,4), Vector2(20,4), Vector2(20,20), Vector2(4,20)]), GBGeometryUtils.TileType.SQUARE, true],
 ]):
-	var poly: CollisionPolygon2D = auto_free(CollisionPolygon2D.new())
-	poly.polygon = polygon
+	var poly: CollisionPolygon2D = GodotTestFactory.create_collision_polygon(self, polygon)
 	var result := GBGeometryUtils.is_tile_covered_by_collision_polygon(tile_pos, tile_size, poly, tile_type)
 	assert_bool(result).is_equal(expected)
 
@@ -192,8 +180,7 @@ func test_get_overlapped_tiles_for_polygon_single_point_param(polygon: PackedVec
  # Diamond polygon vertex at (8,16), isometric tile at (0,0) (touches at one point, actual: [])
  [PackedVector2Array([Vector2(8,16), Vector2(24,8), Vector2(8,-8), Vector2(-8,8)]), Vector2(16,16), GBGeometryUtils.TileType.ISOMETRIC, []],
 ]):
-	var tile_map: TileMapLayer = auto_free(TileMapLayer.new())
-	tile_map.tile_set = TileSet.new()
+	var tile_map: TileMapLayer = GodotTestFactory.create_empty_tile_map_layer(self)
 	tile_map.tile_set.tile_size = tile_size
 	var result: Array[Vector2i] = GBGeometryUtils.get_overlapped_tiles_for_polygon(polygon, tile_map, tile_type)
 	assert_int(result.size()).is_equal(expected.size())
@@ -218,8 +205,7 @@ func test_get_overlapped_tiles_for_polygon_isometric_cases_param(polygon: Packed
    [PackedVector2Array([Vector2(32,24), Vector2(40,32), Vector2(32,40), Vector2(24,32)]), Vector2(16,16), GBGeometryUtils.TileType.ISOMETRIC, []],
 ]):
 	print("[DEBUG] Testing polygon: ", polygon, " tile_size: ", tile_size, " tile_type: ", tile_type, " expected: ", expected)
-	var tile_map: TileMapLayer = auto_free(TileMapLayer.new())
-	tile_map.tile_set = TileSet.new()
+	var tile_map: TileMapLayer = GodotTestFactory.create_empty_tile_map_layer(self)
 	tile_map.tile_set.tile_size = tile_size
 	# Print tile polygon for (0,0) for the first test case
 	if expected == [Vector2i(0,0)]:
