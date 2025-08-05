@@ -64,9 +64,9 @@ func create_test_setups(p_container : Node) -> Array[IndicatorCollisionTestSetup
 	var test_setups : Array[IndicatorCollisionTestSetup] = []
 	
 	if(p_container is CollisionObject2D):
-		test_setups.append(IndicatorCollisionTestSetup.new(p_container, Vector2(16,16), GBDoubleFactory.create_test_logger()))
+		test_setups.append(IndicatorCollisionTestSetup.new(p_container, Vector2(16,16), UnifiedTestFactory.create_test_logger()))
 	
 	for collision_object in p_container.find_children("", "CollisionObject2D"):
-		test_setups.append(IndicatorCollisionTestSetup.new(collision_object, Vector2(16,16), GBDoubleFactory.create_test_logger()))
+		test_setups.append(IndicatorCollisionTestSetup.new(collision_object, Vector2(16,16), UnifiedTestFactory.create_test_logger()))
 
 	return test_setups

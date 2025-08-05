@@ -12,9 +12,9 @@ var positioner: Node2D
 var logger: GBLogger
 
 func before_test():
-	logger = GBDoubleFactory.create_test_logger()
+	logger = UnifiedTestFactory.create_test_logger()
 	targeting_state = auto_free(GridTargetingState.new(auto_free(GBOwnerContext.new())))
-	tile_map_layer = GBDoubleFactory.create_test_tile_map_layer(self)
+	tile_map_layer = UnifiedTestFactory.create_test_tile_map_layer(self)
 	targeting_state.target_map = tile_map_layer
 	
 	# Create positioner and set it to a specific target position

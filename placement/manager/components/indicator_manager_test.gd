@@ -14,7 +14,7 @@ func before_test():
 
 	# Create dependencies manually
 	targeting_state = GridTargetingState.new(GBOwnerContext.new())
-	logger = GBDoubleFactory.create_test_logger()
+	logger = UnifiedTestFactory.create_test_logger()
 	indicator_manager = IndicatorManager.new(indicator_parent, targeting_state, indicator_template, logger)
 
 	_initialize_targeting_state(targeting_state)
@@ -32,7 +32,7 @@ func _create_real_indicator() -> RuleCheckIndicator:
 	return instance
 
 func _initialize_targeting_state(p_targeting_state: GridTargetingState) -> void:
-	var map := GBDoubleFactory.create_test_tile_map_layer(self)
+	var map := UnifiedTestFactory.create_test_tile_map_layer(self)
 	p_targeting_state.set_map_objects(
 		map, [map]
 	)

@@ -16,7 +16,7 @@ func before_test():
 	targeting_state.target_map = tile_map
 	targeting_state.maps = [tile_map]
 
-	rule = GBDoubleFactory.create_test_within_tilemap_bounds_rule()
+	rule = UnifiedTestFactory.create_test_within_tilemap_bounds_rule()
 	var target : Node2D = auto_free(Node2D.new())
 	add_child(target)
 	rule_validation_params = RuleValidationParameters.new(self, target, targeting_state)

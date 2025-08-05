@@ -12,7 +12,7 @@ func before_test():
 	var owner_context = auto_free(GBOwnerContext.new())
 	targeting_state = GridTargetingState.new(owner_context)
 	
-	tile_map_layer = GBDoubleFactory.create_test_tile_map_layer(self)
+	tile_map_layer = UnifiedTestFactory.create_test_tile_map_layer(self)
 	targeting_state.target_map = tile_map_layer
 	
 	positioner = auto_free(Node2D.new())
@@ -49,7 +49,7 @@ func test_positioner_preview_indicator_alignment():
 	# Test indicator positioning using current logic
 	var indicator = auto_free(RuleCheckIndicator.new())
 	var indicator_template = load("res://test/grid_building_test/scenes/indicators/test_indicator.tscn")
-	var indicator_manager = IndicatorManager.new(positioner, targeting_state, indicator_template, GBDoubleFactory.create_test_logger())
+	var indicator_manager = IndicatorManager.new(positioner, targeting_state, indicator_template, UnifiedTestFactory.create_test_logger())
 	
 	# Position indicator using the same logic as the real system
 	indicator_manager.setup_indicator_as_child(indicator, target_tile, positioner)

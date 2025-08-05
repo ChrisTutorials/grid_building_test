@@ -40,11 +40,11 @@ func before_test():
 	
 	#placement_validator = PlacementValidator.new()
 	var placement_context := _container.get_placement_context()
-	var placement_manager := PlacementManager.new(placement_context, null, targeting_state, GBDoubleFactory.create_test_logger())
+	var placement_manager := PlacementManager.new(placement_context, null, targeting_state, UnifiedTestFactory.create_test_logger())
 	placement_manager.resolve_gb_dependencies(_container)
 	add_child(placement_manager)
 
-	system = GBDoubleFactory.create_test_manipulation_system(self)
+	system = UnifiedTestFactory.create_test_manipulation_system(self)
 	system.resolve_gb_dependencies(_container)
 	add_child(system)
 	

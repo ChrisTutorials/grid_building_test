@@ -40,10 +40,10 @@ func before_test():
 	targeting_state.target = highlight_target	
 	#endregion
 	
-	var same_mani: Manipulatable = GBDoubleFactory.create_test_manipulatable(self)
+	var same_mani: Manipulatable = UnifiedTestFactory.create_test_manipulatable(self)
 	data_source_is_target = ManipulationData.new(auto_free(Node.new()), same_mani, same_mani, GBEnums.Action.BUILD)
-	var mani_dif_1: Manipulatable = GBDoubleFactory.create_test_manipulatable(self)
-	var mani_dif_2: Manipulatable = GBDoubleFactory.create_test_manipulatable(self)
+	var mani_dif_1: Manipulatable = UnifiedTestFactory.create_test_manipulatable(self)
+	var mani_dif_2: Manipulatable = UnifiedTestFactory.create_test_manipulatable(self)
 	data_source_is_not_target = ManipulationData.new(auto_free(Node.new()), mani_dif_1, mani_dif_2, GBEnums.Action.BUILD)
 	
 func test_target_modulate_clears_on_target_null() -> void:

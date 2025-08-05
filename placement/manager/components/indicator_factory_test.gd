@@ -6,7 +6,7 @@ func test_generate_indicators_with_valid_map() -> void:
 		Vector2i(3, 4): [TileCheckRule.new(), TileCheckRule.new()]
 	}
 	var indicator_template := preload("uid://dhox8mb8kuaxa")
-	var logger := GBDoubleFactory.create_test_logger()
+	var logger := UnifiedTestFactory.create_test_logger()
 	var parent_node: Node2D = auto_free(Node2D.new())
 	# Only add indicator if position is not null or not Vector2i.ZERO
 	var setup_child_func := func(indicator, pos, parent_node):

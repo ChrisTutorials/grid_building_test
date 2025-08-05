@@ -7,7 +7,7 @@ var indicator: RuleCheckIndicator
 var logger : GBLogger
 
 func before_test():
-	logger = GBDoubleFactory.create_test_logger()
+	logger = UnifiedTestFactory.create_test_logger()
 	targeting_state = GridTargetingState.new(GBOwnerContext.new())
 	mapper = CollisionMapper.new(targeting_state, logger)
 	indicator = auto_free(RuleCheckIndicator.new())
@@ -70,12 +70,12 @@ func _create_area_2d_custom_size(layer: int, width: int, height: int) -> Area2D:
 	return area_2d
 
 func test_map_collision_positions_to_rules_returns_expected_map() -> void:
-	var test_object: Node2D = GBDoubleFactory.create_test_object_with_circle_shape(self)
+	var test_object: Node2D = UnifiedTestFactory.create_test_object_with_circle_shape(self)
 	var test_rule := TileCheckRule.new()
 	test_rule.apply_to_objects_mask = 1
 	var rules : Array[TileCheckRule] = [test_rule]
 	var test_targeting_state := GridTargetingState.new(GBOwnerContext.new())
-	test_targeting_state.target_map = GBDoubleFactory.create_test_tile_map_layer(self)
+	test_targeting_state.target_map = UnifiedTestFactory.create_test_tile_map_layer(self)
 	var test_collision_mapper := CollisionMapper.new(test_targeting_state, logger)
 	var _owner_col_shapes_map : Dictionary[Node2D, Array] = GBGeometryUtils.get_all_collision_shapes_by_owner(test_object)
 	var col_objects: Array[Node2D] = _owner_col_shapes_map.keys()
@@ -83,7 +83,7 @@ func test_map_collision_positions_to_rules_returns_expected_map() -> void:
 	var collision_object_test_setups: Dictionary[Node2D, IndicatorCollisionTestSetup] = {}
 	for col_obj in col_objects:
 		collision_object_test_setups[col_obj] = IndicatorCollisionTestSetup.new(col_obj as CollisionObject2D, Vector2.ZERO, logger)
-	var test_indicator: RuleCheckIndicator = GBDoubleFactory.create_test_indicator_rect(self, 16)
+	var test_indicator: RuleCheckIndicator = UnifiedTestFactory.create_test_indicator_rect(self, 16)
 	test_collision_mapper.setup(test_indicator, collision_object_test_setups)
 	var position_rules_map : Dictionary[Vector2i, Array] = test_collision_mapper.map_collision_positions_to_rules(col_objects, rules)
 	assert_that(position_rules_map.size()).append_failure_message("Should map at least one tile position").is_greater(0)

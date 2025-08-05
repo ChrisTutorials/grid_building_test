@@ -20,8 +20,8 @@ func before_test():
 func _setup_targeting_state():
 	# Step 1: Set up the targeting state with its runtime dependencies (map objects and positioner).
 	# This must be done first so that PlacementManager receives a fully initialized targeting state.
-	_injector = GBDoubleFactory.create_test_injector(self, _container)
-	map_layer = GBDoubleFactory.create_test_tile_map_layer(self)
+	_injector = UnifiedTestFactory.create_test_injector(self, _container)
+	map_layer = UnifiedTestFactory.create_test_tile_map_layer(self)
 	var targeting_state = _container.get_states().targeting
 	var map_layers : Array[TileMapLayer] = [map_layer]
 	targeting_state.set_map_objects(map_layer, map_layers)
@@ -39,14 +39,14 @@ func _setup_placement_manager():
 	auto_free(placement_context)
 	var indicator_template := load("uid://nhlp6ks003fp")
 	var targeting_state := _container.get_states().targeting
-	var logger := GBDoubleFactory.create_test_logger()
+	var logger := UnifiedTestFactory.create_test_logger()
 	var rules: Array[PlacementRule] = []
 	var messages := GBMessages.new()
 	
 	placement_manager.initialize(placement_context, indicator_template, targeting_state, logger, rules, messages)
 	
 	global_snap_pos = map_layer.map_to_local(Vector2i(0,0))
-	col_checking_rules = RuleFilters.only_tile_check([GBDoubleFactory.create_test_collisions_check_rule()])
+	col_checking_rules = RuleFilters.only_tile_check([UnifiedTestFactory.create_test_collisions_check_rule()])
 
 func after_test():
 	if is_instance_valid(placement_manager):

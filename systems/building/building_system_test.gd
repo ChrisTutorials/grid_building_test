@@ -48,7 +48,7 @@ func before_test():
 	targeting_state.maps = [map_layer]
 	
 	mode_state = ModeState.new()
-	system = GBDoubleFactory.create_test_building_system(self)
+	system = UnifiedTestFactory.create_test_building_system(self)
 	actions = GBActions.new()
 	system.actions = actions
 	system.mode_state = mode_state

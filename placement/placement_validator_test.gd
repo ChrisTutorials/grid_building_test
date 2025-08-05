@@ -59,7 +59,7 @@ func before_test():
 		placer, preview_instance, targeting_state
 	)
 	
-	validator = GBDoubleFactory.create_test_placement_validator(self)
+	validator = UnifiedTestFactory.create_test_placement_validator(self)
 	assert_object(validator).is_not_null()
 	
 func after_test():

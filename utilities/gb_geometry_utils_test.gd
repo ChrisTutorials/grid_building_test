@@ -57,9 +57,9 @@ func test_get_overlapped_tiles_for_rect_smaller_fit() -> void:
 
 @warning_ignore("unused_parameter")
 func test_get_shapes_from_owner_parameterized(p_node : Node2D, expected_shape_type: Variant, expected_count: int, test_parameters := [
-	[GBDoubleFactory.create_test_static_body_with_rect_shape(self), RectangleShape2D, 1], # CollisionObject2D
-	[GBDoubleFactory.create_test_collision_polygon(self), ConvexPolygonShape2D, 1], # CollisionPolygon2D
-	[GBDoubleFactory.create_test_parent_with_body_and_polygon(self), null, 0], # Parent node (Node2D)
+	[UnifiedTestFactory.create_test_static_body_with_rect_shape(self), RectangleShape2D, 1], # CollisionObject2D
+	[UnifiedTestFactory.create_test_collision_polygon(self), ConvexPolygonShape2D, 1], # CollisionPolygon2D
+	[UnifiedTestFactory.create_test_parent_with_body_and_polygon(self), null, 0], # Parent node (Node2D)
 ]):
 	var shapes: Array[Shape2D] = GBGeometryUtils.get_shapes_from_owner(p_node)
 	assert_int(shapes.size()).is_equal(expected_count)
@@ -88,9 +88,9 @@ func test_get_collision_object_shapes_multiple():
 ## Parameterized test for extract_shapes_from_node edge cases
 @warning_ignore("unused_parameter")
 func test_get_shapes_from_owner_edge_param(node: Node2D, expected_count: int, test_parameters := [
-	[GBDoubleFactory.create_test_node2d(self), 0],
-	[GBDoubleFactory.create_test_static_body_with_rect_shape(self), 1],
-	[GBDoubleFactory.create_test_collision_polygon(self), 1],
+	[UnifiedTestFactory.create_test_node2d(self), 0],
+	[UnifiedTestFactory.create_test_static_body_with_rect_shape(self), 1],
+	[UnifiedTestFactory.create_test_collision_polygon(self), 1],
 ]):
 	var shapes: Array[Shape2D] = GBGeometryUtils.get_shapes_from_owner(node)
 	assert_int(shapes.size()).is_equal(expected_count)

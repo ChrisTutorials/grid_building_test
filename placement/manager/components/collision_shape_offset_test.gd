@@ -12,7 +12,7 @@ var positioner: Node2D
 var logger: GBLogger
 
 func before_test():
-	logger = GBDoubleFactory.create_test_logger()
+	logger = UnifiedTestFactory.create_test_logger()
 	targeting_state = GridTargetingState.new(GBOwnerContext.new())
 	collision_mapper = CollisionMapper.new(targeting_state, logger)
 	

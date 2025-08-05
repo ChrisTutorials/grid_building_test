@@ -14,7 +14,7 @@ func before_test():
 	
 	# Set up targeting state with real tile map
 	targeting_state = container.get_states().targeting
-	var tile_map_layer = GBDoubleFactory.create_test_tile_map_layer(self)
+	var tile_map_layer = UnifiedTestFactory.create_test_tile_map_layer(self)
 	targeting_state.target_map = tile_map_layer
 	targeting_state.set_positioner(auto_free(Node2D.new()))
 	

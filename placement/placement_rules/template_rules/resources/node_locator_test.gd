@@ -29,7 +29,7 @@ func test_search_by_name():
 	inventory_locator = NodeLocator.new(NodeLocator.SEARCH_METHOD.NODE_NAME, search_owner_name)
 	item_container.name = search_owner_name
 	
-	var found_node = inventory_locator.locate_container(owner_node, GBDoubleFactory.create_test_logger())
+	var found_node = inventory_locator.locate_container(owner_node, UnifiedTestFactory.create_test_logger())
 	
 	assert_object(found_node).is_not_null()
 	
@@ -39,7 +39,7 @@ func test_search_by_script_name_with_extension():
 	
 	var found_script_name : StringName = inventory_locator.get_script_name(item_container)
 	assert_str(found_script_name).is_not_empty()
-	var found_node_1 = inventory_locator.locate_container(owner_node, GBDoubleFactory.create_test_logger())
+	var found_node_1 = inventory_locator.locate_container(owner_node, UnifiedTestFactory.create_test_logger())
 	assert_object(found_node_1).is_not_null()
 	assert_object(found_node_1.get_script()).is_same(owner_node.get_script())
 
@@ -56,6 +56,6 @@ func test_search_by_is_in_group():
 	inventory_locator = NodeLocator.new(NodeLocator.SEARCH_METHOD.IS_IN_GROUP, search_group)
 	item_container.add_to_group(search_group)
 	
-	var found_node_1 = inventory_locator.locate_container(owner_node, GBDoubleFactory.create_test_logger())
+	var found_node_1 = inventory_locator.locate_container(owner_node, UnifiedTestFactory.create_test_logger())
 	
 	assert_object(found_node_1).is_not_null()
