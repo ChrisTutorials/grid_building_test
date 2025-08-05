@@ -2,14 +2,25 @@ extends GdUnitTestSuite
 
 ## Example test demonstrating the new static factory method pattern for GBInjectable objects
 
+const TEST_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
+
 var container: GBCompositionContainer
 var targeting_state: GridTargetingState
-var logger: GBLogger
 
 func before_test():
-	container = UnifiedTestFactory.TEST_CONTAINER
-	targeting_state = UnifiedTestFactory.create_double_targeting_state(self)
-	logger = UnifiedTestFactory.create_test_logger()
+	container = TEST_CONTAINER
+	# Create targeting state directly instead of using factory
+	targeting_state = auto_free(GridTargetingState.new(GBOwnerContext.new()))
+	var positioner: Node2D = auto_free(Node2D.new())
+	targeting_state.positioner = positioner
+	var target_map: TileMapLayer = auto_free(TileMapLayer.new())
+	add_child(target_map)
+	target_map.tile_set = TileSet.new()
+	target_map.tile_set.tile_size = Vector2(16, 16)
+	targeting_state.target_map = target_map
+	var layer1: TileMapLayer = auto_free(TileMapLayer.new())
+	var layer2: TileMapLayer = auto_free(TileMapLayer.new())
+	targeting_state.maps = [layer1, layer2]
 
 func test_collision_mapper_static_factory():
 	# Test the new static factory method

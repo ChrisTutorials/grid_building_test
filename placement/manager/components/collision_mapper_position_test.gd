@@ -5,16 +5,19 @@ extends GdUnitTestSuite
 ## not the preview object's current world position. This ensures indicators appear at the correct locations
 ## where the object will be placed, not where the preview object currently exists.
 
+const TEST_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
+
 var collision_mapper: CollisionMapper
 var targeting_state: GridTargetingState
 var tile_map_layer: TileMapLayer
 var positioner: Node2D
-var logger: GBLogger
 
 func before_test():
-	logger = UnifiedTestFactory.create_test_logger()
 	targeting_state = auto_free(GridTargetingState.new(auto_free(GBOwnerContext.new())))
-	tile_map_layer = UnifiedTestFactory.create_test_tile_map_layer(self)
+	tile_map_layer = auto_free(TileMapLayer.new())
+	add_child(tile_map_layer)
+	tile_map_layer.tile_set = TileSet.new()
+	tile_map_layer.tile_set.tile_size = Vector2(16, 16)
 	targeting_state.target_map = tile_map_layer
 	
 	# Create positioner and set it to a specific target position
@@ -22,7 +25,7 @@ func before_test():
 	positioner.global_position = Vector2(32, 32)  # Target position at tile (2, 2) with 16x16 tiles
 	targeting_state.positioner = positioner
 	
-	collision_mapper = CollisionMapper.new(targeting_state, logger)
+	collision_mapper = CollisionMapper.create_with_injection(TEST_CONTAINER)
 
 func after_test():
 	if collision_mapper:
@@ -78,7 +81,7 @@ func test_collision_object_uses_target_position():
 	static_body.global_position = Vector2(200, 200)
 	
 	# Create test setup using the correct constructor
-	var test_setup: IndicatorCollisionTestSetup = IndicatorCollisionTestSetup.new(static_body, Vector2(0, 0), logger)
+	var test_setup: IndicatorCollisionTestSetup = IndicatorCollisionTestSetup.new(static_body, Vector2(0, 0), TEST_CONTAINER.get_logger())
 	
 	var test_indicator: RuleCheckIndicator = auto_free(RuleCheckIndicator.new())
 	test_indicator.shape = auto_free(RectangleShape2D.new())

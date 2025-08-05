@@ -2,17 +2,20 @@ extends GdUnitTestSuite
 
 ## Tests for collision mapper positioning and RCI generation to ensure correct tile offsets and positioning
 
+const TEST_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
+
 var collision_mapper: CollisionMapper
 var targeting_state: GridTargetingState
-var logger: GBLogger
 var tile_map: TileMapLayer
 var positioner: ShapeCast2D
 var test_indicator: RuleCheckIndicator
 
 func before_test():
-	# Create test dependencies using factory methods
-	logger = UnifiedTestFactory.create_test_logger()
-	var owner_context = UnifiedTestFactory.create_test_owner_context(self)
+		# Create test dependencies using factory methods
+	var owner_context: GBOwnerContext = auto_free(GBOwnerContext.new())
+	var user: Node2D = auto_free(Node2D.new())
+	add_child(user)
+	owner_context.user = user
 	targeting_state = GridTargetingState.new(owner_context)
 
 	# Create tile map with known tile size (16x16)
@@ -29,11 +32,11 @@ func before_test():
 	targeting_state.positioner = positioner
 	targeting_state.target_map = tile_map
 
-	# Create collision mapper
-	collision_mapper = CollisionMapper.new(targeting_state, logger)
+	# Create collision mapper using factory method
+	collision_mapper = CollisionMapper.create_with_injection(TEST_CONTAINER)
 
 	# Create test indicator
-	test_indicator = auto_free(RuleCheckIndicator.new([], logger))
+	test_indicator = auto_free(RuleCheckIndicator.new([], TEST_CONTAINER.get_logger()))
 	var indicator_shape = RectangleShape2D.new()
 	indicator_shape.size = Vector2(16, 16)
 	test_indicator.shape = indicator_shape

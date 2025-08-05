@@ -5,6 +5,8 @@ extends GdUnitTestSuite
 ## This ensures indicators appear at the correct positions relative to the actual collision shapes,
 ## not just the object's root position. Regression test for the positioning offset issue.
 
+const TEST_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
+
 var collision_mapper: CollisionMapper
 var targeting_state: GridTargetingState
 var tile_map_layer: TileMapLayer
@@ -12,7 +14,7 @@ var positioner: Node2D
 var logger: GBLogger
 
 func before_test():
-	logger = UnifiedTestFactory.create_test_logger()
+	logger = TEST_CONTAINER.get_logger()
 	targeting_state = GridTargetingState.new(GBOwnerContext.new())
 	collision_mapper = CollisionMapper.new(targeting_state, logger)
 	

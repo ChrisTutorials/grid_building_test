@@ -2,22 +2,25 @@ extends GdUnitTestSuite
 
 ## Simple test to verify collision mapper positioning logic
 
+const TEST_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
+
 var collision_mapper: CollisionMapper
 var targeting_state: GridTargetingState
 var tile_map_layer: TileMapLayer
 var positioner: Node2D
-var logger: GBLogger
 
 func before_test():
-	logger = UnifiedTestFactory.create_test_logger()
 	targeting_state = auto_free(GridTargetingState.new(auto_free(GBOwnerContext.new())))
-	tile_map_layer = UnifiedTestFactory.create_test_tile_map_layer(self)
+	tile_map_layer = auto_free(TileMapLayer.new())
+	add_child(tile_map_layer)
+	tile_map_layer.tile_set = TileSet.new()
+	tile_map_layer.tile_set.tile_size = Vector2(16, 16)
 	targeting_state.target_map = tile_map_layer
 	
 	positioner = auto_free(Node2D.new())
 	targeting_state.positioner = positioner
 	
-	collision_mapper = CollisionMapper.new(targeting_state, logger)
+	collision_mapper = CollisionMapper.create_with_injection(TEST_CONTAINER)
 
 ## Test that collision detection updates when positioner moves
 func test_positioner_movement_updates_collision():
