@@ -33,7 +33,8 @@ func before_test():
 	targeting_state = states.targeting
 	assert_array(targeting_state.validate()).is_empty()
 
-	placement_validator = PlacementValidator.new([], _container.get_messages(), _container.get_logger())
+	# Use the actual static factory method directly with test container
+	placement_validator = PlacementValidator.create_with_injection(_container)
 
 func test_no_col_valid_placement_both_pass_with_test_resources():
 	var validation_results = placement_validator.validate()

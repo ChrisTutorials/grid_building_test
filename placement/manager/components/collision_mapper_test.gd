@@ -1,5 +1,7 @@
 extends GdUnitTestSuite
 
+const TEST_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
+
 var mapper: CollisionMapper
 var targeting_state: GridTargetingState
 var tile_map_layer: TileMapLayer
@@ -7,9 +9,10 @@ var indicator: RuleCheckIndicator
 var logger : GBLogger
 
 func before_test():
+	targeting_state = UnifiedTestFactory.create_double_targeting_state(self)
 	logger = UnifiedTestFactory.create_test_logger()
-	targeting_state = GridTargetingState.new(GBOwnerContext.new())
-	mapper = CollisionMapper.new(targeting_state, logger)
+	# Use the actual static factory method directly with test container
+	mapper = CollisionMapper.create_with_injection(TEST_CONTAINER)
 	indicator = auto_free(RuleCheckIndicator.new())
 	add_child(indicator)
 	indicator.shape = RectangleShape2D.new()

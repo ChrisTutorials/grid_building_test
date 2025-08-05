@@ -1,5 +1,7 @@
 extends GdUnitTestSuite
 
+const TEST_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
+
 var indicator_manager: IndicatorManager
 var indicator_template : PackedScene = preload("uid://dhox8mb8kuaxa")
 var received_signal: bool
@@ -9,13 +11,10 @@ var logger: GBLogger
 var indicator_parent : Node2D
 
 func before_test():
-	indicator_parent = Node2D.new()
-	add_child(indicator_parent)
-
-	# Create dependencies manually
-	targeting_state = GridTargetingState.new(GBOwnerContext.new())
-	logger = UnifiedTestFactory.create_test_logger()
-	indicator_manager = IndicatorManager.new(indicator_parent, targeting_state, indicator_template, logger)
+	indicator_parent = auto_free(Node2D.new())
+	indicator_template = load("uid://nhlp6ks003fp")
+	# Use the actual static factory method directly with test container  
+	indicator_manager = IndicatorManager.create_with_injection(TEST_CONTAINER, indicator_parent)
 
 	_initialize_targeting_state(targeting_state)
 

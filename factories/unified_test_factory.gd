@@ -1,8 +1,8 @@
 class_name UnifiedTestFactory
 extends RefCounted
 
-## Unified test factory combining all double and object factory helpers
-## Use this for ALL test object creation and doubles in the test suite
+## Unified test factory for test doubles, helper objects, and complex test setup
+## Use this for test-specific utilities, NOT as wrappers around runtime factory methods
 
 const TEST_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
 
@@ -10,14 +10,34 @@ const TEST_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
 # Building Systems
 # ================================
 
+## Creates a BuildingSystem using the static factory method
 static func create_building_system(test: GdUnitTestSuite, container: GBCompositionContainer = null) -> BuildingSystem:
-	var _container = container if container != null else GBCompositionContainer.new()
-	var system := BuildingSystem.new()
-	system.actions = GBActions.new()
-	system.mode_state = ModeState.new()
-	system.state = _container.get_states().building
-	system.targeting_state = _container.get_states().targeting
-	system.debug = GBDebugSettings.new(GBDebugSettings.DebugLevel.INFO)
+	var _container = container if container != null else TEST_CONTAINER
+	var system := BuildingSystem.create_with_injection(_container)
+	test.auto_free(system)
+	test.add_child(system)
+	return system
+
+## Creates a ManipulationSystem using the static factory method
+static func create_manipulation_system(test: GdUnitTestSuite, container: GBCompositionContainer = null) -> ManipulationSystem:
+	var _container = container if container != null else TEST_CONTAINER
+	var system := ManipulationSystem.create_with_injection(_container)
+	test.auto_free(system)
+	test.add_child(system)
+	return system
+
+## Creates a GridTargetingSystem using the static factory method
+static func create_grid_targeting_system(test: GdUnitTestSuite, container: GBCompositionContainer = null) -> GridTargetingSystem:
+	var _container = container if container != null else TEST_CONTAINER
+	var system := GridTargetingSystem.create_with_injection(_container)
+	test.auto_free(system)
+	test.add_child(system)
+	return system
+
+## Creates a GBInjectorSystem using the static factory method
+static func create_injector_system(test: GdUnitTestSuite, container: GBCompositionContainer = null) -> GBInjectorSystem:
+	var _container = container if container != null else TEST_CONTAINER
+	var system := GBInjectorSystem.create_with_injection(_container)
 	test.auto_free(system)
 	test.add_child(system)
 	return system
@@ -127,7 +147,7 @@ static func create_test_indicator_rect(test: GdUnitTestSuite, tile_size: int = 1
 # ================================
 
 static func create_test_injector(test: GdUnitTestSuite, container: GBCompositionContainer) -> GBInjectorSystem:
-	var injector := GBInjectorSystem.new(container)
+	var injector := GBInjectorSystem.create_with_injection(container)
 	test.add_child(injector)
 	test.auto_free(injector)
 	return injector
@@ -140,14 +160,6 @@ static func create_test_logger() -> GBLogger:
 # ================================
 # Manipulation
 # ================================
-
-static func create_manipulation_system(test: GdUnitTestSuite, container: GBCompositionContainer = null) -> ManipulationSystem:
-	var _container = container if container != null else GBCompositionContainer.new()
-	var system := ManipulationSystem.new()
-	system.resolve_gb_dependencies(_container)
-	test.auto_free(system)
-	test.add_child(system)
-	return system
 
 static func create_test_manipulation_system(test: GdUnitTestSuite) -> ManipulationSystem:
 	var system := ManipulationSystem.new()
@@ -232,12 +244,6 @@ static func create_placement_validator(_test: GdUnitTestSuite, rules: Array[Plac
 	var messages := GBMessages.new()
 	var logger := create_test_logger()
 	return PlacementValidator.new(rules, messages, logger)
-
-static func create_test_placement_validator(_test: GdUnitTestSuite, rules: Array[PlacementRule] = []) -> PlacementValidator:
-	var messages := GBMessages.new()
-	var logger := create_test_logger()
-	var validator := PlacementValidator.new(rules, messages, logger)
-	return validator
 
 # ================================
 # Rules

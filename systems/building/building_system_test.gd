@@ -76,7 +76,7 @@ func before_test():
 	
 func test_before_test_setup():
 	assert_object(system).is_not_null()
-	var problems = system.validate()
+	var problems = system.validate_dependencies()
 	assert_array(problems).is_empty()
 
 @warning_ignore("unused_parameter")

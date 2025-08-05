@@ -54,7 +54,7 @@ func before_test():
 	add_child(positioner)
 	targeting_state.positioner = positioner
 	
-	var validate_result = system.validate()
+	var validate_result = system.validate_dependencies()
 	assert_array(validate_result).append_failure_message("System must validate true for tests to pass").is_empty()
 	
 	all_manipulatable = create_manipulatable_object(TestSceneLibrary.manipulatable_settings_all_allowed)
