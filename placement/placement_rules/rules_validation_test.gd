@@ -16,8 +16,9 @@ func before():
 
 func before_test():
 	user_state = GBOwnerContext.new()
-	user_state.user = auto_free(Node2D.new())
-	add_child(user_state.user)
+var _user_node = auto_free(Node2D.new())
+user_state.set_owner(_user_node)
+add_child(_user_node)
 
 	var positioner = auto_free(Node2D.new())
 	add_child(positioner)
@@ -55,7 +56,7 @@ func setup_validation_no_col_and_buildable(test_node : Node2D) -> RuleValidation
 	rules[1].visual_priority = 10
 
 	placement_validator.base_rules = rules
-	var setup_result = placement_validator.setup(rules, RuleValidationParameters.new(user_state.user, test_node, targeting_state))
+var setup_result = placement_validator.setup(rules, RuleValidationParameters.new(user_state.get_owner(), test_node, targeting_state))
 	assert_dict(setup_result).is_empty()
 
 	var indicator = auto_free(load("res://test/grid_building_test/scenes/indicators/test_indicator.tscn").instantiate())
@@ -64,4 +65,4 @@ func setup_validation_no_col_and_buildable(test_node : Node2D) -> RuleValidation
 	indicator.shape.size = Vector2(16, 16)
 	placement_manager.add_child(indicator)
 
-	return RuleValidationParameters.new(user_state.user, test_node, targeting_state)
+return RuleValidationParameters.new(user_state.get_owner(), test_node, targeting_state)

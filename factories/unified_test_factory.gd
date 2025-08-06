@@ -199,13 +199,13 @@ static func create_owner_context(test: GdUnitTestSuite) -> GBOwnerContext:
 	var user := Node2D.new()
 	test.auto_free(user)
 	test.add_child(user)
-	context.user = user
+context.set_owner(user)
 	return context
 
 static func create_test_owner_context(test: GdUnitTestSuite) -> GBOwnerContext:
 	var context := GBOwnerContext.new()
 	var user := create_test_node2d(test)
-	context.user = user
+context.set_owner(user)
 	return context
 
 # ================================

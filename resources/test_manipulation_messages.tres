@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="ManipulationMessages" load_steps=2 format=3 uid="uid://bxl4q5mrvr6jg"]
+
+[ext_resource type="Script" uid="uid://bbs0ae8dfmykd" path="res://addons/grid_building/systems/manipulation/manipulation_messages.gd" id="1_8sfll"]
+
+[resource]
+resource_name = "Test Manipulation Messages"
+script = ExtResource("1_8sfll")
+no_move_target = "There is no target to move."
+target_not_manipulatable = "Target is not manipulatable."
+demolish_already_deleted = "Target of demolish_data %s was already deleted."
+unsupported_node_type = "Unsupported node type %s"
+demolish_success = "%s was demolished successfully."
+failed_not_demolishable = "%s is not demolishable"
+move_started = "Move action started on %s"
+move_success = "%s moved to new location successfully."
+invalid_data = "%s is not valid. Cannot move object"
+failed_placement_invalid = "Cannot place %s here."
+failed_manipulation_state_invalid = "Manipulation state failed to validate. Check warnings for possible missing properties."
+failed_object_not_manipulatable = "%s is not manipulatable."
+failed_root_not_assigned = "%s's root has not been assigned"
+failed_root_not_node2D = "%s's root is not a Node2D"
+failed_no_target_object = "There is no target object."
+failed_to_start_move = "%s was unable to start move successfully."
+all_succeeded = "All placement rules succeeded validation."
+failed_to_setup_rules = "One or more rules failed to setup correctly."
+target_not_rotatable = "%s cannot be rotated."
+target_not_flippable_horizontally = "%s target cannot be flipped horizontally."
+target_not_flippable_vertically = "%s target cannot be flipped vertically."

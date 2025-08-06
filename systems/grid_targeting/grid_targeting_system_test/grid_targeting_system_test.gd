@@ -36,7 +36,7 @@ func before_test():
 	state.positioner = positioner
 	var origin_state = GBOwnerContext.new()
 	state.origin_state = origin_state
-	origin_state.user = placer
+	origin_state.set_owner(placer)
 	assert_array(state.validate()).append_failure_message("Problems in setup found").is_empty()
 	
 	settings = library.grid_targeting_settings.duplicate(true)

@@ -43,7 +43,7 @@ func before_test():
 	targeting_state.positioner = auto_free(Node2D.new())
 	add_child(targeting_state.positioner)
 	_owner_context = GBOwnerContext.new()
-	_owner_context.user = placer
+	_owner_context.set_owner(placer)
 	targeting_state.origin_state = _owner_context
 	
 	_placement_context = PlacementContext.new()

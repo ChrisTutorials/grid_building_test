@@ -18,7 +18,7 @@ func before_test():
 	var owner_context: GBOwnerContext = auto_free(GBOwnerContext.new())
 	var user: Node2D = auto_free(Node2D.new())
 	add_child(user)
-	owner_context.user = user
+owner_context.set_owner(user)
 	
 	# Create level context with tile map
 	var level_context: GBLevelContext = auto_free(GBLevelContext.new())

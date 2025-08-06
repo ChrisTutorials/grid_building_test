@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="GBCompositionContainer" load_steps=26 format=3 uid="uid://dy6e5p5d6ax6n"]
+[gd_resource type="Resource" script_class="GBCompositionContainer" load_steps=27 format=3 uid="uid://dy6e5p5d6ax6n"]
 
 [ext_resource type="Script" uid="uid://des845magnt6c" path="res://addons/grid_building/resources/gb_composition_container.gd" id="1_dmsol"]
 [ext_resource type="Script" uid="uid://b8qexmaqap2qt" path="res://addons/grid_building/resources/actions/gb_actions.gd" id="1_ytodv"]
@@ -8,6 +8,7 @@
 [ext_resource type="Script" uid="uid://cdothihd02bh" path="res://addons/grid_building/debug/gb_debug_settings.gd" id="5_h32ty"]
 [ext_resource type="Script" uid="uid://dd2upd0f43el6" path="res://addons/grid_building/systems/manipulation/manipulation_settings.gd" id="6_mtygo"]
 [ext_resource type="Script" uid="uid://c0v8dvw42wlsx" path="res://addons/grid_building/resources/messages/gb_messages.gd" id="7_qkte0"]
+[ext_resource type="Resource" uid="uid://bxl4q5mrvr6jg" path="res://test/grid_building_test/resources/test_manipulation_messages.tres" id="8_manip"]
 [ext_resource type="Script" uid="uid://ceem2vqcha7ki" path="res://addons/grid_building/placement/placement_rules/placement_rule.gd" id="8_ytodv"]
 [ext_resource type="Script" uid="uid://canj8n1of5xmx" path="res://addons/grid_building/placement/placement_rules/template_rules/collisions_check_rule.gd" id="9_e2vnu"]
 [ext_resource type="Script" uid="uid://c07xmsvybhcx7" path="res://addons/grid_building/resources/settings/gb_settings.gd" id="9_ku23n"]
@@ -35,6 +36,7 @@ metadata/_custom_type_script = "uid://dd2upd0f43el6"
 
 [sub_resource type="Resource" id="Resource_2l661"]
 script = ExtResource("7_qkte0")
+manipulation = ExtResource("8_manip")
 metadata/_custom_type_script = "uid://c0v8dvw42wlsx"
 
 [sub_resource type="Resource" id="Resource_4haak"]
