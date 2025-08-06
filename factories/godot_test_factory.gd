@@ -12,7 +12,7 @@ extends RefCounted
 ## Creates a basic Node2D for testing with proper auto_free setup
 static func create_node2d(test: GdUnitTestSuite) -> Node2D:
 	var node: Node2D = test.auto_free(Node2D.new())
-	test.add_child(node)
+	# Don't add to test here - let caller decide if it needs to be in scene tree
 	return node
 
 ## Creates a Node with auto_free setup
@@ -42,7 +42,8 @@ static func create_tile_map_layer(test: GdUnitTestSuite, grid_size: int = 200) -
 	for x in range(-half_size, half_size):
 		for y in range(-half_size, half_size):
 			var coords = Vector2i(x, y)
-			map_layer.set_cellv(coords, 0, Vector2i(0, 0))
+			# In Godot 4.5, use set_cell instead of set_cellv
+			map_layer.set_cell(coords, 0, Vector2i(0, 0))
 	
 	test.add_child(map_layer)
 	return map_layer
@@ -51,7 +52,7 @@ static func create_tile_map_layer(test: GdUnitTestSuite, grid_size: int = 200) -
 static func create_empty_tile_map_layer(test: GdUnitTestSuite) -> TileMapLayer:
 	var map_layer: TileMapLayer = test.auto_free(TileMapLayer.new())
 	map_layer.tile_set = TileSet.new()
-	test.add_child(map_layer)
+	# Don't add to test here - let caller decide if it needs to be in scene tree
 	return map_layer
 
 # ================================

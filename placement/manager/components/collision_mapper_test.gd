@@ -13,15 +13,21 @@ func before_test():
 	# Create targeting state directly
 	targeting_state = auto_free(GridTargetingState.new(GBOwnerContext.new()))
 	var positioner: Node2D = GodotTestFactory.create_node2d(self)
+	add_child(positioner)  # Ensure positioner is in the scene tree
 	targeting_state.positioner = positioner
 	var target_map: TileMapLayer = GodotTestFactory.create_empty_tile_map_layer(self)
 	target_map.tile_set.tile_size = Vector2(16, 16)
+	add_child(target_map)  # Ensure target_map is in the scene tree
 	targeting_state.target_map = target_map
 	var layer1: TileMapLayer = GodotTestFactory.create_empty_tile_map_layer(self)
 	var layer2: TileMapLayer = GodotTestFactory.create_empty_tile_map_layer(self)
 	targeting_state.maps = [layer1, layer2]
 	
 	logger = GBLogger.create_with_injection(TEST_CONTAINER)
+	
+	# Set up the TEST_CONTAINER with the targeting state we created
+	TEST_CONTAINER.get_states().targeting = targeting_state
+	
 	# Use the actual static factory method directly with test container
 	mapper = CollisionMapper.create_with_injection(TEST_CONTAINER)
 	indicator = auto_free(RuleCheckIndicator.new())
@@ -29,8 +35,8 @@ func before_test():
 	indicator.shape = RectangleShape2D.new()
 	indicator.shape.size = Vector2(32, 32)  # Updated from extents to size
 
-	tile_map_layer = GodotTestFactory.create_empty_tile_map_layer(self)
-	targeting_state.target_map = tile_map_layer
+	# Use the already created target_map instead of creating a new one
+	tile_map_layer = target_map
 
 	assert(indicator.shape != null, "Indicator shape must not be null before tests")
 
@@ -90,10 +96,15 @@ func test_map_collision_positions_to_rules_returns_expected_map() -> void:
 	var rules : Array[TileCheckRule] = [test_rule]
 	var test_targeting_state := GridTargetingState.new(GBOwnerContext.new())
 	
+	# Create positioner for targeting state
+	var test_positioner: Node2D = auto_free(Node2D.new())
+	add_child(test_positioner)
+	test_targeting_state.positioner = test_positioner
+	
 	# Create tile map layer with factory method
 	var test_map_layer: TileMapLayer = GodotTestFactory.create_tile_map_layer(self, 200)
 	test_map_layer.tile_set = load("uid://d11t2vm1pby6y")
-	add_child(test_map_layer)
+	# Don't add again since factory already adds it
 	test_targeting_state.target_map = test_map_layer
 	
 	var test_collision_mapper := CollisionMapper.new(test_targeting_state, logger)
