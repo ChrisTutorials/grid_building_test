@@ -1,9 +1,9 @@
 extends GdUnitTestSuite
 
-## Test to debug tile positioning and bounds  
+## Test to debug tile positioning and bounds.
 func test_tile_bounds_debug():
 	var trapezoid = PackedVector2Array([Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)])
-	var tile_size = Vector2(16, 16)
+	var tile_size = GodotTestFactory.create_tile_size()
 	
 	# Test tile at (0, 16) - this should overlap the trapezoid slightly
 	var tile_pos = Vector2(0, 16)

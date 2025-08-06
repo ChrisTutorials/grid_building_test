@@ -1,17 +1,13 @@
 extends GdUnitTestSuite
 
-## Debug test to analyze the exact bounds being calculated for CapsuleShape2D
-## This helps identify why the gigantic egg has asymmetric indicators
-
+## Debug test to analyze the exact bounds being calculated for CapsuleShape2D.
+## This helps identify why the gigantic egg has asymmetric indicators.
 func test_capsule_shape_bounds_symmetry():
 	# Create the same capsule as the gigantic egg
-	var capsule_shape = CapsuleShape2D.new()
-	capsule_shape.radius = 48.0
-	capsule_shape.height = 128.0
+	var capsule_shape = GodotTestFactory.create_capsule_shape(48.0, 128.0)
 	
 	# Create transform at origin (0,0) for testing
-	var transform = Transform2D()
-	transform.origin = Vector2.ZERO
+	var transform = GodotTestFactory.create_transform2d()
 	
 	# Convert to polygon using the same method as the system
 	var polygon = GBGeometryMath.convert_shape_to_polygon(capsule_shape, transform)
@@ -40,7 +36,7 @@ func test_capsule_shape_bounds_symmetry():
 	).is_less(1.0)  # Allow small floating point differences
 	
 	# Test tile calculation with these bounds
-	var tile_size = Vector2(16, 16)
+	var tile_size = GodotTestFactory.create_tile_size()
 	var tiles_wide := int(ceil(bounds.size.x / tile_size.x))
 	var tiles_high := int(ceil(bounds.size.y / tile_size.y))
 	

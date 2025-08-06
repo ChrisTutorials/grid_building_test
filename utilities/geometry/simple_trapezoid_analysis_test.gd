@@ -1,10 +1,10 @@
 extends GdUnitTestSuite
 
-## Test to verify the top-left indicator positioning for the simple trapezoid
+## Test to verify the top-left indicator positioning for the simple trapezoid.
 func test_simple_trapezoid_top_left_overlap():
 	# Simple trapezoid polygon from the runtime analysis
 	var trapezoid = PackedVector2Array([Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)])
-	var tile_size = Vector2(16, 16)
+	var tile_size = GodotTestFactory.create_tile_size()
 	
 	# Position the trapezoid at the positioner location from runtime analysis
 	var positioner_offset = Vector2(808, 680)  # From runtime analysis

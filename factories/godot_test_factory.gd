@@ -1,9 +1,30 @@
 class_name GodotTestFactory
 extends RefCounted
 
-## Factory for creating Godot base class objects in tests
-## Provides convenient methods for common Godot objects used in testing
-## Keep this separate from UnifiedTestFactory to maintain clean separation
+## Factory for creating Godot base class objects in tests.
+## Provides convenient methods for common Godot objects used in testing.
+## Keep this separate from UnifiedTestFactory to maintain clean separation.
+
+# ================================
+# Capsule and Transform Factories
+# ================================
+
+## Creates a CapsuleShape2D with specified radius and height
+static func create_capsule_shape(radius: float = 48.0, height: float = 128.0) -> CapsuleShape2D:
+	var capsule := CapsuleShape2D.new()
+	capsule.radius = radius
+	capsule.height = height
+	return capsule
+
+## Creates a Transform2D at the given origin (default Vector2.ZERO)
+static func create_transform2d(origin: Vector2 = Vector2.ZERO) -> Transform2D:
+	var transform := Transform2D()
+	transform.origin = origin
+	return transform
+
+## Creates standard tile size Vector2 (16, 16) commonly used in tests
+static func create_tile_size(size: int = 16) -> Vector2:
+	return Vector2(size, size)
 
 # ================================
 # Node Creation
