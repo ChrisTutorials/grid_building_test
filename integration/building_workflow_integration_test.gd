@@ -22,7 +22,8 @@ func before_test():
 	# Create a smaller grid for testing
 	for x in range(-10, 10):
 		for y in range(-10, 10):
-			tile_map_layer.set_cellv(Vector2i(x, y), 0, Vector2i(0, 0))
+			# In Godot 4.5, use set_cell instead of set_cellv
+			tile_map_layer.set_cell(Vector2i(x, y), 0, Vector2i(0, 0))
 	add_child(tile_map_layer)
 	
 	# Set up positioner for targeting
@@ -41,6 +42,20 @@ func before_test():
 	targeting_state.maps = [tile_map_layer]
 	targeting_state.positioner = positioner
 	
+	# Configure building state for proper placement
+	var building_state = TEST_CONTAINER.get_states().building
+	var placed_parent = auto_free(Node2D.new())
+	placed_parent.name = "PlacedObjects"
+	add_child(placed_parent)
+	building_state.placed_parent = placed_parent
+	
+	# Configure owner context (required for some operations)
+	var owner_context = TEST_CONTAINER.get_owner_context()
+	var mock_owner = auto_free(Node2D.new())
+	mock_owner.name = "TestOwner"
+	add_child(mock_owner)
+	owner_context.owner = mock_owner
+	
 	# Validate system dependencies
 	var building_issues = building_system.validate_dependencies()
 	var manipulation_issues = manipulation_system.validate_dependencies()
@@ -53,8 +68,10 @@ func test_complete_building_workflow():
 	var test_placeable = TestSceneLibrary.placeable_2d_test
 	assert_object(test_placeable).is_not_null()
 	
-	building_system.selected_placeable = test_placeable
-	assert_object(building_system.selected_placeable).is_equal(test_placeable)
+	# Use the building state to set selected placeable
+	var building_state = TEST_CONTAINER.get_states().building
+	building_state.selected_placeable = test_placeable
+	assert_object(building_state.selected_placeable).is_equal(test_placeable)
 	
 	# Step 2: Create preview instance
 	building_system.instance_preview(test_placeable)
@@ -98,7 +115,8 @@ func test_complete_building_workflow():
 ## Test placement validation workflow
 func test_placement_validation_workflow():
 	var test_placeable = TestSceneLibrary.placeable_2d_test
-	building_system.selected_placeable = test_placeable
+	var building_state = TEST_CONTAINER.get_states().building
+	building_state.selected_placeable = test_placeable
 	building_system.instance_preview(test_placeable)
 	
 	# Test valid placement position
@@ -136,7 +154,8 @@ func test_system_coordination():
 	
 	# Place an object
 	var test_placeable = TestSceneLibrary.placeable_2d_test
-	building_system.selected_placeable = test_placeable
+	var building_state = TEST_CONTAINER.get_states().building
+	building_state.selected_placeable = test_placeable
 	building_system.instance_preview(test_placeable)
 	positioner.global_position = Vector2.ZERO
 	
@@ -154,13 +173,14 @@ func test_system_coordination():
 ## Test error handling and edge cases in integrated workflow
 func test_workflow_error_handling():
 	# Test building without selected placeable
-	building_system.selected_placeable = null
+	var building_state = TEST_CONTAINER.get_states().building
+	building_state.selected_placeable = null
 	var result = building_system.try_build()
 	assert_object(result).is_null()
 	
 	# Test building with invalid placeable
 	var invalid_placeable = Placeable.new()  # Empty placeable
-	building_system.selected_placeable = invalid_placeable
+	building_state.selected_placeable = invalid_placeable
 	result = building_system.try_build()
 	assert_object(result).is_null()
 	
