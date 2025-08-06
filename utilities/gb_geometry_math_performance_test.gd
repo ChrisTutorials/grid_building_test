@@ -71,6 +71,13 @@ func test_benchmark_collision_mapping_workflow():
 	var logger = GBLogger.new(GBDebugSettings.new())
 	var targeting_state = GridTargetingState.new(GBOwnerContext.new())
 	targeting_state.target_map = tile_map
+	
+	# Create and set up the positioner node that CollisionMapper expects
+	var positioner: Node2D = GodotTestFactory.create_node2d(self)
+	add_child(positioner)
+	positioner.global_position = Vector2.ZERO
+	targeting_state.positioner = positioner
+	
 	var mapper = CollisionMapper.new(targeting_state, logger)
 	
 	# Create test objects
@@ -162,6 +169,13 @@ func test_benchmark_optimized_collision_mapping_workflow():
 	var logger = GBLogger.new(GBDebugSettings.new())
 	var targeting_state = GridTargetingState.new(GBOwnerContext.new())
 	targeting_state.target_map = tile_map
+	
+	# Create and set up the positioner node that CollisionMapper expects
+	var positioner: Node2D = GodotTestFactory.create_node2d(self)
+	add_child(positioner)
+	positioner.global_position = Vector2.ZERO
+	targeting_state.positioner = positioner
+	
 	var mapper = CollisionMapper.new(targeting_state, logger)
 	
 	# Create test objects

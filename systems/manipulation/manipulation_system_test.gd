@@ -20,11 +20,14 @@ var _container : GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
 
 
 func before_test():
-	# Setup user state
+	# Setup user state  
 	owner_context = GBOwnerContext.new()
 	manipulator = auto_free(Node.new())
 	add_child(manipulator)
-	owner_context.user = manipulator
+	
+	# Create a GBOwner and set it up properly
+	var gb_owner = auto_free(GBOwner.new(manipulator))
+	owner_context.set_owner(gb_owner)
 	
 	# Setup manipulation test system
 	var states = _container.get_states()
@@ -32,14 +35,15 @@ func before_test():
 	var manipulation_parent = auto_free(Node2D.new())
 	add_child(manipulation_parent)
 	manipulation_state.parent = manipulation_parent
-	manipulation_state.manipulator_state = owner_context
 	
 	targeting_state = states.targeting
 	targeting_state.target_map = auto_free(TileMapLayer.new())
 	targeting_state.maps = [targeting_state.target_map]
-	targeting_state.origin_state = owner_context
+	# TODO: Fix this - origin_state property doesn't exist on GridTargetingState 
+	# targeting_state.origin_state = owner_context
 	
-	#placement_validator = PlacementValidator.new()
+	# TODO: Fix this - manipulator_state property doesn't exist on ManipulationState
+	# manipulation_state.manipulator_state = owner_context
 	var placement_manager: PlacementManager = auto_free(PlacementManager.new())
 	placement_manager.resolve_gb_dependencies(_container)
 	add_child(placement_manager)
