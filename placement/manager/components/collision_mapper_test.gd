@@ -78,14 +78,26 @@ func _create_area_2d(layer: int) -> Area2D:
 	return _create_area_2d_custom_size(layer, 16, 16)
 
 func _create_area_2d_custom_size(layer: int, width: int, height: int) -> Area2D:
-	var area_2d : Area2D = auto_free(Area2D.new())
-	area_2d.collision_layer = layer
-	var shape := CollisionShape2D.new()
-	var rect_shape := RectangleShape2D.new()
-	rect_shape.size = Vector2(width, height)  # Updated from extents to size
-	shape.shape = rect_shape
-	area_2d.add_child(shape)
-	return area_2d
+	# Use factory method if appropriate size, otherwise create custom
+	if width == 16 and height == 16:
+		var area = GodotTestFactory.create_area2d_with_circle_shape(self, 8)
+		# Replace circle with rect
+		for child in area.get_children():
+			if child is CollisionShape2D:
+				var rect_shape := RectangleShape2D.new()
+				rect_shape.size = Vector2(width, height)
+				child.shape = rect_shape
+		area.collision_layer = layer
+		return area
+	else:
+		var area_2d : Area2D = auto_free(Area2D.new())
+		area_2d.collision_layer = layer
+		var shape := CollisionShape2D.new()
+		var rect_shape := RectangleShape2D.new()
+		rect_shape.size = Vector2(width, height)
+		shape.shape = rect_shape
+		area_2d.add_child(shape)
+		return area_2d
 
 func test_map_collision_positions_to_rules_returns_expected_map() -> void:
 	# Create test object with circle shape using factory
@@ -96,8 +108,8 @@ func test_map_collision_positions_to_rules_returns_expected_map() -> void:
 	var rules : Array[TileCheckRule] = [test_rule]
 	var test_targeting_state := GridTargetingState.new(GBOwnerContext.new())
 	
-	# Create positioner for targeting state
-	var test_positioner: Node2D = auto_free(Node2D.new())
+	# Use factory to create positioner for targeting state
+	var test_positioner: Node2D = GodotTestFactory.create_node2d(self)
 	add_child(test_positioner)
 	test_targeting_state.positioner = test_positioner
 	
@@ -115,11 +127,9 @@ func test_map_collision_positions_to_rules_returns_expected_map() -> void:
 	for col_obj in col_objects:
 		collision_object_test_setups[col_obj] = IndicatorCollisionTestSetup.new(col_obj as CollisionObject2D, Vector2.ZERO, logger)
 	
-	# Create test indicator directly  
-	var test_indicator: RuleCheckIndicator = auto_free(RuleCheckIndicator.new())
-	var rect_shape := RectangleShape2D.new()
-	rect_shape.extents = Vector2(16, 16)
-	test_indicator.shape = rect_shape
+	# Use factory to create test indicator
+	var test_indicator: RuleCheckIndicator = GodotTestFactory.create_rule_check_indicator(self, 16)
+	test_indicator.shape.extents = Vector2(16, 16)  # Set specific size for this test
 	
 	test_collision_mapper.setup(test_indicator, collision_object_test_setups)
 	var position_rules_map : Dictionary[Vector2i, Array] = test_collision_mapper.map_collision_positions_to_rules(col_objects, rules)
