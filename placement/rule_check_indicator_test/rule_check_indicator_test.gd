@@ -5,7 +5,7 @@ var indicator : RuleCheckIndicator
 var test_layers = 1 # Bitmask
 
 ## Logo offset away from the center for testing
-var offset_logo = load("res://test/grid_building_test/offset_logo.tscn")
+var offset_logo = load("uid://bqq7otaevtlqu")
 
 func before_test():
 	indicator = auto_free(RuleCheckIndicator.new())
@@ -17,7 +17,7 @@ func before_test():
 	indicator.invalid_settings = IndicatorVisualSettings.new()
 	indicator.shape = RectangleShape2D.new()
 	indicator.shape.size = Vector2(15.9, 15.9)
-	indicator.invalid_settings = load("res://test/grid_building_test/resources/settings/indicator_visual/invalid_visual.tres")
+	indicator.invalid_settings = load("uid://h8lvjoarxq4k")
 	
 func test_setup_indicator_defaults():
 	assert_object(indicator).append_failure_message("[indicator] must not be null").is_not_null()
@@ -62,7 +62,7 @@ func test_instance_collisions(p_test_scene : PackedScene, p_expected_collisions 
 
 @warning_ignore("unused_parameter")
 func test__update_visuals(p_settings : IndicatorVisualSettings, test_parameters := [
-	[load("res://test/grid_building_test/resources/settings/indicator_visual/orange_visual.tres")]
+	[load("uid://dpph3i22e5qev")]
 ]) -> void:
 	var updated_sprite = indicator._update_visuals(p_settings)
 	assert_that(updated_sprite.modulate).is_equal(p_settings.modulate)

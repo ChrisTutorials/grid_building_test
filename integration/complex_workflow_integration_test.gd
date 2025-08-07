@@ -34,11 +34,15 @@ func before_test():
 	composition_container.register_owner_context(owner_context)
 	composition_container.register_level_context(level_context)
 	
-	# Create systems with unified factory
-	building_system = auto_free(UnifiedTestFactory.create_test_building_system(self))
-	placement_manager = auto_free(UnifiedTestFactory.create_test_placement_manager(self))
-	targeting_system = auto_free(GridTargetingSystem.create_with_injection(composition_container))
+	# Create systems with proper methods
+	building_system = BuildingSystem.create_with_injection(composition_container)
+	placement_manager = UnifiedTestFactory.create_test_placement_manager(self)
+	targeting_system = GridTargetingSystem.create_with_injection(composition_container)
 	logger = composition_container.get_logger()
+	
+	# Add systems to test suite for proper lifecycle management  
+	add_child(building_system)
+	add_child(targeting_system)
 
 ## Test complete building workflow with validation and caching
 func test_complete_building_workflow():
@@ -76,10 +80,6 @@ func test_complete_building_workflow():
 
 ## Test building workflow with placement rules validation
 func test_building_with_placement_rules():
-	# Create a simple placement rule for testing
-	var placement_rule: PlacementRule = auto_free(PlacementRule.new())
-	placement_rule.rule_name = "test_rule"
-	
 	# Use existing placeable with rules
 	var test_placeable = TestSceneLibrary.placeable_eclipse
 	assert_object(test_placeable).is_not_null()

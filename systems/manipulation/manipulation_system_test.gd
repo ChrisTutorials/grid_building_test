@@ -3,7 +3,6 @@ extends GdUnitTestSuite
 @warning_ignore('unused_parameter')
 @warning_ignore('return_value_discarded')
 
-const GodotTestFactory = preload("res://test/grid_building_test/factories/godot_test_factory.gd")
 
 # TestSuite generated from
 
@@ -19,47 +18,47 @@ var all_manipulatable : Manipulatable
 var _container : GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
 
 
+
 func before_test():
-	# Setup user state  
-	manipulator = auto_free(Node.new())
-	add_child(manipulator)
-	
+	# Use GodotTestFactory for all node creation
+	manipulator = GodotTestFactory.create_node(self)
+
 	# Create a GBOwner and set it up properly
-	var gb_owner = auto_free(GBOwner.new(manipulator))
-	
+	var gb_owner = GBOwner.new(manipulator)
+	gb_owner = auto_free(gb_owner)
+
 	# Connect the owner to the container's context
 	owner_context = _container.get_contexts().owner
 	owner_context.set_owner(gb_owner)
-	
-	# Setup manipulation test system
+
+	# Setup manipulation test system using static factory methods
 	var states = _container.get_states()
 	manipulation_state = states.manipulation
-	var manipulation_parent = auto_free(Node2D.new())
-	add_child(manipulation_parent)
+	var manipulation_parent = GodotTestFactory.create_node2d(self)
 	manipulation_state.parent = manipulation_parent
-	
+
 	targeting_state = states.targeting
-	targeting_state.target_map = auto_free(TileMapLayer.new())
+	targeting_state.target_map = GodotTestFactory.create_tile_map_layer(self)
 	targeting_state.maps = [targeting_state.target_map]
-	# TODO: Fix this - origin_state property doesn't exist on GridTargetingState 
-	# targeting_state.origin_state = owner_context
-	
-	# TODO: Fix this - manipulator_state property doesn't exist on ManipulationState
-	# manipulation_state.manipulator_state = owner_context
-	var placement_manager: PlacementManager = auto_free(PlacementManager.new())
+	# Assign a valid test TileSet to prevent tile_set.is_null() errors (use UID per project rules)
+	var test_tileset = load("uid://b0shp63l248fm")
+	targeting_state.target_map.tile_set = test_tileset
+
+	# PlacementManager: instantiate and inject dependencies
+	var placement_manager: PlacementManager = PlacementManager.new()
 	placement_manager.resolve_gb_dependencies(_container)
 	add_child(placement_manager)
 
-	system = auto_free(ManipulationSystem.create_with_injection(_container))
+	system = ManipulationSystem.create_with_injection(_container)
 	add_child(system)
-	
-	## Set targeting_state dependencies
+
+	# Set targeting_state dependencies
 	positioner = GodotTestFactory.create_node2d(self)
 	targeting_state.positioner = positioner
-	
+
 	var validate_result = system.validate_dependencies()
 	assert_array(validate_result).append_failure_message("System must validate true for tests to pass").is_empty()
-	
+
 	all_manipulatable = create_manipulatable_object(TestSceneLibrary.manipulatable_settings_all_allowed)
 
 

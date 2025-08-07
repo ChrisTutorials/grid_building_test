@@ -1,7 +1,6 @@
 ## GdUnit TestSuite for GBGeometryUtils.get_all_collision_objects
 extends GdUnitTestSuite
 
-const GodotTestFactory = preload("res://test/grid_building_test/factories/godot_test_factory.gd")
 
 func test_get_all_collision_shapes_by_owner_for_scene():
 	var scene_uids := [

@@ -37,9 +37,10 @@ func before_test():
 	add_child(manipulation_system)
 	
 	# Configure targeting state for both systems
-	var targeting_state = TEST_CONTAINER.get_states().targeting
+	var targeting_state : GridTargetingState = TEST_CONTAINER.get_states().targeting
 	targeting_state.target_map = tile_map_layer
-	targeting_state.maps = [tile_map_layer]
+	var maps : Array[TileMapLayer] = [tile_map_layer]
+	targeting_state.maps = maps
 	targeting_state.positioner = positioner
 	
 	# Configure building state for proper placement
@@ -68,10 +69,9 @@ func test_complete_building_workflow():
 	var test_placeable = TestSceneLibrary.placeable_2d_test
 	assert_object(test_placeable).is_not_null()
 	
-	# Use the building state to set selected placeable
-	var building_state = TEST_CONTAINER.get_states().building
-	building_state.selected_placeable = test_placeable
-	assert_object(building_state.selected_placeable).is_equal(test_placeable)
+	# Use the building system to set selected placeable
+	building_system.selected_placeable = test_placeable
+	assert_object(building_system.selected_placeable).is_equal(test_placeable)
 	
 	# Step 2: Create preview instance
 	building_system.instance_preview(test_placeable)
@@ -115,18 +115,15 @@ func test_complete_building_workflow():
 ## Test placement validation workflow
 func test_placement_validation_workflow():
 	var test_placeable = TestSceneLibrary.placeable_2d_test
-	var building_state = TEST_CONTAINER.get_states().building
-	building_state.selected_placeable = test_placeable
+	building_system.selected_placeable = test_placeable
 	building_system.instance_preview(test_placeable)
 	
 	# Test valid placement position
 	positioner.global_position = Vector2.ZERO
 	
-	# Trigger placement validation
-	var validation_result = building_system.placement_validator.validate_placement(
-		building_system.state.preview,
-		TEST_CONTAINER.get_states().targeting
-	)
+	# Trigger placement validation through placement manager
+	var placement_manager = TEST_CONTAINER.get_contexts().placement.get_manager()
+	var validation_result = placement_manager.validate_placement()
 	
 	# Should be valid at center of map
 	assert_bool(validation_result.is_successful).is_true()
@@ -134,10 +131,7 @@ func test_placement_validation_workflow():
 	# Test invalid placement position (far outside map bounds)
 	positioner.global_position = Vector2(10000, 10000)
 	
-	validation_result = building_system.placement_validator.validate_placement(
-		building_system.state.preview,
-		TEST_CONTAINER.get_states().targeting
-	)
+	validation_result = placement_manager.validate_placement()
 	
 	# Should be invalid outside map bounds
 	assert_bool(validation_result.is_successful).is_false()
@@ -149,13 +143,12 @@ func test_system_coordination():
 	var mode_state = TEST_CONTAINER.get_states().mode
 	
 	# Initially should be in building mode
-	mode_state.current_mode = GBEnums.Mode.BUILD
-	assert_that(mode_state.current_mode).is_equal(GBEnums.Mode.BUILD)
+	mode_state.current = GBEnums.Mode.BUILD
+	assert_that(mode_state.current).is_equal(GBEnums.Mode.BUILD)
 	
 	# Place an object
 	var test_placeable = TestSceneLibrary.placeable_2d_test
-	var building_state = TEST_CONTAINER.get_states().building
-	building_state.selected_placeable = test_placeable
+	building_system.selected_placeable = test_placeable
 	building_system.instance_preview(test_placeable)
 	positioner.global_position = Vector2.ZERO
 	
@@ -163,24 +156,23 @@ func test_system_coordination():
 	assert_object(placed_instance).is_not_null()
 	
 	# Switch to manipulation mode
-	mode_state.current_mode = GBEnums.Mode.MOVE
+	mode_state.current = GBEnums.Mode.MOVE
 	manipulation_state.current_target = placed_instance
 	
 	# Verify systems respond to mode changes appropriately
-	assert_that(mode_state.current_mode).is_equal(GBEnums.Mode.MOVE)
+	assert_that(mode_state.current).is_equal(GBEnums.Mode.MOVE)
 	assert_object(manipulation_state.current_target).is_equal(placed_instance)
 
 ## Test error handling and edge cases in integrated workflow
 func test_workflow_error_handling():
 	# Test building without selected placeable
-	var building_state = TEST_CONTAINER.get_states().building
-	building_state.selected_placeable = null
+	building_system.selected_placeable = null
 	var result = building_system.try_build()
 	assert_object(result).is_null()
 	
 	# Test building with invalid placeable
 	var invalid_placeable = Placeable.new()  # Empty placeable
-	building_state.selected_placeable = invalid_placeable
+	building_system.selected_placeable = invalid_placeable
 	result = building_system.try_build()
 	assert_object(result).is_null()
 	

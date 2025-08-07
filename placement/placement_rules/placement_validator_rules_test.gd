@@ -36,6 +36,10 @@ func before_test():
 	placement_validator = PlacementValidator.create_with_injection(_container)
 
 func test_no_col_valid_placement_both_pass_with_test_resources():
+	# Setup rules and parameters first
+	var test_node = GodotTestFactory.create_node2d(self)
+	setup_validation_no_col_and_buildable(test_node)
+	
 	var validation_results = placement_validator.validate()
 	assert_object(validation_results).is_not_null()
 
@@ -55,7 +59,8 @@ func setup_validation_no_col_and_buildable(test_node : Node2D) -> RuleValidation
 	var setup_result = placement_validator.setup(rules, RuleValidationParameters.new(user_state.get_owner(), test_node, targeting_state))
 	assert_dict(setup_result).is_empty()
 
-	var indicator = auto_free(load("res://test/grid_building_test/scenes/indicators/test_indicator.tscn").instantiate())
+	var indicator = load("uid://dhox8mb8kuaxa").instantiate()
+	auto_free(indicator)
 	indicator.rules = rules
 	indicator.shape = RectangleShape2D.new()
 	indicator.shape.size = Vector2(16, 16)

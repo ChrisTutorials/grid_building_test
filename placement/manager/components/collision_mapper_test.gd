@@ -1,7 +1,6 @@
 extends GdUnitTestSuite
 
 const TEST_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
-const GodotTestFactory = preload("res://test/grid_building_test/factories/godot_test_factory.gd")
 
 var mapper: CollisionMapper
 var targeting_state: GridTargetingState

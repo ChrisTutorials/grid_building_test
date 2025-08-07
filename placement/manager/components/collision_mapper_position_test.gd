@@ -7,23 +7,24 @@ extends GdUnitTestSuite
 const TEST_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
 
 var collision_mapper: CollisionMapper
-var targeting_state: GridTargetingState
 var tile_map_layer: TileMapLayer
 var positioner: Node2D
 
 func before_test():
-	targeting_state = auto_free(GridTargetingState.new(auto_free(GBOwnerContext.new())))
 	tile_map_layer = auto_free(TileMapLayer.new())
 	add_child(tile_map_layer)
 	tile_map_layer.tile_set = TileSet.new()
 	tile_map_layer.tile_set.tile_size = Vector2(16, 16)
-	targeting_state.target_map = tile_map_layer
-	
+
 	# Create positioner and set it to a specific target position
 	positioner = auto_free(Node2D.new())
 	positioner.global_position = Vector2(32, 32)  # Target position at tile (2, 2) with 16x16 tiles
-	targeting_state.positioner = positioner
-	
+
+	# Configure the TEST_CONTAINER's targeting state directly
+	var container_targeting_state = TEST_CONTAINER.get_states().targeting
+	container_targeting_state.target_map = tile_map_layer
+	container_targeting_state.positioner = positioner
+
 	collision_mapper = CollisionMapper.create_with_injection(TEST_CONTAINER)
 
 func after_test():
