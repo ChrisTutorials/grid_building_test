@@ -12,8 +12,10 @@ func before_test():
 	manager = DragBuildManager.new()
 	auto_free(manager)
 	add_child(manager)
-	# Stub drag data
-	var data = DragPathData.new()
+	# Create valid targeting state and positioner for DragPathData
+	var targeting_state = UnifiedTestFactory.create_targeting_state(self)
+	add_child(targeting_state.positioner)
+	var data = DragPathData.new(targeting_state.positioner, targeting_state)
 	manager.drag_data = data
 	# Listen to tile change events
 	manager.connect("targeting_new_tile", Callable(self, "_on_targeting_new_tile"))
