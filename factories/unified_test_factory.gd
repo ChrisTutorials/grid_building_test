@@ -199,17 +199,22 @@ static func create_owner_context(test: GdUnitTestSuite) -> GBOwnerContext:
 	var user := Node2D.new()
 	test.auto_free(user)
 	test.add_child(user)
-context.set_owner(user)
+	var gb_owner := GBOwner.new(user)
+	test.auto_free(gb_owner)
+	context.set_owner(gb_owner)
 	return context
 
 static func create_test_owner_context(test: GdUnitTestSuite) -> GBOwnerContext:
 	var context := GBOwnerContext.new()
 	var user := create_test_node2d(test)
-context.set_owner(user)
+	var gb_owner := GBOwner.new(user)
+	test.auto_free(gb_owner)
+	context.set_owner(gb_owner)
 	return context
 
 # ================================
 # Placement
+# ================================
 # ================================
 
 static func create_placement_manager(test: GdUnitTestSuite, targeting_state: GridTargetingState = null) -> PlacementManager:

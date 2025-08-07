@@ -11,11 +11,12 @@ var positioner: ShapeCast2D
 var test_indicator: RuleCheckIndicator
 
 func before_test():
-		# Create test dependencies using factory methods
+	# Create test dependencies using factory methods
 	var owner_context: GBOwnerContext = auto_free(GBOwnerContext.new())
 	var user: Node2D = auto_free(Node2D.new())
 	add_child(user)
-owner_context.set_owner(user)
+	var gb_owner: GBOwner = auto_free(GBOwner.new(user))
+	owner_context.set_owner(gb_owner)
 	targeting_state = GridTargetingState.new(owner_context)
 
 	# Create tile map with known tile size (16x16)
@@ -31,9 +32,10 @@ owner_context.set_owner(user)
 	# Set up targeting state
 	targeting_state.positioner = positioner
 	targeting_state.target_map = tile_map
+	targeting_state.maps = [tile_map]
 
-	# Create collision mapper using factory method
-	collision_mapper = CollisionMapper.create_with_injection(TEST_CONTAINER)
+	# Create collision mapper with our targeting state
+	collision_mapper = CollisionMapper.new(targeting_state, TEST_CONTAINER.get_logger())
 
 	# Create test indicator
 	test_indicator = auto_free(RuleCheckIndicator.new([], TEST_CONTAINER.get_logger()))
