@@ -13,8 +13,7 @@ func test_queue_free_manipulation_objects() -> void:
 
 ## Creates a manipulation where the generated object is both the source and the target
 func create_manipulation(p_action : GBEnums.Action) -> ManipulationData:
-	var root = auto_free(Node2D.new())
-	add_child(root)
+	var root = GodotTestFactory.create_node2d(self)
 	var source = auto_free(Manipulatable.new())
 	root.add_child(source)
 	var manipulator = auto_free(Node.new())

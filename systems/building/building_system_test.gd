@@ -51,7 +51,7 @@ func before_test():
 	add_child(system)
 	
 	user_state = GBOwnerContext.new()
-user_state.set_owner(placer)
+	user_state.set_owner(placer)
 	system.targeting_state.origin_state = user_state
 	
 	_placement_context = PlacementContext.new()

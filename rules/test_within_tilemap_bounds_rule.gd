@@ -20,8 +20,7 @@ func before_test():
 	rule = WithinTilemapBoundsRule.new()
 	var logger = TEST_CONTAINER.get_logger()
 	rule.initialize(logger)
-	var target : Node2D = auto_free(Node2D.new())
-	add_child(target)
+	var target : Node2D = GodotTestFactory.create_node2d(self)
 	rule_validation_params = RuleValidationParameters.new(self, target, targeting_state)
 
 	## Setup & Assert Check!

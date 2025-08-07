@@ -38,7 +38,7 @@ func before_test():
 	targeting_state.maps = [map_layer]
 	
 	var placer : Node = auto_free(Node.new())
-	var placement_node : Node2D =  auto_free(Node2D.new())
+	var placement_node : Node2D = GodotTestFactory.create_node2d(self)
 	
 	## This must validate successfully
 	var problems := rule.setup(RuleValidationParameters.new(placer, placement_node, targeting_state))

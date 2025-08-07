@@ -1,6 +1,8 @@
 # Single GdUnitTestSuite extension
 extends GdUnitTestSuite
 
+const GodotTestFactory = preload("res://test/grid_building_test/factories/godot_test_factory.gd")
+
 # Test for DragBuildManager to ensure only one event per tile location
 
 var manager: DragBuildManager
@@ -8,15 +10,25 @@ var events: Array[Vector2i] = []
 
 func before_test():
 	events = []
-	# Create manager and set up for testing
-	manager = DragBuildManager.new()
-	auto_free(manager)
+	# Create targeting state with proper positioner setup using GodotTestFactory
+	var targeting_state = auto_free(GridTargetingState.new(auto_free(GBOwnerContext.new())))
+	
+	# Create positioner using GodotTestFactory - it automatically adds as child
+	var positioner = GodotTestFactory.create_node2d(self)
+	targeting_state.positioner = positioner
+	
+	# Create target map with proper setup
+	var target_map = GodotTestFactory.create_tile_map_layer(self)
+	targeting_state.target_map = target_map
+	
+	# Create manager with targeting state
+	manager = auto_free(DragBuildManager.new(targeting_state))
 	add_child(manager)
-	# Create valid targeting state and positioner for DragPathData
-	var targeting_state = UnifiedTestFactory.create_targeting_state(self)
-	add_child(targeting_state.positioner)
-	var data = DragPathData.new(targeting_state.positioner, targeting_state)
+	
+	# Create DragPathData with proper positioner
+	var data = DragPathData.new(positioner, targeting_state)
 	manager.drag_data = data
+	
 	# Listen to tile change events
 	manager.connect("targeting_new_tile", Callable(self, "_on_targeting_new_tile"))
 

@@ -74,7 +74,6 @@ func test_benchmark_collision_mapping_workflow():
 	
 	# Create and set up the positioner node that CollisionMapper expects
 	var positioner: Node2D = GodotTestFactory.create_node2d(self)
-	add_child(positioner)
 	positioner.global_position = Vector2.ZERO
 	targeting_state.positioner = positioner
 	
@@ -86,9 +85,9 @@ func test_benchmark_collision_mapping_workflow():
 		var area = auto_free(Area2D.new())
 		add_child(area)
 		area.collision_layer = 1
+		
 		var shape = auto_free(CollisionShape2D.new())
-		var rect_shape = RectangleShape2D.new()
-		rect_shape.size = Vector2(32, 32)
+		var rect_shape = GodotTestFactory.create_rectangle_shape(Vector2(32,32))
 		shape.shape = rect_shape
 		area.add_child(shape)
 		test_objects.append(area)
@@ -172,7 +171,6 @@ func test_benchmark_optimized_collision_mapping_workflow():
 	
 	# Create and set up the positioner node that CollisionMapper expects
 	var positioner: Node2D = GodotTestFactory.create_node2d(self)
-	add_child(positioner)
 	positioner.global_position = Vector2.ZERO
 	targeting_state.positioner = positioner
 	

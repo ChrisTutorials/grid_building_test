@@ -53,6 +53,52 @@ var validator = UnifiedTestFactory.create_test_placement_validator_with_injectio
 - **Test doubles**: `create_double_targeting_state(test)`
 - **Test helpers**: `create_test_logger()`, `create_test_node2d(test)`
 - **Complex setup**: Node creation, scene configuration
+
+## Node Creation Guidelines
+
+### Use GodotTestFactory for Basic Godot Nodes
+
+**Always use GodotTestFactory methods when creating basic Godot nodes** as they automatically handle:
+- `auto_free()` call for proper cleanup  
+- Adding as child to the test suite
+- Type safety with explicit type declarations
+
+```gdscript
+# ✅ CORRECT: Use GodotTestFactory for basic nodes
+var node: Node2D = GodotTestFactory.create_node2d(self)
+var body: StaticBody2D = GodotTestFactory.create_static_body_with_rect_shape(self)
+var tile_map: TileMapLayer = GodotTestFactory.create_tile_map_layer(self)
+var positioner: Node2D = GodotTestFactory.create_node2d(self)
+
+# ❌ INCORRECT: Manual node creation
+var node = auto_free(Node2D.new())  # Missing type, manual management
+add_child(node)  # Manual child addition
+
+# ❌ CRITICAL ERROR: Double add_child with GodotTestFactory
+var node = GodotTestFactory.create_node2d(self)  # Already adds as child!
+add_child(node)  # ERROR: Node is already a child
+```
+
+**IMPORTANT:** Never call `add_child()` on nodes created with `GodotTestFactory.create_*` methods as they automatically add the node as a child to the test suite.
+
+### Node Creation in Test Parameters
+
+```gdscript
+# ❌ INCORRECT: Cannot call factory methods in parameters
+func test_example(node: Node2D, test_parameters := [
+    [GodotTestFactory.create_node2d(self)]  # This won't work
+]):
+
+# ✅ CORRECT: Create nodes in test body
+func test_example(node_type: int, test_parameters := [
+    [0], [1], [2]  # Use simple values in parameters
+]):
+    var node: Node2D
+    match node_type:
+        0: node = GodotTestFactory.create_node2d(self)
+        1: node = GodotTestFactory.create_static_body_with_rect_shape(self)
+        2: node = GodotTestFactory.create_collision_polygon(self)
+```
 - **Convenience methods**: System creation with test auto_free and add_child
 
 ```gdscript

@@ -7,17 +7,15 @@ var positioner: Node2D
 var tile_map_layer: TileMapLayer
 
 func before_test():
-	# Create test setup
+	# Create test setup using GodotTestFactory
 	var owner_context = auto_free(GBOwnerContext.new())
 	targeting_state = GridTargetingState.new(owner_context)
 	
-	tile_map_layer = auto_free(TileMapLayer.new())
-	add_child(tile_map_layer)
-	tile_map_layer.tile_set = TileSet.new()
+	tile_map_layer = GodotTestFactory.create_tile_map_layer(self)
 	tile_map_layer.tile_set.tile_size = Vector2(16, 16)
 	targeting_state.target_map = tile_map_layer
 	
-	positioner = auto_free(Node2D.new())
+	positioner = GodotTestFactory.create_node2d(self)
 	targeting_state.positioner = positioner
 
 ## Test that the positioner position affects both preview and indicator positioning consistently
