@@ -38,7 +38,7 @@ func before_test():
 	collision_mapper = auto_free(CollisionMapper.new(targeting_state, logger))
 
 ## Test _get_cached_polygon_bounds helper method with various polygon shapes
-func test_get_cached_polygon_bounds_helper(polygon: PackedVector2Array, expected_bounds: Rect2, _test_parameters := [
+func test_get_cached_polygon_bounds_helper(polygon: PackedVector2Array, expected_bounds: Rect2, test_parameters := [
 	[PackedVector2Array([Vector2(10, 5), Vector2(30, 5), Vector2(30, 25), Vector2(10, 25)]), Rect2(10, 5, 20, 20)],
 	[PackedVector2Array([Vector2(0, 0), Vector2(16, 0), Vector2(16, 16), Vector2(0, 16)]), Rect2(0, 0, 16, 16)],
 	[PackedVector2Array([Vector2(-8, -4), Vector2(8, -4), Vector2(8, 4), Vector2(-8, 4)]), Rect2(-8, -4, 16, 8)],
@@ -56,7 +56,7 @@ func test_get_cached_polygon_bounds_helper(polygon: PackedVector2Array, expected
 	assert_vector(cached_bounds.size).is_equal(bounds.size)
 
 ## Test _get_cached_tile_polygon helper method with different tile configurations
-func test_get_cached_tile_polygon_helper(tile_pos: Vector2, tile_size: Vector2, tile_type: int, expected_vertices: int, _test_parameters := [
+func test_get_cached_tile_polygon_helper(tile_pos: Vector2, tile_size: Vector2, tile_type: int, expected_vertices: int, test_parameters := [
 	[Vector2(0, 0), Vector2(16, 16), 0, 4],      # Square tile at origin
 	[Vector2(32, 32), Vector2(16, 16), 0, 4],    # Square tile offset
 	[Vector2(64, 64), Vector2(32, 32), 0, 4],    # Larger square tile
@@ -107,7 +107,7 @@ func test_cache_helpers_with_complex_geometry():
 	var triangle_bounds = collision_mapper._get_cached_polygon_bounds(triangle)
 	assert_vector(triangle_bounds.position).is_equal(Vector2(0, 0))
 	assert_vector(triangle_bounds.size).is_equal(Vector2(10, 8))
-	
+
 	# Test with complex polygon (hexagon)
 	var hexagon = PackedVector2Array()
 	var center = Vector2(50, 50)
@@ -115,11 +115,11 @@ func test_cache_helpers_with_complex_geometry():
 	for i in range(6):
 		var angle = i * PI * 2.0 / 6
 		hexagon.append(center + Vector2(cos(angle), sin(angle)) * radius)
-	
+
 	var hexagon_bounds = collision_mapper._get_cached_polygon_bounds(hexagon)
-	assert_float(hexagon_bounds.size.x).is_greater(35.0)  # Should be about 40
-	assert_float(hexagon_bounds.size.y).is_greater(35.0)  # Should be about 40
-	
+	assert_float(hexagon_bounds.size.x).is_greater_equal(34.64)  # Should be about 34.64
+	assert_float(hexagon_bounds.size.y).is_greater_equal(34.64)  # Should be about 34.64
+
 	# Verify both are cached
 	assert_int(collision_mapper._polygon_bounds_cache.size()).is_equal(2)
 

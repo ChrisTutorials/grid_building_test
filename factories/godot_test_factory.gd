@@ -33,7 +33,7 @@ static func create_tile_size(size: int = 16) -> Vector2:
 ## Creates a basic Node2D for testing with proper auto_free setup
 static func create_node2d(test: GdUnitTestSuite) -> Node2D:
 	var node: Node2D = test.auto_free(Node2D.new())
-	# Don't add to test here - let caller decide if it needs to be in scene tree
+	test.add_child(node)
 	return node
 
 ## Creates a Node with auto_free setup
@@ -73,7 +73,7 @@ static func create_tile_map_layer(test: GdUnitTestSuite, grid_size: int = 200) -
 static func create_empty_tile_map_layer(test: GdUnitTestSuite) -> TileMapLayer:
 	var map_layer: TileMapLayer = test.auto_free(TileMapLayer.new())
 	map_layer.tile_set = TileSet.new()
-	# Don't add to test here - let caller decide if it needs to be in scene tree
+	test.add_child(map_layer)
 	return map_layer
 
 # ================================

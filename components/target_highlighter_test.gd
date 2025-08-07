@@ -155,4 +155,5 @@ func test_should_highlight(p_data : ManipulationData, p_new_target : CanvasItem,
 	[data_source_is_not_target, data_source_is_target.target.root, false]
 ]) -> void:
 	assert_bool(highlighter.should_highlight(p_data, p_new_target)).is_equal(p_expected)
-	p_new_target.free()
+	if p_new_target:
+		p_new_target.free()
