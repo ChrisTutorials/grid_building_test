@@ -75,7 +75,7 @@ func test_complete_building_workflow():
 	
 	# Step 2: Create preview instance
 	building_system.instance_preview(test_placeable)
-	var preview = building_system.state.preview
+	var preview = TEST_CONTAINER.get_states().building.preview
 	assert_object(preview).is_not_null()
 	assert_object(preview.get_script()).is_same(load("uid://dvt7wrugafo5o"))
 	
@@ -106,8 +106,8 @@ func test_complete_building_workflow():
 		var new_position = original_position + Vector2(32, 32)
 		positioner.global_position = new_position
 		
-		# Simulate manipulation system updating position
-		manipulation_system._on_positioner_moved()
+		# Movement will be processed by systems on next frame
+		await get_tree().process_frame
 		
 		# Verify position changed (approximately, due to grid snapping)
 		assert_vector(manipulatable.global_position).is_not_equal(original_position)
@@ -123,7 +123,7 @@ func test_placement_validation_workflow():
 	
 	# Trigger placement validation through placement manager
 	var placement_manager = TEST_CONTAINER.get_contexts().placement.get_manager()
-	var validation_result = placement_manager.validate()
+	var validation_result = placement_manager.validate_placement()
 	
 	# Should be valid at center of map
 	assert_bool(validation_result.is_successful).is_true()
@@ -131,7 +131,7 @@ func test_placement_validation_workflow():
 	# Test invalid placement position (far outside map bounds)
 	positioner.global_position = Vector2(10000, 10000)
 	
-	validation_result = placement_manager.validate()
+	validation_result = placement_manager.validate_placement()
 	
 	# Should be invalid outside map bounds
 	assert_bool(validation_result.is_successful).is_false()
@@ -177,7 +177,7 @@ func test_workflow_error_handling():
 	assert_object(result).is_null()
 	
 	# Test manipulation without target
-	manipulation_system.state.current_target = null
+	TEST_CONTAINER.get_states().manipulation.current_target = null
 	# Should handle gracefully without crashing
-	manipulation_system._on_positioner_moved()
+	await get_tree().process_frame
 	# No assertion needed - just verify no crash

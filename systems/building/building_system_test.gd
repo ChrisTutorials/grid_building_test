@@ -24,7 +24,6 @@ var placeable_2d_test : Placeable = load("uid://jgmywi04ib7c")
 var default_preview_script : GDScript = load("uid://cufp4o5ctq6ak")
 
 func before_test():
-	
 	placer = GodotTestFactory.create_node2d(self)
 	
 	placed_parent = GodotTestFactory.create_node2d(self)
@@ -41,8 +40,9 @@ func before_test():
 	mode_state = ModeState.new()
 	system = auto_free(BuildingSystem.create_with_injection(_container))
 	system.mode_state = mode_state
-	system.state = states.building
-	system.targeting_state = targeting_state
+	# Removed back-compat alias usage
+	# system.state = states.building
+	# system.targeting_state = targeting_state
 
 	## Turn debug on for testing
 	system.debug = GBDebugSettings.new(GBDebugSettings.DebugLevel.INFO)
@@ -60,9 +60,9 @@ func before_test():
 	grid_positioner.add_child(placement_manager)
 	system.placement_validator.indicator_manager = placement_manager
 	
-	system.state = states.building
-	system.state.placer_state = user_state
-	system.state.placed_parent = placed_parent
+	# Assign building state via container directly
+	states.building.placer_state = user_state
+	states.building.placed_parent = placed_parent
 	system.settings = TestSceneLibrary.building_settings.duplicate(true)
 	
 func test_before_test_setup():
@@ -130,7 +130,7 @@ func test_set_buildable_preview():
 		fail("Buildable preview should have successfully instanced")
 		return
 		
-	var preview_instance = system.state.preview
+	var preview_instance = _container.get_states().building.preview
 	
 	if not preview_instance:
 		fail("Preview instance should have been instanced. Stopping test.")
@@ -161,7 +161,7 @@ func test_set_buildable_preview_keep_script_test(p_script : Script, test_paramet
 	scripted_node.free()
 	var is_preview_set = system.set_buildable_preview(placeable_test)
 	assert_bool(is_preview_set).is_true()
-	var preview_instance = system.state.preview
+	var preview_instance = _container.get_states().building.preview
 	
 	assert_object(preview_instance).append_failure_message("Preview instanced should be a valid node.").is_instanceof(Node2D)
 	assert_object(preview_instance.get_script()).is_same(p_script)
@@ -177,8 +177,8 @@ func test_try_build(p_placeable : Placeable, ex_null_result : bool, test_paramet
 	system.selected_placeable = p_placeable
 	
 	if p_placeable != null && p_placeable.packed_scene != null:
-		system.state.preview = p_placeable.packed_scene.instantiate()
-		add_child(system.state.preview)
+		_container.get_states().building.preview = p_placeable.packed_scene.instantiate()
+		add_child(_container.get_states().building.preview)
 	
 	var result = system.try_build()
 	assert_bool(result == null).is_equal(ex_null_result)
@@ -191,8 +191,8 @@ func test__build(p_placeable : Placeable, p_expected : Variant, test_parameters 
 	system.selected_placeable = p_placeable
 	
 	if p_placeable != null && p_placeable.packed_scene != null:
-		system.state.preview = auto_free(p_placeable.packed_scene.instantiate())
-		add_child(system.state.preview)
+		_container.get_states().building.preview = auto_free(p_placeable.packed_scene.instantiate())
+		add_child(_container.get_states().building.preview)
 	
 	var result = system._build()
 	assert_object(result).is_equal(p_expected)

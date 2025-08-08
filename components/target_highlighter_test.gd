@@ -3,7 +3,7 @@ extends GdUnitTestSuite
 @warning_ignore('unused_parameter')
 @warning_ignore('return_value_discarded')
 
-const GodotTestFactory = preload("res://test/grid_building_test/factories/godot_test_factory.gd")
+const GodotTestFactory = preload("uid://gjdnvpg3cyqm")
 
 # TestSuite generated from
 

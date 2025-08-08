@@ -115,7 +115,7 @@ func test_demolish(p_demolish_target : Manipulatable, p_expected : bool, test_pa
 	var result : bool = await system.demolish(p_demolish_target)
 	assert_bool(result).append_failure_message("Result of demolish does not match expected boolean value").is_equal(p_expected)
 	#if p_expected == false:
-	#	await assert_signal(manipulation_state).append_failure_message("Expected failed signal in test_demolish in ManipulationSystemTest").wait_until(200).is_emitted(manipulation_state.failed.get_name(), [any(), any()])
+	#	wait assert_signal(manipulation_state)....
 
 
 @warning_ignore("unused_parameter")
@@ -148,7 +148,7 @@ func test_rotate_node2d_target_rotates_correctly(p_manipulatable : Manipulatable
 	[all_manipulatable]
 ]) -> void:
 	var target : Node2D = p_manipulatable.root
-	add_child(target)
+	# target is already added by the factory; avoid re-adding to prevent duplicate parent error
 
 	var rotation_increment = 45.0
 	var expected_rotation_degrees = 0.0
@@ -198,25 +198,19 @@ func test_try_placement(p_settings : ManipulatableSettings, p_expected : bool, t
 	[TestSceneLibrary.manipulatable_settings_all_allowed, true]
 ]) -> void:
 	var source = create_manipulatable_object(p_settings)
-	var copy : Manipulatable = source.create_copy("Placement")
-	add_child(copy.root)
-	var copy_root = copy.root
-	# Careful to duplicate the entire root and not the manipulatable component directly
-	assert_object(source).append_failure_message("The [Manipulatable] components must be different between the duplicate and original").is_not_same(copy)
-	assert_object(source.root).append_failure_message("Root should be different.").is_not_same(copy.root)
-	
-	var move_data = ManipulationData.new(manipulator, source, copy, GBEnums.Action.MOVE)
+	# Prepare move data without a pre-made target; _start_move will create it and set up validation
+	var move_data = ManipulationData.new(manipulator, source, null, GBEnums.Action.MOVE)
+	var started := system._start_move(move_data)
+	assert_bool(started).append_failure_message("Placement validator has not been successfully setup. Must run setup with true result.").is_true()
 	_container.get_states().manipulation.data = move_data
 	var test_location = Vector2(1000, 1000)
 	
-	# Move copy to new location and try placement which should move original source.root to the new location and
-	# then free the copy.root from the scene
-	copy.root.global_position = test_location
+	# Move the temporary target copy to the new location and try placement
+	move_data.target.root.global_position = test_location
 	var placement_results : ValidationResults = await system.try_placement(move_data)
 	
 	assert_bool(placement_results.is_successful).append_failure_message(placement_results.message).is_equal(p_expected)
-	assert_that(copy_root).append_failure_message("Should have been freed after placement").is_null()
-	assert_that(copy).append_failure_message("Copied manipulatable is null").is_null()
+	assert_that(move_data.target).append_failure_message("Should have been freed after placement").is_null()
 	assert_object(source).append_failure_message("Should still exist after placement").is_not_null()
 	assert_object(source.root).append_failure_message("Should still exist after placement").is_not_null()
 	assert_vector(source.root.global_position).append_failure_message("Should have moved to test location").is_equal(test_location)

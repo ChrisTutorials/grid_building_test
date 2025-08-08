@@ -7,7 +7,7 @@ var indicator_template: PackedScene
 func before_test():
 	# Create a minimal test setup with a TileMapLayer
 	var tile_map_layer = auto_free(TileMapLayer.new())
-	tile_map_layer.tile_set = load("res://demos/shared/assets/tilesets/16x16_square_tileset.tres")
+	tile_map_layer.tile_set = load("uid://d11t2vm1pby6y")
 	
 	# Create owner context and targeting state
 	var owner_context = auto_free(GBOwnerContext.new())
@@ -20,7 +20,7 @@ func before_test():
 	placement_manager.targeting_state = targeting_state
 	
 	# Load the indicator template
-	indicator_template = load("res://addons/grid_building/base/rule_check_indicator/rule_check_indicator.tscn")
+	indicator_template = load("uid://dhox8mb8kuaxa")
 
 ## Test that created indicators have the correct global positions in the scene tree
 func test_actual_indicator_positioning():

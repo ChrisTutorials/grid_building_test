@@ -4,13 +4,13 @@ extends GdUnitTestSuite
 @warning_ignore('return_value_discarded')
 
 
-var placeable_path = "res://test/grid_building_test/resources/placeable/test_placeable_rect_15_tiles.tres"
+var placeable_path = "uid://cqknt0ejxvq4m"
 
 func test_instance_from_save_does_not_duplicate_node():
 	var save = {
 		PlaceableInstance.Names.INSTANCE_NAME: "ZZZTestInstance",
 		PlaceableInstance.Names.PLACEABLE: {
-			Placeable.Names.FILE_PATH: placeable_path
+			Placeable.Names.UID: placeable_path
 		},
 		PlaceableInstance.Names.TRANSFORM: var_to_str(Transform2D.IDENTITY)
 	}

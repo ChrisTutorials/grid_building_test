@@ -48,7 +48,7 @@ func test_positioner_preview_indicator_alignment():
 	
 	# Test indicator positioning using current logic
 	var indicator = auto_free(RuleCheckIndicator.new())
-	var indicator_template = load("res://test/grid_building_test/scenes/indicators/test_indicator.tscn")
+	var indicator_template = load("uid://dhox8mb8kuaxa")
 	var logger = GBLogger.new(GBDebugSettings.new())
 	var indicator_manager = IndicatorManager.new(positioner, targeting_state, indicator_template, logger)
 	
