@@ -58,7 +58,6 @@ func before_test():
 	placement_manager = auto_free(PlacementManager.new())
 	placement_manager.resolve_gb_dependencies(_container)
 	grid_positioner.add_child(placement_manager)
-	system.placement_validator.indicator_manager = placement_manager
 	
 	# Assign building state via container directly
 	states.building.placer_state = user_state

@@ -51,11 +51,11 @@ func before_test():
 	building_state.placed_parent = placed_parent
 	
 	# Configure owner context (required for some operations)
-	var owner_context = TEST_CONTAINER.get_owner_context()
-	var mock_owner = auto_free(Node2D.new())
-	mock_owner.name = "TestOwner"
-	add_child(mock_owner)
-	owner_context.owner = mock_owner
+	var owner_context: GBOwnerContext = TEST_CONTAINER.get_contexts().owner
+	var mock_owner_node = auto_free(Node2D.new())
+	mock_owner_node.name = "TestOwner"
+	add_child(mock_owner_node)
+	owner_context.set_owner(GBOwner.new(mock_owner_node))
 	
 	# Validate system dependencies
 	var building_issues = building_system.validate_dependencies()

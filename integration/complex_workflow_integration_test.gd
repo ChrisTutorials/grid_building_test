@@ -30,9 +30,9 @@ func before_test():
 	level_context.objects_parent = auto_free(Node2D.new())
 	add_child(level_context.objects_parent)
 	
-	# Register contexts in container
-	composition_container.register_owner_context(owner_context)
-	composition_container.register_level_context(level_context)
+	# Apply contexts using new API
+	composition_container.get_contexts().owner = owner_context
+	level_context.apply_to(composition_container.get_targeting_state(), composition_container.get_building_state())
 	
 	# Create systems with proper methods
 	building_system = BuildingSystem.create_with_injection(composition_container)
