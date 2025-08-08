@@ -50,7 +50,8 @@ func before_test():
 	add_child(system)
 	
 	user_state = GBOwnerContext.new()
-	user_state.set_owner(placer)
+	var gb_owner := GBOwner.new(placer)
+	user_state.set_owner(gb_owner)
 	system.targeting_state.origin_state = user_state
 	
 	_placement_context = PlacementContext.new()
@@ -66,8 +67,8 @@ func before_test():
 	
 func test_before_test_setup():
 	assert_object(system).is_not_null()
-	var problems = system.validate_dependencies()
-	assert_array(problems).is_empty()
+	var issues = system.validate_dependencies()
+	assert_array(issues).is_empty()
 
 @warning_ignore("unused_parameter")
 func test_instance_preview_fails(p_placeable : Variant, p_warning : String, test_parameters := [

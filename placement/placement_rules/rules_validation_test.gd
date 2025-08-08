@@ -17,7 +17,9 @@ func before():
 func before_test():
 	user_state = GBOwnerContext.new()
 	var _user_node = GodotTestFactory.create_node2d(self)
-	user_state.set_owner(_user_node)
+	# Wrap user node in GBOwner
+	var gb_owner := GBOwner.new(_user_node)
+	user_state.set_owner(gb_owner)
 
 	var positioner = GodotTestFactory.create_node2d(self)
 	add_child(positioner)
@@ -37,7 +39,7 @@ func before_test():
 
 func test_no_col_valid_placement_both_pass_with_test_resources():
 	var test_node = auto_free(Node2D.new())
-	var validation_params = setup_validation_no_col_and_buildable(test_node)
+	var _validation_params = setup_validation_no_col_and_buildable(test_node)
 
 	var validation_results = placement_validator.validate()
 	assert_object(validation_results).is_not_null()

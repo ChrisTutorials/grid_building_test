@@ -18,7 +18,9 @@ func before():
 func before_test():
 	user_state = GBOwnerContext.new()
 	var _user_node = GodotTestFactory.create_node2d(self)
-	user_state.set_owner(_user_node)
+	# Wrap the Node2D in a GBOwner for the context
+	var gb_owner := GBOwner.new(_user_node)
+	user_state.set_owner(gb_owner)
 
 	var positioner = GodotTestFactory.create_node2d(self)
 

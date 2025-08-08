@@ -43,10 +43,16 @@ func before_test():
 	targeting_state.positioner = auto_free(Node2D.new())
 	add_child(targeting_state.positioner)
 	_owner_context = GBOwnerContext.new()
-	_owner_context.set_owner(placer)
+	# Use a proper GBOwner instead of a raw Node
+	var gb_owner := GBOwner.new(placer)
+	_owner_context.set_owner(gb_owner)
 	targeting_state.origin_state = _owner_context
 	
 	_placement_context = PlacementContext.new()
+	
+	# Create validator before using it
+	validator = PlacementValidator.create_with_injection(_container)
+	assert_object(validator).is_not_null()
 	
 	preview_instance = TestSceneLibrary.placeable_eclipse.packed_scene.instantiate() as Node2D
 	validator.indicator_manager.add_child(preview_instance)
@@ -57,10 +63,6 @@ func before_test():
 	test_params = RuleValidationParameters.new(
 		placer, preview_instance, targeting_state
 	)
-	
-	# Use static factory method with container instead of UnifiedTestFactory
-	validator = PlacementValidator.create_with_injection(_container)
-	assert_object(validator).is_not_null()
 	
 func after_test():
 	map_layer.free()

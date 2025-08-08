@@ -123,7 +123,7 @@ func test_placement_validation_workflow():
 	
 	# Trigger placement validation through placement manager
 	var placement_manager = TEST_CONTAINER.get_contexts().placement.get_manager()
-	var validation_result = placement_manager.validate_placement()
+	var validation_result = placement_manager.validate()
 	
 	# Should be valid at center of map
 	assert_bool(validation_result.is_successful).is_true()
@@ -131,7 +131,7 @@ func test_placement_validation_workflow():
 	# Test invalid placement position (far outside map bounds)
 	positioner.global_position = Vector2(10000, 10000)
 	
-	validation_result = placement_manager.validate_placement()
+	validation_result = placement_manager.validate()
 	
 	# Should be invalid outside map bounds
 	assert_bool(validation_result.is_successful).is_false()
