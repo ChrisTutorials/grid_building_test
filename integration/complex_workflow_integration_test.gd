@@ -11,50 +11,78 @@ var targeting_system: GridTargetingSystem
 var logger: GBLogger
 
 func before_test():
-	# Set up composition container with full system dependencies
+	# Duplicate container and wire required runtime contexts/states explicitly
 	composition_container = TEST_CONTAINER.duplicate(true)
 	
-	# Create test owner context
+	# Owner context & user root
 	var owner_context: GBOwnerContext = auto_free(GBOwnerContext.new())
 	var user: Node2D = auto_free(Node2D.new())
+	user.name = "TestUser"
 	add_child(user)
-	var gb_owner: GBOwner = auto_free(GBOwner.new(user))
-	owner_context.set_owner(gb_owner)	# Create level context with tile map
-	var level_context: GBLevelContext = auto_free(GBLevelContext.new())
-	var tile_map_layer: TileMapLayer = auto_free(TileMapLayer.new())
-	var tile_set = TileSet.new()
-	tile_set.tile_size = Vector2i(32, 32)
-	tile_map_layer.tile_set = tile_set
-	add_child(tile_map_layer)
-	level_context.target_map = tile_map_layer
-	level_context.objects_parent = auto_free(Node2D.new())
-	add_child(level_context.objects_parent)
-	
-	# Apply contexts using new API
+	owner_context.set_owner(GBOwner.new(user))
 	composition_container.get_contexts().owner = owner_context
-	level_context.apply_to(composition_container.get_targeting_state(), composition_container.get_building_state())
 	
-	# Create systems with proper methods
+	# Create tile map layer (target map) fully populated so validation passes
+	var tile_map_layer: TileMapLayer = auto_free(TileMapLayer.new())
+	var tile_set := load("uid://d11t2vm1pby6y")
+	if tile_set:
+		# Use existing tileset from resources
+		tile_map_layer.tile_set = tile_set
+	else:
+		var fallback_ts := TileSet.new()
+		fallback_ts.tile_size = Vector2i(32, 32)
+		tile_map_layer.tile_set = fallback_ts
+	for x in range(-10, 10):
+		for y in range(-10, 10):
+			tile_map_layer.set_cell(Vector2i(x, y), 0, Vector2i(0,0))
+	add_child(tile_map_layer)
+	
+	# Positioner for targeting
+	var positioner: Node2D = auto_free(Node2D.new())
+	positioner.name = "Positioner"
+	add_child(positioner)
+	
+	# Wire targeting state directly (avoid factory using unrelated state)
+	var targeting_state := composition_container.get_states().targeting
+	targeting_state.target_map = tile_map_layer
+	targeting_state.maps = [tile_map_layer]
+	targeting_state.positioner = positioner
+	
+	# Building state placed parent
+	var placed_parent: Node2D = auto_free(Node2D.new())
+	placed_parent.name = "PlacedObjects"
+	add_child(placed_parent)
+	composition_container.get_states().building.placed_parent = placed_parent
+	
+	# Instantiate systems with injection so they all share same container/state
 	building_system = BuildingSystem.create_with_injection(composition_container)
-	placement_manager = UnifiedTestFactory.create_test_placement_manager(self)
+	add_child(building_system)
 	targeting_system = GridTargetingSystem.create_with_injection(composition_container)
+	add_child(targeting_system)
+	# Use injected placement manager rather than mismatched test factory manager
+	placement_manager = PlacementManager.create_with_injection(composition_container)
+	add_child(placement_manager)
 	logger = composition_container.get_logger()
 	
-	# Add systems to test suite for proper lifecycle management  
-	add_child(building_system)
-	add_child(targeting_system)
+	# Validate dependency health early for clearer failure messages
+	var early_issues := []
+	early_issues.append_array(building_system.validate_dependencies())
+	early_issues.append_array(targeting_system.validate_dependencies())
+	early_issues.append_array(placement_manager.validate_dependencies())
+	if not early_issues.is_empty():
+		push_warning("Early dependency issues detected: %s" % str(early_issues))
 
 ## Test complete building workflow with validation and caching
 func test_complete_building_workflow():
 	# Validate all systems have proper dependencies
 	var building_validation = building_system.validate_dependencies()
-	assert_array(building_validation).is_empty()
+	assert_array(building_validation).append_failure_message("Building validation issues: %s" % str(building_validation)).is_empty()
 	
 	var placement_validation = placement_manager.validate_dependencies()
-	assert_array(placement_validation).is_empty()
+	assert_array(placement_validation).append_failure_message("Placement validation issues: %s" % str(placement_validation)).is_empty()
 	
 	var targeting_validation = targeting_system.validate_dependencies()
-	assert_array(targeting_validation).is_empty()
+	assert_array(targeting_validation).append_failure_message("Targeting validation issues: %s" % str(targeting_validation)).is_empty()
 	
 	# Use a real placeable from test scene library
 	var test_placeable = TestSceneLibrary.placeable_2d_test
@@ -70,7 +98,8 @@ func test_complete_building_workflow():
 	assert_bool(success).is_true()
 	
 	# Verify systems are in correct state
-	assert_object(building_system.selected_placeable).is_equal(test_placeable)
+	# Use is_same to ensure the exact resource is selected
+	assert_object(building_system.selected_placeable).append_failure_message("Selected placeable differs from expected").is_same(test_placeable)
 	
 	# Attempt placement - should trigger validation and caching
 	var _built_object = building_system.try_build()
