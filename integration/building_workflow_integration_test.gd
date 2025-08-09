@@ -51,6 +51,12 @@ func before_test():
 	add_child(placed_parent)
 	_container.get_states().building.placed_parent = placed_parent
 
+	# Manipulation parent (required for move workflows to host move copies)
+	var manipulation_parent: Node2D = auto_free(Node2D.new())
+	manipulation_parent.name = "ManipulationParent"
+	add_child(manipulation_parent)
+	_container.get_states().manipulation.parent = manipulation_parent
+
 	# Owner context (replace with new context bound to mock owner)
 	var owner_context: GBOwnerContext = _container.get_contexts().owner
 	var mock_owner_node = auto_free(Node2D.new())
@@ -76,11 +82,20 @@ func before_test():
 	manipulation_system.resolve_gb_dependencies(_container)
 
 	# Validate dependencies early
+	var building_issues = building_system.validate_dependencies()
+	var targeting_issues = targeting_system.validate_dependencies()
+	var manipulation_issues = manipulation_system.validate_dependencies()
+	if not building_issues.is_empty():
+		print("[DIAG] BuildingSystem issues: %s" % str(building_issues))
+	if not targeting_issues.is_empty():
+		print("[DIAG] TargetingSystem issues: %s" % str(targeting_issues))
+	if not manipulation_issues.is_empty():
+		print("[DIAG] ManipulationSystem issues: %s" % str(manipulation_issues))
 	var issues: Array[String] = []
-	issues.append_array(building_system.validate_dependencies())
-	issues.append_array(targeting_system.validate_dependencies())
-	issues.append_array(manipulation_system.validate_dependencies())
-	assert_array(issues).append_failure_message("Dependency issues detected: %s" % str(issues)).is_empty()
+	issues.append_array(building_issues)
+	issues.append_array(targeting_issues)
+	issues.append_array(manipulation_issues)
+	assert_array(issues).append_failure_message("Dependency issues detected -> Building: %s | Targeting: %s | Manipulation: %s" % [str(building_issues), str(targeting_issues), str(manipulation_issues)]).is_empty()
 	_assert_no_orphans()
 
 func after_test():
@@ -125,6 +140,8 @@ func test_complete_building_workflow():
 	# Step 4: Attempt to build (place the object)
 	var placed_instance = building_system.try_build()
 	assert_object(placed_instance).is_not_null()
+	# Clear preview reference to avoid lingering node counting as orphan
+	_container.get_states().building.preview = null
 	# Ensure a Manipulatable child exists for coordination expectations
 	var existing_manip = placed_instance.find_child("Manipulatable", true, false)
 	if existing_manip == null:
@@ -138,43 +155,39 @@ func test_complete_building_workflow():
 	var expected_position = Vector2.ZERO  # Should be at positioner location
 	assert_vector(placed_instance.global_position).is_equal_approx(expected_position, Vector2.ONE)
 	
-	# Step 6: Switch to manipulation mode and verify the placed object can be manipulated
+	# Step 6: Begin manipulation move workflow
 	var manipulation_state = _container.get_states().manipulation
+	var mode_state = _container.get_states().mode
+	mode_state.current = GBEnums.Mode.MOVE
 	manipulation_state.current_target = placed_instance
-	
-	# Step 7: Test manipulation capabilities (if object has Manipulatable component)
-	var manipulatable_nodes = placed_instance.find_children("", "Manipulatable")
-	if not manipulatable_nodes.is_empty():
-		var manipulatable = manipulatable_nodes[0] as Manipulatable
-		assert_object(manipulatable).is_not_null()
-		
-		# Test move operation
-		var original_position = manipulatable.root.global_position
-		var new_position = original_position + Vector2(32, 32)
-		positioner.global_position = new_position
-		
-		# Switch mode to move to allow manipulation system to process target movement
-		var mode_state = _container.get_states().mode
-		mode_state.current = GBEnums.Mode.MOVE
-		# If no movement system updated (root still same), create fallback manipulatable component
-		if manipulatable.root.global_position == original_position and targeting_system.has_method("_update_target"):
-			targeting_system._update_target()
-		# Allow targeting & manipulation to process a few frames
-		for i in range(4):
-			await get_tree().process_frame
-			if targeting_system.has_method("_update_target"):
-				targeting_system._update_target()
-			if manipulation_system.has_method("_update_target"):
-				manipulation_system._update_target()
-		# Fallback: if still unmoved and snapped grid may keep same position, accept either snapped target near new_position
-		# Verify position changed (approximately, due to grid snapping); allow either snapped or exact move
-		assert_bool(manipulatable.root.global_position.distance_to(original_position) > 0.1).append_failure_message("Manipulatable root did not move after repositioning positioner").is_true()
-	else:
-		# If object lacks manipulatable, create one so later tests don't falsely fail
-		var fallback := Manipulatable.new()
-		fallback.name = "Manipulatable"
-		fallback.root = placed_instance
-		placed_instance.add_child(fallback)
+
+	# Acquire manipulatable component
+	var manipulatable = placed_instance.find_child("Manipulatable", true, false)
+	if manipulatable == null:
+		manipulatable = Manipulatable.new()
+		manipulatable.name = "Manipulatable"
+		manipulatable.root = placed_instance
+		placed_instance.add_child(manipulatable)
+
+	var original_position = placed_instance.global_position
+	# Initiate move (creates move copy under manipulation parent)
+	var move_data = manipulation_system.try_move(placed_instance)
+	assert_object(move_data).append_failure_message("try_move returned null data").is_not_null()
+	assert_bool(move_data.status != GBEnums.Status.FAILED).append_failure_message("Move failed: %s" % move_data.message).is_true()
+
+	# Simulate positioner reposition & system updates
+	var target_offset = Vector2(32,32)
+	positioner.global_position = original_position + target_offset
+	for i in range(4):
+		await get_tree().process_frame
+		if targeting_system.has_method("_move_positioner"):
+			targeting_system._move_positioner()
+
+	# Confirm that a move target copy exists and has been repositioned (source root stays until confirmed/finished)
+	var move_target = move_data.target
+	assert_object(move_target).append_failure_message("Expected move target copy to exist").is_not_null()
+	if move_target:
+		assert_bool(move_target.root.global_position.distance_to(original_position) > 0.1).append_failure_message("Move target did not shift after positioner move").is_true()
 	_assert_no_orphans()
 
 ## Test placement validation workflow
