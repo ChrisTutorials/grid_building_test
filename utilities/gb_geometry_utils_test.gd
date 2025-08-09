@@ -68,7 +68,7 @@ func test_get_overlapped_tiles_for_rect_smaller_fit() -> void:
 
 ## Parameterized test for get_shapes_from_owner with different node types
 @warning_ignore("unused_parameter")
-func test_get_shapes_from_owner_parameterized(_p_node : Node2D, expected_shape_type: Variant, expected_count: int, _test_parameters := [
+func test_get_shapes_from_owner_parameterized(_p_node : Node2D, expected_shape_type: Variant, expected_count: int, test_parameters := [
 	# These functions are called at runtime, not during parameter definition
 	[null, RectangleShape2D, 1], # Will be replaced with StaticBody2D in test
 	[null, ConvexPolygonShape2D, 1], # Will be replaced with CollisionPolygon2D in test
@@ -104,7 +104,7 @@ func test_get_collision_object_shapes_multiple():
 
 ## Parameterized test for get_shapes_from_owner edge cases
 @warning_ignore("unused_parameter")
-func test_get_shapes_from_owner_edge_param(node_type: int, expected_count: int, _test_parameters := [
+func test_get_shapes_from_owner_edge_param(node_type: int, expected_count: int, test_parameters := [
 	[0, 0], # Node2D
 	[1, 1], # StaticBody2D with rect shape
 	[2, 1], # CollisionPolygon2D
@@ -136,7 +136,7 @@ func test_get_all_collision_shapes_by_owner_nested():
 ## Parameterized test for get_overlapped_tiles_for_polygon
 ## Expectation: only tiles with intersection area strictly greater than epsilon are included
 @warning_ignore("unused_parameter")
-func test_get_overlapped_tiles_for_polygon_param(polygon: PackedVector2Array, tile_size: Vector2, tile_type: int, expected: Array[Vector2i], epsilon: float, _test_parameters := [
+func test_get_overlapped_tiles_for_polygon_param(polygon: PackedVector2Array, tile_size: Vector2, tile_type: int, expected: Array[Vector2i], epsilon: float, test_parameters := [
 ## Triangle, square tile size 16 (counts area overlap against tile (0,0))
  [PackedVector2Array([Vector2(0,0), Vector2(16,0), Vector2(8,16)]), Vector2(16,16), GBEnums.TileType.SQUARE, [Vector2i(0,0)], 0.01],
 ## Thin rectangle, square tile size 16 (actual overlap is only tile (1,0))
@@ -159,7 +159,7 @@ func test_get_overlapped_tiles_for_polygon_param(polygon: PackedVector2Array, ti
 ## This group reflects current behavior for RectangleShape2D conversion; expectations are
 ## documented per case.
 @warning_ignore("unused_parameter")
-func test_is_tile_covered_by_collision_shape_param(tile_pos: Vector2, tile_size: Vector2, shape_type: int, shape_pos: Vector2, shape_extents: Vector2, tile_type: int, expected: bool, _test_parameters := [
+func test_is_tile_covered_by_collision_shape_param(tile_pos: Vector2, tile_size: Vector2, shape_type: int, shape_pos: Vector2, shape_extents: Vector2, tile_type: int, expected: bool, test_parameters := [
  # Tile at (0,0), RectangleShape2D at (16,16) (touches at one point, actual: true)
  [Vector2(0,0), Vector2(16,16), 0, Vector2(16,16), Vector2(8,8), GBEnums.TileType.SQUARE, true],
  # Tile at (0,0), RectangleShape2D at (0,16) (touches at edge, actual: true)
@@ -177,7 +177,7 @@ func test_is_tile_covered_by_collision_shape_param(tile_pos: Vector2, tile_size:
 ## Parameterized test: is_tile_covered_by_collision_polygon
 ## Point/edge contact should NOT count; area must be > epsilon
 @warning_ignore("unused_parameter")
-func test_is_tile_covered_by_collision_polygon_param(tile_pos: Vector2, tile_size: Vector2, polygon: PackedVector2Array, tile_type: int, expected: bool, _test_parameters := [
+func test_is_tile_covered_by_collision_polygon_param(tile_pos: Vector2, tile_size: Vector2, polygon: PackedVector2Array, tile_type: int, expected: bool, test_parameters := [
 	# Tile at (0,0), polygon vertex at (16,16) (touches at one point)
 	[Vector2(0,0), Vector2(16,16), PackedVector2Array([Vector2(16,16), Vector2(32,16), Vector2(32,32), Vector2(16,32)]), GBEnums.TileType.SQUARE, false],
 	# Tile at (0,0), polygon edge at y=16 (touches at edge)
@@ -192,7 +192,7 @@ func test_is_tile_covered_by_collision_polygon_param(tile_pos: Vector2, tile_siz
 ## Parameterized test: get_overlapped_tiles_for_polygon
 ## Single-point/edge contact should NOT count as collision (area must be > epsilon)
 @warning_ignore("unused_parameter")
-func test_get_overlapped_tiles_for_polygon_single_point_param(polygon: PackedVector2Array, tile_size: Vector2, tile_type: int, expected: Array[Vector2i], epsilon: float, _test_parameters := [
+func test_get_overlapped_tiles_for_polygon_single_point_param(polygon: PackedVector2Array, tile_size: Vector2, tile_type: int, expected: Array[Vector2i], epsilon: float, test_parameters := [
  # Polygon vertex at (16,16), tile at (0,0) (touches at one point, actual: [Vector2i(1,1)])
   [PackedVector2Array([Vector2(16,16), Vector2(32,16), Vector2(32,32), Vector2(16,32)]), Vector2(16,16), GBEnums.TileType.SQUARE, [Vector2i(1,1)], 0.01],
   # Diamond polygon near origin spanning adjacent isometric tiles; expect four overlaps
@@ -206,36 +206,34 @@ func test_get_overlapped_tiles_for_polygon_single_point_param(polygon: PackedVec
 	for tile in expected:
 		assert_bool(result.has(tile)).append_failure_message("Missing expected tile: %s" % str(tile)).is_true()
 
-# Additional isometric cases for strict area-based overlap
+## Additional isometric cases for strict area-based overlap
+## IMPORTANT: For isometric tiles, polygon coordinates must overlap the tile polygons in world space.
+## If the polygon is not centered appropriately, intersection area is zero and tests will fail.
+## All polygons now use counterclockwise winding to match tile polygon
+## Polygon fully inside a single isometric tile: use top-left (0,0) + diamond
 @warning_ignore("unused_parameter")
 func test_get_overlapped_tiles_for_polygon_isometric_cases_param(polygon: PackedVector2Array, tile_size: Vector2, tile_type: int, expected: Array[Vector2i], epsilon: float, test_parameters := [
-   # IMPORTANT: For isometric tiles, polygon coordinates must overlap the tile polygons in world space.
-   # If the polygon is not centered appropriately, intersection area is zero and tests will fail.
-   # All polygons now use counterclockwise winding to match tile polygon
-   # Polygon fully inside a single isometric tile: use top-left (0,0) + diamond
-   [PackedVector2Array([Vector2(8,0), Vector2(16,8), Vector2(8,16), Vector2(0,8)]), Vector2(16,16), GBEnums.TileType.ISOMETRIC, [Vector2i(0,0)], 1.0],
-   # Polygon overlapping two isometric tiles (centers (16,16) and (32,16)), polygon centered at (24,16)
-   [PackedVector2Array([Vector2(24,8), Vector2(32,16), Vector2(24,24), Vector2(16,16)]), Vector2(16,16), GBEnums.TileType.ISOMETRIC, [Vector2i(0,0), Vector2i(1,0)], 1.0],
-   # Polygon exactly on tile edge (centered at (32,16), should return [])
-   [PackedVector2Array([Vector2(32,8), Vector2(40,16), Vector2(32,24), Vector2(24,16)]), Vector2(16,16), GBEnums.TileType.ISOMETRIC, [], 1.0],
-   # Polygon with partial overlap (smaller diamond, centered at (16,16))
-   [PackedVector2Array([Vector2(16,12), Vector2(20,16), Vector2(16,20), Vector2(12,16)]), Vector2(16,16), GBEnums.TileType.ISOMETRIC, [Vector2i(0,0)], 1.0],
-   # Polygon with only point contact (centered at (32,32))
-   [PackedVector2Array([Vector2(32,24), Vector2(40,32), Vector2(32,40), Vector2(24,32)]), Vector2(16,16), GBEnums.TileType.ISOMETRIC, [], 1.0],
+	# NOTE (2025-08-09): Earlier failures came from assuming raw Cartesian offsets matched isometric tile centers; polygons only touched by point/edge so expectations were invalid. Always derive/world-position polygons so they produce area > epsilon.
+	# Case 0: Diamond fully inside tile (0,0)
+	[PackedVector2Array([Vector2(8,0), Vector2(16,8), Vector2(8,16), Vector2(0,8)]), Vector2(16,16), GBEnums.TileType.ISOMETRIC, [Vector2i(0,0)], 1.0],
+	# Case 1 (fixed): Diamond centered at x=16,y=8 spanning tiles (0,0) & (1,0) (straddles vertical boundary)
+	[PackedVector2Array([Vector2(16,0), Vector2(24,8), Vector2(16,16), Vector2(8,8)]), Vector2(16,16), GBEnums.TileType.ISOMETRIC, [Vector2i(0,0), Vector2i(1,0)], 1.0],
+	# Case 2: Diamond to the right, no overlap with origin area
+	[PackedVector2Array([Vector2(32,8), Vector2(40,16), Vector2(32,24), Vector2(24,16)]), Vector2(16,16), GBEnums.TileType.ISOMETRIC, [], 1.0],
+	# Case 3 (fixed): Small diamond (half size) centered inside tile (0,0)
+	[PackedVector2Array([Vector2(8,4), Vector2(12,8), Vector2(8,12), Vector2(4,8)]), Vector2(16,16), GBEnums.TileType.ISOMETRIC, [Vector2i(0,0)], 1.0],
+	# Case 4: Far diamond no overlap
+	[PackedVector2Array([Vector2(32,24), Vector2(40,32), Vector2(32,40), Vector2(24,32)]), Vector2(16,16), GBEnums.TileType.ISOMETRIC, [], 1.0],
 ]):
-	print("[DEBUG] Testing polygon:", polygon)
-	print("[DEBUG] tile_size:", tile_size, " tile_type:", tile_type)
-	print("[DEBUG] expected:", expected)
 	var tile_map: TileMapLayer = GodotTestFactory.create_empty_tile_map_layer(self)
 	tile_map.tile_set.tile_size = tile_size
 	# Print tile polygon for (0,0) for the first test case
 	if expected == [Vector2i(0,0)]:
 		var cell_center := tile_map.map_to_local(Vector2i(0,0))
-		var tile_poly := GBGeometryMath.get_tile_polygon(cell_center, tile_size, tile_type)
-		print("[DEBUG] Tile polygon for (0,0):", tile_poly)
-		print("[DEBUG] Test polygon:", polygon)
+		var _tile_poly := GBGeometryMath.get_tile_polygon(cell_center, tile_size, tile_type)
+
 	var result: Array[Vector2i] = GBGeometryUtils.get_overlapped_tiles_for_polygon(polygon, tile_map, tile_type, epsilon)
-	print("[DEBUG] overlapped tiles (iso_cases):", result)
+
 	assert_int(result.size()).is_equal(expected.size())
 	for tile in expected:
 		assert_bool(result.has(tile)).append_failure_message("Missing expected tile: %s" % str(tile)).is_true()

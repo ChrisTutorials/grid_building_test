@@ -18,13 +18,11 @@ var logger: GBLogger
 func before_test():
 	# Set up targeting state and map identical to other component tests
 	targeting_state = auto_free(GridTargetingState.new(GBOwnerContext.new()))
-	positioner = GodotTestFactory.create_node2d(self)
-	add_child(positioner)
+	positioner = GodotTestFactory.create_node2d(self) # factory already parents node
 	targeting_state.positioner = positioner
 
-	tile_map = GodotTestFactory.create_empty_tile_map_layer(self)
+	tile_map = GodotTestFactory.create_empty_tile_map_layer(self) # already parented
 	tile_map.tile_set.tile_size = Vector2i(16, 16)
-	add_child(tile_map)
 	targeting_state.target_map = tile_map
 	targeting_state.maps = [tile_map]
 
@@ -32,8 +30,7 @@ func before_test():
 	TEST_CONTAINER.get_states().targeting = targeting_state
 
 	logger = TEST_CONTAINER.get_logger()
-	indicator_parent = GodotTestFactory.create_node2d(self)
-	add_child(indicator_parent)
+	indicator_parent = GodotTestFactory.create_node2d(self) # already parented
 	indicator_manager = IndicatorManager.create_with_injection(TEST_CONTAINER, indicator_parent)
 
 func _create_area2d_rect(width: float, height: float, layer: int) -> Area2D:
@@ -70,7 +67,7 @@ func test_area2d_rotation_changes_indicator_tile_offsets():
 	var offsets_h: Array[Vector2i] = _gather_indicator_offsets()
 	offsets_h.sort_custom(func(a,b): return a.x < b.x if a.y == b.y else a.y < b.y)
 	var expected_h = [Vector2i(-1,0), Vector2i(0,0), Vector2i(1,0)]
-	assert_that(offsets_h).append_failure_message("Horizontal offsets mismatch: %s" % offsets_h).is_equal(expected_h)
+	assert_that(offsets_h).append_failure_message("Horizontal offsets mismatch: %s" % [offsets_h]).is_equal(expected_h)
 
 	# Reset manager (clears indicators & internal setups)
 	indicator_manager.reset(indicator_parent)
@@ -84,7 +81,7 @@ func test_area2d_rotation_changes_indicator_tile_offsets():
 	var expected_v = [Vector2i(0,-1), Vector2i(0,0), Vector2i(0,1)]
 
 	# Failing expectation for current implementation (will incorrectly still produce horizontal offsets)
-	assert_that(offsets_v).append_failure_message("Rotated Area2D should yield vertical tile offsets; got %s" % offsets_v).is_equal(expected_v)
+	assert_that(offsets_v).append_failure_message("Rotated Area2D should yield vertical tile offsets; got %s" % [offsets_v]).is_equal(expected_v)
 
 	# Cleanup preview object
 	area.queue_free()

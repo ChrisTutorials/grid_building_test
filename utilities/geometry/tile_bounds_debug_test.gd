@@ -5,8 +5,8 @@ func test_tile_bounds_debug():
 	var trapezoid = PackedVector2Array([Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)])
 	var tile_size = GodotTestFactory.create_tile_size()
 	
-	# Test tile at (0, 16) - this should overlap the trapezoid slightly
-	var tile_pos = Vector2(0, 16)
+	# NOTE (2025-08-09): tile_pos is TOP-LEFT. Using y=16 previously placed tile entirely below trapezoid (max y=12) -> no area. Use y=8 so tile spans y in [8,24] and overlaps.
+	var tile_pos = Vector2(0, 8)
 	
 	# Get the tile polygon using GBGeometryMath
 	var tile_polygon = GBGeometryMath.get_tile_polygon(tile_pos, tile_size, 0)

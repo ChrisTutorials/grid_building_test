@@ -55,13 +55,20 @@ func before_test():
 	composition_container.get_states().building.placed_parent = placed_parent
 	
 	# Instantiate systems with injection so they all share same container/state
-	building_system = BuildingSystem.create_with_injection(composition_container)
+	building_system = auto_free(BuildingSystem.new())
 	add_child(building_system)
-	targeting_system = GridTargetingSystem.create_with_injection(composition_container)
+	building_system.resolve_gb_dependencies(composition_container)
+	if building_system.has_method("_state_validation"):
+		building_system._state_validation()
+
+	targeting_system = auto_free(GridTargetingSystem.new())
 	add_child(targeting_system)
+	targeting_system.resolve_gb_dependencies(composition_container)
+	if targeting_system.has_method("force_validation"):
+		targeting_system.force_validation()
 	# Use injected placement manager rather than mismatched test factory manager
 	placement_manager = PlacementManager.create_with_injection(composition_container)
-	add_child(placement_manager)
+	add_child(auto_free(placement_manager))
 	logger = composition_container.get_logger()
 	
 	# Validate dependency health early for clearer failure messages
@@ -71,6 +78,14 @@ func before_test():
 	early_issues.append_array(placement_manager.validate_dependencies())
 	if not early_issues.is_empty():
 		push_warning("Early dependency issues detected: %s" % str(early_issues))
+
+func after_test():
+	# Null references to encourage cleanup (nodes auto_free'd already)
+	building_system = null
+	placement_manager = null
+	targeting_system = null
+	composition_container = null
+	logger = null
 
 ## Test complete building workflow with validation and caching
 func test_complete_building_workflow():
