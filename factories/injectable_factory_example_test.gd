@@ -7,6 +7,7 @@ const TEST_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
 var container: GBCompositionContainer
 var targeting_state: GridTargetingState
 
+
 func before_test():
 	container = TEST_CONTAINER
 	# Create targeting state directly instead of using factory
@@ -22,6 +23,7 @@ func before_test():
 	var layer2: TileMapLayer = auto_free(TileMapLayer.new())
 	targeting_state.maps = [layer1, layer2]
 
+
 func test_collision_mapper_static_factory():
 	# Test the new static factory method
 	var collision_mapper = CollisionMapper.create_with_injection(container)
@@ -32,6 +34,7 @@ func test_collision_mapper_static_factory():
 	# Verify dependencies were injected
 	var validation_issues = collision_mapper.validate_dependencies()
 	assert_that(validation_issues).is_empty()
+
 
 func test_placement_validator_static_factory():
 	# Test the new static factory method
@@ -44,6 +47,7 @@ func test_placement_validator_static_factory():
 	var validation_issues = validator.validate_dependencies()
 	assert_that(validation_issues).is_empty()
 
+
 func test_test_setup_factory_static_factory():
 	# Test the new static factory method
 	var factory = TestSetupFactory.create_with_injection(container)
@@ -55,14 +59,15 @@ func test_test_setup_factory_static_factory():
 	var validation_issues = factory.validate_dependencies()
 	assert_that(validation_issues).is_empty()
 
+
 func test_unified_factory_wrapper_methods():
 	# Test direct static factory method calls instead of wrapper methods
 	var collision_mapper = CollisionMapper.create_with_injection(container)
 	var validator = PlacementValidator.create_with_injection(container)
-	
+
 	assert_that(collision_mapper).is_not_null()
 	assert_that(validator).is_not_null()
-	
+
 	# Both should have valid dependencies
 	assert_that(collision_mapper.validate_dependencies()).is_empty()
 	assert_that(validator.validate_dependencies()).is_empty()

@@ -9,10 +9,10 @@ var rule_validation_params : RuleValidationParameters
 
 
 func before_test():
-	tile_map = TestSceneLibrary.tile_map_layer_buildable.instantiate()
+	tile_map = auto_free(TestSceneLibrary.tile_map_layer_buildable.instantiate())
 	add_child(tile_map)
 
-	targeting_state = GridTargetingState.new()
+	targeting_state = UnifiedTestFactory.create_targeting_state(self)
 	targeting_state.target_map = tile_map
 	targeting_state.maps = [tile_map]
 

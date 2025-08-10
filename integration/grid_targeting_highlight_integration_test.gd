@@ -1,22 +1,23 @@
 # GdUnit generated TestSuite
 extends GdUnitTestSuite
-@warning_ignore('unused_parameter')
-@warning_ignore('return_value_discarded')
+@warning_ignore("unused_parameter")
+@warning_ignore("return_value_discarded")
 
 # Verifies end-to-end pipeline:
 # ShapeCast (GridPositioner2D) -> GridTargetingState.target -> ManipulationSystem.targeted
 # -> TargetHighlighter color selection in MOVE & DEMOLISH modes.
 
-var _container : GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
+var _container: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
 
-var positioner : GridPositioner2D
-var manipulation_system : ManipulationSystem
-var highlighter : TargetHighlighter
+var positioner: GridPositioner2D
+var manipulation_system: ManipulationSystem
+var highlighter: TargetHighlighter
 
-var mode_state : ModeState
-var targeting_state : GridTargetingState
-var manipulation_state : ManipulationState
-var highlight_settings : HighlightSettings
+var mode_state: ModeState
+var targeting_state: GridTargetingState
+var manipulation_state: ManipulationState
+var highlight_settings: HighlightSettings
+
 
 func before_test():
 	# Acquire states & settings from composition container
@@ -37,10 +38,18 @@ func before_test():
 		var visual_settings := _container.get_visual_settings()
 		visual_settings.highlight = HighlightSettings.new()
 		highlight_settings = visual_settings.highlight
-	assert_object(highlight_settings).append_failure_message("Composition container should supply (or accept injected) highlight settings").is_not_null()
+	(
+		assert_object(highlight_settings)
+		. append_failure_message(
+			"Composition container should supply (or accept injected) highlight settings"
+		)
+		. is_not_null()
+	)
 
 	# Instance the template positioner scene to inherit proper collision_mask & flags
-	var pos_scene : PackedScene = load("res://templates/grid_building_templates/components/grid_positioner.tscn")
+	var pos_scene: PackedScene = load(
+		"res://templates/grid_building_templates/components/grid_positioner.tscn"
+	)
 	positioner = auto_free(pos_scene.instantiate() as GridPositioner2D)
 	add_child(positioner)
 	# Ensure collide_with_areas & mask matches runtime expectation
@@ -64,6 +73,7 @@ func before_test():
 	# Allow _ready callbacks & signal hookups to process before tests run
 	await await_idle_frame()
 
+
 func after_test():
 	# Clear strong refs (nodes are auto_free registered)
 	positioner = null
@@ -74,6 +84,7 @@ func after_test():
 	manipulation_state = null
 	highlight_settings = null
 
+
 ## Creates a targetable manipulatable root Area2D with collision and settings.
 func create_targetable_manipulatable(p_movable: bool, p_demolishable: bool) -> Area2D:
 	var root: Area2D = auto_free(Area2D.new())
@@ -82,13 +93,13 @@ func create_targetable_manipulatable(p_movable: bool, p_demolishable: bool) -> A
 	root.set_collision_layer_value(1, true)
 	root.set_collision_layer_value(10, true)
 	root.set_collision_layer_value(12, true)
-	
+
 	var cs := CollisionShape2D.new()
 	var rect := RectangleShape2D.new()
-	rect.size = Vector2(32,32)
+	rect.size = Vector2(32, 32)
 	cs.shape = rect
 	root.add_child(cs)
-	
+
 	var manipulatable := Manipulatable.new()
 	manipulatable.name = "Manipulatable"
 	var m_settings := ManipulatableSettings.new()
@@ -97,17 +108,25 @@ func create_targetable_manipulatable(p_movable: bool, p_demolishable: bool) -> A
 	manipulatable.settings = m_settings
 	manipulatable.root = root
 	root.add_child(manipulatable)
-	
+
 	add_child(root)
 	return root
 
+
 @warning_ignore("unused_parameter")
-func test_positioner_to_highlight_pipeline(p_mode: GBEnums.Mode, p_movable: bool, p_demolishable: bool, test_parameters := [
-	[GBEnums.Mode.MOVE, true, true],
-	[GBEnums.Mode.MOVE, false, true],
-	[GBEnums.Mode.DEMOLISH, true, true],
-	[GBEnums.Mode.DEMOLISH, true, false]
-]) -> void:
+
+
+func test_positioner_to_highlight_pipeline(
+	p_mode: GBEnums.Mode,
+	p_movable: bool,
+	p_demolishable: bool,
+	test_parameters := [
+		[GBEnums.Mode.MOVE, true, true],
+		[GBEnums.Mode.MOVE, false, true],
+		[GBEnums.Mode.DEMOLISH, true, true],
+		[GBEnums.Mode.DEMOLISH, true, false]
+	]
+) -> void:
 	# Arrange
 	mode_state.current = p_mode
 	var target_root := create_targetable_manipulatable(p_movable, p_demolishable)
@@ -115,7 +134,7 @@ func test_positioner_to_highlight_pipeline(p_mode: GBEnums.Mode, p_movable: bool
 	positioner.global_position = target_root.global_position
 	# Update ShapeCast & target
 	positioner.force_shapecast_update()
-	positioner._update_target() # Direct call is acceptable within test context
+	positioner._update_target()  # Direct call is acceptable within test context
 	await await_idle_frame()
 
 	# Retry a few frames if manipulation_state.targeted not yet populated
@@ -124,25 +143,51 @@ func test_positioner_to_highlight_pipeline(p_mode: GBEnums.Mode, p_movable: bool
 		positioner._update_target()
 		await await_idle_frame()
 		attempts += 1
-	
+
 	# Assert targeting state updated
-	assert_object(targeting_state.target).append_failure_message("GridTargetingState.target should be collider root").is_equal(target_root)
+	(
+		assert_object(targeting_state.target)
+		. append_failure_message("GridTargetingState.target should be collider root")
+		. is_equal(target_root)
+	)
 	# Manipulation system should have resolved a manipulatable
-	assert_object(manipulation_state.targeted).append_failure_message("ManipulationState.targeted was not set after target change (attempts=%s)" % attempts).is_not_null()
+	(
+		assert_object(manipulation_state.targeted)
+		. append_failure_message(
+			"ManipulationState.targeted was not set after target change (attempts=%s)" % attempts
+		)
+		. is_not_null()
+	)
 	if manipulation_state.targeted:
 		assert_that(manipulation_state.targeted.root).is_equal(target_root)
-	
+
 	# Highlighter should color target according to mode & settings
-	assert_object(highlighter.current_target).append_failure_message("Highlighter current_target should track targeting state").is_equal(target_root)
+	(
+		assert_object(highlighter.current_target)
+		. append_failure_message("Highlighter current_target should track targeting state")
+		. is_equal(target_root)
+	)
 	# Determine expected actionable color dynamically
-	var expected_color : Color
+	var expected_color: Color
 	match p_mode:
 		GBEnums.Mode.MOVE:
-			expected_color = highlight_settings.move_valid_color if p_movable else highlight_settings.move_invalid_color
+			expected_color = (
+				highlight_settings.move_valid_color
+				if p_movable
+				else highlight_settings.move_invalid_color
+			)
 		GBEnums.Mode.DEMOLISH:
-			expected_color = highlight_settings.demolish_valid_color if p_demolishable else highlight_settings.demolish_invalid_color
-	assert_object(target_root.modulate).append_failure_message("Target color should match expected actionable highlight").is_equal(expected_color)
-	
+			expected_color = (
+				highlight_settings.demolish_valid_color
+				if p_demolishable
+				else highlight_settings.demolish_invalid_color
+			)
+	(
+		assert_object(target_root.modulate)
+		. append_failure_message("Target color should match expected actionable highlight")
+		. is_equal(expected_color)
+	)
+
 	# Changing mode should update color (secondary verification)
 	if p_mode == GBEnums.Mode.MOVE:
 		mode_state.current = GBEnums.Mode.DEMOLISH
@@ -159,6 +204,10 @@ func test_positioner_to_highlight_pipeline(p_mode: GBEnums.Mode, p_movable: bool
 				assert_object(target_root.modulate).is_equal(highlight_settings.move_invalid_color)
 		GBEnums.Mode.DEMOLISH:
 			if p_demolishable:
-				assert_object(target_root.modulate).is_equal(highlight_settings.demolish_valid_color)
+				assert_object(target_root.modulate).is_equal(
+					highlight_settings.demolish_valid_color
+				)
 			else:
-				assert_object(target_root.modulate).is_equal(highlight_settings.demolish_invalid_color)
+				assert_object(target_root.modulate).is_equal(
+					highlight_settings.demolish_invalid_color
+				)

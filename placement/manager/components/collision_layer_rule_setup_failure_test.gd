@@ -5,11 +5,12 @@ extends GdUnitTestSuite
 
 const TEST_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
 
+
 func test_rule_setup_failure_is_reported():
 	# Create a rule that expects a layer not present in the scene
 	var collisions_rule = CollisionsCheckRule.new()
 	collisions_rule.apply_to_objects_mask = 1024  # Layer 11 (not present)
-	collisions_rule.collision_mask = 1024         # Layer 11 (not present)
+	collisions_rule.collision_mask = 1024  # Layer 11 (not present)
 	collisions_rule.pass_on_collision = false
 
 	# Create a PlacementManager and inject dependencies
@@ -32,7 +33,11 @@ func test_rule_setup_failure_is_reported():
 		if "No collision objects found" in issue:
 			found = true
 			break
-	assert_bool(found).append_failure_message("Expected error message not found in issues: " + str(issues)).is_true()
+	(
+		assert_bool(found)
+		. append_failure_message("Expected error message not found in issues: " + str(issues))
+		. is_true()
+	)
 
 	# PlacementManager should also report setup failure (returns false)
 	var pm_result = placement_manager.try_setup([collisions_rule], params)

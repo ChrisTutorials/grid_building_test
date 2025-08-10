@@ -10,6 +10,7 @@ var tile_map: TileMapLayer
 var positioner: ShapeCast2D
 var test_indicator: RuleCheckIndicator
 
+
 func before_test():
 	# Create test dependencies using factory methods
 	var owner_context: GBOwnerContext = auto_free(GBOwnerContext.new())
@@ -43,6 +44,7 @@ func before_test():
 	indicator_shape.size = Vector2(16, 16)
 	test_indicator.shape = indicator_shape
 
+
 func test_center_tile_calculation():
 	## Test that center tile calculation matches expected coordinates for positioner at (840, 680)
 	# Given: Positioner at (840, 680) with 16x16 tiles
@@ -54,20 +56,29 @@ func test_center_tile_calculation():
 	# Then: Should match expected tile coordinates
 	assert_that(actual_center_tile).is_equal(expected_center_tile)
 
+
 func test_basic_collision_detection():
 	## Test basic collision detection using the rect-based method
 	# Given: A capsule-like rectangular area
 	var rect_size = Vector2(96, 128)  # Similar to capsule with radius=48, height=128
 
 	# When: Using the rect-based tile calculation method
-	var tile_positions = collision_mapper.get_rect_tile_positions(positioner.global_position, rect_size)
+	var tile_positions = collision_mapper.get_rect_tile_positions(
+		positioner.global_position, rect_size
+	)
 
 	# Then: Should produce reasonable tile positions
-	assert_that(tile_positions.size()).is_greater(0).append_failure_message("Should detect at least one tile")
+	assert_that(tile_positions.size()).is_greater(0).append_failure_message(
+		"Should detect at least one tile"
+	)
 
 	# All tile positions should be reasonable offsets from center
 	var center_tile = tile_map.local_to_map(positioner.global_position)
 	for tile_pos in tile_positions:
 		var offset = tile_pos - center_tile
-		assert_that(abs(offset.x)).is_less_equal(6).append_failure_message("X offset too large: " + str(offset))
-		assert_that(abs(offset.y)).is_less_equal(8).append_failure_message("Y offset too large: " + str(offset))
+		assert_that(abs(offset.x)).is_less_equal(6).append_failure_message(
+			"X offset too large: " + str(offset)
+		)
+		assert_that(abs(offset.y)).is_less_equal(8).append_failure_message(
+			"Y offset too large: " + str(offset)
+		)

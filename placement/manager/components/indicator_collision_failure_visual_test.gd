@@ -12,6 +12,7 @@ var collisions_rule: CollisionsCheckRule
 var params: RuleValidationParameters
 var indicator: RuleCheckIndicator
 
+
 func before_test():
 	# Minimal targeting state setup
 	targeting_state = auto_free(GridTargetingState.new(GBOwnerContext.new()))
@@ -55,7 +56,7 @@ func before_test():
 	blocking_body.collision_layer = 1
 	var shape := CollisionShape2D.new()
 	var rect := RectangleShape2D.new()
-	rect.size = Vector2(16,16)
+	rect.size = Vector2(16, 16)
 	shape.shape = rect
 	blocking_body.add_child(shape)
 	add_child(blocking_body)
@@ -65,9 +66,14 @@ func before_test():
 	if !collisions_rule.indicators.has(indicator):
 		indicator.add_rule(collisions_rule)
 
+
 func test_indicator_becomes_invalid_on_collision() -> void:
 	# Allow a couple of frames for physics process to run
 	await get_tree().process_frame
-	indicator._physics_process(0.016) # Manual invoke to ensure update
+	indicator._physics_process(0.016)  # Manual invoke to ensure update
 	await get_tree().process_frame
-	assert_bool(indicator.valid).append_failure_message("Indicator should be invalid due to collision").is_false()
+	(
+		assert_bool(indicator.valid)
+		. append_failure_message("Indicator should be invalid due to collision")
+		. is_false()
+	)

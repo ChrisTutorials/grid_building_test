@@ -1,4 +1,4 @@
 class_name TestItemContainerOwner
 extends Node
 
-@export var item_container : Node
+@export var item_container: Node

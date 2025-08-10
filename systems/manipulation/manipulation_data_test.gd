@@ -1,7 +1,8 @@
 # GdUnit generated TestSuite
 extends GdUnitTestSuite
-@warning_ignore('unused_parameter')
-@warning_ignore('return_value_discarded')
+@warning_ignore("unused_parameter")
+@warning_ignore("return_value_discarded")
+
 
 func test_queue_free_manipulation_objects() -> void:
 	var data = create_manipulation(GBEnums.Action.MOVE)
@@ -11,12 +12,15 @@ func test_queue_free_manipulation_objects() -> void:
 	data.queue_free_manipulation_objects()
 	assert_that(data.target).is_null()
 
+
 ## Creates a manipulation where the generated object is both the source and the target
-func create_manipulation(p_action : GBEnums.Action) -> ManipulationData:
+func create_manipulation(p_action: GBEnums.Action) -> ManipulationData:
 	var root = GodotTestFactory.create_node2d(self)
 	var source = auto_free(Manipulatable.new())
 	root.add_child(source)
 	var manipulator = auto_free(Node.new())
 	add_child(manipulator)
-	var data : ManipulationData = auto_free(ManipulationData.new(manipulator, source, source, p_action))
+	var data: ManipulationData = auto_free(
+		ManipulationData.new(manipulator, source, source, p_action)
+	)
 	return data
