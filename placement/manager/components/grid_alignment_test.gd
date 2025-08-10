@@ -12,6 +12,8 @@ func before_test():
 	add_child(tile_map_layer)
 	tile_map_layer.tile_set = TileSet.new()
 	tile_map_layer.tile_set.tile_size = Vector2i(16, 16)
+	# Ensure tile map layer is at world origin
+	tile_map_layer.global_position = Vector2.ZERO
 
 	positioner = auto_free(Node2D.new())
 	add_child(positioner)
@@ -70,7 +72,15 @@ func test_off_grid_positions_get_aligned():
 
 ## Test that already aligned positions remain unchanged
 func test_already_aligned_positions_unchanged():
-	var test_positions = [Vector2(96, 112), Vector2(160, 80), Vector2(0, 0)]  # Exact tile center  # Another tile center  # Origin tile center
+	# With 16x16 tiles, tile centers are at multiples of 8 (half of 16)
+	# Tile (6, 7) center = (6*16 + 8, 7*16 + 8) = (104, 120)
+	# Tile (10, 5) center = (10*16 + 8, 5*16 + 8) = (168, 88)
+	# Tile (0, 0) center = (0*16 + 8, 0*16 + 8) = (8, 8)
+	var test_positions = [
+		Vector2(104, 120),  # Tile (6,7) center
+		Vector2(168, 88),   # Tile (10,5) center
+		Vector2(8, 8)       # Tile (0,0) center
+	]
 
 	for test_pos in test_positions:
 		# Set to exact tile center

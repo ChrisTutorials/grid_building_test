@@ -37,22 +37,23 @@ func before_test():
 	targeting_state.target_map = map_layer
 	targeting_state.maps = [map_layer]
 
-	mode_state = ModeState.new()
+	# Get mode state from container instead of creating new one
+	mode_state = states.mode
 	system = auto_free(BuildingSystem.create_with_injection(_container))
-	system.mode_state = mode_state
+	# Remove incorrect property assignments - BuildingSystem doesn't have these properties
+	# system.mode_state = mode_state
+	# system.debug = GBDebugSettings.new(GBDebugSettings.DebugLevel.INFO)
 	# Removed back-compat alias usage
 	# system.state = states.building
 	# system.targeting_state = targeting_state
-
-	## Turn debug on for testing
-	system.debug = GBDebugSettings.new(GBDebugSettings.DebugLevel.INFO)
 
 	add_child(system)
 
 	user_state = GBOwnerContext.new()
 	var gb_owner := GBOwner.new(placer)
 	user_state.set_owner(gb_owner)
-	system.targeting_state.origin_state = user_state
+	# Remove incorrect targeting_state access - BuildingSystem doesn't have this property
+	# system.targeting_state.origin_state = user_state
 
 	_placement_context = PlacementContext.new()
 	placement_manager = auto_free(PlacementManager.new())
@@ -62,7 +63,8 @@ func before_test():
 	# Assign building state via container directly
 	states.building.placer_state = user_state
 	states.building.placed_parent = placed_parent
-	system.settings = TestSceneLibrary.building_settings.duplicate(true)
+	# Remove incorrect settings assignment - let dependency injection handle it
+	# system.settings = TestSceneLibrary.building_settings.duplicate(true)
 
 
 func test_before_test_setup():

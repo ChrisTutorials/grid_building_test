@@ -20,26 +20,16 @@ var _container: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
 func before_test():
 	state = _container.get_states().targeting
 
-	positioner = auto_free(Node2D.new())
-	add_child(positioner)
-
-	placer = auto_free(Node2D.new())
-	add_child(placer)
-
-	placed_parent = auto_free(Node2D.new())
-	add_child(placed_parent)
-
-	map_layer = auto_free(library.map_layer_buildable.instantiate())
+	positioner = GodotTestFactory.create_node2d(self)
+	placed_parent = GodotTestFactory.create_node2d(self)
+	map_layer = auto_free(GodotTestFactory.create_tile_map_layer(self))
 	add_child(map_layer)
 
 	state.target_map = map_layer
 	state.maps = [map_layer]
 	state.positioner = positioner
-	var origin_state = GBOwnerContext.new()
-	state.origin_state = origin_state
-	# Set a proper GBOwner on the context (not a raw Node2D)
-	var gb_owner := GBOwner.new(placer)
-	origin_state.set_owner(gb_owner)
+	
+	var owner_context = UnifiedTestFactory.create_owner_context(self)
 	assert_array(state.validate()).append_failure_message("Issues in setup found").is_empty()
 
 	settings = library.grid_targeting_settings.duplicate(true)
