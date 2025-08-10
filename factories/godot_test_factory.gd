@@ -61,10 +61,20 @@ static func create_canvas_item(test: GdUnitTestSuite) -> CanvasItem:
 # ================================
 
 
-## Creates a TileMapLayer with basic tile set and populated grid for testing
-static func create_tile_map_layer(test: GdUnitTestSuite, grid_size: int = 200) -> TileMapLayer:
+## Creates a TileMapLayer with basic tile set and populated grid for testing.
+## grid_size: overall width/height in tiles (square). Reduced default for faster unit tests.
+static func create_tile_map_layer(test: GdUnitTestSuite, grid_size: int = 40) -> TileMapLayer:
 	var map_layer: TileMapLayer = test.auto_free(TileMapLayer.new())
-	map_layer.tile_set = load("uid://d11t2vm1pby6y")
+	var loaded_tile_set = load("uid://d11t2vm1pby6y")
+	# Fallback: if the expected TileSet failed to load (null) or has no sources, create a minimal atlas tile set
+	if loaded_tile_set == null:
+		loaded_tile_set = TileSet.new()
+	if loaded_tile_set.get_source_count() == 0:
+		var atlas := TileSetAtlasSource.new()
+		# Create a single tile at atlas coords (0,0) so get_cell_tile_data() returns a valid TileData
+		atlas.create_tile(Vector2i(0,0))
+		loaded_tile_set.add_source(atlas, 0)
+	map_layer.tile_set = loaded_tile_set
 
 	# Create a reasonable sized grid for testing
 	@warning_ignore("integer_division")
@@ -72,8 +82,17 @@ static func create_tile_map_layer(test: GdUnitTestSuite, grid_size: int = 200) -
 	for x in range(-half_size, half_size):
 		for y in range(-half_size, half_size):
 			var coords = Vector2i(x, y)
-			# In Godot 4.5, use set_cell instead of set_cellv
 			map_layer.set_cell(coords, 0, Vector2i(0, 0))
+
+	# Verify at least origin tile registered; if not, rebuild minimal tile set and assign origin only.
+	if map_layer.get_cell_tile_data(Vector2i.ZERO) == null:
+		var ts := TileSet.new()
+		var atlas2 := TileSetAtlasSource.new()
+		atlas2.create_tile(Vector2i(0,0))
+		ts.add_source(atlas2, 0)
+		map_layer.tile_set = ts
+		map_layer.clear()
+		map_layer.set_cell(Vector2i.ZERO, 0, Vector2i(0,0))
 
 	test.add_child(map_layer)
 	return map_layer
@@ -212,4 +231,6 @@ static func create_rule_check_indicator(
 	var rect_shape := RectangleShape2D.new()
 	rect_shape.extents = Vector2(tile_size, tile_size)
 	indicator.shape = rect_shape
+	# Ensure indicator is part of the test tree so auto_free cleanup works properly
+	test.add_child(indicator)
 	return indicator

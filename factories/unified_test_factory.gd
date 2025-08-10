@@ -49,7 +49,7 @@ static func create_test_building_system(test: GdUnitTestSuite) -> BuildingSystem
 	return system
 
 # ================================
-# Collision Objects
+# Collision Objects (delegated to GodotTestFactory)
 # ================================
 
 static func create_collision_object_test_setups(col_objects: Array) -> Dictionary[CollisionObject2D, IndicatorCollisionTestSetup]:
@@ -62,49 +62,18 @@ static func create_collision_object_test_setups(col_objects: Array) -> Dictionar
 static func create_collision_test_setup(test: GdUnitTestSuite, collision_object: CollisionObject2D = null) -> IndicatorCollisionTestSetup:
 	return create_test_indicator_collision_setup(test, collision_object)
 
+# DEPRECATED basic helpers (use GodotTestFactory.* instead) ------------------
 static func create_test_collision_polygon(test: GdUnitTestSuite) -> CollisionPolygon2D:
-	var poly: CollisionPolygon2D = CollisionPolygon2D.new()
-	test.auto_free(poly)
-	poly.polygon = PackedVector2Array([Vector2(0,0), Vector2(16,0), Vector2(8,16)])
-	test.add_child(poly)
-	return poly
+	return GodotTestFactory.create_collision_polygon(test)
 
 static func create_test_object_with_circle_shape(test: GdUnitTestSuite) -> Node2D:
-	var test_object: Node2D = Node2D.new()
-	test.auto_free(test_object)
-	var body: StaticBody2D = StaticBody2D.new()
-	test_object.add_child(body)
-	test.auto_free(body)
-	var collision_shape := CollisionShape2D.new()
-	collision_shape.shape = CircleShape2D.new()
-	body.add_child(collision_shape)
-	test.auto_free(collision_shape)
-	body.collision_layer = 1
-	return test_object
+	return GodotTestFactory.create_object_with_circle_shape(test)
 
 static func create_test_static_body_with_rect_shape(test: GdUnitTestSuite) -> StaticBody2D:
-	var body: StaticBody2D = test.auto_free(StaticBody2D.new())
-	var shape: CollisionShape2D = test.auto_free(CollisionShape2D.new())
-	var rect: RectangleShape2D = RectangleShape2D.new()
-	rect.extents = Vector2(8, 8)
-	shape.shape = rect
-	test.add_child(body)
-	body.add_child(shape)
-	return body
+	return GodotTestFactory.create_static_body_with_rect_shape(test)
 
 static func create_test_parent_with_body_and_polygon(test: GdUnitTestSuite) -> Node2D:
-	var parent: Node2D = Node2D.new()
-	test.auto_free(parent)
-	test.add_child(parent)
-	var body: StaticBody2D = create_test_static_body_with_rect_shape(test)
-	var poly: CollisionPolygon2D = create_test_collision_polygon(test)
-	if body.get_parent() != null:
-		body.get_parent().remove_child(body)
-	if poly.get_parent() != null:
-		poly.get_parent().remove_child(poly)
-	parent.add_child(body)
-	parent.add_child(poly)
-	return parent
+	return GodotTestFactory.create_parent_with_body_and_polygon(test)
 
 # ================================
 # Indicators
@@ -126,7 +95,7 @@ static func create_test_indicator_collision_setup(test: GdUnitTestSuite, collisi
 	return IndicatorCollisionTestSetup.new(obj, shape_stretch, logger)
 
 static func create_test_indicator_manager(test: GdUnitTestSuite, targeting_state: GridTargetingState = null) -> IndicatorManager:
-	var parent := create_test_node2d(test)
+	var parent := GodotTestFactory.create_node2d(test)
 	var template := load("uid://nhlp6ks003fp")
 	var state := targeting_state if targeting_state != null else create_double_targeting_state(test)
 	var logger := create_test_logger()
@@ -168,12 +137,8 @@ static func create_test_manipulation_system(test: GdUnitTestSuite) -> Manipulati
 	return system
 
 static func create_test_manipulatable(test: GdUnitTestSuite) -> Manipulatable:
-	var root: Node2D = test.auto_free(Node2D.new())
-	test.add_child(root)
-	var manipulatable: Manipulatable = test.auto_free(Manipulatable.new())
-	manipulatable.root = root
-	root.add_child(manipulatable)
-	root.name = "FactoryManipulatableRoot"
+	# Delegate to GodotTestFactory for base node creation then apply naming
+	var manipulatable := GodotTestFactory.create_manipulatable(test, "FactoryManipulatableRoot")
 	manipulatable.name = "FactoryManipulatable"
 	return manipulatable
 
@@ -182,10 +147,7 @@ static func create_test_manipulatable(test: GdUnitTestSuite) -> Manipulatable:
 # ================================
 
 static func create_test_node2d(test: GdUnitTestSuite) -> Node2D:
-	var node: Node2D = Node2D.new()
-	test.add_child(node)
-	test.auto_free(node)
-	return node
+	return GodotTestFactory.create_node2d(test)
 
 static func create_test_node_locator(search_method: NodeLocator.SEARCH_METHOD = NodeLocator.SEARCH_METHOD.NODE_NAME, search_string: String = "test") -> NodeLocator:
 	return NodeLocator.new(search_method, search_string)
@@ -303,26 +265,22 @@ static func create_test_within_tilemap_bounds_rule() -> WithinTilemapBoundsRule:
 static func create_double_targeting_state(test : GdUnitTestSuite) -> GridTargetingState:
 	var targeting_state := GridTargetingState.new(GBOwnerContext.new())
 	test.auto_free(targeting_state)
-	var positioner := Node2D.new()
-	test.auto_free(positioner)
+	var positioner := GodotTestFactory.create_node2d(test)
+	# positioner already parented
 	targeting_state.positioner = positioner
-	var target_map := create_test_tile_map_layer(test)
+	var target_map := GodotTestFactory.create_tile_map_layer(test)
 	targeting_state.target_map = target_map
-	var layer1 := TileMapLayer.new()
-	var layer2 := TileMapLayer.new()
-	test.auto_free(layer1)
-	test.auto_free(layer2)
+	var layer1 := GodotTestFactory.create_empty_tile_map_layer(test)
+	var layer2 := GodotTestFactory.create_empty_tile_map_layer(test)
 	targeting_state.maps = [layer1, layer2]
 	return targeting_state
 
 static func create_targeting_state(test: GdUnitTestSuite, owner_context: GBOwnerContext = null) -> GridTargetingState:
 	var context := owner_context if owner_context != null else create_owner_context(test)
 	var targeting_state := GridTargetingState.new(context)
-	var positioner := Node2D.new()
-	test.auto_free(positioner)
-	test.add_child(positioner)
+	var positioner := GodotTestFactory.create_node2d(test)
 	targeting_state.positioner = positioner
-	var map_layer := create_tile_map_layer(test)
+	var map_layer := GodotTestFactory.create_tile_map_layer(test)
 	targeting_state.set_map_objects(map_layer, [map_layer])
 	test.auto_free(targeting_state)
 	return targeting_state
@@ -332,15 +290,8 @@ static func create_targeting_state(test: GdUnitTestSuite, owner_context: GBOwner
 # ================================
 
 static func create_tile_map_layer(test: GdUnitTestSuite) -> TileMapLayer:
-	return create_test_tile_map_layer(test)
+	return GodotTestFactory.create_tile_map_layer(test)
 
 static func create_test_tile_map_layer(test: GdUnitTestSuite) -> TileMapLayer:
-	var map_layer: TileMapLayer = TileMapLayer.new()
-	map_layer.tile_set = load("uid://d11t2vm1pby6y")
-	for x in range(-100, 100, 1):
-		for y in range(-100, 100, 1):
-			var cords = Vector2i(x, y)
-			map_layer.set_cellv(cords, 0, Vector2i(0,0))
-	test.add_child(map_layer)
-	test.auto_free(map_layer)
-	return map_layer
+	# Backwards compatible wrapper
+	return GodotTestFactory.create_tile_map_layer(test)
