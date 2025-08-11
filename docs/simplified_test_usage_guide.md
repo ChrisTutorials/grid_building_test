@@ -86,18 +86,18 @@ add_child(node)  # ERROR: Node is already a child
 ```gdscript
 # ❌ INCORRECT: Cannot call factory methods in parameters
 func test_example(node: Node2D, test_parameters := [
-    [GodotTestFactory.create_node2d(self)]  # This won't work
+	[GodotTestFactory.create_node2d(self)]  # This won't work
 ]):
 
 # ✅ CORRECT: Create nodes in test body
 func test_example(node_type: int, test_parameters := [
-    [0], [1], [2]  # Use simple values in parameters
+	[0], [1], [2]  # Use simple values in parameters
 ]):
-    var node: Node2D
-    match node_type:
-        0: node = GodotTestFactory.create_node2d(self)
-        1: node = GodotTestFactory.create_static_body_with_rect_shape(self)
-        2: node = GodotTestFactory.create_collision_polygon(self)
+	var node: Node2D
+	match node_type:
+		0: node = GodotTestFactory.create_node2d(self)
+		1: node = GodotTestFactory.create_static_body_with_rect_shape(self)
+		2: node = GodotTestFactory.create_collision_polygon(self)
 ```
 - **Convenience methods**: System creation with test auto_free and add_child
 
@@ -125,21 +125,21 @@ var targeting_state: GridTargetingState
 var building_system: BuildingSystem
 
 func before_test():
-    # Use UnifiedTestFactory for test doubles/utilities
-    targeting_state = UnifiedTestFactory.create_double_targeting_state(self)
-    
-    # Use actual static factory methods for GBInjectable objects
-    collision_mapper = CollisionMapper.create_with_injection(TEST_CONTAINER)
-    validator = PlacementValidator.create_with_injection(TEST_CONTAINER)
-    
-    # Parent node required for IndicatorManager
-    var parent = UnifiedTestFactory.create_test_node2d(self)
-    var indicator_manager = IndicatorManager.create_with_injection(TEST_CONTAINER, parent)
-    
-    # GBSystems can use static factory or convenience method
-    building_system = BuildingSystem.create_with_injection(TEST_CONTAINER)
-    # OR use convenience method that handles test lifecycle
-    # building_system = UnifiedTestFactory.create_building_system(self)
+	# Use UnifiedTestFactory for test doubles/utilities
+	targeting_state = UnifiedTestFactory.create_double_targeting_state(self)
+	
+	# Use actual static factory methods for GBInjectable objects
+	collision_mapper = CollisionMapper.create_with_injection(TEST_CONTAINER)
+	validator = PlacementValidator.create_with_injection(TEST_CONTAINER)
+	
+	# Parent node required for IndicatorManager
+	var parent = UnifiedTestFactory.create_test_node2d(self)
+	var indicator_manager = IndicatorManager.create_with_injection(TEST_CONTAINER, parent)
+	
+	# GBSystems can use static factory or convenience method
+	building_system = BuildingSystem.create_with_injection(TEST_CONTAINER)
+	# OR use convenience method that handles test lifecycle
+	# building_system = UnifiedTestFactory.create_building_system(self)
 ```
 
 ## Migration Complete - Status

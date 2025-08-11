@@ -4,60 +4,34 @@ extends GdUnitTestSuite
 ## Consolidates functionality from multiple debug tests into a single, maintainable test file
 
 ## Test data for different collision shapes
-var capsule_test_data := [
-	{
-		"name": "Small Capsule",
-		"radius": 7.0,
-		"height": 22.0,
-		"expected_bounds": Rect2(-7, -11, 14, 22),
-		"expected_tiles": Vector2i(1, 1)
-	},
-	{
-		"name": "Medium Capsule", 
-		"radius": 14.0,
-		"height": 60.0,
-		"expected_bounds": Rect2(-14, -30, 28, 60),
-		"expected_tiles": Vector2i(2, 4)
-	},
-	{
-		"name": "Large Capsule",
-		"radius": 48.0,
-		"height": 128.0,
-		"expected_bounds": Rect2(-48, -64, 96, 128),
-		"expected_tiles": Vector2i(6, 8)
-	}
-]
-
-var trapezoid_test_data := [
-	{
-		"name": "Standard Trapezoid",
-		"points": PackedVector2Array([
-			Vector2(-32, 12),   # Bottom-left
-			Vector2(-16, -12),  # Top-left
-			Vector2(17, -12),   # Top-right
-			Vector2(32, 12)     # Bottom-right
-		]),
-		"expected_bounds": Rect2(-32, -12, 64, 24),
-		"expected_tiles": Vector2i(4, 2)
-	},
-	{
-		"name": "Wide Trapezoid",
-		"points": PackedVector2Array([
-			Vector2(-48, 16),   # Bottom-left
-			Vector2(-24, -16),  # Top-left
-			Vector2(24, -16),   # Top-right
-			Vector2(48, 16)     # Bottom-right
-		]),
-		"expected_bounds": Rect2(-48, -16, 96, 32),
-		"expected_tiles": Vector2i(6, 2)
-	}
-]
 
 ## Test capsule shape bounds and tile coverage
 @warning_ignore("unused_parameter")
 func test_capsule_shape_validation(
 	capsule_data: Dictionary,
-	test_parameters := capsule_test_data
+	test_parameters := [
+		{
+			"name": "Small Capsule",
+			"radius": 7.0,
+			"height": 22.0,
+			"expected_bounds": Rect2(-7, -11, 14, 22),
+			"expected_tiles": Vector2i(1, 1)
+		},
+		{
+			"name": "Medium Capsule", 
+			"radius": 14.0,
+			"height": 60.0,
+			"expected_bounds": Rect2(-14, -30, 28, 60),
+			"expected_tiles": Vector2i(2, 4)
+		},
+		{
+			"name": "Large Capsule",
+			"radius": 48.0,
+			"height": 128.0,
+			"expected_bounds": Rect2(-48, -64, 96, 128),
+			"expected_tiles": Vector2i(6, 8)
+		}
+	]
 ):
 	var capsule_shape = CapsuleShape2D.new()
 	capsule_shape.radius = capsule_data["radius"]
@@ -116,7 +90,30 @@ func test_capsule_shape_validation(
 @warning_ignore("unused_parameter")
 func test_trapezoid_shape_validation(
 	trapezoid_data: Dictionary,
-	test_parameters := trapezoid_test_data
+	test_parameters := [
+		{
+			"name": "Standard Trapezoid",
+			"points": PackedVector2Array([
+				Vector2(-32, 12),   # Bottom-left
+				Vector2(-16, -12),  # Top-left
+				Vector2(17, -12),   # Top-right
+				Vector2(32, 12)     # Bottom-right
+			]),
+			"expected_bounds": Rect2(-32, -12, 64, 24),
+			"expected_tiles": Vector2i(4, 2)
+		},
+		{
+			"name": "Wide Trapezoid",
+			"points": PackedVector2Array([
+				Vector2(-48, 16),   # Bottom-left
+				Vector2(-24, -16),  # Top-left
+				Vector2(24, -16),   # Top-right
+				Vector2(48, 16)     # Bottom-right
+			]),
+			"expected_bounds": Rect2(-48, -16, 96, 32),
+			"expected_tiles": Vector2i(6, 2)
+		}
+	]
 ):
 	var trapezoid = trapezoid_data["points"]
 	var bounds = GBGeometryMath.get_polygon_bounds(trapezoid)

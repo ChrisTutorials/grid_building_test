@@ -1,13 +1,16 @@
 # Renamed from test_collisions_check_rule.gd
 extends GdUnitTestSuite
 
+const TEST_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
+
 var rule: CollisionsCheckRule
 var indicator: RuleCheckIndicator
 var logger: GBLogger
 
 func before_test():
+	# Use the test container to create a logger with proper dependency injection
+	logger = TEST_CONTAINER.get_logger()
 	rule = CollisionsCheckRule.new()
-	logger = GBLogger.new()
 	rule.initialize(logger)
 	indicator = auto_free(RuleCheckIndicator.new())
 	indicator.add_rule(rule)

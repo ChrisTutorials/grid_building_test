@@ -5,7 +5,6 @@ extends GdUnitTestSuite
 
 # TestSuite generated from
 
-var library: TestSceneLibrary
 var system: GridTargetingSystem
 var state: GridTargetingState
 var settings: GridTargetingSettings
@@ -22,45 +21,31 @@ func before_test():
 
 	positioner = GodotTestFactory.create_node2d(self)
 	placed_parent = GodotTestFactory.create_node2d(self)
-	map_layer = auto_free(GodotTestFactory.create_tile_map_layer(self))
-	add_child(map_layer)
+	map_layer = auto_free(GodotTestFactory.create_empty_tile_map_layer(self))
 
 	state.target_map = map_layer
 	state.maps = [map_layer]
 	state.positioner = positioner
-	
+
 	var owner_context = UnifiedTestFactory.create_owner_context(self)
 	assert_array(state.validate()).append_failure_message("Issues in setup found").is_empty()
 
-	settings = library.grid_targeting_settings.duplicate(true)
+	settings = TestSceneLibrary.grid_targeting_settings.duplicate(true)
 
-	(
-		assert_array(settings.validate())
-		. append_failure_message("Settings passes validation check.")
-		. is_empty()
-	)
+	assert_array(settings.validate()).is_empty()
 	system = auto_free(GridTargetingSystem.new())
-	system.state = state
-	system.settings = settings
-	system.mode_state = ModeState.new()
+	add_child(system)  # Add to scene tree BEFORE injection
+	system.resolve_gb_dependencies(_container)
 
 	vec_max_tile_distance = Vector2(settings.max_tile_distance, settings.max_tile_distance)
 
 
 func test_has_valid_setup():
-	assert_object(system.state).append_failure_message("Building state must be set.").is_not_null()
-	assert_array(system.state.validate()).is_empty()
-	(
-		assert_object(system.astar_grid)
-		. append_failure_message("Astar grid was not generated")
-		. is_not_null()
-	)
+	assert_object(system.get_state()).is_not_null()
+	assert_array(system.get_state().validate()).is_empty()
+	assert_object(system.astar_grid).is_not_null()
 	assert_vector(system.astar_grid.region.size).is_equal(Vector2i(50, 50))
-	(
-		assert_int(settings.max_tile_distance)
-		. append_failure_message("Tests by default expect this to be 3")
-		. is_equal(3)
-	)
+	assert_int(settings.max_tile_distance).is_equal(3)
 
 
 # Test the System's astar grid to see that certain locations are in or out of bounds
@@ -97,21 +82,19 @@ func test_get_max_tile_distance_tile_to_target(
 		[Vector2i(50, 50), false, null], [Vector2i(20, 20), true, vec_max_tile_distance]
 	]
 ) -> void:
-	system.mode_state.current = GBEnums.Mode.BUILD
-	(
-		assert_that(system.mode_state.current)
-		. append_failure_message("Should be in build mode.")
-		. is_equal(GBEnums.Mode.BUILD)
-	)
+	# Access mode state through container (standard practice)
+	var mode_state = _container.get_states().mode
+	mode_state.current = GBEnums.Mode.BUILD
+	assert_int(mode_state.current).is_equal(GBEnums.Mode.BUILD)
 
 	var is_in_bounds = system.astar_grid.is_in_bounds(p_tile_location.x, p_tile_location.y)
 	assert_bool(is_in_bounds).is_equal(p_expected_in_bounds)
 
-	system.update_astar_grid_2d(system.astar_grid, system.settings)
+	system.update_astar_grid_2d(system.astar_grid, settings)
 	positioner.global_position = Vector2.ZERO  ## RESET POSITION
 
 	var tile_distance = system.get_max_tile_distance_tile_to_target(positioner, p_tile_location)
-	assert_that(tile_distance).is_equal(p_expected_tile_distance)
+	assert_vector(tile_distance).is_equal(p_expected_tile_distance)
 
 
 ## Test get max tile distance when AStar grid is set to no diaganols and manhattan search pattern
@@ -129,13 +112,13 @@ func test_get_max_tile_distance_tile_to_target_no_diaganols(
 		[Vector2i(0, 4), Vector2(0, 3)]
 	]
 ):
-	set_NO_diaganol_manhattan_astar_search_pattern()
+	set_no_diagonal_manhattan_astar_search_pattern()
 	positioner.global_position = Vector2.ZERO
 
 	var no_diag_limited_tile = system.get_max_tile_distance_tile_to_target(
 		positioner, p_test_location
 	)
-	assert_that(no_diag_limited_tile).is_equal(p_expected_tile)
+	assert_vector(no_diag_limited_tile).is_equal(p_expected_tile)
 
 
 @warning_ignore("unused_parameter")
@@ -145,15 +128,9 @@ func test_move_node_to_closest_valid_tile(
 	p_target: Vector2i, p_expected_error: int, test_parameters := [[Vector2i(-200, -200), OK]]
 ):
 	settings.limit_to_adjacent = false
-	(
-		assert_object(state.target_map)
-		. append_failure_message("Tile map set to valid value")
-		. is_not_null()
-	)
+	assert_object(state.target_map).is_not_null()
 	var off_map_result = system.move_node_to_closest_valid_tile(p_target, positioner, placer)
-	assert_that(off_map_result).append_failure_message("Did not run successfully").is_equal(
-		p_expected_error
-	)
+	assert_int(off_map_result).is_equal(p_expected_error)
 
 
 @warning_ignore("unused_parameter")
@@ -171,25 +148,17 @@ func test_snap_tile_to_region(
 	assert_vector(result).is_equal(p_expected_tile)
 
 
-func set_NO_diaganol_manhattan_astar_search_pattern():
+func set_no_diagonal_manhattan_astar_search_pattern():
 	settings.diaganol_mode = AStarGrid2D.DiagonalMode.DIAGONAL_MODE_NEVER
 	settings.default_compute_heuristic = AStarGrid2D.HEURISTIC_MANHATTAN
 	settings.default_estimate_heuristic = AStarGrid2D.HEURISTIC_MANHATTAN
-	(
-		assert_that(system.astar_grid.diagonal_mode)
-		. append_failure_message("AStar Diaganol mode set properly.")
-		. is_equal(settings.diaganol_mode)
-	)
-	(
-		assert_that(system.astar_grid.default_estimate_heuristic)
-		. append_failure_message("4 direction calculation expected.")
-		. is_equal(AStarGrid2D.HEURISTIC_MANHATTAN)
-	)
-	(
-		assert_that(system.astar_grid.default_compute_heuristic)
-		. append_failure_message("4 direction calculation expected.")
-		. is_equal(AStarGrid2D.HEURISTIC_MANHATTAN)
-	)
+
+	# Update the AStar grid with the new settings
+	system.update_astar_grid_2d(system.astar_grid, settings)
+
+	assert_int(system.astar_grid.diagonal_mode).is_equal(settings.diaganol_mode)
+	assert_int(system.astar_grid.default_estimate_heuristic).is_equal(AStarGrid2D.HEURISTIC_MANHATTAN)
+	assert_int(system.astar_grid.default_compute_heuristic).is_equal(AStarGrid2D.HEURISTIC_MANHATTAN)
 
 
 func create_astar_grid_centered_on_0_size_50():
@@ -198,10 +167,6 @@ func create_astar_grid_centered_on_0_size_50():
 
 	var position = grid.region.position
 	var end = grid.region.end
-	(
-		assert_vector(position)
-		. append_failure_message("Start should have been half size negative")
-		. is_equal(Vector2i(-25, -25))
-	)
-	assert_vector(end).append_failure_message("End is half size").is_equal(Vector2i(25, 25))
+	assert_vector(position).is_equal(Vector2i(-25, -25))
+	assert_vector(end).is_equal(Vector2i(25, 25))
 	return grid

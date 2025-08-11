@@ -36,18 +36,15 @@ func before_test():
 	manipulation_state.parent = manipulation_parent
 
 	targeting_state = states.targeting
-	targeting_state.target_map = GodotTestFactory.create_tile_map_layer(self)
+	targeting_state.target_map = GodotTestFactory.create_empty_tile_map_layer(self)
 	targeting_state.maps = [targeting_state.target_map]
-	# Assign a valid test TileSet to prevent tile_set.is_null() errors (use UID per project rules)
-	var test_tileset = load("uid://b0shp63l248fm")
-	targeting_state.target_map.tile_set = test_tileset
 
 	# PlacementManager: instantiate and inject dependencies
 	var placement_manager: PlacementManager = PlacementManager.new()
 	placement_manager.resolve_gb_dependencies(_container)
 	add_child(placement_manager)
 
-	system = ManipulationSystem.create_with_injection(_container)
+	system = auto_free(ManipulationSystem.create_with_injection(_container))
 	add_child(system)
 
 	# Set targeting_state dependencies
@@ -55,11 +52,7 @@ func before_test():
 	targeting_state.positioner = positioner
 
 	var validate_result = system.validate_dependencies()
-	(
-		assert_array(validate_result)
-		. append_failure_message("System must validate true for tests to pass")
-		. is_empty()
-	)
+	assert_array(validate_result).is_empty()
 
 	all_manipulatable = create_manipulatable_object(
 		TestSceneLibrary.manipulatable_settings_all_allowed
@@ -69,7 +62,7 @@ func before_test():
 @warning_ignore("unused_parameter")
 
 
-func test__start_move(
+func test_start_move(
 	p_data: ManipulationData,
 	p_expected: bool,
 	test_parameters := [
@@ -78,17 +71,10 @@ func test__start_move(
 		[create_move_data(TestSceneLibrary.manipulatable_settings_all_allowed), true]
 	]
 ) -> void:
-	var result: bool = system._start_move(p_data)
-	(
-		assert_bool(result)
-		. append_failure_message(
-			(
-				"[%s] With a root and a source Manipulatable found on the root, move should start and _start_move returns true"
-				% p_data
-			)
-		)
-		. is_equal(p_expected)
-	)
+	# Use the public try_move method instead of private _start_move
+	var result_data = system.try_move(p_data.source.root)
+	var result: bool = result_data.status == GBEnums.Status.STARTED
+	assert_bool(result).is_equal(p_expected)
 
 	# TODO: Find public API to verify rules were properly set up
 	# Cannot access placement_validator.active_rules as it accesses private properties
@@ -106,46 +92,31 @@ func test_move_already_moving(
 		[create_move_data(TestSceneLibrary.manipulatable_settings_all_allowed), true]
 	]
 ) -> void:
-	var results_first_move = system._start_move(p_data)
-	assert_bool(results_first_move).append_failure_message("Move should have started?").is_equal(
-		p_expected
-	)
+	var results_first_move = system.try_move(p_data.source.root)
+	var first_move_success: bool = results_first_move.status == GBEnums.Status.STARTED
+	assert_bool(first_move_success).is_equal(p_expected)
 
-	var result_second_move = system._start_move(p_data)
-	assert_bool(result_second_move).is_equal(p_expected)
+	var result_second_move = system.try_move(p_data.source.root)
+	var second_move_success: bool = result_second_move.status == GBEnums.Status.STARTED
+	assert_bool(second_move_success).is_equal(p_expected)
 
 
 func test_cancel() -> void:
 	var data = create_move_data(TestSceneLibrary.manipulatable_settings_all_allowed)
-	var valid_move: bool = system._start_move(data)
+	var move_result = system.try_move(data.source.root)
+	var valid_move: bool = move_result.status == GBEnums.Status.STARTED
 	assert_bool(valid_move).is_true()
 	assert_object(_container.get_states().manipulation.data).is_not_null()
-	(
-		assert_object(data.source)
-		. append_failure_message(
-			"When moving, a target should be a temporary object copy of the source and NOT the same object."
-		)
-		. is_not_same(data.target)
-	)
-	(
-		assert_object(data.source.root)
-		. append_failure_message("Source and target should have different roots.")
-		. is_not_same(data.target.root)
-	)
+
+	assert_object(data.source).is_not_same(data.target)
+	assert_object(data.source.root).is_not_same(data.target.root)
 
 	var move_data: ManipulationData = _container.get_states().manipulation.data
 	move_data.target.root.global_position = Vector2i(100, -100)
 	var origin = move_data.source.root.global_transform.origin
-	(
-		assert_float(origin.x)
-		. append_failure_message("Source root should not have changed position.")
-		. is_equal_approx(0, 0.01)
-	)
-	(
-		assert_float(origin.y)
-		. append_failure_message("Source root should not have changed position.")
-		. is_equal_approx(0, 0.01)
-	)
+
+	assert_float(origin.x).is_equal_approx(0, 0.01)
+	assert_float(origin.y).is_equal_approx(0, 0.01)
 
 	system.cancel()
 	assert_object(_container.get_states().manipulation.data).is_null()
@@ -165,13 +136,7 @@ func test_demolish(
 ) -> void:
 	monitor_signals(manipulation_state)  # Needed for assert_signal
 	var result: bool = await system.demolish(p_demolish_target)
-	(
-		assert_bool(result)
-		. append_failure_message("Result of demolish does not match expected boolean value")
-		. is_equal(p_expected)
-	)
-	#if p_expected == false:
-	#	wait assert_signal(manipulation_state)....
+	assert_bool(result).is_equal(p_expected)
 
 
 @warning_ignore("unused_parameter")
@@ -236,7 +201,9 @@ func test_rotate_node2d_target_rotates_correctly(
 
 
 func test_rotate_negative(
-	p_manipulatable: Manipulatable, p_expected: bool, test_parameters := [[all_manipulatable, true]]
+	p_manipulatable: Manipulatable, 
+	p_expected: bool, 
+	test_parameters := [[all_manipulatable, true]]
 ):
 	var preview = Node2D.new()
 	var placement_manager = PlacementManager.new()
@@ -266,16 +233,12 @@ func test_try_placement(
 	test_parameters := [[TestSceneLibrary.manipulatable_settings_all_allowed, true]]
 ) -> void:
 	var source = create_manipulatable_object(p_settings)
-	# Prepare move data without a pre-made target; _start_move will create it and set up validation
+	# Prepare move data without a pre-made target; try_move will create it and set up validation
 	var move_data = ManipulationData.new(manipulator, source, null, GBEnums.Action.MOVE)
-	var started := system._start_move(move_data)
-	(
-		assert_bool(started)
-		. append_failure_message(
-			"Placement validator has not been successfully setup. Must run setup with true result."
-		)
-		. is_true()
-	)
+	var move_result = system.try_move(source.root)
+	var started: bool = move_result.status == GBEnums.Status.STARTED
+	assert_bool(started).is_true()
+
 	_container.get_states().manipulation.data = move_data
 	var test_location = Vector2(1000, 1000)
 
@@ -283,27 +246,11 @@ func test_try_placement(
 	move_data.target.root.global_position = test_location
 	var placement_results: ValidationResults = await system.try_placement(move_data)
 
-	(
-		assert_bool(placement_results.is_successful)
-		. append_failure_message(placement_results.message)
-		. is_equal(p_expected)
-	)
-	(
-		assert_that(move_data.target)
-		. append_failure_message("Should have been freed after placement")
-		. is_null()
-	)
-	assert_object(source).append_failure_message("Should still exist after placement").is_not_null()
-	(
-		assert_object(source.root)
-		. append_failure_message("Should still exist after placement")
-		. is_not_null()
-	)
-	(
-		assert_vector(source.root.global_position)
-		. append_failure_message("Should have moved to test location")
-		. is_equal(test_location)
-	)
+	assert_bool(placement_results.is_successful).is_equal(p_expected)
+	assert_object(move_data.target).is_null()
+	assert_object(source).is_not_null()
+	assert_object(source.root).is_not_null()
+	assert_vector(source.root.global_position).is_equal(test_location)
 
 
 @warning_ignore("unused_parameter")
@@ -321,11 +268,7 @@ func test_try_move(
 	]
 ) -> void:
 	var data: ManipulationData = system.try_move(p_target_root)
-	(
-		assert_int(data.status)
-		. append_failure_message("Actual Status: %s" % str(GBEnums.Status.find_key(data.status)))
-		. is_equal(p_expected)
-	)
+	assert_int(data.status).is_equal(p_expected)
 
 
 ## Creates a root with a [Manipulatable] attached
