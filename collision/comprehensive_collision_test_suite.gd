@@ -1,19 +1,23 @@
-extends GdUnitTestSuite
+extends GBTestBase
 
 ## Comprehensive parameterized test suite for collision detection
 ## Consolidates functionality from multiple debug tests into a single, maintainable test file
 
 ## Test data for different collision shapes
 
+func before_test():
+	setup_common_container()
+
 ## Test capsule shape bounds and tile coverage (parameterized)
 ## Parameters: name, radius, height, expected_bounds, expected_tiles
+@warning_ignore("unused_parameter")
 func test_capsule_shape_validation(
 	case_name: String,
 	radius: float,
 	height: float,
 	expected_bounds: Rect2,
 	expected_tiles: Vector2i,
-	_test_parameters := [
+	test_parameters := [
 		["Small Capsule", 7.0, 22.0, Rect2(-7, -11, 14, 22), Vector2i(1, 1)],
 		["Medium Capsule", 14.0, 60.0, Rect2(-14, -30, 28, 60), Vector2i(2, 4)],
 		["Large Capsule", 48.0, 128.0, Rect2(-48, -64, 96, 128), Vector2i(6, 8)]
@@ -55,12 +59,13 @@ func test_capsule_shape_validation(
 
 ## Test trapezoid shape bounds and tile coverage (parameterized)
 ## Parameters: name, points, expected_bounds, expected_tiles
+@warning_ignore("unused_parameter")
 func test_trapezoid_shape_validation(
 	case_name: String,
 	points: PackedVector2Array,
 	expected_bounds: Rect2,
 	expected_tiles: Vector2i,
-	_test_parameters := [
+	test_parameters := [
 		["Standard Trapezoid", PackedVector2Array([
 			Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)
 		]), Rect2(-32, -12, 64, 24), Vector2i(4, 2)],
@@ -99,6 +104,7 @@ func test_trapezoid_shape_validation(
 ## Test collision detection with tiles for different shapes (parameterized)
 ## Parameters: name, shape_type, radius, height, points, tile_offset, expected_overlap
 ## For trapezoid rows radius/height are 0; for capsule rows points is empty
+@warning_ignore("unused_parameter")
 func test_shape_tile_collision_detection(
 	case_name: String,
 	shape_type: String,
@@ -107,7 +113,7 @@ func test_shape_tile_collision_detection(
 	points: PackedVector2Array,
 	tile_offset: Vector2i,
 	expected_overlap: bool,
-	_test_parameters := [
+	test_parameters := [
 		["Capsule Center Tile", "capsule", 14.0, 60.0, PackedVector2Array(), Vector2i(0,0), true],
 		["Capsule Edge Tile", "capsule", 14.0, 60.0, PackedVector2Array(), Vector2i(1,0), true],
 		["Trapezoid Center Tile", "trapezoid", 0.0, 0.0, PackedVector2Array([
@@ -142,13 +148,14 @@ func test_shape_tile_collision_detection(
 
 ## Test shape symmetry properties (parameterized)
 ## Parameters: name, shape_type, radius, height, points
+@warning_ignore("unused_parameter")
 func test_shape_symmetry_validation(
 	case_name: String,
 	shape_type: String,
 	radius: float,
 	height: float,
 	points: PackedVector2Array,
-	_test_parameters := [
+	test_parameters := [
 		["Small Capsule", "capsule", 7.0, 22.0, PackedVector2Array()],
 		["Medium Capsule", "capsule", 14.0, 60.0, PackedVector2Array()],
 		["Standard Trapezoid", "trapezoid", 0.0, 0.0, PackedVector2Array([

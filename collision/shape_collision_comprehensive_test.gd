@@ -1,7 +1,11 @@
-extends GdUnitTestSuite
+extends GBTestBase
 
 ## Comprehensive test for all shape collision detection
 ## Replaces debug tests with proper validation
+
+func before_test():
+	setup_common_container()
+
 @warning_ignore("unused_parameter")
 func test_shape_bounds_validation(
 	shape_name: String,
@@ -64,6 +68,7 @@ func test_shape_bounds_validation(
 
 ## Test shape tile coverage calculation (parameterized)
 ## Parameters: case_name, shape_type, radius, height, points, expected_tiles
+@warning_ignore("unused_parameter")
 func test_shape_tile_coverage(
 	case_name: String,
 	shape_type: String,
@@ -71,7 +76,7 @@ func test_shape_tile_coverage(
 	height: float,
 	points: PackedVector2Array,
 	expected_tiles: Vector2i,
-	_test_parameters := [
+	test_parameters := [
 		["Small Capsule", "capsule", 7.0, 22.0, PackedVector2Array(), Vector2i(1, 2)],
 		["Medium Capsule", "capsule", 14.0, 60.0, PackedVector2Array(), Vector2i(2, 4)],
 		["Large Capsule", "capsule", 48.0, 128.0, PackedVector2Array(), Vector2i(6, 8)],
@@ -102,6 +107,7 @@ func test_shape_tile_coverage(
 
 ## Test shape collision detection with tiles (parameterized)
 ## Parameters: case_name, shape_type, radius, height, points, tile_offset, expected_overlap
+@warning_ignore("unused_parameter")
 func test_shape_tile_collision_detection(
 	case_name: String,
 	shape_type: String,
@@ -110,7 +116,7 @@ func test_shape_tile_collision_detection(
 	points: PackedVector2Array,
 	tile_offset: Vector2i,
 	expected_overlap: bool,
-	_test_parameters := [
+	test_parameters := [
 		["Capsule Center Tile", "capsule", 14.0, 60.0, PackedVector2Array(), Vector2i(0,0), true],
 		["Capsule Edge Tile", "capsule", 14.0, 60.0, PackedVector2Array(), Vector2i(1,0), true],
 		["Capsule Corner Tile", "capsule", 14.0, 60.0, PackedVector2Array(), Vector2i(1,1), false],
@@ -144,6 +150,7 @@ func test_shape_tile_collision_detection(
 
 ## Test shape positioning and transformation (parameterized)
 ## Parameters: case_name, shape_type, radius, height, points, position, expected_center
+@warning_ignore("unused_parameter")
 func test_shape_positioning_validation(
 	case_name: String,
 	shape_type: String,
@@ -152,7 +159,7 @@ func test_shape_positioning_validation(
 	points: PackedVector2Array,
 	position: Vector2,
 	expected_center: Vector2,
-	_test_parameters := [
+	test_parameters := [
 		["Capsule at Origin", "capsule", 14.0, 60.0, PackedVector2Array(), Vector2(0,0), Vector2(0,0)],
 		["Capsule at Position", "capsule", 14.0, 60.0, PackedVector2Array(), Vector2(400,300), Vector2(400,300)],
 		["Trapezoid at Position", "trapezoid", 0.0, 0.0, PackedVector2Array([
