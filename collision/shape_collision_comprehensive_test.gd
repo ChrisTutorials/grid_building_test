@@ -62,217 +62,122 @@ func test_shape_bounds_validation(
 		.is_equal_approx(expected.size.y, tolerance)
 	)
 
-## Test shape tile coverage calculation
-@warning_ignore("unused_parameter")
+## Test shape tile coverage calculation (parameterized)
+## Parameters: case_name, shape_type, radius, height, points, expected_tiles
 func test_shape_tile_coverage(
-	shape_data: Dictionary,
-	test_parameters := [
-		{
-			"name": "Small Capsule",
-			"type": "capsule",
-			"radius": 7.0,
-			"height": 22.0,
-			"expected_tiles": Vector2i(1, 2)
-		},
-		{
-			"name": "Medium Capsule",
-			"type": "capsule",
-			"radius": 14.0,
-			"height": 60.0,
-			"expected_tiles": Vector2i(2, 4)
-		},
-		{
-			"name": "Large Capsule",
-			"type": "capsule",
-			"radius": 48.0,
-			"height": 128.0,
-			"expected_tiles": Vector2i(6, 8)
-		},
-		{
-			"name": "Standard Trapezoid",
-			"type": "trapezoid",
-			"points": PackedVector2Array([
-				Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)
-			]),
-			"expected_tiles": Vector2i(4, 2)
-		}
+	case_name: String,
+	shape_type: String,
+	radius: float,
+	height: float,
+	points: PackedVector2Array,
+	expected_tiles: Vector2i,
+	_test_parameters := [
+		["Small Capsule", "capsule", 7.0, 22.0, PackedVector2Array(), Vector2i(1, 2)],
+		["Medium Capsule", "capsule", 14.0, 60.0, PackedVector2Array(), Vector2i(2, 4)],
+		["Large Capsule", "capsule", 48.0, 128.0, PackedVector2Array(), Vector2i(6, 8)],
+		["Standard Trapezoid", "trapezoid", 0.0, 0.0, PackedVector2Array([
+			Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)
+		]), Vector2i(4, 2)]
 	]
 ):
 	var bounds: Rect2
-	
-	if shape_data["type"] == "capsule":
-		var capsule_shape = CapsuleShape2D.new()
-		capsule_shape.radius = shape_data["radius"]
-		capsule_shape.height = shape_data["height"]
-		
-		var transform = Transform2D()
-		var polygon = GBGeometryMath.convert_shape_to_polygon(capsule_shape, transform)
-		bounds = GBGeometryMath.get_polygon_bounds(polygon)
-	elif shape_data["type"] == "trapezoid":
-		var trapezoid = shape_data["points"]
-		bounds = GBGeometryMath.get_polygon_bounds(trapezoid)
-	
-	var tile_size = Vector2(16, 16)
-	var tiles_wide = int(ceil(bounds.size.x / tile_size.x))
-	var tiles_high = int(ceil(bounds.size.y / tile_size.y))
+	if shape_type == "capsule":
+		var capsule_shape := CapsuleShape2D.new()
+		capsule_shape.radius = radius
+		capsule_shape.height = height
+		bounds = GBGeometryMath.get_polygon_bounds(GBGeometryMath.convert_shape_to_polygon(capsule_shape, Transform2D()))
+	elif shape_type == "trapezoid":
+		bounds = GBGeometryMath.get_polygon_bounds(points)
 
-	(
-		assert_int(tiles_wide)
-		.append_failure_message("%s width tile count mismatch" % shape_data["name"])
-		.is_equal(shape_data["expected_tiles"].x)
-	)
+	var tile_size := Vector2(16, 16)
+	var tiles_wide := int(ceil(bounds.size.x / tile_size.x))
+	var tiles_high := int(ceil(bounds.size.y / tile_size.y))
 
-	(
-		assert_int(tiles_high)
-		.append_failure_message("%s height tile count mismatch" % shape_data["name"])
-		.is_equal(shape_data["expected_tiles"].y)
-	)
+	(assert_int(tiles_wide)
+		.append_failure_message("%s width tile count mismatch" % case_name)
+		.is_equal(expected_tiles.x))
+	(assert_int(tiles_high)
+		.append_failure_message("%s height tile count mismatch" % case_name)
+		.is_equal(expected_tiles.y))
 
-## Test shape collision detection with tiles
-@warning_ignore("unused_parameter")
+## Test shape collision detection with tiles (parameterized)
+## Parameters: case_name, shape_type, radius, height, points, tile_offset, expected_overlap
 func test_shape_tile_collision_detection(
-	test_data: Dictionary,
-	test_parameters := [
-		{
-			"name": "Capsule Center Tile",
-			"type": "capsule",
-			"radius": 14.0,
-			"height": 60.0,
-			"tile_offset": Vector2i(0, 0),
-			"expected_overlap": true
-		},
-		{
-			"name": "Capsule Edge Tile",
-			"type": "capsule",
-			"radius": 14.0,
-			"height": 60.0,
-			"tile_offset": Vector2i(1, 0),
-			"expected_overlap": true
-		},
-		{
-			"name": "Capsule Corner Tile",
-			"type": "capsule",
-			"radius": 14.0,
-			"height": 60.0,
-			"tile_offset": Vector2i(1, 1),
-			"expected_overlap": false
-		},
-		{
-			"name": "Trapezoid Center Tile",
-			"type": "trapezoid",
-			"points": PackedVector2Array([
-				Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)
-			]),
-			"tile_offset": Vector2i(0, 0),
-			"expected_overlap": true
-		},
-		{
-			"name": "Trapezoid Edge Tile",
-			"type": "trapezoid",
-			"points": PackedVector2Array([
-				Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)
-			]),
-			"tile_offset": Vector2i(2, 0),
-			"expected_overlap": true
-		}
+	case_name: String,
+	shape_type: String,
+	radius: float,
+	height: float,
+	points: PackedVector2Array,
+	tile_offset: Vector2i,
+	expected_overlap: bool,
+	_test_parameters := [
+		["Capsule Center Tile", "capsule", 14.0, 60.0, PackedVector2Array(), Vector2i(0,0), true],
+		["Capsule Edge Tile", "capsule", 14.0, 60.0, PackedVector2Array(), Vector2i(1,0), true],
+		["Capsule Corner Tile", "capsule", 14.0, 60.0, PackedVector2Array(), Vector2i(1,1), false],
+		["Trapezoid Center Tile", "trapezoid", 0.0, 0.0, PackedVector2Array([
+			Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)
+		]), Vector2i(0,0), true],
+		["Trapezoid Edge Tile", "trapezoid", 0.0, 0.0, PackedVector2Array([
+			Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)
+		]), Vector2i(2,0), true]
 	]
 ):
-	var tile_size = Vector2(16, 16)
-	var tile_pos = Vector2(
-		test_data["tile_offset"].x * tile_size.x,
-		test_data["tile_offset"].y * tile_size.y
-	)
-	
-	var overlaps: bool
-	
-	if test_data["type"] == "capsule":
-		var capsule_shape = CapsuleShape2D.new()
-		capsule_shape.radius = test_data["radius"]
-		capsule_shape.height = test_data["height"]
-		
-		overlaps = GBGeometryMath.does_shape_overlap_tile_optimized(
-			capsule_shape, Transform2D(), tile_pos, tile_size, 0.01
-		)
-	elif test_data["type"] == "trapezoid":
-		var trapezoid = test_data["points"]
-		var tile_area = tile_size.x * tile_size.y
-		var epsilon = tile_area * 0.05
-		
-		overlaps = GBGeometryMath.does_polygon_overlap_tile_optimized(
-			trapezoid, tile_pos, tile_size, 0, epsilon
-		)
+	var tile_size := Vector2(16, 16)
+	var tile_pos := Vector2(tile_offset.x * tile_size.x, tile_offset.y * tile_size.y)
+	var overlaps := false
+	if shape_type == "capsule":
+		var capsule_shape := CapsuleShape2D.new()
+		capsule_shape.radius = radius
+		capsule_shape.height = height
+		overlaps = GBGeometryMath.does_shape_overlap_tile_optimized(capsule_shape, Transform2D(), tile_pos, tile_size, 0.01)
+	elif shape_type == "trapezoid":
+		var tile_area := tile_size.x * tile_size.y
+		var epsilon := tile_area * 0.05
+		overlaps = GBGeometryMath.does_polygon_overlap_tile_optimized(points, tile_pos, tile_size, 0, epsilon)
 
-	(
-		assert_bool(overlaps)
+	(assert_bool(overlaps)
 		.append_failure_message("%s should %s overlap" % [
-			test_data["name"],
-			"have" if test_data["expected_overlap"] else "not have"
+			case_name,
+			"have" if expected_overlap else "not have"
 		])
-		.is_equal(test_data["expected_overlap"])
-	)
+		.is_equal(expected_overlap))
 
-## Test shape positioning and transformation
-@warning_ignore("unused_parameter")
+## Test shape positioning and transformation (parameterized)
+## Parameters: case_name, shape_type, radius, height, points, position, expected_center
 func test_shape_positioning_validation(
-	shape_data: Dictionary,
-	test_parameters := [
-		{
-			"name": "Capsule at Origin",
-			"type": "capsule",
-			"radius": 14.0,
-			"height": 60.0,
-			"position": Vector2(0, 0),
-			"expected_center": Vector2(0, 0)
-		},
-		{
-			"name": "Capsule at Position",
-			"type": "capsule",
-			"radius": 14.0,
-			"height": 60.0,
-			"position": Vector2(400, 300),
-			"expected_center": Vector2(400, 300)
-		},
-		{
-			"name": "Trapezoid at Position",
-			"type": "trapezoid",
-			"points": PackedVector2Array([
-				Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)
-			]),
-			"position": Vector2(800, 600),
-			"expected_center": Vector2(800, 600)
-		}
+	case_name: String,
+	shape_type: String,
+	radius: float,
+	height: float,
+	points: PackedVector2Array,
+	position: Vector2,
+	expected_center: Vector2,
+	_test_parameters := [
+		["Capsule at Origin", "capsule", 14.0, 60.0, PackedVector2Array(), Vector2(0,0), Vector2(0,0)],
+		["Capsule at Position", "capsule", 14.0, 60.0, PackedVector2Array(), Vector2(400,300), Vector2(400,300)],
+		["Trapezoid at Position", "trapezoid", 0.0, 0.0, PackedVector2Array([
+			Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)
+		]), Vector2(800,600), Vector2(800,600)]
 	]
 ):
-	var transform = Transform2D()
-	transform.origin = shape_data["position"]
-	
+	var transform := Transform2D()
+	transform.origin = position
 	var bounds: Rect2
-	
-	if shape_data["type"] == "capsule":
-		var capsule_shape = CapsuleShape2D.new()
-		capsule_shape.radius = shape_data["radius"]
-		capsule_shape.height = shape_data["height"]
-		
-		var polygon = GBGeometryMath.convert_shape_to_polygon(capsule_shape, transform)
-		bounds = GBGeometryMath.get_polygon_bounds(polygon)
-	elif shape_data["type"] == "trapezoid":
-		var trapezoid = shape_data["points"]
-		var transformed_points = PackedVector2Array()
-		for point in trapezoid:
-			transformed_points.append(transform * point)
+	if shape_type == "capsule":
+		var capsule_shape := CapsuleShape2D.new()
+		capsule_shape.radius = radius
+		capsule_shape.height = height
+		bounds = GBGeometryMath.get_polygon_bounds(GBGeometryMath.convert_shape_to_polygon(capsule_shape, transform))
+	elif shape_type == "trapezoid":
+		var transformed_points := PackedVector2Array()
+		for p in points:
+			transformed_points.append(transform * p)
 		bounds = GBGeometryMath.get_polygon_bounds(transformed_points)
-	
-	var actual_center = bounds.position + bounds.size / 2.0
-	var tolerance = 1.0
-
-	(
-		assert_float(actual_center.x)
-		.append_failure_message("%s center X mismatch" % shape_data["name"])
-		.is_equal_approx(shape_data["expected_center"].x, tolerance)
-	)
-
-	(
-		assert_float(actual_center.y)
-		.append_failure_message("%s center Y mismatch" % shape_data["name"])
-		.is_equal_approx(shape_data["expected_center"].y, tolerance)
-	)
+	var actual_center := bounds.position + bounds.size / 2.0
+	var tolerance := 1.0
+	(assert_float(actual_center.x)
+		.append_failure_message("%s center X mismatch" % case_name)
+		.is_equal_approx(expected_center.x, tolerance))
+	(assert_float(actual_center.y)
+		.append_failure_message("%s center Y mismatch" % case_name)
+		.is_equal_approx(expected_center.y, tolerance))
