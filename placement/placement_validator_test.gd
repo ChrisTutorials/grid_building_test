@@ -61,7 +61,7 @@ func before_test():
 	test_rules = validator.get_combined_rules(TestSceneLibrary.placeable_eclipse.placement_rules)
 	
 	test_params = RuleValidationParameters.new(
-		placer, preview_instance, targeting_state
+		placer, preview_instance, targeting_state, _container.get_logger()
 	)
 	
 func after_test():

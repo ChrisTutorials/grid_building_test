@@ -232,7 +232,8 @@ static func create_rule_validation_params(test: GdUnitTestSuite, target: Node2D 
 		test.auto_free(test_target)
 		test.add_child(test_target)
 	var state := targeting_state if targeting_state != null else create_targeting_state(test)
-	return RuleValidationParameters.new(placer, test_target, state)
+	var logger := create_test_logger()
+	return RuleValidationParameters.new(placer, test_target, state, logger)
 
 static func create_rule_with_logger(rule_class: GDScript) -> PlacementRule:
 	var rule: PlacementRule = rule_class.new()
@@ -284,6 +285,150 @@ static func create_targeting_state(test: GdUnitTestSuite, owner_context: GBOwner
 	targeting_state.set_map_objects(map_layer, [map_layer])
 	test.auto_free(targeting_state)
 	return targeting_state
+
+# ================================
+# Grid Building Test Utilities
+# ================================
+
+## Setup a complete building system test environment
+static func setup_building_system_test(test: GdUnitTestSuite, container: GBCompositionContainer) -> Dictionary:
+	var scene = {}
+	
+	# Create basic nodes
+	scene.placer = GodotTestFactory.create_node2d(test)
+	scene.placed_parent = GodotTestFactory.create_node2d(test)
+	scene.grid_positioner = GodotTestFactory.create_node2d(test)
+	scene.map_layer = GodotTestFactory.create_tile_map_layer(test)
+	
+	# Setup targeting state
+	var targeting_state = container.get_states().targeting
+	targeting_state.positioner = scene.grid_positioner
+	targeting_state.target_map = scene.map_layer
+	targeting_state.maps = [scene.map_layer]
+	
+	# Setup building state
+	scene.user_context = create_test_owner_context(test)
+	var building_state = container.get_states().building
+	building_state.placer_state = scene.user_context
+	building_state.placed_parent = scene.placed_parent
+	
+	# Create and setup building system
+	var system = test.auto_free(BuildingSystem.create_with_injection(container))
+	test.add_child(system)
+	scene.system = system
+	
+	# Create placement manager
+	scene.placement_manager = create_test_placement_manager(test)
+	scene.placement_context = test.auto_free(PlacementContext.new())
+	
+	return scene
+
+## Setup a complete manipulation system test environment
+static func setup_manipulation_system_test(test: GdUnitTestSuite, container: GBCompositionContainer) -> Dictionary:
+	var scene = {}
+	
+	# Create basic nodes
+	scene.placer = GodotTestFactory.create_node2d(test)
+	scene.placed_parent = GodotTestFactory.create_node2d(test)
+	scene.grid_positioner = GodotTestFactory.create_node2d(test)
+	scene.map_layer = GodotTestFactory.create_tile_map_layer(test)
+	
+	# Setup targeting state
+	var targeting_state = container.get_states().targeting
+	targeting_state.positioner = scene.grid_positioner
+	targeting_state.target_map = scene.map_layer
+	targeting_state.maps = [scene.map_layer]
+	
+	# Setup building state
+	scene.user_context = create_test_owner_context(test)
+	var building_state = container.get_states().building
+	building_state.placer_state = scene.user_context
+	building_state.placed_parent = scene.placed_parent
+	
+	# Create and setup manipulation system
+	var system = test.auto_free(ManipulationSystem.create_with_injection(container))
+	test.add_child(system)
+	scene.system = system
+	
+	# Create placement manager
+	scene.placement_manager = create_test_placement_manager(test)
+	scene.placement_context = test.auto_free(PlacementContext.new())
+	
+	return scene
+
+## Setup a complete grid targeting system test environment
+static func setup_grid_targeting_system_test(test: GdUnitTestSuite, container: GBCompositionContainer) -> Dictionary:
+	var scene = {}
+	
+	# Create basic nodes
+	scene.placer = GodotTestFactory.create_node2d(test)
+	scene.placed_parent = GodotTestFactory.create_node2d(test)
+	scene.grid_positioner = GodotTestFactory.create_node2d(test)
+	scene.map_layer = GodotTestFactory.create_tile_map_layer(test)
+	
+	# Setup targeting state
+	var targeting_state = container.get_states().targeting
+	targeting_state.positioner = scene.grid_positioner
+	targeting_state.target_map = scene.map_layer
+	targeting_state.maps = [scene.map_layer]
+	
+	# Create and setup grid targeting system
+	var system = test.auto_free(GridTargetingSystem.create_with_injection(container))
+	test.add_child(system)
+	scene.system = system
+	
+	return scene
+
+## Create a test placeable instance with common setup
+static func create_test_placeable_instance(test: GdUnitTestSuite, instance_name: String = "TestInstance", placeable_path: String = "") -> Node:
+	var save = {
+		PlaceableInstance.Names.INSTANCE_NAME: instance_name,
+		PlaceableInstance.Names.PLACEABLE: {Placeable.Names.UID: placeable_path},
+		PlaceableInstance.Names.TRANSFORM: var_to_str(Transform2D.IDENTITY)
+	}
+	
+	var instance = PlaceableInstance.instance_from_save(save, test)
+	return test.auto_free(instance)
+
+## Create a test manipulation data object
+static func create_test_manipulation_data(
+	test: GdUnitTestSuite,
+	action: GBEnums.Action = GBEnums.Action.BUILD,
+	root_manipulatable: Manipulatable = null,
+	target_manipulatable: Manipulatable = null
+) -> ManipulationData:
+	var root = root_manipulatable if root_manipulatable else create_test_manipulatable(test)
+	var target = target_manipulatable if target_manipulatable else create_test_manipulatable(test)
+	
+	var data = ManipulationData.new(
+		test.auto_free(Node.new()),
+		root,
+		target,
+		action
+	)
+	
+	return test.auto_free(data)
+
+## Create a test rule check indicator with common setup
+static func create_test_rule_check_indicator_with_shape(
+	test: GdUnitTestSuite,
+	rules: Array[TileCheckRule] = [],
+	tile_size: int = 16
+) -> RuleCheckIndicator:
+	var indicator = create_test_rule_check_indicator(test, rules)
+	var rect_shape = GodotTestFactory.create_rectangle_shape(Vector2(tile_size, tile_size))
+	indicator.shape = rect_shape
+	return indicator
+
+## Validate that a system has no dependency issues
+static func assert_system_dependencies_valid(test: GdUnitTestSuite, system: Node) -> void:
+	var issues = system.validate_dependencies()
+	test.assert_array(issues).is_empty()
+
+## Validate that a system has expected dependency issues
+static func assert_system_dependencies_have_issues(test: GdUnitTestSuite, system: Node, expected_issue_count: int = 1) -> void:
+	var issues = system.validate_dependencies()
+	test.assert_int(issues.size()).is_greater_equal(expected_issue_count)
 
 # ================================
 # Tile Maps

@@ -3,6 +3,7 @@ extends GdUnitTestSuite
 
 
 ## Parameterized test for is_exact_polygon_match
+@warning_ignore("unused_parameter")
 func test_is_exact_polygon_match_param(
 	poly_a: PackedVector2Array,
 	poly_b: PackedVector2Array,
@@ -29,6 +30,7 @@ func test_is_exact_polygon_match_param(
 
 
 ## Parameterized test for exact_polygon_area
+@warning_ignore("unused_parameter")
 func test_exact_polygon_area_param(
 	poly: PackedVector2Array,
 	expected: float,
@@ -43,6 +45,7 @@ func test_exact_polygon_area_param(
 
 
 ## Parameterized test for isometric_floating_point_fallback
+@warning_ignore("unused_parameter")
 func test_isometric_floating_point_fallback_param(
 	tile_poly: PackedVector2Array,
 	polygon: PackedVector2Array,
@@ -67,6 +70,7 @@ func test_isometric_floating_point_fallback_param(
 
 
 ## Parameterized test for square_bounding_box_fallback
+@warning_ignore("unused_parameter")
 func test_square_bounding_box_fallback_param(
 	tile_poly: PackedVector2Array,
 	polygon: PackedVector2Array,

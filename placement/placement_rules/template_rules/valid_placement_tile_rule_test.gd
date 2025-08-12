@@ -42,7 +42,7 @@ func before_test():
 	var placement_node: Node2D = GodotTestFactory.create_node2d(self)
 
 	## This must validate successfully
-	var issues := rule.setup(RuleValidationParameters.new(placer, placement_node, targeting_state))
+	var issues := rule.setup(RuleValidationParameters.new(placer, placement_node, targeting_state, _container.get_logger()))
 	assert_array(issues).is_empty()
 
 	# Assign the TileSet to the TileMap

@@ -25,7 +25,7 @@ func before_test():
 	# Create placer/target nodes (RuleValidationParameters expects (placer, target, state))
 	var placer: Node2D = GodotTestFactory.create_node2d(self)
 	var target: Node2D = GodotTestFactory.create_node2d(self)
-	rule_validation_params = RuleValidationParameters.new(placer, target, targeting_state)
+	rule_validation_params = RuleValidationParameters.new(placer, target, targeting_state, logger)
 
 	var setup_issues: Array[String] = rule.setup(rule_validation_params)
 	assert_array(setup_issues).append_failure_message(str(setup_issues)).is_empty()
@@ -37,7 +37,7 @@ func test_validate_condition(indicator_setup: Array[Dictionary], expected_succes
 	[[{"pos": Vector2.ZERO}], true],
 	[[{"pos": Vector2(7000, 7000), "valid": false}], false] # Way out of bounds
 ]) -> void:
-	var test_indicators := _create_indicators(indicator_setup, [rule])
+	var _test_indicators := _create_indicators(indicator_setup, [rule])
 	# rule.indicators populated indirectly via add_rule in _create_indicators
 	var result: RuleResult = rule.validate_condition()
 	assert_bool(result.is_successful).append_failure_message(result.reason).is_equal(expected_success)

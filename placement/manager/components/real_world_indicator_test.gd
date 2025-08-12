@@ -50,7 +50,8 @@ func test_real_world_indicator_positioning():
 	print("Positioner global_position: %s" % targeting_state.positioner.global_position)
 
 	# Set up placement rules (this triggers indicator creation)
-	var params = RuleValidationParameters.new(auto_free(Node.new()), preview, targeting_state)  # placer  # target (preview instance)
+	var logger = UnifiedTestFactory.create_test_logger()
+	var params = RuleValidationParameters.new(auto_free(Node.new()), preview, targeting_state, logger)  # placer  # target (preview instance)
 
 	var success = placement_manager.try_setup(eclipse_placeable.placement_rules, params)
 	assert_that(success).is_true()

@@ -58,7 +58,7 @@ func setup_validation_no_col_and_buildable(test_node : Node2D) -> RuleValidation
 	rules[1].visual_priority = 10
 
 	placement_validator.base_rules = rules
-	var setup_result = placement_validator.setup(rules, RuleValidationParameters.new(user_state.get_owner(), test_node, targeting_state))
+	var setup_result = placement_validator.setup(rules, RuleValidationParameters.new(user_state.get_owner(), test_node, targeting_state, _container.get_logger()))
 	assert_dict(setup_result).is_empty()
 
 	var indicator = load("uid://dhox8mb8kuaxa").instantiate()
@@ -68,4 +68,4 @@ func setup_validation_no_col_and_buildable(test_node : Node2D) -> RuleValidation
 	indicator.shape.size = Vector2(16, 16)
 	add_child(indicator)
 
-	return RuleValidationParameters.new(user_state.get_owner(), test_node, targeting_state)
+	return RuleValidationParameters.new(user_state.get_owner(), test_node, targeting_state, _container.get_logger())

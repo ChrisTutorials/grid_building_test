@@ -24,7 +24,7 @@ func test_rule_setup_failure_is_reported():
 	var targeting_state = TEST_CONTAINER.get_states().targeting
 	targeting_state.target_map = null
 	targeting_state.positioner = null
-	var params = RuleValidationParameters.new(static_body, static_body, targeting_state)
+	var params = RuleValidationParameters.new(static_body, static_body, targeting_state, UnifiedTestFactory.create_test_logger())
 
 	var issues = collisions_rule.setup(params)
 	assert_array(issues).is_not_empty()

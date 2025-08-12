@@ -1,10 +1,13 @@
-extends GBTestBase
+extends GdUnitTestSuite
 
-## Comprehensive test for all shape collision detection
-## Replaces debug tests with proper validation
+## Comprehensive test for shape collision detection and tile coverage
+## Tests various collision shapes and verifies their tile coverage calculations
+
+const TEST_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
 
 func before_test():
-	setup_common_container()
+	# No setup needed for this test - it only tests geometry math functions
+	pass
 
 @warning_ignore("unused_parameter")
 func test_shape_bounds_validation(
@@ -16,8 +19,8 @@ func test_shape_bounds_validation(
 	expected_bounds: Rect2,
 	test_parameters := [
 		["Small Capsule", "capsule", 7.0, 22.0, PackedVector2Array(), Rect2(-7, -11, 14, 22)],
-		["Medium Capsule", "capsule", 14.0, 60.0, PackedVector2Array(), Rect2(-14, -46, 28, 60)],
-		["Large Capsule", "capsule", 48.0, 128.0, PackedVector2Array(), Rect2(-48, -112, 96, 128)],
+		["Medium Capsule", "capsule", 14.0, 60.0, PackedVector2Array(), Rect2(-14, -30, 28, 60)],
+		["Large Capsule", "capsule", 48.0, 128.0, PackedVector2Array(), Rect2(-48, -64, 96, 128)],
 		["Standard Trapezoid", "trapezoid", 0.0, 0.0, PackedVector2Array([
 			Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)
 		]), Rect2(-32, -12, 64, 24)],
@@ -118,7 +121,7 @@ func test_shape_tile_collision_detection(
 	expected_overlap: bool,
 	test_parameters := [
 		["Capsule Center Tile", "capsule", 14.0, 60.0, PackedVector2Array(), Vector2i(0,0), true],
-		["Capsule Edge Tile", "capsule", 14.0, 60.0, PackedVector2Array(), Vector2i(1,0), true],
+		["Capsule Edge Tile", "capsule", 14.0, 60.0, PackedVector2Array(), Vector2i(1,0), false],
 		["Capsule Corner Tile", "capsule", 14.0, 60.0, PackedVector2Array(), Vector2i(1,1), false],
 		["Trapezoid Center Tile", "trapezoid", 0.0, 0.0, PackedVector2Array([
 			Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)

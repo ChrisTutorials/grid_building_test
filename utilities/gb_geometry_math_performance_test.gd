@@ -18,7 +18,7 @@ func test_benchmark_small_shape():
 	var start_time = Time.get_ticks_usec()
 	
 	for i in range(iterations):
-		var tile_pos = Vector2(i % 100 * 16, (i / 100) * 16)
+		var tile_pos = Vector2i(i % 100 * 16, (i / 100) * 16)
 		GBGeometryMath.does_polygon_overlap_tile(small_rect, tile_pos, Vector2(16, 16), 0, 0.01)
 	
 	var end_time = Time.get_ticks_usec()
@@ -106,7 +106,7 @@ func test_benchmark_collision_mapping_workflow():
 	var start_time = Time.get_ticks_usec()
 	
 	for i in range(100):  # 100 collision checks (more realistic)
-		var result = mapper.get_collision_tile_positions_with_mask(test_objects, 1)
+		var _result = mapper.get_collision_tile_positions_with_mask(test_objects, 1)
 	
 	var end_time = Time.get_ticks_usec()
 	var avg_time_ms = (end_time - start_time) / 1000.0 / 100
@@ -203,7 +203,7 @@ func test_benchmark_optimized_collision_mapping_workflow():
 	var start_time = Time.get_ticks_usec()
 	
 	for i in range(1000):  # More iterations to test optimized version
-		var result = mapper.get_collision_tile_positions_with_mask(test_objects, 1)
+		var _result = mapper.get_collision_tile_positions_with_mask(test_objects, 1)
 	
 	var end_time = Time.get_ticks_usec()
 	var avg_time_ms = (end_time - start_time) / 1000.0 / 1000

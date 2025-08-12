@@ -50,8 +50,6 @@ func test_has_valid_setup():
 
 # Test the System's astar grid to see that certain locations are in or out of bounds
 @warning_ignore("unused_parameter")
-
-
 func test_is_in_bounds(
 	p_tile_location: Vector2i,
 	p_expected: bool,
@@ -72,8 +70,6 @@ func test_is_in_bounds(
 
 
 @warning_ignore("unused_parameter")
-
-
 func test_get_max_tile_distance_tile_to_target(
 	p_tile_location: Vector2i,
 	p_expected_in_bounds: bool,
@@ -99,8 +95,6 @@ func test_get_max_tile_distance_tile_to_target(
 
 ## Test get max tile distance when AStar grid is set to no diaganols and manhattan search pattern
 @warning_ignore("unused_parameter")
-
-
 func test_get_max_tile_distance_tile_to_target_no_diaganols(
 	p_test_location: Vector2i,
 	p_expected_tile: Variant,
@@ -122,8 +116,6 @@ func test_get_max_tile_distance_tile_to_target_no_diaganols(
 
 
 @warning_ignore("unused_parameter")
-
-
 func test_move_node_to_closest_valid_tile(
 	p_target: Vector2i, p_expected_error: int, test_parameters := [[Vector2i(-200, -200), OK]]
 ):
@@ -134,8 +126,6 @@ func test_move_node_to_closest_valid_tile(
 
 
 @warning_ignore("unused_parameter")
-
-
 func test_snap_tile_to_region(
 	p_snap_tile: Vector2i,
 	p_expected_tile: Vector2i,

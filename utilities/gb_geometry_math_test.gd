@@ -3,6 +3,7 @@ extends GdUnitTestSuite
 
 
 ## Parameterized test for get_tile_polygon
+@warning_ignore("unused_parameter")
 func test_get_tile_polygon_param(
 	tile_pos: Vector2,
 	tile_size: Vector2,
@@ -44,6 +45,7 @@ func test_get_tile_polygon_param(
 
 
 ## Parameterized test for intersection_area_with_tile
+@warning_ignore("unused_parameter")
 func test_intersection_area_with_tile_param(
 	polygon: PackedVector2Array,
 	tile_pos: Vector2,
@@ -116,6 +118,7 @@ func test_intersection_area_with_tile_param(
 
 
 ## Parameterized test for does_polygon_overlap_tile
+@warning_ignore("unused_parameter")
 func test_does_polygon_overlap_tile_param(
 	polygon: PackedVector2Array,
 	tile_pos: Vector2,
@@ -224,6 +227,7 @@ func test_does_polygon_overlap_tile_param(
 ## Parameterized test for intersection_polygon_area
 # Note: For identical polygons, the intersection area is the polygon's area, not 0.0.
 # This test expects the true area for identical polygons and 0.0 for degenerate/no overlap cases.
+@warning_ignore("unused_parameter")
 func test_intersection_polygon_area_param(
 	poly_a: PackedVector2Array,
 	poly_b: PackedVector2Array,
@@ -269,6 +273,7 @@ func test_intersection_polygon_area_param(
 ## Parameterized test for polygon_intersection_area
 # Note: For overlapping polygons, the intersection area is the area of the overlap, not 0.0.
 # This test expects the true overlap area for partial overlaps and 0.0 for no overlap.
+@warning_ignore("unused_parameter")
 func test_polygon_intersection_area_param(
 	poly_a: PackedVector2Array,
 	poly_b: PackedVector2Array,
@@ -291,6 +296,7 @@ func test_polygon_intersection_area_param(
 
 
 ## Parameterized test for get_polygon_bounds
+@warning_ignore("unused_parameter")
 func test_get_polygon_bounds_param(
 	polygon: PackedVector2Array,
 	expected: Rect2,
@@ -317,6 +323,7 @@ func test_get_polygon_bounds_param(
 
 
 ## Parameterized test for convert_shape_to_polygon with RectangleShape2D
+@warning_ignore("unused_parameter")
 func test_convert_rectangle_shape_to_polygon_param(
 	size: Vector2,
 	transform: Transform2D,
@@ -338,6 +345,7 @@ func test_convert_rectangle_shape_to_polygon_param(
 
 
 ## Parameterized test for convert_shape_to_polygon with CircleShape2D
+@warning_ignore("unused_parameter")
 func test_convert_circle_shape_to_polygon_param(
 	radius: float,
 	transform: Transform2D,
