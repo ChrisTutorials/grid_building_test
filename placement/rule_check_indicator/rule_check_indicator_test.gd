@@ -142,7 +142,7 @@ func test_visual_settings_update_on_validity_change():
 	failing_rule.pass_on_collision = false
 	failing_rule.collision_mask = 1
 	var targeting_state = GridTargetingState.new(GBOwnerContext.new())
-	var test_params = RuleValidationParameters.new(GodotTestFactory.create_node2d(), GodotTestFactory.create_node2d(), targeting_state, create_test_logger())
+	var test_params = RuleValidationParameters.new(GodotTestFactory.create_node2d(self), GodotTestFactory.create_node2d(self), targeting_state, create_test_logger())
 	failing_rule.setup(test_params)
 	
 	var collision_body = _create_test_body()
@@ -204,7 +204,7 @@ func test_rules_added_after_ready():
 	
 	# Initialize the rule properly for testing
 	var targeting_state = GridTargetingState.new(GBOwnerContext.new())
-	var test_params = RuleValidationParameters.new(GodotTestFactory.create_node2d(), GodotTestFactory.create_node2d(), targeting_state, create_test_logger())
+	var test_params = RuleValidationParameters.new(GodotTestFactory.create_node2d(self), GodotTestFactory.create_node2d(self), targeting_state, create_test_logger())
 	failing_rule.setup(test_params)
 	
 	var collision_body = _create_test_body()
@@ -232,7 +232,7 @@ func test_rules_removed():
 	
 	# Initialize the rule properly for testing
 	var targeting_state = GridTargetingState.new(GBOwnerContext.new())
-	var test_params = RuleValidationParameters.new(GodotTestFactory.create_node2d(), GodotTestFactory.create_node2d(), targeting_state, create_test_logger())
+	var test_params = RuleValidationParameters.new(GodotTestFactory.create_node2d(self), GodotTestFactory.create_node2d(self), targeting_state, create_test_logger())
 	failing_rule.setup(test_params)
 	
 	var collision_body = _create_test_body()
