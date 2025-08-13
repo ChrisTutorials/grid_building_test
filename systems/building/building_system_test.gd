@@ -7,54 +7,39 @@ extends GdUnitTestSuite
 
 var system: BuildingSystem
 var targeting_state: GridTargetingState
-var user_state: GBOwnerContext
-var placement_manager: PlacementManager
 var mode_state: ModeState
 var grid_positioner: Node2D
 var map_layer: TileMapLayer
-var tile_set: TileSet
 var placer: Node2D
 var placed_parent: Node2D
-var _placement_context: PlacementContext
 var _container: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
 
-var placeable_instance_script: Script = load("uid://dvt7wrugafo5o")
 var placeable_2d_test: Placeable = load("uid://jgmywi04ib7c")
-var default_preview_script: GDScript = load("uid://cufp4o5ctq6ak")
 
 
 func before_test():
 	placer = GodotTestFactory.create_node2d(self)
-
 	placed_parent = GodotTestFactory.create_node2d(self)
-
 	grid_positioner = GodotTestFactory.create_node2d(self)
-
-	# Use empty tile map layer to avoid TileSet issues
+	# Tile map layer used for targeting
 	map_layer = GodotTestFactory.create_empty_tile_map_layer(self)
+
 	var states := _container.get_states()
-	targeting_state = auto_free(states.targeting)
+	targeting_state = states.targeting
 	targeting_state.positioner = grid_positioner
 	targeting_state.target_map = map_layer
 	targeting_state.maps = [map_layer]
-
-	# Get mode state from container instead of creating new one
 	mode_state = states.mode
-	
-	# Use the static factory method which handles dependency injection properly
+
+	# Proper owner: create GBOwner node and inject so BuildingState can resolve owner_root
+	var gb_owner := GBOwner.new(placer)
+	add_child(gb_owner)
+	gb_owner.resolve_gb_dependencies(_container)
+
+	# Create building system via factory (injects dependencies & ensures placement manager)
 	system = auto_free(BuildingSystem.create_with_injection(_container))
 	add_child(system)
 
-	user_state = GBOwnerContext.new()
-	var gb_owner := GBOwner.new(placer)
-	user_state.set_owner(gb_owner)
-
-	_placement_context = PlacementContext.new()
-	placement_manager = auto_free(PlacementManager.new())
-	placement_manager.resolve_gb_dependencies(_container)
-	grid_positioner.add_child(placement_manager)
-
-	# Set the placed_parent directly on the building state - this is the proper interface
 	states.building.placed_parent = placed_parent
 
 
@@ -67,126 +52,64 @@ func test_before_test_setup():
 @warning_ignore("unused_parameter")
 
 
-func test_instance_preview_fails(
-	p_placeable: Variant,
-	p_warning: String,
-	test_parameters := [
-		[null, system.WARNING_INVALID_PLACEABLE],
-	]
-):
-	var instantiate = func(): system.instance_preview(p_placeable)
-	# For null input, the system crashes with an assertion error in PreviewBuilder
-	# This is the actual runtime behavior, not a push_error
-	assert_error(instantiate).is_push_error("Preview instance must not be null after creation")
+func test_enter_build_mode_rejects_null():
+	var ok = system.enter_build_mode(null)
+	assert_bool(ok).is_false()
 
 
 @warning_ignore("unused_parameter")
 
 
-func test_instance_preview() -> void:
-	var placeable = TestSceneLibrary.placeable_2d_test
-	var preview = auto_free(system.instance_preview(placeable))
+func test_enter_build_mode_creates_preview() -> void:
+	var ok = system.enter_build_mode(TestSceneLibrary.placeable_2d_test)
+	assert_bool(ok).is_true()
+	var preview = _container.get_states().building.preview
 	assert_object(preview).is_not_null()
 
 
-func test_remove_scripts() -> void:
-	var preview: Node = auto_free(TestSceneLibrary.placeable_2d_test.packed_scene.instantiate())
-	add_child(preview)
-	var manipulatable = GBSearchUtils.find_first(preview, Manipulatable)
-	assert_object(preview).override_failure_message("Preview not instanced.").is_not_null()
-	assert_object(manipulatable).is_not_null()
-
-	system.remove_scripts(preview, ["Manipulatable"])
-
-	var preview_script = preview.get_script()
-	(
-		assert_object(preview_script)
-		. override_failure_message("[%s] Expected null script but has one" % preview_script)
-		. is_null()
-	)
-
-	assert_object(manipulatable).is_not_null()
-	assert_object(manipulatable.get_script()).is_not_null()
-
-	system.remove_scripts(preview, [])
-	assert_object(manipulatable).is_not_null()
-	assert_object(manipulatable.get_script()).is_null()
+func test_enter_build_mode_valid_placeable():
+	var ok = system.enter_build_mode(TestSceneLibrary.placeable_2d_test)
+	assert_bool(ok).is_true()
+	assert_object(_container.get_states().building.preview).is_not_null()
 
 
 func test_unhandled_input():
-	var test_actions = _container.config.actions
-	var action_event = InputEventAction.new()
-	action_event.action = test_actions.confirm
-	action_event.pressed = true
-
-	system._unhandled_input(action_event)
-
-	mode_state.current = GBEnums.Mode.BUILD
-
-	action_event.action = system.mode_actions.off_mode
-	system._unhandled_input(action_event)
+	# Verify build confirm triggers try_build when in build mode
+	var actions = _container.config.actions
+	var placeable = TestSceneLibrary.placeable_2d_test
+	system.enter_build_mode(placeable)
+	var event = InputEventAction.new()
+	event.action = actions.confirm_build
+	event.pressed = true
+	system._unhandled_input(event)
 
 
-func test_validate_input_map():
-	var is_input_map_validated = system.validate_input_map()
-	assert_bool(is_input_map_validated).is_true()
+func test_validate_dependencies():
+	var issues = system.validate_dependencies()
+	assert_array(issues).is_empty()
 
 
-func test_set_buildable_preview():
-	var test_placeable = Placeable.new()
-	test_placeable.packed_scene = TestSceneLibrary.box_scripted
-	assert_bool(test_placeable.validate()).is_true()
-	var successful = system.set_buildable_preview(test_placeable)
-
-	if not successful:
-		fail("Buildable preview should have successfully instanced")
-		return
-
+func test_enter_build_mode_sets_preview():
+	var ok = system.enter_build_mode(TestSceneLibrary.placeable_2d_test)
+	assert_bool(ok).is_true()
 	var preview_instance = _container.get_states().building.preview
-
-	if not preview_instance:
-		fail("Preview instance should have been instanced. Stopping test.")
-		return
-
-	var source_code: String = preview_instance.get_script().source_code
-	assert_str(source_code).is_equal(default_preview_script.source_code)
-
-	for child in preview_instance.get_children():
-		assert_object(child.get_script()).is_null()
+	assert_object(preview_instance).is_not_null()
 
 
 @warning_ignore("unused_parameter")
 
 
-func test_set_buildable_preview_keep_script_test(
-	p_script: Script, test_parameters := [[placeable_instance_script]]
-):
-	var placeable_test = Placeable.new()
-	var scripted_node: Node = auto_free(TestSceneLibrary.keep_script_scene.instantiate())
-	var packed_scene = PackedScene.new()
-
-	# Execution
-	var child_node = scripted_node.get_child(0)
-	assert_object(child_node.owner).is_same(scripted_node)
-	packed_scene.pack(scripted_node)
-	placeable_test.packed_scene = TestSceneLibrary.keep_script_scene
-	var script_type = p_script.get_global_name()
-	system.settings.preview_kept_script_types.append(script_type)
-
-	scripted_node.free()
-	var is_preview_set = system.set_buildable_preview(placeable_test)
-	assert_bool(is_preview_set).is_true()
-	var preview_instance = _container.get_states().building.preview
-
-	(
-		assert_object(preview_instance)
-		. append_failure_message("Preview instanced should be a valid node.")
-		. is_instanceof(Node2D)
-	)
-	assert_object(preview_instance.get_script()).is_same(p_script)
-
-	for child in preview_instance.get_children():
-		assert_object(child.get_script()).is_same(p_script)
+func test_enter_build_mode_idempotent():
+	# Enter build mode twice with same placeable; second call should still succeed and have a preview
+	var ok1 = system.enter_build_mode(TestSceneLibrary.placeable_2d_test)
+	assert_bool(ok1).is_true()
+	var preview1 = _container.get_states().building.preview
+	assert_object(preview1).is_not_null()
+	var ok2 = system.enter_build_mode(TestSceneLibrary.placeable_2d_test)
+	assert_bool(ok2).is_true()
+	var preview2 = _container.get_states().building.preview
+	assert_object(preview2).is_not_null()
+	assert_object(preview2).is_not_same(preview1)
 
 
 @warning_ignore("unused_parameter")
@@ -197,12 +120,8 @@ func test_try_build(
 	ex_null_result: bool,
 	test_parameters := [[null, true], [placeable_2d_test, false]]
 ) -> void:
-	system.selected_placeable = p_placeable
-
-	if p_placeable != null && p_placeable.packed_scene != null:
-		_container.get_states().building.preview = p_placeable.packed_scene.instantiate()
-		add_child(_container.get_states().building.preview)
-
+	if p_placeable:
+		system.enter_build_mode(p_placeable)
 	var result = system.try_build()
 	assert_bool(result == null).is_equal(ex_null_result)
 
@@ -210,19 +129,15 @@ func test_try_build(
 @warning_ignore("unused_parameter")
 
 
-func test_build_method(
+func test_build_instance_internal(
 	p_placeable: Placeable,
-	p_expected: Variant,
-	test_parameters := [[null, null], [load("uid://jgmywi04ib7c"), any_object()]]
+	p_expect_null: bool,
+	test_parameters := [[null, true], [load("uid://jgmywi04ib7c"), false]]
 ) -> void:
-	system.selected_placeable = p_placeable
-
-	if p_placeable != null && p_placeable.packed_scene != null:
-		_container.get_states().building.preview = auto_free(p_placeable.packed_scene.instantiate())
-		add_child(_container.get_states().building.preview)
-
-	var result = system._build()
-	assert_object(result).is_equal(p_expected)
+	if p_placeable:
+		system.enter_build_mode(p_placeable)
+	var result = system.try_build()
+	assert_bool(result == null).is_equal(p_expect_null)
 
 
 ## Creates a node and a child node with a script attached

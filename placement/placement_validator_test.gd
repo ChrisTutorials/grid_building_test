@@ -28,7 +28,8 @@ func before():
 	building_settings = TestSceneLibrary.building_settings.duplicate(true)
 
 func before_test():
-	_container = GBCompositionContainer.new()
+	# Use configured test container to ensure settings/templates available
+	_container = preload("uid://dy6e5p5d6ax6n")
 	var states := _container.get_states()
 	placer = auto_free(Node.new())
 	targeting_state = states.targeting

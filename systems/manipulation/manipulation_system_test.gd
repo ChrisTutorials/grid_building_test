@@ -102,25 +102,29 @@ func test_move_already_moving(
 
 
 func test_cancel() -> void:
-	var data = create_move_data(TestSceneLibrary.manipulatable_settings_all_allowed)
-	var move_result = system.try_move(data.source.root)
+	# Start a move via the public API; this sets up _states.manipulation.data with
+	# a source and generated target copy.
+	var source = create_manipulatable_object(TestSceneLibrary.manipulatable_settings_all_allowed)
+	var move_result = system.try_move(source.root)
 	var valid_move: bool = move_result.status == GBEnums.Status.STARTED
 	assert_bool(valid_move).is_true()
-	assert_object(_container.get_states().manipulation.data).is_not_null()
 
-	assert_object(data.source).is_not_same(data.target)
-	assert_object(data.source.root).is_not_same(data.target.root)
+	var active_data: ManipulationData = _container.get_states().manipulation.data
+	assert_object(active_data).is_not_null()
+	assert_object(active_data.source).is_not_null()
+	assert_object(active_data.target).is_not_null()
+	assert_object(active_data.source).is_not_same(active_data.target)
+	assert_object(active_data.source.root).is_not_same(active_data.target.root)
 
-	var move_data: ManipulationData = _container.get_states().manipulation.data
-	move_data.target.root.global_position = Vector2i(100, -100)
-	var origin = move_data.source.root.global_transform.origin
-
+	# Move the duplicate and confirm cancel resets data and source position
+	active_data.target.root.global_position = Vector2i(100, -100)
+	var origin = active_data.source.root.global_transform.origin
 	assert_float(origin.x).is_equal_approx(0, 0.01)
 	assert_float(origin.y).is_equal_approx(0, 0.01)
 
 	system.cancel()
 	assert_object(_container.get_states().manipulation.data).is_null()
-	assert_vector(data.source.root.global_position).is_equal(Vector2.ZERO)
+	assert_vector(active_data.source.root.global_position).is_equal(Vector2.ZERO)
 
 
 @warning_ignore("unused_parameter")
@@ -232,24 +236,22 @@ func test_try_placement(
 	p_expected: bool,
 	test_parameters := [[TestSceneLibrary.manipulatable_settings_all_allowed, true]]
 ) -> void:
+	# Create a manipulatable and start move via system (creates proper ManipulationData with target)
 	var source = create_manipulatable_object(p_settings)
-	# Prepare move data without a pre-made target; try_move will create it and set up validation
-	var move_data = ManipulationData.new(manipulator, source, null, GBEnums.Action.MOVE)
 	var move_result = system.try_move(source.root)
 	var started: bool = move_result.status == GBEnums.Status.STARTED
 	assert_bool(started).is_true()
 
-	_container.get_states().manipulation.data = move_data
-	var test_location = Vector2(1000, 1000)
+	var move_data: ManipulationData = _container.get_states().manipulation.data
+	assert_object(move_data).is_not_null()
+	assert_object(move_data.target).is_not_null()
 
-	# Move the temporary target copy to the new location and try placement
+	var test_location = Vector2(1000, 1000)
 	move_data.target.root.global_position = test_location
 	var placement_results: ValidationResults = await system.try_placement(move_data)
-
 	assert_bool(placement_results.is_successful).is_equal(p_expected)
+	# After successful placement target copy should be freed (move_data.target becomes null in _finish)
 	assert_object(move_data.target).is_null()
-	assert_object(source).is_not_null()
-	assert_object(source.root).is_not_null()
 	assert_vector(source.root.global_position).is_equal(test_location)
 
 

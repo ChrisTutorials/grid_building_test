@@ -41,13 +41,11 @@ static func create_node2d(test: GdUnitTestSuite) -> Node2D:
 	test.add_child(node)
 	return node
 
-
 ## Creates a Node with auto_free setup
 static func create_node(test: GdUnitTestSuite) -> Node:
 	var node: Node = test.auto_free(Node.new())
 	test.add_child(node)
 	return node
-
 
 ## Creates a CanvasItem with auto_free setup
 static func create_canvas_item(test: GdUnitTestSuite) -> CanvasItem:
