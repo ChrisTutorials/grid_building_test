@@ -66,14 +66,7 @@ func test_positioner_preview_indicator_alignment():
 
 	# Test indicator positioning using current logic
 	var indicator = auto_free(RuleCheckIndicator.new())
-	var indicator_template = load("uid://dhox8mb8kuaxa")
-	var logger = GBLogger.new(GBDebugSettings.new())
-	var indicator_manager = IndicatorManager.new(
-		positioner, targeting_state, indicator_template, logger
-	)
-
-	# Position indicator using the same logic as the real system
-	indicator_manager.setup_indicator_as_child(indicator, target_tile, positioner)
+	IndicatorFactory.position_indicator_as_child(indicator, target_tile, positioner, targeting_state)
 
 	print("Indicator global_position: %s" % indicator.global_position)
 

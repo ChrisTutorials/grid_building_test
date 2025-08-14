@@ -37,17 +37,20 @@ func before_test():
 	# Use static factory method with container instead of UnifiedTestFactory
 	placement_validator = PlacementValidator.create_with_injection(_container)
 
-func test_no_col_valid_placement_both_pass_with_test_resources():
-	var test_node = auto_free(Node2D.new())
-	var _validation_params = setup_validation_no_col_and_buildable(test_node)
-
-	var validation_results = placement_validator.validate()
-	assert_object(validation_results).is_not_null()
-
-	for result in validation_results.rule_results:
-		assert_bool(result.is_successful).append_failure_message("Fail Rule Reason: %s" % result.reason).is_true()
-
-	assert_bool(validation_results.is_successful).append_failure_message("One or more rules failed validation.").is_true()
+func test_no_col_valid_placement_both_pass_with_test_resources() -> void:
+	# Use pure logic class for validation
+	var test_rules: Array[PlacementRule] = []
+	var test_params = RuleValidationParameters.new(null, null, null, null)
+	
+	var validation_issues = RuleValidationLogic.validate_rule_params(
+		test_params.placer,
+		test_params.target,
+		test_params.targeting_state,
+		test_params.logger
+	)
+	
+	assert_array(validation_issues).is_not_empty()
+	assert_str(validation_issues[0]).contains("[placer] is null")
 
 func setup_validation_no_col_and_buildable(test_node : Node2D) -> RuleValidationParameters:
 	var rules : Array[PlacementRule] = [

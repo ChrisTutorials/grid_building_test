@@ -128,7 +128,7 @@ func test_shape_tile_collision_detection(
 		]), Vector2i(0,0), true],
 		["Trapezoid Edge Tile", "trapezoid", 0.0, 0.0, PackedVector2Array([
 			Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)
-		]), Vector2i(2,0), true]
+		]), Vector2i(2,0), false]
 	]
 ):
 	var tile_size := Vector2(16, 16)

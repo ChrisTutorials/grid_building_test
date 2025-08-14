@@ -19,12 +19,13 @@ func before_test():
 
 	# Rule under test
 	rule = WithinTilemapBoundsRule.new()
-	var logger = TEST_CONTAINER.get_logger()
-	rule.initialize(logger)
-
+	
 	# Create placer/target nodes (RuleValidationParameters expects (placer, target, state))
 	var placer: Node2D = GodotTestFactory.create_node2d(self)
 	var target: Node2D = GodotTestFactory.create_node2d(self)
+	
+	# Get logger from test container and pass it through RuleValidationParameters
+	var logger = TEST_CONTAINER.get_logger()
 	rule_validation_params = RuleValidationParameters.new(placer, target, targeting_state, logger)
 
 	var setup_issues: Array[String] = rule.setup(rule_validation_params)
@@ -37,8 +38,10 @@ func test_validate_condition(indicator_setup: Array[Dictionary], expected_succes
 	[[{"pos": Vector2.ZERO}], true],
 	[[{"pos": Vector2(7000, 7000), "valid": false}], false] # Way out of bounds
 ]) -> void:
-	var _test_indicators := _create_indicators(indicator_setup, [rule])
-	# rule.indicators populated indirectly via add_rule in _create_indicators
+	var test_indicators := _create_indicators(indicator_setup, [rule])
+	# TODO: Manual investigation needed - rule.indicators not being populated properly
+	# The rule.indicators should be populated by add_rule() calls in _create_indicators
+	# but tests are failing with tile set errors and indicator population issues
 	var result: RuleResult = rule.validate_condition()
 	assert_bool(result.is_successful).append_failure_message(result.reason).is_equal(expected_success)
 
@@ -54,6 +57,7 @@ func test__get_failing_indicators(indicator_setup: Array[Dictionary], expected_f
 	[[{"pos": Vector2.ZERO}, {"pos": Vector2(320,320)}], 1]  # Out-of-bounds second indicator
 ]) -> void:
 	var test_indicators := _create_indicators(indicator_setup, [rule])
+	# The rule.indicators should be populated by add_rule() calls in _create_indicators
 	var failing := rule._get_failing_indicators(test_indicators)
 	assert_int(failing.size()).is_equal(expected_failing_count)
 	for ind in failing:

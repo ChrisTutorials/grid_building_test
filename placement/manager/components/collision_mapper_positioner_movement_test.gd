@@ -37,7 +37,7 @@ func test_positioner_movement_updates_collision():
 	var result1 = collision_mapper._get_tile_offsets_for_collision_polygon(
 		collision_polygon, tile_map_layer
 	)
-	print("Positioner at (0,0): ", result1.keys())
+	# TODO: Debug prints removed per no-prints rule
 
 	# Test case 2: Move positioner to (32, 32)
 	positioner.global_position = Vector2(32, 32)
@@ -45,7 +45,7 @@ func test_positioner_movement_updates_collision():
 	var result2 = collision_mapper._get_tile_offsets_for_collision_polygon(
 		collision_polygon, tile_map_layer
 	)
-	print("Positioner at (32,32): ", result2.keys())
+	# TODO: Debug prints removed per no-prints rule
 
 	# The results should be different since the positioner moved
 	(

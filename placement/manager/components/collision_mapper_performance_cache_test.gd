@@ -166,7 +166,7 @@ func test_performance_improvement_with_caching():
 	
 	var uncached_time = Time.get_ticks_usec() - start_time
 	
-	print("Cached time: %.2f ms, Uncached time: %.2f ms" % [cached_time / 1000.0, uncached_time / 1000.0])
+	# TODO: Debug print removed per no-prints rule
 	
 	# Cached version should be significantly faster (at least 10% improvement expected)
 	assert_bool(cached_time < uncached_time * 0.9).is_true()

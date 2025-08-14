@@ -11,12 +11,14 @@ func before_test():
 	# Use the test container to create a logger with proper dependency injection
 	logger = TEST_CONTAINER.get_logger()
 	rule = CollisionsCheckRule.new()
-	rule.initialize(logger)
+	# Remove the non-existent initialize method call - the rule will get the logger through setup()
 	indicator = auto_free(RuleCheckIndicator.new())
 	indicator.add_rule(rule)
 
 func test_rule_initial_state():
-	assert_bool(rule.guard_ready()).is_false()
+	# Cannot call guard_ready() before setup() since it requires a logger
+	# The rule should not be ready before setup
+	assert_bool(rule._ready).is_false()
 
 func test_rule_validate_condition_without_setup():
 	var result := rule.validate_condition()

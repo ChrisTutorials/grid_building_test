@@ -114,7 +114,7 @@ func test_collision_object_uses_target_position():
 	# But the function returns offsets from center, so: (-1,-1), (-1,0), (0,-1), (0,0)
 	var expected_offsets = [Vector2i(-1, -1), Vector2i(-1, 0), Vector2i(0, -1), Vector2i(0, 0)]
 
-	print("CollisionObject2D result keys: ", result.keys())
+	# TODO: Debug print removed per no-prints rule
 
 	(
 		assert_that(result.keys())

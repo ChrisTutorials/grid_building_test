@@ -9,10 +9,12 @@ var logger: GBLogger
 func before_test():
 	rule = TileCheckRule.new()
 	logger = TEST_CONTAINER.get_logger()
-	rule.initialize(logger)
+	# Remove the non-existent initialize method call - the rule will get the logger through setup()
 
 func test_not_ready_before_setup():
-	assert_bool(rule.guard_ready()).is_false()
+	# Cannot call guard_ready() before setup() since it requires a logger
+	# The rule should not be ready before setup
+	assert_bool(rule._ready).is_false()
 
 func test_setup_sets_ready():
 	var params := RuleValidationParameters.new(null, null, null, logger)
