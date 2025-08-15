@@ -121,8 +121,12 @@ func test_injects_nodes_added_to_configured_roots() -> void:
 
 		assert_that(node.called_with).append_failure_message("Expected to call resolve_gb_dependencies with TEST_CONTAINER").is_equal(TEST_CONTAINER)
 
-		# Cleanup injector and node for next iteration
-		if is_instance_valid(_injector):
-			_injector.queue_free()
+		# Cleanup node only; keep injector alive for next iteration
 		if is_instance_valid(node):
 			node.queue_free()
+
+	# Final cleanup of injector and custom scope after loop completes
+	if is_instance_valid(_injector):
+		_injector.queue_free()
+	if is_instance_valid(custom_scope):
+		custom_scope.queue_free()
