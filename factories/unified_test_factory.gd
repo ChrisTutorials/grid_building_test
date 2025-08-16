@@ -111,25 +111,61 @@ static func create_test_indicator_rect(test: GdUnitTestSuite, tile_size: int = 1
 	test.auto_free(rect_shape)
 	return indicator
 
-# ================================
-# Injection & Logging
-# ================================
+#region Injection and Logging
+## Creates a fully configured composition container for testing purposes.
+## It sets up a logger, debug settings, and a config, then registers them.
+static func create_test_composition_container(test: GdUnitTestSuite) -> GBCompositionContainer:
+	var container := GBCompositionContainer.new()
+	var debug_settings := create_test_debug_settings()
+	var logger := GBLogger.new(debug_settings)
+	var config := GBConfig.new()
+	config.debug = debug_settings
+	
+	container.register_logger(logger)
+	container.register_config(config)
+	
+	test.auto_free(container)
+	test.auto_free(debug_settings)
+	test.auto_free(logger)
+	test.auto_free(config)
+	
+	return container
 
-static func create_test_injector(test: GdUnitTestSuite, container: GBCompositionContainer) -> GBInjectorSystem:
-	var injector := GBInjectorSystem.create_with_injection(container)
+static func create_configured_injector(test_suite: GdUnitTestSuite) -> GBInjectorSystem:
+	var container := GBCompositionContainer.new()
+	
+	var config := GBConfig.new()
+	config.debug = create_test_debug_settings()
+	
+	container.set_script(load("res://addons/grid_building/systems/injection/gb_composition_container.gd"))
+	container.config = config
+	container.logger = GBLogger.new(create_test_debug_settings())
+
+	container.logger.debug = config.debug
+	
+	var injector := GBInjectorSystem.new()
+	injector.composition_container = container
+	test_suite.add_child(injector)
+	
+	return injector
+
+## Creates a fully configured debug settings instance for testing purposes.
+static func create_test_debug_settings() -> GBDebugSettings:
+	var debug_settings := create_test_debug_settings()
+	return debug_settings
+
+static func create_test_injector(test: GdUnitTestSuite, container: GBCompositionContainer = null) -> GBInjectorSystem:
+	var _container = container if container != null else create_test_composition_container(test)
+	var injector := GBInjectorSystem.create_with_injection(_container)
 	test.add_child(injector)
 	test.auto_free(injector)
 	return injector
 
 static func create_test_logger() -> GBLogger:
-	var debug_settings := GBDebugSettings.new()
-	debug_settings.level = GBDebugSettings.DebugLevel.VERBOSE
+	var debug_settings := create_test_debug_settings()
 	return GBLogger.new(debug_settings)
-
-# ================================
-# Manipulation
-# ================================
-
+#endregion
+#region Manipulation
 static func create_test_manipulation_system(test: GdUnitTestSuite) -> ManipulationSystem:
 	var system := ManipulationSystem.new()
 	test.auto_free(system)
@@ -141,21 +177,15 @@ static func create_test_manipulatable(test: GdUnitTestSuite) -> Manipulatable:
 	var manipulatable := GodotTestFactory.create_manipulatable(test, "FactoryManipulatableRoot")
 	manipulatable.name = "FactoryManipulatable"
 	return manipulatable
-
-# ================================
-# Node Utilities
-# ================================
-
+#endregion
+#region Node Utilities
 static func create_test_node2d(test: GdUnitTestSuite) -> Node2D:
 	return GodotTestFactory.create_node2d(test)
 
 static func create_test_node_locator(search_method: NodeLocator.SEARCH_METHOD = NodeLocator.SEARCH_METHOD.NODE_NAME, search_string: String = "test") -> NodeLocator:
 	return NodeLocator.new(search_method, search_string)
-
-# ================================
-# Owner Context
-# ================================
-
+#endregion
+#region Owner Context
 static func create_owner_context(test: GdUnitTestSuite) -> GBOwnerContext:
 	var context := GBOwnerContext.new()
 	var user := Node2D.new()
@@ -174,10 +204,8 @@ static func create_test_owner_context(test: GdUnitTestSuite) -> GBOwnerContext:
 	context.set_owner(gb_owner)
 	return context
 
-# ================================
-# Placement
-# ================================
-# ================================
+#endregion
+#region Placement
 
 static func create_placement_manager(test: GdUnitTestSuite, targeting_state: GridTargetingState = null) -> PlacementManager:
 	var manager := PlacementManager.new()
@@ -211,11 +239,8 @@ static func create_placement_validator(_test: GdUnitTestSuite, rules: Array[Plac
 	var messages := GBMessages.new()
 	var logger := create_test_logger()
 	return PlacementValidator.new(rules, messages, logger)
-
-# ================================
-# Rules
-# ================================
-
+#endregion
+#region Rules
 static func create_rule_check_indicator(test: GdUnitTestSuite, rules: Array[TileCheckRule] = []) -> RuleCheckIndicator:
 	var logger := create_test_logger()
 	var indicator := RuleCheckIndicator.new(rules, logger)
@@ -258,11 +283,8 @@ static func create_test_within_tilemap_bounds_rule() -> WithinTilemapBoundsRule:
 	var logger := create_test_logger()
 	rule.initialize(logger)
 	return rule
-
-# ================================
-# Targeting State
-# ================================
-
+#endregion
+#region Targeting State
 static func create_double_targeting_state(test : GdUnitTestSuite) -> GridTargetingState:
 	var targeting_state := GridTargetingState.new(GBOwnerContext.new())
 	test.auto_free(targeting_state)
@@ -286,9 +308,8 @@ static func create_targeting_state(test: GdUnitTestSuite, owner_context: GBOwner
 	test.auto_free(targeting_state)
 	return targeting_state
 
-# ================================
-# Grid Building Test Utilities
-# ================================
+#endregion
+#region Test Utilities
 
 ## Setup a complete building system test environment
 static func setup_building_system_test(test: GdUnitTestSuite, container: GBCompositionContainer) -> Dictionary:
@@ -430,9 +451,8 @@ static func assert_system_dependencies_have_issues(test: GdUnitTestSuite, system
 	var issues = system.validate_dependencies()
 	test.assert_int(issues.size()).is_greater_equal(expected_issue_count)
 
-# ================================
-# Tile Maps
-# ================================
+#endregion
+#region TileMaps
 
 static func create_tile_map_layer(test: GdUnitTestSuite) -> TileMapLayer:
 	return GodotTestFactory.create_tile_map_layer(test)
@@ -440,3 +460,5 @@ static func create_tile_map_layer(test: GdUnitTestSuite) -> TileMapLayer:
 static func create_test_tile_map_layer(test: GdUnitTestSuite) -> TileMapLayer:
 	# Backwards compatible wrapper
 	return GodotTestFactory.create_tile_map_layer(test)
+
+#endregion

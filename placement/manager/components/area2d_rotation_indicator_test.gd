@@ -61,7 +61,7 @@ func test_area2d_rotation_changes_indicator_tile_offsets():
 	var area := _create_area2d_rect(48, 16, 1)
 	positioner.add_child(area) # preview object must be child of positioner
 
-	var rules: Array[TileCheckRule] = [_rule(1)]
+	var rules: Array[PlacementRule] = [_rule(1)]
 	var indicators_h = indicator_manager.setup_indicators(area, rules, indicator_parent)
 	assert_int(indicators_h.size()).append_failure_message("Expected 3 horizontal indicators for unrotated rectangle").is_equal(3)
 	var offsets_h: Array[Vector2i] = _gather_indicator_offsets()

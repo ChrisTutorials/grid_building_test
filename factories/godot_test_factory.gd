@@ -69,6 +69,11 @@ static func create_tile_map_layer(test: GdUnitTestSuite, grid_size: int = 40) ->
 		loaded_tile_set = TileSet.new()
 	if loaded_tile_set.get_source_count() == 0:
 		var atlas := TileSetAtlasSource.new()
+		# Atlas requires a texture to create tiles. Create a minimal one for testing.
+		var img := Image.create(16, 16, false, Image.FORMAT_RGBA8)
+		img.fill(Color.WHITE)
+		var tex := ImageTexture.create_from_image(img)
+		atlas.texture = tex
 		# Create a single tile at atlas coords (0,0) so get_cell_tile_data() returns a valid TileData
 		atlas.create_tile(Vector2i(0,0))
 		loaded_tile_set.add_source(atlas, 0)
@@ -86,6 +91,10 @@ static func create_tile_map_layer(test: GdUnitTestSuite, grid_size: int = 40) ->
 	if map_layer.get_cell_tile_data(Vector2i.ZERO) == null:
 		var ts := TileSet.new()
 		var atlas2 := TileSetAtlasSource.new()
+		var img2 := Image.create(16, 16, false, Image.FORMAT_RGBA8)
+		img2.fill(Color.BLUE)
+		var tex2 := ImageTexture.create_from_image(img2)
+		atlas2.texture = tex2
 		atlas2.create_tile(Vector2i(0,0))
 		ts.add_source(atlas2, 0)
 		map_layer.tile_set = ts

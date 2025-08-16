@@ -1,6 +1,6 @@
 extends GdUnitTestSuite
 
-var composition_container := GBCompositionContainer.new()
+const UnifiedTestFactory = preload("res://test/grid_building_test/factories/unified_test_factory.gd")
 
 class TestInjectable:
 	extends Node
@@ -11,9 +11,7 @@ class TestInjectable:
 
 func test_injection_sets_meta_and_removes_on_exit() -> void:
 	# Arrange: create injector and a test node
-	var injector : GBInjectorSystem = auto_free(GBInjectorSystem.new())
-	injector.composition_container = composition_container
-	add_child_to_root(injector)
+	var injector : GBInjectorSystem = auto_free(UnifiedTestFactory.create_test_injector(self))
 
 	var node := TestInjectable.new()
 	# Act: add node to root so injector will run

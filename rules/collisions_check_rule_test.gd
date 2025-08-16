@@ -1,19 +1,29 @@
 # Renamed from test_collisions_check_rule.gd
 extends GdUnitTestSuite
 
-const TEST_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
+const UnifiedTestFactory = preload("res://test/grid_building_test/factories/unified_test_factory.gd")
 
 var rule: CollisionsCheckRule
 var indicator: RuleCheckIndicator
 var logger: GBLogger
+var injector: GBInjectorSystem
 
 func before_test():
-	# Use the test container to create a logger with proper dependency injection
-	logger = TEST_CONTAINER.get_logger()
+	var container = UnifiedTestFactory.create_test_composition_container(self)
+	injector = UnifiedTestFactory.create_test_injector(self, container)
+	logger = container.get_logger()
+	
 	rule = CollisionsCheckRule.new()
-	# Remove the non-existent initialize method call - the rule will get the logger through setup()
+	# The rule gets its dependencies via the setup method, which is called
+	# by the indicator when the rule is added.
 	indicator = auto_free(RuleCheckIndicator.new())
+	
+	# Setup the indicator with the necessary dependencies from the container
+	var targeting_state := GBTileTargetingState.new()
+	indicator.setup(targeting_state, container)
+	
 	indicator.add_rule(rule)
+
 
 func test_rule_initial_state():
 	# Cannot call guard_ready() before setup() since it requires a logger
