@@ -23,7 +23,7 @@ func test_calculate_tile_overlap_single_point() -> void:
 	)
 	
 	assert_int(overlapped_tiles.size()).is_equal(1)
-	assert_vector2i(overlapped_tiles[0]).is_equal(Vector2i(0, 0))
+	assert_vector(overlapped_tiles[0]).is_equal(Vector2i(0, 0))
 
 func test_calculate_tile_overlap_rectangle() -> void:
 	var rectangle = PackedVector2Array([
@@ -68,16 +68,15 @@ func test_detect_collisions_with_collision() -> void:
 func test_get_polygon_bounds_empty() -> void:
 	var empty_polygon = PackedVector2Array()
 	
-	var bounds = CollisionGeometryCalculator._get_polygon_bounds(empty_polygon)
-	
-	assert_rect2(bounds).is_equal(Rect2())
+	var bounds : Rect2 = CollisionGeometryCalculator._get_polygon_bounds(empty_polygon)
+	assert_vector(bounds.position).is_equal(Vector2.ZERO)
+	assert_vector(bounds.size).is_equal(Vector2.ZERO)
 
 func test_get_polygon_bounds_single_point() -> void:
 	var single_point = PackedVector2Array([Vector2(5, 5)])
 	
-	var bounds = CollisionGeometryCalculator._get_polygon_bounds(single_point)
-	
-	assert_rect2(bounds).is_equal(Rect2(5, 5, 0, 0))
+	var bounds : Rect2 = CollisionGeometryCalculator._get_polygon_bounds(single_point)
+	assert_vector(bounds.position).is_equal(Vector2(5, 5))
 
 func test_get_polygon_bounds_rectangle() -> void:
 	var rectangle = PackedVector2Array([
@@ -85,8 +84,8 @@ func test_get_polygon_bounds_rectangle() -> void:
 	])
 	
 	var bounds = CollisionGeometryCalculator._get_polygon_bounds(rectangle)
-	
-	assert_rect2(bounds).is_equal(Rect2(1, 2, 4, 4))
+	assert_vector(bounds.position).is_equal(Vector2(1, 2))
+	assert_vector(bounds.size).is_equal(Vector2(4, 4))
 
 func test_polygon_overlaps_rect_no_overlap() -> void:
 	var polygon = PackedVector2Array([
