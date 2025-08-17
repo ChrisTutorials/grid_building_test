@@ -66,6 +66,7 @@ func before_test():
 	var test_tile_map_layer := GodotTestFactory.create_tile_map_layer(self, 40)
 	_level_context.target_map = test_tile_map_layer
 	_level_context.maps = [test_tile_map_layer]
+	_level_context.objects_parent = placed_parent
 	add_child(_level_context)
 	
 	# Instantiate systems with injection so they all share same container/state
@@ -99,6 +100,12 @@ func after_test():
 	targeting_system = null
 	composition_container = null
 	logger = null
+
+func test_no_build_issues_before_test():
+	var logic := BuildingSystemLogic.new(composition_container.get_states().building, composition_container.get_states().targeting, composition_container.get_contexts().placement)
+	var test_smithy_placeable : Placeable = load("uid://dirh6mcrgdm3w")
+	var issues := logic.get_build_issues(test_smithy_placeable)
+	assert_array(issues).append_failure_message("There should be no issues before we continue with the rest of the tests.").is_empty()
 
 ## Test complete building workflow with validation and caching
 func test_complete_building_workflow():
@@ -153,7 +160,7 @@ func test_building_with_placement_rules():
 	var _built_object = building_system.try_build()
 	
 	# Test that rule validation was performed
-	assert_bool(building_system.get_last_build_successful() != null).is_true()
+	assert_object(_built_object).append_failure_message("Did not build an object as expected.").is_not_null()
 
 ## Test drag building workflow with caching optimization
 func test_drag_building_workflow():
