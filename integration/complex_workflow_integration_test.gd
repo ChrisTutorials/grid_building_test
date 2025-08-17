@@ -9,18 +9,25 @@ var building_system: BuildingSystem
 var placement_manager: PlacementManager
 var targeting_system: GridTargetingSystem
 var logger: GBLogger
+var _injector : GBInjectorSystem
+var _level_context : GBLevelContext
 
 func before_test():
 	# Duplicate container and wire required runtime contexts/states explicitly
-	composition_container = TEST_CONTAINER.duplicate(true)
+	composition_container = auto_free(TEST_CONTAINER.duplicate(true))
 	
-	# Owner context & user root
-	var owner_context: GBOwnerContext = auto_free(GBOwnerContext.new())
+	_injector = auto_free(GBInjectorSystem.new(composition_container))
+	add_child(_injector)
+	
 	var user: Node2D = auto_free(Node2D.new())
 	user.name = "TestUser"
 	add_child(user)
-	owner_context.set_owner(GBOwner.new(user))
-	composition_container.get_contexts().owner = owner_context
+	# Create a GBOwner node, parent it and register it with the owner_context so
+	# the test harness will auto_free it and it won't be reported as an orphan.
+	var owner_node: GBOwner = auto_free(GBOwner.new(user))
+	add_child(owner_node)
+	var owner_context := composition_container.get_contexts().owner 
+	owner_context.set_owner(owner_node)
 	
 	# Create tile map layer (target map) fully populated so validation passes
 	var tile_map_layer: TileMapLayer = auto_free(TileMapLayer.new())
@@ -54,18 +61,24 @@ func before_test():
 	add_child(placed_parent)
 	composition_container.get_states().building.placed_parent = placed_parent
 	
+	## Set up level context dependencies
+	_level_context = auto_free(GBLevelContext.new())
+	var test_tile_map_layer := GodotTestFactory.create_tile_map_layer(self, 40)
+	_level_context.target_map = test_tile_map_layer
+	_level_context.maps = [test_tile_map_layer]
+	add_child(_level_context)
+	
 	# Instantiate systems with injection so they all share same container/state
 	building_system = auto_free(BuildingSystem.new())
 	add_child(building_system)
 	building_system.resolve_gb_dependencies(composition_container)
-	if building_system.has_method("_state_validation"):
-		building_system._state_validation()
+	assert_array(building_system.validate_dependencies()).is_empty()
 
 	targeting_system = auto_free(GridTargetingSystem.new())
 	add_child(targeting_system)
 	targeting_system.resolve_gb_dependencies(composition_container)
-	if targeting_system.has_method("force_validation"):
-		targeting_system.force_validation()
+	assert_array(targeting_system.validate_dependencies()).is_empty()
+
 	# Use injected placement manager rather than mismatched test factory manager
 	placement_manager = PlacementManager.create_with_injection(composition_container)
 	add_child(auto_free(placement_manager))
@@ -89,6 +102,7 @@ func after_test():
 
 ## Test complete building workflow with validation and caching
 func test_complete_building_workflow():
+	
 	# Validate all systems have proper dependencies
 	var building_validation = building_system.validate_dependencies()
 	assert_array(building_validation).append_failure_message("Building validation issues: %s" % str(building_validation)).is_empty()
@@ -179,9 +193,7 @@ func test_manipulation_workflow():
 		manipulatable.root = built_object
 		
 		# Create manipulation system for testing
-		var manipulation_system: ManipulationSystem = auto_free(UnifiedTestFactory.create_test_manipulation_system(self))
-		
-		# Validate manipulation system
+		var manipulation_system: ManipulationSystem = UnifiedTestFactory.create_test_manipulation_system(self)
 		var validation_issues = manipulation_system.validate_dependencies()
 		assert_array(validation_issues).is_empty()
 

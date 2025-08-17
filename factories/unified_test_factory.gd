@@ -151,7 +151,11 @@ static func create_configured_injector(test_suite: GdUnitTestSuite) -> GBInjecto
 
 ## Creates a fully configured debug settings instance for testing purposes.
 static func create_test_debug_settings() -> GBDebugSettings:
-	var debug_settings := create_test_debug_settings()
+	# Properly instantiate debug settings (previous implementation recursed infinitely)
+	var debug_settings := GBDebugSettings.new()
+	debug_settings.resource_name = "TestDebugSettings"
+	# Default to DEBUG level for verbose test diagnostics
+	debug_settings.set_debug_level(GBDebugSettings.DebugLevel.DEBUG)
 	return debug_settings
 
 static func create_test_injector(test: GdUnitTestSuite, container: GBCompositionContainer = null) -> GBInjectorSystem:

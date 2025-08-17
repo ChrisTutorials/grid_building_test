@@ -76,7 +76,8 @@ static func create_tile_map_layer(test: GdUnitTestSuite, grid_size: int = 40) ->
 		atlas.texture = tex
 		# Create a single tile at atlas coords (0,0) so get_cell_tile_data() returns a valid TileData
 		atlas.create_tile(Vector2i(0,0))
-		loaded_tile_set.add_source(atlas, 0)
+		loaded_tile_set.add_source(atlas)
+		
 	map_layer.tile_set = loaded_tile_set
 
 	# Create a reasonable sized grid for testing
@@ -96,7 +97,8 @@ static func create_tile_map_layer(test: GdUnitTestSuite, grid_size: int = 40) ->
 		var tex2 := ImageTexture.create_from_image(img2)
 		atlas2.texture = tex2
 		atlas2.create_tile(Vector2i(0,0))
-		ts.add_source(atlas2, 0)
+		# Register atlas source and assign tile set to the layer
+		ts.add_source(atlas2)
 		map_layer.tile_set = ts
 		map_layer.clear()
 		map_layer.set_cell(Vector2i.ZERO, 0, Vector2i(0,0))

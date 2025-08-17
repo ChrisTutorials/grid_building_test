@@ -19,19 +19,43 @@
 
 [sub_resource type="Resource" id="Resource_tvqac"]
 script = ExtResource("1_ytodv")
+off_mode = &"off_mode"
+info_mode = &"info_mode"
+build_mode = &"build_mode"
+moving_mode = &"moving_mode"
+demolish_mode = &"demolish_mode"
+confirm_build = &"confirm"
+confirm_manipulation = &"confirm"
+rotate_right = &"rotate_right"
+rotate_left = &"rotate_left"
+flip_horizontal = &"flip_horizontal"
+flip_vertical = &"flip_vertical"
 metadata/_custom_type_script = "uid://b8qexmaqap2qt"
 
 [sub_resource type="Resource" id="Resource_mlskn"]
 script = ExtResource("2_e2vnu")
+missing_name = "<none>"
+custom_name_method = &""
 metadata/_custom_type_script = "uid://bt4psxjklha65"
 
 [sub_resource type="Resource" id="Resource_qmmuh"]
 script = ExtResource("5_h32ty")
 level = 4
+draw_rule_check_indicator_debug = false
 metadata/_custom_type_script = "uid://cdothihd02bh"
 
 [sub_resource type="Resource" id="Resource_2wnb5"]
 script = ExtResource("6_mtygo")
+rotate_increment_degrees = 90.0
+enable_demolish = false
+demolish_while_moving = false
+enable_rotate = true
+enable_flip_horizontal = true
+enable_flip_vertical = true
+reset_transform_on_manipulation = false
+disable_layer_in_manipulation = false
+disabled_physics_layer = 0
+move_suffix = ""
 metadata/_custom_type_script = "uid://dd2upd0f43el6"
 
 [sub_resource type="Resource" id="Resource_2l661"]
@@ -41,6 +65,20 @@ metadata/_custom_type_script = "uid://c0v8dvw42wlsx"
 
 [sub_resource type="Resource" id="Resource_4haak"]
 script = ExtResource("9_e2vnu")
+pass_on_collision = false
+collision_mask = 1
+success_message = "No placement collisions found"
+expected_no_collisions_message = "Must have no collisions"
+expected_collision_message = "Must have collisions in area"
+expected_collisions_message = "Must overlap "
+prepend_resource_name = false
+append_layer_names = false
+layers_tested_prefix = " : Layers Checked: "
+no_indicators_message = "No tile collision indicators to check for collisions in placement"
+fail_blocked_message = "Colliding on %d tile(s)"
+fail_missing_overlap_message = "Missing required overlap on %d tile(s)"
+apply_to_objects_mask = 1
+visual_priority = 0
 metadata/_custom_type_script = "uid://canj8n1of5xmx"
 
 [sub_resource type="Resource" id="Resource_2w8xp"]
