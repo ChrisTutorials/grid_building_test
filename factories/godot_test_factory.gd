@@ -61,34 +61,28 @@ static func create_canvas_item(test: GdUnitTestSuite) -> CanvasItem:
 
 ## Creates a TileMapLayer with basic tile set and populated grid for testing.
 ## grid_size: overall width/height in tiles (square). Reduced default for faster unit tests.
+## Tiles are created starting from the top-left corner (0,0) and fill down and to the right,
+## so all used tiles are in the bottom right grid quadrant, covering (0,0) to (grid_size-1, grid_size-1).
 static func create_tile_map_layer(test: GdUnitTestSuite, grid_size: int = 40) -> TileMapLayer:
 	var map_layer: TileMapLayer = test.auto_free(TileMapLayer.new())
-	var loaded_tile_set = load("uid://d11t2vm1pby6y")
-	# Fallback: if the expected TileSet failed to load (null) or has no sources, create a minimal atlas tile set
-	if loaded_tile_set == null:
-		loaded_tile_set = TileSet.new()
-	if loaded_tile_set.get_source_count() == 0:
-		var atlas := TileSetAtlasSource.new()
-		# Atlas requires a texture to create tiles. Create a minimal one for testing.
-		var img := Image.create(16, 16, false, Image.FORMAT_RGBA8)
-		img.fill(Color.WHITE)
-		var tex := ImageTexture.create_from_image(img)
-		atlas.texture = tex
-		# Create a single tile at atlas coords (0,0) so get_cell_tile_data() returns a valid TileData
-		atlas.create_tile(Vector2i(0,0))
-		loaded_tile_set.add_source(atlas)
-		
-	map_layer.tile_set = loaded_tile_set
+	var tile_set := TileSet.new()
+	var atlas := TileSetAtlasSource.new()
+	var img := Image.create(16, 16, false, Image.FORMAT_RGBA8)
+	img.fill(Color.WHITE)
+	var tex := ImageTexture.create_from_image(img)
+	atlas.texture = tex
+	atlas.create_tile(Vector2i(0,0))
+	tile_set.add_source(atlas)
+	map_layer.tile_set = tile_set
 
-	# Create a reasonable sized grid for testing
-	@warning_ignore("integer_division")
-	var half_size: int = grid_size / 2
-	for x in range(-half_size, half_size):
-		for y in range(-half_size, half_size):
+	var tile_id := 0
+	var atlas_coords := Vector2i(0,0)
+	for x in range(0, grid_size):
+		for y in range(0, grid_size):
 			var coords = Vector2i(x, y)
-			map_layer.set_cell(coords, 0, Vector2i(0, 0))
+			map_layer.set_cell(coords, tile_id, atlas_coords)
 
-	# Verify at least origin tile registered; if not, rebuild minimal tile set and assign origin only.
+	# If fallback tileset was needed, repopulate all cells after assigning new tileset
 	if map_layer.get_cell_tile_data(Vector2i.ZERO) == null:
 		var ts := TileSet.new()
 		var atlas2 := TileSetAtlasSource.new()
@@ -97,12 +91,19 @@ static func create_tile_map_layer(test: GdUnitTestSuite, grid_size: int = 40) ->
 		var tex2 := ImageTexture.create_from_image(img2)
 		atlas2.texture = tex2
 		atlas2.create_tile(Vector2i(0,0))
-		# Register atlas source and assign tile set to the layer
 		ts.add_source(atlas2)
 		map_layer.tile_set = ts
 		map_layer.clear()
-		map_layer.set_cell(Vector2i.ZERO, 0, Vector2i(0,0))
+		for x in range(0, grid_size):
+			for y in range(0, grid_size):
+				var coords = Vector2i(x, y)
+				map_layer.set_cell(coords, 0, Vector2i(0,0))
 
+	var actual_populated_cells := map_layer.get_used_cells().size()
+	assert(actual_populated_cells == (grid_size * grid_size), "Expected: %s Actual: %s" % [grid_size * grid_size, actual_populated_cells])
+	var map_size_px : Vector2 = map_layer.get_used_rect().size * map_layer.tile_set.tile_size
+	test.assert_vector(map_size_px).append_failure_message("GodotTestFactory Math Incorrect").is_equal(Vector2(grid_size * 16, grid_size * 16))
+	
 	test.add_child(map_layer)
 	return map_layer
 

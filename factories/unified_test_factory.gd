@@ -117,12 +117,10 @@ static func create_test_indicator_rect(test: GdUnitTestSuite, tile_size: int = 1
 static func create_test_composition_container(test: GdUnitTestSuite) -> GBCompositionContainer:
 	var container := GBCompositionContainer.new()
 	var debug_settings := create_test_debug_settings()
-	var logger := GBLogger.new(debug_settings)
 	var config := GBConfig.new()
-	config.debug = debug_settings
-	
-	container.register_logger(logger)
-	container.register_config(config)
+	container.config = config
+	config.settings.debug = debug_settings
+	var logger := container.get_logger()
 	
 	test.auto_free(container)
 	test.auto_free(debug_settings)

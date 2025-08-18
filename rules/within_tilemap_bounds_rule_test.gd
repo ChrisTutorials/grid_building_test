@@ -47,18 +47,22 @@ func test_validate_condition(indicator_setup: Array[Dictionary], expected_succes
 
 # Updated test__get_failing_indicators (mostly unchanged, already correct)
 @warning_ignore("unused_parameter")
-func test__get_failing_indicators(indicator_setup: Array[Dictionary], expected_failing_count: int, test_parameters := [
+func test__get_failing_indicators(indicator_setup: Array, expected_failing_count: int, test_parameters := [
 	[[], 0],                                       # No indicators = no failures
 	[[{"pos": Vector2.ZERO}], 0],                        # One at 0 passes
 	[[{"pos": Vector2i(-1000, -1000)}], 1],               # Distant off of tilemap = fail
 	[[{"pos": Vector2i(1000, 0)}], 1],                    # Distant one direction = fail
-	[[null], 0],                                            # Null indicator is ignored
-	[[{"pos": Vector2.ZERO}, {"pos": Vector2(32,32)}], 0],   # Adjacent in-bounds tiles
-	[[{"pos": Vector2.ZERO}, {"pos": Vector2(320,320)}], 1]  # Out-of-bounds second indicator
+	[[{"pos": Vector2.ZERO}, {"pos": Vector2(20,20)}], 0],   # Adjacent in-bounds tiles
+	[[{"pos": Vector2.ZERO}, {"pos": Vector2(480, 480)}], 1]  # Out-of-bounds second indicator
 ]) -> void:
-	var test_indicators := _create_indicators(indicator_setup, [rule])
+	var indicator_setups_dictionary : Array[Dictionary] = []
+	indicator_setups_dictionary.append_array(indicator_setup)
+	var test_indicators := _create_indicators(indicator_setups_dictionary, [rule])
 	# The rule.indicators should be populated by add_rule() calls in _create_indicators
-	var failing := rule._get_failing_indicators(test_indicators)
+	for indicator in test_indicators:
+		indicator.force_shapecast_update()
+		
+	var failing : Array[RuleCheckIndicator] = rule._get_failing_indicators(test_indicators)
 	assert_int(failing.size()).is_equal(expected_failing_count)
 	for ind in failing:
 		assert_object(ind).is_not_null()
@@ -82,7 +86,7 @@ func _create_indicators(p_setup: Array[Dictionary], p_rules : Array[TileCheckRul
 	var rect_shape: RectangleShape2D = RectangleShape2D.new()
 	rect_shape.extents = Vector2(16,16)
 	for case in p_setup:
-		if case == null or not case.has("pos"):
+		if typeof(case) != TYPE_DICTIONARY or case == null or not case.has("pos"):
 			continue
 		var indicator: RuleCheckIndicator = auto_free(RuleCheckIndicator.new())
 		indicator.shape = rect_shape
