@@ -5,7 +5,6 @@ extends GdUnitTestSuite
 
 const TEST_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
 
-
 func test_rule_setup_failure_is_reported():
 	# Create a rule that expects a layer not present in the scene
 	var collisions_rule = CollisionsCheckRule.new()

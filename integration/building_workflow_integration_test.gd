@@ -51,18 +51,17 @@ func before_test():
 	add_child(placed_parent)
 	_container.get_states().building.placed_parent = placed_parent
 
-	# Manipulation parent (required for move workflows to host move copies)
-	var manipulation_parent: Node2D = auto_free(Node2D.new())
-	manipulation_parent.name = "ManipulationParent"
-	add_child(manipulation_parent)
-	_container.get_states().manipulation.parent = manipulation_parent
+	# Manipulation parent: use the positioner directly so move copies inherit its transforms
+	_container.get_states().manipulation.parent = positioner
 
 	# Owner context (replace with new context bound to mock owner)
 	var owner_context: GBOwnerContext = _container.get_contexts().owner
 	var mock_owner_node = auto_free(Node2D.new())
 	mock_owner_node.name = "TestOwner"
 	add_child(mock_owner_node)
-	owner_context.set_owner(GBOwner.new(mock_owner_node))
+	var gb_owner := GBOwner.new(mock_owner_node)
+	auto_free(gb_owner)
+	owner_context.set_owner(gb_owner)
 
 	# Systems (all auto_free to avoid orphan leakage); include targeting system for movement logic
 	# Add nodes to tree BEFORE dependency injection that calls validation relying on get_tree()
@@ -97,17 +96,6 @@ func before_test():
 	issues.append_array(manipulation_issues)
 	assert_array(issues).append_failure_message("Dependency issues detected -> Building: %s | Targeting: %s | Manipulation: %s" % [str(building_issues), str(targeting_issues), str(manipulation_issues)]).is_empty()
 	_assert_no_orphans()
-
-func after_test():
-	# Explicit cleanup (auto_free covers most; clear references for GC)
-	building_system = null
-	manipulation_system = null
-	targeting_system = null
-	injector_system = null
-	tile_map_layer = null
-	positioner = null
-	placed_parent = null
-	_container = null
 
 func _assert_no_orphans():
 	var orphans := []
@@ -159,7 +147,7 @@ func test_complete_building_workflow():
 	var manipulation_state = _container.get_states().manipulation
 	var mode_state = _container.get_states().mode
 	mode_state.current = GBEnums.Mode.MOVE
-	manipulation_state.current_target = placed_instance
+	manipulation_state.active_target_node = placed_instance
 
 	# Acquire manipulatable component
 	var manipulatable = placed_instance.find_child("Manipulatable", true, false)
@@ -178,10 +166,10 @@ func test_complete_building_workflow():
 	# Simulate positioner reposition & system updates
 	var target_offset = Vector2(32,32)
 	positioner.global_position = original_position + target_offset
+	
 	for i in range(4):
 		await get_tree().process_frame
-		if targeting_system.has_method("_move_positioner"):
-			targeting_system._move_positioner()
+		targeting_system._move_positioner()
 
 	# Confirm that a move target copy exists and has been repositioned (source root stays until confirmed/finished)
 	var move_target = move_data.target
@@ -192,19 +180,50 @@ func test_complete_building_workflow():
 
 ## Test placement validation workflow
 func test_placement_validation_workflow():
-	var test_placeable = TestSceneLibrary.placeable_2d_test
-	building_system.selected_placeable = test_placeable
-	building_system.instance_preview(test_placeable)
+	## Load a placeable where the scene MUST have collision shapes on layer 1
+	var test_elipse_placeable_skew_rotation = load("uid://cmuqt7ovi8si3")
+	building_system.selected_placeable = test_elipse_placeable_skew_rotation
+	building_system.instance_preview(test_elipse_placeable_skew_rotation)
 	positioner.global_position = Vector2.ZERO
+
+	# Explicitly setup placement rules including a CollisionCheckRule so occupied tiles invalidate placement
 	var placement_manager = _container.get_contexts().placement.get_manager()
+	var targeting_state = _container.get_states().targeting
+	var preview_root: Node2D = _container.get_states().building.preview
+	var manipulator_owner = _container.get_states().manipulation.get_manipulator()
+	var validation_params = RuleValidationParameters.new(manipulator_owner, preview_root, targeting_state, _container.get_logger())
+	var rules : Array[PlacementRule] = []
+
+	## There must be a collision check rule for a tile to invalid via the indicators
+	var collision_rule : CollisionsCheckRule = CollisionsCheckRule.new()
+	collision_rule.apply_to_objects_mask = 1 << 0  # Apply to the first layer
+	collision_rule.collision_mask = 1 << 0  # Apply to the first layer
+	rules.append(collision_rule)
+	
+
+	var setup_ok = placement_manager.try_setup(rules, validation_params)
+	assert_bool(setup_ok).append_failure_message("Failed to setup placement rules").is_true()
+
+	var indicators := placement_manager.get_indicators()
+	assert_array(indicators).append_failure_message("Expected active indicators for testing for the invalid placement space.").is_not_empty()
+
 	var validation_result = placement_manager.validate_placement()
 	assert_bool(validation_result.is_successful).is_true()
+
 	# Place one object to occupy tile
 	var first_instance = building_system.try_build()
 	assert_object(first_instance).is_not_null()
+
 	# Recreate preview at same occupied location to force overlap rule failure (expected invalid)
 	building_system.instance_preview(test_placeable)
 	positioner.global_position = first_instance.global_position
+
+	# Re-run setup for new preview root
+	preview_root = _container.get_states().building.preview
+	validation_params = RuleValidationParameters.new(manipulator_owner, preview_root, targeting_state, _container.get_logger())
+	setup_ok = placement_manager.try_setup(rules, validation_params)
+	assert_bool(setup_ok).append_failure_message("Failed to re-setup placement rules for second preview").is_true()
+
 	validation_result = placement_manager.validate_placement()
 	assert_bool(validation_result.is_successful).append_failure_message("Expected invalid placement on occupied tile").is_false()
 	_assert_no_orphans()
@@ -230,11 +249,11 @@ func test_system_coordination():
 	
 	# Switch to manipulation mode
 	mode_state.current = GBEnums.Mode.MOVE
-	manipulation_state.current_target = placed_instance
+	manipulation_state.active_target_node = placed_instance
 	
 	# Verify systems respond to mode changes appropriately
 	assert_that(mode_state.current).is_equal(GBEnums.Mode.MOVE)
-	assert_object(manipulation_state.current_target).is_equal(placed_instance)
+	assert_object(manipulation_state.active_manipulatable.root).append_failure_message("Obj: %s should match Obj: %s" % [manipulation_state.active_target_node.name, placed_instance.name]).is_equal(placed_instance)
 	_assert_no_orphans()
 
 ## Test error handling and edge cases in integrated workflow
@@ -251,7 +270,7 @@ func test_workflow_error_handling():
 	assert_object(result).is_null()
 	
 	# Test manipulation without target
-	_container.get_states().manipulation.current_target = null
+	_container.get_states().manipulation.active_target_node = null
 	# Should handle gracefully without crashing
 	await get_tree().process_frame
 	# No assertion needed - just verify no crash

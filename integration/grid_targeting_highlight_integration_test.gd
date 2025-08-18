@@ -4,7 +4,7 @@ extends GdUnitTestSuite
 @warning_ignore("return_value_discarded")
 
 # Verifies end-to-end pipeline:
-# ShapeCast (GridPositioner2D) -> GridTargetingState.target -> ManipulationSystem.targeted
+# ShapeCast (GridPositioner2D) -> GridTargetingState.target -> ManipulationSystem.active_target_node
 # -> TargetHighlighter color selection in MOVE & DEMOLISH modes.
 
 var _container: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
@@ -137,9 +137,9 @@ func test_positioner_to_highlight_pipeline(
 	positioner._update_target()  # Direct call is acceptable within test context
 	await await_idle_frame()
 
-	# Retry a few frames if manipulation_state.targeted not yet populated
+	# Retry a few frames if manipulation_state.active_target_node not yet populated
 	var attempts := 0
-	while manipulation_state.targeted == null and attempts < 3:
+	while manipulation_state.active_target_node == null and attempts < 3:
 		positioner._update_target()
 		await await_idle_frame()
 		attempts += 1
@@ -152,14 +152,14 @@ func test_positioner_to_highlight_pipeline(
 	)
 	# Manipulation system should have resolved a manipulatable
 	(
-		assert_object(manipulation_state.targeted)
+		assert_object(manipulation_state.active_target_node)
 		. append_failure_message(
-			"ManipulationState.targeted was not set after target change (attempts=%s)" % attempts
+			"ManipulationState.active_target_node was not set after target change (attempts=%s)" % attempts
 		)
 		. is_not_null()
 	)
-	if manipulation_state.targeted:
-		assert_that(manipulation_state.targeted.root).is_equal(target_root)
+	if manipulation_state.active_target_node:
+		assert_that(manipulation_state.active_target_node.root).is_equal(target_root)
 
 	# Highlighter should color target according to mode & settings
 	(
