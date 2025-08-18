@@ -34,7 +34,7 @@ func test_positioner_movement_updates_collision():
 	var test_indicator: RuleCheckIndicator = GodotTestFactory.create_rule_check_indicator(self)
 	collision_mapper.setup(test_indicator, {})
 
-	var result1 = collision_mapper._get_tile_offsets_for_collision_polygon(
+	var offsets1 = collision_mapper._get_tile_offsets_for_collision_polygon(
 		collision_polygon, tile_map_layer
 	)
 	# TODO: Debug prints removed per no-prints rule
@@ -42,14 +42,41 @@ func test_positioner_movement_updates_collision():
 	# Test case 2: Move positioner to (32, 32)
 	positioner.global_position = Vector2(32, 32)
 
-	var result2 = collision_mapper._get_tile_offsets_for_collision_polygon(
+
+	var offsets2 = collision_mapper._get_tile_offsets_for_collision_polygon(
 		collision_polygon, tile_map_layer
 	)
-	# TODO: Debug prints removed per no-prints rule
 
-	# The results should be different since the positioner moved
 	(
-		assert_that(result1.keys())
-		. append_failure_message("Results should be different when positioner moves")
-		. is_not_equal(result2.keys())
+		assert_that(offsets1.keys())
+		. append_failure_message("Tile offsets should be different when positioner moves")
+		. is_not_equal(offsets2.keys())
 	)
+
+## New test: When polygon is parented to positioner, offsets remain stable as both move.
+func test_parented_polygon_offsets_stable():
+	positioner.global_position = Vector2(0,0)
+
+	var collision_polygon: CollisionPolygon2D = GodotTestFactory.create_collision_polygon(
+		self, PackedVector2Array([Vector2(-4, -4), Vector2(4, -4), Vector2(4, 4), Vector2(-4, 4)])
+	)
+	# Reparent polygon under positioner so it tracks movement
+	if collision_polygon.get_parent() != positioner:
+		var prev_parent = collision_polygon.get_parent()
+		if prev_parent:
+			prev_parent.remove_child(collision_polygon)
+		positioner.add_child(collision_polygon)
+	# Large local offset so its world position differs from positioner yet follows it
+	collision_polygon.position = Vector2(1000, 1000)
+
+	var test_indicator: RuleCheckIndicator = GodotTestFactory.create_rule_check_indicator(self)
+	collision_mapper.setup(test_indicator, {})
+
+	var offsets1 = collision_mapper._get_tile_offsets_for_collision_polygon(
+		collision_polygon, tile_map_layer
+	)
+	positioner.global_position = Vector2(64,64)
+	var offsets2 = collision_mapper._get_tile_offsets_for_collision_polygon(
+		collision_polygon, tile_map_layer
+	)
+	assert_that(offsets1.keys()).append_failure_message("Parented polygon offsets should remain stable when moving positioner").is_equal(offsets2.keys())

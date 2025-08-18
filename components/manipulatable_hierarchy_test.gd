@@ -22,7 +22,7 @@ func test_hierarchy_valid_when_root_is_ancestor() -> void:
 	child.add_child(m)
 	m.root = root
 	assert_bool(m.is_root_hierarchy_valid()).is_true()
-	assert_bool(m.validate_setup()).is_true()
+	assert_array(m.get_issues()).is_empty()
 
 
 func test_hierarchy_invalid_when_root_not_ancestor() -> void:
@@ -36,4 +36,4 @@ func test_hierarchy_invalid_when_root_not_ancestor() -> void:
 	child.add_child(m)
 	m.root = unrelated
 	assert_bool(m.is_root_hierarchy_valid()).is_false()
-	assert_bool(m.validate_setup()).is_false()
+	assert_array(m.get_issues()).is_not_empty()

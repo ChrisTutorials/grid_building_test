@@ -215,7 +215,7 @@ func test_placement_validation_workflow():
 	assert_object(first_instance).is_not_null()
 
 	# Recreate preview at same occupied location to force overlap rule failure (expected invalid)
-	building_system.instance_preview(test_placeable)
+	building_system.instance_preview(test_elipse_placeable_skew_rotation)
 	positioner.global_position = first_instance.global_position
 
 	# Re-run setup for new preview root
