@@ -1,7 +1,7 @@
 [gd_scene load_steps=8 format=3 uid="uid://dhox8mb8kuaxa"]
 
-[ext_resource type="Script" path="res://addons/grid_building/placement/rule_check_indicator/rule_check_indicator.gd" id="1_fdkm5"]
-[ext_resource type="Script" path="res://addons/grid_building/placement/rule_check_indicator/indicator_visual_settings.gd" id="2_ootu6"]
+[ext_resource type="Script" uid="uid://b38wjwn4xpwa3" path="res://addons/grid_building/placement/rule_check_indicator/rule_check_indicator.gd" id="1_fdkm5"]
+[ext_resource type="Script" uid="uid://c57eqttydbunb" path="res://addons/grid_building/placement/rule_check_indicator/indicator_visual_settings.gd" id="2_ootu6"]
 [ext_resource type="Texture2D" uid="uid://2odn6on7s512" path="res://addons/grid_building/placement/rule_check_indicator/tile_textures/green_tile_overlay_16x16_100_opacity.png" id="3_81t62"]
 [ext_resource type="Texture2D" uid="uid://vf5d73isjqo5" path="res://addons/grid_building/placement/rule_check_indicator/tile_textures/red_collision_tile_overlay_16x16_100_opacity.png" id="4_8sv5w"]
 
@@ -25,6 +25,5 @@ script = ExtResource("1_fdkm5")
 validity_sprite = NodePath("Sprite2D")
 valid_settings = SubResource("Resource_4uiwh")
 invalid_settings = SubResource("Resource_aq8an")
-debug_mode = true
 
 [node name="Sprite2D" type="Sprite2D" parent="."]

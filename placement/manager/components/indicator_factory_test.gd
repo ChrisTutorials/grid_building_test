@@ -8,13 +8,11 @@ func test_generate_indicators_with_valid_map() -> void:
 		Vector2i(3, 4): [TileCheckRule.new(), TileCheckRule.new()]
 	}
 	var indicator_template := preload("uid://dhox8mb8kuaxa")
-	var logger := GBLogger.create_with_injection(TEST_CONTAINER)
 	var parent_node: Node2D = auto_free(Node2D.new())
 
 	var indicators = IndicatorFactory.generate_indicators(
 		position_rules_map,
 		indicator_template,
-		logger,
 		parent_node
 	)
 

@@ -19,7 +19,8 @@ func before_test():
 	indicator = auto_free(RuleCheckIndicator.new())
 	
 	# Setup the indicator with the necessary dependencies from the container
-	var targeting_state := GridTargetingState.new()
+	var owner_context := GBOwnerContext.new()
+	var targeting_state := GridTargetingState.new(owner_context)
 	indicator.setup(targeting_state, container)
 	
 	indicator.add_rule(rule)

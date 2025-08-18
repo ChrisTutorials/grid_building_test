@@ -11,13 +11,13 @@ var logger: GBLogger
 var indicator_parent : Node2D
 
 func before_test():
-	indicator_parent = auto_free(Node2D.new())
-	indicator_template = load("uid://nhlp6ks003fp")
+	indicator_parent = GodotTestFactory.create_node2d(self)
 	
 	# Initialize targeting_state before using it
-	targeting_state = auto_free(GridTargetingState.new(GBOwnerContext.new()))
-	
-	# Use the actual static factory method directly with test container  
+	var context = UnifiedTestFactory.create_owner_context(self)
+	targeting_state = auto_free(GridTargetingState.new(context))
+
+	# Use the actual static factory method directly with test container
 	indicator_manager = IndicatorManager.create_with_injection(TEST_CONTAINER, indicator_parent)
 
 	_initialize_targeting_state(targeting_state)
@@ -29,7 +29,7 @@ func after_test():
 	indicator_manager = null
 
 func _create_real_indicator() -> RuleCheckIndicator:
-	var instance = indicator_template.instantiate() as RuleCheckIndicator
+	var instance : RuleCheckIndicator = indicator_template.instantiate()
 	instance.name = "TestIndicator"
 	add_child(instance) # add to scene so it's in scene tree
 	return instance
@@ -41,7 +41,7 @@ func _initialize_targeting_state(p_targeting_state: GridTargetingState) -> void:
 	for x in range(-100, 100, 1):
 		for y in range(-100, 100, 1):
 			var cords = Vector2i(x, y)
-			map.set_cellv(cords, 0, Vector2i(0,0))
+			map.set_cell(cords, 0, Vector2i(0, 0))
 	add_child(map)
 	
 	p_targeting_state.set_map_objects(
@@ -56,42 +56,47 @@ func test_setup_indicators_generates_expected_indicators() -> void:
 	var config = IndicatorFactory.create_indicator_config(
 		Vector2.ZERO,
 		Vector2(16, 16),
-		[]
+		[CollisionsCheckRule.new()]
 	)
 	
 	var validation_issues = IndicatorFactory.validate_indicator_setup(config)
-	assert_array(validation_issues).is_empty()
-	
-	# Test that config is valid
-	assert_bool(config.valid).is_true()
+	assert_array(validation_issues).append_failure_message("Issues means it failed to setup properly. Debug the issues.").is_empty()
 
 func test_add_indicators_adds_and_emits_signal() -> void:
 	# Use pure logic class for validation
-	var setup = IndicatorFactory.create_collision_test_setup(
+	var rect_shape := RectangleShape2D.new()
+	rect_shape.extents = Vector2(8, 8)
+
+	var owner_testing_rect := RectangleShape2D.new()
+	owner_testing_rect.extents = Vector2(8, 8)
+
+	var setup : RectCollisionTestingSetup = IndicatorFactory.create_collision_test_setup(
 		_create_real_indicator(),
-		Vector2.ZERO,
-		logger
+		[rect_shape],
+		owner_testing_rect.get_rect()
 	)
 	
-	var validation_issues = IndicatorFactory.validate_collision_test_setup(setup)
-	assert_array(validation_issues).is_empty()
+	var validation_issues = setup.validate()
+	assert_array(validation_issues).append_failure_message("Expect to come back with no issues - issues means invalid.").is_empty()
 	
-	# Test that setup is valid
-	assert_bool(setup.valid).is_true()
 
 func test_reset_frees_indicators() -> void:
 	# Use pure logic class for validation
+	var rect_shape := RectangleShape2D.new()
+	rect_shape.extents = Vector2(8, 8)
+
+	var owner_testing_rect := RectangleShape2D.new()
+	owner_testing_rect.extents = Vector2(8, 8)
+
+	# Use pure logic class for validation
 	var setup = IndicatorFactory.create_collision_test_setup(
 		_create_real_indicator(),
-		Vector2.ZERO,
-		logger
+		[rect_shape],
+		owner_testing_rect.get_rect()
 	)
 	
-	var validation_issues = IndicatorFactory.validate_collision_test_setup(setup)
-	assert_array(validation_issues).is_empty()
-	
-	# Test that setup is valid
-	assert_bool(setup.valid).is_true()
+	var validation_issues = setup.validate()
+	assert_array(validation_issues).append_failure_message("Expect to come back with no issues - issues means invalid.").is_empty()
 
 
 func _on_indicators_changed(updated: Array[RuleCheckIndicator]) -> void:

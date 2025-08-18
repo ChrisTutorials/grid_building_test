@@ -141,7 +141,7 @@ func test_complete_building_workflow():
 	var _built_object = building_system.try_build()
 	
 	# Test that building process completed (success or proper failure handling)
-	assert_bool(building_system.get_last_build_successful() != null).is_true()
+	assert_bool(building_system.get_last_build_successful()).append_failure_message("Expected last build attempt to report success").is_true()
 
 ## Test building workflow with placement rules validation
 func test_building_with_placement_rules():
@@ -158,8 +158,8 @@ func test_building_with_placement_rules():
 	
 	# Attempt build - should validate rules through placement manager
 	var _built_object = building_system.try_build()
-	
-	# Test that rule validation was performed
+
+	# Test that rule validation produced either a placement or failure (we expect a placement here)
 	assert_object(_built_object).append_failure_message("Did not build an object as expected.").is_not_null()
 
 ## Test drag building workflow with caching optimization
