@@ -14,6 +14,7 @@ func before_test():
 	# Configure the TEST_CONTAINER's targeting state directly
 	tile_map_layer = GodotTestFactory.create_tile_map_layer(self)
 	positioner = GodotTestFactory.create_node2d(self)
+	positioner.name = "TestPositioner"
 	var container_targeting_state = TEST_CONTAINER.get_states().targeting
 	container_targeting_state.target_map = tile_map_layer
 	container_targeting_state.positioner = positioner

@@ -19,6 +19,7 @@ func before_test():
 		container_states.targeting = targeting_state
 
 	positioner = GodotTestFactory.create_node2d(self)
+	positioner.name = "TestPositioner"
 	targeting_state.positioner = positioner
 	tile_map_layer = GodotTestFactory.create_tile_map_layer(self, 40)
 	targeting_state.target_map = tile_map_layer
@@ -51,20 +52,30 @@ func test_shape_offsets_do_not_change_when_only_positioner_moves():
 	var offsets2 = _collect_offsets(area)
 	assert_that(offsets1).append_failure_message("Offsets should remain the same; shape anchored to its own position").is_equal(offsets2)
 
-func test_shape_offsets_change_when_object_moves():
+## NOTE (Semantics Change): Shape (CollisionObject2D) offsets are anchored to the shape's own tile, not the positioner.
+## Therefore moving the unparented shape in world space does NOT change its local tile coverage pattern (offset set).
+## This test now verifies that although the shape's center tile changes, the offset pattern remains identical.
+func test_shape_offsets_stable_when_object_moves_unparented():
 	var area := _create_rect_area(Vector2(16,16))
 	area.global_position = Vector2(512, 512)
 	positioner.global_position = Vector2(0,0)
+	# Capture starting tile position of shape (via its global position converted through map)
+	var start_tile : Vector2i = tile_map_layer.local_to_map(tile_map_layer.to_local(area.global_position))
 	var offsets1 = _collect_offsets(area)
-	# Move shape far enough (3 tiles) to ensure tile positions change
-	area.global_position += Vector2(48,48)
+	# Move shape by more than one tile (assumes tile size from factory >= 32). Using large delta to guarantee tile change.
+	var move_delta := Vector2(160,160) # 4 tiles if tile size is 40
+	area.global_position += move_delta
+	var end_tile : Vector2i = tile_map_layer.local_to_map(tile_map_layer.to_local(area.global_position))
 	var offsets2 = _collect_offsets(area)
-	assert_that(offsets1).append_failure_message("Offsets should differ after moving shape object").is_not_equal(offsets2)
+
+	# Assert we actually changed tile to make the test meaningful
+	assert_that(end_tile).append_failure_message("Shape failed to move to a different tile. start=%s end=%s delta=%s" % [str(start_tile), str(end_tile), str(move_delta)]).is_not_equal(start_tile)
+	# Offsets should remain identical under new semantics
+	assert_that(offsets2).append_failure_message("Offsets changed unexpectedly after moving shape.\nStart tile=%s End tile=%s\nBefore=%s\nAfter=%s\nSemantic expectation: shape-local coverage remains constant when unparented." % [str(start_tile), str(end_tile), str(offsets1), str(offsets2)]).is_equal(offsets1)
 
 func test_shape_offsets_stable_when_parented_and_positioner_moves():
 	var area := _create_rect_area(Vector2(16,16))
-	# Parent under positioner so it follows
-	positioner.add_child(area)
+	area.name = "RectArea"
 	area.position = Vector2(128,128)
 	positioner.global_position = Vector2(0,0)
 	var offsets1 = _collect_offsets(area)

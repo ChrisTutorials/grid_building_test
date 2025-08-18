@@ -132,6 +132,7 @@ static func create_static_body_with_rect_shape(
 	shape.shape = rect
 	test.add_child(body)
 	body.add_child(shape)
+	test.assert_object(shape.shape).append_failure_message("GodotTestFactory: Bad Generated Shape").is_not_null()
 	return body
 
 

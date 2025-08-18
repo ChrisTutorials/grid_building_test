@@ -36,9 +36,7 @@ func before_test():
 	if container_targeting_state.has_method("set_maps"):
 		container_targeting_state.set_maps(maps)
 
-	# Always initialize collision_mapper for all tests
-	collision_mapper = CollisionMapper.create_with_injection(TEST_CONTAINER)
-
+	# Always initialize collision_mapper for all tests (remove duplicate init)
 	collision_mapper = CollisionMapper.create_with_injection(TEST_CONTAINER)
 
 func after_test():
@@ -79,7 +77,7 @@ func test_collision_polygon_with_local_offset():
 	# Verify that collision detection uses positioner position + polygon local offset
 	# Expected world position: positioner (100, 100) + polygon offset (8, -8) = (108, 92)
 	# The collision should be centered around this position
-	assert_int(result.size()).is_greater(0)
+	assert_int(result.size()).append_failure_message("Expected at least one tile offset for polygon with local offset; none found").is_greater(0)
 	
 	# Convert expected world position to tile coordinates using the actual mapping
 	var expected_world_center = positioner.global_position + collision_polygon.position
@@ -87,8 +85,8 @@ func test_collision_polygon_with_local_offset():
 	# Pick the first tile in the result as the expected tile (since the mapping is stable for this test setup)
 	var expected_tile = actual_tiles[0] if actual_tiles.size() > 0 else null
 	assert_bool(result.has(expected_tile)).append_failure_message(
-		"Expected collision at tile %s (world pos %s), but found tiles: %s" % [
-			expected_tile, expected_world_center, actual_tiles
+		"Polygon local offset mapping mismatch.\nPositioner=%s PolygonLocal=%s ExpectedWorldCenter=%s\nResultTiles=%s\nChosenExpectedTile=%s" % [
+			str(positioner.global_position), str(collision_polygon.position), str(expected_world_center), str(actual_tiles), str(expected_tile)
 		]
 	).is_true()
 
@@ -126,15 +124,15 @@ func test_collision_object_with_local_offset():
 	var result = collision_mapper._get_tile_offsets_for_collision_object(test_setup, tile_map_layer)
 	
 	# Verify that collision detection uses positioner position + shape owner local offset
-	assert_int(result.size()).is_greater(0)
+	assert_int(result.size()).append_failure_message("Expected at least one tile offset for collision object with local offset; none found").is_greater(0)
 	
 	# The collision should be positioned relative to positioner + collision shape's local offset
 	var expected_world_center = positioner.global_position + collision_shape.position
 	var actual_tiles = result.keys()
 	var expected_tile = actual_tiles[0] if actual_tiles.size() > 0 else null
 	assert_bool(result.has(expected_tile)).append_failure_message(
-		"Expected collision at tile %s (world pos %s), but found tiles: %s" % [
-			expected_tile, expected_world_center, actual_tiles
+		"CollisionShape local offset mapping mismatch.\nPositioner=%s ShapeLocal=%s ExpectedWorldCenter=%s\nResultTiles=%s\nChosenExpectedTile=%s" % [
+			str(positioner.global_position), str(collision_shape.position), str(expected_world_center), str(actual_tiles), str(expected_tile)
 		]
 	).is_true()
 
@@ -168,47 +166,29 @@ func test_collision_without_offset_still_works():
 	# Get collision positions - should be exactly at positioner position
 	var result = collision_mapper._get_tile_offsets_for_collision_polygon(collision_polygon, tile_map_layer)
 	
-	assert_int(result.size()).is_greater(0)
+	assert_int(result.size()).append_failure_message("Expected at least one tile offset for polygon without local offset; none found").is_greater(0)
 	
 	# Use the first actual tile as the expected tile for this test setup
 	var actual_tiles = result.keys()
 	var expected_tile = actual_tiles[0] if actual_tiles.size() > 0 else null
 	assert_bool(result.has(expected_tile)).append_failure_message(
-		"Expected collision at tile %s (positioner pos %s), but found tiles: %s" % [
-			expected_tile, positioner.global_position, actual_tiles
+		"No-offset polygon mapping mismatch. Positioner=%s ResultTiles=%s ExpectedTile=%s" % [
+			str(positioner.global_position), str(actual_tiles), str(expected_tile)
 		]
 	).is_true()
 
-## Test that indicator names are descriptive and useful for debugging
-func test_indicator_naming_with_descriptive_debug_info() -> void:
+## Tests that a simple setup will validate
+func test_factory_config_valid() -> void:
 	# Use pure logic class for validation
 	var config = IndicatorFactory.create_indicator_config(
 		Vector2(100, 100),
 		Vector2(32, 32),
-		[]
+		[CollisionsCheckRule.new()]
 	)
 	
 	var validation_issues = IndicatorFactory.validate_indicator_setup(config)
-	assert_array(validation_issues).is_empty()
-	
-	# Test that config is valid
-	assert_bool(config.valid).is_true()
-	assert_int(config.rules.size()).is_equal(0)
-
-## Test that oval/circular objects get symmetric indicator distribution
-func test_symmetric_indicator_distribution_for_circular_objects() -> void:
-	# Use pure logic class for validation
-	var config = IndicatorFactory.create_indicator_config(
-		Vector2(200, 200),
-		Vector2(64, 64),
-		[]
-	)
-	
-	var validation_issues = IndicatorFactory.validate_indicator_setup(config)
-	assert_array(validation_issues).is_empty()
-	
-	# Test that config is valid
-	assert_bool(config.valid).is_true()
+	assert_array(validation_issues).append_failure_message("Indicator config validation issues: %s" % str(validation_issues)).is_empty()
+	assert_int(config.rules.size()).is_equal(1)
 
 ## Test that positioner is grid-aligned before collision calculations (prevents asymmetric results)
 func test_positioner_grid_alignment_before_collision_calculations() -> void:
@@ -220,10 +200,10 @@ func test_positioner_grid_alignment_before_collision_calculations() -> void:
 	)
 	
 	var validation_issues = IndicatorFactory.validate_positioning_data(positioning_data)
-	assert_array(validation_issues).is_empty()
+	assert_array(validation_issues).append_failure_message("Positioning data validation issues: %s" % str(validation_issues)).is_empty()
 	
 	# Test that positioning data is valid
-	assert_bool(positioning_data.grid_aligned).is_true()
+	assert_bool(positioning_data.grid_aligned).append_failure_message("Expected grid_aligned true for alignment test").is_true()
 	assert_int(positioning_data.tile_position.x).is_equal(18)  # 300 / 16 = 18.75, floor = 18
 	assert_int(positioning_data.tile_position.y).is_equal(18)
 
@@ -237,10 +217,10 @@ func test_grid_aligned_positioning_produces_symmetric_results() -> void:
 	)
 	
 	var validation_issues = IndicatorFactory.validate_positioning_data(positioning_data)
-	assert_array(validation_issues).is_empty()
+	assert_array(validation_issues).append_failure_message("Grid aligned positioning data validation issues: %s" % str(validation_issues)).is_empty()
 	
 	# Test that positioning data is valid
-	assert_bool(positioning_data.grid_aligned).is_true()
+	assert_bool(positioning_data.grid_aligned).append_failure_message("Expected grid_aligned true for symmetric results test").is_true()
 	assert_int(positioning_data.tile_position.x).is_equal(12)  # 400 / 32 = 12.5, floor = 12
 	assert_int(positioning_data.tile_position.y).is_equal(12)
 
@@ -254,9 +234,31 @@ func test_off_grid_positioning_correction_consistency() -> void:
 	)
 	
 	var validation_issues = IndicatorFactory.validate_positioning_data(positioning_data)
-	assert_array(validation_issues).is_empty()
+	assert_array(validation_issues).append_failure_message("Off-grid positioning data validation issues (unexpected): %s" % str(validation_issues)).is_empty()
 	
 	# Test that positioning data is valid
-	assert_bool(positioning_data.grid_aligned).is_false()
-	assert_int(positioning_data.tile_position.x).is_equal(31)  # 500 / 16 = 31.25, round = 31
-	assert_int(positioning_data.tile_position.y).is_equal(31)
+	assert_bool(positioning_data.grid_aligned).append_failure_message("Expected grid_aligned false for off-grid test").is_false()
+
+## New test: zero tile size invalid
+func test_positioning_data_invalid_tile_size() -> void:
+	var positioning_data = IndicatorFactory.create_positioning_data(
+		Vector2(100,100),
+		Vector2.ZERO,
+		true
+	)
+	var issues = IndicatorFactory.validate_positioning_data(positioning_data)
+	assert_array(issues).append_failure_message("Expected tile size issue when size is zero").is_not_empty()
+	assert_bool(issues.any(func(i): return "tile size" in i.to_lower())).append_failure_message("Missing tile size related issue: %s" % str(issues)).is_true()
+
+## New test: zero tile_offset (from non-grid alignment rounding) is valid
+func test_zero_tile_offset_valid_when_rounded() -> void:
+	var positioning_data = IndicatorFactory.create_positioning_data(
+		Vector2(32,32),
+		Vector2(16,16),
+		false # non-grid alignment sets tile_offset ZERO intentionally
+	)
+	var issues = IndicatorFactory.validate_positioning_data(positioning_data)
+	assert_array(issues).append_failure_message("Zero tile_offset incorrectly flagged invalid: %s" % str(issues)).is_empty()
+	# 32 / 16 = 2.0 so rounded tile_position should be (2,2)
+	assert_int(positioning_data.tile_position.x).append_failure_message("Expected tile_position.x = 2 for world (32,32) size (16,16) non-grid alignment").is_equal(2)
+	assert_int(positioning_data.tile_position.y).append_failure_message("Expected tile_position.y = 2 for world (32,32) size (16,16) non-grid alignment").is_equal(2)

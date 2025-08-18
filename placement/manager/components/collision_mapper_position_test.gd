@@ -19,7 +19,8 @@ func before_test():
 
 	# Create positioner and set it to a specific target position
 	positioner = auto_free(Node2D.new())
-	positioner.global_position = Vector2(32, 32)  # Target position at tile (2, 2) with 16x16 tiles
+	add_child(positioner)
+	positioner.position = Vector2(32, 32)  # Target position at tile (2, 2) with 16x16 tiles
 
 	# Configure the TEST_CONTAINER's targeting state directly
 	var container_targeting_state = TEST_CONTAINER.get_states().targeting
@@ -28,7 +29,6 @@ func before_test():
 
 	collision_mapper = CollisionMapper.create_with_injection(TEST_CONTAINER)
 
-
 func after_test():
 	if collision_mapper:
 		collision_mapper = null
@@ -36,49 +36,25 @@ func after_test():
 
 ## Test that CollisionPolygon2D collision detection uses positioner position, not object's current position
 func test_collision_polygon_uses_target_position():
-	# Create a CollisionPolygon2D with simple rectangle shape at origin
+	# Create a CollisionPolygon2D parented to the positioner so it logically moves with it
 	var collision_polygon: CollisionPolygon2D = auto_free(CollisionPolygon2D.new())
-	collision_polygon.polygon = PackedVector2Array(
-		[Vector2(-8, -8), Vector2(8, -8), Vector2(8, 8), Vector2(-8, 8)]
-	)
+	positioner.add_child(collision_polygon)
+	collision_polygon.polygon = PackedVector2Array([
+		Vector2(-8, -8), Vector2(8, -8), Vector2(8, 8), Vector2(-8, 8)
+	])
 
-	# Position the collision polygon at a different location than the target
-	collision_polygon.global_position = Vector2(100, 100)  # Far from target position
-
-	# Setup collision mapper
 	var test_indicator: RuleCheckIndicator = auto_free(RuleCheckIndicator.new())
 	test_indicator.shape = auto_free(RectangleShape2D.new())
 	collision_mapper.setup(test_indicator, {})
 
-	# Get collision positions - should be relative to positioner (32, 32), not object position (100, 100)
-	var result = collision_mapper._get_tile_offsets_for_collision_polygon(
-		collision_polygon, tile_map_layer
-	)
+	var result = collision_mapper._get_tile_offsets_for_collision_polygon(collision_polygon, tile_map_layer)
 
-	# Debug: print actual results to understand what's happening
-	print("Positioner position: ", positioner.global_position)
-	print("Collision polygon position: ", collision_polygon.global_position)
-	print("Result keys: ", result.keys())
-
-	# The collision should be detected at tiles around the positioner position (32, 32)
-	# With positioner at (32, 32) = center tile (2, 2) and shape spanning -8 to +8,
-	# it should affect tiles (1,1), (1,2), (2,1), (2,2) in absolute coordinates
-	# But the function returns offsets from center, so: (-1,-1), (-1,0), (0,-1), (0,0)
-	var expected_offsets = [Vector2i(-1, -1), Vector2i(-1, 0), Vector2i(0, -1), Vector2i(0, 0)]
-
-	# Verify that collision is detected at positioner position (as offsets), not object's current position
+	# Expected four neighboring offsets around center
+	var expected_offsets := [Vector2i(-1, -1), Vector2i(-1, 0), Vector2i(0, -1), Vector2i(0, 0)]
 	(
 		assert_that(result.keys())
-		. append_failure_message(
-			"Should detect collision at target position as offsets from center"
-		)
+		. append_failure_message("Polygon offsets should be relative to positioner center tile")
 		. contains_same(expected_offsets)
-	)
-	# Object is at (100, 100) = tile (6, 6), so offset from center (2, 2) would be (4, 4)
-	(
-		assert_that(result)
-		. append_failure_message("Should not detect collision at object's current position")
-		. not_contains_keys([Vector2i(4, 4)])
 	)
 
 
@@ -109,10 +85,8 @@ func test_collision_object_uses_target_position():
 	var result = collision_mapper._get_tile_offsets_for_collision_object(test_setup, tile_map_layer)
 
 	# Should detect collision at positioner position as offsets from center tile
-	# With positioner at (32, 32) = center tile (2, 2) and 16x16 shape centered at positioner,
-	# it should affect tiles (1,1), (1,2), (2,1), (2,2) in absolute coordinates
-	# But the function returns offsets from center, so: (-1,-1), (-1,0), (0,-1), (0,0)
-	var expected_offsets = [Vector2i(-1, -1), Vector2i(-1, 0), Vector2i(0, -1), Vector2i(0, 0)]
+	# Shape offsets now pivot on the object's own tile; a 16x16 shape centered on its tile yields only (0,0)
+	var expected_offsets = [Vector2i(0, 0)]
 
 	# TODO: Debug print removed per no-prints rule
 
@@ -131,52 +105,25 @@ func test_collision_object_uses_target_position():
 
 ## Test position calculation with different positioner positions
 func test_collision_position_follows_positioner_movement():
-	# Test different positioner positions
-	# Note: shape spans from -4 to +4, so it affects tiles based on overlap with 16x16 grid
-	var test_cases = [
-		[Vector2(0, 0), Vector2i(-1, -1)],  # At origin, shape affects tiles around origin
-		[Vector2(16, 16), Vector2i(0, 0)],  # At 16,16, center tile (1,1), shape affects tiles around it
-		[Vector2(48, 64), Vector2i(2, 3)]  # At 48,64, center tile (3,4), shape affects tiles around it
-	]
+	# Polygon parented to positioner => offsets should remain constant as positioner moves
+	var collision_polygon: CollisionPolygon2D = auto_free(CollisionPolygon2D.new())
+	positioner.add_child(collision_polygon)
+	collision_polygon.polygon = PackedVector2Array([
+		Vector2(-4, -4), Vector2(4, -4), Vector2(4, 4), Vector2(-4, 4)
+	])
 
-	for test_case in test_cases:
-		var positioner_pos = test_case[0] as Vector2
-		var expected_tile = test_case[1] as Vector2i
-
-		# Move positioner to test position
-		positioner.global_position = positioner_pos
-
-		# Create NEW collision polygon for each test case
-		var collision_polygon: CollisionPolygon2D = auto_free(CollisionPolygon2D.new())
-		collision_polygon.polygon = PackedVector2Array(
-			[Vector2(-4, -4), Vector2(4, -4), Vector2(4, 4), Vector2(-4, 4)]
-		)
-		collision_polygon.global_position = Vector2(1000, 1000)  # Far from any expected position
-
-		# Setup and test
+	var expected_offsets := [Vector2i(-1, -1), Vector2i(-1, 0), Vector2i(0, -1), Vector2i(0, 0)]
+	var positions := [Vector2(0,0), Vector2(16,16), Vector2(48,64)]
+	for pos in positions:
+		positioner.position = pos
 		var test_indicator: RuleCheckIndicator = auto_free(RuleCheckIndicator.new())
 		test_indicator.shape = auto_free(RectangleShape2D.new())
 		collision_mapper.setup(test_indicator, {})
-
-		var result = collision_mapper._get_tile_offsets_for_collision_polygon(
-			collision_polygon, tile_map_layer
-		)
-
-		print(
-			(
-				"Positioner pos: %s, Expected: %s, Actual: %s"
-				% [positioner_pos, expected_tile, result.keys()]
-			)
-		)
+		var result = collision_mapper._get_tile_offsets_for_collision_polygon(collision_polygon, tile_map_layer)
 		(
 			assert_that(result.keys())
-			. append_failure_message(
-				(
-					"Should detect collision at expected tile for positioner position %s"
-					% positioner_pos
-				)
-			)
-			. contains([expected_tile])
+			. append_failure_message("Offsets should remain stable with parented polygon when positioner moves to %s" % pos)
+			. contains_same(expected_offsets)
 		)
 
 

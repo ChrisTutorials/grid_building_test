@@ -62,8 +62,8 @@ func test_area2d_rotation_changes_indicator_tile_offsets():
 	positioner.add_child(area) # preview object must be child of positioner
 
 	var rules: Array[TileCheckRule] = [_rule(1)]
-	var indicators_h = indicator_manager.setup_indicators(area, rules, indicator_parent)
-	assert_int(indicators_h.size()).append_failure_message("Expected 3 horizontal indicators for unrotated rectangle").is_equal(3)
+	var report_h: IndicatorSetupReport = indicator_manager.setup_indicators(area, rules, indicator_parent)
+	assert_int(report_h.indicators.size()).append_failure_message("Expected 3 horizontal indicators for unrotated rectangle").is_equal(3)
 	var offsets_h: Array[Vector2i] = _gather_indicator_offsets()
 	offsets_h.sort_custom(func(a,b): return a.x < b.x if a.y == b.y else a.y < b.y)
 	var expected_h = [Vector2i(-1,0), Vector2i(0,0), Vector2i(1,0)]
@@ -74,8 +74,8 @@ func test_area2d_rotation_changes_indicator_tile_offsets():
 
 	# Rotate area 90 degrees (PI/2). Expect vertical offsets (0,-1),(0,0),(0,1)
 	area.rotation = PI/2
-	var indicators_v = indicator_manager.setup_indicators(area, rules, indicator_parent)
-	assert_int(indicators_v.size()).append_failure_message("Expected 3 vertical indicators for rotated rectangle").is_equal(3)
+	var report_v: IndicatorSetupReport = indicator_manager.setup_indicators(area, rules, indicator_parent)
+	assert_int(report_v.indicators.size()).append_failure_message("Expected 3 vertical indicators for rotated rectangle").is_equal(3)
 	var offsets_v: Array[Vector2i] = _gather_indicator_offsets()
 	offsets_v.sort_custom(func(a,b): return a.y < b.y if a.x == b.x else a.x < b.x)
 	var expected_v = [Vector2i(0,-1), Vector2i(0,0), Vector2i(0,1)]

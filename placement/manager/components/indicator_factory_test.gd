@@ -3,7 +3,7 @@ extends GdUnitTestSuite
 const TEST_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
 
 func test_generate_indicators_with_valid_map() -> void:
-	var position_rules_map := {
+	var position_rules_map : Dictionary[Vector2i, Array] = {
 		Vector2i(1, 2): [TileCheckRule.new()],
 		Vector2i(3, 4): [TileCheckRule.new(), TileCheckRule.new()]
 	}

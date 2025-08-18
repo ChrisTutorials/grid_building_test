@@ -22,18 +22,18 @@ func before_test():
 
 ## Test that the positioner position affects both preview and indicator positioning consistently
 func test_positioner_preview_indicator_alignment():
-	# Set positioner to a specific tile position
-	var target_tile = Vector2i(2, 2)  # Should be at world (40, 40) with 16x16 tiles at centers
+	# Set positioner to a specific tile position (absolute tile indices)
+	var center_tile = Vector2i(2, 2)  # -> world (40, 40) for 16x16 tiles when using tile center
 	var expected_world_pos = Vector2(40, 40)  # Tile center
 
-	# Position the positioner at the target tile center
+	# Position the positioner at the center tile
 	var map = targeting_state.target_map
-	positioner.global_position = map.to_global(map.map_to_local(target_tile))
+	positioner.global_position = map.to_global(map.map_to_local(center_tile))
 
 	print("Positioner global_position: %s" % positioner.global_position)
-	print("Expected world position for tile %s: %s" % [target_tile, expected_world_pos])
+	print("Expected world position for tile %s: %s" % [center_tile, expected_world_pos])
 
-	# Test that positioner is at expected location
+	# Validate positioner location
 	(
 		assert_that(positioner.global_position.x)
 		. append_failure_message("Positioner X should be at tile center")
@@ -45,14 +45,11 @@ func test_positioner_preview_indicator_alignment():
 		. is_equal_approx(expected_world_pos.y, 0.1)
 	)
 
-	# Test that preview object (if created as child of positioner) would be at positioner position
+	# Preview object placed as child at local zero -> should align exactly
 	var preview_test = auto_free(Node2D.new())
 	positioner.add_child(preview_test)
-	preview_test.position = Vector2.ZERO  # Local position relative to positioner
-
+	preview_test.position = Vector2.ZERO
 	print("Preview global_position (as child): %s" % preview_test.global_position)
-
-	# Preview should be at same global position as positioner when local position is zero
 	(
 		assert_that(preview_test.global_position.x)
 		. append_failure_message("Preview X should match positioner")
@@ -64,20 +61,56 @@ func test_positioner_preview_indicator_alignment():
 		. is_equal_approx(positioner.global_position.y, 0.1)
 	)
 
-	# Test indicator positioning using current logic
-	var indicator = auto_free(RuleCheckIndicator.new())
-	IndicatorFactory.position_indicator_as_child(indicator, target_tile, positioner, targeting_state)
-
-	print("Indicator global_position: %s" % indicator.global_position)
-
-	# Indicator should be at same position as preview (both should align)
+	# IndicatorFactory.position_indicator_as_child expects an OFFSET relative to center tile.
+	# Passing absolute tile indices previously caused an unintended +center_tile, producing (72,72).
+	# Use Vector2i.ZERO offset to align indicator with positioner center tile.
+	var indicator_center = auto_free(RuleCheckIndicator.new())
+	indicator_center.shape = GodotTestFactory.create_rectangle_shape(Vector2(16, 16))
+	IndicatorFactory.position_indicator_as_child(indicator_center, Vector2i.ZERO, positioner, targeting_state)
+	print("Indicator(center offset) global_position: %s" % indicator_center.global_position)
 	(
-		assert_that(indicator.global_position.x)
-		. append_failure_message("Indicator X should match preview position")
+		assert_that(indicator_center.global_position.x)
+		. append_failure_message("Indicator (center) X should match preview position")
 		. is_equal_approx(preview_test.global_position.x, 0.1)
 	)
 	(
-		assert_that(indicator.global_position.y)
-		. append_failure_message("Indicator Y should match preview position")
+		assert_that(indicator_center.global_position.y)
+		. append_failure_message("Indicator (center) Y should match preview position")
 		. is_equal_approx(preview_test.global_position.y, 0.1)
+	)
+
+	# Also verify a positive offset of (1,1) lands exactly one tile (16 units) away on each axis
+	var indicator_offset = auto_free(RuleCheckIndicator.new())
+	indicator_offset.shape = GodotTestFactory.create_rectangle_shape(Vector2(16, 16))
+	var offset = Vector2i(1, 1)
+	IndicatorFactory.position_indicator_as_child(indicator_offset, offset, positioner, targeting_state)
+	var expected_offset_pos = expected_world_pos + Vector2(16, 16)
+	print("Indicator(offset %s) global_position: %s (expected %s)" % [offset, indicator_offset.global_position, expected_offset_pos])
+	(
+		assert_that(indicator_offset.global_position.x)
+		. append_failure_message("Indicator(+1,+1) X should be one tile right of center")
+		. is_equal_approx(expected_offset_pos.x, 0.1)
+	)
+	(
+		assert_that(indicator_offset.global_position.y)
+		. append_failure_message("Indicator(+1,+1) Y should be one tile down from center")
+		. is_equal_approx(expected_offset_pos.y, 0.1)
+	)
+
+	# Regression guard: demonstrate the incorrect usage would shift twice
+	var incorrect_usage_indicator = auto_free(RuleCheckIndicator.new())
+	incorrect_usage_indicator.shape = GodotTestFactory.create_rectangle_shape(Vector2(16, 16))
+	IndicatorFactory.position_indicator_as_child(incorrect_usage_indicator, center_tile, positioner, targeting_state)
+	var incorrect_expected = expected_world_pos + Vector2(32, 32) # 2 tiles offset each axis
+	print("Indicator(incorrect absolute passed) global_position: %s (expected incorrect %s)" % [incorrect_usage_indicator.global_position, incorrect_expected])
+	# Validate both axes separately (must compare floats, not Vector2 to avoid type mismatch)
+	(
+		assert_that(incorrect_usage_indicator.global_position.x)
+		. append_failure_message("Incorrect absolute usage X should be +2 tiles (documentation guard)")
+		. is_equal_approx(incorrect_expected.x, 0.1)
+	)
+	(
+		assert_that(incorrect_usage_indicator.global_position.y)
+		. append_failure_message("Incorrect absolute usage Y should be +2 tiles (documentation guard)")
+		. is_equal_approx(incorrect_expected.y, 0.1)
 	)
