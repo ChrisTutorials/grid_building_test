@@ -12,15 +12,13 @@ var indicator_parent : Node2D
 
 func before_test():
 	indicator_parent = GodotTestFactory.create_node2d(self)
-	
-	# Initialize targeting_state before using it
-	var context = UnifiedTestFactory.create_owner_context(self)
-	targeting_state = auto_free(GridTargetingState.new(context))
 
-	# Use the actual static factory method directly with test container
+	# IMPORTANT: Use the container's targeting_state so IndicatorManager and test refer to SAME instance
 	indicator_manager = IndicatorManager.create_with_injection(TEST_CONTAINER, indicator_parent)
-
+	targeting_state = TEST_CONTAINER.get_targeting_state()
 	_initialize_targeting_state(targeting_state)
+	var issues := targeting_state.validate()
+	assert_array(issues).append_failure_message("Targeting state invalid -> %s" % [issues]).is_empty()
 
 	received_signal = false
 	indicator = null
@@ -121,44 +119,51 @@ func _create_test_body() -> StaticBody2D:
 
 func test_setup_indicators_returns_empty_when_test_object_null() -> void:
 	var report: IndicatorSetupReport = indicator_manager.setup_indicators(null, [], indicator_parent)
-	assert_array(report.indicators).is_empty()
-	assert_int(report.rules.size()).is_equal(0)
-	assert_bool(report.centered_preview).is_false()
-	assert_array(report.distinct_tile_positions).is_empty()
+	assert_array(report.indicators).append_failure_message("Expect no indicators when test object null -> %s" % [report.indicators]).is_empty()
+	assert_int(report.rules.size()).append_failure_message("Rules should be empty when object null -> %d" % [report.rules.size()]).is_equal(0)
+	assert_bool(report.centered_preview).append_failure_message("Centered preview should be false for null object").is_false()
+	assert_array(report.distinct_tile_positions).append_failure_message("No tile positions expected for null object -> %s" % [report.distinct_tile_positions]).is_empty()
+
 
 func test_setup_indicators_creates_indicators_and_aligns_positioner() -> void:
 	_ensure_positioner_in_tree()
 	# Intentionally misalign positioner
 	targeting_state.positioner.global_position = Vector2(13.37, 27.91)
 	var body := _create_test_body()
-	var rules := [CollisionsCheckRule.new()]
+	var rules : Array[TileCheckRule] = [CollisionsCheckRule.new()]
+	# Ensure targeting_state readiness (validate sets ready flag internally)
+	var issues := targeting_state.validate()
+	assert_array(issues).append_failure_message("Targeting state validation issues -> %s" % [issues]).is_empty()
+	assert_bool(targeting_state.ready).append_failure_message("Targeting state not marked ready after validate(); issues=%s positioner=%s target_map=%s maps=%d" % [issues, targeting_state.positioner, targeting_state.target_map, targeting_state.maps.size()]).is_true()
 	var report: IndicatorSetupReport = indicator_manager.setup_indicators(body, rules, indicator_parent)
-	assert_array(report.indicators).is_not_empty()
-	assert_int(indicator_manager.get_indicators().size()).is_equal(report.indicators.size())
+	assert_array(report.indicators).append_failure_message("Indicators should be produced -> report=%s" % [report.to_summary_string()]).is_not_empty()
+	assert_int(indicator_manager.get_indicators().size()).append_failure_message("Manager indicator count mismatch -> manager=%d report=%d" % [indicator_manager.get_indicators().size(), report.indicators.size()]).is_equal(report.indicators.size())
 	# Derived data must be computed post-finalize (centered preview, distinct tiles, owners)
 	report.finalize(targeting_state)
-	assert_int(report.distinct_tile_positions.size()).is_greater(0)
-	assert_int(report.owner_shapes.size()).is_greater(0)
-	assert_that(report.to_summary_string().length() > 0).is_true()
+	assert_int(report.distinct_tile_positions.size()).append_failure_message("Expected distinct tiles >0 -> %s" % [report.distinct_tile_positions]).is_greater(0)
+	assert_int(report.owner_shapes.size()).append_failure_message("Owner shapes expected >0 -> %s" % [report.owner_shapes]).is_greater(0)
+	assert_that(report.to_summary_string().length() > 0).append_failure_message("Summary string should not be empty after finalize").is_true()
 	# Verify alignment
 	var map := targeting_state.target_map
 	var pos_after := targeting_state.positioner.global_position
 	var tile_pos := map.local_to_map(map.to_local(pos_after))
 	var aligned := map.to_global(map.map_to_local(tile_pos))
-	assert_float((aligned - pos_after).length()).is_less(0.11)
+	assert_float((aligned - pos_after).length()).append_failure_message("Positioner misalignment length=%f expected <0.11 aligned=%s pos_after=%s tile_pos=%s" % [(aligned - pos_after).length(), aligned, pos_after, tile_pos]).is_less(0.11)
 
 func test_get_or_create_testing_indicator_reuse_and_recreate() -> void:
 	var first := indicator_manager.get_or_create_testing_indicator(indicator_parent)
-	assert_object(first).is_not_null()
+	assert_object(first).append_failure_message("Should create testing indicator instance").is_not_null()
 	var second := indicator_manager.get_or_create_testing_indicator(indicator_parent)
-	assert_object(second).is_same(first)
+	assert_object(second).append_failure_message("Second call should reuse existing testing indicator").is_same(first)
 	# Trigger setup (frees testing indicator internally)
 	var body := _create_test_body()
+	var issues := targeting_state.validate()
+	assert_array(issues).append_failure_message("Targeting state validation issues -> %s" % [issues]).is_empty()
 	var rep: IndicatorSetupReport = indicator_manager.setup_indicators(body, [CollisionsCheckRule.new()], indicator_parent)
 	rep.finalize(targeting_state)
-	assert_bool(rep.centered_preview).is_true() # preview child of positioner so should be centered
+	assert_bool(rep.centered_preview).append_failure_message("Centered preview expected after finalize -> %s" % [rep.to_summary_string()]).is_true() # preview child of positioner so should be centered
 	var third := indicator_manager.get_or_create_testing_indicator(indicator_parent)
-	assert_object(third).is_not_same(first)
+	assert_object(third).append_failure_message("After setup the original testing indicator should be freed and recreated").is_not_same(first)
 
 func test_add_indicators_emits_signal_and_stores() -> void:
 	var inst: RuleCheckIndicator = indicator_template.instantiate()
@@ -167,12 +172,12 @@ func test_add_indicators_emits_signal_and_stores() -> void:
 	indicator = inst
 	indicator_manager.connect("indicators_changed", Callable(self, "_on_indicators_changed"))
 	indicator_manager.add_indicators([inst])
-	assert_bool(received_signal).is_true()
-	assert_that(indicator in indicator_manager.get_indicators()).is_true()
+	assert_bool(received_signal).append_failure_message("Expected indicators_changed signal after add").is_true()
+	assert_that(indicator in indicator_manager.get_indicators()).append_failure_message("Indicator was not stored in manager list").is_true()
 
 func test_reset_after_setup_clears_indicators() -> void:
 	var body := _create_test_body()
 	indicator_manager.setup_indicators(body, [CollisionsCheckRule.new()], indicator_parent)
-	assert_int(indicator_manager.get_indicators().size()).is_greater(0)
+	assert_int(indicator_manager.get_indicators().size()).append_failure_message("Indicators should exist post-setup for reset test").is_greater(0)
 	indicator_manager.reset()
-	assert_int(indicator_manager.get_indicators().size()).is_equal(0)
+	assert_int(indicator_manager.get_indicators().size()).append_failure_message("Reset should clear indicators -> remaining=%d" % [indicator_manager.get_indicators().size()]).is_equal(0)

@@ -167,11 +167,11 @@ func test_performance_improvement_with_caching():
 	var uncached_time = Time.get_ticks_usec() - start_time
 
 	var improvement_ratio: float = (uncached_time - cached_time) / float(max(1, uncached_time))
-
-	# Stability-focused assertions: cached should not be dramatically worse (>20% slower)
-	assert_bool(cached_time <= int(uncached_time * 1.2)).append_failure_message("Cached path more than 20% slower. cached=" + str(cached_time) + " uncached=" + str(uncached_time) + " ratio=" + str(improvement_ratio)).is_true()
-	# Soft expectation: try to be at least parity. If slower but within tolerance still passes.
-	assert_bool(improvement_ratio >= -0.01).append_failure_message("Caching path regressed beyond 1%. cached=" + str(cached_time) + " uncached=" + str(uncached_time) + " ratio=" + str(improvement_ratio)).is_true()
+	var ratio_readable := "improvement_ratio=%.3f (positive means faster) cached=%d uncached=%d diff=%d" % [improvement_ratio, cached_time, uncached_time, cached_time - uncached_time]
+	# Hard guard: cached may not be >20% slower (ratio < -0.20). Escape percent signs for formatter.
+	assert_bool(cached_time <= int(uncached_time * 1.2)).append_failure_message("Cache regression: cached >20%% slower. %s iterations=150 (cached=%d uncached=%d)" % [ratio_readable, cached_time, uncached_time]).is_true()
+	# Soft expectation: not slower beyond 1%; provide guidance otherwise (escape %)
+	assert_bool(improvement_ratio >= -0.01).append_failure_message("Cache slightly slower (>1%%): %s. Investigate hotspots or reduce noise (increase iterations or isolate other processes)." % [ratio_readable]).is_true()
 
 # Helper to invoke tile offsets (kept tiny to reduce duplicated code cost in timing loop)
 func _collision_mapper_cached_call(collision_polygon: CollisionPolygon2D):

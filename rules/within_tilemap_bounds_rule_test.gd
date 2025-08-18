@@ -53,7 +53,7 @@ func test__get_failing_indicators(indicator_setup: Array, expected_failing_count
 	[[{"pos": Vector2i(-1000, -1000)}], 1],               # Distant off of tilemap = fail
 	[[{"pos": Vector2i(1000, 0)}], 1],                    # Distant one direction = fail
 	[[{"pos": Vector2.ZERO}, {"pos": Vector2(20,20)}], 0],   # Adjacent in-bounds tiles
-	[[{"pos": Vector2.ZERO}, {"pos": Vector2(480, 480)}], 1]  # Out-of-bounds second indicator
+	[[{"pos": Vector2.ZERO}, {"pos": Vector2(640, 640)}], 1]  # Out-of-bounds second indicator (beyond 40*16)
 ]) -> void:
 	var indicator_setups_dictionary : Array[Dictionary] = []
 	indicator_setups_dictionary.append_array(indicator_setup)
@@ -63,7 +63,11 @@ func test__get_failing_indicators(indicator_setup: Array, expected_failing_count
 		indicator.force_shapecast_update()
 		
 	var failing : Array[RuleCheckIndicator] = rule._get_failing_indicators(test_indicators)
-	assert_int(failing.size()).is_equal(expected_failing_count)
+	# Provide contextual diagnostics on mismatch (list world positions)
+	var failing_positions: Array = []
+	for f in failing:
+		failing_positions.append(f.global_position)
+	assert_int(failing.size()).append_failure_message("Failing indicators count mismatch expected=%d got=%d failing_positions=%s setup=%s" % [expected_failing_count, failing.size(), failing_positions, indicator_setup]).is_equal(expected_failing_count)
 	for ind in failing:
 		assert_object(ind).is_not_null()
 

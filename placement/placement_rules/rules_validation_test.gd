@@ -7,7 +7,8 @@ var map_layer : TileMapLayer
 var _container : GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
 
 func before():
-	assert_bool(TestSceneLibrary.placeable_eclipse.validate()).is_true()
+	var eclipse_issues : Array[String] = TestSceneLibrary.placeable_eclipse.validate()
+	assert_array(eclipse_issues).append_failure_message("Placeable eclipse resource invalid -> %s" % [eclipse_issues]).is_empty()
 	assert_object(TestSceneLibrary.eclipse_scene).is_not_null()
 	assert_object(TestSceneLibrary.indicator).is_instanceof(PackedScene)
 
@@ -39,7 +40,7 @@ func before_test():
 
 func test_no_col_valid_placement_both_pass_with_test_resources() -> void:
 	# Use pure logic class for validation
-	var test_rules: Array[PlacementRule] = []
+	var _test_rules: Array[PlacementRule] = []
 	var test_params = RuleValidationParameters.new(null, null, null, null)
 	
 	var validation_issues = RuleValidationLogic.validate_rule_params(
@@ -49,8 +50,8 @@ func test_no_col_valid_placement_both_pass_with_test_resources() -> void:
 		test_params.logger
 	)
 	
-	assert_array(validation_issues).is_not_empty()
-	assert_str(validation_issues[0]).contains("[placer] is null")
+	assert_array(validation_issues).append_failure_message("Expected validation issues when all params null").is_not_empty()
+	assert_str(validation_issues[0]).append_failure_message("First issue should reference missing placer -> issues=%s" % [validation_issues]).contains("[placer] is null")
 
 func setup_validation_no_col_and_buildable(test_node : Node2D) -> RuleValidationParameters:
 	var rules : Array[PlacementRule] = [
@@ -59,13 +60,14 @@ func setup_validation_no_col_and_buildable(test_node : Node2D) -> RuleValidation
 	]
 	rules[1].visual_priority = 10
 
-	placement_validator.base_rules = rules
+	# Note: base_rules internal to validator; we simply call setup with rules for this test
 	var setup_result = placement_validator.setup(rules, RuleValidationParameters.new(user_state.get_owner(), test_node, targeting_state, _container.get_logger()))
-	assert_dict(setup_result).is_empty()
+	assert_dict(setup_result).append_failure_message("Setup should have no issues -> %s" % [setup_result]).is_empty()
 
 	var indicator = load("uid://dhox8mb8kuaxa").instantiate()
 	auto_free(indicator)
-	indicator.rules = rules
+	for r in rules:
+		indicator.add_rule(r)
 	indicator.shape = RectangleShape2D.new()
 	indicator.shape.size = Vector2(16, 16)
 	add_child(indicator)

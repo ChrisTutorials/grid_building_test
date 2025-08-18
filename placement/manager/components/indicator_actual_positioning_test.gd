@@ -66,7 +66,8 @@ func test_environment_setup_valid():
 	assert_that(targeting_state.positioner.global_position).append_failure_message("Positioner global position invalid").is_equal(Vector2(16,16))
 	var center_tile := targeting_state.target_map.local_to_map(targeting_state.positioner.global_position)
 	assert_that(center_tile).append_failure_message("Center tile not (1,1) as expected").is_equal(Vector2i(1,1))
-	assert_that(placement_manager.validate_dependencies().is_empty()).append_failure_message("PlacementManager dependency validation failed: %s" % placement_manager.validate_dependencies()).is_true()
+	var dep_issues := placement_manager.validate_dependencies()
+	assert_that(dep_issues.is_empty()).append_failure_message("PlacementManager dependency validation failed: %s" % [dep_issues]).is_true()
 
 
 ## Test that created indicators have the correct global positions in the scene tree

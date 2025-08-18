@@ -247,8 +247,9 @@ func test_rules_removed():
 	# Wait for physics process to run
 	await get_tree().physics_frame
 	
-	# Verify the indicator is invalid
-	assert_bool(indicator.valid).is_false()
+	# Verify the indicator is invalid (provide detailed diagnostics)
+	var prior_rules_count := indicator.get_rules().size()
+	assert_bool(indicator.valid).append_failure_message("Indicator unexpectedly valid before rule removal; rules=%d collisions=%d" % [prior_rules_count, indicator.get_collision_count()]).is_false()
 	
 	# Remove the rule
 	indicator.clear()
@@ -257,8 +258,8 @@ func test_rules_removed():
 	await get_tree().physics_frame
 	
 	# Verify the indicator is now valid again
-	assert_bool(indicator.valid).is_true()
-	assert_object(indicator.current_display_settings).is_equal(indicator.valid_settings)
+	assert_bool(indicator.valid).append_failure_message("Indicator did not become valid after clear(); remaining_rules=%d" % [indicator.get_rules().size()]).is_true()
+	assert_object(indicator.current_display_settings).append_failure_message("Display settings not reverted to valid after clear()").is_equal(indicator.valid_settings)
 
 
 ## Testing move distance for an indicator compared to where it will still have collisions with it's shape at the starting position or not
