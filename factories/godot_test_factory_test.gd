@@ -180,7 +180,7 @@ func test_create_circle_shape():
 
 
 func test_create_rule_check_indicator():
-	var indicator: RuleCheckIndicator = GodotTestFactory.create_rule_check_indicator(self, 32)
+	var indicator: RuleCheckIndicator = GodotTestFactory.create_rule_check_indicator(self, self, 32)
 
 	assert_object(indicator).is_not_null()
 	assert_object(indicator.shape).is_not_null()

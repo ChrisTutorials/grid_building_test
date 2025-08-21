@@ -93,9 +93,10 @@ func _create_indicators(p_setup: Array[Dictionary], p_rules : Array[TileCheckRul
 		if typeof(case) != TYPE_DICTIONARY or case == null or not case.has("pos"):
 			continue
 		var indicator: RuleCheckIndicator = auto_free(RuleCheckIndicator.new())
+		if indicator.get_parent() == null:
+			add_child(indicator)
 		indicator.shape = rect_shape
 		indicator.global_position = case["pos"]
-		add_child(indicator)
 		for r in p_rules:
 			indicator.add_rule(r)
 		indicators.append(indicator)

@@ -1,4 +1,22 @@
 # GdUnit generated TestSuite
+#
+# Orphan/Timer Diagnostic Note:
+# ------------------------------------------------------------
+# This suite previously reported 1 orphan per test and a final 4 orphans plus a
+# ClassCountDiff showing a persistent Timer delta (e.g. total_delta=87 increased={"Timer":1}).
+# After parenting all RuleCheckIndicator instances and explicitly freeing every
+# test-created node, the warnings still appear with the same pattern.
+#
+# Investigation indicates these Timer instances are created internally by GdUnit
+# (awaiter/signal assert helpers spawn transient Timer nodes under the test root
+# or framework harness). They persist long enough to be counted between before_test
+# snapshots, but are not created by this suite's code paths (no Timer.new() here).
+#
+# Action taken: We intentionally DO NOT attempt to manually free framework Timers.
+# Forced cleanup could interfere with GdUnit's await mechanisms and introduce flakiness.
+# If needed, future suppression should target the framework's orphan detector config
+# rather than additional teardown here.
+# ------------------------------------------------------------
 extends GdUnitTestSuite
 @warning_ignore('unused_parameter')
 @warning_ignore('return_value_discarded')
@@ -28,12 +46,31 @@ var _baseline_class_counts : Dictionary[String, int] = {}
 var _baseline_total_objects : int = -1
 
 var empty_rules_array : Array[PlacementRule] = []
+var _ephemeral_nodes : Array[Node] = []
+
+# Recursively collect RuleCheckIndicator diagnostics up to a max depth
+func _collect_indicator_info(node: Node, depth: int, max_depth: int) -> Array[String]:
+	var info: Array[String] = []
+	if node is RuleCheckIndicator:
+		var parent_chain := []
+		var p: Node = node.get_parent()
+		var depth_guard := 0
+		while p != null and depth_guard < 10:
+			parent_chain.append(p.name)
+			p = p.get_parent()
+			depth_guard += 1
+		info.append("%s(parent_chain=%s rules=%d)" % [node.name, parent_chain, (node as RuleCheckIndicator).get_rules().size()])
+	if depth < max_depth:
+		for c in node.get_children():
+			info.append_array(_collect_indicator_info(c, depth+1, max_depth))
+	return info
 
 func before():
 	pass
 
 func before_test():
 	_container = preload("uid://dy6e5p5d6ax6n")
+	_ephemeral_nodes.clear()
 	# Capture global root children once (first test only)
 	if not _root_captured:
 		_class_logger = ClassCountLoggerScript.new()
@@ -43,14 +80,26 @@ func before_test():
 		_baseline_class_counts = _class_logger.snapshot_tree(get_tree().root)
 		_baseline_total_objects = _class_logger.total_object_count()
 		_root_captured = true
+	else:
+		# Instrument root changes prior to each test
+		var root_children = get_tree().root.get_children()
+		var new_nodes : Array[String] = []
+		var class_freq : Dictionary[String, int] = {}
+		for rc in root_children:
+			if not _root_initial_children.has(rc.name):
+				new_nodes.append("%s(%s)" % [rc.name, rc.get_class()])
+				class_freq[rc.get_class()] = class_freq.get(rc.get_class(), 0) + 1
+		if new_nodes.size() > 0:
+			print("[OrphanTrace][before_test] New root nodes since baseline: ", new_nodes)
+			print("[OrphanTrace][before_test] Class freq: ", class_freq)
 	# Capture baseline before adding any test-specific nodes
 	_baseline_children_names.clear()
 	for c in get_children():
 		_baseline_children_names.append(c.name)
 	placer = auto_free(Node2D.new())
-	# Add placer to scene tree so it is not treated as an orphan during test
 	add_child(placer)
 	placer.name = "Placer"
+	_ephemeral_nodes.append(placer)
 	# Create dedicated owner context and targeting state explicitly instead of mutating container state
 	_owner_context = GBOwnerContext.new()
 	_owner_context.set_owner(GBOwner.new(placer))
@@ -59,6 +108,7 @@ func before_test():
 	map_layer = auto_free(TileMapLayer.new())
 	add_child(map_layer)
 	map_layer.name = "TestMap"
+	_ephemeral_nodes.append(map_layer)
 	map_layer.tile_set = TileSet.new()
 	map_layer.tile_set.tile_size = Vector2(16,16)
 	targeting_state.target_map = map_layer
@@ -66,6 +116,7 @@ func before_test():
 	targeting_state.positioner = auto_free(Node2D.new())
 	add_child(targeting_state.positioner)
 	targeting_state.positioner.name = "Positioner"
+	_ephemeral_nodes.append(targeting_state.positioner)
 	# Validate targeting state readiness early for clearer failures
 	var targeting_issues = targeting_state.validate()
 	assert_array(targeting_issues).append_failure_message("Targeting state not ready -> %s" % [targeting_issues]).is_empty()
@@ -74,6 +125,7 @@ func before_test():
 	preview_instance = auto_free(TestSceneLibrary.placeable_eclipse.packed_scene.instantiate() as Node2D)
 	add_child(preview_instance)
 	preview_instance.name = "PreviewInstance"
+	_ephemeral_nodes.append(preview_instance)
 	test_rules = validator.get_combined_rules(TestSceneLibrary.placeable_eclipse.placement_rules)
 	test_params = RuleValidationParameters.new(placer, preview_instance, targeting_state, _container.get_logger())
 	
@@ -87,21 +139,39 @@ func after_test():
 				for indicator in rule.indicators:
 					if indicator and is_instance_valid(indicator) and indicator.get_parent():
 						indicator.queue_free()
-	# Diagnostic: list unexpected children remaining after teardown
-	var unexpected : Array[String] = []
+	# Final sweep: free any stray RuleCheckIndicator nodes parented under this suite
 	for child in get_children():
-		if not _baseline_children_names.has(child.name) and not _EXPECTED_CHILD_NAMES.has(child.name):
-			unexpected.append("%s(%s)" % [child.name, child.get_class()])
-	if unexpected.size() > 0:
-		push_warning("[OrphanDiag] Unexpected remaining children after test: %s" % unexpected)
-	# NOTE: validator is a RefCounted (GBInjectable/GBResource based) object, not a Node.
-	# Calling queue_free() on RefCounted triggers the previous errors and is unnecessary.
-	# Orphan sources are most likely indicator Nodes created by rules; tear_down() should have cleared them.
-	# If orphan warnings persist, investigate specific rule indicator creation & ensure they use auto_free in tests.
+		if child is RuleCheckIndicator and child.get_parent():
+			child.queue_free()
+	# Explicitly free per-test nodes we created (defensive; auto_free should also handle)
+	for n in _ephemeral_nodes:
+		if n and is_instance_valid(n):
+			if n.get_parent():
+				n.get_parent().remove_child(n)
+			n.queue_free()
+	# Allow two frames so queued frees process
+	if Engine.is_editor_hint() == false:
+		await get_tree().process_frame
+		await get_tree().process_frame
+	# Log lingering indicators or timers directly under suite
+	var lingering : Array[String] = []
+	for c in get_children():
+		if c is RuleCheckIndicator or c is Timer:
+			lingering.append("%s(%s)" % [c.name, c.get_class()])
+	if lingering.size() > 0:
+		push_warning("[AfterTestDiag] Lingering nodes after explicit free: %s" % lingering)
+
 	
 func after():
 	# Defensive cleanup: free stray anonymous root-level Nodes or Timers left by framework
 	var root := get_tree().root
+	# Enumerate all RuleCheckIndicator instances in tree before cleanup for diagnostics
+	var indicator_diagnostics : Array[String] = []
+	for child in root.get_children():
+		# depth-first traversal limited to a few levels to avoid huge output
+		indicator_diagnostics.append_array(_collect_indicator_info(child, 0, 3))
+	if indicator_diagnostics.size() > 0:
+		push_warning("[IndicatorDiag] Active indicators before suite cleanup -> %s" % indicator_diagnostics)
 	for child in root.get_children():
 		var is_timer := child is Timer
 		var anonymous := (child.name == "" or child.name.begins_with("@"))
@@ -133,17 +203,33 @@ func after():
 			push_warning("[ClassCountDiff] total_delta=%d increased=%s" % [total_delta, inc])
 	
 func test_setup():
-	# Use pure logic class for validation
-	var validation_issues = PlacementRuleValidator.setup_rules(test_rules, test_params)
-	assert_dict(validation_issues).append_failure_message(str(validation_issues)).is_empty()
+	# Prefer full validator lifecycle so indicators are parented/managed correctly
+	var setup_issues := validator.setup(test_rules, test_params)
+	assert_dict(setup_issues).append_failure_message("Validator.setup issues -> %s" % [setup_issues]).is_empty()
+	# Collect all indicators from tile check rules and ensure they are parented under this test (direct or indirect)
+	var orphan_like : Array[String] = []
+	for rule in validator.active_rules:
+		if rule is TileCheckRule:
+			for ind in rule.indicators:
+				if ind and is_instance_valid(ind):
+					var p: Node = ind.get_parent()
+					var attached := false
+					while p != null:
+						if p == self:
+							attached = true
+							break
+						p = p.get_parent()
+					if not attached:
+						orphan_like.append(ind.name)
+	assert_array(orphan_like).append_failure_message("Indicators not attached to test tree: %s" % [orphan_like]).is_empty()
 
 ## The rules should receive the validator.debug GBDebugSettings object.
 ## In this test, debug is set on so the rule.debug.show should be on too
 func test_setup_rules_passes_debug_object():
-	var validation_issues = PlacementRuleValidator.setup_rules(test_rules, test_params)
-	assert_dict(validation_issues).append_failure_message("Rule setup issues -> %s" % [validation_issues]).is_empty()
-	# PlacementValidator may not expose a debug property directly; ensure each rule received settings from params.logger
-	for rule in test_rules:
+	# Use validator.setup for consistent parenting/teardown semantics
+	var setup_issues := validator.setup(test_rules, test_params)
+	assert_dict(setup_issues).append_failure_message("Validator.setup issues -> %s" % [setup_issues]).is_empty()
+	for rule in validator.active_rules:
 		if rule.get_logger():
 			assert_object(rule.get_logger().get_debug_settings()).append_failure_message("Missing debug settings on rule logger -> %s" % [rule]).is_not_null()
 

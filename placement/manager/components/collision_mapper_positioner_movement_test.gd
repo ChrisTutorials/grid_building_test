@@ -32,7 +32,7 @@ func test_positioner_movement_updates_collision():
 	)
 	collision_polygon.global_position = Vector2(1000, 1000)  # Far from positioner
 
-	var test_indicator: RuleCheckIndicator = GodotTestFactory.create_rule_check_indicator(self)
+	var test_indicator: RuleCheckIndicator = GodotTestFactory.create_rule_check_indicator(self, self)
 	collision_mapper.setup(test_indicator, {})
 
 	var offsets1 = collision_mapper._get_tile_offsets_for_collision_polygon(
@@ -70,7 +70,7 @@ func test_parented_polygon_offsets_stable():
 	# Large local offset so its world position differs from positioner yet follows it
 	collision_polygon.position = Vector2(1000, 1000)
 
-	var test_indicator: RuleCheckIndicator = GodotTestFactory.create_rule_check_indicator(self)
+	var test_indicator: RuleCheckIndicator = GodotTestFactory.create_rule_check_indicator(self, self)
 	collision_mapper.setup(test_indicator, {})
 
 	var offsets1 = collision_mapper._get_tile_offsets_for_collision_polygon(

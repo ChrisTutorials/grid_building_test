@@ -65,6 +65,7 @@ func test_positioner_preview_indicator_alignment():
 	# Passing absolute tile indices previously caused an unintended +center_tile, producing (72,72).
 	# Use Vector2i.ZERO offset to align indicator with positioner center tile.
 	var indicator_center = auto_free(RuleCheckIndicator.new())
+	# Do not parent here; IndicatorFactory.position_indicator_as_child will handle parenting to the positioner
 	indicator_center.shape = GodotTestFactory.create_rectangle_shape(Vector2(16, 16))
 	IndicatorFactory.position_indicator_as_child(indicator_center, Vector2i.ZERO, positioner, targeting_state)
 	print("Indicator(center offset) global_position: %s" % indicator_center.global_position)
@@ -81,6 +82,7 @@ func test_positioner_preview_indicator_alignment():
 
 	# Also verify a positive offset of (1,1) lands exactly one tile (16 units) away on each axis
 	var indicator_offset = auto_free(RuleCheckIndicator.new())
+	# Leave unparented so factory can attach to positioner
 	indicator_offset.shape = GodotTestFactory.create_rectangle_shape(Vector2(16, 16))
 	var offset = Vector2i(1, 1)
 	IndicatorFactory.position_indicator_as_child(indicator_offset, offset, positioner, targeting_state)
@@ -99,6 +101,7 @@ func test_positioner_preview_indicator_alignment():
 
 	# Regression guard: demonstrate the incorrect usage would shift twice
 	var incorrect_usage_indicator = auto_free(RuleCheckIndicator.new())
+	# Leave unparented intentionally for factory parenting
 	incorrect_usage_indicator.shape = GodotTestFactory.create_rectangle_shape(Vector2(16, 16))
 	IndicatorFactory.position_indicator_as_child(incorrect_usage_indicator, center_tile, positioner, targeting_state)
 	var incorrect_expected = expected_world_pos + Vector2(32, 32) # 2 tiles offset each axis

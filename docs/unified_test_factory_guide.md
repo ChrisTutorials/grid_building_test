@@ -116,7 +116,7 @@ var tile_map = UnifiedTestFactory.create_test_tile_map_layer(self)
 - `create_injectable_logger(container)` ⭐ NEW
 
 ### Rules
-- `create_rule_check_indicator(test, rules = [])`
+- `create_rule_check_indicator(test, parent = null, rules = [])` (auto-adds to parent or test if parent omitted)
 - `create_test_collisions_check_rule()`
 - `create_test_within_tilemap_bounds_rule()`
 

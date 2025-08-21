@@ -109,6 +109,8 @@ static func create_test_indicator_rect(test: GdUnitTestSuite, tile_size: int = 1
 	rect_shape.extents = Vector2(tile_size, tile_size)
 	indicator.shape = rect_shape
 	test.auto_free(rect_shape)
+	# IMPORTANT: ensure indicator participates in the test scene tree so auto_free + orphan detection work
+	test.add_child(indicator)
 	return indicator
 
 #region Injection and Logging
@@ -243,11 +245,18 @@ static func create_placement_validator(_test: GdUnitTestSuite, rules: Array[Plac
 	return PlacementValidator.new(rules, messages, logger)
 #endregion
 #region Rules
-static func create_rule_check_indicator(test: GdUnitTestSuite, rules: Array[TileCheckRule] = []) -> RuleCheckIndicator:
+static func create_rule_check_indicator(test: GdUnitTestSuite, parent: Node = null, rules: Array[TileCheckRule] = []) -> RuleCheckIndicator:
+	# Creates a RuleCheckIndicator and parents it.
+	# Parenting rules:
+	# 1. If a parent Node is provided, the indicator is added to it.
+	# 2. If no parent is provided, it is added to the test suite (maintains previous auto-parent behavior).
 	var logger := create_test_logger()
 	var indicator := RuleCheckIndicator.new(rules, logger)
 	test.auto_free(indicator)
-	test.add_child(indicator)
+	if parent != null:
+		parent.add_child(indicator)
+	else:
+		test.add_child(indicator)
 	return indicator
 
 static func create_rule_validation_params(test: GdUnitTestSuite, target: Node2D = null, targeting_state: GridTargetingState = null) -> RuleValidationParameters:
@@ -271,10 +280,15 @@ static func create_rule_with_logger(rule_class: GDScript) -> PlacementRule:
 static func create_test_collisions_check_rule() -> CollisionsCheckRule:
 	return CollisionsCheckRule.new()
 
-static func create_test_rule_check_indicator(test: GdUnitTestSuite, rules: Array[TileCheckRule] = []) -> RuleCheckIndicator:
+static func create_test_rule_check_indicator(test: GdUnitTestSuite, parent: Node = null, rules: Array[TileCheckRule] = []) -> RuleCheckIndicator:
+	# Alias helper mirroring create_rule_check_indicator with same parenting logic.
 	var logger := create_test_logger()
 	var indicator := RuleCheckIndicator.new(rules, logger)
 	test.auto_free(indicator)
+	if parent != null:
+		parent.add_child(indicator)
+	else:
+		test.add_child(indicator)
 	return indicator
 
 static func create_test_valid_placement_tile_rule(tile_data: Dictionary = {}) -> ValidPlacementTileRule:
@@ -438,7 +452,7 @@ static func create_test_rule_check_indicator_with_shape(
 	rules: Array[TileCheckRule] = [],
 	tile_size: int = 16
 ) -> RuleCheckIndicator:
-	var indicator = create_test_rule_check_indicator(test, rules)
+	var indicator = create_test_rule_check_indicator(test, test, rules)
 	var rect_shape = GodotTestFactory.create_rectangle_shape(Vector2(tile_size, tile_size))
 	indicator.shape = rect_shape
 	return indicator

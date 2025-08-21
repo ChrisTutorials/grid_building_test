@@ -256,6 +256,56 @@ func test_system_coordination():
 	assert_object(manipulation_state.active_manipulatable.root).append_failure_message("Obj: %s should match Obj: %s" % [manipulation_state.active_target_node.name, placed_instance.name]).is_equal(placed_instance)
 	_assert_no_orphans()
 
+## Test that entering build mode with a placeable that has collision shapes and a collisions rule produces rule check indicators
+func test_indicator_generation_on_enter_build_mode_with_smithy():
+	# Arrange
+	var smithy_placeable : Placeable = TestSceneLibrary.placeable_smithy
+	assert_object(smithy_placeable).append_failure_message("Smithy placeable resource missing").is_not_null()
+
+	# Enter build mode (this should create a preview instance)
+	building_system.selected_placeable = smithy_placeable
+	var entered := building_system.enter_build_mode(smithy_placeable)
+	assert_bool(entered).append_failure_message("Failed to enter build mode for smithy").is_true()
+
+	# Validate preview exists and is parented under targeting positioner
+	var preview: Node2D = _container.get_states().building.preview
+	assert_object(preview).append_failure_message("Preview not created for smithy").is_not_null()
+	var targeting_state := _container.get_states().targeting
+	assert_object(targeting_state.positioner).append_failure_message("Targeting positioner missing").is_not_null()
+	assert_object(preview.get_parent()).append_failure_message("Preview has no parent").is_not_null()
+
+	# Force setup via placement manager using smithy rules (some placeables may embed rules directly)
+	var placement_manager := _container.get_contexts().placement.get_manager()
+	assert_object(placement_manager).append_failure_message("PlacementManager not available").is_not_null()
+
+	# Build explicit collision rule mirroring runtime expectation so indicators must be generated
+	var collision_rule : CollisionsCheckRule = CollisionsCheckRule.new()
+	# Use layer 1 for both apply mask and collision mask so they overlap tile collision shapes (common default)
+	collision_rule.apply_to_objects_mask = 1 << 0
+	collision_rule.collision_mask = 1 << 0
+	var rules : Array[PlacementRule] = [collision_rule]
+
+	# Validation parameters use placer (manipulator owner) and preview target
+	var manipulator_owner = _container.get_states().manipulation.get_manipulator()
+	var validation_params := RuleValidationParameters.new(manipulator_owner, preview, targeting_state, _container.get_logger())
+	var setup_ok := placement_manager.try_setup(rules, validation_params)
+	assert_bool(setup_ok).append_failure_message("PlacementManager.try_setup failed for smithy").is_true()
+
+	# Act: retrieve indicators
+	var indicators := placement_manager.get_indicators()
+	# Assert: expect at least one indicator (smithy has collision polygon/shape)
+	assert_array(indicators).append_failure_message("Expected rule check indicators after entering build mode for smithy; got 0").is_not_empty()
+
+	# Additional diagnostic assertions
+	# Ensure each indicator has at least one rule associated (through collision mapping); if empty log warning not failure
+	for ind in indicators:
+		if ind is RuleCheckIndicator:
+			var ind_rules := ind.get_rules() if ind.has_method("get_rules") else []
+			if ind_rules.is_empty():
+				push_warning("Indicator %s has zero rules mapped during integration test" % ind.name)
+
+	_assert_no_orphans()
+
 ## Test error handling and edge cases in integrated workflow
 func test_workflow_error_handling():
 	# Test building without selected placeable

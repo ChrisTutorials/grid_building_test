@@ -140,8 +140,9 @@ func test_cache_invalidation_helper_integration():
 	
 	# Trigger cache invalidation via setup
 	var test_indicator: RuleCheckIndicator = auto_free(RuleCheckIndicator.new())
+	if test_indicator.get_parent() == null:
+		add_child(test_indicator)
 	test_indicator.shape = RectangleShape2D.new()
-	add_child(test_indicator)
 	var collision_object_test_setups: Dictionary[Node2D, IndicatorCollisionTestSetup] = {}
 	
 	collision_mapper.setup(test_indicator, collision_object_test_setups)

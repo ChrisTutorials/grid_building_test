@@ -19,7 +19,8 @@ func before_test():
 	indicator = auto_free(RuleCheckIndicator.new())
 	indicator.shape = RectangleShape2D.new()
 	indicator.shape.extents = Vector2(8,8)
-	add_child(indicator)
+	if indicator.get_parent() == null:
+		add_child(indicator)
 	indicator.add_rule(rule)
 
 

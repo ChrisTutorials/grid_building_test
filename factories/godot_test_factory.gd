@@ -236,12 +236,13 @@ static func create_manipulatable(
 
 ## Creates a RuleCheckIndicator with rectangular shape
 static func create_rule_check_indicator(
-	test: GdUnitTestSuite, tile_size: int = 16
+	test: GdUnitTestSuite, parent: Node, tile_size: int = 16
 ) -> RuleCheckIndicator:
+	# Caller decides parent; we only ensure auto_free assignment for memory safety
 	var indicator: RuleCheckIndicator = test.auto_free(RuleCheckIndicator.new())
 	var rect_shape := RectangleShape2D.new()
 	rect_shape.extents = Vector2(tile_size, tile_size)
 	indicator.shape = rect_shape
-	# Ensure indicator is part of the test tree so auto_free cleanup works properly
-	test.add_child(indicator)
+	if parent:
+		parent.add_child(indicator)
 	return indicator

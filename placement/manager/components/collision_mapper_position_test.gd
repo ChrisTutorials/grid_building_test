@@ -44,6 +44,8 @@ func test_collision_polygon_uses_target_position():
 	])
 
 	var test_indicator: RuleCheckIndicator = auto_free(RuleCheckIndicator.new())
+	if test_indicator.get_parent() == null:
+		add_child(test_indicator)
 	test_indicator.shape = auto_free(RectangleShape2D.new())
 	collision_mapper.setup(test_indicator, {})
 
@@ -78,6 +80,8 @@ func test_collision_object_uses_target_position():
 	)
 
 	var test_indicator: RuleCheckIndicator = auto_free(RuleCheckIndicator.new())
+	if test_indicator.get_parent() == null:
+		add_child(test_indicator)
 	test_indicator.shape = auto_free(RectangleShape2D.new())
 	collision_mapper.setup(test_indicator, {static_body: test_setup})
 
@@ -117,6 +121,8 @@ func test_collision_position_follows_positioner_movement():
 	for pos in positions:
 		positioner.position = pos
 		var test_indicator: RuleCheckIndicator = auto_free(RuleCheckIndicator.new())
+		if test_indicator.get_parent() == null:
+			add_child(test_indicator)
 		test_indicator.shape = auto_free(RectangleShape2D.new())
 		collision_mapper.setup(test_indicator, {})
 		var result = collision_mapper._get_tile_offsets_for_collision_polygon(collision_polygon, tile_map_layer)

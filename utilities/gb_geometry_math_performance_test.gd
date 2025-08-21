@@ -98,7 +98,8 @@ func test_benchmark_collision_mapping_workflow():
 		collision_object_test_setups[obj] = IndicatorCollisionTestSetup.new(obj, Vector2.ZERO, logger)
 	
 	var indicator = auto_free(RuleCheckIndicator.new())
-	add_child(indicator)
+	if indicator.get_parent() == null:
+		add_child(indicator)
 	indicator.shape = RectangleShape2D.new()
 	indicator.shape.size = Vector2(32, 32)
 	mapper.setup(indicator, collision_object_test_setups)
@@ -195,7 +196,8 @@ func test_benchmark_optimized_collision_mapping_workflow():
 		collision_object_test_setups[obj] = IndicatorCollisionTestSetup.new(obj, Vector2.ZERO, logger)
 	
 	var indicator = auto_free(RuleCheckIndicator.new())
-	add_child(indicator)
+	if indicator.get_parent() == null:
+		add_child(indicator)
 	indicator.shape = RectangleShape2D.new()
 	indicator.shape.size = Vector2(32, 32)
 	mapper.setup(indicator, collision_object_test_setups)

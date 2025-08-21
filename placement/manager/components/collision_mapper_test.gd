@@ -30,7 +30,9 @@ func before_test():
 	# Use the actual static factory method directly with test container
 	mapper = CollisionMapper.create_with_injection(TEST_CONTAINER)
 	indicator = auto_free(RuleCheckIndicator.new())
-	add_child(indicator) # Indicator not created via factory here
+	# Add to test once if not already parented
+	if indicator.get_parent() == null:
+		add_child(indicator)
 	indicator.shape = RectangleShape2D.new()
 	indicator.shape.size = Vector2(32, 32)  # Updated from extents to size
 
@@ -128,7 +130,7 @@ func test_map_collision_positions_to_rules_returns_expected_map() -> void:
 		collision_object_test_setups[col_obj] = IndicatorCollisionTestSetup.new(col_obj as CollisionObject2D, Vector2.ZERO, logger)
 	
 	# Use factory to create test indicator
-	var test_indicator: RuleCheckIndicator = GodotTestFactory.create_rule_check_indicator(self, 16)
+	var test_indicator: RuleCheckIndicator = GodotTestFactory.create_rule_check_indicator(self, self, 16)
 	test_indicator.shape.extents = Vector2(16, 16)  # Set specific size for this test
 	
 	test_collision_mapper.setup(test_indicator, collision_object_test_setups)

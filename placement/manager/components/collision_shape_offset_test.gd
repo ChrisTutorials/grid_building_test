@@ -66,7 +66,8 @@ func test_collision_polygon_with_local_offset():
 	collision_object_test_setups[collision_polygon] = null  # CollisionPolygon2D gets null setup
 	
 	var indicator = auto_free(RuleCheckIndicator.new())
-	add_child(indicator)
+	if indicator.get_parent() == null:
+		add_child(indicator)
 	indicator.shape = RectangleShape2D.new()
 	indicator.shape.size = Vector2(16, 16)
 	collision_mapper.setup(indicator, collision_object_test_setups)
@@ -115,7 +116,8 @@ func test_collision_object_with_local_offset():
 	collision_object_test_setups[area_2d] = test_setup
 	
 	var indicator = auto_free(RuleCheckIndicator.new())
-	add_child(indicator)
+	if indicator.get_parent() == null:
+		add_child(indicator)
 	indicator.shape = RectangleShape2D.new()
 	indicator.shape.size = Vector2(16, 16)
 	collision_mapper.setup(indicator, collision_object_test_setups)
@@ -158,7 +160,8 @@ func test_collision_without_offset_still_works():
 	collision_object_test_setups[collision_polygon] = null
 	
 	var indicator = auto_free(RuleCheckIndicator.new())
-	add_child(indicator)
+	if indicator.get_parent() == null:
+		add_child(indicator)
 	indicator.shape = RectangleShape2D.new()
 	indicator.shape.size = Vector2(16, 16)
 	collision_mapper.setup(indicator, collision_object_test_setups)
