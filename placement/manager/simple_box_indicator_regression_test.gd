@@ -110,10 +110,23 @@ func test_rigid_body_with_collision_layer_513_generates_indicators():
 		"Preview should contain collision objects"
 	).is_not_empty()
 
+	# Debug the preview structure - this should contain collision objects
+	var collision_object_details = []
+	for i in range(preview_collision_objects.size()):
+		var obj = preview_collision_objects[i]
+		var detail = "%s (%s)" % [obj.name, obj.get_class()]
+		if obj is CollisionObject2D:
+			detail += " [layer: %d, shape_owners: %s]" % [obj.collision_layer, obj.get_shape_owners()]
+			var shapes_from_owner = GBGeometryUtils.get_shapes_from_owner(obj)
+			detail += " [shapes: %d]" % shapes_from_owner.size()
+		collision_object_details.append(detail)
+
 	# Verify GBGeometryUtils can find collision shapes in preview
 	var owner_shapes: Dictionary[Node2D, Array] = GBGeometryUtils.get_all_collision_shapes_by_owner(preview)
+	
+	# This assertion should fail and expose the root cause
 	assert_int(owner_shapes.size()).append_failure_message(
-		"GBGeometryUtils should find collision owners in preview"
+		"CORE ISSUE: GBGeometryUtils.get_all_collision_shapes_by_owner() returns 0 owners despite preview having %d collision objects: %s" % [preview_collision_objects.size(), collision_object_details]
 	).is_greater(0)
 
 	var manager := _container.get_contexts().placement.get_manager()
@@ -143,3 +156,13 @@ func _find_collision_objects(node: Node, output: Array) -> void:
 		output.append(node)
 	for child in node.get_children():
 		_find_collision_objects(child, output)
+
+## Helper: Debug node structure recursively
+func _debug_node_recursively(node: Node, depth: int) -> void:
+	var indent = "  ".repeat(depth)
+	var node_info = "%s%s (%s)" % [indent, node.name, node.get_class()]
+	if node is CollisionObject2D:
+		node_info += " [layer: %d]" % node.collision_layer
+	print(node_info)
+	for child in node.get_children():
+		_debug_node_recursively(child, depth + 1)
