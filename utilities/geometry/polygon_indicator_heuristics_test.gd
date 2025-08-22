@@ -1,8 +1,7 @@
 ## Tests for PolygonIndicatorHeuristics static functions.
 extends GdUnitTestSuite
 
-# Preload the heuristics utility (class_name PolygonIndicatorHeuristics)
-const PolygonIndicatorHeuristics = preload("res://addons/grid_building/placement/manager/components/polygon_indicator_heuristics.gd")
+# Use global class_name PolygonIndicatorHeuristics directly
 
 const TILE_SIZE := Vector2(16,16)
 

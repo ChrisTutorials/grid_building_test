@@ -1,7 +1,6 @@
 # Renamed from test_collisions_check_rule.gd
 extends GdUnitTestSuite
 
-const UnifiedTestFactoryRes = preload("res://test/grid_building_test/factories/unified_test_factory.gd")
 
 var rule: CollisionsCheckRule
 var indicator: RuleCheckIndicator
@@ -9,8 +8,8 @@ var logger: GBLogger
 var injector: GBInjectorSystem
 
 func before_test():
-	var container = UnifiedTestFactoryRes.create_test_composition_container(self)
-	injector = UnifiedTestFactoryRes.create_test_injector(self, container)
+	var container = UnifiedTestFactory.create_test_composition_container(self)
+	injector = UnifiedTestFactory.create_test_injector(self, container)
 	logger = container.get_logger()
 	
 	rule = CollisionsCheckRule.new()

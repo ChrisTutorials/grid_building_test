@@ -10,7 +10,7 @@ extends GdUnitTestSuite
 # This version tests the core injector validation functionality directly.
 # The full integration can be tested separately with proper async handling.
 
-const TEST_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
+const TEST_CONTAINER: GBCompositionContainer
 
 var injector: GBInjectorSystem
 

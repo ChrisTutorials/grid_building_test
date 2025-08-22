@@ -1,6 +1,5 @@
 extends GdUnitTestSuite
 
-const CollisionGeometryUtils = preload("res://addons/grid_building/utilities/collision_geometry_utils.gd")
 
 const TEST_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
 

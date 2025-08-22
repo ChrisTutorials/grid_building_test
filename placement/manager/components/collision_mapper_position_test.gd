@@ -116,7 +116,7 @@ func test_collision_position_follows_positioner_movement():
 		Vector2(-4, -4), Vector2(4, -4), Vector2(4, 4), Vector2(-4, 4)
 	])
 
-	var expected_offsets := [Vector2i(-1, -1), Vector2i(-1, 0), Vector2i(0, -1), Vector2i(0, 0)]
+	var core := [Vector2i(-1, -1), Vector2i(-1, 0), Vector2i(0, -1), Vector2i(0, 0)]
 	var positions := [Vector2(0,0), Vector2(16,16), Vector2(48,64)]
 	for pos in positions:
 		positioner.position = pos
@@ -128,8 +128,8 @@ func test_collision_position_follows_positioner_movement():
 		var result = collision_mapper._get_tile_offsets_for_collision_polygon(collision_polygon, tile_map_layer)
 		(
 			assert_that(result.keys())
-			. append_failure_message("Offsets should remain stable with parented polygon when positioner moves to %s" % pos)
-			. contains_same(expected_offsets)
+			. append_failure_message("Core subset should remain present with parented polygon when positioner moves to %s" % pos)
+			. contains_same(core)
 		)
 
 

@@ -34,7 +34,9 @@ func before_test():
 	_placer = auto_free(Node2D.new())
 	add_child(_placer)
 	_owner_ctx = GBOwnerContext.new()
-	_owner_ctx.set_owner(GBOwner.new(_placer))
+	var gb_owner: Node = auto_free(GBOwner.new(_placer))
+	_placer.add_child(gb_owner)
+	_owner_ctx.set_owner(gb_owner)
 
 	# Instantiate concave polygon test object and parent under positioner to mimic runtime placement preview hierarchy
 	_preview = auto_free(preload("res://demos/top_down/objects/polygon_test_object.tscn").instantiate())
@@ -61,19 +63,28 @@ func after_test():
 func _collect_indicators() -> Array[RuleCheckIndicator]:
 	return _manager.get_indicators() if _manager else []
 
+## Expect multiple indicators but not a full bounding box fill (which would indicate concavity not handled)
 func test_concave_polygon_generates_expected_indicator_distribution():
 	var indicators := _collect_indicators()
-	if indicators.is_empty():
-		push_warning("No indicators generated for concave polygon – investigate rule attach path.")
-		assert_bool(false).append_failure_message("Indicators not generated; test pending implementation.").is_true()
-		return
+	
+	assert_array(indicators).append_failure_message("No indicators generated for concave polygon – investigate rule attach path. Indicators not generated; test pending implementation.").is_not_empty()
+
 	var tiles : Array[Vector2i] = []
 	for ind in indicators:
 		var tile := _map.local_to_map(_map.to_local(ind.global_position))
 		if tile not in tiles:
 			tiles.append(tile)
-	var min_x=9999; var max_x=-9999; var min_y=9999; var max_y=-9999
+	var min_x = 9999 
+	var max_x = -9999 
+	var min_y = 9999 
+	var max_y = -9999
+
 	for t in tiles:
-		min_x=min(min_x,t.x); max_x=max(max_x,t.x); min_y=min(min_y,t.y); max_y=max(max_y,t.y)
+		min_x = min(min_x,t.x) 
+		max_x = max(max_x,t.x) 
+		min_y = min(min_y,t.y) 
+		max_y = max(max_y,t.y)
+
 	var bbox_cells = (max_x-min_x+1)*(max_y-min_y+1)
-	assert_bool(tiles.size() < bbox_cells).append_failure_message("Concavity not reflected; full rectangle filled. tiles=%s" % tiles).is_true()
+	var is_size_less_than_bbox_cells = tiles.size() < bbox_cells
+	assert_bool(is_size_less_than_bbox_cells).append_failure_message("Concavity not reflected; full rectangle filled. tiles=%s" % [tiles]).is_true()

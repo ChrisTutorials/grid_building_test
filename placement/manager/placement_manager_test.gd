@@ -1,8 +1,7 @@
 ## GdUnit TestSuite for PlacementManager indicator creation
 extends GdUnitTestSuite
 
-const IndicatorSetupReport := preload("res://addons/grid_building/placement/manager/components/indicator_setup_report.gd")
-
+ 
 # Minimal, parameterized, and double-factory-based PlacementManager tests
 var placement_manager: PlacementManager
 var map_layer: TileMapLayer

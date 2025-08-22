@@ -1,6 +1,5 @@
 extends GdUnitTestSuite
 
-const UnifiedTestFactory = preload("res://test/grid_building_test/factories/unified_test_factory.gd")
 
 class TestInjectable:
 	extends Node
