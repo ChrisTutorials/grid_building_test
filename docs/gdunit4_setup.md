@@ -1,3 +1,0 @@
-# GdUnit4 Setup
-
-...existing content from previous location...

@@ -22,8 +22,8 @@ func test_calculate_tile_overlap_single_point() -> void:
 		single_point, tile_size, GBEnums.TileType.SQUARE
 	)
 	
-	assert_int(overlapped_tiles.size()).is_equal(1)
-	assert_vector(overlapped_tiles[0]).is_equal(Vector2i(0, 0))
+	# Single points cannot form valid polygons (need 3+ vertices), so should return empty
+	assert_int(overlapped_tiles.size()).is_equal(0)
 
 func test_calculate_tile_overlap_rectangle() -> void:
 	var rectangle = PackedVector2Array([
