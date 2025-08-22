@@ -332,10 +332,15 @@ func test_collision_epsilon_threshold():
 	var tiny_polygon = PackedVector2Array([Vector2(0, 0), Vector2(0.1, 0), Vector2(0.1, 0.1), Vector2(0, 0.1)])
 	var tile_rect = Rect2(Vector2(0, 0), Vector2(16, 16))
 	
-	# Test with different epsilon values
-	var collision_detected = CollisionGeometryCalculator._polygon_overlaps_rect(tiny_polygon, tile_rect, 0.01)
-	assert_bool(collision_detected).is_true()
+	# The tiny polygon has area 0.01, tile has area 256, overlap ratio = 0.01/256 ≈ 0.000039
+	# Use a very small minimum overlap ratio to detect this tiny overlap
+	var collision_detected = CollisionGeometryCalculator._polygon_overlaps_rect(tiny_polygon, tile_rect, 0.01, 0.00001)
+	assert_bool(collision_detected).append_failure_message(
+		"Tiny polygon should overlap with tile. Polygon area: 0.01, Tile area: 256, Ratio: ~0.000039"
+	).is_true()
 	
-	# Larger epsilon currently has no effect (function ignores epsilon), still detects
-	collision_detected = CollisionGeometryCalculator._polygon_overlaps_rect(tiny_polygon, tile_rect, 1.0)
-	assert_bool(collision_detected).is_true()
+	# Test with slightly larger minimum overlap ratio that should still pass
+	collision_detected = CollisionGeometryCalculator._polygon_overlaps_rect(tiny_polygon, tile_rect, 1.0, 0.00001)
+	assert_bool(collision_detected).append_failure_message(
+		"Tiny polygon should still overlap with different epsilon"
+	).is_true()

@@ -5,7 +5,7 @@ extends GdUnitTestSuite
 
 ## Test data for different collision shapes
 
-const TEST_CONTAINER: GBCompositionContainer
+var test_container : GBCompositionContainer = load("uid://dy6e5p5d6ax6n")
 
 func before_test():
 	# No setup needed for this test - it only tests geometry math functions

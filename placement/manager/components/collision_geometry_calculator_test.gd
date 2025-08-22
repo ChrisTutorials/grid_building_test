@@ -93,7 +93,7 @@ func test_polygon_overlaps_rect_no_overlap() -> void:
 	])
 	var rect = Rect2(Vector2(0, 0), Vector2(16, 16))
 	
-	var overlap = CollisionGeometryCalculator._polygon_overlaps_rect(polygon, rect, 0.01)
+	var overlap = CollisionGeometryCalculator._polygon_overlaps_rect(polygon, rect, 0.01, 0.05)
 	
 	assert_bool(overlap).is_false()
 
@@ -103,7 +103,7 @@ func test_polygon_overlaps_rect_with_overlap() -> void:
 	])
 	var rect = Rect2(Vector2(0, 0), Vector2(16, 16))
 	
-	var overlap = CollisionGeometryCalculator._polygon_overlaps_rect(polygon, rect, 0.01)
+	var overlap = CollisionGeometryCalculator._polygon_overlaps_rect(polygon, rect, 0.01, 0.05)
 	
 	assert_bool(overlap).is_true()
 

@@ -15,7 +15,7 @@ func test_polygon_just_above_threshold_included():
 		Vector2(0,0), Vector2(4,0), Vector2(4,4), Vector2(0,4)
 	])
 	var tiles = CollisionGeometryCalculator.calculate_tile_overlap(poly, Vector2(16,16), GBEnums.TileType.SQUARE as GBEnums.TileType, 0.01, 0.05)
-	assert_int(tiles.size()).override_failure_message("Expected exactly 1 tile for area 16 (>5% threshold) tiles=%s" % [tiles]).is_equal(1)
+	assert_int(tiles.size()).override_failure_message("Expected exactly 1 tile for area 16 (>5%% threshold) tiles=" + str(tiles)).is_equal(1)
 
 func test_concave_polygon_void_not_filled():
 	# Simple concave poly shaped like a C around center void

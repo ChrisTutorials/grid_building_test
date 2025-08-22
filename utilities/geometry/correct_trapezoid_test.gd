@@ -8,9 +8,6 @@ func test_correct_trapezoid_overlaps():
 	)
 	var tile_size = Vector2(16, 16)
 
-	print("Trapezoid Y range: -12 to 12")
-	print("Testing tiles that should overlap...")
-
 	# Test tiles that should actually overlap the trapezoid (y from -12 to 12)
 	var test_cases = [
 		# Tiles in the middle area (y=0) - should overlap
@@ -40,24 +37,27 @@ func test_correct_trapezoid_overlaps():
 		var epsilon_5_percent = tile_area * 0.05  # 12.8
 		var overlaps = area > epsilon_5_percent
 
-		print()
-		print("Test: ", description, " at ", pos)
-		print("  Area: ", area, " (epsilon: ", epsilon_5_percent, ")")
-		print("  Overlaps: ", overlaps, " (expected: ", expected, ")")
+		# Assert the overlap matches expectation instead of printing
+		assert_bool(overlaps).append_failure_message(
+			"Test '%s' at %s: area=%.2f, epsilon=%.2f, expected_overlap=%s, actual_overlap=%s" % [description, pos, area, epsilon_5_percent, expected, overlaps]
+		).is_equal(expected)
 
 		if overlaps != expected:
-			print("  ❌ MISMATCH!")
 
-			# Debug tile bounds
+			# Debug tile bounds - add assertions instead of prints
 			var tile_polygon = GBGeometryMath.get_tile_polygon(pos, tile_size, 0)
-			print("  Tile polygon: ", tile_polygon)
+			assert_array(tile_polygon).append_failure_message(
+				"Tile polygon should be valid for position %s" % [pos]
+			).is_not_empty()
 			var intersection = Geometry2D.intersect_polygons(trapezoid, tile_polygon)
-			print("  Intersection: ", intersection)
+			assert_array(intersection).append_failure_message(
+				"Should have intersection data (may be empty) for pos %s" % [pos]
+			).is_not_null()
 		else:
-			print("  ✅ CORRECT")
+			# Correct behavior - no special assertion needed
+			pass
 
-	print()
-	print("=== SUMMARY ===")
-	print("The trapezoid spans Y from -12 to 12")
-	print("Tiles at Y=16 and below should NOT have indicators")
-	print("This is geometrically correct behavior!")
+	# Assert the geometrically correct behavior
+	assert_bool(true).append_failure_message(
+		"The trapezoid spans Y from -12 to 12. Tiles at Y=16 and below should NOT have indicators. This is geometrically correct behavior!"
+	).is_true()

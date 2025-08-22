@@ -80,7 +80,7 @@ func test_smithy_generates_full_rectangle_of_indicators():
 
     var expected_count := tiles_w * tiles_h
     var expected_width := tiles_w
-    var expected_height := tiles_h
+    var _expected_height := tiles_h
 
     # Build expected tile set and compute missing within the used-space rectangle
     var expected_tiles: Array[Vector2i] = []
