@@ -47,15 +47,8 @@ func before_test():
 	)
 
 	# Instance the template positioner scene to inherit proper collision_mask & flags
-	var pos_scene: PackedScene = load(
-		"res://templates/grid_building_templates/components/grid_positioner.tscn"
-	)
-	positioner = auto_free(pos_scene.instantiate() as GridPositioner2D)
+	positioner = UnifiedTestFactory.create_grid_positioner_2d(self, _container)
 	add_child(positioner)
-	# Ensure collide_with_areas & mask matches runtime expectation
-	positioner.collide_with_areas = true
-	positioner.collision_mask = 2561
-	positioner.resolve_gb_dependencies(_container)
 
 	# Create manipulation system (add to tree before dependency resolution)
 	manipulation_system = ManipulationSystem.new()

@@ -61,16 +61,21 @@ func before_test():
 
 func test_rigid_body_with_collision_layer_513_generates_indicators():
 	# Create a simple test scene with just a collision object
-	var test_box = auto_free(RigidBody2D.new())
+	# NOTE: Don't use auto_free for nodes that will be packed into PackedScene
+	var test_box = RigidBody2D.new()
 	test_box.name = "SimpleBox"
 	test_box.collision_layer = 513  # Bits 0 and 9 (layers 1 and 10)
 	
 	# Add collision shape
-	var shape = auto_free(CollisionShape2D.new())
+	var shape = CollisionShape2D.new()
 	var rect = RectangleShape2D.new()
 	rect.size = Vector2(16, 16)
 	shape.shape = rect
 	test_box.add_child(shape)
+	
+	# CRITICAL: Set owner for PackedScene to include the collision shape
+	shape.owner = test_box
+	
 	add_child(test_box)
 	
 	# CRITICAL: Position the test box at the positioner location for collision detection
@@ -119,6 +124,14 @@ func test_rigid_body_with_collision_layer_513_generates_indicators():
 			detail += " [layer: %d, shape_owners: %s]" % [obj.collision_layer, obj.get_shape_owners()]
 			var shapes_from_owner = GBGeometryUtils.get_shapes_from_owner(obj)
 			detail += " [shapes: %d]" % shapes_from_owner.size()
+			# Debug children
+			var children_info = []
+			for child in obj.get_children():
+				if child is CollisionShape2D:
+					var child_detail = "%s: shape=%s" % [child.name, child.shape != null]
+					children_info.append(child_detail)
+			if not children_info.is_empty():
+				detail += " [children: %s]" % [children_info]
 		collision_object_details.append(detail)
 
 	# Verify GBGeometryUtils can find collision shapes in preview

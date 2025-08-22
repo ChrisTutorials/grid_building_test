@@ -19,13 +19,32 @@ func before_test():
 	tile_map_16px.tile_set = TileSet.new()
 	tile_map_16px.tile_set.tile_size = Vector2(16,16)
 	
-	eclipse_obj = auto_free(load("uid://j5837ml5dduu").instantiate())
+	eclipse_obj = UnifiedTestFactory.create_eclipse_test_object(self)
 	add_child(eclipse_obj)
 	
-	rect_8_tiles_obj = auto_free(load("uid://blgwelirrimr1").instantiate())
+	# Create simple rectangular objects for the other test cases
+	rect_8_tiles_obj = auto_free(Node2D.new())
+	rect_8_tiles_obj.name = "RectTestObject"
+	var static_body := StaticBody2D.new()
+	static_body.collision_layer = 1
+	var collision_shape := CollisionShape2D.new()
+	var rect_shape := RectangleShape2D.new()
+	rect_shape.size = Vector2(128, 128)  # 8x8 tiles at 16px each
+	collision_shape.shape = rect_shape
+	static_body.add_child(collision_shape)
+	rect_8_tiles_obj.add_child(static_body)
 	add_child(rect_8_tiles_obj)
 
-	test_skew_rotation_rect_obj = auto_free(load("uid://b82nv1wlsv8wa").instantiate())
+	test_skew_rotation_rect_obj = auto_free(Node2D.new())
+	test_skew_rotation_rect_obj.name = "SkewRotationTestObject"
+	var skew_static_body := StaticBody2D.new()
+	skew_static_body.collision_layer = 1
+	var skew_collision_shape := CollisionShape2D.new()
+	var skew_rect_shape := RectangleShape2D.new()
+	skew_rect_shape.size = Vector2(64, 64)
+	skew_collision_shape.shape = skew_rect_shape
+	skew_static_body.add_child(skew_collision_shape)
+	test_skew_rotation_rect_obj.add_child(skew_static_body)
 	add_child(test_skew_rotation_rect_obj)
 	
 	pillar_obj = auto_free(load("uid://enlg28ry7lxk").instantiate())

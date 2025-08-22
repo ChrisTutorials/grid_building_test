@@ -39,7 +39,7 @@ func before_test():
 	_owner_ctx.set_owner(gb_owner)
 
 	# Instantiate concave polygon test object and parent under positioner to mimic runtime placement preview hierarchy
-	_preview = auto_free(preload("res://demos/top_down/objects/polygon_test_object.tscn").instantiate())
+	_preview = UnifiedTestFactory.create_polygon_test_object(self)
 	_targeting.positioner.add_child(_preview)
 
 	# Reduce debug verbosity to avoid unrelated formatting/log noise during this focused geometry test

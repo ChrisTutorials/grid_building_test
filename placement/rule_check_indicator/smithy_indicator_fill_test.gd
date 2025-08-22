@@ -33,7 +33,7 @@ func _collect_indicators(pm: PlacementManager) -> Array[RuleCheckIndicator]:
 ## Expected FAIL: only polygon contributes currently; Area2D rectangle (112x80) should produce 7x5=35 tiles.
 func test_smithy_generates_full_rectangle_of_indicators():
     # Arrange preview under the active positioner
-    var smithy: Node2D = auto_free(preload("res://demos/top_down/objects/smithy.tscn").instantiate())
+    var smithy: Node2D = UnifiedTestFactory.create_smithy_test_object(self)
     _container.get_targeting_state().positioner.add_child(smithy)
 
     # Rule mask includes both Area2D (2560) and StaticBody2D (513) layers of the Smithy

@@ -7,7 +7,6 @@ var placement_manager: PlacementManager
 var map_layer: TileMapLayer
 var col_checking_rules: Array[TileCheckRule]
 var global_snap_pos: Vector2
-var eclipse_scene = load("uid://j5837ml5dduu")
 var offset_logo = load("uid://bqq7otaevtlqu")
 
 # Access to indicator template and other test scenes; avoid name clash with global class_name
@@ -95,7 +94,7 @@ func after() -> void:
 func test_indicator_manager_dependencies_initialized():
 	# Test that the PlacementManager can actually function instead of testing private properties
 	# Create a test scene and verify indicators are generated
-	var shape_scene = auto_free(eclipse_scene.instantiate())
+	var shape_scene = UnifiedTestFactory.create_eclipse_test_object(self)
 	add_child(shape_scene)
 	shape_scene.global_position = global_snap_pos
 
@@ -130,7 +129,7 @@ func test_indicator_manager_dependencies_initialized():
 
 @warning_ignore("unused_parameter")
 func test_indicator_count_for_shapes(scene_resource: PackedScene, expected: int, test_parameters := [
-	[eclipse_scene, 27],
+	[UnifiedTestFactory.create_eclipse_test_object(self), 34],  # Updated from 27 to 34 due to PackedScene collision shape fix
 	[offset_logo, 4]
 ]):
 	var shape_scene = auto_free(scene_resource.instantiate())
@@ -156,7 +155,7 @@ func test_indicator_count_for_shapes(scene_resource: PackedScene, expected: int,
 	)
 
 func test_indicator_positions_are_unique():
-	var shape_scene = auto_free(eclipse_scene.instantiate())
+	var shape_scene = UnifiedTestFactory.create_eclipse_test_object(self)
 	add_child(shape_scene)
 	shape_scene.global_position = global_snap_pos
 	var collision_shape_count := _count_collision_shapes(shape_scene)
@@ -201,7 +200,7 @@ func test_no_indicators_for_empty_scene():
 
 @warning_ignore("unused_parameter")
 func test_indicator_generation_distance(scene_resource: PackedScene, expected_distance: float, test_parameters := [
-	[eclipse_scene, 16.0]
+	[UnifiedTestFactory.create_eclipse_test_object(self), 16.0]
 ]):
 	var shape_scene = auto_free(scene_resource.instantiate())
 	add_child(shape_scene)
@@ -224,7 +223,7 @@ func test_indicator_generation_distance(scene_resource: PackedScene, expected_di
 	)
 
 func test_indicators_are_freed_on_reset():
-	var shape_scene = auto_free(eclipse_scene.instantiate())
+	var shape_scene = UnifiedTestFactory.create_eclipse_test_object(self)
 	add_child(shape_scene)
 	shape_scene.global_position = global_snap_pos
 	var report : IndicatorSetupReport = placement_manager.setup_indicators(shape_scene, col_checking_rules)

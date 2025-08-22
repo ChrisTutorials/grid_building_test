@@ -1,9 +1,6 @@
 ## Integration test: Ensure polygon_test_object concave CollisionPolygon2D produces <=12 indicators (was 19 runtime).
 extends GdUnitTestSuite
 
-const PLACEABLE_SCENE := preload("res://demos/top_down/objects/polygon_test_object.tscn")
-const CONFIG_RES := preload("res://demos/top_down/placement/placeables/placeable_polygon_test_object.tres")
-
 var _container : GBCompositionContainer
 var _manager : PlacementManager
 var _targeting : GridTargetingState
@@ -28,8 +25,7 @@ func before_test():
 		_targeting.positioner = pos
 
 func _spawn_preview_instance() -> Node2D:
-	var scene : PackedScene = PLACEABLE_SCENE
-	var inst = scene.instantiate()
+	var inst = UnifiedTestFactory.create_polygon_test_object(self)
 	if _targeting and _targeting.positioner:
 		inst.global_position = _targeting.positioner.global_position
 	add_child(inst)

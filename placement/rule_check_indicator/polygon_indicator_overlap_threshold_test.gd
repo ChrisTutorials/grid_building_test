@@ -43,7 +43,7 @@ func _find_child_polygon(root: Node) -> CollisionPolygon2D:
 ## Failing regression: with current mapper settings, indicators are created on tiles below a reasonable overlap threshold.
 func test_polygon_preview_indicators_respect_min_overlap_ratio():
     # Arrange: create the preview under the active positioner like at runtime
-    var preview: Node2D = auto_free(preload("res://demos/top_down/objects/polygon_test_object.tscn").instantiate())
+    var preview: Node2D = UnifiedTestFactory.create_polygon_test_object(self)
     _container.get_targeting_state().positioner.add_child(preview)
 
     # Rule targeting mask bit 0 (matches demo object collision layer)

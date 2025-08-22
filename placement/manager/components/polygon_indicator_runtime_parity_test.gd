@@ -8,10 +8,8 @@ var _map : TileMapLayer
 
 func before_test():
 	_container = preload("uid://dy6e5p5d6ax6n")
-	_building = BuildingSystem.create_with_injection(_container)
-	add_child(auto_free(_building))
-	_manager = PlacementManager.create_with_injection(_container)
-	add_child(auto_free(_manager))
+	
+	# Set up targeting state with map and positioner
 	_map = auto_free(TileMapLayer.new())
 	_map.tile_set = TileSet.new()
 	_map.tile_set.tile_size = Vector2(16,16)
@@ -24,13 +22,35 @@ func before_test():
 		add_child(tgt.positioner)
 	# Snap positioner to (0,0) center tile
 	tgt.positioner.global_position = _map.to_global(_map.map_to_local(Vector2i.ZERO))
+	
+	# Set up manipulation parent
+	_container.get_states().manipulation.parent = tgt.positioner
+	
+	# Set up owner context (required for BuildingState.get_placer() to work)
+	var owner_context: GBOwnerContext = _container.get_contexts().owner
+	var owner_node = auto_free(Node2D.new())
+	owner_node.name = "TestOwner"
+	add_child(owner_node)
+	var gb_owner := GBOwner.new(owner_node)
+	auto_free(gb_owner)
+	owner_context.set_owner(gb_owner)
+	
+	# Set up placed parent (required for BuildingState validation)
+	var placed_parent: Node2D = auto_free(Node2D.new())
+	_container.get_states().building.placed_parent = placed_parent
+	add_child(placed_parent)
+	
+	# Create systems after all contexts are properly set up
+	_building = BuildingSystem.create_with_injection(_container)
+	add_child(auto_free(_building))
+	_manager = PlacementManager.create_with_injection(_container)
+	add_child(auto_free(_manager))
 
 func _collect_indicators(pm: PlacementManager) -> Array[RuleCheckIndicator]:
 	return pm.get_indicators() if pm else []
 
 func test_polygon_object_only_generates_overlapping_indicators_and_aligns_preview():
-	var placeable := Placeable.new()
-	placeable.packed_scene = load("res://demos/top_down/objects/polygon_test_object.tscn")
+	var placeable := UnifiedTestFactory.create_polygon_test_placeable(self)
 	var ok := _building.enter_build_mode(placeable)
 	assert_bool(ok).append_failure_message("enter_build_mode failed").is_true()
 

@@ -31,11 +31,7 @@ func before_test():
 	add_child(tile_map_layer)
 
 	# Positioner (simple Node2D sufficient for these tests)
-	var pos_scene : PackedScene = load("res://templates/grid_building_templates/components/grid_positioner.tscn")
-	if pos_scene:
-		positioner = auto_free(pos_scene.instantiate() as Node2D)
-	else:
-		positioner = auto_free(Node2D.new())
+	positioner = UnifiedTestFactory.create_grid_positioner(self)
 	positioner.name = "Positioner"
 	add_child(positioner)
 
@@ -108,7 +104,7 @@ func _assert_no_orphans():
 ## Test complete workflow: select placeable -> preview -> place -> manipulate -> demolish
 func test_complete_building_workflow():
 	# Step 1: Select a placeable object
-	var test_placeable = TestSceneLibrary.placeable_2d_test
+	var test_placeable = UnifiedTestFactory.create_test_placeable_2d(self)
 	assert_object(test_placeable).is_not_null()
 	
 	# Use the building system to set selected placeable
@@ -239,7 +235,7 @@ func test_system_coordination():
 	assert_that(mode_state.current).is_equal(GBEnums.Mode.BUILD)
 	
 	# Place an object
-	var test_placeable = TestSceneLibrary.placeable_2d_test
+	var test_placeable = UnifiedTestFactory.create_test_placeable_2d(self)
 	building_system.selected_placeable = test_placeable
 	building_system.instance_preview(test_placeable)
 	positioner.global_position = Vector2.ZERO
@@ -258,8 +254,8 @@ func test_system_coordination():
 
 ## Test that entering build mode with a placeable that has collision shapes and a collisions rule produces rule check indicators
 func test_indicator_generation_on_enter_build_mode_with_smithy():
-	# Arrange
-	var smithy_placeable : Placeable = TestSceneLibrary.placeable_smithy
+	# Arrange: Use self-contained smithy placeable from factory
+	var smithy_placeable : Placeable = UnifiedTestFactory.create_test_smithy_placeable(self)
 	assert_object(smithy_placeable).append_failure_message("Smithy placeable resource missing").is_not_null()
 
 	# Enter build mode (this should create a preview instance)

@@ -478,3 +478,266 @@ static func create_test_tile_map_layer(test: GdUnitTestSuite) -> TileMapLayer:
 	return GodotTestFactory.create_tile_map_layer(test)
 
 #endregion
+
+#region Demo Resource Factories (Self-Contained)
+
+## Creates a test polygon object similar to res://demos/top_down/objects/polygon_test_object.tscn
+## This is a self-contained version that doesn't depend on external demo files
+static func create_polygon_test_object(test: GdUnitTestSuite) -> Node2D:
+	var obj := Node2D.new()
+	obj.name = "PolygonTestObject"
+	
+	# Create a direct CollisionPolygon2D child for tests that expect it
+	var collision_polygon := CollisionPolygon2D.new()
+	collision_polygon.name = "CollisionPolygon2D"
+	
+	# Define a concave polygon that matches the demo's behavior
+	var points: PackedVector2Array = [
+		Vector2(-32, -32),  # Top-left
+		Vector2(32, -32),   # Top-right
+		Vector2(32, 0),     # Right-middle
+		Vector2(0, 0),      # Center (creates concave shape)
+		Vector2(0, 32),     # Bottom-center
+		Vector2(-32, 32),   # Bottom-left
+		Vector2(-32, -32)   # Close the polygon
+	]
+	collision_polygon.polygon = points
+	obj.add_child(collision_polygon)
+	
+	# Create a StaticBody2D with collision layer 1 (matches bit 0) for collision detection
+	var static_body := StaticBody2D.new()
+	static_body.name = "StaticBody2D"
+	static_body.collision_layer = 1  # Bit 0 set
+	static_body.collision_mask = 1
+	
+	# Create a collision polygon for the static body
+	var body_collision_polygon := CollisionPolygon2D.new()
+	body_collision_polygon.name = "BodyCollisionPolygon2D"
+	body_collision_polygon.polygon = points  # Same shape
+	
+	static_body.add_child(body_collision_polygon)
+	obj.add_child(static_body)
+	
+	# Set owner properties AFTER all nodes are added to the tree
+	collision_polygon.owner = obj
+	static_body.owner = obj
+	body_collision_polygon.owner = obj
+	
+	test.auto_free(obj)
+	return obj
+
+## Creates a test smithy object similar to res://demos/top_down/objects/smithy.tscn
+## This is a self-contained version that doesn't depend on external demo files
+static func create_smithy_test_object(test: GdUnitTestSuite) -> Node2D:
+	var smithy := Node2D.new()
+	smithy.name = "SmithyTestObject"
+	
+	# Add a direct CollisionShape2D to the root for tests that expect it
+	var direct_collision := CollisionShape2D.new()
+	direct_collision.name = "CollisionShape2D"
+	var direct_shape := RectangleShape2D.new()
+	direct_shape.size = Vector2(112, 80)  # Rectangle 112x80 as mentioned in test
+	direct_collision.shape = direct_shape
+	smithy.add_child(direct_collision)
+	
+	# Create Area2D component (layer 2560)
+	var area := Area2D.new()
+	area.name = "Area2D"
+	area.collision_layer = 2560
+	area.collision_mask = 2560
+	
+	var area_collision := CollisionShape2D.new()
+	area_collision.name = "AreaCollisionShape2D"
+	var area_shape := RectangleShape2D.new()
+	area_shape.size = Vector2(112, 80)  # Rectangle 112x80 as mentioned in test
+	area_collision.shape = area_shape
+	area.add_child(area_collision)
+	
+	# Create StaticBody2D component (layer 513)
+	var static_body := StaticBody2D.new()
+	static_body.name = "StaticBody2D"
+	static_body.collision_layer = 513
+	static_body.collision_mask = 513
+	
+	var static_collision := CollisionShape2D.new()
+	static_collision.name = "StaticCollisionShape2D"
+	var static_shape := RectangleShape2D.new()
+	static_shape.size = Vector2(112, 80)
+	static_collision.shape = static_shape
+	static_body.add_child(static_collision)
+	
+	smithy.add_child(area)
+	smithy.add_child(static_body)
+	
+	# Set owner properties AFTER all nodes are added to the tree
+	area.owner = smithy
+	area_collision.owner = smithy
+	static_body.owner = smithy
+	static_collision.owner = smithy
+	
+	test.auto_free(smithy)
+	return smithy
+
+## Creates a test placeable configuration similar to demo placeables
+## This is a self-contained version that doesn't depend on external demo files
+static func create_polygon_test_placeable(test: GdUnitTestSuite) -> Placeable:
+	var placeable := Placeable.new()
+	placeable.resource_name = "TestPolygonPlaceable"
+	
+	# Create a basic packed scene reference (we'll create the scene dynamically)
+	var scene := PackedScene.new()
+	var polygon_obj := create_polygon_test_object(test)
+	scene.pack(polygon_obj)
+	placeable.packed_scene = scene
+	
+	test.auto_free(placeable)
+	return placeable
+
+## Creates a test grid positioner similar to templates
+## This is a self-contained version that doesn't depend on external template files
+static func create_grid_positioner(test: GdUnitTestSuite) -> Node2D:
+	var positioner := Node2D.new()
+	positioner.name = "GridPositioner"
+	positioner.position = Vector2.ZERO
+	test.auto_free(positioner)
+	return positioner
+
+## Creates a test GridPositioner2D with proper collision settings
+## This is a self-contained version that doesn't depend on external template files
+static func create_grid_positioner_2d(test: GdUnitTestSuite, container: GBCompositionContainer = null) -> GridPositioner2D:
+	var positioner := GridPositioner2D.new()
+	positioner.name = "GridPositioner2D"
+	positioner.position = Vector2.ZERO
+	positioner.collide_with_areas = true
+	positioner.collision_mask = 2561  # Match runtime expectation
+	
+	# Set required shape for ShapeCast2D (matches template configuration)
+	var shape := RectangleShape2D.new()
+	shape.size = Vector2(15.9, 15.9)
+	positioner.shape = shape
+	
+	if container:
+		positioner.resolve_gb_dependencies(container)
+	
+	test.auto_free(positioner)
+	return positioner
+
+## Creates an eclipse test object similar to the external eclipse scene (uid://j5837ml5dduu)
+## This is a self-contained version that doesn't depend on external demo files
+static func create_eclipse_test_object(test: GdUnitTestSuite) -> Node2D:
+	var eclipse := Node2D.new()
+	eclipse.name = "EclipseTestObject"
+	
+	# Create collision shapes for the eclipse - using multiple polygons to simulate eclipse shape
+	var static_body := StaticBody2D.new()
+	static_body.name = "StaticBody2D"
+	static_body.collision_layer = 1  # Bit 0 set
+	static_body.collision_mask = 1
+	
+	# Create an elliptical/eclipse shape using a polygon approximation
+	var collision_polygon := CollisionPolygon2D.new()
+	collision_polygon.name = "CollisionPolygon2D"
+	
+	# Create eclipse-like shape with multiple points
+	var points: PackedVector2Array = []
+	var segments = 16
+	var radius_x = 48.0
+	var radius_y = 32.0
+	for i in range(segments + 1):
+		var angle = (i * 2.0 * PI) / segments
+		var x = radius_x * cos(angle)
+		var y = radius_y * sin(angle)
+		points.append(Vector2(x, y))
+	
+	collision_polygon.polygon = points
+	static_body.add_child(collision_polygon)
+	eclipse.add_child(static_body)
+	
+	test.auto_free(eclipse)
+	return eclipse
+
+## Creates a test placeable for 2D objects
+static func create_test_placeable_2d(test: GdUnitTestSuite) -> Placeable:
+	var placeable := Placeable.new()
+	placeable.display_name = "TestPlaceable2D"
+	
+	# Create a simple PackedScene for the placeable
+	var packed_scene := PackedScene.new()
+	var test_obj := Node2D.new()
+	test_obj.name = "TestObject"
+	
+	# Add a collision shape
+	var static_body := StaticBody2D.new()
+	static_body.collision_layer = 1
+	static_body.collision_mask = 1
+	var collision_shape := CollisionShape2D.new()
+	var rect_shape := RectangleShape2D.new()
+	rect_shape.size = Vector2(32, 32)
+	collision_shape.shape = rect_shape
+	static_body.add_child(collision_shape)
+	test_obj.add_child(static_body)
+	
+	# Add Manipulatable component for manipulation system integration
+	var manipulatable := Manipulatable.new()
+	manipulatable.root = test_obj
+	var settings := ManipulatableSettings.new()
+	settings.movable = true
+	settings.demolishable = true
+	manipulatable.settings = settings
+	test_obj.add_child(manipulatable)
+	
+	# Set owners for PackedScene inclusion (after tree is built)
+	static_body.owner = test_obj
+	collision_shape.owner = test_obj
+	manipulatable.owner = test_obj
+	
+	packed_scene.pack(test_obj)
+	placeable.packed_scene = packed_scene
+	placeable.placement_rules = []
+	
+	test.auto_free(placeable)
+	return placeable
+
+## Creates a test smithy placeable
+static func create_test_smithy_placeable(test: GdUnitTestSuite) -> Placeable:
+	var placeable := Placeable.new()
+	placeable.display_name = "TestSmithyPlaceable"
+	
+	# Create a PackedScene containing the smithy object
+	var packed_scene := PackedScene.new()
+	var smithy_obj := create_smithy_test_object(test)
+	
+	packed_scene.pack(smithy_obj)
+	placeable.packed_scene = packed_scene
+	
+	# Add basic placement rules
+	var collision_rule := CollisionsCheckRule.new()
+	collision_rule.apply_to_objects_mask = 1
+	collision_rule.collision_mask = 1
+	placeable.placement_rules = [collision_rule]
+	
+	test.auto_free(placeable)
+	return placeable
+
+## Creates a test eclipse placeable
+static func create_test_eclipse_placeable(test: GdUnitTestSuite) -> Placeable:
+	var placeable := Placeable.new()
+	placeable.name = "TestEclipsePlaceable"
+	
+	# Create a PackedScene containing the eclipse object
+	var packed_scene := PackedScene.new()
+	var eclipse_obj := create_eclipse_test_object(test)
+	
+	packed_scene.pack(eclipse_obj)
+	placeable.packed_scene = packed_scene
+	
+	# Add basic placement rules
+	var collision_rule := CollisionsCheckRule.new()
+	collision_rule.apply_to_objects_mask = 1
+	collision_rule.collision_mask = 1
+	placeable.placement_rules = [collision_rule]
+	
+	test.auto_free(placeable)
+	return placeable
+
+#endregion
