@@ -57,7 +57,8 @@ func test_rule_setup_no_indicators_pass_path():
 				inst.queue_free()
 		# As a last resort, create a minimal indicator instance wrapped in a new scene
 		if templates.rule_check_indicator == null:
-			var indicator := RuleCheckIndicator.new()
+			var indicator := UnifiedTestFactory.create_test_rule_check_indicator(self)
+			# Pack into a scene to satisfy template requirement; indicator will be free'd by test auto_free
 			var ps := PackedScene.new()
 			ps.pack(indicator)
 			templates.rule_check_indicator = ps

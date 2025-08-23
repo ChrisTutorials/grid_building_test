@@ -16,7 +16,7 @@ func create_test_logger() -> GBLogger:
 
 func before_test():
 	# Create indicator and configure all exported properties BEFORE adding to scene tree so _ready uses them.
-	indicator = auto_free(RuleCheckIndicator.new())
+	indicator = UnifiedTestFactory.create_test_rule_check_indicator(self)
 	indicator.collision_mask = test_layers
 	indicator.shape = RectangleShape2D.new()
 	indicator.shape.size = Vector2(15.9, 15.9)
@@ -56,9 +56,8 @@ func test_indicator_validity_switches_on_dynamic_collision():
 	var test_params = RuleValidationParameters.new(GodotTestFactory.create_node2d(self), GodotTestFactory.create_node2d(self), targeting_state, logger)
 	rule.setup(test_params)
 
-	var test_indicator: RuleCheckIndicator = auto_free(RuleCheckIndicator.new())
+	var test_indicator: RuleCheckIndicator = UnifiedTestFactory.create_test_rule_check_indicator(self)
 	test_indicator.shape = RectangleShape2D.new(); test_indicator.shape.size = Vector2(16,16)
-	add_child(test_indicator)
 	test_indicator.resolve_gb_dependencies(TEST_CONTAINER)
 	test_indicator.add_rule(rule)
 
@@ -96,7 +95,7 @@ func test_validity_sprite_texture_switches_on_validity_change():
 	var test_params2 = RuleValidationParameters.new(GodotTestFactory.create_node2d(self), GodotTestFactory.create_node2d(self), targeting_state2, logger2)
 	rule2.setup(test_params2)
 
-	var indicator2: RuleCheckIndicator = auto_free(RuleCheckIndicator.new())
+	var indicator2: RuleCheckIndicator = UnifiedTestFactory.create_test_rule_check_indicator(self)
 	indicator2.shape = RectangleShape2D.new(); indicator2.shape.size = Vector2(16,16)
 	indicator2.collision_mask = test_layers
 	# Setup visual resources mirroring before_test
@@ -367,9 +366,8 @@ func test_ready_debug_log_format_no_rules():
 	var logger := create_test_logger()
 	var dbg := logger.get_debug_settings()
 	dbg.level = GBDebugSettings.DebugLevel.DEBUG
-	var test_indicator: RuleCheckIndicator = auto_free(RuleCheckIndicator.new())
+	var test_indicator: RuleCheckIndicator = UnifiedTestFactory.create_test_rule_check_indicator(self)
 	test_indicator.shape = RectangleShape2D.new(); test_indicator.shape.size = Vector2(8,8)
-	add_child(test_indicator)
 	test_indicator.resolve_gb_dependencies(TEST_CONTAINER)
 	await get_tree().process_frame
 	# We can't intercept internal logger messages without a spy; assert valid state and zero rules

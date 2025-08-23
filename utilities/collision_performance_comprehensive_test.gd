@@ -99,7 +99,7 @@ func test_benchmark_collision_mapping_workflows(workflow_name: String, object_co
 	for obj in test_objects:
 		collision_object_test_setups[obj] = IndicatorCollisionTestSetup.new(obj, Vector2.ZERO, logger)
 	
-	var indicator = auto_free(RuleCheckIndicator.new())
+	var indicator = auto_free(UnifiedTestFactory.create_test_rule_check_indicator(self))
 	if indicator.get_parent() == null:
 		add_child(indicator)
 	indicator.shape = RectangleShape2D.new()

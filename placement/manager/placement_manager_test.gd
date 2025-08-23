@@ -129,7 +129,7 @@ func test_indicator_manager_dependencies_initialized():
 
 @warning_ignore("unused_parameter")
 func test_indicator_count_for_shapes(scene_resource: PackedScene, expected: int, test_parameters := [
-	[UnifiedTestFactory.create_eclipse_test_object(self), 34],  # Updated from 27 to 34 due to PackedScene collision shape fix
+	[UnifiedTestFactory.create_test_eclipse_packed_scene(self), 34],  # Updated from 27 to 34 due to PackedScene collision shape fix
 	[offset_logo, 4]
 ]):
 	var shape_scene = auto_free(scene_resource.instantiate())
@@ -200,7 +200,7 @@ func test_no_indicators_for_empty_scene():
 
 @warning_ignore("unused_parameter")
 func test_indicator_generation_distance(scene_resource: PackedScene, expected_distance: float, test_parameters := [
-	[UnifiedTestFactory.create_eclipse_test_object(self), 16.0]
+	[UnifiedTestFactory.create_test_eclipse_packed_scene(self), 16.0]
 ]):
 	var shape_scene = auto_free(scene_resource.instantiate())
 	add_child(shape_scene)

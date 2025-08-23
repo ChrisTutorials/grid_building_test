@@ -59,6 +59,9 @@ func before_test():
 	auto_free(gb_owner)
 	owner_context.set_owner(gb_owner)
 
+	# Create placement manager BEFORE systems creation
+	var _placement_manager = UnifiedTestFactory.create_test_placement_manager(self, _container)
+
 	# Systems (all auto_free to avoid orphan leakage); include targeting system for movement logic
 	# Add nodes to tree BEFORE dependency injection that calls validation relying on get_tree()
 	building_system = auto_free(BuildingSystem.new())

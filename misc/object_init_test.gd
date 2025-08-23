@@ -1,5 +1,13 @@
 extends GdUnitTestSuite
 
+# NOTE: This file intentionally performs direct instantiation of objects from the
+# grid_building plugin (for example, RuleCheckIndicator). These tests verify
+# that plugin classes construct cleanly without relying on test factory helpers.
+# Do NOT replace these direct `.new()` calls with `UnifiedTestFactory` helpers.
+# The factory helpers are intended for higher-level integration tests that need
+# injected loggers, auto_free management, or parented nodes. This file's goal
+# is simple constructor sanity checks.
+
 
 func test_resource_stack_init():
 	var resource_stack = ResourceStack.new()

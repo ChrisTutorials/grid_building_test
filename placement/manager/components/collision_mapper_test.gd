@@ -29,7 +29,7 @@ func before_test():
 	
 	# Use the actual static factory method directly with test container
 	mapper = CollisionMapper.create_with_injection(TEST_CONTAINER)
-	indicator = auto_free(RuleCheckIndicator.new())
+	indicator = UnifiedTestFactory.create_test_rule_check_indicator(self)
 	# Add to test once if not already parented
 	if indicator.get_parent() == null:
 		add_child(indicator)

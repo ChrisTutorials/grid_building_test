@@ -15,7 +15,7 @@ func before_test():
 	rule = CollisionsCheckRule.new()
 	# Indicator created but we intentionally do NOT call any setup method (none exists) or rule.setup
 	# to validate guard behavior and ensure tests don't invoke nonexistent functions.
-	indicator = auto_free(RuleCheckIndicator.new())
+	indicator = UnifiedTestFactory.create_test_rule_check_indicator(self)
 	indicator.shape = RectangleShape2D.new()
 	indicator.shape.extents = Vector2(8,8)
 	if indicator.get_parent() == null:

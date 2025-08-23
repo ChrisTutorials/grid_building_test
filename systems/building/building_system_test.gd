@@ -36,6 +36,9 @@ func before_test():
 	add_child(gb_owner)
 	gb_owner.resolve_gb_dependencies(_container)
 
+	# Create placement manager BEFORE building system creation
+	var _placement_manager = UnifiedTestFactory.create_test_placement_manager(self, _container)
+
 	# Create building system via factory (injects dependencies & ensures placement manager)
 	system = auto_free(BuildingSystem.create_with_injection(_container))
 	add_child(system)

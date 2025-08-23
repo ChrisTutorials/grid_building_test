@@ -225,17 +225,16 @@ static func create_placement_manager(test: GdUnitTestSuite, targeting_state: Gri
 	test.add_child(manager)
 	return manager
 
-static func create_test_placement_manager(test: GdUnitTestSuite) -> PlacementManager:
-	var context := PlacementContext.new()
-	test.auto_free(context)
-	var indicator_template := load("uid://nhlp6ks003fp")
-	var targeting_state := create_double_targeting_state(test)
-	var logger := create_test_logger()
-	var rules: Array[PlacementRule] = []
-	var messages: GBMessages = GBMessages.new()
-	var manager : PlacementManager = PlacementManager.new()
+static func create_test_placement_manager(test: GdUnitTestSuite, container: GBCompositionContainer = null) -> PlacementManager:
+	var _container = container if container != null else TEST_CONTAINER
+	
+	# Check if placement manager already exists in the container
+	if _container.get_contexts().placement.get_manager() != null:
+		return _container.get_contexts().placement.get_manager()
+	
+	# Create placement manager using injection pattern (registers itself automatically)
+	var manager = PlacementManager.create_with_injection(_container)
 	test.auto_free(manager)
-	manager.initialize(context, indicator_template, targeting_state, logger, rules, messages)
 	test.add_child(manager)
 	return manager
 
@@ -569,11 +568,21 @@ static func create_smithy_test_object(test: GdUnitTestSuite) -> Node2D:
 	smithy.add_child(area)
 	smithy.add_child(static_body)
 	
+	# Add Manipulatable component for manipulation system integration
+	var manipulatable := Manipulatable.new()
+	manipulatable.root = smithy
+	var settings := ManipulatableSettings.new()
+	settings.movable = true
+	settings.demolishable = true
+	manipulatable.settings = settings
+	smithy.add_child(manipulatable)
+	
 	# Set owner properties AFTER all nodes are added to the tree
 	area.owner = smithy
 	area_collision.owner = smithy
 	static_body.owner = smithy
 	static_collision.owner = smithy
+	manipulatable.owner = smithy
 	
 	test.auto_free(smithy)
 	return smithy
@@ -653,6 +662,20 @@ static func create_eclipse_test_object(test: GdUnitTestSuite) -> Node2D:
 	static_body.add_child(collision_polygon)
 	eclipse.add_child(static_body)
 	
+	# Add Manipulatable component for manipulation system integration
+	var manipulatable := Manipulatable.new()
+	manipulatable.root = eclipse
+	var settings := ManipulatableSettings.new()
+	settings.movable = true
+	settings.demolishable = true
+	manipulatable.settings = settings
+	eclipse.add_child(manipulatable)
+	
+	# Set owner properties AFTER all nodes are added to the tree
+	static_body.owner = eclipse
+	collision_polygon.owner = eclipse
+	manipulatable.owner = eclipse
+	
 	test.auto_free(eclipse)
 	return eclipse
 
@@ -722,7 +745,7 @@ static func create_test_smithy_placeable(test: GdUnitTestSuite) -> Placeable:
 ## Creates a test eclipse placeable
 static func create_test_eclipse_placeable(test: GdUnitTestSuite) -> Placeable:
 	var placeable := Placeable.new()
-	placeable.name = "TestEclipsePlaceable"
+	placeable.display_name = "TestEclipsePlaceable"
 	
 	# Create a PackedScene containing the eclipse object
 	var packed_scene := PackedScene.new()
@@ -739,5 +762,13 @@ static func create_test_eclipse_placeable(test: GdUnitTestSuite) -> Placeable:
 	
 	test.auto_free(placeable)
 	return placeable
+
+## Creates a test eclipse PackedScene for direct scene testing
+static func create_test_eclipse_packed_scene(test: GdUnitTestSuite) -> PackedScene:
+	var packed_scene := PackedScene.new()
+	var eclipse_obj := create_eclipse_test_object(test)
+	packed_scene.pack(eclipse_obj)
+	test.auto_free(packed_scene)
+	return packed_scene
 
 #endregion

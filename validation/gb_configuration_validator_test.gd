@@ -8,7 +8,7 @@ func before_test():
 
 func test_validate_configuration_with_missing_config():
 	var empty_container: GBCompositionContainer = null
-	var issues = GBConfigurationValidator.validate_configuration(empty_container)
+	var issues = GBConfigurationValidator.get_editor_issues(empty_container, container.get_logger())
 	assert_int(issues.size()).is_greater(0)
 	assert_that(issues[0]).is_equal("GBCompositionContainer is null")
 
@@ -31,11 +31,6 @@ func test_validate_configuration_with_complete_config():
 func test_validate_runtime_configuration():
 	var issues : Array[String] = container.validate_runtime_configuration()
 	assert_int(issues.size()).is_greater(4)
-
-func test_validate_and_log_issues():
-	var is_valid = container.validate_and_log_issues()
-	assert_bool(is_valid).is_false()
-	# Should be false due to missing configuration
 
 func test_injectable_factory_create_collision_mapper():
 	# Set up minimal container

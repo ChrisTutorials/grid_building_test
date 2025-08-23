@@ -92,7 +92,7 @@ func _create_indicators(p_setup: Array[Dictionary], p_rules : Array[TileCheckRul
 	for case in p_setup:
 		if typeof(case) != TYPE_DICTIONARY or case == null or not case.has("pos"):
 			continue
-		var indicator: RuleCheckIndicator = auto_free(RuleCheckIndicator.new())
+		var indicator: RuleCheckIndicator = auto_free(UnifiedTestFactory.create_test_rule_check_indicator(self))
 		if indicator.get_parent() == null:
 			add_child(indicator)
 		indicator.shape = rect_shape
