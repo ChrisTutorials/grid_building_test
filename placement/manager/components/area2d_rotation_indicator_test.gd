@@ -31,6 +31,7 @@ func before_test():
 
 	logger = TEST_CONTAINER.get_logger()
 	indicator_parent = GodotTestFactory.create_node2d(self) # already parented
+	UnifiedTestFactory.create_test_injector(self, TEST_CONTAINER)
 	indicator_manager = IndicatorManager.create_with_injection(TEST_CONTAINER, indicator_parent)
 
 func _create_area2d_rect(width: float, height: float, layer: int) -> Area2D:
@@ -62,6 +63,8 @@ func test_area2d_rotation_changes_indicator_tile_offsets():
 	positioner.add_child(area) # preview object must be child of positioner
 
 	var rules: Array[TileCheckRule] = [_rule(1)]
+	# Configure mapper before setup
+	UnifiedTestFactory.configure_collision_mapper_for_test_object(self, indicator_manager, area, TEST_CONTAINER, indicator_parent)
 	var report_h: IndicatorSetupReport = indicator_manager.setup_indicators(area, rules, indicator_parent)
 	assert_int(report_h.indicators.size()).append_failure_message("Expected 3 horizontal indicators for unrotated rectangle").is_equal(3)
 	var offsets_h: Array[Vector2i] = _gather_indicator_offsets()
@@ -74,6 +77,8 @@ func test_area2d_rotation_changes_indicator_tile_offsets():
 
 	# Rotate area 90 degrees (PI/2). Expect vertical offsets (0,-1),(0,0),(0,1)
 	area.rotation = PI/2
+	# Reconfigure mapper after reset
+	UnifiedTestFactory.configure_collision_mapper_for_test_object(self, indicator_manager, area, TEST_CONTAINER, indicator_parent)
 	var report_v: IndicatorSetupReport = indicator_manager.setup_indicators(area, rules, indicator_parent)
 	assert_int(report_v.indicators.size()).append_failure_message("Expected 3 vertical indicators for rotated rectangle").is_equal(3)
 	var offsets_v: Array[Vector2i] = _gather_indicator_offsets()

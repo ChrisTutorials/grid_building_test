@@ -48,7 +48,7 @@ func before_test():
 
 func test_before_test_setup():
 	assert_object(system).is_not_null()
-	var issues = system.validate_dependencies()
+	var issues = system.get_dependency_issues()
 	assert_array(issues).is_empty()
 
 
@@ -87,8 +87,8 @@ func test_unhandled_input():
 	system._unhandled_input(event)
 
 
-func test_validate_dependencies():
-	var issues = system.validate_dependencies()
+func test_get_dependency_issues():
+	var issues = system.get_dependency_issues()
 	assert_array(issues).is_empty()
 
 

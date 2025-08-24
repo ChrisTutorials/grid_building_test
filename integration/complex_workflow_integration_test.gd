@@ -73,12 +73,12 @@ func before_test():
 	building_system = auto_free(BuildingSystem.new())
 	add_child(building_system)
 	building_system.resolve_gb_dependencies(composition_container)
-	assert_array(building_system.validate_dependencies()).is_empty()
+	assert_array(building_system.get_dependency_issues()).is_empty()
 
 	targeting_system = auto_free(GridTargetingSystem.new())
 	add_child(targeting_system)
 	targeting_system.resolve_gb_dependencies(composition_container)
-	assert_array(targeting_system.validate_dependencies()).is_empty()
+	assert_array(targeting_system.get_dependency_issues()).is_empty()
 
 	# Use injected placement manager rather than mismatched test factory manager
 	placement_manager = PlacementManager.create_with_injection(composition_container)
@@ -87,9 +87,9 @@ func before_test():
 	
 	# Validate dependency health early for clearer failure messages
 	var early_issues := []
-	early_issues.append_array(building_system.validate_dependencies())
-	early_issues.append_array(targeting_system.validate_dependencies())
-	early_issues.append_array(placement_manager.validate_dependencies())
+	early_issues.append_array(building_system.get_dependency_issues())
+	early_issues.append_array(targeting_system.get_dependency_issues())
+	early_issues.append_array(placement_manager.get_dependency_issues())
 	if not early_issues.is_empty():
 		push_warning("Early dependency issues detected: %s" % str(early_issues))
 
@@ -111,13 +111,13 @@ func test_no_build_issues_before_test():
 func test_complete_building_workflow():
 	
 	# Validate all systems have proper dependencies
-	var building_validation = building_system.validate_dependencies()
+	var building_validation = building_system.get_dependency_issues()
 	assert_array(building_validation).append_failure_message("Building validation issues: %s" % str(building_validation)).is_empty()
 	
-	var placement_validation = placement_manager.validate_dependencies()
+	var placement_validation = placement_manager.get_dependency_issues()
 	assert_array(placement_validation).append_failure_message("Placement validation issues: %s" % str(placement_validation)).is_empty()
 	
-	var targeting_validation = targeting_system.validate_dependencies()
+	var targeting_validation = targeting_system.get_dependency_issues()
 	assert_array(targeting_validation).append_failure_message("Targeting validation issues: %s" % str(targeting_validation)).is_empty()
 	
 	# Use a real placeable from test scene library
@@ -201,7 +201,7 @@ func test_manipulation_workflow():
 		
 		# Create manipulation system for testing
 		var manipulation_system: ManipulationSystem = UnifiedTestFactory.create_test_manipulation_system(self)
-		var validation_issues = manipulation_system.validate_dependencies()
+		var validation_issues = manipulation_system.get_dependency_issues()
 		assert_array(validation_issues).is_empty()
 
 ## Test system coordination under load
@@ -256,9 +256,9 @@ func test_integrated_dependency_validation():
 	# Collect validation results from all major systems
 	var all_validation_issues: Array[String] = []
 	
-	all_validation_issues.append_array(building_system.validate_dependencies())
-	all_validation_issues.append_array(placement_manager.validate_dependencies())
-	all_validation_issues.append_array(targeting_system.validate_dependencies())
+	all_validation_issues.append_array(building_system.get_dependency_issues())
+	all_validation_issues.append_array(placement_manager.get_dependency_issues())
+	all_validation_issues.append_array(targeting_system.get_dependency_issues())
 	
 	# Systems should be properly configured with minimal issues
 	# Note: Some validation issues may be expected in test environment

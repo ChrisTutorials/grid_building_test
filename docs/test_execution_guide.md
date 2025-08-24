@@ -158,7 +158,7 @@ Low-level bugs often cascade into high-level failures. Fixing utilities and comp
 
 ### Validation Method Updates
 
-- All GB systems and GB injectables now use `validate_dependencies()` instead of `validate_state()`
+- All GB systems and GB injectables now use `get_dependency_issues()` instead of `validate_state()`
 - This returns `Array[String]` of validation issues (empty if valid)
 - Update any test code that references the old method name
 

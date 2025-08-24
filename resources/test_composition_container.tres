@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="GBCompositionContainer" load_steps=27 format=3 uid="uid://dy6e5p5d6ax6n"]
+[gd_resource type="Resource" script_class="GBCompositionContainer" load_steps=39 format=3 uid="uid://dy6e5p5d6ax6n"]
 
 [ext_resource type="Script" uid="uid://des845magnt6c" path="res://addons/grid_building/resources/gb_composition_container.gd" id="1_dmsol"]
 [ext_resource type="Script" uid="uid://b8qexmaqap2qt" path="res://addons/grid_building/resources/actions/gb_actions.gd" id="1_ytodv"]
@@ -13,9 +13,17 @@
 [ext_resource type="Script" uid="uid://canj8n1of5xmx" path="res://addons/grid_building/placement/placement_rules/template_rules/collisions_check_rule.gd" id="9_e2vnu"]
 [ext_resource type="Script" uid="uid://c07xmsvybhcx7" path="res://addons/grid_building/resources/settings/gb_settings.gd" id="9_ku23n"]
 [ext_resource type="Resource" uid="uid://darxogdvpfk81" path="res://test/grid_building_test/resources/TEST_grid_targeting_settings.tres" id="10_4v08y"]
+[ext_resource type="Script" uid="uid://dttqh3os8nvgy" path="res://addons/grid_building/validation/gb_runtime_checks.gd" id="11_6ntlk"]
 [ext_resource type="Script" uid="uid://covy88fxfbhlc" path="res://addons/grid_building/resources/settings/gb_visual_settings.gd" id="11_pree3"]
 [ext_resource type="PackedScene" uid="uid://dhox8mb8kuaxa" path="res://test/grid_building_test/scenes/indicators/test_indicator.tscn" id="12_wd0t2"]
 [ext_resource type="Script" uid="uid://bvictehrnbjh3" path="res://addons/grid_building/resources/templates/gb_templates.gd" id="13_b41k8"]
+[ext_resource type="Texture2D" uid="uid://8336o2tpme2x" path="res://addons/grid_building/icons/kenney/arrow_build.png" id="14_pree3"]
+[ext_resource type="Texture2D" uid="uid://bq3kvob3eai1r" path="res://addons/grid_building/icons/kenney/arrow_demolish.png" id="15_wd0t2"]
+[ext_resource type="Texture2D" uid="uid://kvyhj5gt5201" path="res://addons/grid_building/icons/kenney/arrow_info.png" id="16_b41k8"]
+[ext_resource type="Texture2D" uid="uid://5kmk28req3jq" path="res://addons/grid_building/icons/kenney/arrow_move.png" id="17_tvqac"]
+[ext_resource type="Script" uid="uid://bx4yfcdkh6gy0" path="res://addons/grid_building/components/cursor_settings.gd" id="18_mlskn"]
+[ext_resource type="Script" uid="uid://b4kfcjekrmwxx" path="res://addons/grid_building/systems/grid_targeting/highlight_settings.gd" id="19_qmmuh"]
+[ext_resource type="Script" uid="uid://cfctk3ri3cvda" path="res://addons/grid_building/ui/target_informer/target_info_settings.gd" id="21_2wnb5"]
 
 [sub_resource type="Resource" id="Resource_tvqac"]
 script = ExtResource("1_ytodv")
@@ -81,8 +89,44 @@ apply_to_objects_mask = 1
 visual_priority = 0
 metadata/_custom_type_script = "uid://canj8n1of5xmx"
 
+[sub_resource type="Resource" id="Resource_h32ty"]
+script = ExtResource("11_6ntlk")
+building_system = false
+targeting_system = false
+manipulation_system = false
+metadata/_custom_type_script = "uid://dttqh3os8nvgy"
+
+[sub_resource type="Resource" id="Resource_tinpo"]
+script = ExtResource("18_mlskn")
+info = ExtResource("16_b41k8")
+build = ExtResource("14_pree3")
+move = ExtResource("17_tvqac")
+demolish = ExtResource("15_wd0t2")
+metadata/_custom_type_script = "uid://bx4yfcdkh6gy0"
+
+[sub_resource type="Resource" id="Resource_uemqg"]
+script = ExtResource("19_qmmuh")
+build_preview_color = Color(0.6, 0.6, 1, 0.8)
+info_hover_color = Color(0.6, 0.7, 0.7, 0.85)
+move_valid_color = Color(0.2, 1, 0.2, 1)
+move_invalid_color = Color(1, 0.2, 0.2, 1)
+active_manipulation_color = Color(0.2, 0.2, 1, 0.7)
+demolish_valid_color = Color(0.2, 1, 0.2, 1)
+demolish_invalid_color = Color(1, 0.2, 0.2, 1)
+reset_color = Color(1, 1, 1, 1)
+metadata/_custom_type_script = "uid://b4kfcjekrmwxx"
+
+[sub_resource type="Resource" id="Resource_hfj3t"]
+script = ExtResource("21_2wnb5")
+position_decimals = 0
+position_format = "(%s, %s)"
+metadata/_custom_type_script = "uid://cfctk3ri3cvda"
+
 [sub_resource type="Resource" id="Resource_2w8xp"]
 script = ExtResource("11_pree3")
+cursor = SubResource("Resource_tinpo")
+highlight = SubResource("Resource_uemqg")
+target_info = SubResource("Resource_hfj3t")
 metadata/_custom_type_script = "uid://covy88fxfbhlc"
 
 [sub_resource type="Resource" id="Resource_biodm"]
@@ -93,6 +137,7 @@ targeting = ExtResource("10_4v08y")
 visual = SubResource("Resource_2w8xp")
 messages = SubResource("Resource_2l661")
 placement_rules = Array[ExtResource("8_ytodv")]([SubResource("Resource_4haak")])
+runtime_checks = SubResource("Resource_h32ty")
 debug = SubResource("Resource_qmmuh")
 metadata/_custom_type_script = "uid://c07xmsvybhcx7"
 

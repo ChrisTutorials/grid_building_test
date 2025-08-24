@@ -15,6 +15,7 @@ var _container: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
 var placeable_no_rules: Placeable
 var placement_attempts: int = 0
 var placed_objects: Array[Node2D] = []
+var placement_manager : PlacementManager
 
 func before_test():
 	placement_attempts = 0
@@ -23,7 +24,8 @@ func before_test():
 	placer = GodotTestFactory.create_node2d(self)
 	placed_parent = GodotTestFactory.create_node2d(self)
 	grid_positioner = GodotTestFactory.create_node2d(self)
-	# Tile map layer used for targeting
+	placement_manager = PlacementManager.new()
+	grid_positioner.add_child(placement_manager)
 	map_layer = GodotTestFactory.create_empty_tile_map_layer(self)
 
 	var states := _container.get_states()

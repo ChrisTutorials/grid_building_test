@@ -44,7 +44,7 @@ func before_test():
 	building_system = auto_free(BuildingSystem.new())
 	add_child(building_system)
 	building_system.resolve_gb_dependencies(_container)
-	assert_array(building_system.validate_dependencies()).is_empty()
+	assert_array(building_system.get_dependency_issues()).is_empty()
 	# Ensure placement manager exists
 	if _container.get_contexts().placement.get_manager() == null:
 		var pm := PlacementManager.create_with_injection(_container)

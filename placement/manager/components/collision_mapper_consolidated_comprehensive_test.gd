@@ -11,10 +11,11 @@ var targeting_state: GridTargetingState
 var tile_map_layer: TileMapLayer
 var positioner: Node2D
 var logger: GBLogger
+var _injector : GBInjectorSystem
 
 func before_test():
 	# Create test infrastructure using factories
-	logger = UnifiedTestFactory.create_test_logger()
+	_injector = UnifiedTestFactory.create_test_injector(self, TEST_CONTAINER)
 	
 	# Create tilemap with standard 16x16 tiles
 	tile_map_layer = GodotTestFactory.create_tile_map_layer(self, 40)
@@ -25,13 +26,14 @@ func before_test():
 	
 	# Create targeting state
 	var owner_context = GBOwnerContext.new(null)
-	targeting_state = GridTargetingState.new(owner_context)
+	targeting_state = TEST_CONTAINER.get_states().targeting
+	targeting_state._owner_context = owner_context
 	targeting_state.target_map = tile_map_layer
 	targeting_state.positioner = positioner
 	targeting_state.maps = [tile_map_layer]
 	
 	# Create collision mapper
-	collision_mapper = CollisionMapper.new(targeting_state, logger)
+	collision_mapper = CollisionMapper.create_with_injection(TEST_CONTAINER)
 
 func after_test():
 	# Cleanup handled by auto_free in factory methods

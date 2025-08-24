@@ -61,7 +61,7 @@ func before_test():
 	highlighter.resolve_gb_dependencies(_container)
 
 	# Sanity validation
-	assert_array(positioner.validate_dependencies()).is_empty()
+	assert_array(positioner.get_dependency_issues()).is_empty()
 
 	# Allow _ready callbacks & signal hookups to process before tests run
 	await await_idle_frame()

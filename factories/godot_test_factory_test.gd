@@ -5,9 +5,11 @@ extends GdUnitTestSuite
 
 var test_container: GBCompositionContainer
 
+var _injector : GBInjectorSystem
 
 func before_test():
-	test_container = GBCompositionContainer.new()
+	var test_composition_container : GBCompositionContainer = load("uid://dy6e5p5d6ax6n")
+	_injector = UnifiedTestFactory.create_test_injector(self, test_composition_container)
 
 
 func test_create_node2d():

@@ -242,7 +242,7 @@ func test_indicator_overlap_threshold(
 
 ## Helper method to create test indicators with different shapes
 func _create_test_indicator(shape_type: String, shape_data: Dictionary) -> RuleCheckIndicator:
-	var indicator = UnifiedTestFactory.create_test_rule_check_indicator(self)
+	var indicator = UnifiedTestFactory.create_test_rule_check_indicator(self) # Adds child automatically
 	indicator.collision_mask = 1
 	
 	match shape_type:
@@ -259,7 +259,6 @@ func _create_test_indicator(shape_type: String, shape_data: Dictionary) -> RuleC
 			rect_shape.size = shape_data.get("size", Vector2(16, 16))
 			indicator.shape = rect_shape
 	
-	add_child(indicator)
 	return indicator
 
 ## Helper method to create test collision bodies

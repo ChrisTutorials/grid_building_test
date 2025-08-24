@@ -158,7 +158,7 @@ func test_building_system_validation_with_injected_placement_manager() -> void:
 	
 	# Final validation with debug
 	print("[DEBUG] === FINAL VALIDATION ===")
-	print("[DEBUG] About to call BuildingSystem.validate_dependencies()")
+	print("[DEBUG] About to call BuildingSystem.get_dependency_issues()")
 	print("[DEBUG] Container PlacementContext: ", building_system_placement_context)
 	print("[DEBUG] Container has_manager(): ", building_system_placement_context.has_manager())
 	print("[DEBUG] Container get_manager(): ", building_system_placement_context.get_manager())
@@ -166,7 +166,7 @@ func test_building_system_validation_with_injected_placement_manager() -> void:
 	print("[DEBUG] Same managers? ", building_system_placement_context.get_manager() == _placement_manager)
 	
 	# Call validation
-	var validation_result = building_system.validate_dependencies()
+	var validation_result = building_system.get_dependency_issues()
 	
 	# This should pass but currently fails
 	var error_msg = "REGRESSION: BuildingSystem validation failed despite PlacementManager being present. " + \
@@ -222,7 +222,7 @@ func test_injection_order_timing_issue() -> void:
 	
 	# Manually call validation to see if it passes now
 	print("[DEBUG] 6. Calling manual validation after both components injected")
-	var validation_result = building_system.validate_dependencies()
+	var validation_result = building_system.get_dependency_issues()
 	
 	# This should now pass since PlacementManager was added first
 	assert_array(validation_result) \
@@ -267,7 +267,7 @@ func test_reverse_order_demonstrates_timing_issue() -> void:
 	
 	# Step 3: Try manual validation - this might still fail due to timing issue
 	print("[DEBUG] 5. Calling manual validation - PlacementManager now available but validation may still fail")
-	var validation_result = building_system.validate_dependencies()
+	var validation_result = building_system.get_dependency_issues()
 	
 	# Document the expected failure
 	if not validation_result.is_empty():

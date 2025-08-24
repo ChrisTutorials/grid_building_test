@@ -77,7 +77,7 @@ func before_test():
 	building_system.get_building_state().success.connect(_on_build_success)
 	
 	# Validate setup
-	assert_array(building_system.validate_dependencies()).append_failure_message(
+	assert_array(building_system.get_dependency_issues()).append_failure_message(
 		"Building system dependencies not properly set up"
 	).is_empty()
 

@@ -9,8 +9,10 @@ var indicator: RuleCheckIndicator
 var targeting_state: GridTargetingState
 var logger: GBLogger
 var indicator_parent : Node2D
+var _injector : GBInjectorSystem
 
 func before_test():
+	_injector = UnifiedTestFactory.create_test_injector(self, TEST_CONTAINER)
 	indicator_parent = GodotTestFactory.create_node2d(self)
 
 	# IMPORTANT: Use the container's targeting_state so IndicatorManager and test refer to SAME instance
@@ -36,8 +38,10 @@ func _initialize_targeting_state(p_targeting_state: GridTargetingState) -> void:
 	# Create tile map layer directly
 	var map: TileMapLayer = auto_free(TileMapLayer.new())
 	map.tile_set = load("uid://d11t2vm1pby6y")
-	for x in range(-100, 100, 1):
-		for y in range(-100, 100, 1):
+	# Populate a centered region (-10..10) to keep tests fast and avoid editor slowdowns
+	# Previously this filled 40,000 cells (-100..99 on each axis), which is excessive for unit tests
+	for x in range(-10, 11):
+		for y in range(-10, 11):
 			var cords = Vector2i(x, y)
 			map.set_cell(cords, 0, Vector2i(0, 0))
 	add_child(map)
@@ -135,6 +139,8 @@ func test_setup_indicators_creates_indicators_and_aligns_positioner() -> void:
 	var issues := targeting_state.validate()
 	assert_array(issues).append_failure_message("Targeting state validation issues -> %s" % [issues]).is_empty()
 	assert_bool(targeting_state.ready).append_failure_message("Targeting state not marked ready after validate(); issues=%s positioner=%s target_map=%s maps=%d" % [issues, targeting_state.positioner, targeting_state.target_map, targeting_state.maps.size()]).is_true()
+	# Configure collision mapper before calling setup to satisfy fail-fast contract
+	UnifiedTestFactory.configure_collision_mapper_for_test_object(self, indicator_manager, body, TEST_CONTAINER, indicator_parent)
 	var report: IndicatorSetupReport = indicator_manager.setup_indicators(body, rules, indicator_parent)
 	assert_array(report.indicators).append_failure_message("Indicators should be produced -> report=%s" % [report.to_summary_string()]).is_not_empty()
 	assert_int(indicator_manager.get_indicators().size()).append_failure_message("Manager indicator count mismatch -> manager=%d report=%d" % [indicator_manager.get_indicators().size(), report.indicators.size()]).is_equal(report.indicators.size())
@@ -159,11 +165,14 @@ func test_get_or_create_testing_indicator_reuse_and_recreate() -> void:
 	var body := _create_test_body()
 	var issues := targeting_state.validate()
 	assert_array(issues).append_failure_message("Targeting state validation issues -> %s" % [issues]).is_empty()
+	# Configure collision mapper before calling setup
+	UnifiedTestFactory.configure_collision_mapper_for_test_object(self, indicator_manager, body, TEST_CONTAINER, indicator_parent)
 	var rep: IndicatorSetupReport = indicator_manager.setup_indicators(body, [CollisionsCheckRule.new()], indicator_parent)
 	rep.finalize(targeting_state)
 	assert_bool(rep.centered_preview).append_failure_message("Centered preview expected after finalize -> %s" % [rep.to_summary_string()]).is_true() # preview child of positioner so should be centered
+	# New contract: setup_indicators does not free the testing indicator; it should be reused across setups
 	var third := indicator_manager.get_or_create_testing_indicator(indicator_parent)
-	assert_object(third).append_failure_message("After setup the original testing indicator should be freed and recreated").is_not_same(first)
+	assert_object(third).append_failure_message("Testing indicator should be reused after setup under new fail-fast contract").is_same(first)
 
 func test_add_indicators_emits_signal_and_stores() -> void:
 	var inst: RuleCheckIndicator = indicator_template.instantiate()
@@ -177,6 +186,8 @@ func test_add_indicators_emits_signal_and_stores() -> void:
 
 func test_reset_after_setup_clears_indicators() -> void:
 	var body := _create_test_body()
+	# Configure collision mapper before calling setup to satisfy fail-fast contract
+	UnifiedTestFactory.configure_collision_mapper_for_test_object(self, indicator_manager, body, TEST_CONTAINER, indicator_parent)
 	indicator_manager.setup_indicators(body, [CollisionsCheckRule.new()], indicator_parent)
 	assert_int(indicator_manager.get_indicators().size()).append_failure_message("Indicators should exist post-setup for reset test").is_greater(0)
 	indicator_manager.reset()

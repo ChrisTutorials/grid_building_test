@@ -48,8 +48,8 @@ func before_test():
 	targeting_system = auto_free(GridTargetingSystem.new())
 	add_child(targeting_system)
 	targeting_system.resolve_gb_dependencies(_container)
-	assert_array(building_system.validate_dependencies()).is_empty()
-	assert_array(targeting_system.validate_dependencies()).is_empty()
+	assert_array(building_system.get_dependency_issues()).is_empty()
+	assert_array(targeting_system.get_dependency_issues()).is_empty()
 	# Ensure placement manager exists (enter_build_mode path may lazily create)
 	if _container.get_contexts().placement.get_manager() == null:
 		var pm := PlacementManager.create_with_injection(_container)

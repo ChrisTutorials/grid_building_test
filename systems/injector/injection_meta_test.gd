@@ -7,12 +7,16 @@ class TestInjectable:
 	func resolve_gb_dependencies(_p_config):
 		# No-op for test, just present
 		return
+	
+	func get_editor_issues() -> Array[String]:
+		return []
 
 func test_injection_sets_meta_and_removes_on_exit() -> void:
 	# Arrange: create injector and a test node
 	var _injector : GBInjectorSystem = auto_free(UnifiedTestFactory.create_test_injector(self))
 
 	var node := TestInjectable.new()
+	auto_free(node)
 	# Act: add node to root so injector will run
 	add_child_to_root(node)
 

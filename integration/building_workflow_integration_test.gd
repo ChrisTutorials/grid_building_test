@@ -67,34 +67,51 @@ func before_test():
 	building_system = auto_free(BuildingSystem.new())
 	add_child(building_system)
 	building_system.resolve_gb_dependencies(_container)
-	if building_system.has_method("_state_validation"):
-		building_system._state_validation()
 
 	targeting_system = auto_free(GridTargetingSystem.new())
 	add_child(targeting_system)
 	targeting_system.resolve_gb_dependencies(_container)
-	if targeting_system.has_method("force_validation"):
-		targeting_system.force_validation()
 	manipulation_system = auto_free(ManipulationSystem.new())
 	add_child(manipulation_system)
 	manipulation_system.resolve_gb_dependencies(_container)
 
 	# Validate dependencies early
-	var building_issues = building_system.validate_dependencies()
-	var targeting_issues = targeting_system.validate_dependencies()
-	var manipulation_issues = manipulation_system.validate_dependencies()
-	if not building_issues.is_empty():
-		print("[DIAG] BuildingSystem issues: %s" % str(building_issues))
-	if not targeting_issues.is_empty():
-		print("[DIAG] TargetingSystem issues: %s" % str(targeting_issues))
-	if not manipulation_issues.is_empty():
-		print("[DIAG] ManipulationSystem issues: %s" % str(manipulation_issues))
+	var building_issues = building_system.get_dependency_issues()
+	var targeting_issues = targeting_system.get_dependency_issues()
+	var manipulation_issues = manipulation_system.get_dependency_issues()
+	assert_array(building_issues).is_empty()
+	assert_array(targeting_issues).is_empty()
+	assert_array(manipulation_issues).is_empty()
 	var issues: Array[String] = []
 	issues.append_array(building_issues)
 	issues.append_array(targeting_issues)
 	issues.append_array(manipulation_issues)
 	assert_array(issues).append_failure_message("Dependency issues detected -> Building: %s | Targeting: %s | Manipulation: %s" % [str(building_issues), str(targeting_issues), str(manipulation_issues)]).is_empty()
 	_assert_no_orphans()
+
+func after_test():
+	# Proactively clean up any transient runtime objects to avoid orphan warnings between tests
+	# 1) Clear preview and tear down placement manager/indicators
+	if building_system:
+		building_system.clear_preview()
+	var placement_ctx := _container.get_contexts().placement if _container else null
+	if placement_ctx and placement_ctx.has_manager():
+		placement_ctx.get_manager().tear_down()
+
+	# 2) Clear manipulation selections/state
+	if _container and _container.get_states() and _container.get_states().manipulation:
+		var manip_state = _container.get_states().manipulation
+		manip_state.active_target_node = null
+		manip_state.active_manipulatable = null
+
+	# 3) Remove any placed objects under the test-owned parent
+	if placed_parent and is_instance_valid(placed_parent):
+		for c in placed_parent.get_children():
+			if c and is_instance_valid(c):
+				c.queue_free()
+
+	# 4) Let the engine process queued deletions before the next test starts
+	await get_tree().process_frame
 
 func _assert_no_orphans():
 	var orphans := []
@@ -115,7 +132,7 @@ func test_complete_building_workflow():
 	assert_object(building_system.selected_placeable).is_equal(test_placeable)
 	
 	# Step 2: Create preview instance
-	building_system.instance_preview(test_placeable)
+	auto_free(building_system.instance_preview(test_placeable))
 	var preview = _container.get_states().building.preview
 	assert_object(preview).is_not_null()
 	# Preview scripts may have been stripped by PreviewFactory; just assert instance type/root presence
@@ -152,6 +169,7 @@ func test_complete_building_workflow():
 	var manipulatable = placed_instance.find_child("Manipulatable", true, false)
 	if manipulatable == null:
 		manipulatable = Manipulatable.new()
+		auto_free(manipulatable)
 		manipulatable.name = "Manipulatable"
 		manipulatable.root = placed_instance
 		placed_instance.add_child(manipulatable)
@@ -175,6 +193,7 @@ func test_complete_building_workflow():
 	assert_object(move_target).append_failure_message("Expected move target copy to exist").is_not_null()
 	if move_target:
 		assert_bool(move_target.root.global_position.distance_to(original_position) > 0.1).append_failure_message("Move target did not shift after positioner move").is_true()
+	
 	_assert_no_orphans()
 
 ## Test placement validation workflow

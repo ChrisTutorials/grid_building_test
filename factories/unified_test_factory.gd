@@ -102,6 +102,41 @@ static func create_test_indicator_manager(test: GdUnitTestSuite, targeting_state
 	var manager := IndicatorManager.new(parent, state, template, logger)
 	return manager
 
+## Configure the IndicatorManager's CollisionMapper for a given test object.
+## This prepares the testing indicator and per-owner collision test setups before indicator generation.
+## [b]Parameters[/b]:
+##  • [code]test[/code]: GdUnitTestSuite – test suite for parenting/autofree
+##  • [code]manager[/code]: IndicatorManager – manager under test
+##  • [code]test_object[/code]: Node2D – preview object containing collision owners/shapes
+##  • [code]container[/code]: GBCompositionContainer – composition container (defaults to TEST_CONTAINER)
+##  • [code]parent[/code]: Node – parent for the testing indicator (usually the same parent used by manager)
+static func configure_collision_mapper_for_test_object(test: GdUnitTestSuite, manager: IndicatorManager, test_object: Node2D, container: GBCompositionContainer = null, parent: Node = null) -> void:
+	if manager == null or test_object == null:
+		return
+	var _container := container if container != null else TEST_CONTAINER
+	var setup_factory := TestSetupFactory.create_with_injection(_container)
+	# Determine parent for testing indicator
+	var p := parent if parent != null else test
+	# Build owners mapping
+	var owner_shapes : Dictionary[Node2D, Array] = GBGeometryUtils.get_all_collision_shapes_by_owner(test_object)
+	# Ensure a testing indicator exists
+	var testing_indicator := manager.get_or_create_testing_indicator(p)
+	# Build setups
+	var setups: Dictionary[Node2D, IndicatorCollisionTestSetup] = {}
+	for owner in owner_shapes.keys():
+		if owner is CollisionObject2D:
+			setups[owner] = setup_factory.get_or_create_test_params(owner)
+		elif owner is CollisionPolygon2D:
+			setups[owner] = null
+	# Configure underlying mapper directly via the manager's internal mapper.
+	# Use reflection-safe pattern: ensure injected dependencies match the test container.
+	if manager.has_method("inject_collision_mapper_dependencies"):
+		manager.inject_collision_mapper_dependencies(_container)
+	# Call setup on the internal CollisionMapper instance.
+	# Accessing underscored fields is acceptable in tests to avoid runtime-only APIs.
+	if manager._collision_mapper != null:
+		manager._collision_mapper.setup(testing_indicator, setups)
+
 static func create_test_indicator_rect(test: GdUnitTestSuite, tile_size: int = 16) -> RuleCheckIndicator:
 	var indicator: RuleCheckIndicator = RuleCheckIndicator.new()
 	test.auto_free(indicator)
@@ -458,12 +493,12 @@ static func create_test_rule_check_indicator_with_shape(
 
 ## Validate that a system has no dependency issues
 static func assert_system_dependencies_valid(test: GdUnitTestSuite, system: Node) -> void:
-	var issues = system.validate_dependencies()
+	var issues = system.get_dependency_issues()
 	test.assert_array(issues).is_empty()
 
 ## Validate that a system has expected dependency issues
 static func assert_system_dependencies_have_issues(test: GdUnitTestSuite, system: Node, expected_issue_count: int = 1) -> void:
-	var issues = system.validate_dependencies()
+	var issues = system.get_dependency_issues()
 	test.assert_int(issues.size()).is_greater_equal(expected_issue_count)
 
 #endregion

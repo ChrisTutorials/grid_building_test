@@ -45,7 +45,7 @@ func after_test():
 
 
 func test_validate() -> void:
-		assert_array(state.validate())\
+		assert_array(state.get_runtime_issues())\
 			.append_failure_message("Is false because placed parent etc have not been set")\
 			.is_empty()
 

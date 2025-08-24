@@ -32,7 +32,7 @@ func test_collision_mapper_static_factory():
 	assert_that(collision_mapper).is_instanceof(CollisionMapper)
 
 	# Verify dependencies were injected
-	var validation_issues = collision_mapper.validate_dependencies()
+	var validation_issues = collision_mapper.get_dependency_issues()
 	assert_that(validation_issues).is_empty()
 
 
@@ -44,7 +44,7 @@ func test_placement_validator_static_factory():
 	assert_that(validator).is_instanceof(PlacementValidator)
 
 	# Verify dependencies were injected
-	var validation_issues = validator.validate_dependencies()
+	var validation_issues = validator.get_dependency_issues()
 	assert_that(validation_issues).is_empty()
 
 
@@ -56,7 +56,7 @@ func test_test_setup_factory_static_factory():
 	assert_that(factory).is_instanceof(TestSetupFactory)
 
 	# Verify dependencies were injected
-	var validation_issues = factory.validate_dependencies()
+	var validation_issues = factory.get_dependency_issues()
 	assert_that(validation_issues).is_empty()
 
 
@@ -69,5 +69,5 @@ func test_unified_factory_wrapper_methods():
 	assert_that(validator).is_not_null()
 
 	# Both should have valid dependencies
-	assert_that(collision_mapper.validate_dependencies()).is_empty()
-	assert_that(validator.validate_dependencies()).is_empty()
+	assert_that(collision_mapper.get_dependency_issues()).is_empty()
+	assert_that(validator.get_dependency_issues()).is_empty()

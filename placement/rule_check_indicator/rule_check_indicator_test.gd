@@ -71,7 +71,8 @@ func test_indicator_validity_switches_on_dynamic_collision():
 		assert_array(signal_states).append_failure_message("Unexpected initial signal sequence: %s" % [str(signal_states)]).is_equal([true])
 
 	# Add a colliding body to trigger failure
-	var body := _create_test_body(); add_child(body)
+	var body := _create_test_body(); 
+	add_child(body)
 	body.global_position = test_indicator.global_position
 	await get_tree().physics_frame
 	assert_bool(test_indicator.valid).append_failure_message("Indicator should be invalid after collision, but was valid. signal_states=%s" % [str(signal_states)]).is_false()
@@ -108,7 +109,6 @@ func test_validity_sprite_texture_switches_on_validity_change():
 	indicator2.invalid_settings = invalid_settings_res2
 	indicator2.validity_sprite = auto_free(Sprite2D.new())
 	indicator2.add_child(indicator2.validity_sprite)
-	add_child(indicator2)
 	indicator2.resolve_gb_dependencies(TEST_CONTAINER)
 	indicator2.add_rule(rule2)
 

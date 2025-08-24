@@ -180,6 +180,8 @@ func test_positioning_different_tile_sizes(
 ):
 	# Create new tilemap with specified tile size
 	var test_map = GodotTestFactory.create_tile_map_layer(self, tile_size.x)
+	# Align the TileSet's tile_size with the requested size; factory defaults to 16x16
+	test_map.tile_set.tile_size = tile_size
 	
 	# Calculate expected position for tile center
 	var expected_center = Vector2(

@@ -239,7 +239,9 @@ static func create_rule_check_indicator(
 	test: GdUnitTestSuite, parent: Node, tile_size: int = 16
 ) -> RuleCheckIndicator:
 	# Caller decides parent; we only ensure auto_free assignment for memory safety
-	var indicator: RuleCheckIndicator = test.auto_free(RuleCheckIndicator.new())
+	# IMPORTANT: Inject a test logger to satisfy DI requirements of RuleCheckIndicator
+	var logger := UnifiedTestFactory.create_test_logger()
+	var indicator: RuleCheckIndicator = test.auto_free(RuleCheckIndicator.new([], logger))
 	var rect_shape := RectangleShape2D.new()
 	rect_shape.extents = Vector2(tile_size, tile_size)
 	indicator.shape = rect_shape
