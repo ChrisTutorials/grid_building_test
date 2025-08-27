@@ -14,10 +14,11 @@ var positioner: Node2D
 var manipulator: Node
 
 var all_manipulatable: Manipulatable
-var _container: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
+var _container: GBCompositionContainer
 
 
 func before_test():
+	_container = load("uid://dy6e5p5d6ax6n").duplicate(true)
 	# Use GodotTestFactory for all node creation
 	manipulator = GodotTestFactory.create_node(self)
 
@@ -43,6 +44,7 @@ func before_test():
 	var placement_manager: PlacementManager = PlacementManager.new()
 	placement_manager.resolve_gb_dependencies(_container)
 	add_child(placement_manager)
+	_container.get_contexts().placement.set_manager(placement_manager)
 
 	system = auto_free(ManipulationSystem.create_with_injection(_container))
 	add_child(system)

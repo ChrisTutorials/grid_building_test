@@ -1,0 +1,29 @@
+[gd_scene load_steps=1 format=3]
+
+[node name="TestSceneWithRuleTypes" type="Node2D"]
+
+[node name="GridPositioner" type="Node2D" parent="."]
+
+[node name="PlacementManager" type="Node2D" parent="."]
+
+[node name="OverlapCheckIndicator" type="ShapeCast2D" parent="PlacementManager"]
+
+[node name="DistanceValidationIndicator" type="ShapeCast2D" parent="PlacementManager"]
+
+[node name="BoundaryRuleIndicator" type="ShapeCast2D" parent="PlacementManager"]
+
+[node name="TerrainCollisionIndicator" type="ShapeCast2D" parent="PlacementManager"]
+
+[node name="ResourceCostIndicator" type="ShapeCast2D" parent="PlacementManager"]
+
+[node name="PlacementValidationIndicator" type="ShapeCast2D" parent="PlacementManager"]
+
+[node name="CountLimitIndicator" type="ShapeCast2D" parent="PlacementManager"]
+
+[node name="BuildingSystem" type="Node2D" parent="."]
+
+[node name="GridTargetingSystem" type="Node2D" parent="."]
+
+[node name="ManipulationSystem" type="Node2D" parent="."]
+
+[node name="GBInjectorSystem" type="Node2D" parent="."]

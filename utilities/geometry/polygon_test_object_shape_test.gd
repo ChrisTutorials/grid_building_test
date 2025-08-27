@@ -27,7 +27,8 @@ func _calc_tiles(world_points: PackedVector2Array) -> Array[Vector2i]:
 
 ## Helper mirroring mapper's offset computation (center tile at (0,0))
 func _calc_offsets(world_points: PackedVector2Array) -> Array[Vector2i]:
-	return CollisionGeometryUtils.compute_polygon_tile_offsets(world_points, TILE_SIZE, Vector2i.ZERO, GBEnums.TileType.SQUARE)
+	# Use integer 0 for square tile type in tests
+	return CollisionGeometryUtils.compute_polygon_tile_offsets(world_points, TILE_SIZE, Vector2i.ZERO, 0)
 
 func test_polygon_test_object_basic_overlap_less_than_bounding_box():
 	var pts := _polygon_test_object_points()

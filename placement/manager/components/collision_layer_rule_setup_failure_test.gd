@@ -45,9 +45,8 @@ func test_rule_setup_no_indicators_pass_path():
 	var templates := container.get_templates()
 	if templates.rule_check_indicator == null:
 		# Try known candidate template UIDs and pick one whose root is a RuleCheckIndicator
-		var candidate_uids := ["uid://dhox8mb8kuaxa", "uid://nhlp6ks003fp"]
-		for uid in candidate_uids:
-			var scene := load(uid)
+		var candidates := [TestSceneLibrary.indicator_min, TestSceneLibrary.indicator]
+		for scene in candidates:
 			if scene != null and scene is PackedScene:
 				var inst = scene.instantiate()
 				if inst is RuleCheckIndicator:
@@ -67,7 +66,7 @@ func test_rule_setup_no_indicators_pass_path():
 	add_child(placement_manager)
 	auto_free(placement_manager)
 	var pm_result := placement_manager.try_setup([rule], params)
-	assert_bool(pm_result).is_true()
+	assert_bool(pm_result.is_successful()).is_true()
 	# Validate via placement validator for completeness
 	var validation_results := placement_manager.validate_placement()
 	assert_bool(validation_results.is_successful).is_true()

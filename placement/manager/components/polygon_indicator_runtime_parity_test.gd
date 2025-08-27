@@ -51,8 +51,8 @@ func _collect_indicators(pm: PlacementManager) -> Array[RuleCheckIndicator]:
 
 func test_polygon_object_only_generates_overlapping_indicators_and_aligns_preview():
 	var placeable := UnifiedTestFactory.create_polygon_test_placeable(self)
-	var ok := _building.enter_build_mode(placeable)
-	assert_bool(ok).append_failure_message("enter_build_mode failed").is_true()
+	var report : PlacementSetupReport = _building.enter_build_mode(placeable)
+	assert_bool(report.is_successful()).append_failure_message("enter_build_mode failed").is_true()
 
 	# Acquire preview and set up indicators via PlacementManager
 	var preview := _container.get_building_state().preview as Node2D
@@ -65,7 +65,7 @@ func test_polygon_object_only_generates_overlapping_indicators_and_aligns_previe
 	var rules : Array[PlacementRule] = [rule]
 	var params := RuleValidationParameters.new(_container.get_building_state().get_placer(), preview, _container.get_targeting_state(), _container.get_logger())
 	var setup_ok := _manager.try_setup(rules, params, true)
-	assert_bool(setup_ok).append_failure_message("PlacementManager.try_setup failed").is_true()
+	assert_bool(setup_ok.is_successful()).append_failure_message("PlacementManager.try_setup failed").is_true()
 
 	var indicators := _collect_indicators(_manager)
 	assert_array(indicators).append_failure_message("No indicators generated for polygon preview").is_not_empty()

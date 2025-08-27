@@ -137,6 +137,8 @@ func test_validity_sprite_texture_switches_on_validity_change():
 ## Test that indicators start in valid state when no rules are present
 func test_indicator_starts_valid_with_no_rules():
 	assert_bool(indicator.valid).is_true()
+	# Allow deferred post-ready visual application to run
+	await get_tree().physics_frame
 	assert_object(indicator.current_display_settings).is_equal(indicator.valid_settings)
 
 
@@ -230,7 +232,8 @@ func test_valid_changed_signal_emitted_on_state_change(
 
 ## Test that visual settings are properly updated when validity changes
 func test_visual_settings_update_on_validity_change():
-	# Verify initial state
+	# Verify initial state (allow deferred visuals to apply)
+	await get_tree().physics_frame
 	assert_object(indicator.current_display_settings).is_equal(indicator.valid_settings)
 	assert_object(indicator.validity_sprite.texture).is_equal(indicator.valid_settings.texture)
 	assert_that(indicator.validity_sprite.modulate).is_equal(indicator.valid_settings.modulate)

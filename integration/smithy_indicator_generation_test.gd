@@ -55,14 +55,14 @@ func before_test():
 		var pm := PlacementManager.create_with_injection(_container)
 		add_child(auto_free(pm))
 	# Validate targeting state ready
-	assert_array(_container.get_states().targeting.validate()).is_empty()
+	assert_array(_container.get_states().targeting.get_runtime_issues()).is_empty()
 
 func test_smithy_generates_indicators_only_with_matching_rule_mask_when_ignoring_base():
 	var smithy_placeable : Placeable = TestSceneLibrary.placeable_smithy
 	assert_object(smithy_placeable).is_not_null()
 	building_system.selected_placeable = smithy_placeable
 	var entered := building_system.enter_build_mode(smithy_placeable)
-	assert_bool(entered).is_true()
+	assert_bool(entered.is_successful()).is_true()
 	var preview: Node2D = _container.get_states().building.preview
 	assert_object(preview).is_not_null()
 	var manager := _container.get_contexts().placement.get_manager()
@@ -70,15 +70,15 @@ func test_smithy_generates_indicators_only_with_matching_rule_mask_when_ignoring
 	# Re-run setup ignoring base rules with EMPTY placeable rules -> expect skip (no indicators)
 	var manip_owner = _container.get_states().manipulation.get_manipulator()
 	var params := RuleValidationParameters.new(manip_owner, preview, _container.get_states().targeting, _container.get_logger())
-	var ok_empty := manager.try_setup([], params, true)
-	assert_bool(ok_empty).is_true()
+	var report_empty := manager.try_setup([], params, true)
+	assert_bool(report_empty.is_successful()).is_true()
 	assert_array(manager.get_indicators()).append_failure_message("Indicators should not exist when no TileCheckRules (base ignored)").is_empty()
 	# Now add an explicit collisions rule overlapping smithy collision layer (bit 0) and verify indicators appear
 	var rule := CollisionsCheckRule.new()
 	rule.apply_to_objects_mask = 1 << 0
 	rule.collision_mask = 1 << 0
-	var ok := manager.try_setup([rule], params, true)
-	assert_bool(ok).append_failure_message("PlacementManager.try_setup failed with explicit collisions rule (ignore base)").is_true()
+	var report := manager.try_setup([rule], params, true)
+	assert_bool(report.is_successful()).append_failure_message("PlacementManager.try_setup failed with explicit collisions rule (ignore base): %s" % str(report.get_all_issues())).is_true()
 	var indicators := manager.get_indicators()
 	assert_array(indicators).append_failure_message("Expected indicators after adding explicit collisions rule").is_not_empty()
 	# Sanity: at least one indicator atop center tile
@@ -96,7 +96,7 @@ func test_rule_layer_overlap_required_for_indicator_generation():
 	assert_object(smithy_placeable).is_not_null()
 	building_system.selected_placeable = smithy_placeable
 	var entered := building_system.enter_build_mode(smithy_placeable)
-	assert_bool(entered).is_true()
+	assert_bool(entered.is_successful()).is_true()
 	var preview: Node2D = _container.get_states().building.preview
 	assert_object(preview).is_not_null()
 	var manager := _container.get_contexts().placement.get_manager()
@@ -110,17 +110,17 @@ func test_rule_layer_overlap_required_for_indicator_generation():
 	var rule_no_overlap := CollisionsCheckRule.new()
 	rule_no_overlap.apply_to_objects_mask = 1 << 20
 	rule_no_overlap.collision_mask = 1 << 20
-	var ok_no := manager.try_setup([rule_no_overlap], params, true)
-	assert_bool(ok_no).is_true()
+	var report_no_overlap := manager.try_setup([rule_no_overlap], params, true)
+	assert_bool(report_no_overlap.is_successful()).is_true()
 	assert_array(manager.get_indicators()).append_failure_message("Expected 0 indicators when rule layer does not overlap smithy collision layers (ignore base)").is_empty()
 	# Overlapping rule (bit 0) ignoring base -> expect indicators
 	var rule_overlap := CollisionsCheckRule.new()
 	rule_overlap.apply_to_objects_mask = 1 << 0
 	rule_overlap.collision_mask = 1 << 0
-	var ok_overlap := manager.try_setup([rule_overlap], params, true)
-	assert_bool(ok_overlap).is_true()
+	var report_overlap := manager.try_setup([rule_overlap], params, true)
+	assert_bool(report_overlap.is_successful()).is_true()
 	var indicators := manager.get_indicators()
 	assert_array(indicators).append_failure_message("Expected indicators after applying overlapping layer rule (ignore base)").is_not_empty()
 	for ind in indicators:
 		assert_bool(ind.is_inside_tree()).append_failure_message("Indicator not inside tree: %s" % ind.name).is_true()
-		assert_object(ind.get_parent()).append_failure_message("Indicator parent unexpected").is_equal(manager)
+		assert_object(ind.get_parent()).append_failure_message("Indicator parent unexpected").is_equal(preview)

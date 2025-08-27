@@ -130,8 +130,8 @@ func test_complete_building_workflow():
 	
 	# Start building mode with placeable
 	building_system.selected_placeable = test_placeable
-	var success = building_system.enter_build_mode(test_placeable)
-	assert_bool(success).is_true()
+	var report := building_system.enter_build_mode(test_placeable)
+	assert_bool(report.is_successful()).is_true()
 	
 	# Verify systems are in correct state
 	# Use is_same to ensure the exact resource is selected
@@ -237,19 +237,20 @@ func test_error_recovery_workflow():
 	building_system.selected_placeable = null
 	
 	# Attempt building workflow - should handle gracefully
-	var success = building_system.enter_build_mode(null)
-	assert_bool(success).is_false()
+	var report : PlacementSetupReport = building_system.enter_build_mode(null)
+	assert_array(report.issues).is_not_empty()
+	assert_bool(report.is_successful()).is_false()
 	
 	# System should be ready for next operation
 	var valid_placeable = TestSceneLibrary.placeable_2d_test
 	
-	var recovery_success = building_system.enter_build_mode(valid_placeable)
+	var recovery_report : PlacementSetupReport = building_system.enter_build_mode(valid_placeable)
 	targeting_system.get_state().positioner.global_position = Vector2(64, 64)
 	
 	# Recovery should work properly if placeable is valid
-	if recovery_success:
-		assert_bool(recovery_success).is_true()
-		var _recovery_object = building_system.try_build()
+	assert_object(recovery_report).is_not_null()
+	assert_bool(recovery_report.is_successful()).is_true()
+	var _recovery_object = building_system.try_build()
 
 ## Test dependency validation across integrated systems
 func test_integrated_dependency_validation():

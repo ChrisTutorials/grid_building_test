@@ -72,7 +72,7 @@ func _setup_placement_manager():
 	)
 
 	# Validate targeting state readiness
-	var targeting_issues := targeting_state.validate()
+	var targeting_issues := targeting_state.get_runtime_issues()
 	(
 		assert_bool(targeting_issues.is_empty())
 		.append_failure_message("Targeting state not ready. Issues=%s" % str(targeting_issues))

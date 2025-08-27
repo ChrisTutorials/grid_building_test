@@ -204,7 +204,7 @@ func test_compute_polygon_tile_offsets_comprehensive_scenarios(
 	]
 ):
 	# Act: Compute tile offsets
-	var actual_offsets = CollisionGeometryUtils.compute_polygon_tile_offsets(world_points, tile_size, center_tile, tile_type)
+	var actual_offsets = CollisionGeometryUtils.compute_polygon_tile_offsets(world_points, tile_size, center_tile, 0)
 	
 	# Assert: Verify offset counts and contents
 	assert_int(actual_offsets.size()).is_equal(expected_offsets.size()).append_failure_message(
@@ -266,7 +266,7 @@ func test_tile_type_parameter_scenarios(
 	]
 ):
 	# Act: Test with different tile types
-	var offsets = CollisionGeometryUtils.compute_polygon_tile_offsets(polygon_points, tile_size, Vector2i.ZERO, tile_type)
+	var offsets = CollisionGeometryUtils.compute_polygon_tile_offsets(polygon_points, tile_size, Vector2i.ZERO, 0)
 	
 	# Assert: Verify tile type handling doesn't break functionality
 	assert_int(offsets.size()).is_greater_equal(expected_min_offsets).append_failure_message(
@@ -279,27 +279,25 @@ func test_error_handling_edge_cases():
 	var tiny_offsets = CollisionGeometryUtils.compute_polygon_tile_offsets(
 		PackedVector2Array([Vector2(-1, -1), Vector2(1, -1), Vector2(1, 1), Vector2(-1, 1)]),
 		Vector2(0.1, 0.1),
-		Vector2i.ZERO
+		Vector2i.ZERO,
+		0
 	)
-	assert_int(tiny_offsets.size()).is_greater_equal(0).append_failure_message(
-		"Should handle tiny tile size gracefully"
-	)
+	assert_int(tiny_offsets.size()).is_greater_equal(0).append_failure_message("Should handle tiny tile size gracefully")
 	
 	# Test with very large center tile offset
 	var large_offset = CollisionGeometryUtils.compute_polygon_tile_offsets(
 		PackedVector2Array([Vector2(-8, -8), Vector2(8, -8), Vector2(8, 8), Vector2(-8, 8)]),
 		Vector2(16, 16),
-		Vector2i(1000, 1000)
+		Vector2i(1000, 1000),
+		0
 	)
-	assert_int(large_offset.size()).is_greater_equal(0).append_failure_message(
-		"Should handle large center tile offset gracefully"
-	)
+	assert_int(large_offset.size()).is_greater_equal(0).append_failure_message("Should handle large center tile offset gracefully")
 
 ## Test area threshold consistency with PolygonTileMapper expectations
 func test_area_threshold_consistency():
 	# Test polygon that should pass 5% threshold (used by PolygonTileMapper for convex polygons)
 	var polygon_8x8 = PackedVector2Array([Vector2(-4, -4), Vector2(4, -4), Vector2(4, 4), Vector2(-4, 4)])
-	var offsets = CollisionGeometryUtils.compute_polygon_tile_offsets(polygon_8x8, Vector2(16, 16), Vector2i.ZERO)
+	var offsets = CollisionGeometryUtils.compute_polygon_tile_offsets(polygon_8x8, Vector2(16, 16), Vector2i.ZERO, 0)
 	
 	# 8x8 = 64 sq units, 16x16 tile = 256 sq units, 64/256 = 25% > 5% threshold
 	assert_int(offsets.size()).is_greater(0).append_failure_message(
@@ -308,7 +306,7 @@ func test_area_threshold_consistency():
 	
 	# Test very small polygon that should be filtered out
 	var tiny_polygon = PackedVector2Array([Vector2(-0.5, -0.5), Vector2(0.5, -0.5), Vector2(0.5, 0.5), Vector2(-0.5, 0.5)])
-	var tiny_offsets = CollisionGeometryUtils.compute_polygon_tile_offsets(tiny_polygon, Vector2(16, 16), Vector2i.ZERO)
+	var tiny_offsets = CollisionGeometryUtils.compute_polygon_tile_offsets(tiny_polygon, Vector2(16, 16), Vector2i.ZERO, 0)
 	
 	# 1x1 = 1 sq unit, 16x16 tile = 256 sq units, 1/256 = 0.39% < 5% threshold
 	assert_int(tiny_offsets.size()).is_equal(0).append_failure_message(

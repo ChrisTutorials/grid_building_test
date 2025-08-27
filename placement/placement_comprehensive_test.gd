@@ -49,7 +49,7 @@ func before_test():
 	placement_validator = PlacementValidator.create_with_injection(container)
 	
 	# Verify setup
-	var targeting_issues = targeting_state.validate()
+	var targeting_issues = targeting_state.get_runtime_issues()
 	assert_array(targeting_issues).append_failure_message(
 		"Targeting state validation failed: %s" % [targeting_issues]
 	).is_empty()

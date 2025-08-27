@@ -49,14 +49,14 @@ func before_test():
 	if _container.get_contexts().placement.get_manager() == null:
 		var pm := PlacementManager.create_with_injection(_container)
 		add_child(auto_free(pm))
-	assert_array(_container.get_states().targeting.validate()).is_empty()
+	assert_array(_container.get_states().targeting.get_runtime_issues()).is_empty()
 
 func test_multiple_matching_rules_attach_to_single_indicator_instances():
 	var smithy_placeable : Placeable = TestSceneLibrary.placeable_smithy
 	assert_object(smithy_placeable).is_not_null()
 	building_system.selected_placeable = smithy_placeable
 	var entered := building_system.enter_build_mode(smithy_placeable)
-	assert_bool(entered).is_true()
+	assert_bool(entered.is_successful()).is_true()
 	var preview: Node2D = _container.get_states().building.preview
 	assert_object(preview).is_not_null()
 	var manager := _container.get_contexts().placement.get_manager()
@@ -72,8 +72,8 @@ func test_multiple_matching_rules_attach_to_single_indicator_instances():
 	rule_b.apply_to_objects_mask = 1 << 0
 	rule_b.collision_mask = 1 << 0
 	rule_b.visual_priority = 2
-	var ok := manager.try_setup([rule_a, rule_b], params, true) # ignore base to isolate
-	assert_bool(ok).is_true()
+	var setup_report := manager.try_setup([rule_a, rule_b], params, true) # ignore base to isolate
+	assert_bool(setup_report.is_successful()).is_true()
 	var indicators := manager.get_indicators()
 	assert_array(indicators).append_failure_message("Expected indicators to be generated for overlapping rules").is_not_empty()
 	# Every indicator should have BOTH rules in its rule list (order not guaranteed).

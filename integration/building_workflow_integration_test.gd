@@ -219,8 +219,8 @@ func test_placement_validation_workflow():
 	rules.append(collision_rule)
 	
 
-	var setup_ok = placement_manager.try_setup(rules, validation_params)
-	assert_bool(setup_ok).append_failure_message("Failed to setup placement rules").is_true()
+	var setup_report : PlacementSetupReport = placement_manager.try_setup(rules, validation_params)
+	assert_bool(setup_report.is_successful()).append_failure_message("Failed to setup placement rules: %s" % str(setup_report.get_all_issues())).is_true()
 
 	var indicators := placement_manager.get_indicators()
 	assert_array(indicators).append_failure_message("Expected active indicators for testing for the invalid placement space.").is_not_empty()
@@ -239,8 +239,8 @@ func test_placement_validation_workflow():
 	# Re-run setup for new preview root
 	preview_root = _container.get_states().building.preview
 	validation_params = RuleValidationParameters.new(manipulator_owner, preview_root, targeting_state, _container.get_logger())
-	setup_ok = placement_manager.try_setup(rules, validation_params)
-	assert_bool(setup_ok).append_failure_message("Failed to re-setup placement rules for second preview").is_true()
+	var setup_ok : PlacementSetupReport = placement_manager.try_setup(rules, validation_params)
+	assert_bool(setup_ok.is_successful()).append_failure_message("Failed to re-setup placement rules for second preview").is_true()
 
 	validation_result = placement_manager.validate_placement()
 	assert_bool(validation_result.is_successful).append_failure_message("Expected invalid placement on occupied tile").is_false()
@@ -282,8 +282,8 @@ func test_indicator_generation_on_enter_build_mode_with_smithy():
 
 	# Enter build mode (this should create a preview instance)
 	building_system.selected_placeable = smithy_placeable
-	var entered := building_system.enter_build_mode(smithy_placeable)
-	assert_bool(entered).append_failure_message("Failed to enter build mode for smithy").is_true()
+	var setup_report : PlacementSetupReport = building_system.enter_build_mode(smithy_placeable)
+	assert_bool(setup_report.is_successful()).append_failure_message("Failed to enter build mode for smithy").is_true()
 
 	# Validate preview exists and is parented under targeting positioner
 	var preview: Node2D = _container.get_states().building.preview
@@ -291,6 +291,7 @@ func test_indicator_generation_on_enter_build_mode_with_smithy():
 	var targeting_state := _container.get_states().targeting
 	assert_object(targeting_state.positioner).append_failure_message("Targeting positioner missing").is_not_null()
 	assert_object(preview.get_parent()).append_failure_message("Preview has no parent").is_not_null()
+	assert_object(preview.get_parent()).append_failure_message("Preview should be parented to positioner").is_equal(targeting_state.positioner)
 
 	# Force setup via placement manager using smithy rules (some placeables may embed rules directly)
 	var placement_manager := _container.get_contexts().placement.get_manager()
@@ -307,7 +308,8 @@ func test_indicator_generation_on_enter_build_mode_with_smithy():
 	var manipulator_owner = _container.get_states().manipulation.get_manipulator()
 	var validation_params := RuleValidationParameters.new(manipulator_owner, preview, targeting_state, _container.get_logger())
 	var setup_ok := placement_manager.try_setup(rules, validation_params)
-	assert_bool(setup_ok).append_failure_message("PlacementManager.try_setup failed for smithy").is_true()
+	assert_object(setup_ok).append_failure_message("PlacementManager.try_setup returned null").is_not_null()
+	assert_bool(setup_ok.is_successful()).append_failure_message("PlacementManager.try_setup failed for smithy").is_true()
 
 	# Act: retrieve indicators
 	var indicators := placement_manager.get_indicators()
@@ -318,9 +320,11 @@ func test_indicator_generation_on_enter_build_mode_with_smithy():
 	# Ensure each indicator has at least one rule associated (through collision mapping); if empty log warning not failure
 	for ind in indicators:
 		if ind is RuleCheckIndicator:
-			var ind_rules := ind.get_rules() if ind.has_method("get_rules") else []
+			var ind_rules := ind.get_rules()
 			if ind_rules.is_empty():
 				push_warning("Indicator %s has zero rules mapped during integration test" % ind.name)
+			# Verify indicator is parented to the preview
+			assert_object(ind.get_parent()).append_failure_message("Indicator should be parented to preview").is_equal(preview)
 
 	_assert_no_orphans()
 
@@ -343,3 +347,85 @@ func test_workflow_error_handling():
 	await get_tree().process_frame
 	# No assertion needed - just verify no crash
 	_assert_no_orphans()
+
+
+@warning_ignore("unused_parameter")
+func test_rotation_regression_preview_and_indicators_rotate_together() -> void:
+	# Setup: Enter build mode with a test placeable to generate preview and indicators
+	var placeable : Placeable = UnifiedTestFactory.create_test_smithy_placeable(self)
+	var report : PlacementSetupReport = building_system.enter_build_mode(placeable)
+	assert_bool(report.is_successful()).append_failure_message("Failed to enter build mode").is_true()
+	
+	# Verify preview exists
+	var preview : Node2D = _container.get_states().building.preview
+	assert_object(preview).append_failure_message("Preview should exist after entering build mode").is_not_null()
+	
+	# Get placement manager and verify indicators exist
+	var placement_manager : PlacementManager = _container.get_contexts().placement.get_manager()
+	assert_object(placement_manager).append_failure_message("PlacementManager should exist").is_not_null()
+	var indicators : Array[RuleCheckIndicator] = placement_manager.get_indicators()
+	assert_array(indicators).append_failure_message("Should have at least one indicator after entering build mode").is_not_empty()
+	
+	# Record initial rotations
+	var initial_preview_rotation : float = preview.global_rotation_degrees
+	var initial_indicator_rotations : Array[float] = []
+	for indicator in indicators:
+		initial_indicator_rotations.append(indicator.global_rotation_degrees)
+	
+	# Act: Rotate the preview using the manipulation system
+	var rotation_amount : float = 45.0
+	var success : bool = manipulation_system.rotate(preview, rotation_amount)
+	assert_bool(success).append_failure_message("Rotation should succeed").is_true()
+	
+	# Assert: Verify both preview and all indicators have rotated by the same amount
+	var expected_rotation : float = initial_preview_rotation + rotation_amount
+	assert_float(preview.global_rotation_degrees).append_failure_message(
+		"Preview should have rotated by %f degrees" % rotation_amount
+	).is_equal_approx(expected_rotation, 0.001)
+	
+	for i in range(indicators.size()):
+		var indicator : RuleCheckIndicator = indicators[i]
+		var expected_indicator_rotation : float = initial_indicator_rotations[i] + rotation_amount
+		assert_float(indicator.global_rotation_degrees).append_failure_message(
+			"Indicator %d should have rotated by %f degrees" % [i, rotation_amount]
+	).is_equal_approx(expected_indicator_rotation, 0.001)
+
+
+@warning_ignore("unused_parameter")
+func test_placeable_switch_regression_indicators_freed_properly() -> void:
+	# Setup: Enter build mode with first placeable
+	var placeable1 : Placeable = UnifiedTestFactory.create_test_smithy_placeable(self)
+	var report1 : PlacementSetupReport = building_system.enter_build_mode(placeable1)
+	assert_bool(report1.is_successful()).append_failure_message("Failed to enter build mode with first placeable").is_true()
+	
+	# Get placement manager and verify indicators exist
+	var placement_manager : PlacementManager = _container.get_contexts().placement.get_manager()
+	assert_object(placement_manager).append_failure_message("PlacementManager should exist").is_not_null()
+	var indicators1 : Array[RuleCheckIndicator] = placement_manager.get_indicators()
+	assert_array(indicators1).append_failure_message("Should have indicators after entering build mode").is_not_empty()
+	
+	# Verify we can call get_colliding_indicators without error
+	var colliding_before_switch : Array[RuleCheckIndicator] = placement_manager.get_colliding_indicators()
+	assert_array(colliding_before_switch).append_failure_message("get_colliding_indicators should not fail").is_not_null()
+	
+	# Act: Switch to a different placeable
+	var placeable2 : Placeable = UnifiedTestFactory.create_test_eclipse_placeable(self)
+	var report2 : PlacementSetupReport = building_system.enter_build_mode(placeable2)
+	assert_bool(report2.is_successful()).append_failure_message("Failed to enter build mode with second placeable").is_true()
+	
+	# Assert: Verify old indicators are cleared and new ones exist
+	var indicators2 : Array[RuleCheckIndicator] = placement_manager.get_indicators()
+	assert_array(indicators2).append_failure_message("Should have new indicators after switching placeables").is_not_empty()
+	
+	# Verify we can still call get_colliding_indicators without error (this is where the regression occurs)
+	var colliding_after_switch : Array[RuleCheckIndicator] = placement_manager.get_colliding_indicators()
+	assert_array(colliding_after_switch).append_failure_message("get_colliding_indicators should not fail after switching").is_not_null()
+	
+	# Verify that old indicator instances are no longer in the array
+	for old_indicator in indicators1:
+		assert_bool(indicators2.has(old_indicator)).append_failure_message("Old indicators should not be in the new array").is_false()
+	
+	# Verify that old indicators are freed (should be invalid or null)
+	for old_indicator in indicators1:
+		if old_indicator != null:
+			assert_bool(is_instance_valid(old_indicator)).append_failure_message("Old indicators should be freed").is_false()

@@ -48,7 +48,7 @@ func before_test():
 
 func test_before_test_setup():
 	assert_object(system).is_not_null()
-	var issues = system.get_dependency_issues()
+	var issues : Array[String] = system.get_dependency_issues()
 	assert_array(issues).is_empty()
 
 
@@ -56,46 +56,51 @@ func test_before_test_setup():
 
 
 func test_enter_build_mode_rejects_null():
-	var ok = system.enter_build_mode(null)
-	assert_bool(ok).is_false()
+	var report : PlacementSetupReport = system.enter_build_mode(null)
+	assert_object(report).is_not_null()
+	# enter_build_mode now returns a PlacementSetupReport; ensure it reports failure
+	assert_bool(report.is_successful()).is_false()
 
 
 @warning_ignore("unused_parameter")
 
 
 func test_enter_build_mode_creates_preview() -> void:
-	var ok = system.enter_build_mode(TestSceneLibrary.placeable_2d_test)
-	assert_bool(ok).is_true()
-	var preview = _container.get_states().building.preview
+	var report : PlacementSetupReport = system.enter_build_mode(TestSceneLibrary.placeable_2d_test)
+	assert_object(report).is_not_null()
+	assert_bool(report.is_successful()).is_true()
+	var preview : Node2D = _container.get_states().building.preview
 	assert_object(preview).is_not_null()
 
 
 func test_enter_build_mode_valid_placeable():
-	var ok = system.enter_build_mode(TestSceneLibrary.placeable_2d_test)
-	assert_bool(ok).is_true()
+	var report : PlacementSetupReport = system.enter_build_mode(TestSceneLibrary.placeable_2d_test)
+	assert_object(report).is_not_null()
+	assert_bool(report.is_successful()).is_true()
 	assert_object(_container.get_states().building.preview).is_not_null()
 
 
 func test_unhandled_input():
 	# Verify build confirm triggers try_build when in build mode
-	var actions = _container.config.actions
-	var placeable = TestSceneLibrary.placeable_2d_test
+	var actions : GBActions = _container.config.actions
+	var placeable : Placeable = TestSceneLibrary.placeable_2d_test
 	system.enter_build_mode(placeable)
-	var event = InputEventAction.new()
+	var event : InputEventAction = InputEventAction.new()
 	event.action = actions.confirm_build
 	event.pressed = true
 	system._unhandled_input(event)
 
 
 func test_get_dependency_issues():
-	var issues = system.get_dependency_issues()
+	var issues : Array[String] = system.get_dependency_issues()
 	assert_array(issues).is_empty()
 
 
 func test_enter_build_mode_sets_preview():
-	var ok = system.enter_build_mode(TestSceneLibrary.placeable_2d_test)
-	assert_bool(ok).is_true()
-	var preview_instance = _container.get_states().building.preview
+	var report : PlacementSetupReport = system.enter_build_mode(TestSceneLibrary.placeable_2d_test)
+	assert_object(report).is_not_null()
+	assert_bool(report.is_successful()).is_true()
+	var preview_instance : Node2D = _container.get_states().building.preview
 	assert_object(preview_instance).is_not_null()
 
 
@@ -104,13 +109,15 @@ func test_enter_build_mode_sets_preview():
 
 func test_enter_build_mode_idempotent():
 	# Enter build mode twice with same placeable; second call should still succeed and have a preview
-	var ok1 = system.enter_build_mode(TestSceneLibrary.placeable_2d_test)
-	assert_bool(ok1).is_true()
-	var preview1 = _container.get_states().building.preview
+	var report1 : PlacementSetupReport = system.enter_build_mode(TestSceneLibrary.placeable_2d_test)
+	assert_object(report1).is_not_null()
+	assert_bool(report1.success).is_true()
+	var preview1 : Node2D = _container.get_states().building.preview
 	assert_object(preview1).is_not_null()
-	var ok2 = system.enter_build_mode(TestSceneLibrary.placeable_2d_test)
-	assert_bool(ok2).is_true()
-	var preview2 = _container.get_states().building.preview
+	var report2 : PlacementSetupReport = system.enter_build_mode(TestSceneLibrary.placeable_2d_test)
+	assert_object(report2).is_not_null()
+	assert_bool(report2.success).is_true()
+	var preview2 : Node2D = _container.get_states().building.preview
 	assert_object(preview2).is_not_null()
 	assert_object(preview2).is_not_same(preview1)
 
@@ -125,7 +132,7 @@ func test_try_build(
 ) -> void:
 	if p_placeable:
 		system.enter_build_mode(p_placeable)
-	var result = system.try_build()
+	var result : Node2D = system.try_build()
 	assert_bool(result == null).is_equal(ex_null_result)
 
 
@@ -139,17 +146,66 @@ func test_build_instance_internal(
 ) -> void:
 	if p_placeable:
 		system.enter_build_mode(p_placeable)
-	var result = system.try_build()
+	var result : Node2D = system.try_build()
 	assert_bool(result == null).is_equal(p_expect_null)
 
 
 ## Creates a node and a child node with a script attached
 ## Returns the root
 func create_node_and_child_with_script(p_script: Script) -> Node:
-	var root = auto_free(Node.new())
+	var root : Node = auto_free(Node.new())
 	add_child(root)
 	root.set_script(p_script)
-	var child = auto_free(Node.new())
+	var child : Node = auto_free(Node.new())
 	root.add_child(child)
 	child.set_script(p_script)
 	return root
+
+
+@warning_ignore("unused_parameter")
+func test_rotation_regression_preview_and_indicators_rotate_together() -> void:
+	# Setup: Enter build mode to generate preview and indicators
+	var placeable : Placeable = TestSceneLibrary.placeable_2d_test
+	var report : PlacementSetupReport = system.enter_build_mode(placeable)
+	assert_bool(report.is_successful()).append_failure_message("Failed to enter build mode").is_true()
+	
+	# Verify preview exists
+	var preview : Node2D = _container.get_states().building.preview
+	assert_object(preview).append_failure_message("Preview should exist after entering build mode").is_not_null()
+	
+	# Get placement manager and verify indicators exist
+	var placement_manager : PlacementManager = _container.get_contexts().placement.get_manager()
+	assert_object(placement_manager).append_failure_message("PlacementManager should exist").is_not_null()
+	var indicators : Array[RuleCheckIndicator] = placement_manager.get_indicators()
+	assert_array(indicators).append_failure_message("Should have at least one indicator after entering build mode").is_not_empty()
+	
+	# Record initial rotations
+	var initial_preview_rotation : float = preview.global_rotation_degrees
+	var initial_indicator_rotations : Array[float] = []
+	for indicator in indicators:
+		initial_indicator_rotations.append(indicator.global_rotation_degrees)
+	
+	# Create manipulation system for rotation
+	var manipulation_system : ManipulationSystem = ManipulationSystem.create_with_injection(_container)
+	add_child(manipulation_system)
+	
+	# Act: Rotate the preview using the manipulation system
+	var rotation_amount : float = 45.0
+	var success : bool = manipulation_system.rotate(preview, rotation_amount)
+	assert_bool(success).append_failure_message("Rotation should succeed").is_true()
+	
+	# Assert: Verify both preview and all indicators have rotated by the same amount
+	var expected_rotation : float = initial_preview_rotation + rotation_amount
+	assert_float(preview.global_rotation_degrees).append_failure_message(
+		"Preview should have rotated by %f degrees" % rotation_amount
+	).is_equal_approx(expected_rotation, 0.001)
+	
+	for i in range(indicators.size()):
+		var indicator : RuleCheckIndicator = indicators[i]
+		var expected_indicator_rotation : float = initial_indicator_rotations[i] + rotation_amount
+		assert_float(indicator.global_rotation_degrees).append_failure_message(
+			"Indicator %d should have rotated by %f degrees" % [i, rotation_amount]
+		).is_equal_approx(expected_indicator_rotation, 0.001)
+	
+	# Cleanup
+	manipulation_system.queue_free()

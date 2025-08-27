@@ -83,7 +83,7 @@ static func create_indicator_manager(test: GdUnitTestSuite, targeting_state: Gri
 	var parent := Node2D.new()
 	test.auto_free(parent)
 	test.add_child(parent)
-	var template := load("uid://nhlp6ks003fp")
+	var template := TestSceneLibrary.indicator
 	var state := targeting_state if targeting_state != null else create_targeting_state(test)
 	var logger := create_test_logger()
 	return IndicatorManager.new(parent, state, template, logger)
@@ -96,7 +96,7 @@ static func create_test_indicator_collision_setup(test: GdUnitTestSuite, collisi
 
 static func create_test_indicator_manager(test: GdUnitTestSuite, targeting_state: GridTargetingState = null) -> IndicatorManager:
 	var parent := GodotTestFactory.create_node2d(test)
-	var template := load("uid://nhlp6ks003fp")
+	var template := TestSceneLibrary.indicator
 	var state := targeting_state if targeting_state != null else create_double_targeting_state(test)
 	var logger := create_test_logger()
 	var manager := IndicatorManager.new(parent, state, template, logger)
@@ -249,7 +249,7 @@ static func create_test_owner_context(test: GdUnitTestSuite) -> GBOwnerContext:
 static func create_placement_manager(test: GdUnitTestSuite, targeting_state: GridTargetingState = null) -> PlacementManager:
 	var manager := PlacementManager.new()
 	var placement_context := PlacementContext.new()
-	var indicator_template := load("uid://nhlp6ks003fp")
+	var indicator_template := TestSceneLibrary.indicator
 	var state := targeting_state if targeting_state != null else create_targeting_state(test)
 	var logger := create_test_logger()
 	var rules: Array[PlacementRule] = []
@@ -328,10 +328,15 @@ static func create_test_rule_check_indicator(test: GdUnitTestSuite, parent: Node
 static func create_test_valid_placement_tile_rule(tile_data: Dictionary = {}) -> ValidPlacementTileRule:
 	return ValidPlacementTileRule.new(tile_data)
 
-static func create_test_within_tilemap_bounds_rule() -> WithinTilemapBoundsRule:
+static func create_test_within_tilemap_bounds_rule(test: GdUnitTestSuite = null) -> WithinTilemapBoundsRule:
+	# Create the rule. If a test instance is provided, run a proper setup
+	# so the rule has valid RuleValidationParameters (including logger).
 	var rule := WithinTilemapBoundsRule.new()
-	var logger := create_test_logger()
-	rule.initialize(logger)
+	if test != null:
+		var params := create_rule_validation_params(test)
+		# PlacementRule.setup returns an Array of issues; ignore return but
+		# allow assert in setup to surface any problems during tests.
+		rule.setup(params)
 	return rule
 #endregion
 #region Targeting State
@@ -459,7 +464,11 @@ static func create_test_placeable_instance(test: GdUnitTestSuite, instance_name:
 	}
 	
 	var instance = PlaceableInstance.instance_from_save(save, test)
-	return test.auto_free(instance)
+	# If the instance is a Node, parent it under the test so it's in the scene tree
+	test.auto_free(instance)
+	if instance is Node:
+		test.add_child(instance)
+	return instance
 
 ## Create a test manipulation data object
 static func create_test_manipulation_data(
@@ -470,14 +479,19 @@ static func create_test_manipulation_data(
 ) -> ManipulationData:
 	var root = root_manipulatable if root_manipulatable else create_test_manipulatable(test)
 	var target = target_manipulatable if target_manipulatable else create_test_manipulatable(test)
-	
+
+	# Provide a container node for manipulation data and ensure it is parented to the test
+	var container_node := Node.new()
+	test.auto_free(container_node)
+	test.add_child(container_node)
+
 	var data = ManipulationData.new(
-		test.auto_free(Node.new()),
+		container_node,
 		root,
 		target,
 		action
 	)
-	
+
 	return test.auto_free(data)
 
 ## Create a test rule check indicator with common setup

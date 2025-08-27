@@ -59,10 +59,10 @@ func test_indicators_are_parented_and_inside_tree():
 	var logger = _container.get_logger()
 	var params := RuleValidationParameters.new(positioner, preview, targeting_state, logger)
 	var setup_ok := placement_manager.try_setup(rules, params)
-	assert_bool(setup_ok).append_failure_message("PlacementManager.try_setup failed").is_true()
+	assert_bool(setup_ok.is_successful()).append_failure_message("PlacementManager.try_setup failed").is_true()
 	var indicators := placement_manager.get_indicators()
 	assert_array(indicators).append_failure_message("No indicators created").is_not_empty()
 	for ind in indicators:
 		assert_bool(ind.is_inside_tree()).append_failure_message("Indicator not inside tree: %s" % ind.name).is_true()
 		assert_object(ind.get_parent()).append_failure_message("Indicator has no parent: %s" % ind.name).is_not_null()
-		assert_object(ind.get_parent()).append_failure_message("Unexpected parent for indicator: %s" % ind.name).is_equal(placement_manager)
+		assert_object(ind.get_parent()).append_failure_message("Unexpected parent for indicator: %s" % ind.name).is_equal(preview)

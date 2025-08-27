@@ -34,8 +34,8 @@ func before_test():
 	add_child(placement_manager)
 	var placement_context := PlacementContext.new(); auto_free(placement_context)
 	# Load primary indicator template and validate root type; fallback to alternate UID if needed
-	var indicator_template := load("uid://nhlp6ks003fp")
-	var fallback_indicator_template := load("uid://dhox8mb8kuaxa")
+	var indicator_template := TestSceneLibrary.indicator
+	var fallback_indicator_template := TestSceneLibrary.indicator_min
 	var chosen_template := indicator_template
 	if chosen_template:
 		var temp_instance = chosen_template.instantiate()
@@ -172,7 +172,7 @@ func test_real_world_indicator_positioning():
 	assert_bool(matching_collision_layer_found).append_failure_message("No physics body ancestor has collision_layer overlapping TileCheckRule mask. Bodies observed: %s mask=%d" % [", ".join(physics_body_layer_details), tile_check_rule.apply_to_objects_mask]).is_true()
 
 	# Ensure targeting state readiness
-	var targeting_issues = targeting_state.validate()
+	var targeting_issues = targeting_state.get_runtime_issues()
 	assert_that(targeting_issues.is_empty()).append_failure_message("Targeting state issues: %s" % str(targeting_issues)).is_true()
 
 	# Direct indicator setup (TileCheckRule already created above)

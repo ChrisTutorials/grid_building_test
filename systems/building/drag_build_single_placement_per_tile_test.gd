@@ -114,11 +114,11 @@ func test_drag_build_single_placement_per_tile_with_no_rules():
 	
 	# Enter build mode
 	building_system.selected_placeable = placeable
-	var entered = building_system.enter_build_mode(placeable)
-	assert_bool(entered).is_true()
+	var report : PlacementSetupReport = building_system.enter_build_mode(placeable)
+	assert_bool(report.is_successful()).is_true()
 	
 	# Position at tile (0, 0)
-	positioner.global_position = Vector2.ZERO
+	positioner.global_position = tile_map_layer.to_global(tile_map_layer.map_to_local(Vector2i(0, 0)))
 	targeting_system._process(0.0)  # Force targeting update
 	
 	# Start drag building
@@ -172,12 +172,15 @@ func test_drag_build_allows_placement_after_tile_switch():
 	var first_tile = Vector2i(0, 0)
 	var old_tile = Vector2i(-1, -1)
 	building_system._on_drag_targeting_new_tile(drag_data, first_tile, old_tile)
+	positioner.global_position = tile_map_layer.to_global(tile_map_layer.map_to_local(first_tile))
 	
 	# Should have 1 placement
 	assert_int(placement_count).is_equal(1)
 	
 	# Switch to different tile (1, 0) - this should allow another placement
 	var second_tile = Vector2i(1, 0)
+	positioner.global_position = tile_map_layer.to_global(tile_map_layer.map_to_local(second_tile))
+	targeting_system._process(0.0)  # Force targeting update
 	building_system._on_drag_targeting_new_tile(drag_data, second_tile, first_tile)
 	
 	# This should succeed since we moved to a different tile
@@ -188,6 +191,8 @@ func test_drag_build_allows_placement_after_tile_switch():
 		assert_that(placed_positions[0]).is_not_equal(placed_positions[1])
 	
 	# Move back to original tile (0, 0) - should allow placement again
+	positioner.global_position = tile_map_layer.to_global(tile_map_layer.map_to_local(first_tile))
+	targeting_system._process(0.0)  # Force targeting update
 	building_system._on_drag_targeting_new_tile(drag_data, first_tile, second_tile)
 	
 	# This should succeed since we're revisiting a previously visited tile

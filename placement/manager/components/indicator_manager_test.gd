@@ -19,7 +19,7 @@ func before_test():
 	indicator_manager = IndicatorManager.create_with_injection(TEST_CONTAINER, indicator_parent)
 	targeting_state = TEST_CONTAINER.get_targeting_state()
 	_initialize_targeting_state(targeting_state)
-	var issues := targeting_state.validate()
+	var issues := targeting_state.validate_runtime()
 	assert_array(issues).append_failure_message("Targeting state invalid -> %s" % [issues]).is_empty()
 
 	received_signal = false
@@ -136,9 +136,9 @@ func test_setup_indicators_creates_indicators_and_aligns_positioner() -> void:
 	var body := _create_test_body()
 	var rules : Array[TileCheckRule] = [CollisionsCheckRule.new()]
 	# Ensure targeting_state readiness (validate sets ready flag internally)
-	var issues := targeting_state.validate()
+	var issues := targeting_state.validate_runtime()
 	assert_array(issues).append_failure_message("Targeting state validation issues -> %s" % [issues]).is_empty()
-	assert_bool(targeting_state.ready).append_failure_message("Targeting state not marked ready after validate(); issues=%s positioner=%s target_map=%s maps=%d" % [issues, targeting_state.positioner, targeting_state.target_map, targeting_state.maps.size()]).is_true()
+	assert_bool(targeting_state.ready).append_failure_message("Targeting state not marked ready after validate_runtime(); issues=%s positioner=%s target_map=%s maps=%d" % [issues, targeting_state.positioner, targeting_state.target_map, targeting_state.maps.size()]).is_true()
 	# Configure collision mapper before calling setup to satisfy fail-fast contract
 	UnifiedTestFactory.configure_collision_mapper_for_test_object(self, indicator_manager, body, TEST_CONTAINER, indicator_parent)
 	var report: IndicatorSetupReport = indicator_manager.setup_indicators(body, rules, indicator_parent)
@@ -163,7 +163,7 @@ func test_get_or_create_testing_indicator_reuse_and_recreate() -> void:
 	assert_object(second).append_failure_message("Second call should reuse existing testing indicator").is_same(first)
 	# Trigger setup (frees testing indicator internally)
 	var body := _create_test_body()
-	var issues := targeting_state.validate()
+	var issues := targeting_state.validate_runtime()
 	assert_array(issues).append_failure_message("Targeting state validation issues -> %s" % [issues]).is_empty()
 	# Configure collision mapper before calling setup
 	UnifiedTestFactory.configure_collision_mapper_for_test_object(self, indicator_manager, body, TEST_CONTAINER, indicator_parent)

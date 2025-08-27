@@ -17,6 +17,17 @@ var placement_attempts: int = 0
 var placed_objects: Array[Node2D] = []
 var placement_manager : PlacementManager
 
+## Helper: build a compact validation summary string for failure messages
+func _validation_summary(validation: ValidationResults) -> String:
+	if validation == null:
+		return "validation=null"
+	var parts: Array = []
+	if validation.rule_results:
+		for rr in validation.rule_results:
+			var rule_name = rr.rule.get_class() if rr.rule else "<no-rule>"
+			parts.append("%s:%s" % [rule_name, rr.reason])
+	return "is_successful=%s issues=%s rule_results=%s" % [str(validation.is_successful), str(validation.issues), str(parts)]
+
 func before_test():
 	placement_attempts = 0
 	placed_objects.clear()
@@ -25,8 +36,17 @@ func before_test():
 	placed_parent = GodotTestFactory.create_node2d(self)
 	grid_positioner = GodotTestFactory.create_node2d(self)
 	placement_manager = PlacementManager.new()
-	grid_positioner.add_child(placement_manager)
-	map_layer = GodotTestFactory.create_empty_tile_map_layer(self)
+	# Use factory to create a fully initialized placement manager and register it with the test container
+	placement_manager = UnifiedTestFactory.create_placement_manager(self)
+	# Ensure placement manager is registered in the test container's placement context
+	_container.get_contexts().placement.set_manager(placement_manager)
+	# Keep placement manager under the positioner so preview instances are parented correctly.
+	# If the factory already parented the manager to the test, move it under the positioner safely.
+	if placement_manager.get_parent() != grid_positioner:
+		if placement_manager.get_parent() != null:
+			placement_manager.get_parent().remove_child(placement_manager)
+		grid_positioner.add_child(placement_manager)
+	map_layer = GodotTestFactory.create_tile_map_layer(self)
 
 	var states := _container.get_states()
 	targeting_state = states.targeting
@@ -46,13 +66,17 @@ func before_test():
 
 	states.building.placed_parent = placed_parent
 	
-	# Connect to success signal to track placement attempts
-	states.building.success.connect(_on_build_success)
+	# Connect to success signal to track placement attempts (avoid duplicate connections)
+	if not states.building.success.is_connected(_on_build_success):
+		states.building.success.connect(_on_build_success)
 	
 	# Create a placeable with NO rules (this allows unlimited placement without validation)
 	placeable_no_rules = auto_free(Placeable.new())
-	placeable_no_rules.packed_scene = load("uid://c5tpn1q8rr5u2") # Simple box scene
-	placeable_no_rules.placement_rules = [] # No collision or tile check rules
+	# Use the unified test factory to create a valid packed scene for previews in tests.
+	placeable_no_rules.packed_scene = UnifiedTestFactory.create_test_eclipse_packed_scene(self)
+	# Give a minimal within-tilemap-bounds rule so the validator has at least one active rule
+	# This preserves original intent (no collision rules) but allows validation to proceed.
+	placeable_no_rules.placement_rules = [UnifiedTestFactory.create_test_within_tilemap_bounds_rule()]
 
 func _on_build_success(build_action: BuildActionData):
 	placement_attempts += 1
@@ -62,7 +86,8 @@ func _on_build_success(build_action: BuildActionData):
 func test_setup_validation():
 	assert_object(system).is_not_null()
 	assert_object(placeable_no_rules).is_not_null()
-	assert_array(placeable_no_rules.placement_rules).is_empty()
+	# The placeable in tests now includes a minimal WithinTilemapBoundsRule to allow validator processing
+	assert_array(placeable_no_rules.placement_rules).is_not_empty()
 
 func test_drag_building_single_placement_per_tile_switch():
 	# Enter build mode with placeable that has no rules
@@ -72,8 +97,14 @@ func test_drag_building_single_placement_per_tile_switch():
 	# Enable drag multi-build
 	system._building_settings.drag_multi_build = true
 	
-	# Position positioner at tile (0,0)
-	grid_positioner.global_position = Vector2(8, 8) # Center of tile (0,0) assuming 16x16 tiles
+	# Position positioner at a safe start tile well inside the populated map
+	# Compute a start tile with margin so indicator offsets won't be out of bounds
+	var used_rect = map_layer.get_used_rect()
+	var start_tile := Vector2i(8, 8)
+	# Ensure start_tile is inside used_rect (add small margin)
+	start_tile.x = clamp(start_tile.x, int(used_rect.position.x) + 2, int(used_rect.position.x + used_rect.size.x) - 3)
+	start_tile.y = clamp(start_tile.y, int(used_rect.position.y) + 2, int(used_rect.position.y + used_rect.size.y) - 3)
+	grid_positioner.global_position = map_layer.to_global(map_layer.map_to_local(start_tile))
 	
 	# Start drag building
 	var drag_manager = system._get_lazy_drag_manager()
@@ -82,10 +113,13 @@ func test_drag_building_single_placement_per_tile_switch():
 	assert_bool(drag_manager.is_drag_building()).is_true()
 	
 	# First placement attempt at tile (0,0) - this should succeed
+	# Validate placement state before attempting build and fail with appended diagnostics if invalid
+	var pre_validation = placement_manager.validate_placement()
+	assert_bool(pre_validation.is_successful).append_failure_message(_validation_summary(pre_validation)).is_true()
 	var first_placed = system.try_build()
 	assert_object(first_placed).is_not_null()
-	assert_int(placement_attempts).is_equal(1)
-	assert_int(placed_objects.size()).is_equal(1)
+	assert_int(placement_attempts).append_failure_message(_validation_summary(placement_manager.validate_placement())).is_equal(1)
+	assert_int(placed_objects.size()).append_failure_message(_validation_summary(placement_manager.validate_placement())).is_equal(1)
 	
 	# Now move to the same tile but trigger tile switch event manually
 	# This simulates the drag system firing targeting_new_tile for the same tile
@@ -97,30 +131,33 @@ func test_drag_building_single_placement_per_tile_switch():
 	assert_int(placement_attempts).is_equal(1) # WILL FAIL - this is the regression
 	assert_int(placed_objects.size()).is_equal(1) # WILL FAIL - this is the regression
 	
-	# Now move to a different tile (1,0)
-	grid_positioner.global_position = Vector2(24, 8) # Center of tile (1,0)
+	# Now move to a different tile (start_tile + (1,0))
+	grid_positioner.global_position = map_layer.to_global(map_layer.map_to_local(start_tile + Vector2i(1, 0)))
 	drag_data.update(0.016) # Update drag data
 	
 	# Trigger tile switch to new tile
 	system._on_drag_targeting_new_tile(drag_data, Vector2i(1, 0), Vector2i(0, 0))
 	
+	# Validate before attempting the second placement
+	var second_validation = placement_manager.validate_placement()
+	assert_bool(second_validation.is_successful).append_failure_message(_validation_summary(second_validation)).is_true()
 	# This should create ONE placement at the new tile
-	assert_int(placement_attempts).is_equal(2)
-	assert_int(placed_objects.size()).is_equal(2)
+	assert_int(placement_attempts).append_failure_message(_validation_summary(placement_manager.validate_placement())).is_equal(2)
+	assert_int(placed_objects.size()).append_failure_message(_validation_summary(placement_manager.validate_placement())).is_equal(2)
 	
-	# Moving within the same tile should not create additional placements
-	grid_positioner.global_position = Vector2(20, 12) # Still within tile (1,0)
+	# Moving within the same tile should not create additional placements (slight offset inside same tile)
+	grid_positioner.global_position = map_layer.to_global(map_layer.map_to_local(start_tile + Vector2i(1, 0))) + Vector2(4, 4)
 	drag_data.update(0.016)
 	
 	# Trigger same tile event again (simulating multiple events on same tile)
 	system._on_drag_targeting_new_tile(drag_data, Vector2i(1, 0), Vector2i(1, 0))
 	
 	# Should still only be 2 placements total
-	assert_int(placement_attempts).is_equal(2) # WILL FAIL - this is the regression
-	assert_int(placed_objects.size()).is_equal(2) # WILL FAIL - this is the regression
+	assert_int(placement_attempts).append_failure_message(_validation_summary(placement_manager.validate_placement())).is_equal(2) # WILL FAIL - this is the regression
+	assert_int(placed_objects.size()).append_failure_message(_validation_summary(placement_manager.validate_placement())).is_equal(2) # WILL FAIL - this is the regression
 	
-	# Move to third tile (0,1)
-	grid_positioner.global_position = Vector2(8, 24) # Center of tile (0,1)
+	# Move to third tile (start_tile + (0,1))
+	grid_positioner.global_position = map_layer.to_global(map_layer.map_to_local(start_tile + Vector2i(0, 1)))
 	drag_data.update(0.016)
 	
 	# Trigger tile switch to third tile
@@ -150,6 +187,13 @@ func test_tile_tracking_prevents_duplicate_placements():
 	# Enable drag multi-build
 	system._building_settings.drag_multi_build = true
 	
+	# Position positioner at a safe start tile inside the populated map so placement hits valid cells
+	var used_rect = map_layer.get_used_rect()
+	var start_tile := Vector2i(8, 8)
+	start_tile.x = clamp(start_tile.x, int(used_rect.position.x) + 2, int(used_rect.position.x + used_rect.size.x) - 3)
+	start_tile.y = clamp(start_tile.y, int(used_rect.position.y) + 2, int(used_rect.position.y + used_rect.size.y) - 3)
+	grid_positioner.global_position = map_layer.to_global(map_layer.map_to_local(start_tile))
+
 	# Start drag
 	var drag_manager = system._get_lazy_drag_manager()
 	var drag_data = drag_manager.start_drag()

@@ -133,7 +133,7 @@ func test_placement_manager_indicator_integration(
 	targeting_state.positioner_changed.emit(positioner)
 	
 	# Verify indicator management
-	var indicators = placement_manager.get_children().filter(func(child): return child is RuleCheckIndicator)
+	var indicators = positioner.get_children().filter(func(child): return child is RuleCheckIndicator)
 	
 	assert_int(indicators.size()).append_failure_message(
 		"Should have indicators for scenario: %s at position %s" % [integration_scenario, positioner_position]

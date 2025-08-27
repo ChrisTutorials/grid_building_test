@@ -20,6 +20,7 @@ var _container: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
 
 
 func before_test():
+	var injector = UnifiedTestFactory.create_test_injector(self, _container)
 	# Rule and indicator setup. Rule requires the tile data to be grass and Green
 	rule = ValidPlacementTileRule.new()
 	rule.expected_tile_custom_data = {"type": "grass", "color": Color.GREEN}
