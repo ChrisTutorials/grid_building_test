@@ -11,7 +11,7 @@ var test_env: Dictionary
 
 func before_test() -> void:
 	test_env = UnifiedTestFactory.create_placement_system_test_environment(self)
-	test_env.merge(UnifiedTestFactory.create_rule_validation_parameters(self))
+	test_env.rule_validation_parameters = UnifiedTestFactory.create_rule_validation_parameters(self)
 	test_env.merge(UnifiedTestFactory.create_collision_mapper_setup(self))
 
 # ===== COLLISION GEOMETRY CALCULATOR TESTS =====
@@ -250,7 +250,7 @@ func test_collisions_check_rule_setup() -> void:
 	
 	# After setup, validation should succeed (assuming valid environment)
 	assert_array(setup_issues).append_failure_message(
-		"Rule setup should succeed with valid parameters: %s" % setup_issues
+		"Rule setup should succeed with valid parameters: %s" % str(setup_issues)
 	).is_empty()
 
 func test_tile_check_rule_basic() -> void:
@@ -260,7 +260,7 @@ func test_tile_check_rule_basic() -> void:
 	# Setup and validate
 	var setup_issues = rule.setup(params)
 	assert_array(setup_issues).append_failure_message(
-		"Tile rule setup should succeed: %s" % setup_issues
+		"Tile rule setup should succeed: %s" % str(setup_issues)
 	).is_empty()
 	
 	var validation_result = rule.validate_condition()
@@ -270,20 +270,33 @@ func test_tile_check_rule_basic() -> void:
 
 func test_collision_mapper_shape_processing() -> void:
 	var collision_mapper: Object = test_env.collision_mapper
-	var test_object: Node2D = UnifiedTestFactory.create_test_node2d(self)
-	
-	# Add a collision shape to the test object
-	var collision_shape: CollisionShape2D = CollisionShape2D.new()
-	var rect_shape: RectangleShape2D = RectangleShape2D.new()
-	rect_shape.size = Vector2(32, 32)
-	collision_shape.shape = rect_shape
-	test_object.add_child(collision_shape)
-	
-	# Test collision shape processing  
-	var collision_results = collision_mapper.get_collision_tiles(test_object, Vector2(100, 100))
-	
+	var test_object: Node2D = UnifiedTestFactory.create_test_static_body_with_rect_shape(self)
+
+	# Set up collision mapper with test object
+	var test_parent: Node2D = Node2D.new()
+	test_parent.name = "TestParent"
+	add_child(test_parent)
+	auto_free(test_parent)
+
+	# Manually create collision test setup for the StaticBody2D
+	var test_setup = IndicatorCollisionTestSetup.new(test_object, Vector2(16, 16), test_env.logger)
+	var collision_setups: Dictionary[Node2D, IndicatorCollisionTestSetup] = {test_object: test_setup}
+
+	# Create a test indicator
+	var test_indicator = RuleCheckIndicator.new([])
+	test_indicator.name = "TestIndicator"
+	test_parent.add_child(test_indicator)
+	auto_free(test_indicator)
+
+	# Setup collision mapper directly
+	collision_mapper.setup(test_indicator, collision_setups)
+
+	# Test collision shape processing
+	var test_objects: Array[Node2D] = [test_object]
+	var collision_results = collision_mapper.get_collision_tile_positions_with_mask(test_objects, 1)
+
 	# Should return some collision tiles for test object
-	assert_array(collision_results).append_failure_message(
+	assert_dict(collision_results).append_failure_message(
 		"Test collision object should generate collision tiles"
 	).is_not_empty()
 
@@ -317,19 +330,21 @@ func test_rules_and_collision_integration() -> void:
 	assert_array(setup_issues).is_empty()
 	
 	# Test that collision mapper and rules work together
-	var test_object: Node2D = UnifiedTestFactory.create_test_node2d(self)
+	var test_object: Node2D = UnifiedTestFactory.create_test_static_body_with_rect_shape(self)
 	
-	# Add collision shape
-	var collision_shape: CollisionShape2D = CollisionShape2D.new()
-	var rect_shape: RectangleShape2D = RectangleShape2D.new()
-	rect_shape.size = Vector2(16, 16)
-	collision_shape.shape = rect_shape
-	test_object.add_child(collision_shape)
+	# Set up collision mapper with test object
+	var indicator_manager = UnifiedTestFactory.create_test_indicator_manager(self)
+	var test_parent: Node2D = Node2D.new()
+	test_parent.name = "TestParent2"
+	add_child(test_parent)
+	auto_free(test_parent)
+	UnifiedTestFactory.configure_collision_mapper_for_test_object(self, indicator_manager, test_object, null, test_parent)
 	
-	var collision_tiles = collision_mapper.get_collision_tiles(test_object, params.target_position)
+	var test_objects: Array[Node2D] = [test_object]
+	var collision_tiles = collision_mapper.get_collision_tile_positions_with_mask(test_objects, 1)
 	
 	# Validate integration produces reasonable results
-	assert_array(collision_tiles).append_failure_message(
+	assert_dict(collision_tiles).append_failure_message(
 		"Collision mapping should produce tiles for rule validation"
 	).is_not_empty()
 	

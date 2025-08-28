@@ -8,8 +8,8 @@ extends GdUnitTestSuite
 var test_container : GBCompositionContainer = load("uid://dy6e5p5d6ax6n")
 
 func before_test():
-	# No setup needed for this test - it only tests geometry math functions
-	pass
+	# Use the unified test factory to get a proper test container
+	test_container = UnifiedTestFactory.TEST_CONTAINER.duplicate(true)
 
 ## Test capsule shape bounds and tile coverage
 @warning_ignore("unused_parameter")

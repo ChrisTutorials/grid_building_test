@@ -36,8 +36,9 @@ static func create_tile_size(size: int = 16) -> Vector2:
 
 
 ## Creates a basic Node2D for testing with proper auto_free setup
-static func create_node2d(test: GdUnitTestSuite) -> Node2D:
+static func create_node2d(test: GdUnitTestSuite, p_name = "TestNode2D") -> Node2D:
 	var node: Node2D = test.auto_free(Node2D.new())
+	node.name = p_name
 	test.add_child(node)
 	return node as Node2D
 
@@ -132,6 +133,7 @@ static func create_static_body_with_rect_shape(
 	shape.shape = rect
 	test.add_child(body)
 	body.add_child(shape)
+	body.collision_layer = 1  # Set collision layer to match test expectations
 	test.assert_object(shape.shape).append_failure_message("GodotTestFactory: Bad Generated Shape").is_not_null()
 	return body
 

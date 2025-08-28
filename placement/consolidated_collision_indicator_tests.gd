@@ -19,18 +19,15 @@ func test_collision_mapper_basic_functionality() -> void:
 	var collision_mapper: Object = test_hierarchy.collision_mapper
 	var tile_map = test_hierarchy.tile_map
 	
-	# Create a simple collision object
-	var area = Area2D.new()
-	var collision_shape: CollisionShape2D = CollisionShape2D.new()
-	collision_shape.shape = RectangleShape2D.new()
-	collision_shape.shape.size = Vector2(32, 32)
-	area.add_child(collision_shape)
-	test_hierarchy.positioner.add_child(area)
+	# Create a collision object using DRY pattern
+	var collision_object = UnifiedTestFactory.create_test_static_body_with_rect_shape(self)
+	test_hierarchy.positioner.add_child(collision_object)
 	
-	auto_free(area)
+	# Create IndicatorCollisionTestSetup using DRY pattern
+	var test_setup = UnifiedTestFactory.create_test_indicator_collision_setup(self, collision_object)
 	
-	# Test collision mapping
-	var offsets = collision_mapper._get_tile_offsets_for_collision_object(area, tile_map)
+	# Test collision mapping with proper test setup
+	var offsets = collision_mapper._get_tile_offsets_for_collision_object(test_setup, tile_map)
 	assert_dict(offsets).is_not_empty()
 
 func test_collision_mapper_multiple_shapes() -> void:
@@ -55,7 +52,10 @@ func test_collision_mapper_multiple_shapes() -> void:
 	test_hierarchy.positioner.add_child(area)
 	auto_free(area)
 	
-	var offsets = collision_mapper._get_tile_offsets_for_collision_object(area, tile_map)
+	# Create proper test setup for collision mapping
+	var test_setup = UnifiedTestFactory.create_test_indicator_collision_setup(self, area)
+	
+	var offsets = collision_mapper._get_tile_offsets_for_collision_object(test_setup, tile_map)
 	assert_dict(offsets).size().is_greater(1)
 
 # ================================
@@ -67,7 +67,7 @@ func test_indicator_manager_setup_basic() -> void:
 	var manipulation_parent = test_hierarchy.manipulation_parent
 	
 	# Create simple rules
-	var rules: Array = [TileCheckRule.new()]
+	var rules: Array[TileCheckRule] = [TileCheckRule.new()]
 	var area = Area2D.new()
 	var collision_shape: CollisionShape2D = CollisionShape2D.new()
 	collision_shape.shape = RectangleShape2D.new()
@@ -85,7 +85,7 @@ func test_indicator_manager_cleanup() -> void:
 	var indicator_manager: Object = test_hierarchy.indicator_manager
 	
 	# Test cleanup functionality
-	indicator_manager.cleanup_indicators()
+	indicator_manager.tear_down()
 	
 	# Verify indicators are cleaned up
 	var indicator_count = 0
@@ -113,9 +113,12 @@ func test_collision_performance_large_tilemap() -> void:
 	
 	auto_free(area)
 	
+	# Create proper test setup for collision mapping
+	var test_setup = UnifiedTestFactory.create_test_indicator_collision_setup(self, area)
+	
 	# Measure performance (basic timing)
 	var start_time: int = Time.get_ticks_msec()
-	var offsets = collision_mapper._get_tile_offsets_for_collision_object(area, tile_map)
+	var offsets = collision_mapper._get_tile_offsets_for_collision_object(test_setup, tile_map)
 	var end_time: int = Time.get_ticks_msec()
 	
 	var processing_time = end_time - start_time
@@ -128,6 +131,7 @@ func test_collision_performance_multiple_objects() -> void:
 	
 	# Create multiple collision objects
 	var areas: Array = []
+	var test_setups: Array = []
 	for i in range(5):
 		var area = Area2D.new()
 		var collision_shape: CollisionShape2D = CollisionShape2D.new()
@@ -138,13 +142,18 @@ func test_collision_performance_multiple_objects() -> void:
 		test_hierarchy.positioner.add_child(area)
 		areas.append(area)
 		auto_free(area)
+		
+		# Create proper test setup for each collision object
+		var test_setup = UnifiedTestFactory.create_test_indicator_collision_setup(self, area)
+		test_setups.append(test_setup)
 	
 	# Test processing all objects
 	var start_time: int = Time.get_ticks_msec()
 	var all_offsets = {}
-	for area in areas:
-		var offsets = collision_mapper._get_tile_offsets_for_collision_object(area, tile_map)
-		all_offsets[area] = offsets
+	for i in range(test_setups.size()):
+		var test_setup = test_setups[i]
+		var offsets = collision_mapper._get_tile_offsets_for_collision_object(test_setup, tile_map)
+		all_offsets[areas[i]] = offsets
 	var end_time: int = Time.get_ticks_msec()
 	
 	var processing_time = end_time - start_time
@@ -172,7 +181,7 @@ func test_indicator_positioning_basic() -> void:
 	manipulation_parent.add_child(area)
 	auto_free(area)
 	
-	var rules: Array = [TileCheckRule.new()]
+	var rules: Array[TileCheckRule] = [TileCheckRule.new()]
 	
 	# Setup indicators
 	var report = indicator_manager.setup_indicators(area, rules)
@@ -202,7 +211,7 @@ func test_indicator_positioning_grid_alignment() -> void:
 	test_hierarchy.manipulation_parent.add_child(area)
 	auto_free(area)
 	
-	var rules: Array = [TileCheckRule.new()]
+	var rules: Array[TileCheckRule] = [TileCheckRule.new()]
 	var report = indicator_manager.setup_indicators(area, rules)
 	
 	assert_that(report).is_not_null()

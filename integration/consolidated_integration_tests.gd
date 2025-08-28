@@ -14,7 +14,7 @@ var test_env: Dictionary
 func before_test() -> void:
 	test_env = UnifiedTestFactory.create_systems_integration_test_environment(self)
 
-# ===== BUILDING WORKFLOW INTEGRATION TESTS =====
+#region BUILDING WORKFLOW INTEGRATION
 
 func test_complete_building_workflow() -> void:
 	var building_system: Object = test_env.building_system
@@ -55,7 +55,9 @@ func test_building_workflow_with_validation() -> void:
 	var build_result = building_system.try_build_at_position(valid_pos)
 	assert_object(build_result).is_not_null()
 
-# ===== MULTI-RULE INDICATOR ATTACHMENT TESTS =====
+#endregion
+
+#region MULTI-RULE INDICATOR ATTACHMENT
 
 func test_multi_rule_indicator_attachment() -> void:
 	var indicator_manager: Object = test_env.indicator_manager
@@ -100,7 +102,9 @@ func test_rule_indicator_state_synchronization() -> void:
 		"Rule state update should succeed: %s" % update_result.get_all_issues()
 	).is_true()
 
-# ===== SMITHY INDICATOR GENERATION TESTS =====
+#endregion
+
+#region SMITHY INDICATOR GENERATION
 
 func test_smithy_indicator_generation() -> void:
 	var smithy = PlaceableLibrary.get_smithy()
@@ -149,7 +153,9 @@ func test_smithy_collision_detection() -> void:
 			"Collision tile y coordinate should be reasonable: %d" % tile_coord.y
 		).is_less_than(1000)
 
-# ===== COMPLEX WORKFLOW INTEGRATION TESTS =====
+#endregion
+
+#region COMPLEX WORKFLOW INTEGRATION
 
 func test_complex_multi_system_workflow() -> void:
 	var building_system: Object = test_env.building_system
@@ -157,8 +163,9 @@ func test_complex_multi_system_workflow() -> void:
 	var manipulation_system = test_env.manipulation_system
 	
 	# Phase 1: Target selection
-	targeting_system.set_target_position(Vector2(200, 200))
-	var target_pos = targeting_system.get_current_target_position()
+	var targeting_state = targeting_system.get_state()
+	targeting_state.target.position = Vector2(200, 200)
+	var target_pos = targeting_state.target.position
 	assert_vector(target_pos).append_failure_message(
 		"Target position should be set correctly"
 	).is_equal(Vector2(200, 200))
@@ -184,21 +191,25 @@ func test_cross_system_state_consistency() -> void:
 	
 	# Setup coordinated state across systems
 	var target_pos: Vector2 = Vector2(240, 240)
-	targeting_system.set_target_position(target_pos)
+	var targeting_state = targeting_system.get_state()
+	targeting_state.target.position = target_pos
 	
 	var smithy = PlaceableLibrary.get_smithy()
 	building_system.enter_build_mode(smithy)
 	
 	# Verify state consistency
 	var building_target = building_system.get_target_position()
-	var targeting_target = targeting_system.get_current_target_position()
+	var current_targeting_state = targeting_system.get_state()
+	var targeting_target = current_targeting_state.target.position
 	
 	# Systems should maintain consistent target positions
 	assert_vector(building_target).append_failure_message(
 		"Building system target (%s) should match targeting system (%s)" % [building_target, targeting_target]
 	).is_equal(targeting_target)
 
-# ===== POLYGON TEST OBJECT INTEGRATION TESTS =====
+#endregion
+
+#region POLYGON TEST OBJECT INTEGRATION
 
 func test_polygon_test_object_indicator_generation() -> void:
 	var polygon_test_object = PlaceableLibrary.get_polygon_test_object()
@@ -248,7 +259,7 @@ func test_polygon_collision_integration() -> void:
 		"Polygon should span multiple Y coordinates, got %d" % unique_y_coords.size()
 	).is_greater_equal(2)
 
-# ===== GRID TARGETING HIGHLIGHT INTEGRATION TESTS =====
+#region GRID TARGETING HIGHLIGHT INTEGRATION
 
 func test_grid_targeting_highlight_integration() -> void:
 	var targeting_system = test_env.targeting_system
@@ -259,7 +270,8 @@ func test_grid_targeting_highlight_integration() -> void:
 		return
 	
 	# Test targeting with highlight updates
-	targeting_system.set_target_position(Vector2(360, 360))
+	var targeting_state = targeting_system.get_state()
+	targeting_state.target.position = Vector2(360, 360)
 	
 	# Verify highlight state updates with targeting
 	var highlight_active = highlight_manager.is_highlight_active() if highlight_manager.has_method("is_highlight_active") else true
@@ -271,24 +283,26 @@ func test_targeting_state_transitions() -> void:
 	var targeting_system = test_env.targeting_system
 	
 	# Test state transitions
-	var initial_pos = targeting_system.get_current_target_position()
-	targeting_system.set_target_position(Vector2(400, 400))
-	var updated_pos = targeting_system.get_current_target_position()
+	var targeting_state = targeting_system.get_state()
+	var initial_pos = targeting_state.target.position
+	targeting_state.target.position = Vector2(400, 400)
+	var updated_pos = targeting_state.target.position
 	
 	assert_vector(updated_pos).append_failure_message(
 		"Target position should update from %s to Vector2(400, 400), got %s" % [initial_pos, updated_pos]
 	).is_equal(Vector2(400, 400))
 	
 	# Test clearing target
-	targeting_system.clear_target()
-	var cleared_pos = targeting_system.get_current_target_position()
+	targeting_state.target.position = Vector2.ZERO  # Reset to origin
+	var cleared_pos = targeting_state.target.position
 	
 	# Cleared position behavior depends on system implementation
 	assert_object(cleared_pos).append_failure_message(
 		"Should have valid position response after clearing target"
 	).is_not_null()
 
-# ===== COMPREHENSIVE INTEGRATION VALIDATION =====
+#endregion
+#region COMPREHENSIVE INTEGRATION VALIDATION
 
 func test_full_system_integration_workflow() -> void:
 	# Test complete workflow from targeting through building to manipulation
@@ -299,7 +313,8 @@ func test_full_system_integration_workflow() -> void:
 	
 	# Step 1: Set target
 	var target_pos: Vector2 = Vector2(500, 500)
-	targeting_system.set_target_position(target_pos)
+	var targeting_state = targeting_system.get_state()
+	targeting_state.target.position = target_pos
 	
 	# Step 2: Enter build mode with indicators
 	var smithy = PlaceableLibrary.get_smithy()

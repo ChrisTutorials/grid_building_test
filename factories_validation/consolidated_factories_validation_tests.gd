@@ -64,11 +64,11 @@ func test_composition_container_factory() -> void:
 		"Environment should include container"
 	).is_not_null()
 	
-	# Test container functionality if available
-	if container and container.has_method("resolve_dependency") -> void:
-		var test_dependency: Object = container.resolve_dependency("test_logger")
-		assert_object(test_dependency).append_failure_message(
-			"Container should resolve test logger dependency"
+	# Test container functionality using real API
+	if container:
+		var logger = container.get_logger()
+		assert_object(logger).append_failure_message(
+			"Container should provide logger"
 		).is_not_null()
 
 # ===== FACTORY LAYERING TESTS =====
@@ -177,12 +177,12 @@ func test_rule_validation_parameters() -> void:
 		"Test environment should include validation parameters"
 	).is_not_null()
 	
-	# Validate parameter structure
-	if params and params.has_method("is_valid"):
-		var is_valid = params.is_valid()
-		assert_bool(is_valid).append_failure_message(
+	# Validate parameter structure using real API
+	if params:
+		var validation_issues = RuleValidationParameters.validate(params)
+		assert_array(validation_issues).append_failure_message(
 			"Validation parameters should be valid"
-		).is_true()
+		).is_empty()
 
 func test_targeting_state_validation() -> void:
 	# Test targeting state validation
@@ -206,14 +206,19 @@ func test_collision_rule_validation() -> void:
 		"Should create collision rule instance"
 	).is_not_null()
 	
-	# Test rule validation methods if available
-	if collision_rule.has_method("validate"):
-		var params = test_env.rule_validation_parameters
-		var validation_result = collision_rule.validate(params)
-		
-		assert_object(validation_result).append_failure_message(
-			"Rule validation should return result"
-		).is_not_null()
+	# Test rule validation methods using real API
+	if collision_rule:
+		var params = test_env.get("rule_validation_parameters")
+		if params:
+			var setup_issues = collision_rule.setup(params)
+			assert_array(setup_issues).append_failure_message(
+				"Rule setup should succeed"
+			).is_empty()
+			
+			var result = collision_rule.validate_condition()
+			assert_object(result).append_failure_message(
+				"Rule validation should return result"
+			).is_not_null()
 
 # ===== VALIDATION EDGE CASES =====
 
@@ -221,62 +226,63 @@ func test_validation_null_parameters() -> void:
 	# Test validation with null parameters
 	var collision_rule = CollisionsCheckRule.new()
 	
-	if collision_rule.has_method("validate"):
-		var null_result = collision_rule.validate(null)
-		
-		assert_object(null_result).append_failure_message(
+	if collision_rule:
+		var setup_issues = collision_rule.setup(null)
+		assert_array(setup_issues).append_failure_message(
 			"Should handle null validation parameters"
-		).is_not_null()
+		).is_not_empty()
 		
 		# Result should indicate failure
-		if null_result.has_method("is_valid"):
-			var is_valid = null_result.is_valid()
-			assert_bool(is_valid).append_failure_message(
-				"Null parameters should result in invalid validation"
-			).is_false()
+		var result = collision_rule.validate_condition()
+		assert_object(result).is_not_null()
+		assert_bool(result.is_successful).append_failure_message(
+			"Null parameters should result in validation failure"
+		).is_false()
 
 func test_validation_invalid_tilemap() -> void:
 	# Test validation with invalid tilemap
-	var params = test_env.rule_validation_parameters
+	var params = test_env.get("rule_validation_parameters")
 	if params:
 		# Temporarily set invalid tilemap
-		var original_tilemap = params.tile_map
-		params.tile_map = null
+		var original_tilemap = params.targeting_state.target_map
+		params.targeting_state.target_map = null
 		
 		var collision_rule = CollisionsCheckRule.new()
-		if collision_rule.has_method("validate"):
-			var result = collision_rule.validate(params)
+		if collision_rule:
+			var setup_issues = collision_rule.setup(params)
+			assert_array(setup_issues).is_not_empty()
 			
+			var result = collision_rule.validate_condition()
 			assert_object(result).is_not_null()
 			
 			# Should handle invalid tilemap gracefully
-			if result.has_method("is_valid"):
-				var is_valid = result.is_valid()
-				assert_bool(is_valid).append_failure_message(
-					"Invalid tilemap should result in validation failure"
-				).is_false()
+			assert_bool(result.is_successful).append_failure_message(
+				"Invalid tilemap should result in validation failure"
+			).is_false()
 		
 		# Restore original tilemap
-		params.tile_map = original_tilemap
+		params.targeting_state.target_map = original_tilemap
 
 func test_validation_out_of_bounds() -> void:
 	# Test validation with out-of-bounds positions
-	var params = test_env.rule_validation_parameters
+	var params = test_env.get("rule_validation_parameters")
 	if params:
 		# Set extremely large position
-		var original_position = params.target_position
-		params.target_position = Vector2(999999, 999999)
+		var original_position = params.target.global_position
+		params.target.global_position = Vector2(999999, 999999)
 		
 		var collision_rule = CollisionsCheckRule.new()
-		if collision_rule.has_method("validate"):
-			var result = collision_rule.validate(params)
+		if collision_rule:
+			var setup_issues = collision_rule.setup(params)
+			assert_array(setup_issues).is_empty()
 			
+			var result = collision_rule.validate_condition()
 			assert_object(result).append_failure_message(
 				"Should handle out-of-bounds position"
 			).is_not_null()
 		
 		# Restore original position
-		params.target_position = original_position
+		params.target.global_position = original_position
 
 # ===== FACTORY PERFORMANCE TESTS =====
 
@@ -320,14 +326,16 @@ func test_validation_performance() -> void:
 	# Test validation performance with multiple rules
 	var start_time: int = Time.get_ticks_msec()
 	
-	var params = test_env.rule_validation_parameters
+	var params = test_env.get("rule_validation_parameters")
 	
 	# Test multiple collision rules
 	for i in range(20):
 		var rule = CollisionsCheckRule.new()
-		if rule.has_method("validate"):
-			var result = rule.validate(params)
-			assert_object(result).is_not_null()
+		if rule:
+			var setup_issues = rule.setup(params)
+			if setup_issues.is_empty():
+				var result = rule.validate_condition()
+				assert_object(result).is_not_null()
 	
 	var end_time: int = Time.get_ticks_msec()
 	var duration = end_time - start_time
@@ -349,8 +357,11 @@ func test_factory_validation_integration() -> void:
 	
 	# Test validation with factory-created objects
 	var collision_rule = CollisionsCheckRule.new()
-	if collision_rule.has_method("validate"):
-		var result = collision_rule.validate(params)
+	if collision_rule:
+		var setup_issues = collision_rule.setup(params)
+		assert_array(setup_issues).is_empty()
+		
+		var result = collision_rule.validate_condition()
 		assert_object(result).append_failure_message(
 			"Factory-created parameters should work with validation"
 		).is_not_null()
@@ -403,13 +414,15 @@ func test_end_to_end_factory_validation() -> void:
 		var test_rule = CollisionsCheckRule.new()
 		var params = systems_env.get("rule_validation_parameters")
 		if params:
-			params.placeable_instance = test_object
-			params.target_position = Vector2(100, 100)
+			params.target = test_object
+			params.target.global_position = Vector2(100, 100)
 			
-			var result = indicator_manager.try_setup([test_rule], params)
-			assert_object(result).append_failure_message(
-				"End-to-end indicator generation should work"
-			).is_not_null()
+			var setup_issues = test_rule.setup(params)
+			if setup_issues.is_empty():
+				var result = indicator_manager.try_setup([test_rule], params)
+				assert_object(result).append_failure_message(
+					"End-to-end indicator generation should work"
+				).is_not_null()
 	
 	# Cleanup
 	test_object.queue_free()

@@ -15,21 +15,17 @@ const TestSceneLibraryScene := preload("res://test/grid_building_test/scenes/tes
 
 var _positioner : Node2D
 var _injector: GBInjectorSystem
+var _container : GBCompositionContainer
 
 func before_test():
-	# Create injector system first
-	_injector = UnifiedTestFactory.create_test_injector(self, TEST_CONTAINER)
-var _injector: GBInjectorSystem
-var _container : GBCompositionContainer = load("uid://dy6e5p5d6ax6n")
-
-func before_test():
+	_container = TEST_CONTAINER.duplicate()
 	_setup_targeting_state()
 	_setup_indicator_manager()
 
 func _setup_targeting_state():
 	# Step 1: Set up the targeting state with its runtime dependencies (map objects and positioner).
 	# This must be done first so that IndicatorManager receives a fully initialized targeting state.
-	_injector = auto_free(GBInjectorSystem.create_with_injection(_container))
+	_injector = auto_free(GBInjectorSystem.create_with_injection(self, _container))
 	add_child(_injector)
 	map_layer = auto_free(TileMapLayer.new())
 	add_child(map_layer)
@@ -154,9 +150,10 @@ func test_indicator_positions_are_unique():
 	shape_scene.global_position = global_snap_pos
 	var collision_shape_count := _count_collision_shapes(shape_scene)
 	(
-		assert_int(collision_shape_count)
-		.append_failure_message("No collision shapes in eclipse_scene for uniqueness test")
-		.is_greater(0)
+		assert_int(collision_shape_count)\
+			.append_failure_message("No collision shapes in eclipse_scene for uniqueness test")\
+			.is_greater(0)
+	)
 	var report : IndicatorSetupReport = indicator_manager.setup_indicators(shape_scene, col_checking_rules)
 	var indicators = report.indicators
 	var summary = report.to_summary_string()
@@ -182,7 +179,7 @@ func test_indicator_positions_are_unique():
 func test_no_indicators_for_empty_scene():
 	var empty_node = auto_free(Node2D.new())
 	add_child(empty_node)
-	var report : IndicatorSetupReport = indicator_manager.setup_indicators(empty_node, col_checking_rules, false)
+	var report : IndicatorSetupReport = indicator_manager.setup_indicators(empty_node, col_checking_rules)
 	var indicators = report.indicators
 	var summary = report.to_summary_string()
 	(
@@ -198,7 +195,7 @@ func test_indicator_generation_distance(scene_resource: PackedScene, expected_di
 	var shape_scene = auto_free(scene_resource.instantiate())
 	add_child(shape_scene)
 	shape_scene.global_position = global_snap_pos
-	var report : IndicatorSetupReport = indicator_manager.setup_indicators(shape_scene, col_checking_rules, false)
+	var report : IndicatorSetupReport = indicator_manager.setup_indicators(shape_scene, col_checking_rules)
 	var indicators = report.indicators
 	var summary = report.to_summary_string()
 	(
@@ -219,7 +216,7 @@ func test_indicators_are_freed_on_reset():
 	var shape_scene = UnifiedTestFactory.create_eclipse_test_object(self)
 	add_child(shape_scene)
 	shape_scene.global_position = global_snap_pos
-	var report : IndicatorSetupReport = indicator_manager.setup_indicators(shape_scene, col_checking_rules, false)
+	var report : IndicatorSetupReport = indicator_manager.setup_indicators(shape_scene, col_checking_rules)
 	var indicators = report.indicators
 	var summary = report.to_summary_string()
 	(

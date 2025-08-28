@@ -19,21 +19,21 @@ func after_test() -> void:
 
 @warning_ignore("unused_parameter")
 func test_building_system_initialization() -> void:
-	var building_system: Object = test_env.building_system
+	var _building_system: BuildingSystem = test_env.building_system
 	
-	assert_that(building_system).is_not_null()
-	assert_that(building_system.name).contains("BuildingSystem")
+	assert_that(_building_system).is_not_null()
+	assert_that(_building_system is BuildingSystem).is_true()
 
 @warning_ignore("unused_parameter")
 func test_building_system_dependencies() -> void:
-	var building_system: Object = test_env.building_system
+	var building_system: BuildingSystem = test_env.building_system
 	
 	# Verify system has proper dependencies
 	UnifiedTestFactory.assert_system_dependencies_valid(self, building_system)
 
 @warning_ignore("unused_parameter") 
 func test_building_system_state_integration() -> void:
-	var building_system: Object = test_env.building_system
+	var _building_system: BuildingSystem = test_env.building_system
 	var container: GBCompositionContainer = test_env.container
 	
 	# Test building state configuration
@@ -46,21 +46,21 @@ func test_building_system_state_integration() -> void:
 
 @warning_ignore("unused_parameter")
 func test_manipulation_system_initialization() -> void:
-	var manipulation_system = test_env.manipulation_system
+	var _manipulation_system = test_env.manipulation_system
 	
-	assert_that(manipulation_system).is_not_null()
-	assert_that(manipulation_system.name).contains("ManipulationSystem")
+	assert_that(_manipulation_system).is_not_null()
+	assert_that(_manipulation_system is ManipulationSystem).is_true()
 
 @warning_ignore("unused_parameter")
 func test_manipulation_system_dependencies() -> void:
-	var manipulation_system = test_env.manipulation_system
+	var manipulation_system: ManipulationSystem = test_env.manipulation_system
 	
 	# Verify system has proper dependencies
 	UnifiedTestFactory.assert_system_dependencies_valid(self, manipulation_system)
 
 @warning_ignore("unused_parameter")
 func test_manipulation_system_state_integration() -> void:
-	var manipulation_system = test_env.manipulation_system
+	var _manipulation_system = test_env.manipulation_system
 	var container: GBCompositionContainer = test_env.container
 	
 	# Test manipulation state configuration
@@ -74,21 +74,21 @@ func test_manipulation_system_state_integration() -> void:
 
 @warning_ignore("unused_parameter")
 func test_targeting_system_initialization() -> void:
-	var targeting_system = test_env.targeting_system
+	var _targeting_system = test_env.targeting_system
 	
-	assert_that(targeting_system).is_not_null()
-	assert_that(targeting_system.name).contains("GridTargetingSystem")
+	assert_that(_targeting_system).is_not_null()
+	assert_that(_targeting_system is GridTargetingSystem).is_true()
 
 @warning_ignore("unused_parameter")
 func test_targeting_system_dependencies() -> void:
-	var targeting_system = test_env.targeting_system
+	var targeting_system: GridTargetingSystem = test_env.targeting_system
 	
 	# Verify system has proper dependencies
 	UnifiedTestFactory.assert_system_dependencies_valid(self, targeting_system)
 
 @warning_ignore("unused_parameter")
 func test_targeting_system_state_integration() -> void:
-	var targeting_system = test_env.targeting_system
+	var _targeting_system = test_env.targeting_system
 	var container: GBCompositionContainer = test_env.container
 	
 	# Test targeting state configuration
@@ -102,14 +102,14 @@ func test_targeting_system_state_integration() -> void:
 
 @warning_ignore("unused_parameter")
 func test_injector_system_initialization() -> void:
-	var injector = test_env.injector
+	var injector: GBInjectorSystem = test_env.injector
 	
 	assert_that(injector).is_not_null()
-	assert_that(injector.name).contains("GBInjectorSystem")
+	assert_that(injector is GBInjectorSystem).is_true()
 
 @warning_ignore("unused_parameter")
 func test_injector_system_container_integration() -> void:
-	var injector = test_env.injector
+	var injector: GBInjectorSystem = test_env.injector
 	var container: GBCompositionContainer = test_env.container
 	
 	assert_that(injector).is_not_null()
@@ -123,7 +123,7 @@ func test_injector_system_container_integration() -> void:
 
 @warning_ignore("unused_parameter")
 func test_building_manipulation_integration() -> void:
-	var building_system: Object = test_env.building_system
+	var building_system: BuildingSystem = test_env.building_system
 	var manipulation_system = test_env.manipulation_system
 	var container: GBCompositionContainer = test_env.container
 	
@@ -140,8 +140,8 @@ func test_building_manipulation_integration() -> void:
 
 @warning_ignore("unused_parameter")
 func test_targeting_manipulation_integration() -> void:
-	var targeting_system = test_env.targeting_system
-	var manipulation_system = test_env.manipulation_system
+	var _targeting_system: GridTargetingSystem = test_env.targeting_system
+	var _manipulation_system: ManipulationSystem = test_env.manipulation_system
 	var container: GBCompositionContainer = test_env.container
 	
 	# Verify targeting and manipulation systems coordinate
@@ -189,11 +189,11 @@ func test_system_state_hierarchy() -> void:
 		var positioner = targeting_state.positioner
 		
 		# Check if manipulation parent is in positioner's tree
-		var is_in_tree = false
+		var _is_in_tree = false
 		var current = manipulation_parent
 		while current != null:
 			if current == positioner:
-				is_in_tree = true
+				_is_in_tree = true
 				break
 			current = current.get_parent()
 		
@@ -208,9 +208,9 @@ func test_system_state_hierarchy() -> void:
 @warning_ignore("unused_parameter") 
 func test_complete_system_workflow() -> void:
 	var container: GBCompositionContainer = test_env.container
-	var building_system: Object = test_env.building_system
-	var targeting_system = test_env.targeting_system
-	var manipulation_system = test_env.manipulation_system
+	var building_system: BuildingSystem = test_env.building_system
+	var targeting_system: GridTargetingSystem = test_env.targeting_system
+	var manipulation_system: ManipulationSystem = test_env.manipulation_system
 	
 	# Test a complete workflow involving all systems
 	assert_that(targeting_system).is_not_null()
@@ -236,7 +236,7 @@ func test_system_performance_integration() -> void:
 		assert_that(test_object).is_not_null()
 	
 	var elapsed = Time.get_ticks_usec() - start_time
-	test_env.logger.log_info("Systems integration performance test completed in " + str(elapsed) + " microseconds")
+	test_env.logger.log_info(self, "Systems integration performance test completed in " + str(elapsed) + " microseconds")
 	assert_that(elapsed).is_less(1000000)  # Should complete in under 1 second
 
 # ================================
@@ -247,16 +247,16 @@ func test_system_performance_integration() -> void:
 func test_system_error_resilience() -> void:
 	# Test that systems handle errors gracefully
 	var container: GBCompositionContainer = test_env.container
-	var logger = test_env.logger
+	var logger: GBLogger = test_env.logger
 	
 	# Test with invalid states
 	assert_that(container).is_not_null()
 	assert_that(logger).is_not_null()
 	
 	# Systems should be resilient to configuration issues
-	var building_system: Object = test_env.building_system
-	var targeting_system = test_env.targeting_system
-	var manipulation_system = test_env.manipulation_system
+	var building_system: BuildingSystem = test_env.building_system
+	var targeting_system: GridTargetingSystem = test_env.targeting_system
+	var manipulation_system: ManipulationSystem = test_env.manipulation_system
 	
 	assert_that(building_system).is_not_null()
 	assert_that(targeting_system).is_not_null()

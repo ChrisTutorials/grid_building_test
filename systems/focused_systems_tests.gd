@@ -11,11 +11,11 @@ const TEST_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
 
 func test_building_system_focused():
 	# Create hierarchy with only building system
-	var test_setup = UnifiedTestFactory.create_systems_test_hierarchy(self, ["building"], TEST_CONTAINER)
+	var building_test_setup = UnifiedTestFactory.create_systems_test_hierarchy(self, ["building"], TEST_CONTAINER.duplicate(true))
 	
-	var building_system = test_setup.building_system
-	var positioner = test_setup.positioner
-	var indicator_manager = test_setup.indicator_manager
+	var building_system = building_test_setup.building_system
+	var positioner = building_test_setup.positioner
+	var indicator_manager = building_test_setup.indicator_manager
 	
 	assert_that(building_system).is_not_null()
 	assert_that(positioner).is_not_null()
@@ -31,11 +31,11 @@ func test_building_system_focused():
 
 func test_manipulation_system_focused():
 	# Create hierarchy with only manipulation system
-	var test_setup = UnifiedTestFactory.create_systems_test_hierarchy(self, ["manipulation"], TEST_CONTAINER)
+	var manipulation_test_setup = UnifiedTestFactory.create_systems_test_hierarchy(self, ["manipulation"], TEST_CONTAINER.duplicate(true))
 	
-	var manipulation_system = test_setup.manipulation_system
-	var manipulation_parent = test_setup.manipulation_parent
-	var positioner = test_setup.positioner
+	var manipulation_system = manipulation_test_setup.manipulation_system
+	var manipulation_parent = manipulation_test_setup.manipulation_parent
+	var positioner = manipulation_test_setup.positioner
 	
 	assert_that(manipulation_system).is_not_null()
 	assert_that(manipulation_parent).is_not_null()
@@ -50,16 +50,15 @@ func test_manipulation_system_focused():
 
 func test_building_and_manipulation_systems():
 	# Create hierarchy with multiple specific systems
-	var test_setup = UnifiedTestFactory.create_systems_test_hierarchy(
+	var multi_system_test_setup = UnifiedTestFactory.create_systems_test_hierarchy(
 		self, 
-		["building", "manipulation", "object_manager"], 
-		TEST_CONTAINER
+		["building", "manipulation", "object_manager"], TEST_CONTAINER.duplicate(true)
 	)
 	
-	var building_system = test_setup.building_system
-	var manipulation_system = test_setup.manipulation_system
-	var object_manager = test_setup.object_manager
-	var positioner = test_setup.positioner
+	var building_system = multi_system_test_setup.building_system
+	var manipulation_system = multi_system_test_setup.manipulation_system
+	var object_manager = multi_system_test_setup.object_manager
+	var positioner = multi_system_test_setup.positioner
 	
 	assert_that(building_system).is_not_null()
 	assert_that(manipulation_system).is_not_null()
@@ -78,12 +77,12 @@ func test_building_and_manipulation_systems():
 
 func test_targeting_system_with_collision():
 	# Create hierarchy with targeting and collision capabilities
-	var test_setup = UnifiedTestFactory.create_systems_test_hierarchy(self, ["targeting"], TEST_CONTAINER)
+	var targeting_test_setup = UnifiedTestFactory.create_systems_test_hierarchy(self, ["targeting"], TEST_CONTAINER)
 	
-	var targeting_system = test_setup.targeting_system
-	var collision_mapper = test_setup.collision_mapper
-	var tile_map = test_setup.tile_map
-	var positioner = test_setup.positioner
+	var targeting_system = targeting_test_setup.targeting_system
+	var collision_mapper = targeting_test_setup.collision_mapper
+	var tile_map = targeting_test_setup.tile_map
+	var positioner = targeting_test_setup.positioner
 	
 	assert_that(targeting_system).is_not_null()
 	assert_that(collision_mapper).is_not_null()
@@ -92,7 +91,9 @@ func test_targeting_system_with_collision():
 	
 	# Create test collision object
 	var area = Area2D.new()
+	area.name = "TestArea2D"
 	var collision_shape = CollisionShape2D.new()
+	collision_shape.name = "TestRectangleCollisionShape2D_32x32"
 	collision_shape.shape = RectangleShape2D.new()
 	collision_shape.shape.size = Vector2(32, 32)
 	area.add_child(collision_shape)
@@ -101,7 +102,8 @@ func test_targeting_system_with_collision():
 	
 	# Test targeting with collision
 	positioner.position = Vector2(64, 64)
-	var offsets = collision_mapper._get_tile_offsets_for_collision_object(area, tile_map)
+	var indicator_test_setup : IndicatorCollisionTestSetup = IndicatorCollisionTestSetup.new(area, Vector2(32,32), targeting_test_setup.logger)
+	var offsets = collision_mapper._get_tile_offsets_for_collision_object(indicator_test_setup, tile_map)
 	assert_dict(offsets).is_not_empty()
 
 # ================================
@@ -113,18 +115,18 @@ func test_focused_setup_performance():
 	var start_time = Time.get_ticks_msec()
 	
 	# Create minimal setup - just indicator hierarchy
-	var minimal_setup = UnifiedTestFactory.create_indicator_test_hierarchy(self, TEST_CONTAINER)
+	var minimal_setup = UnifiedTestFactory.create_indicator_test_hierarchy(self, TEST_CONTAINER.duplicate(true))
 	
 	var minimal_time = Time.get_ticks_msec() - start_time
 	
 	# Create focused setup with one system
 	start_time = Time.get_ticks_msec()
-	var focused_setup = UnifiedTestFactory.create_systems_test_hierarchy(self, ["building"], TEST_CONTAINER)
+	var focused_setup = UnifiedTestFactory.create_systems_test_hierarchy(self, ["building"], TEST_CONTAINER.duplicate(true))
 	var focused_time = Time.get_ticks_msec() - start_time
 	
 	# Create full setup
 	start_time = Time.get_ticks_msec()
-	var full_setup = UnifiedTestFactory.create_full_integration_test_scene(self, TEST_CONTAINER)
+	var full_setup = UnifiedTestFactory.create_full_integration_test_scene(self, TEST_CONTAINER.duplicate(true))
 	var full_time = Time.get_ticks_msec() - start_time
 	
 	# All setups should work
@@ -142,9 +144,9 @@ func test_focused_setup_performance():
 
 func test_factory_layering_consistency():
 	# Test that all factory methods produce consistent base hierarchy
-	var indicator_hierarchy = UnifiedTestFactory.create_indicator_test_hierarchy(self, TEST_CONTAINER)
-	var systems_hierarchy = UnifiedTestFactory.create_systems_test_hierarchy(self, ["building"], TEST_CONTAINER)
-	var full_hierarchy = UnifiedTestFactory.create_full_integration_test_scene(self, TEST_CONTAINER)
+	var indicator_hierarchy = UnifiedTestFactory.create_indicator_test_hierarchy(self, TEST_CONTAINER.duplicate(true))
+	var systems_hierarchy = UnifiedTestFactory.create_systems_test_hierarchy(self, ["building"], TEST_CONTAINER.duplicate(true))
+	var full_hierarchy = UnifiedTestFactory.create_full_integration_test_scene(self, TEST_CONTAINER.duplicate(true))
 	
 	# All should have the same base components from indicator hierarchy
 	var base_components = ["positioner", "manipulation_parent", "indicator_manager", "tile_map", "collision_mapper", "container", "logger"]
@@ -165,7 +167,7 @@ func test_factory_layering_consistency():
 
 func test_hierarchy_relationships():
 	# Test that the node hierarchy is consistent across all factory methods
-	var full_setup = UnifiedTestFactory.create_full_integration_test_scene(self, TEST_CONTAINER)
+	var full_setup = UnifiedTestFactory.create_full_integration_test_scene(self, TEST_CONTAINER.duplicate(true))
 	
 	var positioner = full_setup.positioner
 	var manipulation_parent = full_setup.manipulation_parent

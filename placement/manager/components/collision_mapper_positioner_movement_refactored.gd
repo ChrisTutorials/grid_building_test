@@ -50,13 +50,16 @@ func test_collision_mapper_tracks_movement():
 	positioner.add_child(area)
 	auto_free(area)
 	
+	# Create test setup for collision mapper
+	var test_setup = IndicatorCollisionTestSetup.new(area, Vector2(32, 32), test_hierarchy.logger)
+	
 	# Test at different positions
 	var positions = [Vector2.ZERO, Vector2(32, 0), Vector2(0, 32), Vector2(32, 32)]
 	var all_offsets = []
 	
 	for pos in positions:
 		positioner.position = pos
-		var offsets = collision_mapper._get_tile_offsets_for_collision_object(area, tile_map)
+		var offsets = collision_mapper._get_tile_offsets_for_collision_object(test_setup, tile_map)
 		all_offsets.append(offsets)
 		assert_dict(offsets).is_not_empty()
 	

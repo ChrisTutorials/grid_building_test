@@ -24,14 +24,14 @@ static func create_utilities_test_environment(test: GdUnitTestSuite, container: 
 	}
 
 ## Creates placement system test environment with manager components
-static func create_placement_system_test_environment(test: GdUnitTestSuite, container: GBCompositionContainer = null) -> Dictionary:
+static func create_indicator_system_test_environment(test: GdUnitTestSuite, container: GBCompositionContainer = null) -> Dictionary:
 	var base_env = create_utilities_test_environment(test, container)
-	var placement_manager = create_test_indicator_manager(test, base_env.container)
+	var indicator_manager = create_test_indicator_manager(test, base_env.container)
 	var collision_setup = create_test_indicator_collision_setup(test)
 	var collision_mapper_setup = create_collision_mapper_setup(test, container)
 	
 	base_env.merge({
-		"placement_manager": placement_manager,
+		"indicator_manager": indicator_manager,
 		"collision_setup": collision_setup
 	})
 	base_env.merge(collision_mapper_setup)
@@ -40,7 +40,7 @@ static func create_placement_system_test_environment(test: GdUnitTestSuite, cont
 
 ## Creates rule check indicator test environment extending placement system
 static func create_rule_indicator_test_environment(test: GdUnitTestSuite, container: GBCompositionContainer = null) -> Dictionary:
-	var placement_env = create_placement_system_test_environment(test, container)
+	var placement_env = create_indicator_system_test_environment(test, container)
 	var rule_indicators = []
 	var basic_rules = [
 		create_test_within_tilemap_bounds_rule(test),
@@ -90,29 +90,31 @@ static func create_building_system(test: GdUnitTestSuite, container: GBCompositi
 static func create_manipulation_system(test: GdUnitTestSuite, container: GBCompositionContainer = null) -> ManipulationSystem:
 	var _container = container if container != null else TEST_CONTAINER
 	var system := ManipulationSystem.create_with_injection(test, _container)
+	system.name = "TestManipulationSystem"
 	test.auto_free(system)
-	test.add_child(system)
 	return system
 
 ## Creates a GridTargetingSystem using the static factory method
 static func create_grid_targeting_system(test: GdUnitTestSuite, container: GBCompositionContainer = null) -> GridTargetingSystem:
 	var _container = container if container != null else TEST_CONTAINER
 	var system := GridTargetingSystem.create_with_injection(test, _container)
+	system.name = "TestGridTargetingSystem"
 	test.auto_free(system)
-	test.add_child(system)
 	return system
 
 ## Creates a GBInjectorSystem using the static factory method
 static func create_injector_system(test: GdUnitTestSuite, container: GBCompositionContainer = null) -> GBInjectorSystem:
 	var _container = container if container != null else TEST_CONTAINER
 	var system := GBInjectorSystem.create_with_injection(test, _container)
+	system.name = "TestGBInjectorSystem"
 	test.auto_free(system)
 	return system
 
 static func create_test_building_system(test: GdUnitTestSuite) -> BuildingSystem:
 	var system := BuildingSystem.new()
+	system.name = "TestBuildingSystem"
 	test.auto_free(system)
-	test.add_child(system)
+	test.add_child(system) ## Needed because not using create_with_injection
 	return system
 
 # ================================
@@ -169,17 +171,81 @@ static func create_test_indicator_manager(test: GdUnitTestSuite, param = null) -
 		_container = TEST_CONTAINER.duplicate(true)
 	
 	# Ensure manipulation parent is set for indicator service
-	if _container.get_states().manipulation.parent == null:
-		var manipulation_parent = Node2D.new()
+	var manipulation_parent = _container.get_states().manipulation.parent
+	if manipulation_parent == null:
+		manipulation_parent = Node2D.new()
 		manipulation_parent.name = "TestManipulationParent"
 		test.auto_free(manipulation_parent)
 		test.add_child(manipulation_parent)
 		_container.get_states().manipulation.parent = manipulation_parent
 	
+	# Ensure targeting state is properly initialized for indicator setup
+	var targeting_state = _container.get_states().targeting
+	if targeting_state.positioner == null:
+		var positioner = Node2D.new()
+		positioner.name = "TestPositioner"
+		test.auto_free(positioner)
+		test.add_child(positioner)
+		targeting_state.positioner = positioner
+	
+	if targeting_state.target_map == null:
+		var tile_map = GodotTestFactory.create_tile_map_layer(test)
+		targeting_state.target_map = tile_map
+		targeting_state.set_map_objects(tile_map, [tile_map])
+	
+	# Ensure injector system is available for dependency resolution
+	var injector = GBInjectorSystem.create_with_injection(test, _container)
+	test.auto_free(injector)
+	
 	# Create indicator manager using injection pattern
 	var manager = IndicatorManager.create_with_injection(_container)
-	test.auto_free(manager)
-	test.add_child(manager)
+	manipulation_parent.add_child(manager)
+	return manager
+
+## Creates a test IndicatorManager for containers loaded from filesystem (like .tres files)
+## This method creates a proper scene hierarchy and ensures all runtime dependencies are set up
+## [b]Parameters[/b]:
+##  • [code]test[/code]: GdUnitTestSuite – test suite for parenting/autofree
+##  • [code]container[/code]: GBCompositionContainer – container loaded from filesystem that needs runtime setup
+## [b]Returns[/b]: IndicatorManager – fully configured test indicator manager
+static func create_test_indicator_manager_for_filesystem_container(test: GdUnitTestSuite, container: GBCompositionContainer) -> IndicatorManager:
+	if container == null:
+		return null
+
+	# Create a test scene to hold the manager and all dependencies
+	var test_scene = Node2D.new()
+	test_scene.name = "TestScene"
+	test.auto_free(test_scene)
+	test.add_child(test_scene)
+
+	# Ensure manipulation parent is set
+	var manipulation_parent = container.get_states().manipulation.parent
+	if manipulation_parent == null:
+		manipulation_parent = Node2D.new()
+		manipulation_parent.name = "TestManipulationParent"
+		test_scene.add_child(manipulation_parent)
+		container.get_states().manipulation.parent = manipulation_parent
+
+	# Ensure targeting state is properly initialized
+	var targeting_state = container.get_states().targeting
+	if targeting_state.positioner == null:
+		var positioner = Node2D.new()
+		positioner.name = "TestPositioner"
+		test_scene.add_child(positioner)
+		targeting_state.positioner = positioner
+
+	if targeting_state.target_map == null:
+		# Create a minimal tile map for testing
+		var tile_map = TileMapLayer.new()
+		tile_map.name = "TestTileMap"
+		test_scene.add_child(tile_map)
+		targeting_state.target_map = tile_map
+		targeting_state.set_map_objects(tile_map, [tile_map])
+
+	# Create the IndicatorManager using injection pattern
+	var manager = IndicatorManager.create_with_injection(container)
+	manipulation_parent.add_child(manager)
+
 	return manager
 
 ## Configure the IndicatorManager's CollisionMapper for a given test object.
@@ -265,6 +331,7 @@ static func create_configured_injector(test_suite: GdUnitTestSuite) -> GBInjecto
 	container.logger.debug = config.debug
 	
 	var injector := GBInjectorSystem.new()
+	test_suite.auto_free(injector)
 	injector.composition_container = container
 	test_suite.add_child(injector)
 	
@@ -313,6 +380,7 @@ static func create_test_node_locator(search_method: NodeLocator.SEARCH_METHOD = 
 static func create_owner_context(test: GdUnitTestSuite) -> GBOwnerContext:
 	var context := GBOwnerContext.new()
 	var user := Node2D.new()
+	user.name = "TestOwnerUser"
 	test.auto_free(user)
 	test.add_child(user)
 	var gb_owner := GBOwner.new(user)
@@ -373,10 +441,12 @@ static func create_rule_check_indicator(test: GdUnitTestSuite, parent: Node = nu
 
 static func create_rule_validation_params(test: GdUnitTestSuite, target: Node2D = null, targeting_state: GridTargetingState = null) -> RuleValidationParameters:
 	var placer := Node2D.new()
+	placer.name = "TestPlacer"
 	test.auto_free(placer)
 	test.add_child(placer)
 	var test_target := target if target != null else Node2D.new()
 	if target == null:
+		test_target.name = "RuleValidationTestTarget"
 		test.auto_free(test_target)
 		test.add_child(test_target)
 	var state := targeting_state if targeting_state != null else create_targeting_state(test)
@@ -421,7 +491,7 @@ static func create_test_within_tilemap_bounds_rule(test: GdUnitTestSuite = null)
 	# so the rule has valid RuleValidationParameters (including logger).
 	var rule := WithinTilemapBoundsRule.new()
 	if test != null:
-		var params := create_rule_validation_params(test)
+		var params := create_rule_validation_parameters(test)
 		# PlacementRule.setup returns an Array of issues; ignore return but
 		# allow assert in setup to surface any problems during tests.
 		rule.setup(params)
@@ -738,7 +808,6 @@ static func create_polygon_test_placeable(test: GdUnitTestSuite) -> Placeable:
 	scene.pack(polygon_obj)
 	placeable.packed_scene = scene
 	
-	test.auto_free(placeable)
 	return placeable
 
 ## Creates a test grid positioner similar to templates
@@ -819,7 +888,7 @@ static func create_eclipse_test_object(test: GdUnitTestSuite) -> Node2D:
 	return eclipse
 
 ## Creates a test placeable for 2D objects
-static func create_test_placeable_2d(test: GdUnitTestSuite) -> Placeable:
+static func create_test_placeable_2d(_test: GdUnitTestSuite) -> Placeable:
 	var placeable := Placeable.new()
 	placeable.display_name = "TestPlaceable2D"
 	
@@ -857,7 +926,6 @@ static func create_test_placeable_2d(test: GdUnitTestSuite) -> Placeable:
 	placeable.packed_scene = packed_scene
 	placeable.placement_rules = []
 	
-	test.auto_free(placeable)
 	return placeable
 
 ## Creates a test smithy placeable
@@ -878,7 +946,6 @@ static func create_test_smithy_placeable(test: GdUnitTestSuite) -> Placeable:
 	collision_rule.collision_mask = 1
 	placeable.placement_rules = [collision_rule]
 	
-	test.auto_free(placeable)
 	return placeable
 
 ## Creates a test eclipse placeable
@@ -898,8 +965,6 @@ static func create_test_eclipse_placeable(test: GdUnitTestSuite) -> Placeable:
 	collision_rule.apply_to_objects_mask = 1
 	collision_rule.collision_mask = 1
 	placeable.placement_rules = [collision_rule]
-	
-	test.auto_free(placeable)
 	return placeable
 
 ## Creates a test eclipse PackedScene for direct scene testing
@@ -907,7 +972,6 @@ static func create_test_eclipse_packed_scene(test: GdUnitTestSuite) -> PackedSce
 	var packed_scene := PackedScene.new()
 	var eclipse_obj := create_eclipse_test_object(test)
 	packed_scene.pack(eclipse_obj)
-	test.auto_free(packed_scene)
 	return packed_scene
 
 #endregion
@@ -1056,21 +1120,11 @@ static func create_systems_test_hierarchy(test: GdUnitTestSuite, systems_needed:
 				systems_dict.manipulation_system = create_manipulation_system(test, _container)
 			"targeting":
 				systems_dict.targeting_system = create_grid_targeting_system(test, _container)
-			"object_manager":
+			"object_manager": ## The node where preview objects are added under
 				systems_dict.object_manager = Node2D.new()
 				systems_dict.object_manager.name = "TestObjectManager"
 				test.auto_free(systems_dict.object_manager)
 				test.add_child(systems_dict.object_manager)
-			"placement":
-				if ClassDB.class_exists("PlacementManager"):
-					systems_dict.placement_manager = ClassDB.instantiate("PlacementManager")
-					test.auto_free(systems_dict.placement_manager)
-					test.add_child(systems_dict.placement_manager)
-			"grid":
-				systems_dict.grid = Node2D.new()
-				systems_dict.grid.name = "TestGrid"
-				test.auto_free(systems_dict.grid)
-				test.add_child(systems_dict.grid)
 	
 	return systems_dict
 
@@ -1102,6 +1156,12 @@ static func create_indicator_test_hierarchy(test: GdUnitTestSuite, container: GB
 	var map_objects: Array[TileMapLayer] = [hierarchy.tile_map]
 	targeting_state.set_map_objects(hierarchy.tile_map, map_objects)
 	
+	# Create default target node for tests
+	hierarchy.default_target = GodotTestFactory.create_node2d(test)
+	hierarchy.default_target.name = "DefaultTestTarget"
+	hierarchy.default_target.position = Vector2(64, 64)  # Default test position
+	targeting_state.target = hierarchy.default_target
+	
 	var manipulation_state = _container.get_states().manipulation
 	manipulation_state.parent = hierarchy.manipulation_parent
 	
@@ -1121,21 +1181,16 @@ static func create_indicator_test_hierarchy(test: GdUnitTestSuite, container: GB
 	return hierarchy
 
 ## Creates rule validation parameters for rule tests
-static func create_rule_validation_parameters(_test: GdUnitTestSuite, container: GBCompositionContainer = null) -> Dictionary:
+static func create_rule_validation_parameters(test: GdUnitTestSuite, container: GBCompositionContainer = null) -> RuleValidationParameters:
 	var _container = container if container != null else TEST_CONTAINER.duplicate(true)
 	
-	return {
-		"container": _container,
-		"logger": _container.get_logger(),
-		"tile_size": Vector2(16, 16),
-		"collision_layer": 1,
-		"rule_check_indicators": [],
-		"validation_context": {
-			"max_distance": 100.0,
-			"min_distance": 0.0,
-			"allowed_layers": [1, 2, 3]
-		}
-	}
+	# Create required objects
+	var placer = GodotTestFactory.create_node2d(test)
+	var target = GodotTestFactory.create_node2d(test)
+	var targeting_state = create_targeting_state(test)
+	var logger = _container.get_logger()
+	
+	return RuleValidationParameters.new(placer, target, targeting_state, logger)
 
 ## Creates collision mapper setup for collision tests
 static func create_collision_mapper_setup(test: GdUnitTestSuite, container: GBCompositionContainer = null) -> Dictionary:
@@ -1156,23 +1211,44 @@ static func create_collision_mapper_setup(test: GdUnitTestSuite, container: GBCo
 static func create_basic_test_setup(test: GdUnitTestSuite, container: GBCompositionContainer = null) -> Dictionary:
 	var _container = container if container != null else TEST_CONTAINER.duplicate(true)
 	var setup = {}
-	
+
 	# Create injector system first
 	setup.injector = create_test_injector(test, _container)
-	
+
 	# Basic objects most tests need
 	setup.container = _container
 	setup.logger = _container.get_logger()
-	setup.object_manager = Node.new()
+	setup.object_manager = Node2D.new()
 	setup.object_manager.name = "TestObjectManager"
 	setup.grid = Node2D.new()
 	setup.grid.name = "TestGrid"
-	
+
 	test.auto_free(setup.object_manager)
 	test.auto_free(setup.grid)
 	test.add_child(setup.object_manager)
 	test.add_child(setup.grid)
-	
+
+	# Initialize basic container states for composition container tests
+	var targeting_state = _container.get_states().targeting
+	if targeting_state.positioner == null:
+		targeting_state.positioner = Node2D.new()
+		targeting_state.positioner.name = "TestPositioner"
+		test.auto_free(targeting_state.positioner)
+		test.add_child(targeting_state.positioner)
+
+	if targeting_state.target_map == null:
+		targeting_state.target_map = GodotTestFactory.create_tile_map_layer(test)
+		var map_objects: Array[TileMapLayer] = [targeting_state.target_map]
+		targeting_state.set_map_objects(targeting_state.target_map, map_objects)
+
+	var building_state = _container.get_states().building
+	if building_state.placed_parent == null:
+		building_state.placed_parent = setup.object_manager
+
+	var manipulation_state = _container.get_states().manipulation
+	if manipulation_state.parent == null:
+		manipulation_state.parent = setup.object_manager
+
 	return setup
 
 # ================================
@@ -1185,10 +1261,12 @@ static func create_polygon_test_setup(test: GdUnitTestSuite, parent: Node, posit
 	parent.add_child(polygon_obj)
 	polygon_obj.position = position
 	
+	var rules: Array[TileCheckRule] = [_create_standard_collision_rule()]
+	
 	return {
 		"polygon_obj": polygon_obj,
 		"rule": _create_standard_collision_rule(),
-		"rules": [_create_standard_collision_rule()]
+		"rules": rules
 	}
 
 ## Creates standardized collision rule for testing
@@ -1199,14 +1277,22 @@ static func _create_standard_collision_rule() -> CollisionsCheckRule:
 	return rule
 
 ## Creates standardized indicator setup for testing
-static func create_indicator_test_setup(test: GdUnitTestSuite, container: GBCompositionContainer, polygon_obj: Node2D, rules: Array) -> Dictionary:
+static func create_indicator_test_setup(test: GdUnitTestSuite, container: GBCompositionContainer, polygon_obj: Node2D, rules: Array[TileCheckRule]) -> Dictionary:
 	var indicator_manager = create_test_indicator_manager(test, container)
 	var report = indicator_manager.setup_indicators(polygon_obj, rules)
+	
+	# Ensure indicators are properly parented to the indicator manager
+	if report and report.indicators:
+		for indicator in report.indicators:
+			if indicator.get_parent() != indicator_manager:
+				# Remove from current parent and add to indicator manager
+				indicator.get_parent().remove_child(indicator)
+				indicator_manager.add_child(indicator)
 	
 	return {
 		"indicator_manager": indicator_manager,
 		"report": report,
-		"indicators": report.indicators
+		"indicators": report.indicators if report else []
 	}
 
 ## Standardized assertion for indicator count validation
@@ -1271,4 +1357,17 @@ static func assert_rule_validation_result(result: Dictionary, expected_valid: bo
 	if context: message += " (%s)" % context
 	assert(result.get("valid", false) == expected_valid, message)
 
-#endregion
+## Ensures the indicator template is properly configured in the container
+static func ensure_indicator_template_configured(container: GBCompositionContainer) -> void:
+	var templates = container.get_templates()
+	if templates == null:
+		push_error("Container templates is null - cannot configure indicator template")
+		return
+		
+	if templates.rule_check_indicator == null:
+		# Try to load the standard indicator template
+		var standard_indicator = load("res://templates/grid_building_templates/indicator/rule_check_indicator_16x16.tscn")
+		if standard_indicator:
+			templates.rule_check_indicator = standard_indicator
+		else:
+			push_error("Could not load standard indicator template - tests may fail")

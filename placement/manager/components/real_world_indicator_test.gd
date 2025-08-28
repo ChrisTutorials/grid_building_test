@@ -1,52 +1,121 @@
 extends GdUnitTestSuite
 
 ## Tests indicator positioning using the exact same setup as the real system
+## Uses DRY factory patterns for maintainable test setup
 
+var _setup: Dictionary
+var _container: GBCompositionContainer
 var indicator_manager: IndicatorManager
 var targeting_state: GridTargetingState
-var _container : GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
-var _injector: GBInjectorSystem
 var positioner: Node2D
 var _logger: GBLogger
 var _preview_ref: Node2D
 
 
 func before_test():
-	# Create the exact same setup as the real system would use
-	# Use preloaded test container with proper config/resources
-	_injector = auto_free(GBInjectorSystem.create_with_injection(_container))
-	add_child(_injector)
+	# Use DRY factory pattern for complete test setup
+	_setup = UnifiedTestFactory.create_complete_building_test_setup(self)
+	_container = _setup.container
+
+	# Extract frequently used components to local variables for clarity
+	indicator_manager = _setup.indicator_manager
 	targeting_state = _container.get_states().targeting
+	positioner = _setup.positioner
 
-	# Create tile map layer using factory (handles tile set & population)
-	var tile_map_layer: TileMapLayer = GodotTestFactory.create_tile_map_layer(self, 40)
-	var positioner_node: Node2D = auto_free(Node2D.new())
-	positioner = positioner_node
-	targeting_state.positioner = positioner_node
-	targeting_state.set_map_objects(tile_map_layer, [tile_map_layer])
+	# Ensure indicator template is configured using DRY pattern
+	UnifiedTestFactory.ensure_indicator_template_configured(_container)
 
-	_logger = GBLogger.new(GBDebugSettings.new())
-
- 	# Skip full BuildingSystem to avoid deep dependency graph; we'll exercise IndicatorManager directly
-
-	# Initialize a dedicated IndicatorManager using dependency injection
-	indicator_manager = auto_free(IndicatorManager.create_with_injection(_container))
-	add_child(indicator_manager)
+	# Initialize logger for test debugging
+	_logger = _container.get_logger()
 
 func _instantiate_preview(packed_scene: PackedScene) -> Node2D:
+	## Create preview using DRY factory pattern when possible
 	if packed_scene:
 		return packed_scene.instantiate()
-	# Synthetic preview with one collision shape
-	var preview := Node2D.new()
-	var body := StaticBody2D.new()
-	body.collision_layer = 1 # Ensure default layer so TileCheckRule mask (default 1) matches
-	var shape_node := CollisionShape2D.new()
-	var rect := RectangleShape2D.new()
-	rect.size = Vector2(32,32)
-	shape_node.shape = rect
-	body.add_child(shape_node)
-	preview.add_child(body)
-	return preview
+
+	# Use DRY factory for synthetic preview creation
+	return UnifiedTestFactory.create_polygon_test_object(self)
+
+func _get_collision_shapes_from_node(root: Node) -> Array[Node]:
+	## Helper method to collect collision shapes using DRY pattern
+	var shapes: Array[Node] = []
+	var nodes_to_check: Array[Node] = [root]
+
+	while not nodes_to_check.is_empty():
+		var current = nodes_to_check.pop_back()
+		for child in current.get_children():
+			nodes_to_check.append(child)
+			if child is CollisionShape2D or child is CollisionPolygon2D:
+				shapes.append(child)
+
+	return shapes
+
+func _find_physics_body_ancestor(node: Node) -> Node:
+	## Helper method to find physics body ancestor
+	var current = node.get_parent()
+	while current != null:
+		if current is PhysicsBody2D or current is Area2D:
+			return current
+		current = current.get_parent()
+	return null
+
+func _validate_indicator_positions(indicators: Array[RuleCheckIndicator], preview: Node2D) -> void:
+	## Helper method to validate indicator positioning using DRY patterns
+	var sample_count = min(5, indicators.size())
+	var seen_positions := {}
+
+	for i in range(sample_count):
+		var indicator = indicators[i]
+		var position = indicator.global_position
+
+		# Check for duplicate positions
+		assert_bool(seen_positions.has(position)).append_failure_message(
+			"Duplicate indicator position at index %d: %s" % [i, str(position)]
+		).is_false()
+		seen_positions[position] = true
+
+		# Validate tile alignment using DRY pattern
+		var map = targeting_state.target_map
+		if map and map.tile_set:
+			var tile_size: Vector2i = map.tile_set.tile_size
+			var tile_origin = map.map_to_local(map.local_to_map(map.to_local(position)))
+			var offset = position - tile_origin
+			assert_bool(abs(offset.x) <= tile_size.x and abs(offset.y) <= tile_size.y).append_failure_message(
+				"Indicator %d not within tile bounds. pos=%s origin=%s tile_size=%s" %
+				[i, str(position), str(tile_origin), str(tile_size)]
+			).is_true()
+
+		# Ensure positions differ from previous indicator
+		if i > 0:
+			var prev_position = indicators[i-1].global_position
+			assert_bool(prev_position != position).append_failure_message(
+				"Indicator positions should differ: %s vs %s" % [str(prev_position), str(position)]
+			).is_true()
+
+	# Validate clustering around preview center
+	var preview_center = preview.global_position
+	var centroid = Vector2.ZERO
+	for indicator in indicators:
+		centroid += indicator.global_position
+	centroid /= indicators.size()
+
+	assert_bool((centroid - preview_center).length() < 256.0).append_failure_message(
+		"Average indicator position too far from preview center. avg=%s preview=%s" %
+		[str(centroid), str(preview_center)]
+	).is_true()
+
+func after_test():
+	## Clean up test resources using DRY patterns
+	if indicator_manager:
+		indicator_manager.tear_down()
+		indicator_manager.queue_free()
+		indicator_manager = null
+
+	if is_instance_valid(_preview_ref) and _preview_ref.get_parent():
+		_preview_ref.queue_free()
+	_preview_ref = null
+
+	# Injector cleanup is handled automatically by UnifiedTestFactory
 
 
 ## EXPECTATION / PURPOSE
@@ -85,109 +154,74 @@ func _instantiate_preview(packed_scene: PackedScene) -> Node2D:
 ##  resilient to missing higher-level systems. The explicit spread + proximity constraints give early signal
 ##  if collision-to-indicator mapping regresses, offsets break, or manager setup silently fails.
 func test_real_world_indicator_positioning():
-	# Try to acquire a real placeable; if unavailable create synthetic preview directly
+	# Use DRY factory pattern for preview creation
 	var preview: Node2D
 	var used_real_placeable := false
+
+	# Try to use real placeable from test library, fallback to DRY factory
 	if Engine.has_singleton("TestSceneLibrary"):
 		var tsl = Engine.get_singleton("TestSceneLibrary")
 		if tsl and tsl.has_variable("placeable_eclipse") and tsl.placeable_eclipse and tsl.placeable_eclipse.packed_scene:
 			preview = _instantiate_preview(tsl.placeable_eclipse.packed_scene)
 			used_real_placeable = true
+
 	if preview == null:
-		# Direct synthetic preview with collision body & shape
-		preview = Node2D.new()
-		var static_body_for_preview := StaticBody2D.new(); static_body_for_preview.collision_layer = 1
-		var primary_collision_shape := CollisionShape2D.new(); var primary_rectangle_shape := RectangleShape2D.new(); primary_rectangle_shape.size = Vector2(32,32)
-		primary_collision_shape.shape = primary_rectangle_shape; static_body_for_preview.add_child(primary_collision_shape); preview.add_child(static_body_for_preview)
-		# Add a second collision shape to ensure potential for multiple indicators
-		var secondary_collision_shape := CollisionShape2D.new(); secondary_collision_shape.position = Vector2(40,0)
-		var secondary_rectangle_shape := RectangleShape2D.new(); secondary_rectangle_shape.size = Vector2(16,16)
-		secondary_collision_shape.shape = secondary_rectangle_shape; static_body_for_preview.add_child(secondary_collision_shape)
+		# Use DRY factory for synthetic preview
+		preview = UnifiedTestFactory.create_polygon_test_object(self)
+		# Add secondary collision shape for multiple indicator testing
+		var body = preview.get_child(0) as StaticBody2D
+		if body:
+			var secondary_shape := CollisionShape2D.new()
+			secondary_shape.position = Vector2(40, 0)
+			var rect := RectangleShape2D.new()
+			rect.size = Vector2(16, 16)
+			secondary_shape.shape = rect
+			body.add_child(secondary_shape)
 
-	assert_bool(is_instance_valid(preview)).append_failure_message("Failed to create preview (real=%s)" % str(used_real_placeable)).is_true()
+	# Setup validation
+	assert_bool(is_instance_valid(preview)).append_failure_message(
+		"Failed to create preview (real=%s)" % str(used_real_placeable)
+	).is_true()
+
 	_preview_ref = auto_free(preview)
-	assert_that(preview).append_failure_message("Preview instantiation failed").is_not_null()
-	# Parent preview under positioner for real-world parity
-	if preview.get_parent() != positioner:
-		positioner.add_child(preview)
+	positioner.add_child(preview)
 
-	# Collect collision shape/polygon nodes (iterative traversal to avoid recursive lambda scoping issues)
-	var collected_collision_shape_nodes: Array = []
-	var breadth_nodes: Array = [preview]
-	while not breadth_nodes.is_empty():
-		var current_node: Node = breadth_nodes.pop_back()
-		for child_node in current_node.get_children():
-			breadth_nodes.append(child_node)
-			if child_node is CollisionShape2D or child_node is CollisionPolygon2D:
-				collected_collision_shape_nodes.append(child_node)
-	assert_int(collected_collision_shape_nodes.size()).append_failure_message("Preview has no CollisionShape2D or CollisionPolygon2D nodes; indicators cannot generate").is_greater(0)
+	# Use helper method for collision shape collection
+	var collision_shapes = _get_collision_shapes_from_node(preview)
+	assert_int(collision_shapes.size()).append_failure_message(
+		"Preview has no CollisionShape2D or CollisionPolygon2D nodes"
+	).is_greater(0)
 
-	# Verify at least one physics body ancestor has collision_layer matching rule mask (we set body layer=1 in synthetic preview)
-	var find_body = func(node: Node) -> Node:
-		var current = node.get_parent()
-		while current != null:
-			if current is PhysicsBody2D or current is Area2D:
-				return current
-			current = current.get_parent()
-		return null
+	# Validate collision layer alignment using DRY pattern
+	var tile_check_rule = UnifiedTestFactory.create_test_within_tilemap_bounds_rule()
+	var has_matching_layer := false
+	var physics_body_details: Array[String] = []
 
-	# Prepare the tile rule early so we can validate mask alignment before indicator generation
-	var tile_check_rule := TileCheckRule.new()
-	var matching_collision_layer_found := false
-	var physics_body_layer_details: Array[String] = []
-	for shape_node_entry in collected_collision_shape_nodes:
-		var ancestor_physics_body = find_body.call(shape_node_entry)
-		if ancestor_physics_body:
-			var layer_bits = ancestor_physics_body.collision_layer
-			physics_body_layer_details.append("%s(layer=%d)" % [ancestor_physics_body.get_class(), layer_bits])
+	for shape in collision_shapes:
+		var physics_body = _find_physics_body_ancestor(shape)
+		if physics_body:
+			var layer_bits = physics_body.collision_layer
+			physics_body_details.append("%s(layer=%d)" % [physics_body.get_class(), layer_bits])
 			if (layer_bits & tile_check_rule.apply_to_objects_mask) != 0:
-				matching_collision_layer_found = true
-	assert_bool(matching_collision_layer_found).append_failure_message("No physics body ancestor has collision_layer overlapping TileCheckRule mask. Bodies observed: %s mask=%d" % [", ".join(physics_body_layer_details), tile_check_rule.apply_to_objects_mask]).is_true()
+				has_matching_layer = true
 
-	# Ensure targeting state readiness
+	assert_bool(has_matching_layer).append_failure_message(
+		"No physics body has collision_layer overlapping TileCheckRule mask. Bodies: %s mask=%d" %
+		[", ".join(physics_body_details), tile_check_rule.apply_to_objects_mask]
+	).is_true()
+
+	# Validate targeting state using DRY pattern
 	var targeting_issues = targeting_state.get_runtime_issues()
-	assert_that(targeting_issues.is_empty()).append_failure_message("Targeting state issues: %s" % str(targeting_issues)).is_true()
+	assert_that(targeting_issues.is_empty()).append_failure_message(
+		"Targeting state issues: %s" % str(targeting_issues)
+	).is_true()
 
-	# Direct indicator setup (TileCheckRule already created above)
-	var report := indicator_manager.setup_indicators(preview, [tile_check_rule])
-	var indicators : Array[RuleCheckIndicator] = report.indicators
-	assert_int(indicators.size()).append_failure_message("No indicators generated for preview; expected at least one from TileCheckRule").is_greater(0)
+	# Generate indicators using DRY pattern
+	var report = indicator_manager.setup_indicators(preview, [tile_check_rule])
+	var indicators: Array[RuleCheckIndicator] = report.indicators
+	assert_int(indicators.size()).append_failure_message(
+		"No indicators generated for preview"
+	).is_greater(0)
 
-	# Assert uniqueness among first N indicator positions (spread) and that they are near tile centers
-	var sample_count = min(5, indicators.size())
-	var seen_positions := {}
-	for i in range(sample_count):
-		var indicator_node: Node2D = indicators[i]
-		var indicator_global_position := indicator_node.global_position
-		assert_bool(seen_positions.has(indicator_global_position)).append_failure_message("Duplicate indicator position encountered at index %d: %s" % [i, str(indicator_global_position)]).is_false()
-		seen_positions[indicator_global_position] = true
-		# Tile center alignment approximate check
-		var map := targeting_state.target_map
-		if map and map.tile_set:
-			var tile_size: Vector2i = map.tile_set.tile_size
-			var tile_origin := map.map_to_local(map.local_to_map(map.to_local(indicator_global_position)))
-			var dx = abs(indicator_global_position.x - tile_origin.x)
-			var dy = abs(indicator_global_position.y - tile_origin.y)
-			assert_bool(dx <= tile_size.x and dy <= tile_size.y).append_failure_message("Indicator %d not within one tile cell of computed origin. pos=%s origin=%s tile_size=%s" % [i, str(indicator_global_position), str(tile_origin), str(tile_size)]).is_true()
-		if i > 0:
-			var previous_indicator_position = indicators[i-1].global_position
-			assert_bool(previous_indicator_position != indicator_global_position).append_failure_message("Indicator positions %s and %s (indices %d,%d) should differ" % [str(previous_indicator_position), str(indicator_global_position), i-1, i]).is_true()
-
-	# Basic relative positioning: indicators should cluster around preview
-	var preview_center := preview.global_position
-	var average_indicator_position := Vector2.ZERO
-	for indicator_node in indicators:
-		average_indicator_position += indicator_node.global_position
-	average_indicator_position /= indicators.size()
-	assert_bool((average_indicator_position - preview_center).length() < 256.0).append_failure_message("Average indicator position too far from preview center. avg=%s preview=%s" % [str(average_indicator_position), str(preview_center)]).is_true()
-
-func after_test():
-	# Ensure indicators are cleaned up to avoid orphan warnings
-	if indicator_manager:
-		indicator_manager.tear_down()
-		indicator_manager.queue_free()
-		indicator_manager = null
-	# Preview already registered with auto_free; explicit queue_free if still valid
-	if is_instance_valid(_preview_ref) and _preview_ref.get_parent():
-		_preview_ref.queue_free()
-	_preview_ref = null
+	# Validate indicator positioning using DRY helper methods
+	_validate_indicator_positions(indicators, preview)

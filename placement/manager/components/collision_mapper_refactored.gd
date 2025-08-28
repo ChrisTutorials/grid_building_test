@@ -1,6 +1,7 @@
 extends GdUnitTestSuite
 
-## Refactored collision mapper tests using consolidated factory
+## Refactored collision mapper tests using consolidated fa	var offsets = collision_mapper._get_tile_offsets_for_collision_object(test_setup, tile_map)
+	assert_dict(offsets).is_not_empty()ory
 
 const TEST_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
 
@@ -23,8 +24,11 @@ func test_collision_mapper_basic():
 	positioner.add_child(area)
 	auto_free(area)
 	
+	# Create test setup for collision mapper
+	var test_setup = IndicatorCollisionTestSetup.new(area, Vector2(32, 32), test_hierarchy.logger)
+	
 	# Test basic collision mapping
-	var offsets = collision_mapper._get_tile_offsets_for_collision_object(area, tile_map)
+	var offsets = collision_mapper._get_tile_offsets_for_collision_object(test_setup, tile_map)
 	assert_dict(offsets).is_not_empty()
 
 func test_collision_mapper_polygon():
@@ -32,14 +36,24 @@ func test_collision_mapper_polygon():
 	var tile_map = test_hierarchy.tile_map
 	var positioner = test_hierarchy.positioner
 	
-	# Create polygon collision
-	var polygon = CollisionPolygon2D.new()
-	polygon.polygon = PackedVector2Array([
-		Vector2(-16, -16), Vector2(16, -16), Vector2(16, 16), Vector2(-16, 16)
+	# Create area with polygon collision
+	var area = Area2D.new()
+	var collision_polygon = CollisionPolygon2D.new()
+	collision_polygon.polygon = PackedVector2Array([
+		Vector2(-10, -10),
+		Vector2(10, -10),
+		Vector2(10, 10),
+		Vector2(-10, 10)
 	])
-	positioner.add_child(polygon)
+	area.add_child(collision_polygon)
 	
-	var offsets = collision_mapper._get_tile_offsets_for_collision_polygon(polygon, tile_map)
+	positioner.add_child(area)
+	auto_free(area)
+	
+	# Create test setup for collision mapper
+	var test_setup = IndicatorCollisionTestSetup.new(area, Vector2(32, 32), test_hierarchy.logger)
+	
+	var offsets = collision_mapper._get_tile_offsets_for_collision_object(test_setup, tile_map)
 	assert_dict(offsets).is_not_empty()
 
 func test_collision_mapper_multiple_shapes():
@@ -65,8 +79,11 @@ func test_collision_mapper_multiple_shapes():
 	positioner.add_child(area)
 	auto_free(area)
 	
-	var offsets = collision_mapper._get_tile_offsets_for_collision_object(area, tile_map)
-	assert_dict(offsets).size().is_greater(1)
+	# Create test setup for collision mapper
+	var test_setup = IndicatorCollisionTestSetup.new(area, Vector2(32, 32), test_hierarchy.logger)
+	
+	var offsets = collision_mapper._get_tile_offsets_for_collision_object(test_setup, tile_map)
+	assert_int(offsets.size()).is_greater(1)
 
 func test_collision_mapper_position_updates():
 	var collision_mapper = test_hierarchy.collision_mapper
@@ -82,13 +99,16 @@ func test_collision_mapper_position_updates():
 	positioner.add_child(area)
 	auto_free(area)
 	
+	# Create test setup for collision mapper
+	var test_setup = IndicatorCollisionTestSetup.new(area, Vector2(32, 32), test_hierarchy.logger)
+	
 	# Test at different positions
 	var positions = [Vector2.ZERO, Vector2(32, 0), Vector2(64, 32)]
 	var all_offsets = []
 	
 	for pos in positions:
 		positioner.position = pos
-		var offsets = collision_mapper._get_tile_offsets_for_collision_object(area, tile_map)
+		var offsets = collision_mapper._get_tile_offsets_for_collision_object(test_setup, tile_map)
 		all_offsets.append(offsets)
 		assert_dict(offsets).is_not_empty()
 	

@@ -32,13 +32,16 @@ func test_positioner_with_collision_tracking():
 	positioner.add_child(area)
 	auto_free(area)
 	
+	# Create proper test setup for collision mapping
+	var test_setup = UnifiedTestFactory.create_test_indicator_collision_setup(self, area)
+	
 	# Test position changes affect collision mapping
 	var positions = [Vector2.ZERO, Vector2(32, 0), Vector2(64, 32)]
 	var results = []
 	
 	for pos in positions:
 		positioner.position = pos
-		var offsets = collision_mapper._get_tile_offsets_for_collision_object(area, tile_map)
+		var offsets = collision_mapper._get_tile_offsets_for_collision_object(test_setup, tile_map)
 		results.append(offsets)
 		assert_dict(offsets).is_not_empty()
 	
@@ -210,12 +213,15 @@ func test_positioner_integration_workflow():
 	positioner.add_child(indicator)
 	auto_free(indicator)
 	
+	# Create proper test setup for collision mapping
+	var test_setup = UnifiedTestFactory.create_test_indicator_collision_setup(self, area)
+	
 	# Test complete workflow: move -> collision check -> rule check -> indicator update
 	var workflow_position = Vector2(64, 64)
 	positioner.position = workflow_position
 	
 	# Step 1: Collision mapping
-	var collision_result = collision_mapper._get_tile_offsets_for_collision_object(area, tile_map)
+	var collision_result = collision_mapper._get_tile_offsets_for_collision_object(test_setup, tile_map)
 	assert_dict(collision_result).is_not_empty()
 	
 	# Step 2: Rule checking

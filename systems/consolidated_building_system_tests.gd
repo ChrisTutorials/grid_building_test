@@ -12,7 +12,7 @@ var test_env: Dictionary
 func before_test() -> void:
 	test_env = UnifiedTestFactory.create_systems_integration_test_environment(self)
 
-# ===== BUILDING SYSTEM CORE TESTS =====
+#region BUILDING SYSTEM CORE
 
 func test_building_system_initialization() -> void:
 	var building_system: Object = test_env.building_system
@@ -61,7 +61,9 @@ func test_building_placement_attempt() -> void:
 	
 	building_system.exit_build_mode()
 
-# ===== BUILDING STATE TESTS =====
+#endregion
+
+#region BUILDING STATE
 
 func test_building_state_transitions() -> void:
 	var building_system: Object = test_env.building_system
@@ -97,17 +99,18 @@ func test_building_state_persistence() -> void:
 	assert_bool(building_system.is_in_build_mode()).is_false()
 	assert_bool(building_system.is_in_build_mode()).is_false() # Called twice intentionally
 
-# ===== DRAG BUILD MANAGER TESTS =====
+#endregion
+
+#region DRAG BUILD MANAGER
 
 func test_drag_build_initialization() -> void:
 	var building_system: Object = test_env.building_system
 	
 	# Check if drag build manager is available
-	if building_system.has_method("get_drag_build_manager"):
-		var drag_manager = building_system.get_drag_build_manager()
-		assert_object(drag_manager).append_failure_message(
-			"Drag build manager should be available"
-		).is_not_null()
+	var drag_manager = building_system.get_drag_build_manager()
+	assert_object(drag_manager).append_failure_message(
+		"Drag build manager should be available"
+	).is_not_null()
 
 func test_drag_build_functionality() -> void:
 	var building_system: Object = test_env.building_system
@@ -115,26 +118,24 @@ func test_drag_build_functionality() -> void:
 	
 	building_system.enter_build_mode(test_placeable)
 	
-	# Test drag building sequence if methods are available
-	if building_system.has_method("start_drag_build"):
-		building_system.start_drag_build(Vector2(50, 50))
-		
-		if building_system.has_method("is_drag_building"):
-			assert_bool(building_system.is_drag_building()).append_failure_message(
-				"Should be in drag building mode after start"
-			).is_true()
-		
-		if building_system.has_method("end_drag_build"):
-			building_system.end_drag_build()
-			
-			if building_system.has_method("is_drag_building"):
-				assert_bool(building_system.is_drag_building()).append_failure_message(
-					"Should not be in drag building mode after end"
-				).is_false()
+	# Test drag building sequence
+	building_system.start_drag_build(Vector2(50, 50))
+	
+	assert_bool(building_system.is_drag_building()).append_failure_message(
+		"Should be in drag building mode after start"
+	).is_true()
+	
+	building_system.end_drag_build()
+	
+	assert_bool(building_system.is_drag_building()).append_failure_message(
+		"Should not be in drag building mode after end"
+	).is_false()
 	
 	building_system.exit_build_mode()
 
-# ===== SINGLE PLACEMENT PER TILE TESTS =====
+#endregion
+
+#region SINGLE PLACEMENT PER TILE
 
 func test_single_placement_per_tile_constraint() -> void:
 	var building_system: Object = test_env.building_system
@@ -173,7 +174,9 @@ func test_tile_placement_validation() -> void:
 	
 	building_system.exit_build_mode()
 
-# ===== PREVIEW NAME CONSISTENCY TESTS =====
+#endregion
+
+#region PREVIEW NAME CONSISTENCY
 
 func test_preview_name_consistency() -> void:
 	var building_system: Object = test_env.building_system
@@ -183,13 +186,12 @@ func test_preview_name_consistency() -> void:
 	building_system.enter_build_mode(test_placeable)
 	
 	# Check if preview system maintains name consistency
-	if building_system.has_method("get_current_preview"):
-		var preview = building_system.get_current_preview()
-		if preview != null and preview.has_method("get_name"):
-			var preview_name = preview.get_name()
-			assert_str(preview_name).append_failure_message(
-				"Preview name should be consistent with placeable"
-			).contains("TestPlaceable")
+	var preview = building_system.get_current_preview()
+	if preview != null:
+		var preview_name = preview.get_name()
+		assert_str(preview_name).append_failure_message(
+			"Preview name should be consistent with placeable"
+		).contains("TestPlaceable")
 	
 	building_system.exit_build_mode()
 
@@ -199,19 +201,19 @@ func test_preview_rotation_consistency() -> void:
 	
 	building_system.enter_build_mode(test_placeable)
 	
-	# Test rotation consistency if rotation methods exist
-	if building_system.has_method("rotate_preview"):
-		building_system.rotate_preview()
-		
-		if building_system.has_method("get_current_preview"):
-			var preview = building_system.get_current_preview()
-			assert_object(preview).append_failure_message(
-				"Preview should exist after rotation"
-			).is_not_null()
+	# Test rotation consistency
+	building_system.rotate_preview()
+	
+	var preview = building_system.get_current_preview()
+	assert_object(preview).append_failure_message(
+		"Preview should exist after rotation"
+	).is_not_null()
 	
 	building_system.exit_build_mode()
 
-# ===== COMPREHENSIVE BUILDING WORKFLOW TESTS =====
+#endregion
+
+#region COMPREHENSIVE BUILDING WORKFLOW
 
 func test_complete_building_workflow() -> void:
 	var building_system: Object = test_env.building_system
@@ -219,8 +221,9 @@ func test_complete_building_workflow() -> void:
 	var test_placeable: Node2D = UnifiedTestFactory.create_test_node2d(self)
 	
 	# Phase 1: Setup
-	if targeting_system and targeting_system.has_method("set_target_position"):
-		targeting_system.set_target_position(Vector2(300, 300))
+	if targeting_system:
+		var targeting_state = targeting_system.get_state()
+		targeting_state.target.position = Vector2(300, 300)
 	
 	# Phase 2: Enter build mode
 	building_system.enter_build_mode(test_placeable)
@@ -256,34 +259,31 @@ func test_building_error_recovery() -> void:
 	
 	building_system.exit_build_mode()
 
-# ===== BUILDING SYSTEM INTEGRATION TESTS =====
+#endregion
+
+#region BUILDING SYSTEM INTEGRATION
 
 func test_building_system_dependencies() -> void:
 	var building_system: Object = test_env.building_system
 	
 	# Verify system has required dependencies
-	if building_system.has_method("get_dependency_issues"):
-		var issues = building_system.get_dependency_issues()
-		assert_array(issues).append_failure_message(
-			"Building system should have minimal dependency issues: %s" % issues
-		).is_empty()
+	var issues = building_system.get_dependency_issues()
+	assert_array(issues).append_failure_message(
+		"Building system should have minimal dependency issues: %s" % issues
+	).is_empty()
 
 func test_building_system_validation() -> void:
 	var building_system: Object = test_env.building_system
 	
-	# Test system validation if available
-	if building_system.has_method("validate_setup"):
-		var is_valid = building_system.validate_setup()
-		assert_bool(is_valid).append_failure_message(
-			"Building system should be properly set up"
-		).is_true()
-	elif building_system.has_method("get_issues"):
-		var issues = building_system.get_issues()
-		assert_array(issues).append_failure_message(
-			"Building system should have no critical issues: %s" % issues
-		).is_empty()
+	# Test system validation
+	var is_valid = building_system.validate_setup()
+	assert_bool(is_valid).append_failure_message(
+		"Building system should be properly set up"
+	).is_true()
 
-# ===== DRAG BUILD REGRESSION TESTS =====
+#endregion
+
+#region DRAG BUILD REGRESSION
 
 func test_drag_build_single_placement_regression() -> void:
 	var building_system: Object = test_env.building_system
@@ -294,21 +294,18 @@ func test_drag_build_single_placement_regression() -> void:
 	# Test that drag build respects single placement per tile constraint
 	var tile_position: Vector2 = Vector2(400, 400)
 	
-	if building_system.has_method("start_drag_build") and building_system.has_method("update_drag_build"):
-		building_system.start_drag_build(tile_position)
-		
-		# Update to same position (should not create duplicate)
-		building_system.update_drag_build(tile_position)
-		building_system.update_drag_build(tile_position) # Intentional duplicate
-		
-		if building_system.has_method("get_drag_build_placements"):
-			var placements = building_system.get_drag_build_placements()
-			assert_int(placements.size()).append_failure_message(
-				"Should not have duplicate placements at same tile position"
-			).is_less_equal(1)
-		
-		if building_system.has_method("end_drag_build"):
-			building_system.end_drag_build()
+	building_system.start_drag_build(tile_position)
+	
+	# Update to same position (should not create duplicate)
+	building_system.update_drag_build(tile_position)
+	building_system.update_drag_build(tile_position) # Intentional duplicate
+	
+	var placements = building_system.get_drag_build_placements()
+	assert_int(placements.size()).append_failure_message(
+		"Should not have duplicate placements at same tile position"
+	).is_less_equal(1)
+	
+	building_system.end_drag_build()
 	
 	building_system.exit_build_mode()
 
@@ -319,13 +316,14 @@ func test_preview_indicator_consistency() -> void:
 	building_system.enter_build_mode(test_placeable)
 	
 	# Test that preview and indicators stay consistent
-	if building_system.has_method("get_current_preview") and building_system.has_method("get_indicators"):
-		var preview = building_system.get_current_preview()
-		var indicators = building_system.get_indicators()
-		
-		if preview != null and indicators != null:
-			# Both should exist or both should be null for consistency
-			assert_object(preview).is_not_null()
-			assert_array(indicators).is_not_null()
+	var preview = building_system.get_current_preview()
+	var indicators = building_system.get_indicators()
+	
+	if preview != null and indicators != null:
+		# Both should exist or both should be null for consistency
+		assert_object(preview).is_not_null()
+		assert_array(indicators).is_not_null()
+
+#endregion
 	
 	building_system.exit_build_mode()

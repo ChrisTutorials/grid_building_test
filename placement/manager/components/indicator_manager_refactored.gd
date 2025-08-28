@@ -28,7 +28,7 @@ func test_indicator_setup_basic():
 	manipulation_parent.add_child(area)
 	auto_free(area)
 	
-	var rules = [TileCheckRule.new()]
+	var rules: Array[TileCheckRule] = [TileCheckRule.new()]
 	var report = indicator_manager.setup_indicators(area, rules)
 	assert_that(report).is_not_null()
 
@@ -45,11 +45,11 @@ func test_indicator_cleanup():
 	manipulation_parent.add_child(area)
 	auto_free(area)
 	
-	var rules = [TileCheckRule.new()]
+	var rules: Array[TileCheckRule] = [TileCheckRule.new()]
 	indicator_manager.setup_indicators(area, rules)
 	
 	# Test cleanup
-	indicator_manager.cleanup_indicators()
+	indicator_manager.tear_down()
 	
 	# Count remaining indicators (should only have test objects, not indicators)
 	var indicator_count = 0
@@ -76,7 +76,7 @@ func test_indicator_positioning():
 	manipulation_parent.add_child(area)
 	auto_free(area)
 	
-	var rules = [TileCheckRule.new()]
+	var rules: Array[TileCheckRule] = [TileCheckRule.new()]
 	var report = indicator_manager.setup_indicators(area, rules)
 	
 	assert_that(report).is_not_null()
@@ -98,7 +98,7 @@ func test_multiple_setup_calls():
 	manipulation_parent.add_child(area)
 	auto_free(area)
 	
-	var rules = [TileCheckRule.new()]
+	var rules: Array[TileCheckRule] = [TileCheckRule.new()]
 	
 	# First setup
 	indicator_manager.setup_indicators(area, rules)

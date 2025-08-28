@@ -195,5 +195,5 @@ func test_performance_utilities_combined() -> void:
 		assert_that(is_convex).is_true()  # Square polygons are convex
 	
 	var elapsed = Time.get_ticks_usec() - start_time
-	test_env.logger.log_info("Combined utilities performance test completed in " + str(elapsed) + " microseconds")
+	test_env.logger.log_info(self, "Combined utilities performance test completed in " + str(elapsed) + " microseconds")
 	assert_that(elapsed).is_less(100000)  # Should complete in under 0.1 seconds

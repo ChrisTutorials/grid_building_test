@@ -23,7 +23,10 @@ func before_test():
 	map_layer = setup.map_layer
 	targeting_system = setup.targeting_system
 	building_system = setup.building_system
-	placement_manager = setup.placement_manager
+	placement_manager = setup.indicator_manager
+	
+	# Ensure indicator template is configured
+	UnifiedTestFactory.ensure_indicator_template_configured(_container)
 
 func after_test():
 	if _injector and _injector.has_method("cleanup"):
@@ -32,9 +35,8 @@ func after_test():
 ## Test that indicators created for polygon_test_object properly evaluate CollisionCheckRule
 ## and filter out indicators at positions that should fail collision checks
 func test_polygon_test_object_indicator_collision_filtering():
-	# Load the polygon test object placeable resource
-	var polygon_placeable = load("res://demos/top_down/placement/placeables/placeable_polygon_test_object.tres")
-	assert_object(polygon_placeable).is_not_null()
+	# Use DRY pattern to create test polygon placeable
+	var polygon_placeable = UnifiedTestFactory.create_polygon_test_placeable(self)
 	
 	# Place an existing object at position (0,0) to create collision
 	var existing_object = polygon_placeable.packed_scene.instantiate()
@@ -42,18 +44,21 @@ func test_polygon_test_object_indicator_collision_filtering():
 	existing_object.global_position = Vector2.ZERO
 	obj_parent.add_child(existing_object)
 	
-	# Enter build mode with the placeable resource
-	building_system.selected_placeable = polygon_placeable
-	building_system.enter_build_mode(polygon_placeable)
+	# Create collision rule using DRY pattern
+	var collision_rule = UnifiedTestFactory.create_test_collisions_check_rule()
+	var rules: Array[PlacementRule] = [collision_rule]
 	
-	# Position the positioner at (0,0) where there should be collision
-	positioner.global_position = Vector2.ZERO
+	# Set up rule validation parameters
+	var targeting_state = _container.get_states().targeting
+	var validation_params = RuleValidationParameters.new(placer, existing_object, targeting_state, _container.get_logger())
 	
-	# Wait for indicator setup
-	await get_tree().process_frame
+	# Call try_setup directly on the IndicatorManager (correct DRY pattern)
+	var setup_report = placement_manager.try_setup(rules, validation_params, true)
+	assert_object(setup_report).append_failure_message("IndicatorManager.try_setup returned null").is_not_null()
+	assert_bool(setup_report.is_successful()).append_failure_message("IndicatorManager.try_setup failed").is_true()
 	
-	# Get the indicators that were generated
-	var indicators = placement_manager.get_indicators()
+	# Get indicators from the setup report
+	var indicators = setup_report.indicators_report.indicators
 	assert_array(indicators).is_not_empty()
 	
 	# Find the indicator at offset (0,0) - this should be filtered out due to collision
@@ -77,8 +82,8 @@ func test_polygon_test_object_indicator_collision_filtering():
 		).is_false()
 		
 		# Verify it has rules assigned
-		var rules = center_indicator.get_rules()
-		assert_array(rules).append_failure_message(
+		var assigned_rules = center_indicator.get_rules()
+		assert_array(assigned_rules).append_failure_message(
 			"Indicator should have rules assigned"
 		).is_not_empty()
 		
@@ -98,22 +103,11 @@ func test_polygon_test_object_indicator_collision_filtering():
 
 ## Test that rules are properly assigned to indicators during creation
 func test_indicator_rule_assignment_during_creation():
-	# Create a simple collision rule
-	var collision_rule = CollisionsCheckRule.new()
-	collision_rule.collision_mask = 1
-	collision_rule.pass_on_collision = false
+	# Create a simple collision rule using DRY pattern
+	var collision_rule = UnifiedTestFactory.create_test_collisions_check_rule()
 	
-	# Create indicator template
-	var indicator_template = load("res://addons/grid_building/placement/rule_check_indicator/rule_check_indicator.tscn")
-	
-	# Create indicator using IndicatorFactory
-	var rules: Array[TileCheckRule] = [collision_rule]
-	var indicator = IndicatorFactory.create_indicator(
-		Vector2i(0, 0),
-		rules,
-		indicator_template,
-		placer
-	)
+	# Create indicator using DRY pattern with proper collision shape
+	var indicator = UnifiedTestFactory.create_test_rule_check_indicator_with_shape(self, [collision_rule])
 	
 	assert_object(indicator).is_not_null()
 	
@@ -127,10 +121,8 @@ func test_indicator_rule_assignment_during_creation():
 
 ## Test that indicators properly validate rules when updated
 func test_indicator_rule_validation():
-	# Create a collision rule that expects no collisions
-	var collision_rule = CollisionsCheckRule.new()
-	collision_rule.collision_mask = 1
-	collision_rule.pass_on_collision = false
+	# Create a collision rule using DRY pattern
+	var collision_rule = UnifiedTestFactory.create_test_collisions_check_rule()
 	
 	# Set up rule parameters
 	var targeting_state = _container.get_states().targeting
@@ -142,14 +134,8 @@ func test_indicator_rule_validation():
 	var setup_issues = collision_rule.setup(validation_params)
 	assert_array(setup_issues).is_empty()
 	
-	# Create indicator with the rule
-	var indicator_template = load("res://addons/grid_building/placement/rule_check_indicator/rule_check_indicator.tscn")
-	var indicator = IndicatorFactory.create_indicator(
-		Vector2i(0, 0),
-		[collision_rule],
-		indicator_template,
-		placer
-	)
+	# Create indicator with the rule using DRY pattern with proper collision shape
+	var indicator = UnifiedTestFactory.create_test_rule_check_indicator_with_shape(self, [collision_rule])
 	
 	# Position indicator at a location with no collisions
 	indicator.global_position = Vector2(1000, 1000)
@@ -189,8 +175,8 @@ func test_indicator_rule_validation():
 
 ## Test the specific polygon_test_object scenario
 func test_polygon_test_object_center_tile_filtering():
-	# Load polygon test object placeable resource
-	var polygon_placeable = load("res://demos/top_down/placement/placeables/placeable_polygon_test_object.tres")
+	# Create polygon test object using DRY pattern
+	var polygon_placeable = UnifiedTestFactory.create_polygon_test_placeable(self)
 	
 	# Create an instance to examine its collision shape
 	var test_instance = polygon_placeable.packed_scene.instantiate()
@@ -200,18 +186,21 @@ func test_polygon_test_object_center_tile_filtering():
 	# The polygon has a complex shape that should NOT cover the center tile (0,0)
 	# when positioned at the origin, so an indicator at (0,0) should be valid
 	
-	# Enter build mode with placeable resource
-	building_system.selected_placeable = polygon_placeable
-	building_system.enter_build_mode(polygon_placeable)
+	# Create collision rule and set up validation using DRY pattern
+	var collision_rule = UnifiedTestFactory.create_test_collisions_check_rule()
+	var rules: Array[PlacementRule] = [collision_rule]
 	
-	# Position at origin
-	positioner.global_position = Vector2.ZERO
+	# Set up rule validation parameters
+	var targeting_state = _container.get_states().targeting
+	var validation_params = RuleValidationParameters.new(placer, test_instance, targeting_state, _container.get_logger())
 	
-	# Wait for setup
-	await get_tree().process_frame
+	# Call try_setup directly on the IndicatorManager
+	var setup_report = placement_manager.try_setup(rules, validation_params, true)
+	assert_object(setup_report).append_failure_message("IndicatorManager.try_setup returned null").is_not_null()
+	assert_bool(setup_report.is_successful()).append_failure_message("IndicatorManager.try_setup failed").is_true()
 	
-	# Get indicators
-	var indicators = placement_manager.get_indicators()
+	# Get indicators from the setup report
+	var indicators = setup_report.indicators_report.indicators
 	
 	# There should be indicators generated based on the polygon shape
 	assert_array(indicators).is_not_empty()
@@ -234,8 +223,8 @@ func test_polygon_test_object_center_tile_filtering():
 	
 	if center_indicator != null:
 		# If indicator exists at center, verify it has rules and is properly evaluated
-		var rules = center_indicator.get_rules()
-		assert_array(rules).append_failure_message(
+		var indicator_rules = center_indicator.get_rules()
+		assert_array(indicator_rules).append_failure_message(
 			"Center indicator should have rules assigned"
 		).is_not_empty()
 		
