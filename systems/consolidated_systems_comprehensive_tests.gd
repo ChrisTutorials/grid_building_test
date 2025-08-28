@@ -269,7 +269,7 @@ func test_integration_environment_completeness() -> void:
 	assert_that(test_env.logger).is_not_null()
 	assert_that(test_env.tile_map).is_not_null()
 	assert_that(test_env.container).is_equal(TEST_CONTAINER)
-	assert_that(test_env.placement_manager).is_not_null()
+	assert_that(test_env.indicator_manager).is_not_null()
 	assert_that(test_env.collision_setup).is_not_null()
 	assert_that(test_env.rule_indicators).is_not_null()
 	assert_that(test_env.basic_rules).is_not_null()
