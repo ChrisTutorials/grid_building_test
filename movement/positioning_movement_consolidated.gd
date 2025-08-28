@@ -27,6 +27,14 @@ func test_positioner_with_collision_tracking():
 	var area = CollisionObjectTestFactory.create_area_with_rect_collision(self, positioner)
 	
 	# Create proper test setup for collision mapping
+		results.append(offsets)
+		results.append(offsets)
+		results.append(offsets)
+		results.append(offsets)
+		results.append(offsets)
+		results.append(offsets)
+		results.append(offsets)
+		results.append(offsets)
 	var _test_setup = UnifiedTestFactory.create_test_indicator_collision_setup(self, area)
 	
 	# Test position changes affect collision mapping
@@ -101,7 +109,8 @@ func test_movement_with_grid_alignment():
 	positioner.position = aligned_pos
 	
 	# Verify alignment
-	assert_int(int(positioner.position.x) % int(tile_size.x)).is_equal(0)
+	assert_int(int(positioner.position.x) % int(tile_size
+		results.append(offsets).x)).is_equal(0)
 	assert_int(int(positioner.position.y) % int(tile_size.y)).is_equal(0)
 	
 func test_multi_object_positioning():

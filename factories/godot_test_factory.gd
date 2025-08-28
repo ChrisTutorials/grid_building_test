@@ -45,12 +45,14 @@ static func create_node2d(test: GdUnitTestSuite, p_name = "TestNode2D") -> Node2
 ## Creates a Node with auto_free setup
 static func create_node(test: GdUnitTestSuite) -> Node:
 	var node: Node = test.auto_free(Node.new())
+	node.name = "TestNode"
 	test.add_child(node)
 	return node
 
 ## Creates a CanvasItem with auto_free setup
 static func create_canvas_item(test: GdUnitTestSuite) -> CanvasItem:
 	var item: CanvasItem = test.auto_free(Node2D.new())  # Use Node2D as concrete CanvasItem
+	item.name = "TestCanvasItem"
 	test.add_child(item)
 	return item
 
@@ -112,7 +114,15 @@ static func create_tile_map_layer(test: GdUnitTestSuite, grid_size: int = 40) ->
 ## Creates an empty TileMapLayer with tile set but no cells
 static func create_empty_tile_map_layer(test: GdUnitTestSuite) -> TileMapLayer:
 	var map_layer: TileMapLayer = test.auto_free(TileMapLayer.new())
-	map_layer.tile_set = TileSet.new()
+	var tile_set := TileSet.new()
+	var atlas := TileSetAtlasSource.new()
+	var img := Image.create(16, 16, false, Image.FORMAT_RGBA8)
+	img.fill(Color.WHITE)
+	var tex := ImageTexture.create_from_image(img)
+	atlas.texture = tex
+	atlas.create_tile(Vector2i(0,0))
+	tile_set.add_source(atlas)
+	map_layer.tile_set = tile_set
 	test.add_child(map_layer)
 	return map_layer as TileMapLayer
 

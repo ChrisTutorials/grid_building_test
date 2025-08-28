@@ -25,28 +25,12 @@ var build_manager: DragBuildManager
 var grid: GridBuildingGrid
 
 func before_test():
-	# Create injector system first
-	var _injector = UnifiedTestFactory.create_test_injector(self, TEST_CONTAINER)
-	
+	var test_env = UnifiedTestFactory.create_building_system_test_environment(self)
+	_container = test_env.container
 	build_manager = auto_free(DragBuildManager.new())
 	grid = auto_free(GBTestUtils.create_test_grid())
-	
-	# Create tile map
-	tile_map_layer = auto_free(TileMapLayer.new())
-	tile_map_layer.tile_set = load("uid://d11t2vm1pby6y")
-	for x in range(-5, 6):
-		for y in range(-5, 6):
-			tile_map_layer.set_cell(Vector2i(x, y), 0, Vector2i(0, 0))
-	add_child(tile_map_layer)
-	
-	# Positioner
-	positioner = auto_free(Node2D.new())
-	add_child(positioner)
-	
-	# Set up targeting state
-	var targeting_state = _container.get_states().targeting
-	targeting_state.set_map_objects(tile_map_layer, [tile_map_layer])
-	targeting_state.positioner = positioner
+	tile_map_layer = test_env.map_layer
+	positioner = test_env.grid_positioner
 	
 	# Set up manipulation parent
 	_container.get_states().manipulation.parent = positioner

@@ -18,36 +18,18 @@ var placeable_2d_test: Placeable = load("uid://jgmywi04ib7c")
 func before_test():
 	# Create injector system first
 	var _injector = UnifiedTestFactory.create_test_injector(self, _container)
-	
-	# Create scene nodes
-	placer = GodotTestFactory.create_node2d(self)
-	placed_parent = GodotTestFactory.create_node2d(self)
-	var grid_positioner = GodotTestFactory.create_node2d(self)
-	var map_layer = GodotTestFactory.create_tile_map_layer(self)
 
-	# Access shared states from the pre-configured test container (do NOT auto_free)
+	# Create complete building system test environment
+	var env = UnifiedTestFactory.create_building_system_test_environment(self, _container)
+	system = env.building_system
+
+	# Access shared states from the pre-configured test container
 	var states := _container.get_states()
 	targeting_state = states.targeting
-	targeting_state.positioner = grid_positioner
-	targeting_state.target_map = map_layer
-	targeting_state.maps = [map_layer]
 	mode_state = states.mode
 
-	# Proper owner setup: create a GBOwner node and resolve dependencies so the container's
-	# owner context (and thus BuildingState._owner_context) has a valid owner_root
-	var gb_owner := GBOwner.new(placer)
-	add_child(gb_owner)
-	gb_owner.resolve_gb_dependencies(_container)
-
-	# Create IndicatorManager with factory pattern for proper dependency injection
-	var _placement_manager = UnifiedTestFactory.create_test_indicator_manager(self, _container)
-
-	# Build system with injected dependencies
-	system = auto_free(BuildingSystem.create_with_injection(_container))
-	add_child(system)
-
 	# Assign placed_parent so built instances have a parent
-	states.building.placed_parent = placed_parent
+	states.building.placed_parent = env.placed_parent
 
 
 func test_same_placeable_twice_preserves_name():

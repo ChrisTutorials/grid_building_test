@@ -113,12 +113,17 @@ func create_test_building(polygon: PackedVector2Array) -> StaticBody2D:
 
 ## Get tile position count for a building using collision mapper
 func get_tile_position_count(building: StaticBody2D, tilemap: TileMapLayer) -> int:
-	# Create collision mapping infrastructure
-	var targeting_state = TestFactory.create_double_targeting_state(self)
+	# Create targeting state with positioner
+	var targeting_state = GridTargetingState.new(GBOwnerContext.new())
+	var positioner = Node2D.new()
+	positioner.global_position = Vector2(100, 100)  # Set position for calculations
+	targeting_state.positioner = positioner
 	targeting_state.set_map_objects(tilemap, [tilemap])
 	
-	var indicator_manager = UnifiedTestFactory.create_test_indicator_manager(self, targeting_state)
-	var collision_mapper = indicator_manager.get_collision_mapper()
+	# Create collision mapper directly
+	var debug_settings = GBDebugSettings.new()
+	var logger = GBLogger.new(debug_settings)
+	var collision_mapper = CollisionMapper.new(targeting_state, logger)
 	
 	var test_setup = TestFactory.create_test_indicator_collision_setup(self, building)
 	collision_mapper.collision_object_test_setups[building] = test_setup

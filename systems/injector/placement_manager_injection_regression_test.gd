@@ -29,20 +29,9 @@ class SpyIndicatorManager:
 		super.resolve_gb_dependencies(container)
 
 func before_test():
-	# Set up injection system
-	_injector = auto_free(GBInjectorSystem.create_with_injection(_container))
-	_injector.name = "GBInjectorSystem"
-	add_child(_injector)
-	
-	# Set up targeting state dependencies (required for IndicatorManager)
-	var targeting_state = _container.get_states().targeting
-	var map_layer = auto_free(TileMapLayer.new())
-	add_child(map_layer)
-	map_layer.tile_set = TileSet.new()
-	map_layer.tile_set.tile_size = Vector2(16, 16)
-	targeting_state.set_map_objects(map_layer, [map_layer])
-	var positioner = auto_free(Node2D.new())
-	targeting_state.positioner = positioner
+	var test_env = UnifiedTestFactory.create_injection_test_environment(self)
+	_container = test_env.container
+	_injector = test_env.injector
 
 func test_placement_manager_gets_dependency_injection() -> void:
 	# Create spy IndicatorManager to track injection calls
