@@ -502,6 +502,9 @@ static func create_test_rule_check_indicator(test: GdUnitTestSuite, parent: Node
 	shape.size = Vector2(16, 16)
 	indicator.shape = shape
 	
+	# Set collision mask to match test expectations
+	indicator.collision_mask = 1
+	
 	test.auto_free(indicator)
 	if parent != null:
 		parent.add_child(indicator)
@@ -1371,12 +1374,15 @@ static func create_collision_indicator_test_environment(test: GdUnitTestSuite, c
 	return base_env
 
 ## Standardized assertion for collision layer validation
-static func assert_collision_layer_setup(indicator: Node2D, expected_layer: int, context: String = "") -> void:
+static func assert_collision_layer_setup(collision_node: Node2D, expected_layer: int, context: String = "") -> void:
 	var collision_layer = 0
-	if indicator is Area2D:
-		collision_layer = indicator.collision_layer
-	elif indicator is StaticBody2D:
-		collision_layer = indicator.collision_layer
+	if collision_node is Area2D:
+		collision_layer = collision_node.collision_layer
+	elif collision_node is StaticBody2D:
+		collision_layer = collision_node.collision_layer
+	elif collision_node is ShapeCast2D:
+		# ShapeCast2D uses collision_mask instead of collision_layer
+		collision_layer = collision_node.collision_mask
 	
 	var message = "Expected collision layer %d, got %d" % [expected_layer, collision_layer]
 	if context: message += " (%s)" % context

@@ -9,13 +9,16 @@ extends GdUnitTestSuite
 
 var test_env: Dictionary
 
+## Test using actual Placeable resources from the test folder
+var test_smithy_placeable: Placeable = load("uid://dirh6mcrgdm3w")
+
 func before_test() -> void:
-	test_env = UnifiedTestFactory.create_systems_integration_test_environment(self)
+	test_env = UnifiedTestFactory.create_complete_building_test_setup(self)
 
 #region BUILDING SYSTEM CORE
 
 func test_building_system_initialization() -> void:
-	var building_system: Object = test_env.building_system
+	var building_system : BuildingSystem = test_env.building_system
 	
 	# Verify initial state
 	var is_build_mode: bool = building_system.is_in_build_mode()
@@ -27,12 +30,12 @@ func test_building_system_initialization() -> void:
 	assert_object(building_system).is_not_null()
 
 func test_building_mode_enter_exit() -> void:
-	var building_system: Object = test_env.building_system
-	var test_placeable = test_env.get("test_placeable") 
+	var building_system: BuildingSystem = test_env.building_system
+	var test_placeable: Placeable = test_env.get("test_placeable") 
 	
 	if test_placeable == null:
 		# Create a simple test placeable
-		test_placeable = UnifiedTestFactory.create_test_node2d(self)
+		test_placeable = UnifiedTestFactory.create_test_smithy_placeable(self)
 	
 	# Enter build mode
 	building_system.enter_build_mode(test_placeable)
@@ -47,12 +50,11 @@ func test_building_mode_enter_exit() -> void:
 	).is_false()
 
 func test_building_placement_attempt() -> void:
-	var building_system: Object = test_env.building_system
-	var test_placeable: Node2D = UnifiedTestFactory.create_test_node2d(self)
+	var building_system: BuildingSystem = test_env.building_system
 	
 	# Enter build mode and attempt placement
-	building_system.enter_build_mode(test_placeable)
-	var placement_result = building_system.try_build_at_position(Vector2(100, 100))
+	building_system.enter_build_mode(test_smithy_placeable)
+	var placement_result: Node2D = building_system.try_build()
 	
 	# Verify placement attempt returns a result (success/failure handled by validation)
 	assert_object(placement_result).append_failure_message(
@@ -66,15 +68,14 @@ func test_building_placement_attempt() -> void:
 #region BUILDING STATE
 
 func test_building_state_transitions() -> void:
-	var building_system: Object = test_env.building_system
-	var test_placeable: Node2D = UnifiedTestFactory.create_test_node2d(self)
+	var building_system: BuildingSystem = test_env.building_system
 	
 	# Test state transition sequence
 	var initial_state = building_system.is_in_build_mode()
 	assert_bool(initial_state).is_false()
 	
 	# Enter build mode
-	building_system.enter_build_mode(test_placeable)
+	building_system.enter_build_mode(test_smithy_placeable)
 	var build_mode_state = building_system.is_in_build_mode()
 	assert_bool(build_mode_state).is_true()
 	
@@ -84,11 +85,10 @@ func test_building_state_transitions() -> void:
 	assert_bool(final_state).is_false()
 
 func test_building_state_persistence() -> void:
-	var building_system: Object = test_env.building_system
-	var test_placeable: Node2D = UnifiedTestFactory.create_test_node2d(self)
+	var building_system : BuildingSystem = test_env.building_system
 	
 	# Enter build mode
-	building_system.enter_build_mode(test_placeable)
+	building_system.enter_build_mode(test_smithy_placeable)
 	
 	# State should persist across method calls
 	assert_bool(building_system.is_in_build_mode()).is_true()
@@ -104,19 +104,18 @@ func test_building_state_persistence() -> void:
 #region DRAG BUILD MANAGER
 
 func test_drag_build_initialization() -> void:
-	var building_system: Object = test_env.building_system
+	var building_system : BuildingSystem = test_env.building_system
 	
 	# Check if drag build manager is available
-	var drag_manager = building_system.get_drag_build_manager()
+	var drag_manager = building_system.get_lazy_drag_manager()
 	assert_object(drag_manager).append_failure_message(
 		"Drag build manager should be available"
 	).is_not_null()
 
 func test_drag_build_functionality() -> void:
-	var building_system: Object = test_env.building_system
-	var test_placeable: Node2D = UnifiedTestFactory.create_test_node2d(self)
+	var building_system : BuildingSystem = test_env.building_system
 	
-	building_system.enter_build_mode(test_placeable)
+	building_system.enter_build_mode(test_smithy_placeable)
 	
 	# Test drag building sequence
 	building_system.start_drag_build(Vector2(50, 50))
@@ -138,19 +137,20 @@ func test_drag_build_functionality() -> void:
 #region SINGLE PLACEMENT PER TILE
 
 func test_single_placement_per_tile_constraint() -> void:
-	var building_system: Object = test_env.building_system
-	var test_placeable: Node2D = UnifiedTestFactory.create_test_node2d(self)
+	var building_system : BuildingSystem = test_env.building_system
 	
-	building_system.enter_build_mode(test_placeable)
+	building_system.enter_build_mode(test_smithy_placeable)
 	
-	var target_position: Vector2 = Vector2(200, 200)
+	building_system.enter_build_mode(test_smithy_placeable)
+	
+	var _target_position: Vector2 = Vector2(200, 200)
 	
 	# First placement attempt
-	var first_result = building_system.try_build_at_position(target_position)
+	var first_result: Node2D = building_system.try_build()
 	assert_object(first_result).is_not_null()
 	
 	# Second placement at same position should be handled appropriately
-	var second_result = building_system.try_build_at_position(target_position)
+	var second_result: Node2D = building_system.try_build()
 	assert_object(second_result).append_failure_message(
 		"System should handle duplicate placement attempts gracefully"
 	).is_not_null()
@@ -158,16 +158,15 @@ func test_single_placement_per_tile_constraint() -> void:
 	building_system.exit_build_mode()
 
 func test_tile_placement_validation() -> void:
-	var building_system: Object = test_env.building_system
-	var test_placeable: Node2D = UnifiedTestFactory.create_test_node2d(self)
+	var building_system : BuildingSystem = test_env.building_system
 	
-	building_system.enter_build_mode(test_placeable)
+	building_system.enter_build_mode(test_smithy_placeable)
 	
 	# Test multiple positions to verify tile-based logic
 	var positions: Array = [Vector2(0, 0), Vector2(16, 16), Vector2(32, 32)]
 	
 	for pos: Vector2 in positions:
-		var result = building_system.try_build_at_position(pos)
+		var result: Node2D = building_system.try_build()
 		assert_object(result).append_failure_message(
 			"Should get result for position %s" % pos
 		).is_not_null()
@@ -179,11 +178,9 @@ func test_tile_placement_validation() -> void:
 #region PREVIEW NAME CONSISTENCY
 
 func test_preview_name_consistency() -> void:
-	var building_system: Object = test_env.building_system
-	var test_placeable: Node2D = UnifiedTestFactory.create_test_node2d(self)
-	test_placeable.name = "TestPlaceable"
+	var building_system : BuildingSystem = test_env.building_system
 	
-	building_system.enter_build_mode(test_placeable)
+	building_system.enter_build_mode(test_smithy_placeable)
 	
 	# Check if preview system maintains name consistency
 	var preview = building_system.get_current_preview()
@@ -196,10 +193,9 @@ func test_preview_name_consistency() -> void:
 	building_system.exit_build_mode()
 
 func test_preview_rotation_consistency() -> void:
-	var building_system: Object = test_env.building_system
-	var test_placeable: Node2D = UnifiedTestFactory.create_test_node2d(self)
+	var building_system : BuildingSystem = test_env.building_system
 	
-	building_system.enter_build_mode(test_placeable)
+	building_system.enter_build_mode(test_smithy_placeable)
 	
 	# Test rotation consistency
 	building_system.rotate_preview()
@@ -216,9 +212,8 @@ func test_preview_rotation_consistency() -> void:
 #region COMPREHENSIVE BUILDING WORKFLOW
 
 func test_complete_building_workflow() -> void:
-	var building_system: Object = test_env.building_system
+	var building_system : BuildingSystem = test_env.building_system
 	var targeting_system = test_env.get("targeting_system")
-	var test_placeable: Node2D = UnifiedTestFactory.create_test_node2d(self)
 	
 	# Phase 1: Setup
 	if targeting_system:
@@ -226,11 +221,11 @@ func test_complete_building_workflow() -> void:
 		targeting_state.target.position = Vector2(300, 300)
 	
 	# Phase 2: Enter build mode
-	building_system.enter_build_mode(test_placeable)
+	building_system.enter_build_mode(test_smithy_placeable)
 	assert_bool(building_system.is_in_build_mode()).is_true()
 	
 	# Phase 3: Attempt building
-	var build_result = building_system.try_build_at_position(Vector2(300, 300))
+	var build_result: Node2D = building_system.try_build()
 	assert_object(build_result).is_not_null()
 	
 	# Phase 4: Cleanup
@@ -238,7 +233,7 @@ func test_complete_building_workflow() -> void:
 	assert_bool(building_system.is_in_build_mode()).is_false()
 
 func test_building_error_recovery() -> void:
-	var building_system: Object = test_env.building_system
+	var building_system : BuildingSystem = test_env.building_system
 	
 	# Test recovery from invalid placeable
 	var invalid_placeable = null
@@ -251,8 +246,7 @@ func test_building_error_recovery() -> void:
 	).is_not_null()
 	
 	# Test recovery with valid placeable
-	var valid_placeable: Node2D = UnifiedTestFactory.create_test_node2d(self)
-	building_system.enter_build_mode(valid_placeable)
+	building_system.enter_build_mode(test_smithy_placeable)
 	assert_bool(building_system.is_in_build_mode()).append_failure_message(
 		"System should recover and accept valid placeable"
 	).is_true()
@@ -264,7 +258,7 @@ func test_building_error_recovery() -> void:
 #region BUILDING SYSTEM INTEGRATION
 
 func test_building_system_dependencies() -> void:
-	var building_system: Object = test_env.building_system
+	var building_system : BuildingSystem = test_env.building_system
 	
 	# Verify system has required dependencies
 	var issues = building_system.get_dependency_issues()
@@ -273,7 +267,7 @@ func test_building_system_dependencies() -> void:
 	).is_empty()
 
 func test_building_system_validation() -> void:
-	var building_system: Object = test_env.building_system
+	var building_system : BuildingSystem = test_env.building_system
 	
 	# Test system validation
 	var is_valid = building_system.validate_setup()
@@ -286,10 +280,9 @@ func test_building_system_validation() -> void:
 #region DRAG BUILD REGRESSION
 
 func test_drag_build_single_placement_regression() -> void:
-	var building_system: Object = test_env.building_system
-	var test_placeable: Node2D = UnifiedTestFactory.create_test_node2d(self)
+	var building_system : BuildingSystem = test_env.building_system
 	
-	building_system.enter_build_mode(test_placeable)
+	building_system.enter_build_mode(test_smithy_placeable)
 	
 	# Test that drag build respects single placement per tile constraint
 	var tile_position: Vector2 = Vector2(400, 400)
@@ -310,10 +303,9 @@ func test_drag_build_single_placement_regression() -> void:
 	building_system.exit_build_mode()
 
 func test_preview_indicator_consistency() -> void:
-	var building_system: Object = test_env.building_system
-	var test_placeable: Node2D = UnifiedTestFactory.create_test_node2d(self)
+	var building_system : BuildingSystem = test_env.building_system
 	
-	building_system.enter_build_mode(test_placeable)
+	building_system.enter_build_mode(test_smithy_placeable)
 	
 	# Test that preview and indicators stay consistent
 	var preview = building_system.get_current_preview()

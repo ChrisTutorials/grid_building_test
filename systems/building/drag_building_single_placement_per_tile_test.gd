@@ -110,7 +110,7 @@ func test_drag_building_single_placement_per_tile_switch():
 	grid_positioner.global_position = map_layer.to_global(map_layer.map_to_local(start_tile))
 	
 	# Start drag building
-	var drag_manager = system._get_lazy_drag_manager()
+	var drag_manager = system.get_lazy_drag_manager()
 	var drag_data = drag_manager.start_drag()
 	assert_object(drag_data).is_not_null()
 	assert_bool(drag_manager.is_drag_building()).is_true()
@@ -198,7 +198,7 @@ func test_tile_tracking_prevents_duplicate_placements():
 	grid_positioner.global_position = map_layer.to_global(map_layer.map_to_local(start_tile))
 
 	# Start drag
-	var drag_manager = system._get_lazy_drag_manager()
+	var drag_manager = system.get_lazy_drag_manager()
 	var drag_data = drag_manager.start_drag()
 	
 	# Multiple rapid tile switch events to same tile should only place once

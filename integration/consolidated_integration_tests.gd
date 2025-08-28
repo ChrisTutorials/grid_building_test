@@ -17,7 +17,7 @@ func before_test() -> void:
 
 func test_complete_building_workflow() -> void:
 	var building_system: Object = test_env.building_system
-	var smithy = PlaceableLibrary.get_smithy()
+	var smithy = UnifiedTestFactory.create_test_smithy_placeable(self)
 	
 	# Enter build mode
 	building_system.enter_build_mode(smithy)
@@ -38,7 +38,7 @@ func test_complete_building_workflow() -> void:
 func test_building_workflow_with_validation() -> void:
 	var building_system: Object = test_env.building_system
 	var placement_validator = test_env.placement_validator
-	var smithy = PlaceableLibrary.get_smithy()
+	var smithy = UnifiedTestFactory.create_test_smithy_placeable(self)
 	
 	# Setup placement validation
 	building_system.enter_build_mode(smithy)
@@ -151,7 +151,7 @@ func _create_preview_with_collision() -> Node2D:
 #region SMITHY INDICATOR GENERATION
 
 func test_smithy_indicator_generation() -> void:
-	var smithy = PlaceableLibrary.get_smithy()
+	var smithy = UnifiedTestFactory.create_test_smithy_placeable(self)
 	var indicator_manager: Object = test_env.indicator_manager
 	
 	# Get smithy rules
