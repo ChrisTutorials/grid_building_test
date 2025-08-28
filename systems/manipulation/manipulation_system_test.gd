@@ -18,36 +18,13 @@ var _container: GBCompositionContainer
 
 
 func before_test():
-	_container = load("uid://dy6e5p5d6ax6n").duplicate(true)
-	# Use GodotTestFactory for all node creation
-	manipulator = GodotTestFactory.create_node(self)
-
-	# Create a GBOwner and set it up properly
-	var gb_owner = GBOwner.new(manipulator)
-	gb_owner = auto_free(gb_owner)
-
-	# Connect the owner to the container's context
-	owner_context = _container.get_contexts().owner
-	owner_context.set_owner(gb_owner)
-
-	# Setup manipulation test system using static factory methods
-	var states = _container.get_states()
-	manipulation_state = states.manipulation
-	var manipulation_parent = GodotTestFactory.create_node2d(self)
-	manipulation_state.parent = manipulation_parent
-
-	targeting_state = states.targeting
-	targeting_state.target_map = GodotTestFactory.create_empty_tile_map_layer(self)
-	targeting_state.maps = [targeting_state.target_map]
-
-	# IndicatorManager: instantiate and inject dependencies
-	var placement_manager: IndicatorManager = IndicatorManager.new()
-	placement_manager.resolve_gb_dependencies(_container)
-	add_child(placement_manager)
-	_container.get_contexts().indicator.set_manager(placement_manager)
-
-	system = auto_free(ManipulationSystem.create_with_injection(_container))
-	add_child(system)
+	var test_env = UnifiedTestFactory.create_manipulation_system_test_environment(self)
+	_container = test_env.container
+	manipulator = test_env.manipulator
+	owner_context = test_env.owner_context
+	manipulation_state = test_env.manipulation_state
+	targeting_state = test_env.targeting_state
+	system = test_env.system
 
 	# Set targeting_state dependencies
 	positioner = GodotTestFactory.create_node2d(self)
@@ -65,14 +42,17 @@ func before_test():
 
 
 func test_start_move(
-	p_data: ManipulationData,
+	p_settings: ManipulatableSettings,
 	p_expected: bool,
 	test_parameters := [
-		[create_move_data(null), true],
-		[create_move_data(TestSceneLibrary.rules_2_rules_1_tile_check), true],
-		[create_move_data(TestSceneLibrary.manipulatable_settings_all_allowed), true]
+		[null, true],
+		[TestSceneLibrary.rules_2_rules_1_tile_check, true],
+		[TestSceneLibrary.manipulatable_settings_all_allowed, true]
 	]
 ) -> void:
+	# Create the data inside the test method when _container is available
+	var p_data = create_move_data(p_settings)
+	
 	# Use the public try_move method instead of private _start_move
 	var result_data = system.try_move(p_data.source.root)
 	var result: bool = result_data.status == GBEnums.Status.STARTED
@@ -88,12 +68,15 @@ func test_start_move(
 
 
 func test_move_already_moving(
-	p_data: ManipulationData,
+	p_settings: ManipulatableSettings,
 	p_expected,
 	test_parameters := [
-		[create_move_data(TestSceneLibrary.manipulatable_settings_all_allowed), true]
+		[TestSceneLibrary.manipulatable_settings_all_allowed, true]
 	]
 ) -> void:
+	# Create the data inside the test method when _container is available
+	var p_data = create_move_data(p_settings)
+	
 	var results_first_move = system.try_move(p_data.source.root)
 	var first_move_success: bool = results_first_move.status == GBEnums.Status.STARTED
 	assert_bool(first_move_success).is_equal(p_expected)
@@ -133,13 +116,16 @@ func test_cancel() -> void:
 
 
 func test_demolish(
-	p_demolish_target: Manipulatable,
+	p_settings: ManipulatableSettings,
 	p_expected: bool,
 	test_parameters := [
-		[create_manipulatable_object(TestSceneLibrary.manipulatable_settings_none_allowed), false],  # Manipulatable that denies all test
-		[all_manipulatable, true]  # Manipulatable that allows all test
+		[TestSceneLibrary.manipulatable_settings_none_allowed, false],  # Manipulatable that denies all test
+		[TestSceneLibrary.manipulatable_settings_all_allowed, true]  # Manipulatable that allows all test
 	]
 ) -> void:
+	# Create the manipulatable inside the test method when the environment is ready
+	var p_demolish_target = create_manipulatable_object(p_settings) if p_settings != null else all_manipulatable
+	
 	monitor_signals(manipulation_state)  # Needed for assert_signal
 	var result: bool = await system.demolish(p_demolish_target)
 	assert_bool(result).is_equal(p_expected)

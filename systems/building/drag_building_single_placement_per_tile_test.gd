@@ -27,52 +27,28 @@ func _validation_summary(validation: ValidationResults) -> String:
 		for rr in validation.rule_results:
 			var rule_name = rr.rule.get_class() if rr.rule else "<no-rule>"
 			parts.append("%s:%s" % [rule_name, rr.reason])
-	return "is_successful=%s issues=%s rule_results=%s" % [str(validation.is_successful()), str(validation.issues), str(parts)]
+	return "is_successful=%s issues=%s rule_results=%s" % [str(validation.is_successful()), str(validation.get_issues()), str(parts)]
 
 func before_test():
-	_container = load("uid://dy6e5p5d6ax6n")
-	_injector = UnifiedTestFactory.create_test_injector(self, _container)
+	var test_env = UnifiedTestFactory.create_building_system_test_environment(self)
+	_container = test_env.container
+	_injector = test_env.injector
 	placement_attempts = 0
 	placed_objects.clear()
-	
-	placer = GodotTestFactory.create_node2d(self)
-	placed_parent = GodotTestFactory.create_node2d(self)
-	grid_positioner = GodotTestFactory.create_node2d(self)
-	_container.get_targeting_state().positioner = grid_positioner # Make sure it's assigned
-	# Use factory to create a fully initialized indicator manager and register it with the test container
-	indicator_manager = UnifiedTestFactory.create_indicator_manager(self)
-	# Ensure indicator manager is registered in the test container's placement context
-	_container.get_contexts().indicator.set_manager(indicator_manager)
-	# Keep indicator manager under the positioner so preview instances are parented correctly.
-	# If the factory already parented the manager to the test, move it under the positioner safely.
-	if indicator_manager.get_parent() != grid_positioner:
-		if indicator_manager.get_parent() != null:
-			indicator_manager.get_parent().remove_child(indicator_manager)
-		grid_positioner.add_child(indicator_manager)
-	map_layer = GodotTestFactory.create_tile_map_layer(self)
+	placer = test_env.placer
+	placed_parent = test_env.placed_parent
+	grid_positioner = test_env.grid_positioner
+	indicator_manager = test_env.indicator_manager
+	map_layer = test_env.map_layer
+	targeting_state = test_env.targeting_state
+	mode_state = test_env.mode_state
+	system = test_env.system
 
-	var states := _container.get_states()
-	targeting_state = states.targeting
-	targeting_state.positioner = grid_positioner
-	targeting_state.target_map = map_layer
-	targeting_state.maps = [map_layer]
-	mode_state = states.mode
-
-	# Proper owner: create GBOwner node and inject so BuildingState can resolve owner_root
-	var gb_owner := GBOwner.new(placer)
-	add_child(gb_owner)
-	gb_owner.resolve_gb_dependencies(_container)
-
-	# Create building system via factory (injects dependencies & ensures placement manager)
-	system = auto_free(BuildingSystem.create_with_injection(_container))
-	add_child(system)
-
-	states.building.placed_parent = placed_parent
-	
 	# Connect to success signal to track placement attempts (avoid duplicate connections)
+	var states = _container.get_states()
 	if not states.building.success.is_connected(_on_build_success):
 		states.building.success.connect(_on_build_success)
-	
+
 	# Create a placeable with NO rules (this allows unlimited placement without validation)
 	placeable_no_rules = auto_free(Placeable.new())
 	# Use the unified test factory to create a valid packed scene for previews in tests.
