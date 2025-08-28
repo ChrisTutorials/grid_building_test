@@ -74,6 +74,37 @@ static func create_systems_integration_test_environment(test: GdUnitTestSuite, c
 	
 	return rule_env
 
+## Creates complete indicator manager tree integration test environment
+## Combines targeting state setup with indicator manager and injector for comprehensive tree testing
+## [b]Parameters[/b]:
+##  • [code]test[/code]: GdUnitTestSuite – test suite for parenting/autofree
+##  • [code]container[/code]: GBCompositionContainer – base container (defaults to TEST_CONTAINER)
+## [b]Returns[/b]: Dictionary – complete test environment with all components properly configured
+static func create_indicator_manager_tree_test_environment(test: GdUnitTestSuite, container: GBCompositionContainer = null) -> Dictionary:
+	# Start with comprehensive targeting state setup (ensures indicator template and manipulation parent)
+	var targeting_setup = prepare_targeting_state_ready(test, container)
+	
+	# Create injector for dependency injection
+	var injector = create_test_injector(test, targeting_setup.container)
+	
+	# Create indicator manager with proper setup
+	var indicator_manager = create_test_indicator_manager(test, targeting_setup.container)
+	test.add_child(indicator_manager)
+	
+	# Return complete environment dictionary
+	return {
+		"container": targeting_setup.container,
+		"targeting_state": targeting_setup.targeting_state,
+		"building_state": targeting_setup.building_state,
+		"positioner": targeting_setup.positioner,
+		"tile_map": targeting_setup.tile_map,
+		"objects_parent": targeting_setup.objects_parent,
+		"level_context": targeting_setup.level_context,
+		"logger": targeting_setup.logger,
+		"injector": injector,
+		"indicator_manager": indicator_manager
+	}
+
 # ================================
 # Building Systems
 # ================================
@@ -1371,3 +1402,123 @@ static func ensure_indicator_template_configured(container: GBCompositionContain
 			templates.rule_check_indicator = standard_indicator
 		else:
 			push_error("Could not load standard indicator template - tests may fail")
+
+## Creates a targeting state with intentional runtime issues for testing error handling
+## @param test: The test suite instance
+## @param container: The composition container to use
+## @param runtime_issue_type: Type of runtime issue to inject ("null_target_map", "null_positioner", "empty_maps")
+## @return Dictionary containing the setup with intentional runtime issues
+static func create_targeting_state_with_runtime_issues(
+	test: GdUnitTestSuite, 
+	container: GBCompositionContainer,
+	runtime_issue_type: String = "null_target_map"
+) -> Dictionary:
+	var setup = {}
+	
+	# Create injector system first
+	setup.injector = create_test_injector(test, container)
+	
+	# Get targeting state from container
+	var targeting_state = container.get_states().targeting
+	setup.targeting_state = targeting_state
+	
+	# Create positioner
+	setup.positioner = GodotTestFactory.create_node2d(test)
+	setup.positioner.name = "TestPositioner"
+	
+	# Create tile map (but don't assign it based on issue type)
+	var tile_map = GodotTestFactory.create_tile_map_layer(test, 32)
+	tile_map.tile_set.tile_size = Vector2i(16, 16)
+	setup.tile_map = tile_map
+	
+	# Configure targeting state based on the type of runtime issue we want to test
+	match runtime_issue_type:
+		"null_target_map":
+			# Set positioner but leave target_map null to create runtime issue
+			targeting_state.positioner = setup.positioner
+			# Intentionally don't set target_map or call set_map_objects
+			targeting_state.target_map = null
+			targeting_state.maps = []
+			
+		"null_positioner":
+			# Set target_map but leave positioner null
+			targeting_state.target_map = tile_map
+			targeting_state.set_map_objects(tile_map, [tile_map])
+			# Intentionally don't set positioner
+			
+		"empty_maps":
+			# Set positioner and target_map but leave maps array empty
+			targeting_state.positioner = setup.positioner
+			targeting_state.target_map = tile_map
+			targeting_state.maps = []  # Empty maps array
+			
+		_:
+			push_error("Unknown runtime issue type: " + runtime_issue_type)
+	
+	# Create default target node
+	setup.default_target = GodotTestFactory.create_node2d(test)
+	setup.default_target.name = "DefaultTestTarget"
+	setup.default_target.position = Vector2(64, 64)
+	targeting_state.target = setup.default_target
+	
+	# Ensure indicator template is configured
+	ensure_indicator_template_configured(container)
+	
+	return setup
+
+## Prepares a TargetingState to be READY for use by setting up all required dependencies
+## Uses GBLevelContext pattern to properly configure target_map, maps array, and objects_parent
+## Returns a dictionary with all the setup components for testing
+static func prepare_targeting_state_ready(
+	test: GdUnitTestSuite, 
+	container: GBCompositionContainer = null
+) -> Dictionary:
+	var _container = container if container != null else TEST_CONTAINER.duplicate(true)
+	var setup = {}
+	
+	# Create core scene nodes
+	setup.positioner = GodotTestFactory.create_node2d(test)
+	setup.positioner.name = "TestPositioner"
+	
+	setup.objects_parent = Node2D.new()
+	setup.objects_parent.name = "TestObjectsParent"
+	test.auto_free(setup.objects_parent)
+	
+	# Create tile map layer for targeting
+	setup.tile_map = GodotTestFactory.create_tile_map_layer(test, 32)
+	setup.tile_map.tile_set.tile_size = Vector2i(16, 16)
+	
+	# Create GBLevelContext to properly configure dependencies
+	var level_context = GBLevelContext.new()
+	level_context.name = "TestLevelContext"
+	level_context.target_map = setup.tile_map
+	var maps_array: Array[TileMapLayer] = [setup.tile_map]
+	level_context.maps = maps_array
+	level_context.objects_parent = setup.objects_parent
+	test.auto_free(level_context)
+	
+	# Resolve dependencies for the level context so it can use the logger
+	level_context.resolve_gb_dependencies(_container)
+	
+	# Apply level context to container states
+	var targeting_state = _container.get_states().targeting
+	var building_state = _container.get_states().building
+	level_context.apply_to(targeting_state, building_state)
+	
+	# Set positioner on targeting state
+	targeting_state.positioner = setup.positioner
+	
+	# Create default target for testing
+	setup.default_target = GodotTestFactory.create_node2d(test)
+	setup.default_target.name = "DefaultTestTarget"
+	setup.default_target.position = Vector2(64, 64)
+	targeting_state.target = setup.default_target
+	
+	# Store references for test access
+	setup.container = _container
+	setup.targeting_state = targeting_state
+	setup.building_state = building_state
+	setup.level_context = level_context
+	setup.logger = _container.get_logger()
+	
+	return setup

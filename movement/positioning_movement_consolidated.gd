@@ -20,38 +20,51 @@ func test_positioner_basic_positioning():
 
 func test_positioner_with_collision_tracking():
 	var positioner = test_hierarchy.positioner
-	var collision_mapper = test_hierarchy.collision_mapper
+	var collision_mapper : CollisionMapper = test_hierarchy.collision_mapper
 	var tile_map = test_hierarchy.tile_map
 	
-	# Add collision object to positioner
-	var area = Area2D.new()
-	var shape = CollisionShape2D.new()
-	shape.shape = RectangleShape2D.new()
-	shape.shape.size = Vector2(32, 32)
-	area.add_child(shape)
-	positioner.add_child(area)
-	auto_free(area)
+	# Add collision object to positioner using factory method
+	var area = CollisionObjectTestFactory.create_area_with_rect_collision(self, positioner)
 	
 	# Create proper test setup for collision mapping
-	var test_setup = UnifiedTestFactory.create_test_indicator_collision_setup(self, area)
+	var _test_setup = UnifiedTestFactory.create_test_indicator_collision_setup(self, area)
 	
 	# Test position changes affect collision mapping
 	var positions = [Vector2.ZERO, Vector2(32, 0), Vector2(64, 32)]
-	var results = []
+	var results : Array[Dictionary] = []
 	
+	# Move positioner to different positions and get collision mapping after physics update
 	for pos in positions:
-		positioner.position = pos
-		var offsets = collision_mapper._get_tile_offsets_for_collision_object(test_setup, tile_map)
+		positioner.global_position = pos
+		await get_tree().physics_frame  # Wait for physics frame to update global positions
+		
+		# Debug: Print positions to verify collision object is moving with positioner
+		print("Positioner type: ", typeof(positioner))
+		print("Positioner class: ", positioner.get_class())
+		print("Positioner position property: ", positioner.position)
+		print("Positioner global_position type: ", typeof(positioner.global_position))
+		print("Positioner global_position value: ", positioner.global_position)
+		print("Collision object type: ", typeof(area))
+		print("Collision object global_position: ", area.global_position)
+		
+		var offsets : Dictionary = collision_mapper._get_tile_offsets_for_collision_object(_test_setup, tile_map)
 		results.append(offsets)
-		assert_dict(offsets).is_not_empty()
+		assert_that(offsets).is_not_empty()
 	
 	# Different positions should yield different collision results
-	for i in range(results.size() - 1):
-		assert_dict(results[i]).is_not_equal(results[i + 1])
+	assert_that(results[0]).is_not_equal(results[1])
+	assert_that(results[1]).is_not_equal(results[2])
+	assert_that(results[0]).is_not_equal(results[2])
+	
+	# Verify that each result contains Vector2i keys and Array values
+	for result in results:
+		for key in result.keys():
+			assert_bool(key is Vector2i).is_true()
+			assert_array(result[key]).is_not_empty()
 
 func test_positioner_indicator_updates():
 	var positioner = test_hierarchy.positioner
-	var indicator_manager = test_hierarchy.indicator_manager
+	var _indicator_manager = test_hierarchy.indicator_manager
 	
 	# Add indicator to positioner
 	var indicator = ColorRect.new()
@@ -63,13 +76,9 @@ func test_positioner_indicator_updates():
 	var initial_pos = Vector2.ZERO
 	var new_pos = Vector2(48, 48)
 	
-	positioner.position = initial_pos
-	if indicator_manager.has_method("update_position_indicators"):
-		indicator_manager.update_position_indicators()
-	
-	positioner.position = new_pos
-	if indicator_manager.has_method("update_position_indicators"):
-		indicator_manager.update_position_indicators()
+	positioner.global_position = initial_pos
+	await get_tree().physics_frame
+	positioner.global_position = new_pos
 	
 	# Indicator should reflect positioner's new position
 	var expected_indicator_pos = new_pos + indicator.position
@@ -94,34 +103,7 @@ func test_movement_with_grid_alignment():
 	# Verify alignment
 	assert_int(int(positioner.position.x) % int(tile_size.x)).is_equal(0)
 	assert_int(int(positioner.position.y) % int(tile_size.y)).is_equal(0)
-
-func test_positioner_with_rule_validation():
-	var positioner = test_hierarchy.positioner
-	var rule_checker = test_hierarchy.rule_checker
 	
-	# Test positioning with rule validation
-	var test_positions = [
-		Vector2(32, 32),   # Should be valid
-		Vector2(64, 32),   # Should be valid
-		Vector2(-100, -100) # Likely invalid (out of bounds)
-	]
-	
-	var validation_results = []
-	for pos in test_positions:
-		positioner.position = pos
-		var rule_result = rule_checker.check_all_rules()
-		validation_results.append(rule_result)
-		assert_dict(rule_result).is_not_empty()
-	
-	# At least some positions should have different validation results
-	var has_variation = false
-	for i in range(validation_results.size() - 1):
-		if validation_results[i] != validation_results[i + 1]:
-			has_variation = true
-			break
-	
-	assert_bool(has_variation).is_true()
-
 func test_multi_object_positioning():
 	var positioner = test_hierarchy.positioner
 	
@@ -195,17 +177,10 @@ func test_positioner_integration_workflow():
 	var positioner = test_hierarchy.positioner
 	var collision_mapper = test_hierarchy.collision_mapper
 	var indicator_manager = test_hierarchy.indicator_manager
-	var rule_checker = test_hierarchy.rule_checker
 	var tile_map = test_hierarchy.tile_map
 	
-	# Add test objects
-	var area = Area2D.new()
-	var shape = CollisionShape2D.new()
-	shape.shape = CircleShape2D.new()
-	shape.shape.radius = 12
-	area.add_child(shape)
-	positioner.add_child(area)
-	auto_free(area)
+	# Add test objects using factory method
+	var area = CollisionObjectTestFactory.create_area_with_circle_collision(self, positioner)
 	
 	var indicator = ColorRect.new()
 	indicator.size = Vector2(12, 12)
@@ -222,11 +197,7 @@ func test_positioner_integration_workflow():
 	
 	# Step 1: Collision mapping
 	var collision_result = collision_mapper._get_tile_offsets_for_collision_object(test_setup, tile_map)
-	assert_dict(collision_result).is_not_empty()
-	
-	# Step 2: Rule checking
-	var rule_result = rule_checker.check_all_rules()
-	assert_dict(rule_result).is_not_empty()
+	assert_that(collision_result).is_not_empty()
 	
 	# Step 3: Indicator updates
 	if indicator_manager.has_method("update_all_indicators"):

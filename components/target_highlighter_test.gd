@@ -190,7 +190,7 @@ func test_should_highlight(
 	p_expected: bool,
 	p_description: String = "",
 	test_parameters := [
-		[null, null, false],
+		[null, null, false, "Both data and target are null"],
 		[null, auto_free(Node2D.new()), true, "Target is different"],
 		[data_source_is_target, auto_free(Node2D.new()), false, "Is data but target is the same as p_data target"],
 		[data_source_is_target, data_source_is_target.target.root, true, "Is Data, Target is Same, but source is different"],

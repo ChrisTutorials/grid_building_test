@@ -122,16 +122,71 @@ static func test_collision_tiles_at_position(
 
 	return collision_tiles
 
-## Creates a dummy collision object for error handling tests
-static func create_dummy_collision_object(test_suite: GdUnitTestSuite, size: Vector2 = Vector2(16, 16)) -> StaticBody2D:
-	var collision_body: StaticBody2D = StaticBody2D.new()
-	test_suite.add_child(collision_body)
-	test_suite.auto_free(collision_body)
+## Creates an Area2D with a rectangular collision shape
+static func create_area_with_rect(test_suite: GdUnitTestSuite, size: Vector2, position: Vector2 = Vector2.ZERO) -> Area2D:
+	var area: Area2D = Area2D.new()
+	test_suite.add_child(area)
+	test_suite.auto_free(area)
 
 	var collision_shape: CollisionShape2D = CollisionShape2D.new()
 	var rect_shape: RectangleShape2D = RectangleShape2D.new()
 	rect_shape.size = size
 	collision_shape.shape = rect_shape
-	collision_body.add_child(collision_shape)
+	collision_shape.position = position
+	area.add_child(collision_shape)
 
-	return collision_body
+	return area
+
+## Creates an Area2D with a circular collision shape
+static func create_area_with_circle(test_suite: GdUnitTestSuite, radius: float, position: Vector2 = Vector2.ZERO) -> Area2D:
+	var area: Area2D = Area2D.new()
+	test_suite.add_child(area)
+	test_suite.auto_free(area)
+
+	var collision_shape: CollisionShape2D = CollisionShape2D.new()
+	var circle_shape: CircleShape2D = CircleShape2D.new()
+	circle_shape.radius = radius
+	collision_shape.shape = circle_shape
+	collision_shape.position = position
+	area.add_child(collision_shape)
+
+	return area
+
+## Creates an Area2D with circular collision shape and parents it to a positioner
+static func create_area_with_circle_collision(
+	test_suite: GdUnitTestSuite,
+	positioner: Node2D,
+	radius: float = 12.0
+) -> Area2D:
+	var area = Area2D.new()
+	var shape = CollisionShape2D.new()
+	shape.shape = CircleShape2D.new()
+	shape.shape.radius = radius
+	shape.position = Vector2.ZERO  # Explicitly set position
+	area.add_child(shape)
+	positioner.add_child(area)
+	test_suite.auto_free(area)
+
+	return area
+
+## Creates an Area2D with rectangular collision shape and parents it to a positioner
+static func create_area_with_rect_collision(
+	test_suite: GdUnitTestSuite,
+	positioner: Node2D,
+	size: Vector2 = Vector2(32, 32)
+) -> Area2D:
+	var area = Area2D.new()
+	var shape = CollisionShape2D.new()
+	shape.shape = RectangleShape2D.new()
+	shape.shape.size = size
+	shape.position = Vector2.ZERO  # Explicitly set position
+	area.add_child(shape)
+	positioner.add_child(area)
+	test_suite.auto_free(area)
+
+	# Assert that collision shape is properly parented to positioner
+	test_suite.assert_that(area.get_parent()).is_equal(positioner)
+	test_suite.assert_that(shape.get_parent()).is_equal(area)
+	test_suite.assert_that(positioner.get_children()).contains(area)
+
+	return area

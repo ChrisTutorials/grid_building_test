@@ -3,11 +3,10 @@ extends GdUnitTestSuite
 ## Consolidated Integration Test Suite  
 ## Consolidates: building_workflow_integration_test.gd, multi_rule_indicator_attachment_test.gd,
 ## smithy_indicator_generation_test.gd, complex_workflow_integration_test.gd,
-## polygon_test_object_indicator_integration_test.gd, grid_targeting_highlight_integration_test.gd
+## polygon_test_object_indicator_integration_test.gd, grid_targeting_highlight_integration_test.gd,
+## indicator_manager_tree_integration_test.gd
 
-## MARK FOR REMOVAL - building_workflow_integration_test.gd, multi_rule_indicator_attachment_test.gd,
-## smithy_indicator_generation_test.gd, complex_workflow_integration_test.gd,
-## polygon_test_object_indicator_integration_test.gd, grid_targeting_highlight_integration_test.gd
+## MARK FOR REMOVAL - All individual test files have been successfully consolidated
 
 var test_env: Dictionary
 
@@ -101,6 +100,51 @@ func test_rule_indicator_state_synchronization() -> void:
 	assert_bool(update_result.is_successful()).append_failure_message(
 		"Rule state update should succeed: %s" % update_result.get_all_issues()
 	).is_true()
+
+func test_indicators_are_parented_and_inside_tree() -> void:
+	var _indicator_manager: Object = test_env.indicator_manager
+	var targeting_state: Object = test_env.targeting_state
+	var positioner: Object = test_env.positioner
+	var container: Object = test_env.container
+	
+	# Create a preview object with collision
+	var preview = _create_preview_with_collision()
+	targeting_state.target = preview
+	
+	# Build a collisions rule that applies to layer 1
+	var rule: CollisionsCheckRule = CollisionsCheckRule.new()
+	rule.apply_to_objects_mask = 1 << 0
+	rule.collision_mask = 1 << 0
+	var rules: Array[PlacementRule] = [rule]
+	
+	var logger: Object = container.get_logger()
+	var params := RuleValidationParameters.new(positioner, preview, targeting_state, logger)
+	var setup_results: Object = _indicator_manager.try_setup(rules, params)
+	
+	assert_bool(setup_results.is_successful()).append_failure_message("IndicatorManager.try_setup failed").is_true()
+	var indicators = _indicator_manager.get_indicators()
+	assert_array(indicators).append_failure_message("No indicators created").is_not_empty()
+	
+	for ind in indicators:
+		assert_bool(ind.is_inside_tree()).append_failure_message("Indicator not inside tree: %s" % ind.name).is_true()
+		assert_object(ind.get_parent()).append_failure_message("Indicator has no parent: %s" % ind.name).is_not_null()
+		assert_object(ind.get_parent()).append_failure_message("Unexpected parent for indicator: %s" % ind.name).is_equal(container.get_states().manipulation.parent)
+
+func _create_preview_with_collision() -> Node2D:
+	var root := Node2D.new()
+	root.name = "PreviewRoot"
+	# Simple body with collision on layer 1
+	var area := Area2D.new()
+	area.collision_layer = 1
+	area.collision_mask = 1
+	var shape := CollisionShape2D.new()
+	var rect := RectangleShape2D.new()
+	rect.extents = Vector2(8, 8)
+	shape.shape = rect
+	area.add_child(shape)
+	root.add_child(area)
+	test_env.positioner.add_child(root) # center on positioner
+	return root
 
 #endregion
 

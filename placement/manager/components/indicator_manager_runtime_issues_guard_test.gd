@@ -1,22 +1,20 @@
 extends GdUnitTestSuite
 
 const UnifiedTestFactory = preload("res://test/grid_building_test/factories/unified_test_factory.gd")
+var _injector : GBInjectorSystem
 
 func test_setup_indicators_aborts_when_targeting_has_runtime_issues():
-	# Arrange: create composition container and injector
+	# Arrange: create composition container and setup with intentional runtime issues
 	var container := UnifiedTestFactory.create_test_composition_container(self)
-	var _injector := UnifiedTestFactory.create_test_injector(self, container)
-	var targeting_state := container.get_states().targeting
-
-	# Provide minimal valid targeting structure but inject a synthetic runtime issue
-	var positioner: Node2D = GodotTestFactory.create_node2d(self)
-	# Don't set tile_map to create a runtime issue (target_map will be null)
-	# var tile_map: TileMapLayer = GodotTestFactory.create_tile_map_layer(self, 4)
-	targeting_state.positioner = positioner
-	# targeting_state.set_map_objects(tile_map, [tile_map])  # Commented out to create runtime issue
-
-	# Don't stub get_runtime_issues() - let it naturally detect the null target_map
-
+	_injector = UnifiedTestFactory.create_test_injector(self, container)
+	var setup := UnifiedTestFactory.prepare_targeting_state_ready(self, container)
+	var targeting_state: GridTargetingState = setup.targeting_state
+	var positioner: Node2D = setup.positioner
+	
+	# Now intentionally break the setup to create runtime issues for testing
+	# Remove the target_map to simulate a runtime issue
+	targeting_state.target_map = null
+	
 	# Ensure indicator template exists in container templates
 	var templates := container.get_templates()
 	if templates.rule_check_indicator == null:
