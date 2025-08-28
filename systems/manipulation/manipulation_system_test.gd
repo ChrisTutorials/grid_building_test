@@ -40,11 +40,11 @@ func before_test():
 	targeting_state.target_map = GodotTestFactory.create_empty_tile_map_layer(self)
 	targeting_state.maps = [targeting_state.target_map]
 
-	# PlacementManager: instantiate and inject dependencies
-	var placement_manager: PlacementManager = PlacementManager.new()
+	# IndicatorManager: instantiate and inject dependencies
+	var placement_manager: IndicatorManager = IndicatorManager.new()
 	placement_manager.resolve_gb_dependencies(_container)
 	add_child(placement_manager)
-	_container.get_contexts().placement.set_manager(placement_manager)
+	_container.get_contexts().indicator.set_manager(placement_manager)
 
 	system = auto_free(ManipulationSystem.create_with_injection(_container))
 	add_child(system)
@@ -212,7 +212,7 @@ func test_rotate_negative(
 	test_parameters := [[all_manipulatable, true]]
 ):
 	var preview = Node2D.new()
-	var placement_manager = PlacementManager.new()
+	var placement_manager = IndicatorManager.new()
 	var target = p_manipulatable.root
 
 	var rotation_per_time = -33.3333
@@ -251,7 +251,7 @@ func test_try_placement(
 	var test_location = Vector2(1000, 1000)
 	move_data.target.root.global_position = test_location
 	var placement_results: ValidationResults = await system.try_placement(move_data)
-	assert_bool(placement_results.is_successful).is_equal(p_expected)
+	assert_bool(placement_results.is_successful()).is_equal(p_expected)
 	# After successful placement target copy should be freed (move_data.target becomes null in _finish)
 	assert_object(move_data.target).is_null()
 	assert_vector(source.root.global_position).is_equal(test_location)

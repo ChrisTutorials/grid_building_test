@@ -17,10 +17,19 @@ var placed_parent: Node2D
 var placement_count: int = 0
 var placed_positions: Array[Vector2] = []
 
+extends GdUnitTestSuite
+
+const TEST_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
+
+var build_manager: DragBuildManager
+var grid: GridBuildingGrid
+
 func before_test():
-	_container = BASE_CONTAINER.duplicate(true)
-	placement_count = 0
-	placed_positions.clear()
+	# Create injector system first
+	var _injector = UnifiedTestFactory.create_test_injector(self, TEST_CONTAINER)
+	
+	build_manager = auto_free(DragBuildManager.new())
+	grid = auto_free(GBTestUtils.create_test_grid())
 	
 	# Create tile map
 	tile_map_layer = auto_free(TileMapLayer.new())
@@ -60,8 +69,8 @@ func before_test():
 	_container.config.settings.building.drag_multi_build = true
 	
 	# Ensure placement manager exists BEFORE creating building system
-	if _container.get_contexts().placement.get_manager() == null:
-		var pm := PlacementManager.create_with_injection(_container)
+	if _container.get_contexts().indicator.get_manager() == null:
+		var pm := IndicatorManager.create_with_injection(_container)
 		add_child(auto_free(pm))
 	
 	building_system = auto_free(BuildingSystem.new())
@@ -118,8 +127,8 @@ func test_drag_build_single_placement_per_tile_with_no_rules():
 	assert_bool(report.is_successful()).is_true()
 	
 	# Position at tile (0, 0)
-	positioner.global_position = tile_map_layer.to_global(tile_map_layer.map_to_local(Vector2i(0, 0)))
-	targeting_system._process(0.0)  # Force targeting update
+	targeting_system.move_to_tile(positioner, Vector2i(0, 0))
+	# targeting_system._process(0.0)  # Force targeting update
 	
 	# Start drag building
 	building_system._start_drag()
@@ -179,8 +188,9 @@ func test_drag_build_allows_placement_after_tile_switch():
 	
 	# Switch to different tile (1, 0) - this should allow another placement
 	var second_tile = Vector2i(1, 0)
-	positioner.global_position = tile_map_layer.to_global(tile_map_layer.map_to_local(second_tile))
-	targeting_system._process(0.0)  # Force targeting update
+	targeting_system.move_to_tile(positioner, second_tile)
+	# positioner.global_position = tile_map_layer.to_global(tile_map_layer.map_to_local(second_tile))
+	# targeting_system._process(0.0)  # Force targeting update
 	building_system._on_drag_targeting_new_tile(drag_data, second_tile, first_tile)
 	
 	# This should succeed since we moved to a different tile
@@ -191,8 +201,9 @@ func test_drag_build_allows_placement_after_tile_switch():
 		assert_that(placed_positions[0]).is_not_equal(placed_positions[1])
 	
 	# Move back to original tile (0, 0) - should allow placement again
-	positioner.global_position = tile_map_layer.to_global(tile_map_layer.map_to_local(first_tile))
-	targeting_system._process(0.0)  # Force targeting update
+	targeting_system.move_to_tile(positioner, first_tile)
+	# positioner.global_position = tile_map_layer.to_global(tile_map_layer.map_to_local(first_tile))
+	# targeting_system._process(0.0)  # Force targeting update
 	building_system._on_drag_targeting_new_tile(drag_data, first_tile, second_tile)
 	
 	# This should succeed since we're revisiting a previously visited tile

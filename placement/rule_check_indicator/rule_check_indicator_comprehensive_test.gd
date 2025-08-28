@@ -10,83 +10,65 @@ func before_test():
 	# Set up test infrastructure using factories
 	test_container = UnifiedTestFactory.create_test_composition_container(self)
 	logger = UnifiedTestFactory.create_test_logger()
+	
+	# Create injector system for dependency injection
+	var _injector = UnifiedTestFactory.create_test_injector(self, test_container)
 
 func after_test():
 	# Cleanup handled by auto_free in factory methods
 	pass
 
 # Test basic indicator setup and configuration
-@warning_ignore("unused_parameter")
-func test_indicator_basic_setup(
-	shape_type: String,
-	shape_data,
-	expected_behavior: String,
-	test_parameters := [
+func test_indicator_basic_setup(shape_type: String, shape_data, _expected_behavior: String):
+	var indicator = _create_test_indicator(shape_type, shape_data)
+
+	# Verify basic setup
+	assert_object(indicator).append_failure_message(
+		"Indicator should be created for shape type: %s" % shape_type
+	).is_not_null()
+
+	assert_object(indicator.shape).append_failure_message(
+		"Indicator shape should be set for type: %s" % shape_type
+	).is_not_null()
+
+	assert_vector(indicator.target_position).append_failure_message(
+		"Indicator should have zero target position initially"
+	).is_equal(Vector2.ZERO)# Parameterized test data for basic setup
+func test_indicator_basic_setup_parameters() -> Array:
+	return [
 		["rectangle", {"size": Vector2(16, 16)}, "valid_setup"],
 		["circle", {"radius": 8.0}, "valid_setup"],
 		["rectangle_large", {"size": Vector2(32, 32)}, "valid_setup"],
 		["rectangle_tiny", {"size": Vector2(1, 1)}, "valid_setup"]
 	]
-):
-	var indicator = _create_test_indicator(shape_type, shape_data)
-	
-	# Verify basic setup
-	assert_object(indicator).append_failure_message(
-		"Indicator should be created for shape type: %s" % shape_type
-	).is_not_null()
-	
-	assert_object(indicator.shape).append_failure_message(
-		"Indicator shape should be set for type: %s" % shape_type
-	).is_not_null()
-	
-	assert_vector(indicator.target_position).append_failure_message(
-		"Indicator should have zero target position initially"
-	).is_equal(Vector2.ZERO)
 
 # Test indicator validity switching with dynamic collision
-@warning_ignore("unused_parameter") 
-func test_indicator_validity_dynamics(
-	collision_scenario: String,
-	pass_on_collision: bool,
-	expected_initial_state: bool,
-	expected_final_state: bool,
-	test_parameters := [
-		["fail_on_collision", false, true, false],
-		["pass_on_collision", true, false, true],
-		["no_collision_fail", false, true, true],
-		["no_collision_pass", true, false, false]
-	]
-):
+func test_indicator_validity_dynamics(collision_scenario: String, pass_on_collision: bool, expected_initial_state: bool, expected_final_state: bool):
 	var indicator = _create_test_indicator("rectangle", {"size": Vector2(16, 16)})
 	var rule = UnifiedTestFactory.create_test_collisions_check_rule()
 	rule.pass_on_collision = pass_on_collision
 	rule.collision_mask = 1
-	
-	# Set up validation parameters
-	var targeting_state = GridTargetingState.new(GBOwnerContext.new())
-	var test_params = RuleValidationParameters.new(
-		GodotTestFactory.create_node2d(self), 
-		GodotTestFactory.create_node2d(self), 
-		targeting_state, 
-		logger
-	)
+
+	# Set up validation parameters using centralized helper
+	var test_params = _create_test_validation_params()
+
 	rule.setup(test_params)
-	
+
 	indicator.resolve_gb_dependencies(test_container)
 	indicator.add_rule(rule)
-	
+
 	# Track validity changes
 	var validity_states = []
 	indicator.valid_changed.connect(func(is_valid): validity_states.append(is_valid))
-	
+
 	await get_tree().physics_frame
-	
+
 	# Test collision scenarios
 	if collision_scenario.contains("collision"):
 		var body = _create_test_collision_body()
 		body.global_position = indicator.global_position
 		await get_tree().physics_frame
-		
+
 		assert_bool(indicator.valid).append_failure_message(
 			"Indicator validity should be %s after collision in scenario: %s" % [expected_final_state, collision_scenario]
 		).is_equal(expected_final_state)
@@ -101,47 +83,77 @@ func test_indicator_validity_dynamics(
 			"Indicator validity should be %s with no collision in scenario: %s" % [expected_initial_state, collision_scenario]
 		).is_equal(expected_initial_state)
 
-# Test indicator collision detection with various collision layers and masks
-@warning_ignore("unused_parameter")
-func test_indicator_collision_layers(
-	indicator_mask: int,
-	body_layer: int,
-	should_detect: bool,
-	test_parameters := [
-		[1, 1, true],   # Same layer - should detect
-		[1, 2, false],  # Different layers - should not detect  
-		[3, 1, true],   # Mask includes layer - should detect
-		[3, 2, true],   # Mask includes layer - should detect
-		[3, 4, false], # Mask excludes layer - should not detect
-		[7, 4, true],  # Complex mask includes layer - should detect
+# Parameterized test data for validity dynamics
+func test_indicator_validity_dynamics_parameters() -> Array:
+	return [
+		["fail_on_collision", false, true, false],
+		["pass_on_collision", true, false, true],
+		["no_collision_fail", false, true, true],
+		["no_collision_pass", true, false, false]
 	]
-):
+
+# Test indicator collision detection with various collision layers and masks
+func test_indicator_collision_layers(indicator_mask: int, body_layer: int, should_detect: bool):
 	var indicator = _create_test_indicator("rectangle", {"size": Vector2(16, 16)})
 	indicator.collision_mask = indicator_mask
-	
+
 	var rule = UnifiedTestFactory.create_test_collisions_check_rule()
 	rule.pass_on_collision = false
 	rule.collision_mask = indicator_mask
-	
-	var targeting_state = GridTargetingState.new(GBOwnerContext.new())
-	var test_params = RuleValidationParameters.new(
-		GodotTestFactory.create_node2d(self),
-		GodotTestFactory.create_node2d(self), 
-		targeting_state,
-		logger
-	)
+
+	var test_params = _create_test_validation_params()
 	rule.setup(test_params)
-	
+
 	indicator.resolve_gb_dependencies(test_container)
 	indicator.add_rule(rule)
-	
+
 	# Create collision body on specific layer
 	var body = _create_test_collision_body()
 	body.collision_layer = body_layer
 	body.global_position = indicator.global_position
-	
+
 	await get_tree().physics_frame
-	
+
+	var expected_validity = not should_detect  # Invalid if collision detected
+	assert_bool(indicator.valid).append_failure_message(
+		"Collision detection failed. Mask: %d, Layer: %d, Should detect: %s, Valid: %s" % [
+			indicator_mask, body_layer, should_detect, indicator.valid
+		]
+	).is_equal(expected_validity)
+
+# Parameterized test data for collision layers
+func test_indicator_collision_layers_parameters() -> Array:
+	return [
+		[1, 1, true],   # Same layer - should detect
+		[1, 2, false],  # Different layers - should not detect
+		[3, 1, true],   # Mask includes layer - should detect
+		[3, 2, true],   # Mask includes layer - should detect
+		[3, 4, false],  # Mask excludes layer - should not detect
+		[7, 4, true],   # Complex mask includes layer - should detect
+	]
+
+# Test indicator collision detection with various collision layers and masks
+func test_indicator_collision_layers(indicator_mask: int, body_layer: int, should_detect: bool):
+	var indicator = _create_test_indicator("rectangle", {"size": Vector2(16, 16)})
+	indicator.collision_mask = indicator_mask
+
+	var rule = UnifiedTestFactory.create_test_collisions_check_rule()
+	rule.pass_on_collision = false
+	rule.collision_mask = indicator_mask
+
+	var test_params = _create_test_validation_params()
+	rule.setup(test_params)
+
+	indicator.resolve_gb_dependencies(test_container)
+	indicator.add_rule(rule)
+
+	# Create collision body on specific layer
+	var body = _create_test_collision_body()
+	body.collision_layer = body_layer
+	body.global_position = indicator.global_position
+
+	await get_tree().physics_frame
+
 	var expected_validity = not should_detect  # Invalid if collision detected
 	assert_bool(indicator.valid).append_failure_message(
 		"Collision detection failed. Mask: %d, Layer: %d, Should detect: %s, Valid: %s" % [
@@ -240,11 +252,21 @@ func test_indicator_overlap_threshold(
 		]
 	).is_equal(should_pass)
 
+## Helper method to create test validation parameters
+func _create_test_validation_params() -> RuleValidationParameters:
+	var targeting_state = GridTargetingState.new(GBOwnerContext.new())
+	return RuleValidationParameters.new(
+		GodotTestFactory.create_node2d(self),
+		GodotTestFactory.create_node2d(self),
+		targeting_state,
+		logger
+	)
+
 ## Helper method to create test indicators with different shapes
 func _create_test_indicator(shape_type: String, shape_data: Dictionary) -> RuleCheckIndicator:
 	var indicator = UnifiedTestFactory.create_test_rule_check_indicator(self) # Adds child automatically
 	indicator.collision_mask = 1
-	
+
 	match shape_type:
 		"rectangle":
 			var rect_shape = RectangleShape2D.new()
@@ -258,10 +280,8 @@ func _create_test_indicator(shape_type: String, shape_data: Dictionary) -> RuleC
 			var rect_shape = RectangleShape2D.new()
 			rect_shape.size = shape_data.get("size", Vector2(16, 16))
 			indicator.shape = rect_shape
-	
-	return indicator
 
-## Helper method to create test collision bodies
+	return indicator## Helper method to create test collision bodies
 func _create_test_collision_body() -> StaticBody2D:
 	var body = auto_free(StaticBody2D.new())
 	var shape = auto_free(CollisionShape2D.new())

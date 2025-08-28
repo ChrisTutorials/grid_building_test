@@ -39,7 +39,7 @@ static func create_tile_size(size: int = 16) -> Vector2:
 static func create_node2d(test: GdUnitTestSuite) -> Node2D:
 	var node: Node2D = test.auto_free(Node2D.new())
 	test.add_child(node)
-	return node
+	return node as Node2D
 
 ## Creates a Node with auto_free setup
 static func create_node(test: GdUnitTestSuite) -> Node:
@@ -105,7 +105,7 @@ static func create_tile_map_layer(test: GdUnitTestSuite, grid_size: int = 40) ->
 	test.assert_vector(map_size_px).append_failure_message("GodotTestFactory Math Incorrect").is_equal(Vector2(grid_size * 16, grid_size * 16))
 	
 	test.add_child(map_layer)
-	return map_layer
+	return map_layer as TileMapLayer
 
 
 ## Creates an empty TileMapLayer with tile set but no cells
@@ -113,7 +113,7 @@ static func create_empty_tile_map_layer(test: GdUnitTestSuite) -> TileMapLayer:
 	var map_layer: TileMapLayer = test.auto_free(TileMapLayer.new())
 	map_layer.tile_set = TileSet.new()
 	test.add_child(map_layer)
-	return map_layer
+	return map_layer as TileMapLayer
 
 
 # ================================
@@ -239,12 +239,13 @@ static func create_rule_check_indicator(
 	test: GdUnitTestSuite, parent: Node, tile_size: int = 16
 ) -> RuleCheckIndicator:
 	# Caller decides parent; we only ensure auto_free assignment for memory safety
-	# IMPORTANT: Inject a test logger to satisfy DI requirements of RuleCheckIndicator
-	var logger := UnifiedTestFactory.create_test_logger()
-	var indicator: RuleCheckIndicator = test.auto_free(RuleCheckIndicator.new([], logger))
+	var indicator: RuleCheckIndicator = test.auto_free(RuleCheckIndicator.new([]))
 	var rect_shape := RectangleShape2D.new()
 	rect_shape.extents = Vector2(tile_size, tile_size)
 	indicator.shape = rect_shape
 	if parent:
 		parent.add_child(indicator)
+		# Set up dependency injection after adding to tree
+		var container := UnifiedTestFactory.TEST_CONTAINER
+		indicator.resolve_gb_dependencies(container)
 	return indicator

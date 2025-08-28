@@ -3,11 +3,13 @@ extends GdUnitTestSuite
 
 var _container : GBCompositionContainer
 var _building : BuildingSystem
-var _manager : PlacementManager
+var _manager : IndicatorManager
 var _map : TileMapLayer
+var _injector: GBInjectorSystem
 
 func before_test():
 	_container = preload("uid://dy6e5p5d6ax6n")
+	_injector = UnifiedTestFactory.create_test_injector(self, _container)
 	
 	# Set up targeting state with map and positioner
 	_map = auto_free(TileMapLayer.new())
@@ -43,10 +45,10 @@ func before_test():
 	# Create systems after all contexts are properly set up
 	_building = BuildingSystem.create_with_injection(_container)
 	add_child(auto_free(_building))
-	_manager = PlacementManager.create_with_injection(_container)
+	_manager = IndicatorManager.create_with_injection(_container)
 	add_child(auto_free(_manager))
 
-func _collect_indicators(pm: PlacementManager) -> Array[RuleCheckIndicator]:
+func _collect_indicators(pm: IndicatorManager) -> Array[RuleCheckIndicator]:
 	return pm.get_indicators() if pm else []
 
 func test_polygon_object_only_generates_overlapping_indicators_and_aligns_preview():
@@ -54,7 +56,7 @@ func test_polygon_object_only_generates_overlapping_indicators_and_aligns_previe
 	var report : PlacementSetupReport = _building.enter_build_mode(placeable)
 	assert_bool(report.is_successful()).append_failure_message("enter_build_mode failed").is_true()
 
-	# Acquire preview and set up indicators via PlacementManager
+	# Acquire preview and set up indicators via IndicatorManager
 	var preview := _container.get_building_state().preview as Node2D
 	assert_object(preview).append_failure_message("Preview missing after enter_build_mode").is_not_null()
 
@@ -65,7 +67,7 @@ func test_polygon_object_only_generates_overlapping_indicators_and_aligns_previe
 	var rules : Array[PlacementRule] = [rule]
 	var params := RuleValidationParameters.new(_container.get_building_state().get_placer(), preview, _container.get_targeting_state(), _container.get_logger())
 	var setup_ok := _manager.try_setup(rules, params, true)
-	assert_bool(setup_ok.is_successful()).append_failure_message("PlacementManager.try_setup failed").is_true()
+	assert_bool(setup_ok.is_successful()).append_failure_message("IndicatorManager.try_setup failed").is_true()
 
 	var indicators := _collect_indicators(_manager)
 	assert_array(indicators).append_failure_message("No indicators generated for polygon preview").is_not_empty()

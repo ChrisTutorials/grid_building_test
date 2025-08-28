@@ -15,6 +15,9 @@ func create_test_logger() -> GBLogger:
 
 
 func before_test():
+	# Create injector system for dependency injection
+	var _injector = UnifiedTestFactory.create_test_injector(self, TEST_CONTAINER)
+	
 	# Create indicator and configure all exported properties BEFORE adding to scene tree so _ready uses them.
 	indicator = UnifiedTestFactory.create_test_rule_check_indicator(self)
 	indicator.collision_mask = test_layers

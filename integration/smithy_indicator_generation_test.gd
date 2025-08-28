@@ -11,9 +11,11 @@ var building_system: BuildingSystem
 var targeting_system: GridTargetingSystem
 var positioner: Node2D
 var tile_map_layer: TileMapLayer
+var _injector : GBInjectorSystem
 
 func before_test():
 	_container = BASE_CONTAINER.duplicate(true)
+	_injector = UnifiedTestFactory.create_test_injector(self, _container)
 	# Basic tile map
 	tile_map_layer = auto_free(TileMapLayer.new())
 	tile_map_layer.tile_set = load("uid://d11t2vm1pby6y")
@@ -51,8 +53,8 @@ func before_test():
 	assert_array(building_system.get_dependency_issues()).is_empty()
 	assert_array(targeting_system.get_dependency_issues()).is_empty()
 	# Ensure placement manager exists (enter_build_mode path may lazily create)
-	if _container.get_contexts().placement.get_manager() == null:
-		var pm := PlacementManager.create_with_injection(_container)
+	if _container.get_contexts().indicator.get_manager() == null:
+		var pm := IndicatorManager.create_with_injection(_container)
 		add_child(auto_free(pm))
 	# Validate targeting state ready
 	assert_array(_container.get_states().targeting.get_runtime_issues()).is_empty()
@@ -65,7 +67,7 @@ func test_smithy_generates_indicators_only_with_matching_rule_mask_when_ignoring
 	assert_bool(entered.is_successful()).is_true()
 	var preview: Node2D = _container.get_states().building.preview
 	assert_object(preview).is_not_null()
-	var manager := _container.get_contexts().placement.get_manager()
+	var manager := _container.get_contexts().indicator.get_manager()
 	assert_object(manager).is_not_null()
 	# Re-run setup ignoring base rules with EMPTY placeable rules -> expect skip (no indicators)
 	var manip_owner = _container.get_states().manipulation.get_manipulator()
@@ -78,7 +80,7 @@ func test_smithy_generates_indicators_only_with_matching_rule_mask_when_ignoring
 	rule.apply_to_objects_mask = 1 << 0
 	rule.collision_mask = 1 << 0
 	var report := manager.try_setup([rule], params, true)
-	assert_bool(report.is_successful()).append_failure_message("PlacementManager.try_setup failed with explicit collisions rule (ignore base): %s" % str(report.get_all_issues())).is_true()
+	assert_bool(report.is_successful()).append_failure_message("IndicatorManager.try_setup failed with explicit collisions rule (ignore base): %s" % str(report.get_all_issues())).is_true()
 	var indicators := manager.get_indicators()
 	assert_array(indicators).append_failure_message("Expected indicators after adding explicit collisions rule").is_not_empty()
 	# Sanity: at least one indicator atop center tile
@@ -99,9 +101,9 @@ func test_rule_layer_overlap_required_for_indicator_generation():
 	assert_bool(entered.is_successful()).is_true()
 	var preview: Node2D = _container.get_states().building.preview
 	assert_object(preview).is_not_null()
-	var manager := _container.get_contexts().placement.get_manager()
+	var manager := _container.get_contexts().indicator.get_manager()
 	if manager == null:
-		manager = PlacementManager.create_with_injection(_container)
+		manager = IndicatorManager.create_with_injection(_container)
 		add_child(auto_free(manager))
 	var manip_owner = _container.get_states().manipulation.get_manipulator()
 	var targeting_state := _container.get_states().targeting
@@ -123,4 +125,4 @@ func test_rule_layer_overlap_required_for_indicator_generation():
 	assert_array(indicators).append_failure_message("Expected indicators after applying overlapping layer rule (ignore base)").is_not_empty()
 	for ind in indicators:
 		assert_bool(ind.is_inside_tree()).append_failure_message("Indicator not inside tree: %s" % ind.name).is_true()
-		assert_object(ind.get_parent()).append_failure_message("Indicator parent unexpected").is_equal(preview)
+		assert_object(ind.get_parent()).append_failure_message("Indicator parent unexpected").is_equal(_container.get_states().manipulation.parent)

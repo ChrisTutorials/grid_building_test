@@ -3,12 +3,16 @@
 extends GdUnitTestSuite
 
 var _container : GBCompositionContainer
-var _manager : PlacementManager
+var _manager : IndicatorManager
 var _map : TileMapLayer
 
 func before_test():
     _container = preload("uid://dy6e5p5d6ax6n")
-    _manager = PlacementManager.create_with_injection(_container)
+    
+    # Create injector system for dependency injection
+    var _injector = UnifiedTestFactory.create_test_injector(self, _container)
+    
+    _manager = IndicatorManager.create_with_injection(_container)
     add_child(auto_free(_manager))
 
     _map = auto_free(TileMapLayer.new())
@@ -27,7 +31,7 @@ func before_test():
 
     _container.get_debug_settings().set_debug_level(GBDebugSettings.DebugLevel.ERROR)
 
-func _collect_indicators(pm: PlacementManager) -> Array[RuleCheckIndicator]:
+func _collect_indicators(pm: IndicatorManager) -> Array[RuleCheckIndicator]:
     return pm.get_indicators() if pm else []
 
 ## Expected FAIL: only polygon contributes currently; Area2D rectangle (112x80) should produce 7x5=35 tiles.
@@ -47,7 +51,7 @@ func test_smithy_generates_full_rectangle_of_indicators():
     add_child(placer)
     var params := RuleValidationParameters.new(placer, smithy, _container.get_targeting_state(), _container.get_logger())
     var setup_ok := _manager.try_setup(rules, params, true)
-    assert_bool(setup_ok).append_failure_message("PlacementManager.try_setup failed for Smithy preview").is_true()
+    assert_bool(setup_ok).append_failure_message("IndicatorManager.try_setup failed for Smithy preview").is_true()
 
     var indicators: Array[RuleCheckIndicator] = _collect_indicators(_manager)
     assert_array(indicators).append_failure_message("No indicators generated for Smithy; rule attach failed").is_not_empty()

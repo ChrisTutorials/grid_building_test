@@ -1,9 +1,10 @@
-## GdUnit TestSuite for PlacementManager indicator creation
+## GdUnit TestSuite for IndicatorManager indicator creation
 extends GdUnitTestSuite
 
+const TEST_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
  
-# Minimal, parameterized, and double-factory-based PlacementManager tests
-var placement_manager: PlacementManager
+# Minimal, parameterized, and double-factory-based IndicatorManager tests
+var indicator_manager: IndicatorManager
 var map_layer: TileMapLayer
 var col_checking_rules: Array[TileCheckRule]
 var global_snap_pos: Vector2
@@ -14,15 +15,20 @@ const TestSceneLibraryScene := preload("res://test/grid_building_test/scenes/tes
 
 var _positioner : Node2D
 var _injector: GBInjectorSystem
+
+func before_test():
+	# Create injector system first
+	_injector = UnifiedTestFactory.create_test_injector(self, TEST_CONTAINER)
+var _injector: GBInjectorSystem
 var _container : GBCompositionContainer = load("uid://dy6e5p5d6ax6n")
 
 func before_test():
 	_setup_targeting_state()
-	_setup_placement_manager()
+	_setup_indicator_manager()
 
 func _setup_targeting_state():
 	# Step 1: Set up the targeting state with its runtime dependencies (map objects and positioner).
-	# This must be done first so that PlacementManager receives a fully initialized targeting state.
+	# This must be done first so that IndicatorManager receives a fully initialized targeting state.
 	_injector = auto_free(GBInjectorSystem.create_with_injection(_container))
 	add_child(_injector)
 	map_layer = auto_free(TileMapLayer.new())
@@ -37,24 +43,13 @@ func _setup_targeting_state():
 	# GridTargetingState exposes 'positioner' as a property; assign directly instead of calling missing method
 	targeting_state.positioner = _positioner
 
-func _setup_placement_manager():
-	# Step 2: Create IndicatorManager, inject dependencies, and set it on PlacementManager.
-	placement_manager = auto_free(PlacementManager.new())
-	add_child(placement_manager)
-	
-	# Initialize PlacementManager with all required dependencies
-	var placement_context := PlacementContext.new()
-	auto_free(placement_context)
-	# Use actual RuleCheckIndicator template; previous uid pointed to test scene library root, not indicator scene
-	var indicator_template: PackedScene = _container.get_templates().rule_check_indicator
-	var targeting_state := _container.get_states().targeting
-	var logger := GBLogger.create_with_injection(_container)
-	var rules: Array[PlacementRule] = []
-	var messages := GBMessages.new()
-	
-	placement_manager.initialize(placement_context, indicator_template, targeting_state, logger, rules, messages)
+func _setup_indicator_manager():
+	# Step 2: Create IndicatorManager with dependency injection.
+	indicator_manager = auto_free(IndicatorManager.create_with_injection(_container, _positioner))
+	add_child(indicator_manager)
 
-	# Assert indicator template validity early
+	# Assert indicator template validity early  
+	var indicator_template: PackedScene = _container.get_templates().rule_check_indicator
 	var template_instance: Node = indicator_template.instantiate()
 	(
 		assert_bool(template_instance is RuleCheckIndicator)
@@ -72,6 +67,7 @@ func _setup_placement_manager():
 	)
 
 	# Validate targeting state readiness
+	var targeting_state := _container.get_states().targeting
 	var targeting_issues := targeting_state.get_runtime_issues()
 	(
 		assert_bool(targeting_issues.is_empty())
@@ -80,19 +76,19 @@ func _setup_placement_manager():
 	)
 
 func after_test():
-	if is_instance_valid(placement_manager):
-		placement_manager.queue_free()
-	placement_manager = null
+	if is_instance_valid(indicator_manager):
+		indicator_manager.queue_free()
+	indicator_manager = null
 
 func after() -> void:
 	assert_object(_injector).is_null()
-	assert_object(placement_manager).is_null()
+	assert_object(indicator_manager).is_null()
 	assert_object(map_layer).is_null()
 	assert_object(_positioner).is_null()
 
 ## Should be handled by the GBInjectorSystem automatically
 func test_indicator_manager_dependencies_initialized():
-	# Test that the PlacementManager can actually function instead of testing private properties
+	# Test that the IndicatorManager can actually function instead of testing private properties
 	# Create a test scene and verify indicators are generated
 	var shape_scene = UnifiedTestFactory.create_eclipse_test_object(self)
 	add_child(shape_scene)
@@ -109,9 +105,9 @@ func test_indicator_manager_dependencies_initialized():
 	# Attempt physics body layer overlap prerequisite; don't hard fail if only raw shapes exist.
 	var overlap_ok = _collision_layer_overlaps(shape_scene, col_checking_rules)
 	if not overlap_ok:
-		print("[TEST][placement_manager] WARNING: No physics body layer overlap for eclipse_scene; proceeding (shape-only scene)")
+		print("[TEST][indicator_manager] WARNING: No physics body layer overlap for eclipse_scene; proceeding (shape-only scene)")
 
-	var indicators_report : IndicatorSetupReport = placement_manager.setup_indicators(shape_scene, col_checking_rules)
+	var indicators_report : IndicatorSetupReport = indicator_manager.setup_indicators(shape_scene, col_checking_rules)
 	var indicators = indicators_report.indicators
 	var summary = indicators_report.to_summary_string()
 	
@@ -123,7 +119,7 @@ func test_indicator_manager_dependencies_initialized():
 	)
 	
 	# Test that the manager can get colliding indicators
-	var colliding_indicators = placement_manager.get_colliding_indicators()
+	var colliding_indicators = indicator_manager.get_colliding_indicators()
 	# Initially there should be no colliding indicators since we just set them up
 	assert_int(colliding_indicators.size()).is_equal(0)
 
@@ -142,10 +138,8 @@ func test_indicator_count_for_shapes(scene_resource: PackedScene, expected: int,
 		.append_failure_message("Test parameter scene lacks collision shapes; expected >0 for indicator generation")
 		.is_greater(0)
 	)
-	var overlap_ok = _collision_layer_overlaps(shape_scene, col_checking_rules)
-	if not overlap_ok:
-		print("[TEST][placement_manager] WARNING: No physics body layer overlap for scene=", scene_resource)
-	var report : IndicatorSetupReport = placement_manager.setup_indicators(shape_scene, col_checking_rules)
+	var _overlap_ok = _collision_layer_overlaps(shape_scene, col_checking_rules)
+	var report : IndicatorSetupReport = indicator_manager.setup_indicators(shape_scene, col_checking_rules)
 	var indicators = report.indicators
 	var summary = report.to_summary_string()
 	(
@@ -163,8 +157,7 @@ func test_indicator_positions_are_unique():
 		assert_int(collision_shape_count)
 		.append_failure_message("No collision shapes in eclipse_scene for uniqueness test")
 		.is_greater(0)
-	)
-	var report : IndicatorSetupReport = placement_manager.setup_indicators(shape_scene, col_checking_rules)
+	var report : IndicatorSetupReport = indicator_manager.setup_indicators(shape_scene, col_checking_rules)
 	var indicators = report.indicators
 	var summary = report.to_summary_string()
 	(
@@ -189,7 +182,7 @@ func test_indicator_positions_are_unique():
 func test_no_indicators_for_empty_scene():
 	var empty_node = auto_free(Node2D.new())
 	add_child(empty_node)
-	var report : IndicatorSetupReport = placement_manager.setup_indicators(empty_node, col_checking_rules)
+	var report : IndicatorSetupReport = indicator_manager.setup_indicators(empty_node, col_checking_rules, false)
 	var indicators = report.indicators
 	var summary = report.to_summary_string()
 	(
@@ -205,7 +198,7 @@ func test_indicator_generation_distance(scene_resource: PackedScene, expected_di
 	var shape_scene = auto_free(scene_resource.instantiate())
 	add_child(shape_scene)
 	shape_scene.global_position = global_snap_pos
-	var report : IndicatorSetupReport = placement_manager.setup_indicators(shape_scene, col_checking_rules)
+	var report : IndicatorSetupReport = indicator_manager.setup_indicators(shape_scene, col_checking_rules, false)
 	var indicators = report.indicators
 	var summary = report.to_summary_string()
 	(
@@ -226,7 +219,7 @@ func test_indicators_are_freed_on_reset():
 	var shape_scene = UnifiedTestFactory.create_eclipse_test_object(self)
 	add_child(shape_scene)
 	shape_scene.global_position = global_snap_pos
-	var report : IndicatorSetupReport = placement_manager.setup_indicators(shape_scene, col_checking_rules)
+	var report : IndicatorSetupReport = indicator_manager.setup_indicators(shape_scene, col_checking_rules, false)
 	var indicators = report.indicators
 	var summary = report.to_summary_string()
 	(
@@ -234,9 +227,9 @@ func test_indicators_are_freed_on_reset():
 		.append_failure_message("No indicators generated before reset; shapes=%d summary=%s" % [_count_collision_shapes(shape_scene), summary])
 		.is_greater(0)
 	)
-	placement_manager.tear_down()
+	indicator_manager.tear_down()
 	# After tear_down, call setup on empty to confirm no indicators remain
-	var cleared := placement_manager.get_colliding_indicators()
+	var cleared := indicator_manager.get_colliding_indicators()
 	(
 		assert_int(cleared.size())
 		.append_failure_message("Indicators not cleared after tear_down; remaining=%d" % cleared.size())
@@ -244,8 +237,8 @@ func test_indicators_are_freed_on_reset():
 	)
 	# Also check main indicator list is empty
 	(
-		assert_int(placement_manager.get_indicators().size())
-		.append_failure_message("placement_manager.get_indicators() not empty after tear_down")
+		assert_int(indicator_manager.get_indicators().size())
+		.append_failure_message("indicator_manager.get_indicators() not empty after tear_down")
 		.is_equal(0)
 	)
 

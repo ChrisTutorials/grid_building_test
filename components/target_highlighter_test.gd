@@ -3,8 +3,6 @@ extends GdUnitTestSuite
 @warning_ignore("unused_parameter")
 @warning_ignore("return_value_discarded")
 
-const GodotTestFactory = preload("uid://gjdnvpg3cyqm")
-
 # TestSuite generated from
 
 var highlighter: TargetHighlighter
@@ -186,23 +184,19 @@ func add_child_manipulatable_with_settings(p_target: Node):
 
 
 @warning_ignore("unused_parameter")
-
-
 func test_should_highlight(
 	p_data: ManipulationData,
 	p_new_target: CanvasItem,
 	p_expected: bool,
+	p_description: String = "",
 	test_parameters := [
 		[null, null, false],
-		[null, auto_free(Node2D.new()), true],
-		# Target is different
-		[data_source_is_target, auto_free(Node2D.new()), false],
-		# Is data but target is the same as p_data target
-		[data_source_is_target, data_source_is_target.target.root, true],
-		# Is Data, Target is Same, but source is different
-		[data_source_is_not_target, data_source_is_target.target.root, false]
+		[null, auto_free(Node2D.new()), true, "Target is different"],
+		[data_source_is_target, auto_free(Node2D.new()), false, "Is data but target is the same as p_data target"],
+		[data_source_is_target, data_source_is_target.target.root, true, "Is Data, Target is Same, but source is different"],
+		[data_source_is_not_target, data_source_is_target.target.root, false, "Is Data, Target is Same, but source is different"]
 	]
 ) -> void:
-	assert_bool(highlighter.should_highlight(p_data, p_new_target)).is_equal(p_expected)
+	assert_bool(highlighter.should_highlight(p_data, p_new_target)).append_failure_message("Expected: %s" % p_description).is_equal(p_expected)
 	if p_new_target:
 		p_new_target.free()

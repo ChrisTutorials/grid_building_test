@@ -87,7 +87,7 @@ func _analyze_grid_building_components(scene_root: Node) -> String:
 	# Expected counts for typical grid building demo
 	var expected_counts = {
 		"RuleCheckIndicator": "X (variable)", 
-		"PlacementManager": "1",
+		"IndicatorManager": "1",
 		"GridPositioner": "1", 
 		"GBInjectorSystem": "1",
 		"BuildingSystem": "1", 
@@ -406,7 +406,7 @@ func _find_grid_building_nodes(node: Node, components: Dictionary) -> void:
 	var node_class = node.get_class()
 	
 	# Check for exact grid building class matches
-	var target_classes = ["RuleCheckIndicator", "PlacementManager", "GridPositioner", 
+	var target_classes = ["RuleCheckIndicator", "IndicatorManager", "GridPositioner", 
 						  "GBInjectorSystem", "BuildingSystem", "GridTargetingSystem", 
 						  "ManipulationSystem"]
 	

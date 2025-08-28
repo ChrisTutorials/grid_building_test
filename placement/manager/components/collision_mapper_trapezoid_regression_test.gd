@@ -1,16 +1,21 @@
 extends GdUnitTestSuite
 
+const TEST_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
+
 ## Trapezoid coverage regression tests adjusted to runtime behavior.
 ## We assert the stable core subset and pivot semantics instead of an exact 13-tile count.
-
 
 var tile_map_layer: TileMapLayer
 var positioner: Node2D
 var logger: GBLogger
 var targeting_state: GridTargetingState
 var mapper: CollisionMapper
+var _injector: GBInjectorSystem
 
 func before_test():
+	# Create injector system first
+	_injector = UnifiedTestFactory.create_test_injector(self, TEST_CONTAINER)
+	
 	tile_map_layer = auto_free(TileMapLayer.new())
 	add_child(tile_map_layer)
 	tile_map_layer.tile_set = TileSet.new()

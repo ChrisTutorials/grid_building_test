@@ -1,8 +1,15 @@
 extends GdUnitTestSuite
 
 ## Comprehensive placement tests consolidating multiple validator and rule scenarios
-## Replaces placement_validator_test, placement_validator_rules_test, and rules_validation_test
-## Tests placement validation, rule evaluation, positioning, and edge cases
+## Replaces placement_validator_test, placement_validator_rules_test, and rules_validation_test				# With empty rules, validate() returns false because active_rules is empty
+			var result = placement_validator.validate()
+			assert_bool(result.is_successful()).append_failure_message(
+				"Validation with empty rules should fail (no active rules)"
+			).is_false()
+			assert_str(result.message).append_failure_message(esult = placement_validator.validate()
+		assert_bool(result.is_successful()).append_failure_message(
+			"Validation with empty rules should fail (no active rules)"
+		).is_false()Tests placement validation, rule evaluation, positioning, and edge cases
 
 const TEST_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
 
@@ -108,7 +115,7 @@ func test_placement_validation_basic(
 	var result = placement_validator.validate()
 	
 	# With no rules, PlacementValidator returns unsuccessful because no rules were set up
-	assert_bool(result.is_successful).append_failure_message(
+	assert_bool(result.is_successful()).append_failure_message(
 		"Validation with no rules returns unsuccessful (expected behavior) for scenario: %s at position %s" % [placement_scenario, target_position]
 	).is_equal(expected_valid)
 	
@@ -155,7 +162,7 @@ func test_placement_validation_with_rules(
 	
 	var result = placement_validator.validate()
 	
-	assert_bool(result.is_successful).append_failure_message(
+	assert_bool(result.is_successful()).append_failure_message(
 		"Validation result for %s with rule type %s should be %s" % [rule_scenario, rule_type, expected_valid]
 	).is_equal(expected_valid)
 	

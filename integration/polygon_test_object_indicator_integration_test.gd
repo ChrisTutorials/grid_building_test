@@ -2,7 +2,7 @@
 extends GdUnitTestSuite
 
 var _container : GBCompositionContainer
-var _manager : PlacementManager
+var _manager : IndicatorManager
 var _targeting : GridTargetingState
 var _map : TileMapLayer
 
@@ -12,7 +12,7 @@ func before_test():
 		_container = preload("uid://dy6e5p5d6ax6n")
 	else:
 		return
-	_manager = PlacementManager.create_with_injection(_container)
+	_manager = IndicatorManager.create_with_injection(_container)
 	add_child(auto_free(_manager))
 	_targeting = _container.get_targeting_state()
 	_map = _targeting.target_map

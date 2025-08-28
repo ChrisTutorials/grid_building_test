@@ -13,28 +13,16 @@ extends GdUnitTestSuite
 const TEST_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
 
 var targeting_state: GridTargetingState
-var tile_map_layer: TileMapLayer
+var tile_map: TileMapLayer
 var positioner: Node2D
-var mapper: PolygonTileMapper
+var polygon_mapper: PolygonTileMapper
+var _injector: GBInjectorSystem
 
 func before_test():
-	# Setup basic test infrastructure
-	positioner = auto_free(Node2D.new())
-	add_child(positioner)
-	positioner.global_position = Vector2.ZERO
+	# Create injector system first
+	_injector = UnifiedTestFactory.create_test_injector(self, TEST_CONTAINER)
 	
-	tile_map_layer = auto_free(TileMapLayer.new())
-	add_child(tile_map_layer)
-	tile_map_layer.tile_set = TileSet.new()
-	tile_map_layer.tile_set.tile_size = Vector2(16, 16)
-	
-	targeting_state = auto_free(GridTargetingState.new(GBOwnerContext.new()))
-	targeting_state.positioner = positioner
-	targeting_state.target_map = tile_map_layer
-	
-	mapper = PolygonTileMapper.new(targeting_state, TEST_CONTAINER.get_logger())
-
-## Test complete processing pipeline with representative polygon shapes
+	tile_map = auto_free(TileMapLayer.new())## Test complete processing pipeline with representative polygon shapes
 @warning_ignore("unused_parameter")
 func test_process_polygon_complete_pipeline_scenarios(
 	polygon_points: PackedVector2Array,

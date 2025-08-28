@@ -3,14 +3,15 @@
 extends GdUnitTestSuite
 
 var _container : GBCompositionContainer
-var _manager : PlacementManager
+var _manager : IndicatorManager
 var _map : TileMapLayer
 
 func before_test():
     _container = preload("uid://dy6e5p5d6ax6n")
-    _manager = PlacementManager.create_with_injection(_container)
-    add_child(auto_free(_manager))
-
+    
+    # Create injector system for dependency injection
+    var _injector = UnifiedTestFactory.create_test_injector(self, _container)
+    
     _map = auto_free(TileMapLayer.new())
     _map.tile_set = TileSet.new()
     _map.tile_set.tile_size = Vector2(16,16)
@@ -25,10 +26,16 @@ func before_test():
     # Snap to a tile center for determinism
     tgt.positioner.global_position = _map.to_global(_map.map_to_local(Vector2i.ZERO))
 
+    # Set up manipulation parent - required for IndicatorManager to have a parent node
+    _container.get_states().manipulation.parent = tgt.positioner
+
     # Quiet debug spam
     _container.get_debug_settings().set_debug_level(GBDebugSettings.DebugLevel.ERROR)
+    
+    _manager = IndicatorManager.create_with_injection(_container)
+    add_child(auto_free(_manager))
 
-func _collect_indicators(pm: PlacementManager) -> Array[RuleCheckIndicator]:
+func _collect_indicators(pm: IndicatorManager) -> Array[RuleCheckIndicator]:
     return pm.get_indicators() if pm else []
 
 func _find_child_polygon(root: Node) -> CollisionPolygon2D:
@@ -56,7 +63,7 @@ func test_polygon_preview_indicators_respect_min_overlap_ratio():
     add_child(placer)
     var params := RuleValidationParameters.new(placer, preview, _container.get_targeting_state(), _container.get_logger())
     var setup_ok := _manager.try_setup(rules, params, true)
-    assert_bool(setup_ok).append_failure_message("PlacementManager.try_setup failed for polygon preview").is_true()
+    assert_bool(setup_ok.is_successful()).append_failure_message("IndicatorManager.try_setup failed for polygon preview").is_true()
 
     var indicators: Array[RuleCheckIndicator] = _collect_indicators(_manager)
     assert_array(indicators).append_failure_message("No indicators generated for polygon preview").is_not_empty()

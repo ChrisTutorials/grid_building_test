@@ -2,7 +2,7 @@ extends GdUnitTestSuite
 
 ## Tests indicator positioning using the exact same setup as the real system
 
-var placement_manager: PlacementManager
+var indicator_manager: IndicatorManager
 var targeting_state: GridTargetingState
 var _container : GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
 var _injector: GBInjectorSystem
@@ -27,38 +27,11 @@ func before_test():
 
 	_logger = GBLogger.new(GBDebugSettings.new())
 
- 	# Skip full BuildingSystem to avoid deep dependency graph; we'll exercise PlacementManager directly
+ 	# Skip full BuildingSystem to avoid deep dependency graph; we'll exercise IndicatorManager directly
 
-	# Initialize a dedicated PlacementManager mirroring placement_manager_test.gd
-	placement_manager = auto_free(PlacementManager.new())
-	add_child(placement_manager)
-	var placement_context := PlacementContext.new(); auto_free(placement_context)
-	# Load primary indicator template and validate root type; fallback to alternate UID if needed
-	var indicator_template := TestSceneLibrary.indicator
-	var fallback_indicator_template := TestSceneLibrary.indicator_min
-	var chosen_template := indicator_template
-	if chosen_template:
-		var temp_instance = chosen_template.instantiate()
-		if not (temp_instance is RuleCheckIndicator):
-			# Try fallback
-			if fallback_indicator_template:
-				var fallback_instance = fallback_indicator_template.instantiate()
-				if fallback_instance is RuleCheckIndicator:
-					chosen_template = fallback_indicator_template
-					fallback_instance.queue_free()
-				else:
-					fallback_instance.queue_free()
-			temp_instance.queue_free()
-	else:
-		chosen_template = fallback_indicator_template
-	indicator_template = chosen_template
-	var rules: Array[PlacementRule] = []
-	var messages := GBMessages.new()
-	placement_manager.initialize(placement_context, indicator_template, targeting_state, _logger, rules, messages)
-	# Assert template validity (public side-effect: ability to create a RuleCheckIndicator via instantiate)
-	var validate_instance = indicator_template.instantiate()
-	assert_bool(validate_instance is RuleCheckIndicator).append_failure_message("Indicator template root is not RuleCheckIndicator. Template=%s" % [str(indicator_template)]).is_true()
-	validate_instance.queue_free()
+	# Initialize a dedicated IndicatorManager using dependency injection
+	indicator_manager = auto_free(IndicatorManager.create_with_injection(_container))
+	add_child(indicator_manager)
 
 func _instantiate_preview(packed_scene: PackedScene) -> Node2D:
 	if packed_scene:
@@ -77,19 +50,19 @@ func _instantiate_preview(packed_scene: PackedScene) -> Node2D:
 
 
 ## EXPECTATION / PURPOSE
-## This test exercises indicator generation and spatial positioning using the real PlacementManager pipeline
+## This test exercises indicator generation and spatial positioning using the real IndicatorManager pipeline
 ## without bootstrapping the entire BuildingSystem dependency graph.
 ##
 ## Setup:
 ##  - A targeting state with a populated TileMapLayer (factory-created predictable 40x40 grid)
 ##  - A positioner Node2D assigned to the targeting state
-##  - A PlacementManager (created directly if container didn't provide one)
+##  - A IndicatorManager (created directly if container didn't provide one)
 ##  - A real placeable resource if available via TestSceneLibrary; otherwise a synthetic Placeable with a
 ##    simple PackedScene containing a StaticBody2D + CollisionShape2D rectangle (32x32) is created.
 ##
 ## Actions:
 ##  - Instantiate a preview for the (real or synthetic) placeable and parent it under the positioner
-##  - Invoke placement_manager.try_setup with either the placeable's own placement_rules or a fallback
+##  - Invoke indicator_manager.try_setup with either the placeable's own placement_rules or a fallback
 ##    simple TileCheckRule to force indicator creation
 ##
 ## Assertions / Success Criteria:
@@ -176,7 +149,7 @@ func test_real_world_indicator_positioning():
 	assert_that(targeting_issues.is_empty()).append_failure_message("Targeting state issues: %s" % str(targeting_issues)).is_true()
 
 	# Direct indicator setup (TileCheckRule already created above)
-	var report := placement_manager.setup_indicators(preview, [tile_check_rule])
+	var report := indicator_manager.setup_indicators(preview, [tile_check_rule])
 	var indicators : Array[RuleCheckIndicator] = report.indicators
 	assert_int(indicators.size()).append_failure_message("No indicators generated for preview; expected at least one from TileCheckRule").is_greater(0)
 
@@ -210,10 +183,10 @@ func test_real_world_indicator_positioning():
 
 func after_test():
 	# Ensure indicators are cleaned up to avoid orphan warnings
-	if placement_manager:
-		placement_manager.tear_down()
-		placement_manager.queue_free()
-		placement_manager = null
+	if indicator_manager:
+		indicator_manager.tear_down()
+		indicator_manager.queue_free()
+		indicator_manager = null
 	# Preview already registered with auto_free; explicit queue_free if still valid
 	if is_instance_valid(_preview_ref) and _preview_ref.get_parent():
 		_preview_ref.queue_free()

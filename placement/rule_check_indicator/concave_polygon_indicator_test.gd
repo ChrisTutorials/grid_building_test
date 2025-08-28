@@ -4,21 +4,17 @@ extends GdUnitTestSuite
 var _container : GBCompositionContainer
 var _validator : PlacementValidator
 var _targeting : GridTargetingState
-var _owner_ctx : GBOwnerContext
 var _placer : Node2D
 var _map : TileMapLayer
 var _preview : Node2D
 var _rules : Array[PlacementRule]
-var _manager : PlacementManager
+var _manager : IndicatorManager
 
 func before_test():
 	# Use the shared test container (injected resource) and its targeting state so internal systems see configured maps
 	_container = preload("uid://dy6e5p5d6ax6n")
-	_manager = PlacementManager.create_with_injection(_container)
-	add_child(auto_free(_manager))
-	_validator = PlacementValidator.create_with_injection(_container)
-
-	# Acquire container states and configure targeting (positioner, target map, maps) just like integration helpers do
+	
+	# Acquire container states and configure targeting FIRST (positioner, target map, maps) 
 	_targeting = _container.get_states().targeting
 	_map = auto_free(TileMapLayer.new())
 	_map.tile_set = TileSet.new()
@@ -30,13 +26,17 @@ func before_test():
 		_targeting.positioner = auto_free(Node2D.new())
 		add_child(_targeting.positioner)
 
+	# Set up manipulation parent - required for IndicatorManager to have a parent node
+	_container.get_states().manipulation.parent = _targeting.positioner
+	
 	# Basic placer/owner context (building state not needed for indicator setup)
 	_placer = auto_free(Node2D.new())
 	add_child(_placer)
-	_owner_ctx = GBOwnerContext.new()
-	var gb_owner: Node = auto_free(GBOwner.new(_placer))
-	_placer.add_child(gb_owner)
-	_owner_ctx.set_owner(gb_owner)
+	
+	# NOW create the IndicatorManager after targeting is set up
+	_manager = IndicatorManager.create_with_injection(_container)
+	add_child(auto_free(_manager))
+	_validator = PlacementValidator.create_with_injection(_container)
 
 	# Instantiate concave polygon test object and parent under positioner to mimic runtime placement preview hierarchy
 	_preview = UnifiedTestFactory.create_polygon_test_object(self)
@@ -52,7 +52,7 @@ func before_test():
 	_rules = [rule]
 	var params := RuleValidationParameters.new(_placer, _preview, _targeting, _container.get_logger())
 	var setup_ok := _manager.try_setup(_rules, params, true)
-	assert_bool(setup_ok).append_failure_message("PlacementManager.try_setup failed for concave polygon test").is_true()
+	assert_bool(setup_ok.is_successful()).append_failure_message("IndicatorManager.try_setup failed for concave polygon test").is_true()
 
 func after_test():
 	if _validator:

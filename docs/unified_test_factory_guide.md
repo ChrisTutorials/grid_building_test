@@ -43,7 +43,7 @@ When writing tests, use these factory methods instead of direct constructors:
 # ✅ DO: Use unified factory methods
 var building_system = UnifiedTestFactory.create_test_building_system(self)
 var manipulation_system = UnifiedTestFactory.create_test_manipulation_system(self)
-var placement_manager = UnifiedTestFactory.create_test_placement_manager(self)
+var indicator_manager = UnifiedTestFactory.create_test_indicator_manager(self)
 
 # ✅ BEST: Use injectable factory methods for runtime-compatible creation
 var collision_mapper = UnifiedTestFactory.create_injectable_collision_mapper(container)
@@ -105,8 +105,8 @@ var tile_map = UnifiedTestFactory.create_test_tile_map_layer(self)
 - `create_injectable_indicator_manager(test, container, parent, template)` ⭐ RECOMMENDED
 
 ### Placement  
-- `create_placement_manager(test, targeting_state = null)`
-- `create_test_placement_manager(test)`
+- `create_indicator_manager(test, targeting_state = null)`
+- `create_test_indicator_manager(test)`
 - `create_placement_validator(test, rules = [])`
 - `create_injectable_placement_validator(test, container, rules)` ⭐ RECOMMENDED
 
@@ -145,7 +145,7 @@ var tile_map = UnifiedTestFactory.create_test_tile_map_layer(self)
 func before_test():
 	logger = UnifiedTestFactory.create_test_logger()
 	targeting_state = UnifiedTestFactory.create_targeting_state(self)
-	placement_manager = UnifiedTestFactory.create_placement_manager(self, targeting_state)
+	indicator_manager = UnifiedTestFactory.create_indicator_manager(self, targeting_state)
 ```
 
 ### Injectable Factory Pattern (RECOMMENDED)

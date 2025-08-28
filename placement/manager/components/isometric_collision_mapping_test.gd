@@ -5,6 +5,11 @@ extends GdUnitTestSuite
 
 const TestFactory = preload("res://test/grid_building_test/factories/unified_test_factory.gd")
 
+var _injector: GBInjectorSystem
+
+func before_test():
+	_injector = TestFactory.create_test_injector(self)
+
 ## Test that isometric collision mapping generates precise tile position counts
 func test_isometric_collision_mapping_precision() -> void:
 	# Test data: building polygons that should generate exactly 1 tile position
@@ -73,9 +78,7 @@ func test_isometric_collision_mapping_precision() -> void:
 	for building_name in results.keys():
 		var result = results[building_name]
 		assert_int(result.actual).append_failure_message(
-			"Isometric collision mapping for '%s' should generate %d tile position(s) but generated %d. " +
-			"%s. This indicates the isometric coordinate transformation padding is too aggressive, " +
-			"causing false positives in adjacent tiles." % [
+			"Isometric collision mapping for '%s' should generate %d tile position(s) but generated %d. %s. This indicates the isometric coordinate transformation padding is too aggressive, causing false positives in adjacent tiles." % [
 				building_name, result.expected, result.actual, result.description
 			]
 		).is_equal(result.expected)
@@ -114,8 +117,8 @@ func get_tile_position_count(building: StaticBody2D, tilemap: TileMapLayer) -> i
 	var targeting_state = TestFactory.create_double_targeting_state(self)
 	targeting_state.set_map_objects(tilemap, [tilemap])
 	
-	var indicator_manager = TestFactory.create_test_indicator_manager(self, targeting_state)
-	var collision_mapper = indicator_manager._collision_mapper
+	var indicator_manager = UnifiedTestFactory.create_test_indicator_manager(self, targeting_state)
+	var collision_mapper = indicator_manager.get_collision_mapper()
 	
 	var test_setup = TestFactory.create_test_indicator_collision_setup(self, building)
 	collision_mapper.collision_object_test_setups[building] = test_setup
@@ -147,9 +150,5 @@ func test_isometric_padding_fix() -> void:
 	
 	# This should pass after the padding fix from 2 to 1
 	assert_int(tile_count).append_failure_message(
-		"Mill Big Green building (96x56px) should generate exactly 1 tile position with " +
-		"proper isometric calculation, but generated %d. The previous padding value of 2 " +
-		"was too aggressive and caused false positives in adjacent tiles. With padding " +
-		"reduced to 1, buildings that are slightly larger than a single tile should still " +
-		"map to 1 tile when the actual overlap calculation is precise." % tile_count
+		"Mill Big Green building (96x56px) should generate exactly 1 tile position with proper isometric calculation, but generated %d. The previous padding value of 2 was too aggressive and caused false positives in adjacent tiles. With padding reduced to 1, buildings that are slightly larger than a single tile should still map to 1 tile when the actual overlap calculation is precise." % tile_count
 	).is_equal(1)

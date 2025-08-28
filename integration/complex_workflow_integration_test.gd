@@ -6,7 +6,7 @@ const TEST_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
 
 var composition_container: GBCompositionContainer
 var building_system: BuildingSystem
-var placement_manager: PlacementManager
+var placement_manager: IndicatorManager
 var targeting_system: GridTargetingSystem
 var logger: GBLogger
 var _injector : GBInjectorSystem
@@ -61,6 +61,12 @@ func before_test():
 	add_child(placed_parent)
 	composition_container.get_states().building.placed_parent = placed_parent
 	
+	# Manipulation state parent (required for indicators)
+	var manipulation_parent: Node2D = auto_free(Node2D.new())
+	manipulation_parent.name = "ManipulationParent"
+	add_child(manipulation_parent)
+	composition_container.get_states().manipulation.parent = manipulation_parent
+	
 	## Set up level context dependencies
 	_level_context = auto_free(GBLevelContext.new())
 	var test_tile_map_layer := GodotTestFactory.create_tile_map_layer(self, 40)
@@ -81,7 +87,7 @@ func before_test():
 	assert_array(targeting_system.get_dependency_issues()).is_empty()
 
 	# Use injected placement manager rather than mismatched test factory manager
-	placement_manager = PlacementManager.create_with_injection(composition_container)
+	placement_manager = IndicatorManager.create_with_injection(composition_container)
 	add_child(auto_free(placement_manager))
 	logger = composition_container.get_logger()
 	
@@ -102,7 +108,7 @@ func after_test():
 	logger = null
 
 func test_no_build_issues_before_test():
-	var logic := BuildingSystemLogic.new(composition_container.get_states().building, composition_container.get_states().targeting, composition_container.get_contexts().placement)
+	var logic := BuildingSystemLogic.new(composition_container.get_states().building, composition_container.get_states().targeting, composition_container.get_contexts().indicator)
 	var test_smithy_placeable : Placeable = load("uid://dirh6mcrgdm3w")
 	var issues := logic.get_build_issues(test_smithy_placeable)
 	assert_array(issues).append_failure_message("There should be no issues before we continue with the rest of the tests.").is_empty()

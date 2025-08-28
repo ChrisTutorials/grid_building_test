@@ -32,7 +32,7 @@ func test_grid_targeter_system_init():
 
 
 func test_rule_check_indicator_init():
-	var rule_check_indicator = RuleCheckIndicator.new()
+	var rule_check_indicator = RuleCheckIndicator.new([])
 
 	assert_object(rule_check_indicator).is_not_null()
 
@@ -40,11 +40,11 @@ func test_rule_check_indicator_init():
 
 
 func test_rule_check_indicator_manager_init():
-	var placement_manager = PlacementManager.new()
+	var indicator_manager = IndicatorManager.new()
 
-	assert_object(placement_manager).is_not_null()
+	assert_object(indicator_manager).is_not_null()
 
-	placement_manager.free()
+	indicator_manager.free()
 
 
 func test_node_locator_init():

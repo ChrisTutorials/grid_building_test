@@ -11,9 +11,11 @@ var _container: GBCompositionContainer
 var building_system: BuildingSystem
 var positioner: Node2D
 var tile_map_layer: TileMapLayer
+var _injector : GBInjectorSystem
 
 func before_test():
 	_container = BASE_CONTAINER.duplicate(true)
+	_injector = UnifiedTestFactory.create_test_injector(self, _container)
 	
 	# Create 5x5 tile map around origin
 	tile_map_layer = auto_free(TileMapLayer.new())
@@ -55,8 +57,8 @@ func before_test():
 	building_system.resolve_gb_dependencies(_container)
 	
 	# Ensure placement manager exists
-	if _container.get_contexts().placement.get_manager() == null:
-		var pm := PlacementManager.create_with_injection(_container)
+	if _container.get_contexts().indicator.get_manager() == null:
+		var pm := IndicatorManager.create_with_injection(_container)
 		add_child(auto_free(pm))
 
 func test_rigid_body_with_collision_layer_513_generates_indicators():
@@ -98,7 +100,7 @@ func test_rigid_body_with_collision_layer_513_generates_indicators():
 	# Enter build mode
 	building_system.selected_placeable = placeable
 	var entered = building_system.enter_build_mode(placeable)
-	assert_bool(entered).append_failure_message(
+	assert_bool(entered.is_successful()).append_failure_message(
 		"Failed to enter build mode with simple box"
 	).is_true()
 
@@ -142,7 +144,7 @@ func test_rigid_body_with_collision_layer_513_generates_indicators():
 		"CORE ISSUE: GBGeometryUtils.get_all_collision_shapes_by_owner() returns 0 owners despite preview having %d collision objects: %s" % [preview_collision_objects.size(), collision_object_details]
 	).is_greater(0)
 
-	var manager := _container.get_contexts().placement.get_manager()
+	var manager := _container.get_contexts().indicator.get_manager()
 	assert_object(manager).append_failure_message(
 		"No placement manager available"
 	).is_not_null()
@@ -153,7 +155,7 @@ func test_rigid_body_with_collision_layer_513_generates_indicators():
 
 	# Set up rules
 	var setup_success = manager.try_setup(placeable.placement_rules, params, false)
-	assert_bool(setup_success).append_failure_message(
+	assert_bool(setup_success.is_successful()).append_failure_message(
 		"Failed to set up rules for simple box"
 	).is_true()
 
