@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="Placeable" load_steps=7 format=3 uid="uid://cjbquweg8abvr"]
+
+[ext_resource type="PackedScene" uid="uid://j5837ml5dduu" path="res://test/grid_building_test/scenes/test_elipse.tscn" id="1_lmcj5"]
+[ext_resource type="Script" uid="uid://ceem2vqcha7ki" path="res://addons/grid_building/placement/placement_rules/placement_rule.gd" id="1_uymex"]
+[ext_resource type="Script" uid="uid://b01uvfnfuldd6" path="res://addons/grid_building/placement/placeable/placeable.gd" id="2_72ua2"]
+[ext_resource type="Script" uid="uid://s0vakpw0uegl" path="res://addons/grid_building/placement/placement_rules/template_rules/within_tilemap_bounds_rule.gd" id="2_lmcj5"]
+[ext_resource type="Script" uid="uid://b064bdpoigkqi" path="res://addons/grid_building/placement/placeable/categorical_tag.gd" id="3_lmcj5"]
+
+[sub_resource type="Resource" id="Resource_4kvf3"]
+script = ExtResource("2_lmcj5")
+success_message = "Placement is within map bounds"
+failed_message = "Tried placing outside of valid map area"
+no_indicators_message = "No tile collision indicators to check for within tilemap bounds."
+enable_debug_diagnostics = false
+apply_to_objects_mask = 1
+visual_priority = 0
+metadata/_custom_type_script = "uid://s0vakpw0uegl"
+
+[resource]
+script = ExtResource("2_72ua2")
+display_name = &"Within Bounds Test Placeable"
+packed_scene = ExtResource("1_lmcj5")
+tags = Array[ExtResource("3_lmcj5")]([])
+placement_rules = Array[ExtResource("1_uymex")]([SubResource("Resource_4kvf3")])
+ignore_base_rules = true
+metadata/_custom_type_script = "uid://b01uvfnfuldd6"

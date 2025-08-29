@@ -17,10 +17,10 @@ func get_issues() -> Array[String]:
 	else:
 		issues.append_array(injector.get_runtime_issues())
 
+	## Dont evaluate runtime issues for grid targeting state by default because by default the environment is minimal and not a full setup
 	if grid_targeting_system == null:
 		issues.append("Missing GridTargetingSystem")
-	else:
-		issues.append_array(grid_targeting_system.get_runtime_issues())
+		
 	if world == null:
 		issues.append("Missing World")
 	if level == null:

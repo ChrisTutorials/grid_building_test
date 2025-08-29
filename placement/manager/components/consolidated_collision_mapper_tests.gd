@@ -1,7 +1,14 @@
-extends GdUnitTestSuite
-
 ## Comprehensive consolidated collision mapper and polygon tile mapper tests
 ## Combines functionality from multiple individual test files
+extends GdUnitTestSuite
+
+var env : CollisionTestEnvironment
+var collision_mapper: CollisionMapper
+var polygon_mapper: PolygonTileMapper
+var logger: GBLogger
+var targeting_state: GridTargetingState
+var _injector: GBInjectorSystem
+var _container : GBCompositionContainer
 
 ## Test shape types enum for better type safety and maintainability
 enum TestShapeType {
@@ -16,56 +23,16 @@ enum TestShapeType {
 	CAPSULE
 }
 
-## Consolidated Collision Mapper Tests
-## Consolidates from the following test files:
-## - collision_mapper_comprehensive_test.gd
-## - collision_mapper_positioner_movement_refactored.gd
-## - collision_mapper_refactored.gd
-## - collision_mapper_trapezoid_regression_test.gd
-## - polygon_tile_mapper_test.gd
-## - polygon_tile_mapper_tile_shape_test.gd
-## - polygon_tile_mapper_tile_shape_propagation_test.gd
-## - polygon_tile_mapper_isometric_test.gd
-
-const TEST_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
-
-var test_hierarchy: Dictionary
-var collision_mapper: CollisionMapper
-var polygon_mapper: PolygonTileMapper
-var tile_map_layer: TileMapLayer
-var positioner: Node2D
-var logger: GBLogger
-var targeting_state: GridTargetingState
-var _injector: GBInjectorSystem
-
 func before_test():
 	# Create comprehensive test environment using DRY factory pattern
-	var test_env = UnifiedTestFactory.create_collision_indicator_test_environment(self)
-	positioner = UnifiedTestFactory.create_grid_positioner_2d(self, TEST_CONTAINER)
-	
-	collision_mapper = test_env.collision_mapper
-	tile_map_layer = test_env.tile_map
-	logger = test_env.logger
-	targeting_state = test_env.targeting_state
-	_injector = test_env.injector
+	env = UnifiedTestFactory.instance_collision_test_env(self, "uid://cdrtd538vrmun")
+	_container = env.get_container()
+	targeting_state = _container.get_states().targeting
+	logger = _container.get_logger()
+	collision_mapper = CollisionMapper.create_with_injection(_container)
 
 	# Create polygon mapper from collision mapper
 	polygon_mapper = PolygonTileMapper.new(targeting_state, logger)
-
-	# Store in test hierarchy for compatibility
-	test_hierarchy = {
-		"collision_mapper": collision_mapper,
-		"polygon_mapper": polygon_mapper,
-		"tile_map": tile_map_layer,
-		"positioner": positioner,
-		"logger": logger,
-		"targeting_state": targeting_state
-	}
-	assert_object(positioner).is_not_null()
-
-func after_test():
-	if _injector and _injector.has_method("cleanup"):
-		_injector.cleanup()
 
 # ================================
 # Comprehensive Shape Coverage Tests
@@ -91,16 +58,14 @@ func test_collision_shape_coverage_comprehensive(
 		[TestShapeType.CAPSULE, {"radius": 14.0, "height": 60.0}, Vector2(64, 64), 8, "capsule_shape"]
 	]
 ):
-	# Set positioner position for test
-	positioner.global_position = positioner_position
-
 	# Create test object with specified shape using enum-based helper method
 	var test_object = _create_test_object_with_shape_enum(shape_type, shape_data)
-	positioner.add_child(test_object)
+	env.level.add_child(test_object)
 
 	# Setup collision mapper with Dictionary format
 	var collision_object_test_setups = _create_collision_test_setup_dict([test_object])
 	var test_indicator = UnifiedTestFactory.create_rule_check_indicator(self, self, [])
+	
 	collision_mapper.setup(test_indicator, collision_object_test_setups)
 
 	# Get collision results
@@ -115,7 +80,7 @@ func test_collision_shape_coverage_comprehensive(
 	).is_greater_equal(expected_min_tiles)
 
 	# Verify position reasonableness
-	var center_tile = tile_map_layer.local_to_map(positioner_position)
+	var center_tile = env.tile_map_layer.local_to_map(test_object.global_position)
 	for tile_pos in result.keys():
 		var offset = tile_pos - center_tile
 		assert_int(abs(offset.x)).append_failure_message(
@@ -136,15 +101,16 @@ func test_positioner_movement_updates_collision():
 	collision_polygon.polygon = PackedVector2Array([
 		Vector2(-16, -16), Vector2(16, -16), Vector2(16, 16), Vector2(-16, 16)
 	])
-	positioner.add_child(collision_polygon)
+	
+	var test_polygon := UnifiedTestFactory.create_test_collision_polygon(self)
 
 		# Test case 1: Positioner at (0, 0)
-	positioner.global_position = Vector2.ZERO
-	var offsets1 = collision_mapper._get_tile_offsets_for_collision_polygon(collision_polygon, tile_map_layer)
+	test_polygon.global_position = Vector2.ZERO
+	var offsets1 = collision_mapper._get_tile_offsets_for_collision_polygon(test_polygon, env.tile_map_layer)
 
 	# Test case 2: Positioner at (64, 64)
-	positioner.global_position = Vector2(64, 64)
-	var offsets2 = collision_mapper._get_tile_offsets_for_collision_polygon(collision_polygon, tile_map_layer)
+	test_polygon.global_position = Vector2(64, 64)
+	var offsets2 = collision_mapper._get_tile_offsets_for_collision_polygon(test_polygon, env.tile_map_layer)
 
 	# Movement should produce different offsets
 	assert_dict(offsets1).is_not_equal(offsets2)
@@ -159,16 +125,16 @@ func test_collision_mapper_tracks_movement():
 	collision_shape.shape = RectangleShape2D.new()
 	collision_shape.shape.size = Vector2(24, 24)
 	area.add_child(collision_shape)
-	positioner.add_child(area)
+	env.level.add_child(area)
 
 	# Test at different positions
 	var positions = [Vector2.ZERO, Vector2(32, 0), Vector2(64, 32)]
 	var all_offsets = []
 
 	for pos in positions:
-		positioner.position = pos
-		var test_setup = IndicatorCollisionTestSetup.new(area, Vector2(24, 24), test_hierarchy.logger)
-		var offsets = collision_mapper._get_tile_offsets_for_collision_object(test_setup, tile_map_layer)
+		area.global_position = pos
+		var test_setup = IndicatorCollisionTestSetup.new(area, Vector2(24, 24), _container.get_logger())
+		var offsets = collision_mapper._get_tile_offsets_for_collision_object(test_setup, env.tile_map_layer)
 		all_offsets.append(offsets)
 		assert_dict(offsets).is_not_empty()
 
@@ -192,13 +158,12 @@ func test_collision_mapper_polygon():
 		Vector2(-10, 10)
 	])
 	area.add_child(collision_polygon)
-
-	positioner.add_child(area)
+	env.level.add_child(area)
 
 	# Create test setup for collision mapper
-	var test_setup = IndicatorCollisionTestSetup.new(area, Vector2(32, 32), test_hierarchy.logger)
+	var test_setup = IndicatorCollisionTestSetup.new(area, Vector2(32, 32), _container.get_logger())
 
-	var offsets = collision_mapper._get_tile_offsets_for_collision_object(test_setup, tile_map_layer)
+	var offsets = collision_mapper._get_tile_offsets_for_collision_object(test_setup, env.tile_map_layer)
 	assert_dict(offsets).is_not_empty()
 
 ## Test collision mapper with multiple shapes
@@ -217,13 +182,12 @@ func test_collision_mapper_multiple_shapes():
 	shape2.shape.size = Vector2(16, 16)
 	shape2.position = Vector2(20, 0)
 	area.add_child(shape2)
-
-	positioner.add_child(area)
+	env.level.add_child(area)
 
 	# Create test setup for collision mapper
-	var test_setup = IndicatorCollisionTestSetup.new(area, Vector2(32, 32), test_hierarchy.logger)
+	var test_setup = IndicatorCollisionTestSetup.new(area, Vector2(32, 32), _container.get_logger())
 
-	var offsets = collision_mapper._get_tile_offsets_for_collision_object(test_setup, tile_map_layer)
+	var offsets = collision_mapper._get_tile_offsets_for_collision_object(test_setup, env.tile_map_layer)
 	assert_int(offsets.size()).is_greater(1)
 
 # ================================
@@ -233,7 +197,7 @@ func test_collision_mapper_multiple_shapes():
 ## Test trapezoid core subset is present
 func test_trapezoid_core_subset_present():
 	var poly = _create_trapezoid_node(true)
-	var tile_dict = collision_mapper._get_tile_offsets_for_collision_polygon(poly, tile_map_layer)
+	var tile_dict = collision_mapper._get_tile_offsets_for_collision_polygon(poly, env.tile_map_layer)
 	var offsets: Array[Vector2i] = []
 	for k in tile_dict.keys(): offsets.append(k)
 	offsets.sort()
@@ -244,7 +208,7 @@ func test_trapezoid_core_subset_present():
 ## Test trapezoid coverage stability
 func test_trapezoid_coverage_stability():
 	var poly = _create_trapezoid_node(true)
-	var tile_dict = collision_mapper._get_tile_offsets_for_collision_polygon(poly, tile_map_layer)
+	var tile_dict = collision_mapper._get_tile_offsets_for_collision_polygon(poly, env.tile_map_layer)
 	assert_int(tile_dict.size()).is_greater_equal(6)
 	assert_int(tile_dict.size()).is_less_equal(15)
 
@@ -256,7 +220,7 @@ func test_trapezoid_coverage_stability():
 @warning_ignore("unused_parameter")
 func test_process_polygon_complete_pipeline_scenarios(
 	polygon_points: PackedVector2Array,
-	positioner_pos: Vector2,
+	global_position: Vector2,
 	is_parented: bool,
 	expected_properties: Dictionary,
 	expected_min_offsets: int,
@@ -282,19 +246,17 @@ func test_process_polygon_complete_pipeline_scenarios(
 		]
 	]
 ):
-	# Set positioner position
-	positioner.global_position = positioner_pos
-
 	# Create polygon
 	var poly = CollisionPolygon2D.new()
 	poly.polygon = polygon_points
 	if is_parented:
-		positioner.add_child(poly)
+		env.level.add_child(poly)
 	else:
 		add_child(poly)
+	poly.global_position = global_position
 
 	# Process polygon
-	var offsets = polygon_mapper.compute_tile_offsets(poly, tile_map_layer)
+	var offsets = polygon_mapper.compute_tile_offsets(poly, env.tile_map_layer)
 
 	# Verify results
 	assert_int(offsets.size()).is_greater_equal(expected_min_offsets)
@@ -479,11 +441,9 @@ func _create_test_indicator() -> RuleCheckIndicator:
 func _create_trapezoid_node(parented := true) -> CollisionPolygon2D:
 	var poly := CollisionPolygon2D.new()
 	poly.polygon = PackedVector2Array([Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)])
-	if parented:
-		positioner.add_child(poly)
-	else:
-		add_child(poly)
+	env.level.add_child(poly)
 	return poly
+	
 func _create_collision_test_setup_dict(test_objects: Array[Node2D]) -> Dictionary[Node2D, IndicatorCollisionTestSetup]:
 	var setup_dict: Dictionary[Node2D, IndicatorCollisionTestSetup] = {}
 	for test_object in test_objects:

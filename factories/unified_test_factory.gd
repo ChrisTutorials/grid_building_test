@@ -56,55 +56,9 @@ extends RefCounted
 ## Loaded from: uid://dy6e5p5d6ax6n (test_composition_container.tres)
 const TEST_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
 
-# ================================
-# LAYERED FACTORY METHODS - Advanced DRY Approach
-# ================================
+#region LAYERED FACTORY METHODS - Advanced DRY Approach
 
-## Creates placement system test environment with manager components
-static func create_indicator_system_test_environment(test: GdUnitTestSuite, container: GBCompositionContainer = null) -> Dictionary:
-	var base_env = create_utilities_test_environment(test, container)
-	var indicator_manager = create_test_indicator_manager(test, base_env.container)
-	var collision_setup = create_test_indicator_collision_setup(test)
-	var collision_mapper_setup = create_collision_mapper_setup(test, container)
 
-	return _merge_dictionaries(_merge_dictionaries(base_env, {
-		"indicator_manager": indicator_manager,
-		"collision_setup": collision_setup
-	}), collision_mapper_setup)
-
-## Creates rule check indicator test environment extending placement system
-static func create_rule_indicator_test_environment(test: GdUnitTestSuite, container: GBCompositionContainer = null) -> Dictionary:
-	var placement_env = create_indicator_system_test_environment(test, container)
-	var rule_indicators = []
-	var basic_rules = [
-		create_test_within_tilemap_bounds_rule(test),
-		create_test_collisions_check_rule()
-	]
-
-	for rule in basic_rules:
-		var indicator = create_test_rule_check_indicator(test)
-		indicator.add_rule(rule)
-		rule_indicators.append(indicator)
-
-	return _merge_dictionaries(placement_env, {
-		"rule_indicators": rule_indicators,
-		"basic_rules": basic_rules
-	})
-
-## Creates systems integration test environment with all major systems
-static func create_systems_integration_test_environment(test: GdUnitTestSuite, container: GBCompositionContainer = null) -> Dictionary:
-	var rule_env = create_rule_indicator_test_environment(test, container)
-	var building_system = create_building_system(test, rule_env.container)
-	var manipulation_system = create_manipulation_system(test, rule_env.container)
-	var targeting_system = create_grid_targeting_system(test, rule_env.container)
-
-	return _merge_dictionaries(rule_env, {
-		"building_system": building_system,
-		"manipulation_system": manipulation_system,
-		"targeting_system": targeting_system
-	})
-
-## Creates complete indicator manager tree integration test environment
 ## Combines targeting state setup with indicator manager and injector for comprehensive tree testing
 ## [b]Parameters[/b]:
 ##  • [code]test[/code]: GdUnitTestSuite – test suite for parenting/autofree
@@ -694,19 +648,10 @@ static func setup_grid_targeting_system_test(test: GdUnitTestSuite, container: G
 	return scene
 
 ## Create a test placeable instance with common setup
-static func create_test_placeable_instance(test: GdUnitTestSuite, instance_name: String = "TestInstance", placeable_path: String = "") -> Node:
-	var save = {
-		PlaceableInstance.Names.INSTANCE_NAME: instance_name,
-		PlaceableInstance.Names.PLACEABLE: {Placeable.Names.UID: placeable_path},
-		PlaceableInstance.Names.TRANSFORM: var_to_str(Transform2D.IDENTITY)
-	}
-	
-	var instance = PlaceableInstance.instance_from_save(save, test)
-	# If the instance is a Node, parent it under the test so it's in the scene tree
+static func create_test_placeable_instance(test : GdUnitTestSuite, p_parent: Node,  placeable : Placeable, instance_name: String = "TestInstance",) -> Node:
+	var instance = placeable.packed_scene.instantiate()
 	test.auto_free(instance)
-	if instance is Node:
-		instance.name = instance_name
-		test.add_child(instance)
+	p_parent.add_child(instance)
 	return instance
 
 ## Create a test manipulation data object
@@ -812,68 +757,6 @@ static func create_polygon_test_object(test: GdUnitTestSuite) -> Node2D:
 	
 	test.auto_free(obj)
 	return obj
-
-## Creates a test smithy object similar to res://demos/top_down/objects/smithy.tscn
-## This is a self-contained version that doesn't depend on external demo files
-static func create_smithy_test_object(test: GdUnitTestSuite) -> Node2D:
-	var smithy := Node2D.new()
-	smithy.name = "SmithyTestObject"
-	
-	# Add a direct CollisionShape2D to the root for tests that expect it
-	var direct_collision := CollisionShape2D.new()
-	direct_collision.name = "CollisionShape2D"
-	var direct_shape := RectangleShape2D.new()
-	direct_shape.size = Vector2(112, 80)  # Rectangle 112x80 as mentioned in test
-	direct_collision.shape = direct_shape
-	smithy.add_child(direct_collision)
-	
-	# Create Area2D component (layer 2560)
-	var area := Area2D.new()
-	area.name = "Area2D"
-	area.collision_layer = 2560
-	area.collision_mask = 2560
-	
-	var area_collision := CollisionShape2D.new()
-	area_collision.name = "AreaCollisionShape2D"
-	var area_shape := RectangleShape2D.new()
-	area_shape.size = Vector2(112, 80)  # Rectangle 112x80 as mentioned in test
-	area_collision.shape = area_shape
-	area.add_child(area_collision)
-	
-	# Create StaticBody2D component (layer 513)
-	var static_body := StaticBody2D.new()
-	static_body.name = "StaticBody2D"
-	static_body.collision_layer = 513
-	static_body.collision_mask = 513
-	
-	var static_collision := CollisionShape2D.new()
-	static_collision.name = "StaticCollisionShape2D"
-	var static_shape := RectangleShape2D.new()
-	static_shape.size = Vector2(112, 80)
-	static_collision.shape = static_shape
-	static_body.add_child(static_collision)
-	
-	smithy.add_child(area)
-	smithy.add_child(static_body)
-	
-	# Add Manipulatable component for manipulation system integration
-	var manipulatable := Manipulatable.new()
-	manipulatable.root = smithy
-	var settings := ManipulatableSettings.new()
-	settings.movable = true
-	settings.demolishable = true
-	manipulatable.settings = settings
-	smithy.add_child(manipulatable)
-	
-	# Set owner properties AFTER all nodes are added to the tree
-	area.owner = smithy
-	area_collision.owner = smithy
-	static_body.owner = smithy
-	static_collision.owner = smithy
-	manipulatable.owner = smithy
-	
-	test.auto_free(smithy)
-	return smithy
 
 ## Creates a test placeable configuration similar to demo placeables
 ## This is a self-contained version that doesn't depend on external demo files
@@ -1008,26 +891,6 @@ static func create_test_placeable_2d(_test: GdUnitTestSuite) -> Placeable:
 	packed_scene.pack(test_obj)
 	placeable.packed_scene = packed_scene
 	placeable.placement_rules = []
-	
-	return placeable
-
-## Creates a test smithy placeable
-static func create_test_smithy_placeable(test: GdUnitTestSuite) -> Placeable:
-	var placeable := Placeable.new()
-	placeable.display_name = "TestSmithyPlaceable"
-	
-	# Create a PackedScene containing the smithy object
-	var packed_scene := PackedScene.new()
-	var smithy_obj := create_smithy_test_object(test)
-	
-	packed_scene.pack(smithy_obj)
-	placeable.packed_scene = packed_scene
-	
-	# Add basic placement rules
-	var collision_rule := CollisionsCheckRule.new()
-	collision_rule.apply_to_objects_mask = 1
-	collision_rule.collision_mask = 1
-	placeable.placement_rules = [collision_rule]
 	
 	return placeable
 
@@ -1549,19 +1412,6 @@ static func assert_parent_architecture(indicator_manager: IndicatorManager, mani
 		if context: message += " (%s)" % context
 		assert(indicator.get_parent() == indicator_manager, message)
 
-## Creates comprehensive test environment for collision-based indicator tests
-static func create_collision_indicator_test_environment(test: GdUnitTestSuite, container: GBCompositionContainer = null) -> Dictionary:
-	var base_env = create_utilities_test_environment(test, container)
-	var collision_setup = create_test_indicator_collision_setup(test)
-	var collision_mapper_setup = create_collision_mapper_setup(test, container)
-	
-	base_env.merge({
-		"collision_setup": collision_setup
-	})
-	base_env.merge(collision_mapper_setup)
-	
-	return base_env
-
 ## Standardized assertion for collision layer validation
 static func assert_collision_layer_setup(collision_node: Node2D, expected_layer: int, context: String = "") -> void:
 	var collision_layer = 0
@@ -1863,7 +1713,8 @@ static func _setup_owner_context(test: GdUnitTestSuite, container: GBComposition
 ## @param system_name: Name to assign to the system
 ## @return: Configured system instance
 static func _create_system_with_injection(test: GdUnitTestSuite, system_class: GDScript, container: GBCompositionContainer, system_name: String) -> Node:
-	var system = system_class.create_with_injection(container)
+	var system = system_class.new()
+	system.resolve_gb_dependencies(container)
 	test.auto_free(system)
 	test.add_child(system)
 	system.name = system_name

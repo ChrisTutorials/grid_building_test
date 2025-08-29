@@ -28,11 +28,6 @@ func before_test():
 	# Ensure indicator template is configured
 	UnifiedTestFactory.ensure_indicator_template_configured(_container)
 
-func after_test():
-	# Direct cleanup call - fail fast approach
-	if _injector:
-		_injector.cleanup()
-
 ## Test that indicators created for polygon_test_object properly evaluate CollisionCheckRule
 ## and filter out indicators at positions that should fail collision checks
 func test_polygon_test_object_indicator_collision_filtering():
@@ -141,13 +136,8 @@ func test_indicator_rule_validation():
 	# Position indicator at a location with no collisions
 	indicator.global_position = Vector2(1000, 1000)
 	
-	# Wait for physics update
-	await get_tree().process_frame
+	indicator.force_shapecast_update()
 	
-	# Update validation
-	indicator.update_validation_now()
-	
-	# Should be valid (no collisions)
 	assert_bool(indicator.valid).is_true()
 	
 	# Now create a collision object at the same position
@@ -163,14 +153,10 @@ func test_indicator_rule_validation():
 	collision_object.collision_layer = 1
 	placer.add_child(collision_object)
 	
-	# Wait for physics update
-	await get_tree().process_frame
-	
-	# Update validation again
-	indicator.update_validation_now()
+	var valid := indicator.force_validity_evaluation()
 	
 	# Should now be invalid (collision detected)
-	assert_bool(indicator.valid).append_failure_message(
+	assert_bool(valid).append_failure_message(
 		"Indicator should be invalid after collision object added"
 	).is_false()
 

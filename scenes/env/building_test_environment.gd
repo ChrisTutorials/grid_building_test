@@ -11,6 +11,9 @@ func get_issues() -> Array[String]:
 	var issues : Array[String] = []
 	issues.append_array(super())
 	
+	## We evaluate at this level because a positioner stack is set here so it should be fully valid now.
+	issues.append(grid_targeting_system.get_runtime_issues())
+	
 	if building_system == null:
 		issues.append("Missing BuildingSystem")
 

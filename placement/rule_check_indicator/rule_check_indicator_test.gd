@@ -13,7 +13,6 @@ const TEST_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
 func create_test_logger() -> GBLogger:
 	return GBLogger.create_with_injection(TEST_CONTAINER)
 
-
 func before_test():
 	# Create injector system for dependency injection
 	var _injector = UnifiedTestFactory.create_test_injector(self, TEST_CONTAINER)
@@ -44,6 +43,7 @@ func before_test():
 	if indicator.get_parent() == null:
 		add_child(indicator)
 
+	assert_object(indicator.get_parent()).is_not_null()
 
 func test_setup_indicator_defaults():
 		assert_object(indicator).append_failure_message("[indicator] must not be null").is_not_null()
@@ -235,15 +235,13 @@ func test_valid_changed_signal_emitted_on_state_change(
 
 ## Test that visual settings are properly updated when validity changes
 func test_visual_settings_update_on_validity_change():
-	# Verify initial state (allow deferred visuals to apply)
-	await get_tree().physics_frame
 	assert_object(indicator.current_display_settings).is_equal(indicator.valid_settings)
 	assert_object(indicator.validity_sprite.texture).is_equal(indicator.valid_settings.texture)
 	assert_that(indicator.validity_sprite.modulate).is_equal(indicator.valid_settings.modulate)
 	
 	# Create a failing rule to trigger visual change
 	var failing_rule = UnifiedTestFactory.create_test_collisions_check_rule()
-	failing_rule.pass_on_collision = false
+	failing_rule.pass_on_collision = true
 	failing_rule.collision_mask = 1
 	var targeting_state = GridTargetingState.new(GBOwnerContext.new())
 	var test_params = RuleValidationParameters.new(GodotTestFactory.create_node2d(self), GodotTestFactory.create_node2d(self), targeting_state, create_test_logger())
@@ -257,14 +255,15 @@ func test_visual_settings_update_on_validity_change():
 	
 	# Add the rule to trigger visual change
 	indicator.add_rule(failing_rule)
-	
 	# Wait for physics process to run
 	await get_tree().physics_frame
-	
+
+	assert_bool(indicator.valid).append_failure_message("The indicator should be invalid after adding a failing rule.").is_false()
+
 	# Verify visual settings changed to invalid
-	assert_object(indicator.current_display_settings).is_equal(indicator.invalid_settings)
-	assert_object(indicator.validity_sprite.texture).is_equal(indicator.invalid_settings.texture)
-	assert_that(indicator.validity_sprite.modulate).is_equal(indicator.invalid_settings.modulate)
+	assert_object(indicator.current_display_settings).append_failure_message("The current display is expected to be the invalid settings.").is_equal(indicator.invalid_settings)
+	assert_object(indicator.validity_sprite.texture).append_failure_message("The texture of the current sprite should be set to the invalid settings texture.").is_equal(indicator.invalid_settings.texture)
+	assert_that(indicator.validity_sprite.modulate).append_failure_message("The modulate color of the current validity_sprite Sprite2D is expected to be the failure modulate color from the settings.").is_equal(indicator.invalid_settings.modulate)
 
 
 ## Test that force_validation_update properly updates the indicator state
@@ -286,8 +285,8 @@ func test_force_validation_update(
 	collision_body.global_position = indicator.global_position
 
 	indicator.add_rule(rule)
-	indicator.force_validation_update()
-	assert_bool(indicator.valid).is_equal(expected_valid)
+	
+	assert_bool(indicator.force_validity_evaluation()).is_equal(expected_valid)
 	if expected_valid:
 		assert_object(indicator.current_display_settings).is_equal(indicator.valid_settings)
 	else:
