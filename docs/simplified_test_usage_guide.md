@@ -146,17 +146,17 @@ func before_test():
 
 ✅ **GBInjectable factory methods**: Simplified to container-only parameters  
 ✅ **GBSystem factory methods**: Added static factory methods to all systems  
-✅ **Abstract validation pattern**: All systems implement `get_dependency_issues()` from base GBSystem class  
-✅ **Merged validation logic**: Existing `validate()` methods merged into `get_dependency_issues()` for consistency  
+✅ **Abstract validation pattern**: All systems implement `get_runtime_issues()` from base GBSystem class  
+✅ **Merged validation logic**: Existing `validate()` methods merged into `get_runtime_issues()` for consistency  
 ✅ **UnifiedTestFactory cleanup**: Removed wrapper methods, kept test utilities  
 ✅ **Test container usage**: All tests use consistent TEST_CONTAINER pattern  
-✅ **Test method updates**: Updated all test calls from `validate()` to `get_dependency_issues()`  
+✅ **Test method updates**: Updated all test calls from `validate()` to `get_runtime_issues()`  
 ✅ **Documentation**: Updated with complete patterns  
 
 The dependency injection and validation pattern is now fully consistent across the entire codebase, with:
 
 - GBCompositionContainer serving as the single source of truth for all dependencies
-- All GBSystems implementing abstract `get_dependency_issues()` method from base class  
+- All GBSystems implementing abstract `get_runtime_issues()` method from base class  
 - Consistent validation patterns merged from legacy `validate()` methods
 - Complete elimination of duplicate validation logic
 

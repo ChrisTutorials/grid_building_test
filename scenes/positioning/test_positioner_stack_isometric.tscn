@@ -6,7 +6,7 @@
 resource_name = "Indicator Shape for 50px Tile Isometric"
 points = PackedVector2Array(0, -24, 42, 0, 0, 24, -42, 0)
 
-[node name="TestPositionerStack" instance=ExtResource("1_hw0ib")]
+[node name="GridPositioner2DIsometric" instance=ExtResource("1_hw0ib")]
 shape = SubResource("ConvexPolygonShape2D_48grb")
 
 [node name="GridTargeter" parent="." index="0"]

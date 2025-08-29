@@ -30,7 +30,7 @@ func before_test():
 	positioner = GodotTestFactory.create_node2d(self)
 	targeting_state.positioner = positioner
 
-	var validate_result = system.get_dependency_issues()
+	var validate_result = system.get_runtime_issues()
 	assert_array(validate_result).is_empty()
 
 	all_manipulatable = create_manipulatable_object(

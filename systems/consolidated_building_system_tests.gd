@@ -277,7 +277,7 @@ func test_building_system_dependencies() -> void:
 	var building_system : BuildingSystem = test_env.building_system
 	
 	# Verify system has required dependencies
-	var issues = building_system.get_dependency_issues()
+	var issues = building_system.get_runtime_issues()
 	assert_array(issues).append_failure_message(
 		"Building system should have minimal dependency issues: %s" % [str(issues)]
 	).is_empty()
@@ -286,7 +286,7 @@ func test_building_system_validation() -> void:
 	var building_system : BuildingSystem = test_env.building_system
 	
 	# Test system validation using dependency issues
-	var issues = building_system.get_dependency_issues()
+	var issues = building_system.get_runtime_issues()
 	assert_array(issues).append_failure_message(
 		"Building system should be properly set up with no dependency issues"
 	).is_empty()

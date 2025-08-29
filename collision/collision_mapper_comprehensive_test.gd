@@ -15,7 +15,7 @@ func before_test():
 	env = load("uid://cdrtd538vrmun").instantiate()
 	add_child(env)
 	auto_free(env)
-	_container = env.injector.composition_container
+	_container = env.get_container()
 	
 	# Create tilemap with 16x16 tiles
 	tilemap_layer = GodotTestFactory.create_tile_map_layer(self, 40)
@@ -293,11 +293,7 @@ func test_collision_mapper_shape_processing() -> void:
 	var test_setup = IndicatorCollisionTestSetup.new(test_object, Vector2(16, 16), collision_mapper._logger)
 	var collision_setups: Dictionary[Node2D, IndicatorCollisionTestSetup] = {test_object: test_setup}
 
-	# Create a test indicator
-	var test_indicator = RuleCheckIndicator.new([])
-	test_indicator.name = "TestIndicator"
-	test_parent.add_child(test_indicator)
-	auto_free(test_indicator)
+	var test_indicator = UnifiedTestFactory.create_rule_check_indicator(self, test_parent, [])
 
 	# Setup collision mapper directly
 	collision_mapper.setup(test_indicator, collision_setups)

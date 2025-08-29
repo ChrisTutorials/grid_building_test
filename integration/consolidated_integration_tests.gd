@@ -1,6 +1,8 @@
+## Consolidated Integration Test Suite  
+## Tests integration of all systems in one environment
+## Includes GBInjectorSystem, BuildingSystem, GridTargetingSystem, and ManipulationSystem
 extends GdUnitTestSuite
 
-## Consolidated Integration Test Suite  
 ## Consolidates: building_workflow_integration_test.gd, multi_rule_indicator_attachment_test.gd,
 ## smithy_indicator_generation_test.gd, complex_workflow_integration_test.gd,
 ## polygon_test_object_indicator_integration_test.gd, grid_targeting_highlight_integration_test.gd,
@@ -8,15 +10,24 @@ extends GdUnitTestSuite
 
 ## MARK FOR REMOVAL - All individual test files have been successfully consolidated
 
-var test_env: Dictionary
+var env: AllSystemsTestEnvironment
+var _container : GBCompositionContainer
 
 func before_test() -> void:
-	test_env = UnifiedTestFactory.create_systems_integration_test_environment(self)
+	env = UnifiedTestFactory.instance_all_systems_env(self, "uid://ioucajhfxc8b")
+	_container = env.get_container()
+
+## Helper to create RuleValidationParameters using test environment defaults
+func _make_rule_params(p_target: Node) -> RuleValidationParameters:
+	var owner := env.get_owner_root()
+	var targeting_state := _container.get_states().targeting
+	var logger: GBLogger = _container.get_logger()
+	return RuleValidationParameters.new(env, p_target, targeting_state, logger)
 
 #region BUILDING WORKFLOW INTEGRATION
 
 func test_complete_building_workflow() -> void:
-	var building_system: Object = test_env.building_system
+	var building_system: Object = env.building_system
 	var smithy = UnifiedTestFactory.create_test_smithy_placeable(self)
 	
 	# Enter build mode and check if it succeeded
@@ -49,8 +60,8 @@ func test_complete_building_workflow() -> void:
 	).is_false()
 
 func test_building_workflow_with_validation() -> void:
-	var building_system: Object = test_env.building_system
-	var indicator_manager = test_env.indicator_manager
+	var building_system: Object = env.building_system
+	var indicator_manager = env.indicator_manager
 	var smithy = UnifiedTestFactory.create_test_smithy_placeable(self)
 	
 	# Setup placement validation
@@ -64,7 +75,7 @@ func test_building_workflow_with_validation() -> void:
 	var valid_pos: Vector2 = Vector2(50, 50)
 	
 	# Set targeting state position for validation
-	var targeting_state = test_env.targeting_state
+	var targeting_state = env.get_container().get_states().targeting
 	# Direct position access - fail fast approach
 	if targeting_state.positioner != null:
 		targeting_state.positioner.global_position = valid_pos
@@ -84,7 +95,7 @@ func test_building_workflow_with_validation() -> void:
 #region MULTI-RULE INDICATOR ATTACHMENT
 
 func test_multi_rule_indicator_attachment() -> void:
-	var indicator_manager: IndicatorManager = test_env.indicator_manager
+	var indicator_manager: IndicatorManager = env.indicator_manager
 	var collision_rule = CollisionsCheckRule.new()
 	var tile_rule = TileCheckRule.new()
 
@@ -92,10 +103,9 @@ func test_multi_rule_indicator_attachment() -> void:
 	var test_object = UnifiedTestFactory.create_test_static_body_with_rect_shape(self)
 
 	# Create test parameters with proper constructor
-	var manip_owner = test_env.container.get_states().manipulation.get_manipulator()
-	var test_params = RuleValidationParameters.new(manip_owner, test_object, test_env.targeting_state, test_env.logger)
+	var test_params = _make_rule_params(test_object)
 	
-	var rules: Array = [collision_rule, tile_rule]
+	var rules: Array[PlacementRule] = [collision_rule, tile_rule]
 	var setup_result = indicator_manager.try_setup(rules, test_params)
 	
 	assert_bool(setup_result.is_successful()).append_failure_message(
@@ -109,15 +119,14 @@ func test_multi_rule_indicator_attachment() -> void:
 	).is_greater_equal(1)
 
 func test_rule_indicator_state_synchronization() -> void:
-	var indicator_manager: IndicatorManager = test_env.indicator_manager
+	var indicator_manager: IndicatorManager = env.indicator_manager
 	var rule = CollisionsCheckRule.new()
 
 	# Create test object
 	var test_object = UnifiedTestFactory.create_test_static_body_with_rect_shape(self)
 
 	# Setup with initial state
-	var manip_owner = test_env.container.get_states().manipulation.get_manipulator()
-	var params = RuleValidationParameters.new(manip_owner, test_object, test_env.targeting_state, test_env.logger)
+	var params = _make_rule_params(test_object)
 	test_object.global_position = Vector2(64, 64)
 	
 	var setup_result = indicator_manager.try_setup([rule], params)
@@ -132,13 +141,11 @@ func test_rule_indicator_state_synchronization() -> void:
 	).is_true()
 
 func test_indicators_are_parented_and_inside_tree() -> void:
-	var indicator_manager: IndicatorManager = test_env.indicator_manager
-	var targeting_state: GridTargetingState = test_env.targeting_state
-	var container: GBCompositionContainer = test_env.container
+	var indicator_manager: IndicatorManager = env.indicator_manager
 	
 	# Create a preview object with collision
 	var preview = _create_preview_with_collision()
-	targeting_state.target = preview
+	_container.get_states().targeting.target = preview
 	
 	# Build a collisions rule that applies to layer 1
 	var rule: CollisionsCheckRule = CollisionsCheckRule.new()
@@ -146,9 +153,8 @@ func test_indicators_are_parented_and_inside_tree() -> void:
 	rule.collision_mask = 1 << 0
 	var rules: Array[PlacementRule] = [rule]
 	
-	var logger: GBLogger = container.get_logger()
-	var manip_owner = container.get_states().manipulation.get_manipulator()
-	var params := RuleValidationParameters.new(manip_owner, preview, targeting_state, logger)
+	var logger: GBLogger = _container.get_logger()
+	var params := _make_rule_params(preview)
 	var setup_results: PlacementSetupReport = indicator_manager.try_setup(rules, params)
 	
 	assert_bool(setup_results.is_successful()).append_failure_message("IndicatorManager.try_setup failed").is_true()
@@ -158,7 +164,7 @@ func test_indicators_are_parented_and_inside_tree() -> void:
 	for ind in indicators:
 		assert_bool(ind.is_inside_tree()).append_failure_message("Indicator not inside tree: %s" % ind.name).is_true()
 		assert_object(ind.get_parent()).append_failure_message("Indicator has no parent: %s" % ind.name).is_not_null()
-		assert_object(ind.get_parent()).append_failure_message("Unexpected parent for indicator: %s" % ind.name).is_equal(container.get_states().manipulation.parent)
+		assert_object(ind.get_parent()).append_failure_message("Unexpected parent for indicator: %s" % ind.name).is_equal(_container.get_states().manipulation.parent)
 
 func _create_preview_with_collision() -> Node2D:
 	var root := Node2D.new()
@@ -182,7 +188,7 @@ func _create_preview_with_collision() -> Node2D:
 
 func test_smithy_indicator_generation() -> void:
 	var smithy = UnifiedTestFactory.create_test_smithy_placeable(self)
-	var indicator_manager: IndicatorManager = test_env.indicator_manager
+	var indicator_manager: IndicatorManager = env.indicator_manager
 	
 	# Get smithy rules
 	var smithy_rules = smithy.placement_rules
@@ -191,10 +197,9 @@ func test_smithy_indicator_generation() -> void:
 	).is_not_empty()
 	
 	# Generate indicators using proper parameters
-	var manip_owner = test_env.container.get_states().manipulation.get_manipulator()
 	var smithy_node = smithy.packed_scene.instantiate()
 	add_child(smithy_node)
-	var params = RuleValidationParameters.new(manip_owner, smithy_node, test_env.targeting_state, test_env.logger)
+	var params = _make_rule_params(smithy_node)
 	
 	var setup_result = indicator_manager.try_setup(smithy_rules, params)
 	assert_bool(setup_result.is_successful()).append_failure_message(
@@ -203,7 +208,7 @@ func test_smithy_indicator_generation() -> void:
 
 func test_smithy_collision_detection() -> void:
 	var smithy = UnifiedTestFactory.create_test_smithy_placeable(self)
-	var collision_mapper: CollisionMapper = test_env.collision_mapper
+	var collision_mapper: CollisionMapper = env.indicator_manager.get_collision_mapper()
 	
 	# Create a smithy node from the placeable for collision testing
 	var smithy_node = smithy.packed_scene.instantiate()
@@ -232,9 +237,9 @@ func test_smithy_collision_detection() -> void:
 #region COMPLEX WORKFLOW INTEGRATION
 
 func test_complex_multi_system_workflow() -> void:
-	var building_system: Object = test_env.building_system
-	var targeting_system = test_env.targeting_system
-	var _manipulation_system = test_env.manipulation_system
+	var building_system: Object = env.building_system
+	var targeting_system = env.grid_targeting_system
+	var _manipulation_system = env.manipulation_system
 	
 	# Phase 1: Target selection
 	var targeting_state = targeting_system.get_state()
@@ -265,9 +270,9 @@ func test_complex_multi_system_workflow() -> void:
 		).is_not_null()
 
 func test_cross_system_state_consistency() -> void:
-	var building_system: Object = test_env.building_system
-	var targeting_system = test_env.targeting_system
-	var _indicator_manager: IndicatorManager = test_env.indicator_manager
+	var building_system: Object = env.building_system
+	var targeting_system = env.targeting_system
+	var _indicator_manager: IndicatorManager = env.indicator_manager
 	
 	# Setup coordinated state across systems
 	var target_pos: Vector2 = Vector2(240, 240)
@@ -298,7 +303,7 @@ func test_cross_system_state_consistency() -> void:
 
 func test_polygon_test_object_indicator_generation() -> void:
 	var polygon_test_object = UnifiedTestFactory.create_polygon_test_placeable(self)
-	var indicator_manager: IndicatorManager = test_env.indicator_manager
+	var indicator_manager: IndicatorManager = env.indicator_manager
 	
 	# Get polygon object rules
 	var polygon_rules = polygon_test_object.placement_rules
@@ -307,10 +312,9 @@ func test_polygon_test_object_indicator_generation() -> void:
 	).is_not_empty()
 	
 	# Generate indicators for polygon object using proper parameters
-	var manip_owner = test_env.container.get_states().manipulation.get_manipulator()
 	var polygon_node = polygon_test_object.packed_scene.instantiate()
 	add_child(polygon_node)
-	var params = RuleValidationParameters.new(manip_owner, polygon_node, test_env.targeting_state, test_env.logger)
+	var params = _make_rule_params(polygon_node)
 	
 	var setup_result = indicator_manager.try_setup(polygon_rules, params)
 	assert_bool(setup_result.is_successful()).append_failure_message(
@@ -319,7 +323,7 @@ func test_polygon_test_object_indicator_generation() -> void:
 
 func test_polygon_collision_integration() -> void:
 	var polygon_test_object = UnifiedTestFactory.create_polygon_test_placeable(self)
-	var collision_mapper: CollisionMapper = test_env.collision_mapper
+	var collision_mapper: CollisionMapper = env.collision_mapper
 	
 	# Test polygon collision tile mapping
 	var polygon_runtime = polygon_test_object.packed_scene.instantiate()
@@ -349,8 +353,8 @@ func test_polygon_collision_integration() -> void:
 #region GRID TARGETING HIGHLIGHT INTEGRATION
 
 func test_grid_targeting_highlight_integration() -> void:
-	var targeting_system = test_env.targeting_system
-	var highlight_manager = test_env.get("highlight_manager")  # May not be available in all environments
+	var targeting_system = env.targeting_system
+	var highlight_manager = env.get("highlight_manager")  # May not be available in all environments
 	
 	if highlight_manager == null:
 		# Skip if highlight manager not available in test environment
@@ -367,7 +371,7 @@ func test_grid_targeting_highlight_integration() -> void:
 	).is_true()
 
 func test_targeting_state_transitions() -> void:
-	var targeting_system = test_env.targeting_system
+	var targeting_system = env.targeting_system
 	
 	# Test state transitions
 	var targeting_state = targeting_system.get_state()
@@ -398,10 +402,10 @@ func test_targeting_state_transitions() -> void:
 
 func test_full_system_integration_workflow() -> void:
 	# Test complete workflow from targeting through building to manipulation
-	var building_system: Object = test_env.building_system
-	var targeting_system = test_env.targeting_system
-	var indicator_manager: IndicatorManager = test_env.indicator_manager
-	var _manipulation_system = test_env.manipulation_system
+	var building_system: Object = env.building_system
+	var targeting_system = env.targeting_system
+	var indicator_manager: IndicatorManager = env.indicator_manager
+	var _manipulation_system = env.manipulation_system
 	
 	# Step 1: Set target
 	var target_pos: Vector2 = Vector2(500, 500)
@@ -417,18 +421,12 @@ func test_full_system_integration_workflow() -> void:
 		assert_bool(false).append_failure_message("enter_build_mode failed in full system integration test").is_true()
 		return
 	
-	# Create a Node2D instance from the placeable (required by RuleValidationParameters)
-	var manip_owner = test_env.container.get_states().manipulation.get_manipulator()
 	var smithy_node = smithy.packed_scene.instantiate()
+	auto_free(smithy_node)
 	add_child(smithy_node)
 	
 	var smithy_rules = smithy.placement_rules
-	var params = RuleValidationParameters.new(
-		manip_owner,  # placer (Node2D)
-		smithy_node,  # target (Node2D)
-		test_env.targeting_state,  # targeting_state
-		test_env.logger  # logger
-	)
+	var params = _make_rule_params(smithy_node)
 	
 	var indicator_result = indicator_manager.try_setup(smithy_rules, params)
 	assert_bool(indicator_result.is_successful()).append_failure_message(
@@ -444,7 +442,7 @@ func test_full_system_integration_workflow() -> void:
 	assert_bool(building_system.is_in_build_mode()).is_false()
 
 func test_system_error_recovery() -> void:
-	var building_system: Object = test_env.building_system
+	var building_system: Object = env.building_system
 	
 	# Test recovery from invalid operations
 	var invalid_placeable = null

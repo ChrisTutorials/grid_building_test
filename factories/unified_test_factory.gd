@@ -487,18 +487,23 @@ static func create_placement_validator(_test: GdUnitTestSuite, rules: Array[Plac
 	return PlacementValidator.new(rules, messages, logger)
 #endregion
 #region Rules
-static func create_rule_check_indicator(test: GdUnitTestSuite, parent: Node = null, rules: Array[TileCheckRule] = []) -> RuleCheckIndicator:
-	# Creates a RuleCheckIndicator and parents it for testing purposes.
-	# 
-	# ARCHITECTURE NOTE: In production code, indicators should be created via IndicatorManager.setup_indicators()
-	# which automatically parents them to the IndicatorManager. This factory method is for unit testing only.
-	#
-	# Parenting rules:
-	# 1. If a parent Node is provided, the indicator is added to it.
-	# 2. If no parent is provided, it is added to the test suite (maintains previous auto-parent behavior).
-	# 
-	# See docs/systems/parent_node_architecture.md for production architecture guidelines.
+
+## Creates a RuleCheckIndicator and parents it for testing purposes.
+## It defaults to a RectangleShape2D
+## 
+## ARCHITECTURE NOTE: In production code, indicators should be created via IndicatorManager.setup_indicators()
+## which automatically parents them to the IndicatorManager. This factory method is for unit testing only.
+##
+## Parenting rules:
+## 1. If a parent Node is provided, the indicator is added to it.
+## 2. If no parent is provided, it is added to the test suite (maintains previous auto-parent behavior).
+## 
+## See docs/systems/parent_node_architecture.md for production architecture guidelines.
+static func create_rule_check_indicator(test: GdUnitTestSuite, parent: Node = null, rules: Array[TileCheckRule] = [], shape_size := Vector2(16,16)) -> RuleCheckIndicator:
 	var indicator := RuleCheckIndicator.new(rules)
+	var test_shape = RectangleShape2D.new()
+	test_shape.size = shape_size
+	indicator.shape = test_shape
 	test.auto_free(indicator)
 	if parent != null:
 		parent.add_child(indicator)
@@ -753,12 +758,12 @@ static func create_test_rule_check_indicator_with_shape(
 
 ## Validate that a system has no dependency issues
 static func assert_system_dependencies_valid(test: GdUnitTestSuite, system: Node) -> void:
-	var issues = system.get_dependency_issues()
+	var issues = system.get_runtime_issues()
 	test.assert_array(issues).is_empty()
 
 ## Validate that a system has expected dependency issues
 static func assert_system_dependencies_have_issues(test: GdUnitTestSuite, system: Node, expected_issue_count: int = 1) -> void:
-	var issues = system.get_dependency_issues()
+	var issues = system.get_runtime_issues()
 	test.assert_int(issues.size()).is_greater_equal(expected_issue_count)
 
 #endregion
@@ -1258,51 +1263,28 @@ static func create_injection_test_environment(test: GdUnitTestSuite, container: 
 		"positioner": positioner
 	}
 
-## Creates isometric demo test environment for testing isometric scenes
-## [b]Parameters[/b]:
-##  • [code]test[/code]: GdUnitTestSuite – test suite for parenting/autofree
-##  • [code]isometric_scene_path[/code]: String – path to isometric demo scene
-## [b]Returns[/b]: Dictionary – complete isometric demo test environment
-static func create_isometric_demo_test_environment(test: GdUnitTestSuite, isometric_scene_path: String = "res://demos/isometric/demo_isometric_2d.tscn") -> Dictionary:
-	# Load the actual isometric demo scene
-	var isometric_scene = test.auto_free(load(isometric_scene_path).instantiate())
-	test.add_child(isometric_scene)
+static func instance_all_systems_env(test : GdUnitTestSuite, resource_path_or_uid : String) -> AllSystemsTestEnvironment:
+	var env : AllSystemsTestEnvironment = load(resource_path_or_uid).instantiate()
+	test.add_child(env)
+	test.auto_free(env)
+	test.assert_array(env.get_issues()).is_empty()
+	return env
 
-	# Wait for scene to initialize
-	await test.get_tree().process_frame
+## Instances a scene expected to be a BuildingTestEnvironment and validates it
+static func instance_building_test_env(test: GdUnitTestSuite, resource_path_or_uid : String) -> BuildingTestEnvironment:
+	var env : BuildingTestEnvironment= load(resource_path_or_uid).instantiate()
+	test.add_child(env)
+	test.auto_free(env)
+	test.assert_array(env.get_issues()).is_empty()
+	return env
 
-	# Get the composition container from the injector system
-	var injector_system = isometric_scene.get_node("Systems/GBInjectorSystem") as GBInjectorSystem
-	var _container = injector_system.composition_container
-
-	# Get the building system and targeting system from the scene
-	var building_system = isometric_scene.get_node("Systems/BuildingSystem") as BuildingSystem
-	var targeting_system = isometric_scene.get_node("Systems/GridTargetingSystem") as GridTargetingSystem
-
-	# Get the placement manager from the container's indicator context
-	var indicator_manager: IndicatorManager = null
-	if _container:
-		var indicator_context = _container.get_indicator_context()
-		if indicator_context and indicator_context.has_method("get_manager"):
-			indicator_manager = indicator_context.get_manager()
-
-	var states = _container.get_states()
-	var mode_state = states.mode
-	var targeting_state = states.targeting
-
-	# Wait for systems to initialize
-	await test.get_tree().process_frame
-
-	return {
-		"isometric_scene": isometric_scene,
-		"container": _container,
-		"injector_system": injector_system,
-		"building_system": building_system,
-		"targeting_system": targeting_system,
-		"indicator_manager": indicator_manager,
-		"mode_state": mode_state,
-		"targeting_state": targeting_state
-	}
+## Instances a scene expected to be a CollisionTestEnvironment and validates it
+static func instance_collision_test_env(test : GdUnitTestSuite, resource_path_or_uid : String) -> CollisionTestEnvironment:
+	var env : CollisionTestEnvironment = load(resource_path_or_uid).instantiate()
+	test.add_child(env)
+	test.auto_free(env)
+	test.assert_array(env.get_issues()).is_empty()
+	return env
 
 # ================================
 # Comprehensive Integration Test Factories

@@ -149,7 +149,7 @@ test/
 
 ### Method Name Changes
 - **OLD:** `validate_state()` 
-- **NEW:** `get_dependency_issues()`
+- **NEW:** `get_runtime_issues()`
 - All GB systems and GB injectables now use the new method name
 - Returns `Array[String]` of validation issues (empty if valid)
 

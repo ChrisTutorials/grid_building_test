@@ -197,14 +197,14 @@ var collision_mapper = CollisionMapper.create_with_injection(TEST_CONTAINER)
 ### Standard Validation Tests
 
 ```gdscript
-func test_get_dependency_issues():
+func test_get_runtime_issues():
     # Test with valid setup
-    var issues = subject_under_test.get_dependency_issues()
+    var issues = subject_under_test.get_runtime_issues()
     assert_array(issues).is_empty()
     
     # Test with missing dependencies
     subject_under_test._required_dependency = null
-    issues = subject_under_test.get_dependency_issues()
+    issues = subject_under_test.get_runtime_issues()
     assert_array(issues).is_not_empty()
     assert_array(issues).contains(["Required dependency not set"])
 ```

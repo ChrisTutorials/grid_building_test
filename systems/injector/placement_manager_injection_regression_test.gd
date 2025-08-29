@@ -147,7 +147,7 @@ func test_building_system_validation_with_injected_indicator_manager() -> void:
 	
 	# Final validation with debug
 	print("[DEBUG] === FINAL VALIDATION ===")
-	print("[DEBUG] About to call BuildingSystem.get_dependency_issues()")
+	print("[DEBUG] About to call BuildingSystem.get_runtime_issues()")
 	print("[DEBUG] Container IndicatorContext: ", building_system_indicator_context)
 	print("[DEBUG] Container has_manager(): ", building_system_indicator_context.has_manager())
 	print("[DEBUG] Container get_manager(): ", building_system_indicator_context.get_manager())
@@ -155,7 +155,7 @@ func test_building_system_validation_with_injected_indicator_manager() -> void:
 	print("[DEBUG] Same managers? ", building_system_indicator_context.get_manager() == _indicator_manager)
 	
 	# Call validation
-	var validation_result = building_system.get_dependency_issues()
+	var validation_result = building_system.get_runtime_issues()
 	
 	# This should pass but currently fails
 	var error_msg = "REGRESSION: BuildingSystem validation failed despite IndicatorManager being present. " + \
@@ -211,7 +211,7 @@ func test_injection_order_timing_issue() -> void:
 	
 	# Manually call validation to see if it passes now
 	print("[DEBUG] 6. Calling manual validation after both components injected")
-	var validation_result = building_system.get_dependency_issues()
+	var validation_result = building_system.get_runtime_issues()
 	
 	# This should now pass since IndicatorManager was added first
 	assert_array(validation_result) \
@@ -256,7 +256,7 @@ func test_reverse_order_demonstrates_timing_issue() -> void:
 	
 	# Step 3: Try manual validation - this might still fail due to timing issue
 	print("[DEBUG] 5. Calling manual validation - IndicatorManager now available but validation may still fail")
-	var validation_result = building_system.get_dependency_issues()
+	var validation_result = building_system.get_runtime_issues()
 	
 	# Document the expected failure
 	if not validation_result.is_empty():
