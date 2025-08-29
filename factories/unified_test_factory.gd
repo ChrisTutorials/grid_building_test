@@ -143,6 +143,18 @@ static func create_collision_object_test_setups(col_objects: Array) -> Dictionar
 
 static func create_collision_test_setup(test: GdUnitTestSuite, collision_object: CollisionObject2D = null) -> IndicatorCollisionTestSetup:
 	return create_test_indicator_collision_setup(test, collision_object)
+	
+## Create test building with specified collision polygon
+static func create_static_body_with_polygon(test : GdUnitTestSuite, polygon : PackedVector2Array) -> StaticBody2D:
+	var building = test.auto_free(StaticBody2D.new())
+	building.collision_layer = 2560  # Match demo building collision layer
+	building.collision_mask = 1536   # Match demo building collision mask
+	
+	var collision_shape = test.auto_free(CollisionPolygon2D.new())
+	collision_shape.polygon = polygon
+	building.add_child(collision_shape)
+
+	return building
 
 # DEPRECATED basic helpers (use GodotTestFactory.* instead) ------------------
 static func create_test_collision_polygon(test: GdUnitTestSuite) -> CollisionPolygon2D:
@@ -1510,6 +1522,23 @@ static func create_targeting_state_with_runtime_issues(
 	ensure_indicator_template_configured(container)
 	
 	return setup
+	
+	
+## Create isometric tilemap with demo-accurate configuration
+static func create_isometric_tilemap(test : GdUnitTestSuite) -> TileMapLayer:
+	var tilemap_layer = test.auto_free(TileMapLayer.new())
+	var tileset = TileSet.new()
+	
+	# Configure exactly like isometric demo
+	tileset.tile_shape = TileSet.TILE_SHAPE_ISOMETRIC
+	tileset.tile_layout = TileSet.TILE_LAYOUT_DIAMOND_DOWN  
+	tileset.tile_offset_axis = TileSet.TILE_OFFSET_AXIS_VERTICAL
+	tileset.tile_size = Vector2i(90, 50)  # Demo's exact tile dimensions
+	
+	tilemap_layer.tile_set = tileset
+	test.auto_free(tilemap_layer)
+	test.add_child(tilemap_layer)
+	return tilemap_layer
 
 ## Prepares a TargetingState to be READY for use by setting up all required dependencies
 ## Uses GBLevelContext pattern to properly configure target_map, maps array, and objects_parent

@@ -6,9 +6,11 @@ extends GdUnitTestSuite
 const TestFactory = preload("res://test/grid_building_test/factories/unified_test_factory.gd")
 
 var _injector: GBInjectorSystem
+var _tile_map : TileMapLayer
 
 func before_test():
 	_injector = TestFactory.create_test_injector(self)
+	_tile_map = UnifiedTestFactory.create_isometric_tilemap(self)
 
 ## Test that isometric collision mapping generates precise tile position counts
 func test_isometric_collision_mapping_precision() -> void:
@@ -34,10 +36,6 @@ func test_isometric_collision_mapping_precision() -> void:
 		}
 	]
 	
-	# Create isometric tilemap with exact demo configuration  
-	var tilemap_layer = create_isometric_tilemap()
-	add_child(tilemap_layer)
-	
 	var results = {}
 	var total_expected = 0
 	var total_actual = 0
@@ -51,11 +49,11 @@ func test_isometric_collision_mapping_precision() -> void:
 		total_expected += expected_count
 		
 		# Create test building
-		var building = create_test_building(polygon)
+		var building = UnifiedTestFactory.create_static_body_with_polygon(self, polygon)
 		add_child(building)
 		
 		# Test collision mapping
-		var actual_count = get_tile_position_count(building, tilemap_layer)
+		var actual_count = get_tile_position_count(building, _tile_map)
 		total_actual += actual_count
 		results[building_name] = {
 			"expected": expected_count,
@@ -83,33 +81,7 @@ func test_isometric_collision_mapping_precision() -> void:
 			]
 		).is_equal(result.expected)
 
-## Create isometric tilemap with demo-accurate configuration
-func create_isometric_tilemap() -> TileMapLayer:
-	var tilemap_layer = TileMapLayer.new()
-	var tileset = TileSet.new()
-	
-	# Configure exactly like isometric demo
-	tileset.tile_shape = TileSet.TILE_SHAPE_ISOMETRIC
-	tileset.tile_layout = TileSet.TILE_LAYOUT_DIAMOND_DOWN  
-	tileset.tile_offset_axis = TileSet.TILE_OFFSET_AXIS_VERTICAL
-	tileset.tile_size = Vector2i(90, 50)  # Demo's exact tile dimensions
-	
-	tilemap_layer.tile_set = tileset
-	auto_free(tilemap_layer)
-	return tilemap_layer
 
-## Create test building with specified collision polygon
-func create_test_building(polygon: PackedVector2Array) -> StaticBody2D:
-	var building = StaticBody2D.new()
-	building.collision_layer = 2560  # Match demo building collision layer
-	building.collision_mask = 1536   # Match demo building collision mask
-	
-	var collision_shape = CollisionPolygon2D.new()
-	collision_shape.polygon = polygon
-	building.add_child(collision_shape)
-	
-	auto_free(building)
-	return building
 
 ## Get tile position count for a building using collision mapper
 func get_tile_position_count(building: StaticBody2D, tilemap: TileMapLayer) -> int:
@@ -136,16 +108,13 @@ func get_tile_position_count(building: StaticBody2D, tilemap: TileMapLayer) -> i
 
 ## Test that validates isometric padding reduction fix
 func test_isometric_padding_fix() -> void:
-	# This test specifically validates the Mill Big Green case that was generating 2 tiles instead of 1
-	var tilemap_layer = create_isometric_tilemap()
-	add_child(tilemap_layer)
 	
 	# Mill Big Green polygon (slightly larger than single tile)
 	var mill_polygon = PackedVector2Array([Vector2(-48, -16), Vector2(0, -44), Vector2(48, -16), Vector2(0, 12)])
-	var building = create_test_building(mill_polygon)
+	var building = UnifiedTestFactory.create_static_body_with_polygon(self, mill_polygon)
 	add_child(building)
 	
-	var tile_count = get_tile_position_count(building, tilemap_layer)
+	var tile_count = get_tile_position_count(building, _tile_map)
 	
 	print("Mill Big Green Padding Fix Test:")
 	print("  Polygon: %s (96x56px)" % str(mill_polygon))

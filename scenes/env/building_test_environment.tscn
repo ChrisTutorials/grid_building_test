@@ -10,15 +10,15 @@
 [ext_resource type="Script" uid="uid://dasmm18l8fxdo" path="res://addons/grid_building/user/gb_owner.gd" id="8_aowhm"]
 [ext_resource type="PackedScene" uid="uid://dm3722ecrh3e4" path="res://templates/grid_building_templates/grid_positioner_stack.tscn" id="9_ontcs"]
 
-[node name="BuildingTestEnvironment" type="Node" node_paths=PackedStringArray("building_system", "gb_owner", "positioner", "manipulation_parent", "indicator_manager", "injector", "grid_targeting_system", "world", "level", "level_context", "tile_map_layer", "objects_parent", "placer")]
+[node name="BuildingTestEnvironment" type="Node" node_paths=PackedStringArray("building_system", "gb_owner", "manipulation_parent", "indicator_manager", "injector", "grid_targeting_system", "positioner", "world", "level", "level_context", "tile_map_layer", "objects_parent", "placer")]
 script = ExtResource("1_5qoju")
 building_system = NodePath("BuildingSystem")
 gb_owner = NodePath("World/Level/Placer/GBOwner")
-positioner = NodePath("World/GridPositioner2D")
 manipulation_parent = NodePath("World/GridPositioner2D/ManipulationParent")
 indicator_manager = NodePath("World/GridPositioner2D/ManipulationParent/IndicatorManager")
 injector = NodePath("GBInjectorSystem")
 grid_targeting_system = NodePath("GridTargetingSystem")
+positioner = NodePath("World/GridPositioner2D")
 world = NodePath("World")
 level = NodePath("World/Level")
 level_context = NodePath("World/Level/GBLevelContext")
