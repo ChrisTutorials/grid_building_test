@@ -6,7 +6,7 @@ var _container: GBCompositionContainer
 var _injector: GBInjectorSystem
 var building_system: BuildingSystem
 var targeting_system: GridTargetingSystem
-var placement_manager: IndicatorManager
+var indicator_manager: IndicatorManager
 var positioner: Node2D
 var map_layer: TileMapLayer
 var placer: Node2D
@@ -23,13 +23,14 @@ func before_test():
 	map_layer = setup.map_layer
 	targeting_system = setup.targeting_system
 	building_system = setup.building_system
-	placement_manager = setup.indicator_manager
+	indicator_manager = setup.indicator_manager
 	
 	# Ensure indicator template is configured
 	UnifiedTestFactory.ensure_indicator_template_configured(_container)
 
 func after_test():
-	if _injector and _injector.has_method("cleanup"):
+	# Direct cleanup call - fail fast approach
+	if _injector:
 		_injector.cleanup()
 
 ## Test that indicators created for polygon_test_object properly evaluate CollisionCheckRule
@@ -53,7 +54,7 @@ func test_polygon_test_object_indicator_collision_filtering():
 	var validation_params = RuleValidationParameters.new(placer, existing_object, targeting_state, _container.get_logger())
 	
 	# Call try_setup directly on the IndicatorManager (correct DRY pattern)
-	var setup_report = placement_manager.try_setup(rules, validation_params, true)
+	var setup_report = indicator_manager.try_setup(rules, validation_params, true)
 	assert_object(setup_report).append_failure_message("IndicatorManager.try_setup returned null").is_not_null()
 	assert_bool(setup_report.is_successful()).append_failure_message("IndicatorManager.try_setup failed").is_true()
 	
@@ -195,7 +196,7 @@ func test_polygon_test_object_center_tile_filtering():
 	var validation_params = RuleValidationParameters.new(placer, test_instance, targeting_state, _container.get_logger())
 	
 	# Call try_setup directly on the IndicatorManager
-	var setup_report = placement_manager.try_setup(rules, validation_params, true)
+	var setup_report = indicator_manager.try_setup(rules, validation_params, true)
 	assert_object(setup_report).append_failure_message("IndicatorManager.try_setup returned null").is_not_null()
 	assert_bool(setup_report.is_successful()).append_failure_message("IndicatorManager.try_setup failed").is_true()
 	

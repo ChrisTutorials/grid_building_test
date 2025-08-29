@@ -1,0 +1,68 @@
+[gd_scene load_steps=10 format=3 uid="uid://c4ujk08n8llv8"]
+
+[ext_resource type="Script" uid="uid://g7o2p3bycbnr" path="res://test/grid_building_test/scenes/env/building_test_environment.gd" id="1_5qoju"]
+[ext_resource type="Script" uid="uid://dil41nh8d4c3k" path="res://addons/grid_building/systems/injection/gb_injector_system.gd" id="2_aowhm"]
+[ext_resource type="Resource" uid="uid://dy6e5p5d6ax6n" path="res://test/grid_building_test/resources/test_composition_container.tres" id="3_ontcs"]
+[ext_resource type="Script" uid="uid://dnl6gv8yc3how" path="res://addons/grid_building/systems/grid_targeting/grid_targeting_system.gd" id="4_e0sbe"]
+[ext_resource type="Script" uid="uid://4mfr58yhmove" path="res://addons/grid_building/systems/building/building_system.gd" id="5_wc2ye"]
+[ext_resource type="Script" uid="uid://ckwhivepsvl0n" path="res://addons/grid_building/components/gb_level_context.gd" id="6_qtcwv"]
+[ext_resource type="TileSet" uid="uid://cksvuukyxc5pd" path="res://test/resources/tile_set/test_square_16x16_tileset.tres" id="7_nc3jy"]
+[ext_resource type="Script" uid="uid://dasmm18l8fxdo" path="res://addons/grid_building/user/gb_owner.gd" id="8_aowhm"]
+[ext_resource type="PackedScene" uid="uid://dm3722ecrh3e4" path="res://templates/grid_building_templates/grid_positioner_stack.tscn" id="9_ontcs"]
+
+[node name="BuildingTestEnvironment" type="Node" node_paths=PackedStringArray("injector", "grid_targeting_system", "building_system", "world", "level", "level_context", "tile_map_layer", "objects_parent", "placer", "gb_owner", "positioner", "manipulation_parent", "indicator_manager")]
+script = ExtResource("1_5qoju")
+injector = NodePath("GBInjectorSystem")
+grid_targeting_system = NodePath("GridTargetingSystem")
+building_system = NodePath("BuildingSystem")
+world = NodePath("World")
+level = NodePath("World/Level")
+level_context = NodePath("World/Level/GBLevelContext")
+tile_map_layer = NodePath("World/Level/TileMapLayer")
+objects_parent = NodePath("World/Level/PlacedObjectsParent")
+placer = NodePath("World/Level/Placer")
+gb_owner = NodePath("World/Level/Placer/GBOwner")
+positioner = NodePath("World/GridPositioner2D")
+manipulation_parent = NodePath("World/GridPositioner2D/ManipulationParent")
+indicator_manager = NodePath("World/GridPositioner2D/ManipulationParent/IndicatorManager")
+
+[node name="GBInjectorSystem" type="Node" parent="." node_paths=PackedStringArray("injection_roots")]
+script = ExtResource("2_aowhm")
+composition_container = ExtResource("3_ontcs")
+injection_roots = [NodePath("..")]
+metadata/_custom_type_script = "uid://dil41nh8d4c3k"
+
+[node name="GridTargetingSystem" type="Node" parent="."]
+script = ExtResource("4_e0sbe")
+metadata/_custom_type_script = "uid://dnl6gv8yc3how"
+
+[node name="BuildingSystem" type="Node" parent="."]
+script = ExtResource("5_wc2ye")
+metadata/_custom_type_script = "uid://4mfr58yhmove"
+
+[node name="World" type="Node2D" parent="."]
+
+[node name="Level" type="Node2D" parent="World"]
+
+[node name="GBLevelContext" type="Node" parent="World/Level" node_paths=PackedStringArray("target_map", "maps", "objects_parent")]
+script = ExtResource("6_qtcwv")
+target_map = NodePath("../TileMapLayer")
+maps = [NodePath("../TileMapLayer")]
+objects_parent = NodePath("../PlacedObjectsParent")
+metadata/_custom_type_script = "uid://ckwhivepsvl0n"
+
+[node name="TileMapLayer" type="TileMapLayer" parent="World/Level"]
+tile_set = ExtResource("7_nc3jy")
+
+[node name="PlacedObjectsParent" type="Node2D" parent="World/Level"]
+
+[node name="Placer" type="Node2D" parent="World/Level"]
+
+[node name="GBOwner" type="Node" parent="World/Level/Placer" node_paths=PackedStringArray("owner_root")]
+script = ExtResource("8_aowhm")
+owner_root = NodePath("..")
+metadata/_custom_type_script = "uid://dasmm18l8fxdo"
+
+[node name="GridPositioner2D" parent="World" instance=ExtResource("9_ontcs")]
+
+[editable path="World/GridPositioner2D"]

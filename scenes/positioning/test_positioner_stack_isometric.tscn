@@ -1,0 +1,15 @@
+[gd_scene load_steps=3 format=3 uid="uid://bgm5fn16wwkrc"]
+
+[ext_resource type="PackedScene" uid="uid://teejt4ev3xir" path="res://test/grid_building_test/scenes/positioning/test_positioner_stack.tscn" id="1_hw0ib"]
+
+[sub_resource type="ConvexPolygonShape2D" id="ConvexPolygonShape2D_48grb"]
+resource_name = "Indicator Shape for 50px Tile Isometric"
+points = PackedVector2Array(0, -24, 42, 0, 0, 24, -42, 0)
+
+[node name="TestPositionerStack" instance=ExtResource("1_hw0ib")]
+shape = SubResource("ConvexPolygonShape2D_48grb")
+
+[node name="GridTargeter" parent="." index="0"]
+rotation = 0.523599
+scale = Vector2(3, 3)
+skew = 0.523599

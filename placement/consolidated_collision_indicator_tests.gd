@@ -89,7 +89,8 @@ func test_indicator_manager_cleanup() -> void:
 	# Verify indicators are cleaned up
 	var indicator_count = 0
 	for child in test_hierarchy.manipulation_parent.get_children():
-		if child.has_method("get_rules"):  # RuleCheckIndicator signature
+		# Direct type checking - RuleCheckIndicator assumed to exist
+		if child is RuleCheckIndicator:
 			indicator_count += 1
 	
 	assert_int(indicator_count).is_equal(0)
@@ -188,7 +189,7 @@ func test_indicator_positioning_basic() -> void:
 
 	# Verify indicators are positioned relative to positioner
 	for child in manipulation_parent.get_children():
-		if child.has_method("get_rules"):  # RuleCheckIndicator
+		if child is RuleCheckIndicator:  # Direct type check
 			# Should be positioned relative to the positioner
 			assert_that(child.global_position).is_not_equal(Vector2.ZERO)
 
@@ -216,7 +217,7 @@ func test_indicator_positioning_grid_alignment() -> void:
 	assert_that(report).is_not_null()
 	# Verify grid alignment - indicators should snap to tile boundaries
 	for child in test_hierarchy.manipulation_parent.get_children():
-		if child.has_method("get_rules"):  # RuleCheckIndicator
+		if child is RuleCheckIndicator:  # Direct type check
 			var pos = child.global_position
 			var x_aligned = fmod(pos.x, tile_size.x) < 1.0 or fmod(pos.x, tile_size.x) > tile_size.x - 1.0
 			var y_aligned = fmod(pos.y, tile_size.y) < 1.0 or fmod(pos.y, tile_size.y) > tile_size.y - 1.0

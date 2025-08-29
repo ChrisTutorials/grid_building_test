@@ -53,8 +53,7 @@ func before_test():
 	targeting_state.positioner = positioner
 	
 	# Configure building state with owner context
-	if states.building.has_method("set_owner_context"):
-		states.building.set_owner_context(owner_context)
+	states.building.set_owner_context(owner_context)
 	
 	# Create placement validator
 	placement_validator = PlacementValidator.create_with_injection(container)
@@ -215,7 +214,7 @@ func test_placement_validation_edge_cases(
 			var _setup_issues = placement_validator.setup(empty_rules, params)
 			# With empty rules, validate() returns false because active_rules is empty
 			var result = placement_validator.validate()
-			assert_bool(result.is_successful).append_failure_message(
+			assert_bool(result.is_successful()).append_failure_message(
 				"Validation with empty rules should fail (no active rules)"
 			).is_false()
 			assert_str(result.message).append_failure_message(
@@ -293,7 +292,7 @@ func test_placement_validation_performance():
 	var end_time = Time.get_ticks_msec()
 	var elapsed_ms = end_time - start_time
 	
-	assert_bool(result.is_successful).append_failure_message(
+	assert_bool(result.is_successful()).append_failure_message(
 		"Performance test should still produce valid result"
 	).is_true()
 	

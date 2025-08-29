@@ -91,8 +91,8 @@ func test_polygon_tile_mapper_basic() -> void:
 	var bounds = GBGeometryMath.get_polygon_bounds(polygon)
 	var iteration_range = CollisionGeometryUtils.compute_tile_iteration_range(bounds, tile_map)
 	
-	assert_that(iteration_range).has("min_tile")
-	assert_that(iteration_range).has("max_tile")
+	assert_object(iteration_range.min_tile).is_not_null()
+	assert_object(iteration_range.max_tile).is_not_null()
 
 @warning_ignore("unused_parameter")
 func test_polygon_tile_mapper_offsets() -> void:
@@ -248,5 +248,5 @@ func test_performance_placement_components() -> void:
 		assert_that(indicator).is_not_null()
 	
 	var elapsed = Time.get_ticks_usec() - start_time
-	test_env.logger.log_info("Placement components performance test completed in " + str(elapsed) + " microseconds")
+	test_env.logger.log_info(self, "Placement components performance test completed in " + str(elapsed) + " microseconds")
 	assert_that(elapsed).is_less(500000)  # Should complete in under 0.5 seconds

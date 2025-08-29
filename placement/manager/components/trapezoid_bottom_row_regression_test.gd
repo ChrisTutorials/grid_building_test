@@ -30,6 +30,7 @@ func before_test():
     targeting_state = GridTargetingState.new(owner_context)
     targeting_state.target_map = tile_map_layer
     targeting_state.positioner = positioner
+    mapper = CollisionMapper.new(targeting_state, logger)
     mapper = CollisionMapper.new(targeting_state, logger)tTestSuite
 
 ## Regression: Simple trapezoid should produce 5 bottom-row indicators (−2..2) including BL/BR.
@@ -87,7 +88,7 @@ func test_trapezoid_coverage_matches_geometry() -> void:
     ys.sort()
     
     # Verify we have at least 2 rows for a trapezoid
-    assert_bool(ys.size() >= 2).append_failure_message("Expected at least 2 rows for trapezoid, got %d rows at y=%s" % [ys.size(), ys]).is_true()
+    assert_bool(ys.size() >= 2).append_failure_message("Expected at least 2 rows for trapezoid, got %d rows at y=%s" % [ys.size(), str(ys)]).is_true()
     
     # Get bottom row coverage
     var bottom_y = ys[ys.size() - 1]

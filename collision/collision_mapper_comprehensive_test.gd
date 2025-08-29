@@ -7,11 +7,15 @@ var collision_mapper: CollisionMapper
 var tilemap_layer: TileMapLayer
 var targeting_state: GridTargetingState
 var logger: GBLogger
-var _injector : GBInjectorSystem
+var _container : GBCompositionContainer
+
+var env : CollisionTestEnvironment
 
 func before_test():
-	var test_container : GBCompositionContainer = load("uid://dy6e5p5d6ax6n")
-	_injector = UnifiedTestFactory.create_test_injector(self, test_container)
+	env = load("uid://cdrtd538vrmun").instantiate()
+	add_child(env)
+	auto_free(env)
+	_container = env.injector.composition_container
 	
 	# Create tilemap with 16x16 tiles
 	tilemap_layer = GodotTestFactory.create_tile_map_layer(self, 40)
@@ -21,7 +25,7 @@ func before_test():
 	
 	# Create targeting state
 	var owner_context = GBOwnerContext.new(null)
-	targeting_state = test_container.get_states().targeting
+	targeting_state = _container.get_states().targeting
 	targeting_state._owner_context = owner_context
 	targeting_state.target_map = tilemap_layer
 	
@@ -31,7 +35,7 @@ func before_test():
 	targeting_state.positioner = positioner
 	
 	# Create collision mapper - inject immediately with factory
-	collision_mapper = CollisionMapper.create_with_injection(test_container)
+	collision_mapper = CollisionMapper.create_with_injection(_container)
 
 func after_test():
 	# Cleanup handled by auto_free in factory methods
@@ -215,3 +219,116 @@ func _create_test_object_with_shape(shape_type: String, shape_data) -> Node2D:
 			test_object.add_child(collision_polygon)
 	
 	return test_object
+
+func test_rules_and_collision_integration() -> void:
+	var rule = CollisionsCheckRule.new()
+	var rule_validation_parameters := _setup_test_params()
+	
+	# Setup rule with collision context
+	var setup_issues = rule.setup(rule_validation_parameters)
+	assert_array(setup_issues).is_empty()
+	
+	# Test that collision mapper and rules work together
+	var test_object: Node2D = UnifiedTestFactory.create_test_static_body_with_rect_shape(self)
+	
+	# Set up collision mapper with test object
+	var indicator_manager = UnifiedTestFactory.create_test_indicator_manager(self)
+	var test_parent: Node2D = Node2D.new()
+	test_parent.name = "TestParent2"
+	add_child(test_parent)
+	auto_free(test_parent)
+	UnifiedTestFactory.configure_collision_mapper_for_test_object(self, indicator_manager, test_object, null, test_parent)
+	
+	var test_objects: Array[Node2D] = [test_object]
+	var collision_tiles = collision_mapper.get_collision_tile_positions_with_mask(test_objects, 1)
+	
+	# Validate integration produces reasonable results
+	assert_dict(collision_tiles).append_failure_message(
+		"Collision mapping should produce tiles for rule validation"
+	).is_not_empty()
+	
+	var validation_result = rule.validate_condition()
+	assert_object(validation_result).append_failure_message(
+		"Rule validation should complete with collision context"
+	).is_not_null()
+
+func test_collisions_check_rule_setup() -> void:
+	var rule = CollisionsCheckRule.new()
+	var params = _setup_test_params()
+	
+	# Setup rule
+	var setup_issues = rule.setup(params)
+	
+	# After setup, validation should succeed (assuming valid environment)
+	assert_array(setup_issues).append_failure_message(
+		"Rule setup should succeed with valid parameters: %s" % str(setup_issues)
+	).is_empty()
+
+func test_tile_check_rule_basic() -> void:
+	var rule = TileCheckRule.new()
+	var params = _setup_test_params()
+	
+	# Setup and validate
+	var setup_issues = rule.setup(params)
+	assert_array(setup_issues).append_failure_message(
+		"Tile rule setup should succeed: %s" % str(setup_issues)
+	).is_empty()
+	
+	var validation_result = rule.validate_condition()
+	assert_object(validation_result).is_not_null()
+
+# ===== COMPREHENSIVE COLLISION MAPPING TESTS =====
+
+func test_collision_mapper_shape_processing() -> void:
+	var collision_mapper: Object = CollisionMapper.create_with_injection(_container)
+	var test_object: Node2D = UnifiedTestFactory.create_test_static_body_with_rect_shape(self)
+
+	# Set up collision mapper with test object
+	var test_parent: Node2D = Node2D.new()
+	test_parent.name = "TestParent"
+	add_child(test_parent)
+	auto_free(test_parent)
+
+	# Manually create collision test setup for the StaticBody2D
+	var test_setup = IndicatorCollisionTestSetup.new(test_object, Vector2(16, 16), collision_mapper._logger)
+	var collision_setups: Dictionary[Node2D, IndicatorCollisionTestSetup] = {test_object: test_setup}
+
+	# Create a test indicator
+	var test_indicator = RuleCheckIndicator.new([])
+	test_indicator.name = "TestIndicator"
+	test_parent.add_child(test_indicator)
+	auto_free(test_indicator)
+
+	# Setup collision mapper directly
+	collision_mapper.setup(test_indicator, collision_setups)
+
+	# Test collision shape processing
+	var test_objects: Array[Node2D] = [test_object]
+	var collision_results = collision_mapper.get_collision_tile_positions_with_mask(test_objects, 1)
+
+	# Should return some collision tiles for test object
+	assert_dict(collision_results).append_failure_message(
+		"Test collision object should generate collision tiles"
+	).is_not_empty()
+
+func test_collision_mapper_caching() -> void:
+	var collision_mapper := CollisionMapper.create_with_injection(_container)
+	
+	# Test caching mechanism if available
+	var test_key: String = "test_cache_key"
+	var calc_func = func(): return "test_result"
+	
+	var result1 = collision_mapper._get_cached_geometry_result(test_key, calc_func)
+	var result2 = collision_mapper._get_cached_geometry_result(test_key, calc_func)
+	
+	assert_str(result1).append_failure_message(
+		"First cache result should be from calculation"
+	).is_equal("test_result")
+	assert_str(result2).append_failure_message(
+		"Second cache result should be from cache (same value)"
+	).is_equal("test_result")
+
+func _setup_test_params() -> RuleValidationParameters:
+	var target := UnifiedTestFactory.create_test_node2d(self)
+	var rule_validation_parameters := RuleValidationParameters.new(env.placer, target, env.grid_targeting_system.get_state(), _container.get_logger())
+	return rule_validation_parameters

@@ -31,8 +31,8 @@ func test_indicator_basic_setup(shape_type: String, shape_data, _expected_behavi
 		"Indicator shape should be set for type: %s" % shape_type
 	).is_not_null()
 
-	assert_vector(indicator.target.global_position).append_failure_message(
-		"Indicator should have zero target position initially"
+	assert_vector(indicator.global_position).append_failure_message(
+		"Indicator should have zero global position initially"
 	).is_equal(Vector2.ZERO)# Parameterized test data for basic setup
 func test_indicator_basic_setup_parameters() -> Array:
 	return [

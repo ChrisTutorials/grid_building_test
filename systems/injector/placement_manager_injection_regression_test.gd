@@ -16,7 +16,7 @@ extends GdUnitTestSuite
 
 var _injector: GBInjectorSystem
 var _container: GBCompositionContainer = load("uid://dy6e5p5d6ax6n")
-var _placement_manager: IndicatorManager
+var _indicator_manager: IndicatorManager
 
 class SpyIndicatorManager:
 	extends IndicatorManager
@@ -33,18 +33,18 @@ func before_test():
 	_container = test_env.container
 	_injector = test_env.injector
 
-func test_placement_manager_gets_dependency_injection() -> void:
+func test_indicator_manager_gets_dependency_injection() -> void:
 	# Create spy IndicatorManager to track injection calls
-	_placement_manager = auto_free(SpyIndicatorManager.new())
-	_placement_manager.name = "IndicatorManager"
+	_indicator_manager = auto_free(SpyIndicatorManager.new())
+	_indicator_manager.name = "IndicatorManager"
 	
 	# Add as child - this should trigger dependency injection automatically
-	add_child(_placement_manager)
+	add_child(_indicator_manager)
 	
 	# Wait one frame for injection system to process
 	await await_idle_frame()
 	
-	var spy_manager := _placement_manager as SpyIndicatorManager
+	var spy_manager := _indicator_manager as SpyIndicatorManager
 	
 	# This should pass and DOES pass - injection works correctly
 	assert_bool(spy_manager.injection_called) \
@@ -55,11 +55,11 @@ func test_placement_manager_gets_dependency_injection() -> void:
 		.append_failure_message("IndicatorManager should receive container during injection") \
 		.is_same(_container)
 
-func test_placement_manager_registers_with_indicator_context() -> void:
+func test_indicator_manager_registers_with_indicator_context() -> void:
 	# Create and add IndicatorManager
-	_placement_manager = auto_free(IndicatorManager.new())
-	_placement_manager.name = "IndicatorManager"
-	add_child(_placement_manager)
+	_indicator_manager = auto_free(IndicatorManager.new())
+	_indicator_manager.name = "IndicatorManager"
+	add_child(_indicator_manager)
 	
 	# Wait for injection
 	await await_idle_frame()
@@ -74,10 +74,10 @@ func test_placement_manager_registers_with_indicator_context() -> void:
 		.is_not_null()
 	
 	assert_object(registered_manager) \
-		.append_failure_message("Specific IndicatorManager instance should be found in IndicatorContext. Registered: %s, Expected: %s" % [str(registered_manager), str(_placement_manager)]) \
-		.is_same(_placement_manager)
+		.append_failure_message("Specific IndicatorManager instance should be found in IndicatorContext. Registered: %s, Expected: %s" % [str(registered_manager), str(_indicator_manager)]) \
+		.is_same(_indicator_manager)
 
-func test_building_system_validation_with_injected_placement_manager() -> void:
+func test_building_system_validation_with_injected_indicator_manager() -> void:
 	# DIAGNOSTIC 0: Check for singleton violations at the container level
 	print("[DEBUG] === SINGLETON DIAGNOSTICS ===")
 	print("[DEBUG] _container instance ID: ", _container.get_instance_id())
@@ -103,21 +103,21 @@ func test_building_system_validation_with_injected_placement_manager() -> void:
 	add_child(building_system)
 	
 	# Create and add IndicatorManager
-	_placement_manager = auto_free(IndicatorManager.new())
-	_placement_manager.name = "IndicatorManager"
-	add_child(_placement_manager)
+	_indicator_manager = auto_free(IndicatorManager.new())
+	_indicator_manager.name = "IndicatorManager"
+	add_child(_indicator_manager)
 	
 	# Wait for injection
 	await await_idle_frame()
 	
 	# Verify IndicatorManager was injected
-	assert_bool(_placement_manager.has_meta("gb_injection_meta")).append_failure_message("IndicatorManager should have injection metadata after being added to scene").is_true()
+	assert_bool(_indicator_manager.has_meta("gb_injection_meta")).append_failure_message("IndicatorManager should have injection metadata after being added to scene").is_true()
 	
 	# Verify IndicatorManager is registered
 	var indicator_context = _container.get_contexts().indicator
 	var registered_manager = indicator_context.get_manager()
 	assert_object(registered_manager).append_failure_message("IndicatorManager should be registered. Registered: %s" % str(registered_manager)).is_not_null()
-	assert_object(registered_manager).append_failure_message("Registered IndicatorManager should be same instance. Expected: %s, Got: %s" % [str(_placement_manager), str(registered_manager)]).is_same(_placement_manager)
+	assert_object(registered_manager).append_failure_message("Registered IndicatorManager should be same instance. Expected: %s, Got: %s" % [str(_indicator_manager), str(registered_manager)]).is_same(_indicator_manager)
 	
 	# Check BuildingSystem before injection
 	# NOTE: The injection system automatically injects nodes when they're added to the scene,
@@ -151,8 +151,8 @@ func test_building_system_validation_with_injected_placement_manager() -> void:
 	print("[DEBUG] Container IndicatorContext: ", building_system_indicator_context)
 	print("[DEBUG] Container has_manager(): ", building_system_indicator_context.has_manager())
 	print("[DEBUG] Container get_manager(): ", building_system_indicator_context.get_manager())
-	print("[DEBUG] IndicatorManager: ", _placement_manager)
-	print("[DEBUG] Same managers? ", building_system_indicator_context.get_manager() == _placement_manager)
+	print("[DEBUG] IndicatorManager: ", _indicator_manager)
+	print("[DEBUG] Same managers? ", building_system_indicator_context.get_manager() == _indicator_manager)
 	
 	# Call validation
 	var validation_result = building_system.get_dependency_issues()
@@ -164,8 +164,8 @@ func test_building_system_validation_with_injected_placement_manager() -> void:
 		"BuildingSystem IndicatorContext: %s | " % str(building_system_indicator_context) + \
 		"Same Context: %s | " % str(indicator_context == building_system_indicator_context) + \
 		"Registered Manager: %s | " % str(registered_manager) + \
-		"IndicatorManager: %s | " % str(_placement_manager) + \
-		"Same Manager: %s" % str(registered_manager == _placement_manager)
+		"IndicatorManager: %s | " % str(_indicator_manager) + \
+		"Same Manager: %s" % str(registered_manager == _indicator_manager)
 	
 	assert_array(validation_result).append_failure_message(error_msg).is_empty()
 
@@ -175,9 +175,9 @@ func test_injection_order_timing_issue() -> void:
 	print("[DEBUG] === TESTING INJECTION ORDER ===")
 	
 	# Step 1: Add IndicatorManager FIRST
-	_placement_manager = auto_free(IndicatorManager.new())
-	_placement_manager.name = "IndicatorManager"
-	add_child(_placement_manager)
+	_indicator_manager = auto_free(IndicatorManager.new())
+	_indicator_manager.name = "IndicatorManager"
+	add_child(_indicator_manager)
 	print("[DEBUG] 1. Added IndicatorManager first")
 	
 	# Wait for injection
@@ -240,9 +240,9 @@ func test_reverse_order_demonstrates_timing_issue() -> void:
 	await await_idle_frame()
 	
 	# Step 2: Now add IndicatorManager AFTER BuildingSystem
-	_placement_manager = auto_free(IndicatorManager.new())
-	_placement_manager.name = "IndicatorManager"
-	add_child(_placement_manager)
+	_indicator_manager = auto_free(IndicatorManager.new())
+	_indicator_manager.name = "IndicatorManager"
+	add_child(_indicator_manager)
 	print("[DEBUG] 3. Added IndicatorManager second")
 	
 	# Wait for injection

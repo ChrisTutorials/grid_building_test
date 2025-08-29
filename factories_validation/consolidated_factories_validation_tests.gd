@@ -75,7 +75,7 @@ func test_composition_container_factory() -> void:
 
 func test_placement_system_factory_layer() -> void:
 	# Test placement system factory layer
-	var placement_env: Dictionary = UnifiedTestFactory.create_placement_system_test_environment(self)
+	var placement_env: Dictionary = UnifiedTestFactory.create_indicator_system_test_environment(self)
 	
 	assert_object(placement_env).is_not_null()
 	
@@ -349,7 +349,7 @@ func test_validation_performance() -> void:
 
 func test_factory_validation_integration() -> void:
 	# Test integration between factory and validation
-	var placement_env = UnifiedTestFactory.create_placement_system_test_environment(self)
+	var placement_env = UnifiedTestFactory.create_indicator_system_test_environment(self)
 	
 	# Create validation parameters from factory environment
 	var params = placement_env.get("rule_validation_parameters")
@@ -369,7 +369,7 @@ func test_factory_validation_integration() -> void:
 func test_multi_layer_factory_integration() -> void:
 	# Test integration across multiple factory layers
 	var utilities_env = UnifiedTestFactory.create_utilities_test_environment(self)
-	var placement_env = UnifiedTestFactory.create_placement_system_test_environment(self)
+	var placement_env = UnifiedTestFactory.create_indicator_system_test_environment(self)
 	var rule_env = UnifiedTestFactory.create_rule_indicator_test_environment(self)
 	var systems_env = UnifiedTestFactory.create_systems_integration_test_environment(self)
 	

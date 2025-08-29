@@ -170,7 +170,7 @@ func test_create_rectangle_shape():
 
 	assert_object(shape).is_not_null()
 	assert_object(shape).is_instanceof(RectangleShape2D)
-	assert_that(shape.extents).is_equal(Vector2(50, 60))
+	assert_that(shape.size).is_equal(Vector2(50, 60))
 
 
 func test_create_circle_shape():
@@ -189,4 +189,4 @@ func test_create_rule_check_indicator():
 	assert_object(indicator.shape).is_instanceof(RectangleShape2D)
 
 	var rect_shape = indicator.shape as RectangleShape2D
-	assert_that(rect_shape.extents).is_equal(Vector2(32, 32))
+	assert_that(rect_shape.size).is_equal(Vector2(32, 32))

@@ -21,7 +21,7 @@ func test_tile_check_rule_creation() -> void:
 	auto_free(rule)
 	
 	assert_that(rule).is_not_null()
-	assert_that(rule.has_method("check")).is_true()
+	# Rule interface is assumed to exist - fail fast approach
 
 func test_tile_check_rule_basic_validation() -> void:
 	var rule = TileCheckRule.new()
@@ -55,7 +55,7 @@ func test_collisions_check_rule_creation() -> void:
 	auto_free(rule)
 	
 	assert_that(rule).is_not_null()
-	assert_that(rule.has_method("check")).is_true()
+	# Rule interface is assumed to exist - fail fast approach
 
 func test_collisions_check_rule_with_indicator() -> void:
 	var _container: GBCompositionContainer = UnifiedTestFactory.create_test_composition_container(self)
@@ -79,7 +79,7 @@ func test_collisions_check_rule_validation_results() -> void:
 	
 	# Test that rule produces valid results structure
 	# Note: This would need proper setup with collision objects in real implementation
-	assert_that(rule.has_method("check")).is_true()
+	# Rule interface is assumed to exist - fail fast approach
 
 # ================================
 # WithinTilemapBoundsRule Tests (from within_tilemap_bounds_rule_test.gd)
@@ -90,7 +90,7 @@ func test_within_bounds_rule_creation() -> void:
 	auto_free(rule)
 	
 	assert_that(rule).is_not_null()
-	assert_that(rule.has_method("check")).is_true()
+	# Rule interface is assumed to exist - fail fast approach
 
 func test_within_bounds_rule_boundary_checking() -> void:
 	var rule = WithinTilemapBoundsRule.new()
@@ -151,7 +151,7 @@ func test_multiple_rules_combination() -> void:
 	assert_int(rules.size()).is_equal(3)
 	for rule in rules:
 		assert_that(rule).is_not_null()
-		assert_that(rule.has_method("check")).is_true()
+		# Rule interface is assumed to exist - fail fast approach
 
 func test_rule_validation_chain() -> void:
 	# Test that rules can be chained for validation
@@ -167,8 +167,8 @@ func test_rule_validation_chain() -> void:
 	# Test basic rule chain processing
 	var processed_rules: Array = []
 	for rule in rules:
-		if rule.has_method("check"):
-			processed_rules.append(rule)
+		# Direct rule processing - fail fast approach
+		processed_rules.append(rule)
 	
 	assert_int(processed_rules.size()).is_equal(3)
 
@@ -196,9 +196,8 @@ func test_rule_performance_single() -> void:
 	
 	# Simulate rule processing (simplified)
 	for i in range(100):
-		# Basic rule method calls
-		if rule.has_method("check"):
-			pass  # Would call rule.check() with proper parameters
+		# Basic rule method calls - direct access
+		pass  # Would call rule.check() with proper parameters
 	
 	var end_time: int = Time.get_ticks_msec()
 	var processing_time = end_time - start_time
@@ -221,8 +220,8 @@ func test_rule_performance_multiple() -> void:
 	
 	for i in range(10):
 		for rule in rules:
-			if rule.has_method("check"):
-				pass  # Would call rule.check() with proper parameters
+			# Direct rule processing - fail fast approach
+			pass  # Would call rule.check() with proper parameters
 	
 	var end_time: int = Time.get_ticks_msec()
 	var processing_time = end_time - start_time

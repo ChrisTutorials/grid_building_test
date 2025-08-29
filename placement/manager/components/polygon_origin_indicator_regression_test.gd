@@ -112,8 +112,8 @@ func test_polygon_test_object_no_indicator_at_origin_when_centered():
 	var has_origin_indicator = Vector2i.ZERO in indicator_tiles
 	assert_bool(has_origin_indicator).append_failure_message(
 		"REGRESSION: Found unexpected indicator at (0,0) for polygon test object. " +
-		"Indicator tiles: %s. This indicates the collision detection is incorrectly " +
-		"including the origin tile when the polygon is centered." % [indicator_tiles]
+		"Indicator tiles: " + str(indicator_tiles) + ". This indicates the collision detection is incorrectly " +
+		"including the origin tile when the polygon is centered."
 	).is_false()
 	
 	# Diagnostic information

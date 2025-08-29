@@ -97,5 +97,5 @@ func test_polygon_preview_indicators_respect_min_overlap_ratio():
 
     # This is expected to FAIL right now due to extra indicators in-game.
     assert_array(unexpected).append_failure_message(
-        "Found indicators on tiles with insufficient overlap. unexpected=%s\nallowed_abs=%s\nactual=%s" % [unexpected, allowed_abs.keys(), actual_tiles]
+        "Found indicators on tiles with insufficient overlap. unexpected=%s\nallowed_abs=%s\nactual=%s" % [str(unexpected), str(allowed_abs.keys()), str(actual_tiles)]
     ).is_empty()

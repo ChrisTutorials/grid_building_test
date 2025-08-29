@@ -204,7 +204,7 @@ func test_system_performance_under_load() -> void:
 	var manipulation_parent = test_scene.manipulation_parent
 	
 	# Create multiple test objects
-	var test_objects: Array = []
+	var test_areas: Array[Area2D] = []
 	for i in range(5):
 		var test_area = Area2D.new()
 		test_area.name = "TestArea_" + str(i)
@@ -214,16 +214,16 @@ func test_system_performance_under_load() -> void:
 		test_area.add_child(collision_shape)
 		test_area.position = Vector2(i * 30, 0)
 		manipulation_parent.add_child(test_area)
-		test_objects.append(test_area)
+		test_areas.append(test_area)
 		auto_free(test_area)
 	
-	var rules: Array = [TileCheckRule.new()]
+	var rules: Array[TileCheckRule] = [TileCheckRule.new()]
 	
 	# Time the operations
 	var start_time: int = Time.get_ticks_msec()
 	
-	for test_obj: Dictionary in test_objects:
-		var report = indicator_manager.setup_indicators(test_obj, rules)
+	for test_area: Area2D in test_areas:
+		var report = indicator_manager.setup_indicators(test_area, rules)
 		assert_that(report).is_not_null()
 	
 	var end_time: int = Time.get_ticks_msec()
