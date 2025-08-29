@@ -1,4 +1,5 @@
-extends GdUnitTestSuite
+class_name CollisionObjectTestFactory
+extends RefCounted
 
 ## Collision Object Test Factory
 ## Provides reusable factory methods for creating collision objects in tests
@@ -16,7 +17,6 @@ extends GdUnitTestSuite
 ## var isometric_building = CollisionObjectTestFactory.create_isometric_blacksmith(self)
 ## ```
 
-class_name CollisionObjectTestFactory
 
 ## Creates a StaticBody2D with a rectangular collision shape
 static func create_static_body_with_rect(test_suite: GdUnitTestSuite, size: Vector2, position: Vector2 = Vector2.ZERO) -> StaticBody2D:
@@ -110,14 +110,14 @@ static func get_collision_tiles_for_objects(
 	objects: Array[StaticBody2D],
 	mask: int = 1
 ) -> Dictionary:
-    # Can include CollisionObject2D, Area2D, etc. Should have a CollisionShape2D or CollisionPolygon2D attached.
+	# Can include CollisionObject2D, Area2D, etc. Should have a CollisionShape2D or CollisionPolygon2D attached.
 	var collision_objects: Array[Node2D] = []
 	for obj in objects:
 		collision_objects.append(obj as Node2D)
 	return collision_mapper.get_collision_tile_positions_with_mask(collision_objects, mask)
 
 ## Tests collision tile generation for an object at a specific position
-static func test_collision_tiles_at_position(
+static func check_collsion_tiles_at_position(
 	test_suite: GdUnitTestSuite,
 	test_env: Dictionary,
 	collision_object: StaticBody2D,
@@ -280,7 +280,7 @@ static func setup_collision_test_environment(
 	}
 
 ## Tests collision generation for a building with rotation
-static func test_collision_generation_with_rotation(
+static func check_collision_generation_with_rotation(
 	test_suite: GdUnitTestSuite,
 	building: StaticBody2D,
 	collision_mapper: CollisionMapper,
@@ -294,3 +294,48 @@ static func test_collision_generation_with_rotation(
 		test_suite.assert_array(collision_tiles.keys()).append_failure_message(
 			"Should generate collision tiles at rotation %s degrees" % [rad_to_deg(angle)]
 		).is_not_empty()
+
+## Creates a test object with collision shape based on shape type
+## Used by collision mapper tests to create various collision objects
+static func create_test_object_with_shape(
+	test_suite: GdUnitTestSuite,
+	shape_type: String,
+	position: Vector2 = Vector2.ZERO
+) -> StaticBody2D:
+	var collision_body: StaticBody2D = StaticBody2D.new()
+	test_suite.add_child(collision_body)
+	test_suite.auto_free(collision_body)
+	collision_body.global_position = position
+	
+	if shape_type == "rectangle":
+		var collision_shape: CollisionShape2D = CollisionShape2D.new()
+		var rect_shape: RectangleShape2D = RectangleShape2D.new()
+		rect_shape.size = Vector2(32, 32)
+		collision_shape.shape = rect_shape
+		collision_body.add_child(collision_shape)
+	elif shape_type == "circle":
+		var collision_shape: CollisionShape2D = CollisionShape2D.new()
+		var circle_shape: CircleShape2D = CircleShape2D.new()
+		circle_shape.radius = 16.0
+		collision_shape.shape = circle_shape
+		collision_body.add_child(collision_shape)
+	elif shape_type == "capsule":
+		var collision_shape: CollisionShape2D = CollisionShape2D.new()
+		var capsule_shape: CapsuleShape2D = CapsuleShape2D.new()
+		capsule_shape.radius = 16.0
+		capsule_shape.height = 32.0
+		collision_shape.shape = capsule_shape
+		collision_body.add_child(collision_shape)
+	elif shape_type == "trapezoid":
+		var collision_polygon: CollisionPolygon2D = CollisionPolygon2D.new()
+		collision_polygon.polygon = PackedVector2Array([
+			Vector2(-20, -10),
+			Vector2(20, -10),
+			Vector2(15, 10),
+			Vector2(-15, 10)
+		])
+		collision_body.add_child(collision_polygon)
+	else:
+		test_suite.fail("Unknown shape type: %s" % shape_type)
+		
+	return collision_body

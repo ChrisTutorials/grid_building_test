@@ -139,7 +139,7 @@ static func create_static_body_with_rect_shape(
 	var body: StaticBody2D = test.auto_free(StaticBody2D.new())
 	var shape: CollisionShape2D = test.auto_free(CollisionShape2D.new())
 	var rect: RectangleShape2D = RectangleShape2D.new()
-	rect.extents = extents
+	rect.size = extents * 2  # Convert extents to size (extents is half-size)
 	shape.shape = rect
 	test.add_child(body)
 	body.add_child(shape)
@@ -216,7 +216,7 @@ static func create_parent_with_body_and_polygon(test: GdUnitTestSuite) -> Node2D
 ## Creates a RectangleShape2D with specified size
 static func create_rectangle_shape(size: Vector2 = Vector2(16, 16)) -> RectangleShape2D:
 	var rect: RectangleShape2D = RectangleShape2D.new()
-	rect.extents = size
+	rect.size = size
 	return rect
 
 
@@ -253,7 +253,7 @@ static func create_rule_check_indicator(
 	# Caller decides parent; we only ensure auto_free assignment for memory safety
 	var indicator: RuleCheckIndicator = test.auto_free(RuleCheckIndicator.new([]))
 	var rect_shape := RectangleShape2D.new()
-	rect_shape.extents = Vector2(tile_size, tile_size)
+	rect_shape.size = Vector2(tile_size, tile_size)
 	indicator.shape = rect_shape
 	if parent:
 		parent.add_child(indicator)

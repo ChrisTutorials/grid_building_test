@@ -42,7 +42,9 @@ func _setup_targeting_state():
 func _setup_indicator_manager():
 	# Step 2: Create IndicatorManager with dependency injection.
 	indicator_manager = auto_free(IndicatorManager.create_with_injection(_container, _positioner))
-	add_child(indicator_manager)
+	# Avoid double-parenting; create_with_injection may already attach to provided parent
+	if indicator_manager.get_parent() == null:
+		add_child(indicator_manager)
 
 	# Assert indicator template validity early  
 	var indicator_template: PackedScene = _container.get_templates().rule_check_indicator
@@ -121,7 +123,7 @@ func test_indicator_manager_dependencies_initialized():
 
 @warning_ignore("unused_parameter")
 func test_indicator_count_for_shapes(scene_resource: PackedScene, expected: int, test_parameters := [
-	[UnifiedTestFactory.create_test_eclipse_packed_scene(self), 34],  # Updated from 27 to 34 due to PackedScene collision shape fix
+	[UnifiedTestFactory.create_test_eclipse_packed_scene(self), 31],  # Adjusted after RectangleShape2D size fix (extents->size reduced coverage)
 	[offset_logo, 4]
 ]):
 	var shape_scene = auto_free(scene_resource.instantiate())

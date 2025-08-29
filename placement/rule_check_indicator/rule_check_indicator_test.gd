@@ -47,7 +47,7 @@ func before_test():
 
 func test_setup_indicator_defaults():
 		assert_object(indicator).append_failure_message("[indicator] must not be null").is_not_null()
-		assert_vector(indicator.target_position).is_equal(Vector2.ZERO)
+		assert_vector(indicator.target.global_position).is_equal(Vector2.ZERO)
 
 ## Integration test: indicator switches valid → fail → valid as collision body is added/removed
 func test_indicator_validity_switches_on_dynamic_collision():

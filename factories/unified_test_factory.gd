@@ -1263,7 +1263,7 @@ static func create_injection_test_environment(test: GdUnitTestSuite, container: 
 ##  • [code]test[/code]: GdUnitTestSuite – test suite for parenting/autofree
 ##  • [code]isometric_scene_path[/code]: String – path to isometric demo scene
 ## [b]Returns[/b]: Dictionary – complete isometric demo test environment
-static func create_isometric_demo_test_environment(test: GdUnitTestSuite, isometric_scene_path: String = "res://demos/isometric_demo.tscn") -> Dictionary:
+static func create_isometric_demo_test_environment(test: GdUnitTestSuite, isometric_scene_path: String = "res://demos/isometric/demo_isometric_2d.tscn") -> Dictionary:
 	# Load the actual isometric demo scene
 	var isometric_scene = test.auto_free(load(isometric_scene_path).instantiate())
 	test.add_child(isometric_scene)
@@ -1279,6 +1279,13 @@ static func create_isometric_demo_test_environment(test: GdUnitTestSuite, isomet
 	var building_system = isometric_scene.get_node("Systems/BuildingSystem") as BuildingSystem
 	var targeting_system = isometric_scene.get_node("Systems/GridTargetingSystem") as GridTargetingSystem
 
+	# Get the placement manager from the container's indicator context
+	var indicator_manager: IndicatorManager = null
+	if _container:
+		var indicator_context = _container.get_indicator_context()
+		if indicator_context and indicator_context.has_method("get_manager"):
+			indicator_manager = indicator_context.get_manager()
+
 	var states = _container.get_states()
 	var mode_state = states.mode
 	var targeting_state = states.targeting
@@ -1292,6 +1299,7 @@ static func create_isometric_demo_test_environment(test: GdUnitTestSuite, isomet
 		"injector_system": injector_system,
 		"building_system": building_system,
 		"targeting_system": targeting_system,
+		"indicator_manager": indicator_manager,
 		"mode_state": mode_state,
 		"targeting_state": targeting_state
 	}
@@ -1345,9 +1353,9 @@ static func create_full_integration_test_scene(test: GdUnitTestSuite, container:
 	
 	# Create placement manager if available
 	if ClassDB.class_exists("PlacementManager"):
-		scene_dict.placement_manager = ClassDB.instantiate("PlacementManager")
-		test.auto_free(scene_dict.placement_manager)
-		test.add_child(scene_dict.placement_manager)
+		scene_dict.indicator_manager = ClassDB.instantiate("PlacementManager")
+		test.auto_free(scene_dict.indicator_manager)
+		test.add_child(scene_dict.indicator_manager)
 	
 	# Create grid - basic Node2D for testing
 	scene_dict.grid = Node2D.new()

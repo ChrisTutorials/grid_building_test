@@ -62,10 +62,18 @@ func test_multi_rule_indicator_attachment() -> void:
 	var indicator_manager: Object = test_env.indicator_manager
 	var collision_rule = CollisionsCheckRule.new()
 	var tile_rule = TileCheckRule.new()
-	
-	# Setup rules with test parameters
-	var test_params = RuleValidationParameters.new()
-	test_params.target_position = Vector2(32, 32)
+
+	# Create test object
+	var test_object = UnifiedTestFactory.create_test_static_body_with_rect_shape(self)
+
+	# Create test parameters with proper constructor
+	var test_params = RuleValidationParameters.new(
+		self,  # placer
+		test_object,  # target
+		test_env.targeting_state,  # targeting_state
+		test_env.logger  # logger
+	)
+	test_params.target.global_position = Vector2(32, 32)
 	test_params.tile_map = test_env.tilemap
 	
 	var rules: Array = [collision_rule, tile_rule]
@@ -84,17 +92,25 @@ func test_multi_rule_indicator_attachment() -> void:
 func test_rule_indicator_state_synchronization() -> void:
 	var indicator_manager: Object = test_env.indicator_manager
 	var rule = CollisionsCheckRule.new()
-	
+
+	# Create test object
+	var test_object = UnifiedTestFactory.create_test_static_body_with_rect_shape(self)
+
 	# Setup with initial state
-	var params = RuleValidationParameters.new()
-	params.target_position = Vector2(64, 64)
+	var params = RuleValidationParameters.new(
+		self,  # placer
+		test_object,  # target
+		test_env.targeting_state,  # targeting_state
+		test_env.logger  # logger
+	)
+	params.target.global_position = Vector2(64, 64)
 	params.tile_map = test_env.tilemap
 	
 	var setup_result = indicator_manager.try_setup([rule], params)
 	assert_bool(setup_result.is_successful()).is_true()
 	
 	# Change rule state and verify indicators update
-	params.target_position = Vector2(96, 96)
+	params.target.global_position = Vector2(96, 96)
 	var update_result = indicator_manager.try_setup([rule], params)
 	
 	assert_bool(update_result.is_successful()).append_failure_message(
@@ -155,14 +171,19 @@ func test_smithy_indicator_generation() -> void:
 	var indicator_manager: Object = test_env.indicator_manager
 	
 	# Get smithy rules
-	var smithy_rules = smithy.get_placement_rules()
+	var smithy_rules = smithy.placement_rules
 	assert_array(smithy_rules).append_failure_message(
 		"Smithy should have placement rules"
 	).is_not_empty()
 	
 	# Setup indicators for smithy
-	var params = RuleValidationParameters.new()
-	params.target_position = Vector2(128, 128)
+	var params = RuleValidationParameters.new(
+		self,  # placer
+		smithy,  # target (using the smithy placeable as target)
+		test_env.targeting_state,  # targeting_state
+		test_env.logger  # logger
+	)
+	params.target.global_position = Vector2(128, 128)
 	params.tile_map = test_env.tilemap
 	params.placeable_instance = smithy
 	
@@ -178,7 +199,7 @@ func test_smithy_indicator_generation() -> void:
 	).is_not_empty()
 
 func test_smithy_collision_detection() -> void:
-	var smithy = PlaceableLibrary.get_smithy()
+	var smithy = UnifiedTestFactory.create_test_smithy_placeable(self)
 	var collision_mapper: Object = test_env.collision_mapper
 	
 	# Test collision detection for smithy
@@ -204,7 +225,7 @@ func test_smithy_collision_detection() -> void:
 func test_complex_multi_system_workflow() -> void:
 	var building_system: Object = test_env.building_system
 	var targeting_system = test_env.targeting_system
-	var manipulation_system = test_env.manipulation_system
+	var _manipulation_system = test_env.manipulation_system
 	
 	# Phase 1: Target selection
 	var targeting_state = targeting_system.get_state()
@@ -215,15 +236,15 @@ func test_complex_multi_system_workflow() -> void:
 	).is_equal(Vector2(200, 200))
 	
 	# Phase 2: Building placement
-	var smithy = PlaceableLibrary.get_smithy()
+	var smithy = UnifiedTestFactory.create_test_smithy_placeable(self)
 	building_system.enter_build_mode(smithy)
 	var build_result = building_system.try_build_at_position(target_pos)
 	assert_object(build_result).is_not_null()
 	
 	# Phase 3: Post-build manipulation
 	if build_result:
-		manipulation_system.select_object(build_result)
-		var manipulation_state = manipulation_system.get_current_state()
+		_manipulation_system.select_object(build_result)
+		var manipulation_state = _manipulation_system.get_current_state()
 		assert_object(manipulation_state).append_failure_message(
 			"Should have valid manipulation state after selection"
 		).is_not_null()
@@ -231,14 +252,14 @@ func test_complex_multi_system_workflow() -> void:
 func test_cross_system_state_consistency() -> void:
 	var building_system: Object = test_env.building_system
 	var targeting_system = test_env.targeting_system
-	var indicator_manager: Object = test_env.indicator_manager
+	var _indicator_manager: Object = test_env.indicator_manager
 	
 	# Setup coordinated state across systems
 	var target_pos: Vector2 = Vector2(240, 240)
 	var targeting_state = targeting_system.get_state()
 	targeting_state.target.position = target_pos
 	
-	var smithy = PlaceableLibrary.get_smithy()
+	var smithy = UnifiedTestFactory.create_test_smithy_placeable(self)
 	building_system.enter_build_mode(smithy)
 	
 	# Verify state consistency
@@ -256,18 +277,23 @@ func test_cross_system_state_consistency() -> void:
 #region POLYGON TEST OBJECT INTEGRATION
 
 func test_polygon_test_object_indicator_generation() -> void:
-	var polygon_test_object = PlaceableLibrary.get_polygon_test_object()
+	var polygon_test_object = UnifiedTestFactory.create_polygon_test_placeable(self)
 	var indicator_manager: Object = test_env.indicator_manager
 	
 	# Get polygon object rules
-	var polygon_rules = polygon_test_object.get_placement_rules()
+	var polygon_rules = polygon_test_object.placement_rules
 	assert_array(polygon_rules).append_failure_message(
 		"Polygon test object should have placement rules"
 	).is_not_empty()
 	
 	# Generate indicators for polygon object
-	var params = RuleValidationParameters.new()
-	params.target_position = Vector2(280, 280)
+	var params = RuleValidationParameters.new(
+		self,  # placer
+		polygon_test_object,  # target
+		test_env.targeting_state,  # targeting_state
+		test_env.logger  # logger
+	)
+	params.target.global_position = Vector2(280, 280)
 	params.tile_map = test_env.tilemap
 	params.placeable_instance = polygon_test_object
 	
@@ -277,7 +303,7 @@ func test_polygon_test_object_indicator_generation() -> void:
 	).is_true()
 
 func test_polygon_collision_integration() -> void:
-	var polygon_test_object = PlaceableLibrary.get_polygon_test_object()
+	var polygon_test_object = UnifiedTestFactory.create_polygon_test_placeable(self)
 	var collision_mapper: Object = test_env.collision_mapper
 	
 	# Test polygon collision detection
@@ -353,7 +379,7 @@ func test_full_system_integration_workflow() -> void:
 	var building_system: Object = test_env.building_system
 	var targeting_system = test_env.targeting_system
 	var indicator_manager: Object = test_env.indicator_manager
-	var manipulation_system = test_env.manipulation_system
+	var _manipulation_system = test_env.manipulation_system
 	
 	# Step 1: Set target
 	var target_pos: Vector2 = Vector2(500, 500)
@@ -361,12 +387,17 @@ func test_full_system_integration_workflow() -> void:
 	targeting_state.target.position = target_pos
 	
 	# Step 2: Enter build mode with indicators
-	var smithy = PlaceableLibrary.get_smithy()
+	var smithy = UnifiedTestFactory.create_test_smithy_placeable(self)
 	building_system.enter_build_mode(smithy)
 	
-	var smithy_rules = smithy.get_placement_rules()
-	var params = RuleValidationParameters.new()
-	params.target_position = target_pos
+	var smithy_rules = smithy.placement_rules
+	var params = RuleValidationParameters.new(
+		self,  # placer
+		smithy,  # target
+		test_env.targeting_state,  # targeting_state
+		test_env.logger  # logger
+	)
+	params.target.global_position = target_pos
 	params.tile_map = test_env.tilemap
 	params.placeable_instance = smithy
 	
@@ -398,7 +429,7 @@ func test_system_error_recovery() -> void:
 	).is_not_null()
 	
 	# Ensure system can recover to valid state
-	var smithy = PlaceableLibrary.get_smithy()
+	var smithy = UnifiedTestFactory.create_test_smithy_placeable(self)
 	building_system.enter_build_mode(smithy)
 	assert_bool(building_system.is_in_build_mode()).append_failure_message(
 		"System should recover and enter build mode with valid placeable"

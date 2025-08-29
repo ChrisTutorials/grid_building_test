@@ -9,7 +9,7 @@ const TEST_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
 var test_env: Dictionary
 
 func before_test() -> void:
-	test_env = UnifiedTestFactory.create_placement_system_test_environment(self, TEST_CONTAINER)
+	test_env = UnifiedTestFactory.create_indicator_system_test_environment(self, TEST_CONTAINER)
 
 func after_test() -> void:
 	test_env.clear()
@@ -20,7 +20,7 @@ func after_test() -> void:
 
 @warning_ignore("unused_parameter")
 func test_collision_mapper_basic_setup() -> void:
-	var placement_manager = test_env.placement_manager
+	var placement_manager = test_env.indicator_manager
 	var collision_setup = test_env.collision_setup
 	
 	assert_that(placement_manager).is_not_null()
@@ -30,7 +30,7 @@ func test_collision_mapper_basic_setup() -> void:
 @warning_ignore("unused_parameter")
 func test_collision_mapper_shape_positioning() -> void:
 	var test_object = UnifiedTestFactory.create_test_static_body_with_rect_shape(self)
-	var placement_manager = test_env.placement_manager
+	var placement_manager = test_env.indicator_manager
 	
 	# Configure collision mapper for the test object
 	UnifiedTestFactory.configure_collision_mapper_for_test_object(
@@ -91,8 +91,8 @@ func test_polygon_tile_mapper_basic() -> void:
 	var bounds = GBGeometryMath.get_polygon_bounds(polygon)
 	var iteration_range = CollisionGeometryUtils.compute_tile_iteration_range(bounds, tile_map)
 	
-	assert_that(iteration_range).has_key("min_tile")
-	assert_that(iteration_range).has_key("max_tile")
+	assert_that(iteration_range).has("min_tile")
+	assert_that(iteration_range).has("max_tile")
 
 @warning_ignore("unused_parameter")
 func test_polygon_tile_mapper_offsets() -> void:
@@ -101,7 +101,7 @@ func test_polygon_tile_mapper_offsets() -> void:
 		Vector2(8, 8), Vector2(24, 8), Vector2(24, 24), Vector2(8, 24)
 	])
 	
-	var center_tile = CollisionGeometryUtils.center_tile_for_polygon_positioner(tile_map, test_env.placement_manager)
+	var center_tile = CollisionGeometryUtils.center_tile_for_polygon_positioner(tile_map, test_env.indicator_manager)
 	var tile_size: Vector2 = Vector2(tile_map.tile_set.tile_size)
 	
 	var offsets = CollisionGeometryUtils.compute_polygon_tile_offsets(
@@ -216,12 +216,12 @@ func test_placement_environment_integration() -> void:
 	assert_that(test_env.logger).is_not_null()
 	assert_that(test_env.tile_map).is_not_null()
 	assert_that(test_env.container).is_equal(TEST_CONTAINER)
-	assert_that(test_env.placement_manager).is_not_null()
+	assert_that(test_env.indicator_manager).is_not_null()
 	assert_that(test_env.collision_setup).is_not_null()
 
 @warning_ignore("unused_parameter")
 func test_placement_components_workflow() -> void:
-	var placement_manager = test_env.placement_manager
+	var placement_manager = test_env.indicator_manager
 	var test_object = UnifiedTestFactory.create_test_static_body_with_rect_shape(self)
 	
 	# Test complete workflow from object to collision detection
@@ -239,7 +239,7 @@ func test_placement_components_workflow() -> void:
 @warning_ignore("unused_parameter")
 func test_performance_placement_components() -> void:
 	var start_time = Time.get_ticks_usec()
-	var placement_manager = test_env.placement_manager
+	var _placement_manager = test_env.indicator_manager
 	
 	# Performance test creating multiple indicators
 	for i in range(50):

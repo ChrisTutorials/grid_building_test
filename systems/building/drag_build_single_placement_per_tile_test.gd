@@ -17,18 +17,14 @@ var placed_parent: Node2D
 var placement_count: int = 0
 var placed_positions: Array[Vector2] = []
 
-extends GdUnitTestSuite
-
 const TEST_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
 
 var build_manager: DragBuildManager
-var grid: GridBuildingGrid
 
 func before_test():
 	var test_env = UnifiedTestFactory.create_building_system_test_environment(self)
 	_container = test_env.container
-	build_manager = auto_free(DragBuildManager.new())
-	grid = auto_free(GBTestUtils.create_test_grid())
+	build_manager = auto_free(DragBuildManager.new())	
 	tile_map_layer = test_env.map_layer
 	positioner = test_env.grid_positioner
 	

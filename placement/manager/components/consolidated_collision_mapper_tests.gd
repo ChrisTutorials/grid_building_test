@@ -1,8 +1,24 @@
 extends GdUnitTestSuite
 
 ## Comprehensive consolidated collision mapper and polygon tile mapper tests
-## Combines functionality from multiple individual test files:
-## - collision_mapper_consolidated_comprehensive_test.gd
+## Combines functionality from multiple individual test files
+
+## Test shape types enum for better type safety and maintainability
+enum TestShapeType {
+	RECTANGLE_SMALL,
+	RECTANGLE_STANDARD, 
+	RECTANGLE_LARGE,
+	RECTANGLE_OFFSET,
+	CIRCLE_SMALL,
+	CIRCLE_MEDIUM,
+	CIRCLE_LARGE,
+	TRAPEZOID,
+	CAPSULE
+}
+
+## Consolidated Collision Mapper Tests
+## Consolidates from the following test files:
+## - collision_mapper_comprehensive_test.gd
 ## - collision_mapper_positioner_movement_refactored.gd
 ## - collision_mapper_refactored.gd
 ## - collision_mapper_trapezoid_regression_test.gd
@@ -23,26 +39,17 @@ var targeting_state: GridTargetingState
 var _injector: GBInjectorSystem
 
 func before_test():
-	# Create test infrastructure using factories
-	_injector = UnifiedTestFactory.create_test_injector(self, TEST_CONTAINER)
+	# Create comprehensive test environment using DRY factory pattern
+	var test_env = UnifiedTestFactory.create_collision_indicator_test_environment(self)
+	positioner = UnifiedTestFactory.create_grid_positioner_2d(self, TEST_CONTAINER)
+	
+	collision_mapper = test_env.collision_mapper
+	tile_map_layer = test_env.tile_map
+	logger = test_env.logger
+	targeting_state = test_env.targeting_state
+	_injector = test_env.injector
 
-	# Create tilemap with standard 16x16 tiles
-	tile_map_layer = GodotTestFactory.create_tile_map_layer(self, 40)
-
-	# Create positioner at test position near origin for predictable offsets
-	positioner = GodotTestFactory.create_node2d(self)
-	positioner.global_position = Vector2(64, 64)  # Tile (4, 4) for reasonable offsets
-
-	# Create targeting state
-	var owner_context = GBOwnerContext.new(null)
-	targeting_state = TEST_CONTAINER.get_states().targeting
-	targeting_state._owner_context = owner_context
-	targeting_state.target_map = tile_map_layer
-	targeting_state.positioner = positioner
-	targeting_state.maps = [tile_map_layer]
-
-	# Create collision mapper and polygon mapper
-	collision_mapper = CollisionMapper.create_with_injection(TEST_CONTAINER)
+	# Create polygon mapper from collision mapper
 	polygon_mapper = PolygonTileMapper.new(targeting_state, logger)
 
 	# Store in test hierarchy for compatibility
@@ -54,52 +61,57 @@ func before_test():
 		"logger": logger,
 		"targeting_state": targeting_state
 	}
+	assert_object(positioner).is_not_null()
 
 func after_test():
-	# Cleanup handled by auto_free in factory methods
-	pass
+	if _injector and _injector.has_method("cleanup"):
+		_injector.cleanup()
 
 # ================================
-# Collision Shape Coverage Tests
+# Comprehensive Shape Coverage Tests
 # ================================
 
-## Test collision shape coverage with various shapes and positions
+## Test collision shape coverage with comprehensive shape types using enum
 @warning_ignore("unused_parameter")
 func test_collision_shape_coverage_comprehensive(
-	shape_type: String,
+	shape_type: TestShapeType,
 	shape_data: Dictionary,
 	positioner_position: Vector2,
 	expected_min_tiles: int,
-	expected_behavior: String,
+	test_description: String,
 	test_parameters := [
-		["rectangle_small", {"size": Vector2(16, 16)}, Vector2(64, 64), 1, "single_tile"],
-		["rectangle_standard", {"size": Vector2(32, 32)}, Vector2(64, 64), 4, "quad_tile"],
-		["rectangle_large", {"size": Vector2(64, 48)}, Vector2(64, 64), 8, "multi_tile"],
-		["circle_small", {"radius": 8.0}, Vector2(64, 64), 1, "circular_small"],
-		["circle_medium", {"radius": 16.0}, Vector2(64, 64), 3, "circular_medium"],
-		["circle_large", {"radius": 24.0}, Vector2(64, 64), 6, "circular_large"],
-		["trapezoid", {"polygon": [Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)]}, Vector2(64, 64), 6, "complex_polygon"],
-		["rectangle_offset", {"size": Vector2(32, 32)}, Vector2(0, 0), 4, "origin_position"],
-		["capsule", {"radius": 14.0, "height": 60.0}, Vector2(64, 64), 8, "capsule_shape"]
+		[TestShapeType.RECTANGLE_SMALL, {"size": Vector2(16, 16)}, Vector2(64, 64), 1, "single_tile"],
+		[TestShapeType.RECTANGLE_STANDARD, {"size": Vector2(32, 32)}, Vector2(64, 64), 4, "quad_tile"],
+		[TestShapeType.RECTANGLE_LARGE, {"size": Vector2(64, 48)}, Vector2(64, 64), 8, "multi_tile"],
+		[TestShapeType.CIRCLE_SMALL, {"radius": 8.0}, Vector2(64, 64), 1, "circular_small"],
+		[TestShapeType.CIRCLE_MEDIUM, {"radius": 16.0}, Vector2(64, 64), 3, "circular_medium"],
+		[TestShapeType.CIRCLE_LARGE, {"radius": 24.0}, Vector2(64, 64), 6, "circular_large"],
+		[TestShapeType.TRAPEZOID, {"polygon": [Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)]}, Vector2(64, 64), 6, "complex_polygon"],
+		[TestShapeType.RECTANGLE_OFFSET, {"size": Vector2(32, 32)}, Vector2(0, 0), 4, "origin_position"],
+		[TestShapeType.CAPSULE, {"radius": 14.0, "height": 60.0}, Vector2(64, 64), 8, "capsule_shape"]
 	]
 ):
 	# Set positioner position for test
 	positioner.global_position = positioner_position
 
-	# Create test object with specified shape
-	var test_object = _create_test_object_with_shape(shape_type, shape_data)
+	# Create test object with specified shape using enum-based helper method
+	var test_object = _create_test_object_with_shape_enum(shape_type, shape_data)
+	positioner.add_child(test_object)
 
-	# Setup collision mapper
-	var collision_object_test_setups = _create_collision_test_setup(test_object)
-	var test_indicator = _create_test_indicator()
+	# Setup collision mapper with Dictionary format
+	var collision_object_test_setups = _create_collision_test_setup_dict([test_object])
+	var test_indicator = UnifiedTestFactory.create_rule_check_indicator(self, self, [])
 	collision_mapper.setup(test_indicator, collision_object_test_setups)
 
-	# Get collision tile positions
-	var result = collision_mapper.get_collision_tile_positions_with_mask([test_object], 1)
+	# Get collision results
+	var result = collision_mapper.get_collision_tile_positions_with_mask([], 1)
 
-	# Verify expected behavior
+	# Convert enum to string for error messages
+	var shape_type_str = TestShapeType.keys()[shape_type]
+
+	# Verify minimum tile coverage
 	assert_int(result.size()).append_failure_message(
-		"Expected at least %d tiles for %s shape, got %d" % [expected_min_tiles, shape_type, result.size()]
+		"Expected at least %d tiles for %s shape, got %d" % [expected_min_tiles, shape_type_str, result.size()]
 	).is_greater_equal(expected_min_tiles)
 
 	# Verify position reasonableness
@@ -107,10 +119,10 @@ func test_collision_shape_coverage_comprehensive(
 	for tile_pos in result.keys():
 		var offset = tile_pos - center_tile
 		assert_int(abs(offset.x)).append_failure_message(
-			"Tile X offset too large for %s: %s" % [shape_type, offset]
+			"Tile X offset too large for %s: %s" % [shape_type_str, offset]
 		).is_less_equal(10)
 		assert_int(abs(offset.y)).append_failure_message(
-			"Tile Y offset too large for %s: %s" % [shape_type, offset]
+			"Tile Y offset too large for %s: %s" % [shape_type_str, offset]
 		).is_less_equal(10)
 
 # ================================
@@ -119,10 +131,6 @@ func test_collision_shape_coverage_comprehensive(
 
 ## Test that collision detection updates when positioner moves
 func test_positioner_movement_updates_collision():
-	var positioner = test_hierarchy.positioner
-	var collision_mapper = test_hierarchy.collision_mapper
-	var tile_map = test_hierarchy.tile_map
-
 	# Create collision object
 	var collision_polygon = CollisionPolygon2D.new()
 	collision_polygon.polygon = PackedVector2Array([
@@ -130,13 +138,13 @@ func test_positioner_movement_updates_collision():
 	])
 	positioner.add_child(collision_polygon)
 
-	# Test case 1: Positioner at (0, 0)
-	positioner.global_position = Vector2(0, 0)
-	var offsets1 = collision_mapper._get_tile_offsets_for_collision_polygon(collision_polygon, tile_map)
+		# Test case 1: Positioner at (0, 0)
+	positioner.global_position = Vector2.ZERO
+	var offsets1 = collision_mapper._get_tile_offsets_for_collision_polygon(collision_polygon, tile_map_layer)
 
-	# Test case 2: Positioner moved to (32, 32)
-	positioner.global_position = Vector2(32, 32)
-	var offsets2 = collision_mapper._get_tile_offsets_for_collision_polygon(collision_polygon, tile_map)
+	# Test case 2: Positioner at (64, 64)
+	positioner.global_position = Vector2(64, 64)
+	var offsets2 = collision_mapper._get_tile_offsets_for_collision_polygon(collision_polygon, tile_map_layer)
 
 	# Movement should produce different offsets
 	assert_dict(offsets1).is_not_equal(offsets2)
@@ -145,10 +153,6 @@ func test_positioner_movement_updates_collision():
 
 ## Test collision mapper tracks movement with different shapes
 func test_collision_mapper_tracks_movement():
-	var positioner = test_hierarchy.positioner
-	var collision_mapper = test_hierarchy.collision_mapper
-	var tile_map = test_hierarchy.tile_map
-
 	# Create collision object
 	var area = Area2D.new()
 	var collision_shape = CollisionShape2D.new()
@@ -164,7 +168,7 @@ func test_collision_mapper_tracks_movement():
 	for pos in positions:
 		positioner.position = pos
 		var test_setup = IndicatorCollisionTestSetup.new(area, Vector2(24, 24), test_hierarchy.logger)
-		var offsets = collision_mapper._get_tile_offsets_for_collision_object(test_setup, tile_map)
+		var offsets = collision_mapper._get_tile_offsets_for_collision_object(test_setup, tile_map_layer)
 		all_offsets.append(offsets)
 		assert_dict(offsets).is_not_empty()
 
@@ -176,33 +180,8 @@ func test_collision_mapper_tracks_movement():
 # Basic Collision Mapper Tests
 # ================================
 
-## Test basic collision mapper functionality
-func test_collision_mapper_basic():
-	var collision_mapper = test_hierarchy.collision_mapper
-	var tile_map = test_hierarchy.tile_map
-	var positioner = test_hierarchy.positioner
-
-	# Create simple collision object
-	var area = Area2D.new()
-	var collision_shape = CollisionShape2D.new()
-	collision_shape.shape = RectangleShape2D.new()
-	collision_shape.shape.size = Vector2(32, 32)
-	area.add_child(collision_shape)
-	positioner.add_child(area)
-
-	# Create test setup for collision mapper
-	var test_setup = IndicatorCollisionTestSetup.new(area, Vector2(32, 32), test_hierarchy.logger)
-
-	# Test basic collision mapping
-	var offsets = collision_mapper._get_tile_offsets_for_collision_object(test_setup, tile_map)
-	assert_dict(offsets).is_not_empty()
-
 ## Test collision mapper with polygon shapes
 func test_collision_mapper_polygon():
-	var collision_mapper = test_hierarchy.collision_mapper
-	var tile_map = test_hierarchy.tile_map
-	var positioner = test_hierarchy.positioner
-
 	# Create area with polygon collision
 	var area = Area2D.new()
 	var collision_polygon = CollisionPolygon2D.new()
@@ -219,15 +198,11 @@ func test_collision_mapper_polygon():
 	# Create test setup for collision mapper
 	var test_setup = IndicatorCollisionTestSetup.new(area, Vector2(32, 32), test_hierarchy.logger)
 
-	var offsets = collision_mapper._get_tile_offsets_for_collision_object(test_setup, tile_map)
+	var offsets = collision_mapper._get_tile_offsets_for_collision_object(test_setup, tile_map_layer)
 	assert_dict(offsets).is_not_empty()
 
 ## Test collision mapper with multiple shapes
 func test_collision_mapper_multiple_shapes():
-	var collision_mapper = test_hierarchy.collision_mapper
-	var tile_map = test_hierarchy.tile_map
-	var positioner = test_hierarchy.positioner
-
 	# Create area with multiple shapes
 	var area = Area2D.new()
 
@@ -248,7 +223,7 @@ func test_collision_mapper_multiple_shapes():
 	# Create test setup for collision mapper
 	var test_setup = IndicatorCollisionTestSetup.new(area, Vector2(32, 32), test_hierarchy.logger)
 
-	var offsets = collision_mapper._get_tile_offsets_for_collision_object(test_setup, tile_map)
+	var offsets = collision_mapper._get_tile_offsets_for_collision_object(test_setup, tile_map_layer)
 	assert_int(offsets.size()).is_greater(1)
 
 # ================================
@@ -335,20 +310,22 @@ func test_tile_shape_drives_mapping():
 	var poly: CollisionPolygon2D = GodotTestFactory.create_collision_polygon(self, PackedVector2Array([Vector2(-8, -8), Vector2(8, -8), Vector2(8, 8), Vector2(-8, 8)]))
 
 	var owner_context = GBOwnerContext.new(null)
-	var targeting_state = GridTargetingState.new(owner_context)
-	targeting_state.positioner = GodotTestFactory.create_node2d(self)
-	targeting_state.positioner.global_position = Vector2.ZERO
+	var targeting_state_local = GridTargetingState.new(owner_context)
+	targeting_state_local.positioner = GodotTestFactory.create_node2d(self)
+	targeting_state_local.positioner.global_position = Vector2.ZERO
 
 	var debug_settings = GBDebugSettings.new()
-	var logger = GBLogger.new(debug_settings)
-	var mapper = PolygonTileMapper.new(targeting_state, logger)
+	var logger_local = GBLogger.new(debug_settings)
+	var mapper = PolygonTileMapper.new(targeting_state_local, logger_local)
 	var offsets = mapper.compute_tile_offsets(poly, map_layer)
 	assert_array(offsets).is_not_empty()
 
 ## Test isometric tile shape produces offsets
 func test_isometric_tile_shape_produces_offsets():
-	# Create fake TileMapLayer with a TileSet that exposes tile_shape
-	var map_layer = Node.new() as TileMapLayer
+	# Create a proper TileMapLayer with a TileSet that exposes tile_shape
+	var map_layer = TileMapLayer.new()
+	auto_free(map_layer)
+	
 	# Create a minimal TileSet resource and attach a tile_shape property
 	var ts = TileSet.new()
 	# Set tile shape to isometric
@@ -357,12 +334,15 @@ func test_isometric_tile_shape_produces_offsets():
 
 	# Build a simple polygon around origin (square) as CollisionPolygon2D
 	var poly = CollisionPolygon2D.new()
+	auto_free(poly)
 	poly.polygon = PackedVector2Array([Vector2(-8, -8), Vector2(8, -8), Vector2(8, 8), Vector2(-8, 8)])
 
 	# Create dummy targeting state and positioner
 	var owner_ctx = GBOwnerContext.new(null)
 	var targeting_state_local = GridTargetingState.new(owner_ctx)
-	targeting_state_local.positioner = Node2D.new()
+	var positioner_node = Node2D.new()
+	auto_free(positioner_node)
+	targeting_state_local.positioner = positioner_node
 	targeting_state_local.positioner.global_position = Vector2.ZERO
 
 	var debug_settings_local = GBDebugSettings.new()
@@ -409,42 +389,79 @@ func test_tile_shape_preference_from_map():
 # Helper Methods
 # ================================
 
-func _create_test_object_with_shape(shape_type: String, shape_data: Dictionary) -> Node2D:
-	var test_object = Node2D.new()
-	add_child(test_object)
-
+## Create test object using CollisionObjectTestFactory methods directly
+func _create_test_object_with_shape_enum(shape_type: TestShapeType, shape_data: Dictionary) -> Node2D:
+	var test_object: Node2D
+	var position: Vector2 = shape_data.get("position", Vector2.ZERO)
+	
+	# Use appropriate factory method based on shape type
 	match shape_type:
-		"rectangle_small", "rectangle_standard", "rectangle_large", "rectangle_offset":
-			var collision_shape = CollisionShape2D.new()
-			collision_shape.shape = RectangleShape2D.new()
-			collision_shape.shape.size = shape_data.size
-			test_object.add_child(collision_shape)
-		"circle_small", "circle_medium", "circle_large":
-			var collision_shape = CollisionShape2D.new()
-			collision_shape.shape = CircleShape2D.new()
-			collision_shape.shape.radius = shape_data.radius
-			test_object.add_child(collision_shape)
-		"capsule":
-			var collision_shape = CollisionShape2D.new()
-			collision_shape.shape = CapsuleShape2D.new()
-			collision_shape.shape.radius = shape_data.radius
-			collision_shape.shape.height = shape_data.height
-			test_object.add_child(collision_shape)
-		"trapezoid":
-			var collision_polygon = CollisionPolygon2D.new()
-			collision_polygon.polygon = PackedVector2Array(shape_data.polygon)
-			test_object.add_child(collision_polygon)
-
-	positioner.add_child(test_object)
+		TestShapeType.RECTANGLE_SMALL:
+			var size = shape_data.get("size", Vector2(16, 16))
+			test_object = CollisionObjectTestFactory.create_static_body_with_rect(self, size, position)
+		
+		TestShapeType.RECTANGLE_STANDARD:
+			var size = shape_data.get("size", Vector2(32, 32))
+			test_object = CollisionObjectTestFactory.create_static_body_with_rect(self, size, position)
+		
+		TestShapeType.RECTANGLE_LARGE:
+			var size = shape_data.get("size", Vector2(64, 48))
+			test_object = CollisionObjectTestFactory.create_static_body_with_rect(self, size, position)
+		
+		TestShapeType.RECTANGLE_OFFSET:
+			var size = shape_data.get("size", Vector2(32, 32))
+			test_object = CollisionObjectTestFactory.create_static_body_with_rect(self, size, position)
+		
+		TestShapeType.CIRCLE_SMALL:
+			var radius = shape_data.get("radius", 8.0)
+			test_object = CollisionObjectTestFactory.create_static_body_with_circle(self, radius, position)
+		
+		TestShapeType.CIRCLE_MEDIUM:
+			var radius = shape_data.get("radius", 16.0)
+			test_object = CollisionObjectTestFactory.create_static_body_with_circle(self, radius, position)
+		
+		TestShapeType.CIRCLE_LARGE:
+			var radius = shape_data.get("radius", 24.0)
+			test_object = CollisionObjectTestFactory.create_static_body_with_circle(self, radius, position)
+		
+		TestShapeType.TRAPEZOID:
+			var polygon = PackedVector2Array(shape_data.get("polygon", [Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)]))
+			test_object = CollisionObjectTestFactory.create_static_body_with_polygon(self, polygon, position)
+		
+		TestShapeType.CAPSULE:
+			# Create capsule as rectangle for now (factory doesn't have capsule method)
+			var size = shape_data.get("size", Vector2(16, 32))
+			test_object = CollisionObjectTestFactory.create_static_body_with_rect(self, size, position)
+	
+	# Remove from test suite parent since we'll be parenting it to the positioner
+	if test_object.get_parent() == self:
+		remove_child(test_object)
+	
 	return test_object
 
-func _create_collision_test_setup(test_object: Node2D) -> Array:
-	var setups = []
-	var collision_objects = _find_collision_objects(test_object)
-	for collision_obj in collision_objects:
-		var setup = IndicatorCollisionTestSetup.new(collision_obj, Vector2(32, 32), logger)
-		setups.append(setup)
-	return setups
+## Helper to robustly find a CollisionShape2D in the node hierarchy
+func _find_collision_shape_2d(node: Node) -> CollisionShape2D:
+	if node is CollisionShape2D:
+		return node as CollisionShape2D
+	
+	for child in node.get_children():
+		var found = _find_collision_shape_2d(child)
+		if found:
+			return found
+	
+	return null
+
+## Helper to robustly find a CollisionPolygon2D in the node hierarchy
+func _find_collision_polygon_2d(node: Node) -> CollisionPolygon2D:
+	if node is CollisionPolygon2D:
+		return node as CollisionPolygon2D
+	
+	for child in node.get_children():
+		var found = _find_collision_polygon_2d(child)
+		if found:
+			return found
+	
+	return null
 
 func _find_collision_objects(node: Node) -> Array:
 	var collision_objects = []
@@ -454,8 +471,8 @@ func _find_collision_objects(node: Node) -> Array:
 		collision_objects.append_array(_find_collision_objects(child))
 	return collision_objects
 
-func _create_test_indicator() -> Node2D:
-	var indicator = Node2D.new()
+func _create_test_indicator() -> RuleCheckIndicator:
+	var indicator = RuleCheckIndicator.new()
 	add_child(indicator)
 	return indicator
 
@@ -467,3 +484,20 @@ func _create_trapezoid_node(parented := true) -> CollisionPolygon2D:
 	else:
 		add_child(poly)
 	return poly
+func _create_collision_test_setup_dict(test_objects: Array[Node2D]) -> Dictionary[Node2D, IndicatorCollisionTestSetup]:
+	var setup_dict: Dictionary[Node2D, IndicatorCollisionTestSetup] = {}
+	for test_object in test_objects:
+		var collision_objects = _find_collision_objects(test_object)
+		for collision_obj in collision_objects:
+			var setup = IndicatorCollisionTestSetup.new(collision_obj, Vector2(32, 32), logger)
+			setup_dict[test_object] = setup
+			break  # Use first collision object found for each test object
+	return setup_dict
+
+func _create_collision_test_setup(test_object: Node2D) -> Array:
+	var setups = []
+	var collision_objects = _find_collision_objects(test_object)
+	for collision_obj in collision_objects:
+		var setup = IndicatorCollisionTestSetup.new(collision_obj, Vector2(32, 32), logger)
+		setups.append(setup)
+	return setups
