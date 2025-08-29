@@ -15,10 +15,21 @@ var test_smithy_placeable: Placeable = load("uid://dirh6mcrgdm3w")
 func before_test() -> void:
 	test_env = UnifiedTestFactory.create_complete_building_test_setup(self)
 
+func after_test() -> void:
+	# Cleanup: ensure building system is not left in build mode
+	if test_env and test_env.building_system:
+		var building_system = test_env.building_system
+		if building_system.is_in_build_mode():
+			building_system.exit_build_mode()
+
 #region BUILDING SYSTEM CORE
 
 func test_building_system_initialization() -> void:
 	var building_system : BuildingSystem = test_env.building_system
+	
+	# Ensure clean state
+	if building_system.is_in_build_mode():
+		building_system.exit_build_mode()
 	
 	# Verify initial state
 	var is_build_mode: bool = building_system.is_in_build_mode()
@@ -222,7 +233,8 @@ func test_complete_building_workflow() -> void:
 	# Phase 1: Setup
 	if targeting_system:
 		var targeting_state = targeting_system.get_state()
-		targeting_state.target.position = Vector2(300, 300)
+		if targeting_state and targeting_state.target:
+			targeting_state.target.position = Vector2(300, 300)
 	
 	# Phase 2: Enter build mode
 	building_system.enter_build_mode(test_smithy_placeable)
@@ -267,7 +279,7 @@ func test_building_system_dependencies() -> void:
 	# Verify system has required dependencies
 	var issues = building_system.get_dependency_issues()
 	assert_array(issues).append_failure_message(
-		"Building system should have minimal dependency issues: %s" % issues
+		"Building system should have minimal dependency issues: %s" % [str(issues)]
 	).is_empty()
 
 func test_building_system_validation() -> void:
@@ -285,7 +297,7 @@ func test_building_system_validation() -> void:
 
 func test_drag_build_single_placement_regression() -> void:
 	var building_system : BuildingSystem = test_env.building_system
-	var drag_manager = building_system.drag_manager
+	var drag_manager = building_system.get_lazy_drag_manager()
 	
 	building_system.enter_build_mode(test_smithy_placeable)
 	
