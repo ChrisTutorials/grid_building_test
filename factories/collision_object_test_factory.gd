@@ -3,6 +3,18 @@ extends GdUnitTestSuite
 ## Collision Object Test Factory
 ## Provides reusable factory methods for creating collision objects in tests
 ## Eliminates duplicate setup code across test suites
+##
+## ## Related Factories:
+## - **UnifiedTestFactory**: Main factory for comprehensive test environments
+##   - Located at: test/grid_building_test/factories/unified_test_factory.gd
+##   - Use for: Complete test environment setup, building systems, indicators
+##   - Methods: create_utilities_test_environment(), create_building_system_test_environment(), etc.
+##
+## ## Usage:
+## ```gdscript
+## var collision_body = CollisionObjectTestFactory.create_static_body_with_diamond(self, Vector2(64, 32))
+## var isometric_building = CollisionObjectTestFactory.create_isometric_blacksmith(self)
+## ```
 
 class_name CollisionObjectTestFactory
 
@@ -190,3 +202,95 @@ static func create_area_with_rect_collision(
 	test_suite.assert_that(positioner.get_children()).contains(area)
 
 	return area
+
+## Creates a StaticBody2D with a diamond/rhombus collision shape (for isometric buildings)
+static func create_static_body_with_diamond(
+	test_suite: GdUnitTestSuite, 
+	width: float = 32.0, 
+	height: float = 32.0, 
+	position: Vector2 = Vector2.ZERO
+) -> StaticBody2D:
+	var collision_body: StaticBody2D = StaticBody2D.new()
+	test_suite.add_child(collision_body)
+	test_suite.auto_free(collision_body)
+
+	# Create diamond-shaped polygon
+	var half_width = width / 2.0
+	var half_height = height / 2.0
+	var diamond_points = PackedVector2Array([
+		Vector2(0, -half_height),    # Top
+		Vector2(half_width, 0),      # Right
+		Vector2(0, half_height),     # Bottom
+		Vector2(-half_width, 0)      # Left
+	])
+
+	var collision_polygon: CollisionPolygon2D = CollisionPolygon2D.new()
+	collision_polygon.polygon = diamond_points
+	collision_polygon.position = position
+	collision_body.add_child(collision_polygon)
+
+	return collision_body
+
+## Creates an isometric blacksmith building with proper collision layers
+static func create_isometric_blacksmith(test_suite: GdUnitTestSuite, position: Vector2 = Vector2.ZERO) -> StaticBody2D:
+	var blacksmith = create_static_body_with_diamond(test_suite, 32.0, 32.0, position)
+	
+	# Set blacksmith-specific collision layers (common demo values)
+	blacksmith.collision_layer = 2560  # Demo blacksmith collision layer
+	blacksmith.collision_mask = 1536   # Demo blacksmith collision mask
+	blacksmith.global_position = position
+
+	return blacksmith
+
+## Creates a building with custom collision layers and diamond shape
+static func create_isometric_building_with_layers(
+	test_suite: GdUnitTestSuite, 
+	collision_layer: int, 
+	collision_mask: int,
+	width: float = 32.0,
+	height: float = 32.0,
+	position: Vector2 = Vector2.ZERO
+) -> StaticBody2D:
+	var building = create_static_body_with_diamond(test_suite, width, height)
+	building.collision_layer = collision_layer
+	building.collision_mask = collision_mask
+	building.global_position = position
+	
+	return building
+
+## Sets up a complete collision test environment with building, collision mapper, and indicator
+static func setup_collision_test_environment(
+	test_suite: GdUnitTestSuite,
+	test_env: Dictionary, 
+	building: StaticBody2D
+) -> Dictionary:
+	# Set up collision mapper with test setup
+	var test_setup = UnifiedTestFactory.create_test_indicator_collision_setup(test_suite, building)
+	test_env.collision_mapper.collision_object_test_setups[building] = test_setup
+	
+	# Create indicator manager if needed
+	var targeting_setup = UnifiedTestFactory.prepare_targeting_state_ready(test_suite, test_env.container)
+	var indicator_manager: IndicatorManager = UnifiedTestFactory.create_test_indicator_manager(test_suite, targeting_setup.container)
+	
+	return {
+		"building": building,
+		"collision_mapper": test_env.collision_mapper,
+		"indicator_manager": indicator_manager,
+		"test_setup": test_setup
+	}
+
+## Tests collision generation for a building with rotation
+static func test_collision_generation_with_rotation(
+	test_suite: GdUnitTestSuite,
+	building: StaticBody2D,
+	collision_mapper: CollisionMapper,
+	rotation_angles: Array = [0.0, PI/4, PI/2, PI]
+) -> void:
+	for angle: float in rotation_angles:
+		building.rotation = angle
+		
+		# Test collision mapping with rotation
+		var collision_tiles = collision_mapper.get_collision_tile_positions_with_mask([building], building.collision_layer)
+		test_suite.assert_array(collision_tiles.keys()).append_failure_message(
+			"Should generate collision tiles at rotation %s degrees" % [rad_to_deg(angle)]
+		).is_not_empty()

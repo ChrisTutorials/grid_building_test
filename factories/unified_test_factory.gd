@@ -43,6 +43,12 @@ extends RefCounted
 ## - Public methods are stable APIs that maintain backward compatibility
 ## - All methods follow consistent parameter ordering: (test, container, options)
 ##
+## ## Related Factories:
+## - **CollisionObjectTestFactory**: Specialized factory for collision shapes and bodies
+##   - Located at: test/grid_building_test/factories/collision_object_test_factory.gd
+##   - Use for: Diamond shapes, isometric buildings, collision environment setup
+##   - Methods: create_static_body_with_diamond(), create_isometric_blacksmith(), etc.
+##
 ## @tutorial: See docs/testing/factory_usage_guide.md for detailed examples
 
 ## Default test container used when no specific container is provided.
