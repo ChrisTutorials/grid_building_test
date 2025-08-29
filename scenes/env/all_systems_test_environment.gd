@@ -3,6 +3,7 @@ class_name AllSystemsTestEnvironment
 extends BuildingTestEnvironment
 
 @export var manipulation_system : ManipulationSystem
+@export var target_highlighter : TargetHighlighter
 
 func get_issues() -> Array[String]:
 	var issues : Array[String] = []
@@ -13,5 +14,8 @@ func get_issues() -> Array[String]:
 		issues.append("Missing ManipulationSystem")
 	else:
 		issues.append_array(manipulation_system.get_runtime_issues())
+		
+	if target_highlighter == null:
+		issues.append("Missing target highlighter.")
 
 	return issues

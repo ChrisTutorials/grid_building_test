@@ -60,19 +60,6 @@ const TEST_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
 # LAYERED FACTORY METHODS - Advanced DRY Approach
 # ================================
 
-## Creates comprehensive utilities test environment with shared components
-static func create_utilities_test_environment(test: GdUnitTestSuite, container: GBCompositionContainer = null) -> Dictionary:
-	var _container = _resolve_container(container)
-	var injector = _create_injector_for_container(test, _container)
-	var tile_map = _create_standard_tile_map(test)
-
-	return {
-		"injector": injector,
-		"logger": _container.get_logger(),
-		"tile_map": tile_map,
-		"container": _container
-	}
-
 ## Creates placement system test environment with manager components
 static func create_indicator_system_test_environment(test: GdUnitTestSuite, container: GBCompositionContainer = null) -> Dictionary:
 	var base_env = create_utilities_test_environment(test, container)
@@ -412,6 +399,7 @@ static func create_test_debug_settings() -> GBDebugSettings:
 	return debug_settings
 
 static func create_test_injector(test: GdUnitTestSuite, container: GBCompositionContainer = null) -> GBInjectorSystem:
+	assert(test != null, " Should only be ran inside a GdUnitTestSuite")
 	var _container = container if container != null else create_test_composition_container(test)
 	var injector := GBInjectorSystem.create_with_injection(test, _container)
 	test.auto_free(injector)

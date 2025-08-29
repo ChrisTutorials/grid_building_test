@@ -12,10 +12,12 @@ extends GdUnitTestSuite
 
 var env: AllSystemsTestEnvironment
 var _container : GBCompositionContainer
+var _gts : GridTargetingSystem
 
 func before_test() -> void:
 	env = UnifiedTestFactory.instance_all_systems_env(self, "uid://ioucajhfxc8b")
 	_container = env.get_container()
+	_gts = env.grid_targeting_system
 
 ## Helper to create RuleValidationParameters using test environment defaults
 func _make_rule_params(p_target: Node) -> RuleValidationParameters:
@@ -261,17 +263,19 @@ func test_complex_multi_system_workflow() -> void:
 	var build_result = building_system.try_build_at_position(target_pos)
 	assert_object(build_result).is_not_null()
 	
-	# Phase 3: Post-build manipulation
+	# Phase 3: Post-build manipulation - move the built object
 	if build_result:
-		_manipulation_system.select_object(build_result)
-		var manipulation_state = _manipulation_system.get_current_state()
-		assert_object(manipulation_state).append_failure_message(
+		_manipulation_system.try_move(build_result)
+		var manipulation_state := _container.get_states().manipulation
+		assert_object(manipulation_state.validate_setup()).append_failure_message(
 			"Should have valid manipulation state after selection"
 		).is_not_null()
+		
+		assert_bool(manipulation_state.is_targeted_movable()).append_failure_message("Expected that the built %s is movable" % build_result).is_true()
 
 func test_cross_system_state_consistency() -> void:
 	var building_system: Object = env.building_system
-	var targeting_system = env.targeting_system
+	var targeting_system = env.grid_targeting_system
 	var _indicator_manager: IndicatorManager = env.indicator_manager
 	
 	# Setup coordinated state across systems
@@ -288,9 +292,9 @@ func test_cross_system_state_consistency() -> void:
 		return
 	
 	# Verify state consistency
-	var building_target = building_system.get_target_position()
+	var building_target = building_system.get_targeting_state().target
 	var current_targeting_state = targeting_system.get_state()
-	var targeting_target = current_targeting_state.get("position", target_pos)
+	var targeting_target = current_targeting_state.target
 	
 	# Systems should maintain consistent target positions
 	assert_vector(building_target).append_failure_message(
@@ -323,7 +327,7 @@ func test_polygon_test_object_indicator_generation() -> void:
 
 func test_polygon_collision_integration() -> void:
 	var polygon_test_object = UnifiedTestFactory.create_polygon_test_placeable(self)
-	var collision_mapper: CollisionMapper = env.collision_mapper
+	var collision_mapper: CollisionMapper = env.indicator_manager.get_collision_mapper()
 	
 	# Test polygon collision tile mapping
 	var polygon_runtime = polygon_test_object.packed_scene.instantiate()
@@ -352,29 +356,23 @@ func test_polygon_collision_integration() -> void:
 
 #region GRID TARGETING HIGHLIGHT INTEGRATION
 
-func test_grid_targeting_highlight_integration() -> void:
-	var targeting_system = env.targeting_system
-	var highlight_manager = env.get("highlight_manager")  # May not be available in all environments
-	
-	if highlight_manager == null:
-		# Skip if highlight manager not available in test environment
-		return
+func test_targeting_highligher_colors_current_target_integration_test() -> void:
+	var targeting_system = env.grid_targeting_system
+	var target_highlighter : TargetHighlighter = env.target_highlighter  # May not be available in all environments
 	
 	# Test targeting with highlight updates
 	var targeting_state = targeting_system.get_state()
+	var test_node := UnifiedTestFactory.create_test_node2d(self)
+	targeting_state.target = test_node
 	targeting_state.target.position = Vector2(360, 360)
 	
 	# Verify highlight state updates with targeting
-	var highlight_active = highlight_manager.is_highlight_active()
-	assert_bool(highlight_active).append_failure_message(
-		"Highlight should be active when targeting position is set"
-	).is_true()
+	target_highlighter.current_target = test_node
+	assert_vector(test_node.modulate).append_failure_message("Changed to some highlight color").is_not_equal(Color.WHITE)
 
 func test_targeting_state_transitions() -> void:
-	var targeting_system = env.targeting_system
-	
 	# Test state transitions
-	var targeting_state = targeting_system.get_state()
+	var targeting_state = _gts.get_state()
 	var initial_pos = Vector2.ZERO
 	if targeting_state.positioner != null:
 		initial_pos = targeting_state.positioner.global_position
@@ -403,13 +401,12 @@ func test_targeting_state_transitions() -> void:
 func test_full_system_integration_workflow() -> void:
 	# Test complete workflow from targeting through building to manipulation
 	var building_system: Object = env.building_system
-	var targeting_system = env.targeting_system
 	var indicator_manager: IndicatorManager = env.indicator_manager
 	var _manipulation_system = env.manipulation_system
 	
 	# Step 1: Set target
 	var target_pos: Vector2 = Vector2(500, 500)
-	var targeting_state = targeting_system.get_state()
+	var targeting_state = _gts.get_state()
 	if targeting_state.positioner != null:
 		targeting_state.positioner.global_position = target_pos
 	
