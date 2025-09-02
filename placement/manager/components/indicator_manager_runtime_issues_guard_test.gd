@@ -12,17 +12,16 @@ func test_setup_indicators_aborts_when_targeting_has_runtime_issues():
 	var positioner: Node2D = setup.positioner
 	
 	# Now intentionally break the setup to create runtime issues for testing
-	# Remove the target_map to simulate a runtime issue
 	targeting_state.target_map = null
 	
 	# Ensure indicator template exists in container templates
 	var templates := container.get_templates()
-	if templates.rule_check_indicator == null:
-		# Create a minimal indicator instance wrapped in a new scene to satisfy template requirement
-		var indicator := UnifiedTestFactory.create_test_rule_check_indicator(self)
-		var ps := PackedScene.new()
-		ps.pack(indicator)
-		templates.rule_check_indicator = ps
+	
+	# Create a minimal indicator instance wrapped in a new scene to satisfy template requirement
+	var indicator := UnifiedTestFactory.create_test_rule_check_indicator(self)
+	var ps := PackedScene.new()
+	ps.pack(indicator)
+	templates.rule_check_indicator = ps
 
 	# Create manager with injection
 	var manager: IndicatorManager = auto_free(IndicatorManager.create_with_injection(container, positioner))
@@ -39,4 +38,5 @@ func test_setup_indicators_aborts_when_targeting_has_runtime_issues():
 	# Assert: no indicators created and report finalization did not crash
 	assert_array(report.indicators).is_empty()
 	# The manager should detect runtime issues (null target_map) naturally
-	assert_bool(not targeting_state.get_runtime_issues().is_empty()).is_true()
+	var runtime_issues : Array[String] = targeting_state.get_runtime_issues()
+	assert_array(runtime_issues).append_failure_message("Issues Found: %s" % runtime_issues).is_empty()

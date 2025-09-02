@@ -138,7 +138,7 @@ static func create_collision_object_test_setups(col_objects: Array) -> Dictionar
 	var setups: Dictionary[CollisionObject2D, IndicatorCollisionTestSetup] = {}
 	for obj in col_objects:
 		if obj is CollisionObject2D:
-			setups[obj] = IndicatorCollisionTestSetup.new(obj, Vector2.ZERO, create_test_logger())
+			setups[obj] = IndicatorCollisionTestSetup.new(obj, Vector2.ZERO)
 	return setups
 
 static func create_collision_test_setup(test: GdUnitTestSuite, collision_object: CollisionObject2D = null) -> IndicatorCollisionTestSetup:
@@ -176,8 +176,7 @@ static func create_test_parent_with_body_and_polygon(test: GdUnitTestSuite) -> N
 static func create_test_indicator_collision_setup(test: GdUnitTestSuite, collision_object: CollisionObject2D = null) -> IndicatorCollisionTestSetup:
 	var obj := collision_object if collision_object != null else create_test_static_body_with_rect_shape(test)
 	var shape_stretch := Vector2(16, 16)
-	var logger := create_test_logger()
-	return IndicatorCollisionTestSetup.new(obj, shape_stretch, logger)
+	return IndicatorCollisionTestSetup.new(obj, shape_stretch)
 
 static func create_test_indicator_manager(test: GdUnitTestSuite, param = null) -> IndicatorManager:
 	var _container: GBCompositionContainer
@@ -466,10 +465,13 @@ static func create_rule_check_indicator(test: GdUnitTestSuite, parent: Node = nu
 	return indicator
 
 static func create_rule_validation_params(test: GdUnitTestSuite, target: Node2D = null, targeting_state: GridTargetingState = null) -> RuleValidationParameters:
+	var owner := GBOwner.new()
 	var placer := Node2D.new()
 	placer.name = "TestPlacer"
 	test.auto_free(placer)
 	test.add_child(placer)
+	placer.add_child(owner)
+	test.auto_free(owner)
 	var test_target := target if target != null else Node2D.new()
 	if target == null:
 		test_target.name = "RuleValidationTestTarget"
@@ -477,7 +479,7 @@ static func create_rule_validation_params(test: GdUnitTestSuite, target: Node2D 
 		test.add_child(test_target)
 	var state := targeting_state if targeting_state != null else create_targeting_state(test)
 	var logger := create_test_logger()
-	return RuleValidationParameters.new(placer, test_target, state, logger)
+	return RuleValidationParameters.new(owner, test_target, state)
 
 static func create_rule_with_logger(rule_class: GDScript) -> PlacementRule:
 	var rule: PlacementRule = rule_class.new()
@@ -1299,7 +1301,7 @@ static func create_rule_validation_parameters(test: GdUnitTestSuite, container: 
 	var targeting_state = create_targeting_state(test)
 	var logger = _container.get_logger()
 	
-	return RuleValidationParameters.new(placer, target, targeting_state, logger)
+	return RuleValidationParameters.new(placer, target, targeting_state)
 
 ## Creates collision mapper setup for collision tests
 static func create_collision_mapper_setup(test: GdUnitTestSuite, container: GBCompositionContainer = null) -> Dictionary:
@@ -1562,27 +1564,16 @@ static func prepare_targeting_state_ready(
 	setup.tile_map = GodotTestFactory.create_tile_map_layer(test, 32)
 	setup.tile_map.tile_set.tile_size = Vector2i(16, 16)
 	
-	# Create GBLevelContext to properly configure dependencies
-	var level_context = GBLevelContext.new()
-	level_context.name = "TestLevelContext"
-	level_context.target_map = setup.tile_map
-	var maps_array: Array[TileMapLayer] = [setup.tile_map]
-	level_context.maps = maps_array
-	level_context.objects_parent = setup.objects_parent
-	test.auto_free(level_context)
-	
-	# Resolve dependencies for the level context so it can use the logger
-	level_context.resolve_gb_dependencies(_container)
-	
 	# Apply level context to container states
-	var targeting_state = _container.get_states().targeting
+	var targeting_state : GridTargetingState = _container.get_states().targeting
 	var building_state = _container.get_states().building
-	level_context.apply_to(targeting_state, building_state)
 	
-	# Set positioner on targeting state
+	# Set runtime dependencies for targeting map instead of using GBLevelContext
 	targeting_state.positioner = setup.positioner
+	targeting_state.target_map = setup.tile_map
+	targeting_state.maps = [setup.tile_map]
 	
-	# Create default target for testing
+	# Create default target for testing 
 	setup.default_target = GodotTestFactory.create_node2d(test)
 	setup.default_target.name = "DefaultTestTarget"
 	setup.default_target.position = Vector2(64, 64)
@@ -1592,9 +1583,9 @@ static func prepare_targeting_state_ready(
 	setup.container = _container
 	setup.targeting_state = targeting_state
 	setup.building_state = building_state
-	setup.level_context = level_context
 	setup.logger = _container.get_logger()
-	
+	var runtime_issues : Array[String] = targeting_state.get_runtime_issues()
+	test.assert_array(runtime_issues).append_failure_message("Issues Found: %s" % str(runtime_issues)).is_empty()
 	return setup
 
 # ================================

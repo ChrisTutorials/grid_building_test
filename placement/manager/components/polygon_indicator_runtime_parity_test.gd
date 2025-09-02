@@ -53,7 +53,7 @@ func _collect_indicators(pm: IndicatorManager) -> Array[RuleCheckIndicator]:
 
 func test_polygon_object_only_generates_overlapping_indicators_and_aligns_preview():
 	var placeable := UnifiedTestFactory.create_polygon_test_placeable(self)
-	var report : PlacementSetupReport = _building.enter_build_mode(placeable)
+	var report : PlacementReport = _building.enter_build_mode(placeable)
 	assert_bool(report.is_successful()).append_failure_message("enter_build_mode failed").is_true()
 
 	# Acquire preview and set up indicators via IndicatorManager

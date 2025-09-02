@@ -40,7 +40,7 @@ func test_same_placeable_twice_preserves_name():
 	var expected_name = placeable_2d_test.get_packed_root_name()
 
 	# First call to enter_build_mode
-	var report1 : PlacementSetupReport = system.enter_build_mode(placeable_2d_test)
+	var report1 : PlacementReport = system.enter_build_mode(placeable_2d_test)
 	assert_bool(report1.is_successful()).is_true()
 
 	var preview1 = _container.get_states().building.preview
@@ -48,7 +48,7 @@ func test_same_placeable_twice_preserves_name():
 	assert_str(preview1.name).is_equal(expected_name)
 
 	# Second call to enter_build_mode with same placeable
-	var report2 : PlacementSetupReport = system.enter_build_mode(placeable_2d_test)
+	var report2 : PlacementReport = system.enter_build_mode(placeable_2d_test)
 	assert_bool(report2.is_successful()).is_true()
 
 	var preview2 = _container.get_states().building.preview

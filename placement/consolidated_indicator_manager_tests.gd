@@ -164,7 +164,7 @@ func test_indicator_manager_runtime_issues_guard() -> void:
 	
 	# Test with an empty/invalid setup - don't modify the original params
 	# Create a minimal setup that should trigger error handling
-	var result : PlacementSetupReport = indicator_manager.try_setup([], invalid_params) # Empty rules array
+	var result : PlacementReport = indicator_manager.try_setup([], invalid_params) # Empty rules array
 	assert_object(result).append_failure_message(
 		"Indicator manager should handle empty rules gracefully"
 	).is_not_null()

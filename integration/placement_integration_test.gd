@@ -817,7 +817,7 @@ func _create_placeable_with_no_rules() -> Placeable:
 ## when placeable has no rules. Should only place one object per tile switch.
 ## No collision pass required to place, but we expect only one placement per tiled
 func test_drag_build_should_not_stack_multiple_objects_in_the_same_spot_before_targeting_new_tile():
-	var report : PlacementSetupReport = _building_system.enter_build_mode(test_within_tilemap_bounds_placeable)
+	var report : PlacementReport = _building_system.enter_build_mode(test_within_tilemap_bounds_placeable)
 	assert_bool(report.is_successful()).is_true()
 	
 	_targeting_system.move_to_tile(_positioner, Vector2(0,0))

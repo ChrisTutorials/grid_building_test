@@ -33,7 +33,7 @@ func test_complete_building_workflow() -> void:
 	# Enter build mode and check if it succeeded
 	var setup_report = building_system.enter_build_mode(smithy)
 	assert_object(setup_report).append_failure_message(
-		"enter_build_mode should return a PlacementSetupReport"
+		"enter_build_mode should return a PlacementReport"
 	).is_not_null()
 	
 	if setup_report and setup_report.has_method("is_successful") and setup_report.is_successful():
@@ -155,7 +155,7 @@ func test_indicators_are_parented_and_inside_tree() -> void:
 	
 	var logger: GBLogger = _container.get_logger()
 	var params := _make_rule_params(preview)
-	var setup_results: PlacementSetupReport = indicator_manager.try_setup(rules, params)
+	var setup_results: PlacementReport = indicator_manager.try_setup(rules, params)
 	
 	assert_bool(setup_results.is_successful()).append_failure_message("IndicatorManager.try_setup failed").is_true()
 	var indicators = indicator_manager.get_indicators()

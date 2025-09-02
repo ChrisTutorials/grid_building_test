@@ -36,7 +36,7 @@ func test_complete_building_workflow() -> void:
 	# Enter build mode and check if it succeeded
 	var setup_report = building_system.enter_build_mode(smithy_placeable)
 	assert_object(setup_report).append_failure_message(
-		"enter_build_mode should return a PlacementSetupReport"
+		"enter_build_mode should return a PlacementReport"
 	).is_not_null()
 	
 	if setup_report and setup_report.has_method("is_successful") and setup_report.is_successful():
@@ -156,7 +156,7 @@ func test_indicators_are_parented_and_inside_tree() -> void:
 	
 	var logger: GBLogger = _container.get_logger()
 	var params := _make_rule_params(preview)
-	var setup_results: PlacementSetupReport = indicator_manager.try_setup(rules, params)
+	var setup_results: PlacementReport = indicator_manager.try_setup(rules, params)
 	
 	assert_bool(setup_results.is_successful()).append_failure_message("IndicatorManager.try_setup failed").is_true()
 	var indicators = indicator_manager.get_indicators()
@@ -235,7 +235,7 @@ func test_smithy_collision_detection() -> void:
 
 #region COMPLEX WORKFLOW INTEGRATION
 
-func test_complex_multi_system_workflow() -> void:
+func test_build_and_move_multi_system_integration() -> void:
 	var building_system: Object = env.building_system
 	var targeting_system = env.grid_targeting_system
 	var _manipulation_system = env.manipulation_system
@@ -256,23 +256,27 @@ func test_complex_multi_system_workflow() -> void:
 	if not (setup_report and setup_report.is_successful()):
 		assert_bool(false).append_failure_message("enter_build_mode failed in multi-system test").is_true()
 		return
-	var build_result = building_system.try_build_at_position(target_pos)
+	var build_result : Node = building_system.try_build_at_position(target_pos)
 	assert_object(build_result).is_not_null()
 	
 	var manipulatable : Manipulatable = build_result.find_child("Manipulatable")
 	assert_object(manipulatable).is_not_null()
+	assert_bool(manipulatable.is_movable()).append_failure_message("Placed object is expected to be movable as defined on it's Manipulatable component.").is_true()
 	
 	# Phase 3: Post-build manipulation - move the built object
 	if build_result:
 		_manipulation_system.try_move(build_result)
 		var manipulation_state := _container.get_states().manipulation
+		assert_object(building_system._states.manipulation).append_failure_message("Make sure we are dealing with the same state.").is_equal(manipulation_state)
 		assert_bool(manipulation_state.validate_setup()).append_failure_message(
 			"Should have valid manipulation state after selection"
 		).is_true()
 		
+		assert_object(manipulation_state.active_target_node).append_failure_message("When moving, the target node should be the built object.").is_equal(build_result)
+		
 		assert_bool(manipulation_state.is_targeted_movable()).append_failure_message("Expected that the built %s is movable" % build_result).is_true()
 
-func test_cross_system_state_consistency() -> void:
+func test_enter_build_mode_state_consistency() -> void:
 	var building_system: Object = env.building_system
 	var targeting_system = env.grid_targeting_system
 	var _indicator_manager: IndicatorManager = env.indicator_manager
@@ -285,9 +289,7 @@ func test_cross_system_state_consistency() -> void:
 	
 	var setup_report = building_system.enter_build_mode(test_smithy_placeable)
 	assert_object(setup_report).is_not_null()
-	if not (setup_report and setup_report.has_method("is_successful") and setup_report.is_successful()):
-		assert_bool(false).append_failure_message("enter_build_mode failed in cross-system state test").is_true()
-		return
+	assert_bool(setup_report.is_successful()).append_failure_message("enter_build_mode failed in cross-system state test").is_true()
 	
 	# Verify state consistency
 	var building_target = building_system.get_targeting_state().target
