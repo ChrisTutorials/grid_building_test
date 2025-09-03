@@ -57,7 +57,7 @@ func test_collision_shape_tile_coverage_with_various_shape_types(
 	
 	# Calculate tile offsets using collision mapper
 	var tile_offsets = collision_mapper._get_tile_offsets_for_collision_object(
-		IndicatorCollisionTestSetup.new(test_object, Vector2(32, 32), logger),
+		IndicatorCollisionTestSetup.new(test_object, Vector2(32, 32)),
 		tilemap_layer
 	)
 	
@@ -94,7 +94,7 @@ func test_collision_mapper_positioning_edge_cases_handle_problematic_positions(
 	
 	# Calculate tile offsets
 	var tile_offsets = collision_mapper._get_tile_offsets_for_collision_object(
-		IndicatorCollisionTestSetup.new(test_object, shape_size, logger),
+		IndicatorCollisionTestSetup.new(test_object, shape_size),
 		tilemap_layer
 	)
 	
@@ -174,7 +174,7 @@ func test_collision_mapper_transform_consistency_across_different_transforms():
 		var test_object = _create_test_object_with_shape("rectangle", shape_data)
 		
 		var tile_offsets = collision_mapper._get_tile_offsets_for_collision_object(
-			IndicatorCollisionTestSetup.new(test_object, Vector2(32, 32), logger),
+			IndicatorCollisionTestSetup.new(test_object, Vector2(32, 32)),
 			tilemap_layer
 		)
 		
@@ -247,7 +247,7 @@ func test_rules_and_collision_integration() -> void:
 		"Collision mapping should produce tiles for rule validation"
 	).is_not_empty()
 	
-	var validation_result = rule.validate_condition()
+	var validation_result = rule.validate_placement()
 	assert_object(validation_result).append_failure_message(
 		"Rule validation should complete with collision context"
 	).is_not_null()
@@ -274,7 +274,7 @@ func test_tile_check_rule_basic() -> void:
 		"Tile rule setup should succeed: %s" % str(setup_issues)
 	).is_empty()
 	
-	var validation_result = rule.validate_condition()
+	var validation_result = rule.validate_placement()
 	assert_object(validation_result).is_not_null()
 
 # ===== COMPREHENSIVE COLLISION MAPPING TESTS =====
@@ -290,7 +290,7 @@ func test_collision_mapper_shape_processing() -> void:
 	auto_free(test_parent)
 
 	# Manually create collision test setup for the StaticBody2D
-	var test_setup = IndicatorCollisionTestSetup.new(test_object, Vector2(16, 16), collision_mapper._logger)
+	var test_setup := IndicatorCollisionTestSetup.new(test_object, Vector2(16, 16))
 	var collision_setups: Dictionary[Node2D, IndicatorCollisionTestSetup] = {test_object: test_setup}
 
 	var test_indicator = UnifiedTestFactory.create_rule_check_indicator(self, test_parent, [])
@@ -326,5 +326,5 @@ func test_collision_mapper_caching() -> void:
 
 func _setup_test_params() -> RuleValidationParameters:
 	var target := UnifiedTestFactory.create_test_node2d(self)
-	var rule_validation_parameters := RuleValidationParameters.new(env.placer, target, env.grid_targeting_system.get_state(), _container.get_logger())
+	var rule_validation_parameters := RuleValidationParameters.new(env.owner, target, env.grid_targeting_system.get_state())
 	return rule_validation_parameters

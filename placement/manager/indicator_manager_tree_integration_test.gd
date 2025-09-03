@@ -12,7 +12,7 @@ var manipulation_parent: Node2D
 
 func before_test():
 	# Use comprehensive factory method for complete indicator manager tree test setup
-	var test_env = UnifiedTestFactory.create_indicator_manager_tree_test_environment(self, BASE_CONTAINER.duplicate(true))
+	var test_env = UnifiedTestFactory.create_indicator_test_environment(self, BASE_CONTAINER.duplicate(true))
 	
 	# Extract setup components for test access
 	_container = test_env.container

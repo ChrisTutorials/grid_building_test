@@ -28,7 +28,7 @@ func before_test():
 	# Set up manipulation parent
 	_container.get_states().manipulation.parent = tgt.positioner
 	
-	# Set up owner context (required for BuildingState.get_placer() to work)
+	# Set up owner context (required for BuildingState.get_owner() to work)
 	var owner_context: GBOwnerContext = _container.get_contexts().owner
 	var owner_node = auto_free(Node2D.new())
 	owner_node.name = "TestOwner"
@@ -65,7 +65,7 @@ func test_polygon_object_only_generates_overlapping_indicators_and_aligns_previe
 	rule.apply_to_objects_mask = 1 << 0
 	rule.collision_mask = 1 << 0
 	var rules : Array[PlacementRule] = [rule]
-	var params := RuleValidationParameters.new(_container.get_building_state().get_placer(), preview, _container.get_targeting_state(), _container.get_logger())
+	var params := RuleValidationParameters.new(_container.get_building_state().get_owner(), preview, _container.get_targeting_state(), _container.get_logger())
 	var setup_ok := _manager.try_setup(rules, params, true)
 	assert_bool(setup_ok.is_successful()).append_failure_message("IndicatorManager.try_setup failed").is_true()
 

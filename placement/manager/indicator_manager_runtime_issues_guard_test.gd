@@ -1,6 +1,5 @@
 extends GdUnitTestSuite
 
-const UnifiedTestFactory = preload("res://test/grid_building_test/factories/unified_test_factory.gd")
 var _injector : GBInjectorSystem
 
 func test_setup_indicators_aborts_when_targeting_has_runtime_issues():

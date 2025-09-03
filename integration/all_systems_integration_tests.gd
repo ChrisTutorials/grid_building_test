@@ -20,13 +20,6 @@ func before_test() -> void:
 	_container = env.get_container()
 	_gts = env.grid_targeting_system
 
-## Helper to create RuleValidationParameters using test environment defaults
-func _make_rule_params(p_target: Node) -> RuleValidationParameters:
-	var owner := env.get_owner_root()
-	var targeting_state := _container.get_states().targeting
-	var logger: GBLogger = _container.get_logger()
-	return RuleValidationParameters.new(env, p_target, targeting_state, logger)
-
 #region BUILDING WORKFLOW INTEGRATION
 
 func test_complete_building_workflow() -> void:
@@ -103,11 +96,8 @@ func test_multi_rule_indicator_attachment() -> void:
 	# Create test object
 	var test_object = UnifiedTestFactory.create_test_static_body_with_rect_shape(self)
 
-	# Create test parameters with proper constructor
-	var test_params = _make_rule_params(test_object)
-	
 	var rules: Array[PlacementRule] = [collision_rule, tile_rule]
-	var setup_result = indicator_manager.try_setup(rules, test_params)
+	var setup_result = indicator_manager.try_setup(rules, env.grid_targeting_system.get_state())
 	
 	assert_bool(setup_result.is_successful()).append_failure_message(
 		"Multi-rule setup should succeed: %s" % str(setup_result.get_all_issues())
@@ -127,16 +117,15 @@ func test_rule_indicator_state_synchronization() -> void:
 	var test_object = UnifiedTestFactory.create_test_static_body_with_rect_shape(self)
 
 	# Setup with initial state
-	var params = _make_rule_params(test_object)
 	test_object.global_position = Vector2(64, 64)
-	
-	var setup_result = indicator_manager.try_setup([rule], params)
+
+	var setup_result = indicator_manager.try_setup([rule], _gts.get_state())
 	assert_bool(setup_result.is_successful()).is_true()
 	
 	# Change rule state and verify indicators update
 	test_object.global_position = Vector2(96, 96)
-	var update_result = indicator_manager.try_setup([rule], params)
-	
+	var update_result = indicator_manager.try_setup([rule], _gts.get_state())
+
 	assert_bool(update_result.is_successful()).append_failure_message(
 		"Rule state update should succeed: %s" % str(update_result.get_all_issues())
 	).is_true()
@@ -155,9 +144,8 @@ func test_indicators_are_parented_and_inside_tree() -> void:
 	var rules: Array[PlacementRule] = [rule]
 	
 	var logger: GBLogger = _container.get_logger()
-	var params := _make_rule_params(preview)
-	var setup_results: PlacementReport = indicator_manager.try_setup(rules, params)
-	
+	var setup_results: PlacementReport = indicator_manager.try_setup(rules, _gts.get_state())
+
 	assert_bool(setup_results.is_successful()).append_failure_message("IndicatorManager.try_setup failed").is_true()
 	var indicators = indicator_manager.get_indicators()
 	assert_array(indicators).append_failure_message("No indicators created").is_not_empty()
@@ -199,9 +187,7 @@ func test_smithy_indicator_generation() -> void:
 	# Generate indicators using proper parameters
 	var smithy_node = test_smithy_placeable.packed_scene.instantiate()
 	add_child(smithy_node)
-	var params = _make_rule_params(smithy_node)
-	
-	var setup_result = indicator_manager.try_setup(smithy_rules, params)
+	var setup_result = indicator_manager.try_setup(smithy_rules, _gts.get_state())
 	assert_bool(setup_result.is_successful()).append_failure_message(
 		"Smithy indicator generation should succeed: %s" % str(setup_result.get_all_issues())
 	).is_true()
@@ -318,9 +304,7 @@ func test_polygon_test_object_indicator_generation() -> void:
 	# Generate indicators for polygon object using proper parameters
 	var polygon_node = polygon_test_object.packed_scene.instantiate()
 	add_child(polygon_node)
-	var params = _make_rule_params(polygon_node)
-	
-	var setup_result = indicator_manager.try_setup(polygon_rules, params)
+	var setup_result = indicator_manager.try_setup(polygon_rules, _gts.get_state())
 	assert_bool(setup_result.is_successful()).append_failure_message(
 		"Polygon object indicator generation should succeed: %s" % str(setup_result.get_all_issues())
 	).is_true()
@@ -422,9 +406,7 @@ func test_full_system_integration_workflow() -> void:
 	add_child(smithy_node)
 	
 	var smithy_rules = test_smithy_placeable.placement_rules
-	var params = _make_rule_params(smithy_node)
-	
-	var indicator_result = indicator_manager.try_setup(smithy_rules, params)
+	var indicator_result = indicator_manager.try_setup(smithy_rules, _gts.get_state())
 	assert_bool(indicator_result.is_successful()).append_failure_message(
 		"Full workflow indicator setup should succeed: %s" % str(indicator_result.get_all_issues())
 	).is_true()

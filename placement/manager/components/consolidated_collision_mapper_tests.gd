@@ -133,7 +133,7 @@ func test_collision_mapper_tracks_movement():
 
 	for pos in positions:
 		area.global_position = pos
-		var test_setup = IndicatorCollisionTestSetup.new(area, Vector2(24, 24), _container.get_logger())
+		var test_setup = IndicatorCollisionTestSetup.new(area, Vector2(24, 24))
 		var offsets = collision_mapper._get_tile_offsets_for_collision_object(test_setup, env.tile_map_layer)
 		all_offsets.append(offsets)
 		assert_dict(offsets).is_not_empty()
@@ -161,7 +161,7 @@ func test_collision_mapper_polygon():
 	env.level.add_child(area)
 
 	# Create test setup for collision mapper
-	var test_setup = IndicatorCollisionTestSetup.new(area, Vector2(32, 32), _container.get_logger())
+	var test_setup = IndicatorCollisionTestSetup.new(area, Vector2(32, 32))
 
 	var offsets = collision_mapper._get_tile_offsets_for_collision_object(test_setup, env.tile_map_layer)
 	assert_dict(offsets).is_not_empty()
@@ -185,7 +185,7 @@ func test_collision_mapper_multiple_shapes():
 	env.level.add_child(area)
 
 	# Create test setup for collision mapper
-	var test_setup = IndicatorCollisionTestSetup.new(area, Vector2(32, 32), _container.get_logger())
+	var test_setup = IndicatorCollisionTestSetup.new(area, Vector2(32, 32))
 
 	var offsets = collision_mapper._get_tile_offsets_for_collision_object(test_setup, env.tile_map_layer)
 	assert_int(offsets.size()).is_greater(1)
@@ -266,7 +266,7 @@ func test_process_polygon_complete_pipeline_scenarios(
 func test_tile_shape_drives_mapping():
 	var map_layer: TileMapLayer = GodotTestFactory.create_empty_tile_map_layer(self)
 	# Set tile_shape on tileset to isometric (1)
-	map_layer.tile_set.tile_shape = TileSet.TileShape.TILE_SHAPE_ISOMETRIC
+	map_layer.tile_set.tile_shape = TileSet.TILE_SHAPE_ISOMETRIC
 
 	# Simple square polygon centered at origin
 	var poly: CollisionPolygon2D = GodotTestFactory.create_collision_polygon(self, PackedVector2Array([Vector2(-8, -8), Vector2(8, -8), Vector2(8, 8), Vector2(-8, 8)]))
@@ -291,7 +291,7 @@ func test_isometric_tile_shape_produces_offsets():
 	# Create a minimal TileSet resource and attach a tile_shape property
 	var ts = TileSet.new()
 	# Set tile shape to isometric
-	ts.tile_shape = TileSet.TileShape.TILE_SHAPE_ISOMETRIC
+	ts.tile_shape = TileSet.TILE_SHAPE_ISOMETRIC
 	map_layer.tile_set = ts
 
 	# Build a simple polygon around origin (square) as CollisionPolygon2D
@@ -449,7 +449,7 @@ func _create_collision_test_setup_dict(test_objects: Array[Node2D]) -> Dictionar
 	for test_object in test_objects:
 		var collision_objects = _find_collision_objects(test_object)
 		for collision_obj in collision_objects:
-			var setup = IndicatorCollisionTestSetup.new(collision_obj, Vector2(32, 32), logger)
+			var setup = IndicatorCollisionTestSetup.new(collision_obj, Vector2(32, 32))
 			setup_dict[test_object] = setup
 			break  # Use first collision object found for each test object
 	return setup_dict
@@ -458,6 +458,6 @@ func _create_collision_test_setup(test_object: Node2D) -> Array:
 	var setups = []
 	var collision_objects = _find_collision_objects(test_object)
 	for collision_obj in collision_objects:
-		var setup = IndicatorCollisionTestSetup.new(collision_obj, Vector2(32, 32), logger)
+		var setup = IndicatorCollisionTestSetup.new(collision_obj, Vector2(32, 32))
 		setups.append(setup)
 	return setups

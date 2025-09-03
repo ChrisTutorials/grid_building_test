@@ -14,7 +14,7 @@ func test_collision_calculator_tile_overlap_empty() -> void:
 	var tile_size: Vector2 = Vector2(16, 16)
 	
 	var overlapped_tiles = CollisionGeometryCalculator.calculate_tile_overlap(
-		empty_polygon, tile_size, GBEnums.TileType.SQUARE
+		empty_polygon, tile_size, TileSet.TILE_SHAPE_SQUARE
 	)
 	
 	assert_array(overlapped_tiles).append_failure_message(
@@ -26,7 +26,7 @@ func test_collision_calculator_single_point() -> void:
 	var tile_size: Vector2 = Vector2(16, 16)
 	
 	var overlapped_tiles = CollisionGeometryCalculator.calculate_tile_overlap(
-		single_point, tile_size, GBEnums.TileType.SQUARE
+		single_point, tile_size, TileSet.TILE_SHAPE_SQUARE
 	)
 	
 	assert_int(overlapped_tiles.size()).append_failure_message(
@@ -40,7 +40,7 @@ func test_collision_calculator_rectangle_overlap() -> void:
 	var tile_size: Vector2 = Vector2(16, 16)
 	
 	var overlapped_tiles = CollisionGeometryCalculator.calculate_tile_overlap(
-		rectangle, tile_size, GBEnums.TileType.SQUARE
+		rectangle, tile_size, TileSet.TILE_SHAPE_SQUARE
 	)
 	
 	assert_int(overlapped_tiles.size()).append_failure_message(
@@ -226,7 +226,7 @@ func test_collisions_check_rule_validation() -> void:
 	var rule = CollisionsCheckRule.new()
 	
 	# Test validation before setup (should fail)
-	var pre_setup_result = rule.validate_condition()
+	var pre_setup_result = rule.validate_placement()
 	assert_object(pre_setup_result).is_not_null()
 	assert_bool(pre_setup_result.is_successful).append_failure_message(
 		"Collision rule should fail validation before setup"

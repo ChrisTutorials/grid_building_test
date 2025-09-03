@@ -58,10 +58,15 @@ func test_polygon_preview_indicators_respect_min_overlap_ratio():
     rule.apply_to_objects_mask = 1 << 0
     rule.collision_mask = 1 << 0
     var rules : Array[PlacementRule] = [rule]
-    # Use a local placer to avoid dependency on BuildingState owner_root
+    
+    # Init GBOnwner + Placer Root Node
     var placer: Node2D = auto_free(Node2D.new())
     add_child(placer)
-    var params := RuleValidationParameters.new(placer, preview, _container.get_targeting_state(), _container.get_logger())
+    var gb_owner := GBOwner.new(placer)
+    placer.add_child(gb_owner)
+    auto_free(gb_owner)
+    var params := RuleValidationParameters.new(gb_owner, preview, _container.get_targeting_state())
+
     var setup_ok := _manager.try_setup(rules, params, true)
     assert_bool(setup_ok.is_successful()).append_failure_message("IndicatorManager.try_setup failed for polygon preview").is_true()
 
@@ -77,7 +82,7 @@ func test_polygon_preview_indicators_respect_min_overlap_ratio():
     # Compute absolute tiles meeting the min overlap using calculator (area-based)
     var allowed_abs : Dictionary = {}
     var allowed_abs_tiles: Array[Vector2i] = CollisionGeometryCalculator.calculate_tile_overlap(
-        world_points, tile_size, GBEnums.TileType.SQUARE, 0.01, min_overlap_ratio
+        world_points, tile_size, TileSet.TILE_SHAPE_SQUARE, 0.01, min_overlap_ratio
     )
     for abs_tile in allowed_abs_tiles:
         allowed_abs[str(abs_tile)] = true

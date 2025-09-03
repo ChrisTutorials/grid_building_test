@@ -454,10 +454,10 @@ func _count_total_nodes(node: Node) -> int:
 
 func _get_tile_shape_name(shape: int) -> String:
 	match shape:
-		0: return "SQUARE"
-		1: return "ISOMETRIC"
-		2: return "HALF_OFFSET_SQUARE"
-		3: return "HEXAGON"
+		TileSet.TILE_SHAPE_SQUARE: return "SQUARE"
+		TileSet.TILE_SHAPE_ISOMETRIC: return "ISOMETRIC"
+		TileSet.TILE_SHAPE_HALF_OFFSET_SQUARE: return "HALF_OFFSET_SQUARE"
+		TileSet.TILE_SHAPE_HEXAGON: return "HEXAGON"
 		_: return "UNKNOWN"
 
 func _get_tile_layout_name(layout: int) -> String:

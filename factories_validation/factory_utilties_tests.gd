@@ -50,7 +50,7 @@ func test_composition_container_factory() -> void:
 
 func test_placement_system_factory_layer() -> void:
 	# Test placement system factory layer
-	var placement_env: Dictionary = UnifiedTestFactory.create_indicator_system_test_environment(self)
+	var placement_env: Dictionary = UnifiedTestFactory.create_indicator_test_environment(self)
 	
 	assert_object(placement_env).is_not_null()
 	
@@ -67,8 +67,8 @@ func test_placement_system_factory_layer() -> void:
 
 func test_rule_indicator_factory_layer() -> void:
 	# Test rule indicator factory layer
-	var rule_env = UnifiedTestFactory.create_rule_indicator_test_environment(self)
-	
+	var rule_env = UnifiedTestFactory.create_indicator_test_environment(self)
+
 	assert_object(rule_env).is_not_null()
 	
 	# Should include placement layer components
@@ -83,8 +83,8 @@ func test_rule_indicator_factory_layer() -> void:
 
 func test_systems_integration_factory_layer() -> void:
 	# Test systems integration factory layer
-	var systems_env = UnifiedTestFactory.create_systems_integration_test_environment(self)
-	
+	var systems_env = UnifiedTestFactory.create_full_integration_test_scene(self)
+
 	assert_object(systems_env).is_not_null()
 	
 	# Should include all lower layer components
@@ -171,7 +171,7 @@ func test_collision_rule_validation(p_container : GBCompositionContainer, test_p
 				"Rule setup should succeed"
 			).is_empty()
 			
-			var result = collision_rule.validate_condition()
+			var result = collision_rule.validate_placement()
 			assert_object(result).append_failure_message(
 				"Rule validation should return result"
 			).is_not_null()
@@ -189,7 +189,7 @@ func test_validation_null_parameters() -> void:
 		).is_not_empty()
 		
 		# Result should indicate failure
-		var result = collision_rule.validate_condition()
+		var result = collision_rule.validate_placement()
 		assert_object(result).is_not_null()
 		assert_bool(result.is_successful).append_failure_message(
 			"Null parameters should result in validation failure"
@@ -210,7 +210,7 @@ func test_validation_invalid_tilemap(p_container : GBCompositionContainer, test_
 			var setup_issues = collision_rule.setup(params)
 			assert_array(setup_issues).is_not_empty()
 			
-			var result = collision_rule.validate_condition()
+			var result = collision_rule.validate_placement()
 			assert_object(result).is_not_null()
 			
 			# Should handle invalid tilemap gracefully
@@ -236,7 +236,7 @@ func test_validation_out_of_bounds(p_container : GBCompositionContainer, test_pa
 			var setup_issues = collision_rule.setup(params)
 			assert_array(setup_issues).is_empty()
 			
-			var result = collision_rule.validate_condition()
+			var result = collision_rule.validate_placement()
 			assert_object(result).append_failure_message(
 				"Should handle out-of-bounds position"
 			).is_not_null()

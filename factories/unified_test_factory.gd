@@ -58,13 +58,14 @@ const TEST_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
 
 #region LAYERED FACTORY METHODS - Advanced DRY Approach
 
-
-## Combines targeting state setup with indicator manager and injector for comprehensive tree testing
+## Creates a comprehensive test environment for the indicator management system
+## Includes necessary components for testing indicator behavior and interactions
+##
 ## [b]Parameters[/b]:
 ##  • [code]test[/code]: GdUnitTestSuite – test suite for parenting/autofree
 ##  • [code]container[/code]: GBCompositionContainer – base container (defaults to TEST_CONTAINER)
 ## [b]Returns[/b]: Dictionary – complete test environment with all components properly configured
-static func create_indicator_manager_tree_test_environment(test: GdUnitTestSuite, container: GBCompositionContainer = null) -> Dictionary:
+static func create_indicator_test_environment(test: GdUnitTestSuite, container: GBCompositionContainer = null) -> Dictionary:
 	# Start with comprehensive targeting state setup (ensures indicator template and manipulation parent)
 	var targeting_setup = prepare_targeting_state_ready(test, container)
 
@@ -89,9 +90,8 @@ static func create_indicator_manager_tree_test_environment(test: GdUnitTestSuite
 		"indicator_manager": indicator_manager
 	}
 
-# ================================
-# Building Systems
-# ================================
+#endregion
+#region Building Systems
 
 ## Creates a BuildingSystem using the static factory method
 static func create_building_system(test: GdUnitTestSuite, container: GBCompositionContainer = null) -> BuildingSystem:
@@ -130,9 +130,8 @@ static func create_test_building_system(test: GdUnitTestSuite) -> BuildingSystem
 	test.add_child(system) ## Needed because not using create_with_injection
 	return system
 
-# ================================
-# Collision Objects (delegated to GodotTestFactory)
-# ================================
+#endregion
+#region Collision Objects
 
 static func create_collision_object_test_setups(col_objects: Array) -> Dictionary[CollisionObject2D, IndicatorCollisionTestSetup]:
 	var setups: Dictionary[CollisionObject2D, IndicatorCollisionTestSetup] = {}
@@ -169,9 +168,8 @@ static func create_test_static_body_with_rect_shape(test: GdUnitTestSuite) -> St
 static func create_test_parent_with_body_and_polygon(test: GdUnitTestSuite) -> Node2D:
 	return GodotTestFactory.create_parent_with_body_and_polygon(test)
 
-# ================================
-# Indicators
-# ================================
+#endregion
+#region Indicators
 
 static func create_test_indicator_collision_setup(test: GdUnitTestSuite, collision_object: CollisionObject2D = null) -> IndicatorCollisionTestSetup:
 	var obj := collision_object if collision_object != null else create_test_static_body_with_rect_shape(test)
@@ -373,8 +371,10 @@ static func create_test_injector(test: GdUnitTestSuite, container: GBComposition
 static func create_test_logger() -> GBLogger:
 	var debug_settings := create_test_debug_settings()
 	return GBLogger.new(debug_settings)
+
 #endregion
 #region Manipulation
+
 static func create_test_manipulation_system(test: GdUnitTestSuite) -> ManipulationSystem:
 	var system := ManipulationSystem.new()
 	system.name = "TestManipulationSystem"
@@ -387,15 +387,19 @@ static func create_test_manipulatable(test: GdUnitTestSuite) -> Manipulatable:
 	var manipulatable := GodotTestFactory.create_manipulatable(test, "FactoryManipulatableRoot")
 	manipulatable.name = "FactoryManipulatable"
 	return manipulatable
+
 #endregion
 #region Node Utilities
+
 static func create_test_node2d(test: GdUnitTestSuite) -> Node2D:
 	return GodotTestFactory.create_node2d(test)
 
 static func create_test_node_locator(search_method: NodeLocator.SEARCH_METHOD = NodeLocator.SEARCH_METHOD.NODE_NAME, search_string: String = "test") -> NodeLocator:
 	return NodeLocator.new(search_method, search_string)
+
 #endregion
 #region Owner Context
+
 static func create_owner_context(test: GdUnitTestSuite) -> GBOwnerContext:
 	var context := GBOwnerContext.new()
 	var user := Node2D.new()
@@ -464,23 +468,6 @@ static func create_rule_check_indicator(test: GdUnitTestSuite, parent: Node = nu
 		test.add_child(indicator)
 	return indicator
 
-static func create_rule_validation_params(test: GdUnitTestSuite, target: Node2D = null, targeting_state: GridTargetingState = null) -> RuleValidationParameters:
-	var owner := GBOwner.new()
-	var placer := Node2D.new()
-	placer.name = "TestPlacer"
-	test.auto_free(placer)
-	test.add_child(placer)
-	placer.add_child(owner)
-	test.auto_free(owner)
-	var test_target := target if target != null else Node2D.new()
-	if target == null:
-		test_target.name = "RuleValidationTestTarget"
-		test.auto_free(test_target)
-		test.add_child(test_target)
-	var state := targeting_state if targeting_state != null else create_targeting_state(test)
-	var logger := create_test_logger()
-	return RuleValidationParameters.new(owner, test_target, state)
-
 static func create_rule_with_logger(rule_class: GDScript) -> PlacementRule:
 	var rule: PlacementRule = rule_class.new()
 	var logger := create_test_logger()
@@ -518,16 +505,6 @@ static func create_test_rule_check_indicator(test: GdUnitTestSuite, parent: Node
 static func create_test_valid_placement_tile_rule(tile_data: Dictionary = {}) -> ValidPlacementTileRule:
 	return ValidPlacementTileRule.new(tile_data)
 
-static func create_test_within_tilemap_bounds_rule(test: GdUnitTestSuite = null) -> WithinTilemapBoundsRule:
-	# Create the rule. If a test instance is provided, run a proper setup
-	# so the rule has valid RuleValidationParameters (including logger).
-	var rule := WithinTilemapBoundsRule.new()
-	if test != null:
-		var params := create_rule_validation_parameters(test)
-		# PlacementRule.setup returns an Array of issues; ignore return but
-		# allow assert in setup to surface any problems during tests.
-		rule.setup(params)
-	return rule
 #endregion
 #region Targeting State
 static func create_double_targeting_state(test : GdUnitTestSuite) -> GridTargetingState:
@@ -1290,18 +1267,6 @@ static func create_indicator_test_hierarchy(test: GdUnitTestSuite, container: GB
 	hierarchy.manipulation_state = manipulation_state
 	
 	return hierarchy
-
-## Creates rule validation parameters for rule tests
-static func create_rule_validation_parameters(test: GdUnitTestSuite, container: GBCompositionContainer = null) -> RuleValidationParameters:
-	var _container = container if container != null else TEST_CONTAINER.duplicate(true)
-	
-	# Create required objects
-	var placer = GodotTestFactory.create_node2d(test)
-	var target = GodotTestFactory.create_node2d(test)
-	var targeting_state = create_targeting_state(test)
-	var logger = _container.get_logger()
-	
-	return RuleValidationParameters.new(placer, target, targeting_state)
 
 ## Creates collision mapper setup for collision tests
 static func create_collision_mapper_setup(test: GdUnitTestSuite, container: GBCompositionContainer = null) -> Dictionary:

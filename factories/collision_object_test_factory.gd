@@ -98,7 +98,7 @@ static func setup_collision_mapper_with_objects(
 
 	var collision_object_test_setups: Dictionary[Node2D, IndicatorCollisionTestSetup] = {}
 	for obj in collision_objects:
-		var collision_setup = IndicatorCollisionTestSetup.new(obj as CollisionObject2D, bounds, test_env.logger)
+		var collision_setup = IndicatorCollisionTestSetup.new(obj as CollisionObject2D, bounds)
 		collision_object_test_setups[obj] = collision_setup
 
 	collision_mapper.setup(test_indicator, collision_object_test_setups)

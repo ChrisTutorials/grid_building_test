@@ -17,13 +17,6 @@ func before_test() -> void:
 	env = UnifiedTestFactory.instance_all_systems_env(self, "uid://ioucajhfxc8b")
 	_container = env.get_container()
 
-## Helper to create RuleValidationParameters using test environment defaults
-func _make_rule_params(p_target: Node) -> RuleValidationParameters:
-	var owner := env.get_owner_root()
-	var targeting_state := _container.get_states().targeting
-	var logger: GBLogger = _container.get_logger()
-	return RuleValidationParameters.new(env, p_target, targeting_state, logger)
-
 #region BUILDING WORKFLOW INTEGRATION
 
 func test_complete_building_workflow() -> void:

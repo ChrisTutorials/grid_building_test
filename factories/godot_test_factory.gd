@@ -111,6 +111,76 @@ static func create_tile_map_layer(test: GdUnitTestSuite, grid_size: int = 40) ->
 	return map_layer as TileMapLayer
 
 
+## Creates a TileMapLayer with specified tile shape (square, isometric, or half-offset)
+static func create_tile_map_layer_with_shape(
+	test: GdUnitTestSuite, 
+	grid_size: int = 40, 
+	tile_shape: TileSet.TileShape = TileSet.TILE_SHAPE_SQUARE
+) -> TileMapLayer:
+	var map_layer: TileMapLayer = test.auto_free(TileMapLayer.new())
+	var tile_set := TileSet.new()
+	tile_set.tile_shape = tile_shape
+	tile_set.tile_size = Vector2i(16, 16)
+	
+	var atlas := TileSetAtlasSource.new()
+	var img := Image.create(16, 16, false, Image.FORMAT_RGBA8)
+	img.fill(Color.WHITE)
+	var tex := ImageTexture.create_from_image(img)
+	atlas.texture = tex
+	atlas.create_tile(Vector2i(0,0))
+	tile_set.add_source(atlas)
+	map_layer.tile_set = tile_set
+
+	var tile_id := 0
+	var atlas_coords := Vector2i(0,0)
+	for x in range(0, grid_size):
+		for y in range(0, grid_size):
+			var coords = Vector2i(x, y)
+			map_layer.set_cell(coords, tile_id, atlas_coords)
+
+	# If fallback tileset was needed, repopulate all cells after assigning new tileset
+	if map_layer.get_cell_tile_data(Vector2i.ZERO) == null:
+		var ts := TileSet.new()
+		ts.tile_shape = tile_shape
+		ts.tile_size = Vector2i(16, 16)
+		var atlas2 := TileSetAtlasSource.new()
+		var img2 := Image.create(16, 16, false, Image.FORMAT_RGBA8)
+		img2.fill(Color.BLUE)
+		var tex2 := ImageTexture.create_from_image(img2)
+		atlas2.texture = tex2
+		atlas2.create_tile(Vector2i(0,0))
+		ts.add_source(atlas2)
+		map_layer.tile_set = ts
+		map_layer.clear()
+		for x in range(0, grid_size):
+			for y in range(0, grid_size):
+				var coords = Vector2i(x, y)
+				map_layer.set_cell(coords, 0, Vector2i(0,0))
+
+	var actual_populated_cells := map_layer.get_used_cells().size()
+	assert(actual_populated_cells == (grid_size * grid_size), "Expected: %s Actual: %s" % [grid_size * grid_size, actual_populated_cells])
+	var map_size_px : Vector2 = map_layer.get_used_rect().size * map_layer.tile_set.tile_size
+	test.assert_vector(map_size_px).append_failure_message("GodotTestFactory Math Incorrect").is_equal(Vector2(grid_size * 16, grid_size * 16))
+	
+	test.add_child(map_layer)
+	return map_layer as TileMapLayer
+
+
+## Creates an isometric TileMapLayer for isometric tile-based games
+static func create_isometric_tile_map_layer(test: GdUnitTestSuite, grid_size: int = 40) -> TileMapLayer:
+	return create_tile_map_layer_with_shape(test, grid_size, TileSet.TILE_SHAPE_ISOMETRIC)
+
+
+## Creates a top-down TileMapLayer for top-down perspective games
+static func create_top_down_tile_map_layer(test: GdUnitTestSuite, grid_size: int = 40) -> TileMapLayer:
+	return create_tile_map_layer_with_shape(test, grid_size, TileSet.TILE_SHAPE_SQUARE)
+
+
+## Creates a platformer TileMapLayer for side-scrolling platformer games
+static func create_platformer_tile_map_layer(test: GdUnitTestSuite, grid_size: int = 40) -> TileMapLayer:
+	return create_tile_map_layer_with_shape(test, grid_size, TileSet.TILE_SHAPE_SQUARE)
+
+
 ## Creates an empty TileMapLayer with tile set but no cells
 static func create_empty_tile_map_layer(test: GdUnitTestSuite) -> TileMapLayer:
 	var map_layer: TileMapLayer = test.auto_free(TileMapLayer.new())
