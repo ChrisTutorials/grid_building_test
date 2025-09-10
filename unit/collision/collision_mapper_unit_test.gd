@@ -132,7 +132,6 @@ func test_guard_returns_empty_without_setup() -> void:
 	var result := mapper.map_collision_positions_to_rules([poly], [rule])
 	assert_that(result.size()).is_equal(0).append_failure_message("Expected empty mapping when mapper.setup() not called")
 
-# Simple test to verify basic collision detection works
 func test_basic_collision_detection() -> void:
 	var gts := UnifiedTestFactory.create_minimal_targeting_state(self)
 	var mapper := CollisionMapper.new(gts, _logger)
@@ -147,6 +146,7 @@ func test_basic_collision_detection() -> void:
 	body.collision_layer = 1
 	body.position = Vector2(0, 0)  # At origin
 	var shape := CollisionShape2D.new()
+	auto_free(shape)
 	var rect := RectangleShape2D.new()
 	rect.size = Vector2(32, 32)  # Large shape that should overlap multiple tiles
 	shape.shape = rect
@@ -165,13 +165,37 @@ func test_basic_collision_detection() -> void:
 	setups[body] = test_setup
 	mapper.setup(test_indicator, setups)
 	
+	# Validate setup first
+	assert_that(mapper.test_indicator).is_not_null().append_failure_message("Test indicator should be set after setup")
+	assert_that(mapper.collision_object_test_setups).is_not_null().append_failure_message("Collision setups should be initialized")
+	assert_that(mapper.collision_object_test_setups.has(body)).is_true().append_failure_message("Setup should contain the body")
+	
+	# Test the test_setup validation
+	assert_that(test_setup.validate_setup()).is_true().append_failure_message("Test setup should be valid")
+	
 	# Test basic collision detection
 	var result := mapper.get_collision_tile_positions_with_mask([body], 1)
 	
 	# Debug output
 	var debug_info = "Basic collision test:\n"
 	debug_info += "Body position: %s\n" % body.position
+	debug_info += "Body global position: %s\n" % body.global_position
 	debug_info += "Shape size: %s\n" % rect.size
+	debug_info += "Test setup valid: %s\n" % test_setup.validate_setup()
+	debug_info += "Rect collision test setups count: %d\n" % test_setup.rect_collision_test_setups.size()
+	if test_setup.rect_collision_test_setups.size() > 0:
+		debug_info += "First rect setup shapes count: %d\n" % test_setup.rect_collision_test_setups[0].shapes.size()
+		if test_setup.rect_collision_test_setups[0].shapes.size() > 0:
+			var first_shape = test_setup.rect_collision_test_setups[0].shapes[0]
+			debug_info += "First rect setup rect shape size: %s\n" % first_shape.size if first_shape is RectangleShape2D else "Not RectangleShape2D"
+	debug_info += "Map tile size: %s\n" % gts.target_map.tile_set.tile_size
+	debug_info += "Map position: %s\n" % gts.target_map.position
+	debug_info += "Map global position: %s\n" % gts.target_map.global_position
+	
+	# Check tile coordinates
+	var body_tile = gts.target_map.local_to_map(gts.target_map.to_local(body.global_position))
+	debug_info += "Body tile coordinates: %s\n" % body_tile
+	
 	debug_info += "Result size: %d\n" % result.size()
 	if result.size() > 0:
 		debug_info += "Found tiles: %s\n" % result.keys()

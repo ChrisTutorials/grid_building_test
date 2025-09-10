@@ -145,6 +145,8 @@ func test_compute_tile_offsets_with_parent():
 func test_process_polygon_with_diagnostics_convex():
 	var test_map = GodotTestFactory.create_top_down_tile_map_layer(self, 40)
 	var convex_polygon = CollisionPolygon2D.new()
+	convex_polygon = auto_free(convex_polygon)
+	add_child(convex_polygon)
 	convex_polygon.polygon = PackedVector2Array([
 		Vector2(0, 0),
 		Vector2(32, 0),
@@ -162,6 +164,8 @@ func test_process_polygon_with_diagnostics_convex():
 func test_process_polygon_with_diagnostics_concave():
 	var test_map = GodotTestFactory.create_top_down_tile_map_layer(self, 40)
 	var concave_polygon = CollisionPolygon2D.new()
+	concave_polygon = auto_free(concave_polygon)
+	add_child(concave_polygon)
 	concave_polygon.polygon = PackedVector2Array([
 		Vector2(0, 0),
 		Vector2(32, 0),
@@ -188,6 +192,8 @@ func test_process_polygon_with_diagnostics_cases(
 ):
 	var test_map = GodotTestFactory.create_top_down_tile_map_layer(self, 40)
 	var poly = CollisionPolygon2D.new()
+	poly = auto_free(poly)
+	add_child(poly)
 	poly.polygon = points
 	poly.position = Vector2(840, 680)
 	var result = PolygonTileMapper.process_polygon_with_diagnostics(poly, test_map)
@@ -206,6 +212,8 @@ func test_compute_tile_offsets_different_tile_sizes():
 func test_compute_tile_offsets_outside_bounds():
 	var test_map = GodotTestFactory.create_top_down_tile_map_layer(self, 10)  # Small 10x10 tilemap
 	var triangle_polygon = CollisionPolygon2D.new()
+	triangle_polygon = auto_free(triangle_polygon)
+	add_child(triangle_polygon)
 	triangle_polygon.polygon = PackedVector2Array([
 		Vector2(0, 0),
 		Vector2(32, 0),
@@ -292,6 +300,8 @@ func test_tile_property_detection_diagnostics():
 func test_compute_tile_offsets_consistency():
 	var test_map = GodotTestFactory.create_top_down_tile_map_layer(self, 40)
 	var triangle_polygon = CollisionPolygon2D.new()
+	triangle_polygon = auto_free(triangle_polygon)
+	add_child(triangle_polygon)
 	triangle_polygon.polygon = PackedVector2Array([
 		Vector2(0, 0),
 		Vector2(32, 0),
@@ -398,7 +408,7 @@ func test_polygon_tile_overlap_area_completely_inside():
 	var rect = Rect2(0, 0, 16, 16)
 	var inside_polygon = PackedVector2Array([Vector2(4, 4), Vector2(12, 4), Vector2(12, 12), Vector2(4, 12)])
 	var area = PolygonTileMapper.get_polygon_tile_overlap_area(inside_polygon, rect)
-	assert_float(area).is_greater(40.0).is_less(60.0)  # Should be close to 64
+	assert_float(area).is_equal(64.0)  # 8x8 square = 64
 
 ## Test polygon exactly matching rect bounds
 func test_polygon_tile_overlap_area_exact_match():
@@ -436,4 +446,4 @@ func test_polygon_tile_overlap_area_complex():
 		Vector2(10, 10), Vector2(14, 10), Vector2(14, 14), Vector2(2, 14)
 	])
 	var area = PolygonTileMapper.get_polygon_tile_overlap_area(complex_polygon, rect)
-	assert_float(area).is_greater(200.0).is_less(230.0)  # Should be most of the tile
+	assert_float(area).is_equal(128.0)  # L-shaped polygon: 12x12 - 4x4 cutout = 144 - 16 = 128

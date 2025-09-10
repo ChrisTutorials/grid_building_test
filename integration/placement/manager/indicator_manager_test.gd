@@ -11,7 +11,7 @@ var global_snap_pos: Vector2
 var offset_logo = load("uid://bqq7otaevtlqu")
 
 # Access to indicator template and other test scenes; avoid name clash with global class_name
-const TestSceneLibraryScene := preload("res://test/grid_building_test/scenes/test_scene_library.tscn")
+const TestSceneLibraryScene : PackedScene = preload("uid://nhlp6ks003fp")
 
 var _positioner : Node2D
 var _injector: GBInjectorSystem
