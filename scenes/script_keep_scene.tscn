@@ -1,9 +1,0 @@
-[gd_scene load_steps=2 format=3 uid="uid://bp22b3deiiyer"]
-
-[ext_resource type="Script" path="res://addons/grid_building/components/placeable_instance.gd" id="1_b58ao"]
-
-[node name="ScriptKeepScene" type="Node2D"]
-script = ExtResource("1_b58ao")
-
-[node name="Node2D" type="Node2D" parent="."]
-script = ExtResource("1_b58ao")

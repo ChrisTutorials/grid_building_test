@@ -71,24 +71,16 @@ func test_placement_validation_basic(
 	# Set _positioner to test position
 	_positioner.global_position = target_position
 	
-	# Create basic validation parameters with proper constructor
-	var params = RuleValidationParameters.new(
-		user_node,  # placer
-		_positioner,  # target
-		_targeting_state,  # _targeting_state
-		logger  # logger
-	)
-	
 	# Setup and validate with no rules 
 	# PlacementValidator actually returns false when no rules are active
 	var empty_rules: Array[PlacementRule] = []
-	var setup_issues = placement_validator.setup(empty_rules, params)
+	var setup_issues = placement_validator.setup(empty_rules, _targeting_state)
 	
 	assert_bool(setup_issues.is_empty()).append_failure_message(
 		"Setup should succeed with no rules for scenario: %s" % placement_scenario
 	).is_true()
 	
-	var result = placement_validator.validate()
+	var result = placement_validator.validate_placement()
 	
 	# With no rules, PlacementValidator returns unsuccessful because no rules were set up
 	assert_bool(result.is_successful()).append_failure_message(
@@ -114,14 +106,6 @@ func test_placement_validation_with_rules(
 		["multiple_rules_fail", "multiple_invalid", true]  # No indicators = true by default
 	]
 ):
-	# Create validation parameters with proper constructor
-	var params = RuleValidationParameters.new(
-		user_node,  # placer
-		_positioner,  # target
-		_targeting_state,  # _targeting_state
-		logger  # logger
-	)
-	
 	# Create test rules based on scenario
 	var test_rules = _create_test_rules(rule_type)
 	
@@ -130,7 +114,7 @@ func test_placement_validation_with_rules(
 		_setup_blocking_collision()
 	
 	# Setup and validate placement
-	var setup_issues = placement_validator.setup(test_rules, params)
+	var setup_issues = placement_validator.setup(test_rules, _targeting_state)
 	
 	if not setup_issues.is_empty():
 		# Log setup issues but continue test to see behavior
@@ -161,15 +145,15 @@ func test_placement_validation_edge_cases(
 ):
 	match edge_case:
 		"null_params":
-			# With empty rules array and null params, setup returns empty dict
+			# With empty rules array and null _targeting_state, setup returns empty dict
 			# because there are no rules to report issues for
 			var empty_rules: Array[PlacementRule] = []
 			var setup_issues = placement_validator.setup(empty_rules, null)
 			assert_bool(setup_issues.is_empty()).append_failure_message(
-				"Empty rules with null params should result in empty setup issues"
+				"Empty rules with null _targeting_state should result in empty setup issues"
 			).is_true()
 			
-			# Test with actual rules and null params to see issues
+			# Test with actual rules and null _targeting_state to see issues
 			var test_rules: Array[PlacementRule] = [ValidPlacementTileRule.new()]
 			var setup_issues_with_rules = placement_validator.setup(test_rules, null)
 			assert_bool(setup_issues_with_rules.is_empty()).append_failure_message(
@@ -177,14 +161,8 @@ func test_placement_validation_edge_cases(
 			).is_false()
 		
 		"invalid_placeable":
-			var params = RuleValidationParameters.new(
-				user_node,  # placer
-				_positioner,  # target
-				_targeting_state,  # _targeting_state
-				logger  # logger
-			)
 			var empty_rules: Array[PlacementRule] = []
-			var _setup_issues = placement_validator.setup(empty_rules, params)
+			var _setup_issues = placement_validator.setup(empty_rules, _targeting_state)
 			# With empty rules, validate() returns false because active_rules is empty
 			var result = placement_validator.validate()
 			assert_bool(result.is_successful()).append_failure_message(
@@ -198,16 +176,8 @@ func test_placement_validation_edge_cases(
 			# Temporarily clear target _map
 			var original_map = _targeting_state.target_map
 			_targeting_state.target_map = null
-			
-			var params = RuleValidationParameters.new(
-				user_node,  # placer
-				_positioner,  # target
-				_targeting_state,  # _targeting_state
-				logger  # logger
-			)
-			
 			var empty_rules: Array[PlacementRule] = []
-			var setup_issues = placement_validator.setup(empty_rules, params)
+			var setup_issues = placement_validator.setup(empty_rules, _targeting_state)
 			
 			# Restore _map
 			_targeting_state.target_map = original_map
@@ -226,15 +196,9 @@ func test_placement_validation_edge_cases(
 		"invalid_position":
 			# Set _positioner to invalid position
 			_positioner.global_position = Vector2(-16000, -16000)  # Far out of bounds
-			var params = RuleValidationParameters.new(
-				user_node,  # placer
-				_positioner,  # target
-				_targeting_state,  # _targeting_state
-				logger  # logger
-			)
 			
 			var empty_rules: Array[PlacementRule] = []
-			var _setup_issues = placement_validator.setup(empty_rules, params)
+			var _setup_issues = placement_validator.setup(empty_rules, _targeting_state)
 			var result = placement_validator.validate()
 			# This might be valid or invalid depending on implementation
 			assert_object(result).append_failure_message(
@@ -248,17 +212,9 @@ func test_placement_validation_performance():
 	for i in range(10):
 		var rule = ValidPlacementTileRule.new()
 		many_rules.append(rule)
-	
-	# Create validation parameters with proper constructor
-	var params = RuleValidationParameters.new(
-		user_node,  # placer
-		_positioner,  # target
-		_targeting_state,  # _targeting_state
-		logger  # logger
-	)
-	
+
 	# Setup and measure validation time
-	var _setup_issues = placement_validator.setup(many_rules, params)
+	var _setup_issues = placement_validator.setup(many_rules, _targeting_state)
 	
 	var start_time = Time.get_ticks_msec()
 	var result = placement_validator.validate()
@@ -385,12 +341,12 @@ func _setup_blocking_collision():
 	blocking_area.global_position = _positioner.global_position
 
 func _collect_offsets(mapper: CollisionMapper, poly: CollisionPolygon2D, _map: TileMapLayer) -> Array[Vector2i]:
-	var d := mapper._get_tile_offsets_for_collision_polygon(poly, _map)
-	assert_object(d).append_failure_message(
-		"CollisionMapper should return valid dictionary from _get_tile_offsets_for_collision_polygon"
+	var node_tile_offsets : Dictionary[Node2D, Array] = mapper.get_tile_offsets_for_collision_polygon(poly, _map)
+	assert_object(node_tile_offsets).append_failure_message(
+		"CollisionMapper should return valid dictionary from get_tile_offsets_for_collision_polygon"
 	).is_not_null()
 	var arr: Array[Vector2i] = []
-	for k in d.keys(): arr.append(k)
+	for k in node_tile_offsets.keys(): arr.append(k)
 	arr.sort()
 	
 	# Validate collected offsets with meaningful failure context. If empty, gather
@@ -412,11 +368,11 @@ func _collect_offsets(mapper: CollisionMapper, poly: CollisionPolygon2D, _map: T
 			diag_msg += "; center_tile=%s, poly_world=%s, poly_tile=%s, tile_size=%s" % [center_tile, polygon_world_center, polygon_tile, tile_size]
 		
 		assert_array(arr).append_failure_message(
-			"_collect_offsets should return non-empty array of tile offsets. Dict keys: %s, Dict size: %d, Polygon global_position: %s%s" % [d.keys(), d.size(), poly.global_position, diag_msg]
+			"_collect_offsets should return non-empty array of tile offsets. Dict keys: %s, Dict size: %d, Polygon global_position: %s%s" % [node_tile_offsets.keys(), node_tile_offsets.size(), poly.global_position, diag_msg]
 		).is_not_empty()
 	else:
 		assert_array(arr).append_failure_message(
-			"_collect_offsets should return non-empty array of tile offsets. Dict keys: %s, Dict size: %d, Polygon global_position: %s" % [d.keys(), d.size(), poly.global_position]
+			"_collect_offsets should return non-empty array of tile offsets. Dict keys: %s, Dict size: %d, Polygon global_position: %s" % [node_tile_offsets.keys(), node_tile_offsets.size(), poly.global_position]
 		).is_not_empty()
 	
 	return arr
@@ -435,8 +391,7 @@ func test_smithy_generates_full_rectangle_of_indicators():
 	# Use a local placer to avoid dependency on BuildingState owner_root
 	var placer: Node2D = auto_free(Node2D.new())
 	add_child(placer)
-	var params := RuleValidationParameters.new(placer, smithy_obj, _container.get_targeting_state(), _container.get_logger())
-	var setup_report := _indicator_manager.try_setup(rules, params, true)
+	var setup_report := _indicator_manager.try_setup(rules, _targeting_state, true)
 	assert_object(setup_report).append_failure_message("IndicatorManager.try_setup returned null").is_not_null()
 	assert_bool(setup_report.is_successful()).append_failure_message("IndicatorManager.try_setup failed for Smithy preview").is_true()
 
@@ -546,10 +501,10 @@ func test_building_mode_enter_exit() -> void:
 func test_building_placement_attempt() -> void:
 	# Enter build mode and attempt placement
 	_building_system.enter_build_mode(test_smithy_placeable)
-	var placement_result: Node2D = _building_system.try_build()
+	var placement_result: PlacementReport = _building_system.try_build()
 	
 	# Verify placement attempt returns a result (success/failure handled by validation)
-	assert_object(placement_result).append_failure_message(
+	assert_object(placement_result.placed).append_failure_message(
 		"Build attempt should return a result object"
 	).is_not_null()
 	
@@ -627,14 +582,17 @@ func test_single_placement_per_tile_constraint() -> void:
 	_building_system.enter_build_mode(test_smithy_placeable)
 	
 	var _target_position: Vector2 = Vector2(200, 200)
-	
-	# First placement attempt
-	var first_result: Node2D = _building_system.try_build()
-	assert_object(first_result).is_not_null()
-	
-	# Second placement at same position should be handled appropriately
-	var second_result: Node2D = _building_system.try_build()
-	assert_object(second_result).append_failure_message(
+
+	# First placement attempt - this should succeed because no objects are blocking placement
+	var first_report: PlacementReport = _building_system.try_build()
+	assert_object(first_report).is_not_null()
+	assert_object(first_report.placed).append_failure_message(
+		"First placement attempt should succeed and return a valid placed object"
+	).is_not_null()
+
+	# This will test the system's ability to prevent multiple placements in the same tile
+	var second_report: PlacementReport = _building_system.try_build()
+	assert_object(second_report).append_failure_message(
 		"System should handle duplicate placement attempts gracefully"
 	).is_not_null()
 	
@@ -647,8 +605,8 @@ func test_tile_placement_validation() -> void:
 	var positions: Array = [Vector2(0, 0), Vector2(16, 16), Vector2(32, 32)]
 	
 	for pos: Vector2 in positions:
-		var result: Node2D = _building_system.try_build()
-		assert_object(result).append_failure_message(
+		var report: PlacementReport = _building_system.try_build()
+		assert_object(report).append_failure_message(
 			"Should get result for position %s" % pos
 		).is_not_null()
 	
@@ -701,8 +659,16 @@ func test_complete_building_workflow() -> void:
 	assert_bool(_building_system.is_in_build_mode()).is_true()
 	
 	# Phase 3: Attempt building
-	var build_result: Node2D = _building_system.try_build()
-	assert_object(build_result).is_not_null()
+	var build_report: PlacementReport = _building_system.try_build()
+	assert_object(build_report).append_failure_message(
+		"Build attempt should return a placement report"
+	).is_not_null()
+	assert_bool(build_report.is_successful()).append_failure_message(
+		"Build attempt should be successful"
+	).is_true()
+	assert_object(build_report.placed).append_failure_message(
+		"Build report should contain a valid placed object"
+	).is_not_null()
 	
 	# Phase 4: Cleanup
 	_building_system.exit_build_mode()
@@ -913,8 +879,10 @@ func test_drag_building_single_placement_per_tile_switch():
 	var pre_validation = _indicator_manager.validate_placement()
 	
 	assert_bool(pre_validation.is_successful()).append_failure_message("Expected to be successful before object placed").is_true()
-	var first_placed = _building_system.try_build()
-	assert_object(first_placed).is_not_null()
+	var first_report = _building_system.try_build()
+	assert_object(first_report).append_failure_message("Should receive a valid placement report").is_not_null()
+	assert_bool(first_report.is_successful()).append_failure_message("First placement should be successful").is_true()
+	assert_object(first_report.placed).append_failure_message("Should have a valid placed object").is_not_null()
 	assert_int(_placed_positions.size()).append_failure_message("There should be one placed object.").is_equal(1)
 	
 	# Now move to the same tile but trigger tile switch event manually

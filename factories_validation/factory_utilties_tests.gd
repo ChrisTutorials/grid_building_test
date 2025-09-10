@@ -121,22 +121,6 @@ func test_factory_memory_cleanup() -> void:
 
 # ===== VALIDATION TESTS =====
 
-func test_rule_validation_parameters(p_container : GBCompositionContainer, test_parameters := [
-	load("uid://dy6e5p5d6ax6n")
-]) -> void:
-	var params = UnifiedTestFactory.create_rule_validation_parameters(self, p_container)
-	
-	assert_object(params).append_failure_message(
-		"Test environment should include validation parameters"
-	).is_not_null()
-	
-	# Validate parameter structure using real API
-	if params:
-		var validation_issues = RuleValidationParameters.validate(params)
-		assert_array(validation_issues).append_failure_message(
-			"Validation parameters should be valid"
-		).is_empty()
-
 func test_targeting_state_validation() -> void:
 	# Test targeting state validation
 	var owner_context := UnifiedTestFactory.create_owner_context(self)
@@ -164,17 +148,16 @@ func test_collision_rule_validation(p_container : GBCompositionContainer, test_p
 	
 	# Test rule validation methods using real API
 	if collision_rule:
-		var params = UnifiedTestFactory.create_rule_validation_parameters(self, p_container)
-		if params:
-			var setup_issues = collision_rule.setup(params)
-			assert_array(setup_issues).append_failure_message(
-				"Rule setup should succeed"
-			).is_empty()
-			
-			var result = collision_rule.validate_placement()
-			assert_object(result).append_failure_message(
-				"Rule validation should return result"
-			).is_not_null()
+		var gts := UnifiedTestFactory.create_targeting_state(self, p_container.get_contexts().owner)
+		var setup_issues = collision_rule.setup(gts)
+		assert_array(setup_issues).append_failure_message(
+			"Rule setup should succeed"
+		).is_empty()
+		
+		var result = collision_rule.validate_placement()
+		assert_object(result).append_failure_message(
+			"Rule validation should return result"
+		).is_not_null()
 
 # ===== VALIDATION EDGE CASES =====
 
@@ -221,27 +204,27 @@ func test_validation_invalid_tilemap(p_container : GBCompositionContainer, test_
 		# Restore original tilemap
 		params.targeting_state.target_map = original_tilemap
 
+@warning_ignore("unused_parameter")
 func test_validation_out_of_bounds(p_container : GBCompositionContainer, test_parameters := [
 	load("uid://dy6e5p5d6ax6n")
 ]) -> void:
-	# Test validation with out-of-bounds positions
-	var params = UnifiedTestFactory.create_rule_validation_parameters(self, p_container)
-	if params:
-		# Set extremely large position
-		var original_position = params.target.global_position
-		params.target.global_position = Vector2(999999, 999999)
+	var gts : GridTargetingState = UnifiedTestFactory.create_targeting_state(self, p_container.get_contexts().owner)
+	var test_target := GodotTestFactory.create_node2d(self)
+	gts.target = test_target
+	var original_position = gts.target.global_position
+	gts.target.global_position = Vector2(999999, 999999)
+
+	var collision_rule = CollisionsCheckRule.new()
+	if collision_rule:
+		var setup_issues = collision_rule.setup(gts)
+		assert_array(setup_issues).is_empty()
 		
-		var collision_rule = CollisionsCheckRule.new()
-		if collision_rule:
-			var setup_issues = collision_rule.setup(params)
-			assert_array(setup_issues).is_empty()
-			
-			var result = collision_rule.validate_placement()
-			assert_object(result).append_failure_message(
-				"Should handle out-of-bounds position"
-			).is_not_null()
-		
-		# Restore original position
-		params.target.global_position = original_position
+		var result = collision_rule.validate_placement()
+		assert_object(result).append_failure_message(
+			"Should handle out-of-bounds position"
+		).is_not_null()
+	
+	# Restore original position
+	gts.target.global_position = original_position
 
 #endregion

@@ -4,21 +4,21 @@
 
 [node name="GridPositioner" type="Node2D" parent="."]
 
-[node name="PlacementManager" type="Node2D" parent="."]
+[node name="IndicatorManager" type="Node2D" parent="."]
 
-[node name="OverlapCheckIndicator" type="ShapeCast2D" parent="PlacementManager"]
+[node name="OverlapCheckIndicator" type="ShapeCast2D" parent="IndicatorManager"]
 
-[node name="DistanceValidationIndicator" type="ShapeCast2D" parent="PlacementManager"]
+[node name="DistanceValidationIndicator" type="ShapeCast2D" parent="IndicatorManager"]
 
-[node name="BoundaryRuleIndicator" type="ShapeCast2D" parent="PlacementManager"]
+[node name="BoundaryRuleIndicator" type="ShapeCast2D" parent="IndicatorManager"]
 
-[node name="TerrainCollisionIndicator" type="ShapeCast2D" parent="PlacementManager"]
+[node name="TerrainCollisionIndicator" type="ShapeCast2D" parent="IndicatorManager"]
 
-[node name="ResourceCostIndicator" type="ShapeCast2D" parent="PlacementManager"]
+[node name="ResourceCostIndicator" type="ShapeCast2D" parent="IndicatorManager"]
 
-[node name="PlacementValidationIndicator" type="ShapeCast2D" parent="PlacementManager"]
+[node name="PlacementValidationIndicator" type="ShapeCast2D" parent="IndicatorManager"]
 
-[node name="CountLimitIndicator" type="ShapeCast2D" parent="PlacementManager"]
+[node name="CountLimitIndicator" type="ShapeCast2D" parent="IndicatorManager"]
 
 [node name="BuildingSystem" type="Node2D" parent="."]
 

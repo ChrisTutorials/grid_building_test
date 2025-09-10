@@ -438,6 +438,59 @@ static func create_indicator_manager(test: GdUnitTestSuite) -> IndicatorManager:
 	test.add_child(manager)
 	return manager
 
+## Creates a minimal GridTargetingState for unit tests without dependencies
+## Catches: Invalid targeting state setup issues that can cause IndicatorService failures
+static func create_minimal_targeting_state(test: GdUnitTestSuite, valid: bool = true, align_to_center: bool = false) -> GridTargetingState:
+	var owner_ctx := GBOwnerContext.new(null)
+	var gts := GridTargetingState.new(owner_ctx)
+	if valid:
+		var map : TileMapLayer = test.auto_free(TileMapLayer.new())
+		map.tile_set = TileSet.new()
+		map.tile_set.tile_size = Vector2(16, 16)
+		var positioner : Node2D = test.auto_free(Node2D.new())
+		if align_to_center:
+			var center := map.to_global(map.map_to_local(Vector2i.ZERO))
+			positioner.global_position = center
+		gts.positioner = positioner
+		gts.target_map = map
+		gts.maps = [map]
+	return gts
+
+## Creates minimal IndicatorManager for unit tests with direct initialization (no container)
+## Has no rules. If you want rules, you must add them manually
+## Catches: IndicatorManager initialization failures without composition container dependencies
+static func create_minimal_indicator_manager(test: GdUnitTestSuite, parent: Node2D, gts: GridTargetingState, template: PackedScene) -> IndicatorManager:
+	var manager := IndicatorManager.new()
+	test.auto_free(manager)
+	parent.add_child(manager)
+	
+	# Set up minimal dependencies directly
+	var owner_ctx := GBOwnerContext.new(null)
+	var indicator_ctx := IndicatorContext.new()
+	var rules: Array[PlacementRule] = []
+	var messages := GBMessages.new()
+	var logger := create_test_logger()
+	
+	# Initialize manager directly without container
+	manager.initialize(indicator_ctx, owner_ctx, template, gts, logger, rules, messages)
+	
+	return manager
+
+## Creates minimal template PackedScene with RuleCheckIndicator for unit tests
+## Catches: Template creation and packing errors that prevent indicator generation
+static func create_minimal_indicator_template(_test: GdUnitTestSuite) -> PackedScene:
+	var ps := PackedScene.new()
+	var node := RuleCheckIndicator.new()
+	# Set up a valid shape for the ShapeCast2D component
+	var shape := RectangleShape2D.new()
+	shape.size = Vector2(16, 16)
+	node.shape = shape
+	# pack a minimal scene with RuleCheckIndicator root
+	var err := ps.pack(node)
+	node.free() ## Cleanup loose node
+	assert(err == OK, "Failed to pack RuleCheckIndicator into PackedScene, err=%d" % err)
+	return ps
+
 static func create_placement_validator(_test: GdUnitTestSuite, rules: Array[PlacementRule] = []) -> PlacementValidator:
 	var messages := GBMessages.new()
 	var logger := create_test_logger()
@@ -1175,9 +1228,9 @@ static func create_full_integration_test_scene(test: GdUnitTestSuite, container:
 	test.auto_free(scene_dict.object_manager)
 	test.add_child(scene_dict.object_manager)
 	
-	# Create placement manager if available
-	if ClassDB.class_exists("PlacementManager"):
-		scene_dict.indicator_manager = ClassDB.instantiate("PlacementManager")
+	# Create indicator manager if available
+	if ClassDB.class_exists("IndicatorManager"):
+		scene_dict.indicator_manager = ClassDB.instantiate("IndicatorManager")
 		test.auto_free(scene_dict.indicator_manager)
 		test.add_child(scene_dict.indicator_manager)
 	

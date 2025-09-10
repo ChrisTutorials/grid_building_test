@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://nhlp6ks003fp"]
+
+[ext_resource type="Script" uid="uid://bxxu2njefe2hv" path="res://test/grid_building_test/scenes/env/test_scene_library.gd" id="1_agdtk"]
+
+[node name="TestSceneLibrary" type="Node"]
+script = ExtResource("1_agdtk")

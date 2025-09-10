@@ -4,13 +4,13 @@
 
 [node name="GridPositioner" type="Node2D" parent="."]
 
-[node name="PlacementManager" type="Node2D" parent="."]
+[node name="IndicatorManager" type="Node2D" parent="."]
 
-[node name="RuleCheckIndicator1" type="ShapeCast2D" parent="PlacementManager"]
+[node name="RuleCheckIndicator1" type="ShapeCast2D" parent="IndicatorManager"]
 
-[node name="RuleCheckIndicator2" type="ShapeCast2D" parent="PlacementManager"]
+[node name="RuleCheckIndicator2" type="ShapeCast2D" parent="IndicatorManager"]
 
-[node name="RuleCheckIndicator3" type="ShapeCast2D" parent="PlacementManager"]
+[node name="RuleCheckIndicator3" type="ShapeCast2D" parent="IndicatorManager"]
 
 [node name="BuildingSystem" type="Node2D" parent="."]
 
