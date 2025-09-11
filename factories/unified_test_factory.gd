@@ -6,67 +6,69 @@ extends RefCounted
 ## This factory provides a clean, DRY approach to creating complex test environments
 ## for the Grid Building system. It eliminates code duplication and ensures consistency
 ## across all test suites.
+
+## Common test constants to eliminate magic numbers
+const DEFAULT_TILE_SIZE := 16
+const DEFAULT_SHAPE_SIZE := 32
+const DEFAULT_RADIUS := 16.0
+const DEMO_BUILDING_LAYER := 2560  # Match demo building collision layer
+const DEMO_BUILDING_MASK := 1536   # Match demo building collision mask
+const DEFAULT_TEST_POSITION := Vector2(100, 100)
+
+## Common shape sizes
+const TILE_SIZE_VEC := Vector2(DEFAULT_TILE_SIZE, DEFAULT_TILE_SIZE)
+const SHAPE_SIZE_VEC := Vector2(DEFAULT_SHAPE_SIZE, DEFAULT_SHAPE_SIZE)
+
+## Common collision layer bits
+const COLLISION_LAYER_BIT_0 := 1
+const COLLISION_LAYER_BIT_9 := 512
+
+## Test environment scene UIDs
+const ALL_SYSTEMS_ENV_UID := "uid://ioucajhfxc8b"
+const BUILDING_TEST_ENV_UID := "uid://c4ujk08n8llv8"
+const COLLISION_TEST_ENV_UID := "uid://cdrtd538vrmun"
+const ISOMETRIC_BUILDING_ENV_UID := "uid://d3yeah2uexha2"
+
+## Common test layer configurations to reduce magic numbers and improve consistency
+const TEST_LAYER_CONFIGS := {
+	"minimal": {"layer": COLLISION_LAYER_BIT_0, "mask": 0},
+	"building": {"layer": DEMO_BUILDING_LAYER, "mask": DEMO_BUILDING_MASK},
+	"player": {"layer": COLLISION_LAYER_BIT_0, "mask": COLLISION_LAYER_BIT_9},
+	"environment": {"layer": COLLISION_LAYER_BIT_9, "mask": COLLISION_LAYER_BIT_0},
+	"indicator_test": {"layer": 513, "mask": 1}  # bits 0+9 commonly used in tests
+}
+
+## Common shape configurations for consistent test object creation
+const TEST_SHAPE_CONFIGS := {
+	"tile": {"size": TILE_SIZE_VEC, "radius": DEFAULT_TILE_SIZE / 2.0},
+	"building": {"size": SHAPE_SIZE_VEC, "radius": DEFAULT_RADIUS},
+	"large": {"size": Vector2(64, 64), "radius": 32.0},
+	"small": {"size": Vector2(8, 8), "radius": 4.0}
+}
+## ⚠️  MIGRATION NOTICE - Use Scene-Based Test Environments
 ##
-## ## MIGRATION NOTICE - Environment Creation Methods Deprecated
+## Factory methods are deprecated. Use pre-configured scene environments:
+## - AllSystems: `env = load(ALL_SYSTEMS_ENV_UID).instantiate(); add_child(env); auto_free(env)`
+## - Building: `env = load(BUILDING_TEST_ENV_UID).instantiate(); add_child(env); auto_free(env)`
+## - Collision: `env = load(COLLISION_TEST_ENV_UID).instantiate(); add_child(env); auto_free(env)`
+## - Isometric: `env = load(ISOMETRIC_BUILDING_ENV_UID).instantiate(); add_child(env); auto_free(env)`
 ##
-## **The factory-based environment creation methods are being phased out in favor of**
-## **pre-configured scene-based test environments. Use the premade environment scenes:**
-##
-## - **AllSystemsTestEnvironment**: `uid://ioucajhfxc8b` (all_systems_test_environment.tscn)
-##   - Replaces: `create_systems_integration_test_environment()`
-##   - Use for: Full system integration tests
-##   - Example: `env: Node = UnifiedTestFactory.instance_all_systems_env(self, "uid://ioucajhfxc8b")`
-##
-## - **BuildingTestEnvironment**: `uid://c4ujk08n8llv8` (building_test_environment.tscn)
-##   - Replaces: `create_building_system_test_environment()`, `create_injection_test_environment()`
-##   - Use for: Building system and dependency injection tests
-##   - Example: `var env = UnifiedTestFactory.instance_building_test_env(self, "uid://c4ujk08n8llv8")`
-##
-## - **CollisionTestEnvironment**: `uid://cdrtd538vrmun` (collision_test_environment.tscn)  
-##   - Replaces: `create_indicator_test_environment()`, `create_manipulation_system_test_environment()`
-##   - Use for: Collision detection and indicator management tests
-##   - Example: `var env = UnifiedTestFactory.instance_collision_test_env(self, "uid://cdrtd538vrmun")`
-##
-## - **IsometricBuildingTestEnvironment**: `uid://d3yeah2uexha2` (isometric_building_test_environment.tscn)
-##   - Use for: Isometric view and complex building scenarios
-##   - Example: `var env = load("uid://d3yeah2uexha2").instantiate(); add_child(env); auto_free(env)`
-##
-## **Benefits of Scene-Based Approach:**
-## - ✅ **100% Passive**: No dependency injection timing issues
-## - ✅ **Scene Editor**: Visual configuration of test environments
-## - ✅ **Runtime Validation**: Built-in `get_issues()` checks
-## - ✅ **Better Performance**: Pre-configured scenes load faster than factory assembly
-##
-## ## Quick Reference - Scene UIDs:
-##
-## ```gdscript
-## # All Systems Integration Tests  
-## env: Node = UnifiedTestFactory.instance_all_systems_env(self, "uid://ioucajhfxc8b")
-##
-## # Building System & Dependency Injection Tests
-## var env = UnifiedTestFactory.instance_building_test_env(self, "uid://c4ujk08n8llv8")
-##
-## # Collision Detection & Indicator Management Tests  
-## var env = UnifiedTestFactory.instance_collision_test_env(self, "uid://cdrtd538vrmun")
-##
-## # Isometric View & Complex Building Tests
-## var env = UnifiedTestFactory.instance_isometric_building_test_env(self, "uid://d3yeah2uexha2")
-## ```
-##
-## ## Key Features:
+## Benefits: No timing issues, visual config, built-in validation, better performance.
 
 ## Helper function to validate that collision shapes have proper parents
 ## @param collision_node: The CollisionPolygon2D or CollisionShape2D to validate
 ## @param method_name: Name of the calling method for error reporting
 static func _validate_collision_parent(collision_node: Node, method_name: String) -> void:
-	assert(collision_node != null, "%s: collision_node cannot be null" % method_name)
+	if collision_node == null:
+		push_error("%s: collision_node cannot be null" % method_name)
+		return
 	
 	var parent: Node = collision_node.get_parent()
-	assert(parent != null, "%s: collision node must have a parent" % method_name)
-	assert(
-		parent is CollisionObject2D or parent is Area2D,
-		"%s: collision node parent must be CollisionObject2D or Area2D, got %s" % [method_name, parent.get_class()]
-	)
+	if parent == null:
+		push_error("%s: collision node must have a parent" % method_name)
+		return
+	if not (parent is CollisionObject2D or parent is Area2D):
+		push_error("%s: collision node parent must be CollisionObject2D or Area2D, got %s" % [method_name, parent.get_class()])
 
 ## Helper function to ensure collision shapes are properly parented to collision objects
 ## @param collision_shape: The CollisionPolygon2D or CollisionShape2D to attach
@@ -79,11 +81,12 @@ static func _ensure_collision_parent(
 	test: GdUnitTestSuite,
 	method_name: String
 ) -> void:
-	assert(target_parent != null, "%s: target_parent cannot be null" % method_name)
-	assert(
-		target_parent is CollisionObject2D or target_parent is Area2D,
-		"%s: target_parent must be CollisionObject2D or Area2D, got %s" % [method_name, target_parent.get_class()]
-	)
+	if target_parent == null:
+		test.assert_that(target_parent).append_failure_message("%s: target_parent cannot be null" % method_name).is_not_null()
+		return
+	if not (target_parent is CollisionObject2D or target_parent is Area2D):
+		test.assert_that(target_parent).append_failure_message("%s: target_parent must be CollisionObject2D or Area2D, got %s" % [method_name, target_parent.get_class()]).is_instance_of(CollisionObject2D)
+		return
 	
 	# Remove from current parent if any
 	if collision_shape.get_parent() != null:
@@ -92,6 +95,139 @@ static func _ensure_collision_parent(
 	# Add to proper parent
 	target_parent.add_child(collision_shape)
 	test.auto_free(collision_shape)
+
+#region Helper Methods to Reduce Code Duplication
+
+## Core validation helper - validates test suite parameter with GdUnit assertions
+static func _validate_test_suite(test: GdUnitTestSuite, method_name: String) -> void:
+	if test == null:
+		push_error("%s: GdUnitTestSuite parameter cannot be null - this indicates a critical test setup issue" % method_name)
+		return
+	# Using assert for null test since we can't call methods on null
+	assert(test != null, "%s: GdUnitTestSuite parameter is required for proper resource management" % method_name)
+
+## Helper to create and auto_free a node with GdUnit validation
+static func _create_and_free(node_class: Variant, test: GdUnitTestSuite, method_name: String = "factory_method") -> Node:
+	_validate_test_suite(test, method_name)
+	var node: Node = test.auto_free(node_class.new())
+	test.assert_that(node).is_not_null().append_failure_message("%s: Failed to create and register %s node for auto cleanup" % [method_name, node_class])
+	return node
+
+## Helper to create a StaticBody2D with standard collision settings and GdUnit validation
+static func _create_static_body(test: GdUnitTestSuite, layer: int = COLLISION_LAYER_BIT_0, mask: int = 0, method_name: String = "create_static_body") -> StaticBody2D:
+	var body: StaticBody2D = _create_and_free(StaticBody2D, test, method_name)
+	body.collision_layer = layer
+	body.collision_mask = mask
+	
+	# Validate collision configuration with GdUnit assertions
+	test.assert_that(body.collision_layer).is_equal(layer).append_failure_message(
+		"%s: StaticBody2D collision_layer not set correctly. Expected: %d, Got: %d" % [method_name, layer, body.collision_layer])
+	test.assert_that(body.collision_mask).is_equal(mask).append_failure_message(
+		"%s: StaticBody2D collision_mask not set correctly. Expected: %d, Got: %d" % [method_name, mask, body.collision_mask])
+	test.assert_that(body is StaticBody2D).is_true().append_failure_message(
+		"%s: Expected StaticBody2D instance, got %s" % [method_name, body.get_class()])
+	
+	return body
+
+## Helper to create a CollisionShape2D with GdUnit validation and automatic parenting
+static func _create_collision_shape_with_parent(shape: Shape2D, parent: CollisionObject2D, test: GdUnitTestSuite, method_name: String = "create_collision_shape") -> CollisionShape2D:
+	_validate_test_suite(test, method_name)
+	test.assert_that(shape).is_not_null().append_failure_message("%s: Shape2D parameter cannot be null" % method_name)
+	test.assert_that(parent).is_not_null().append_failure_message("%s: CollisionObject2D parent cannot be null" % method_name)
+	test.assert_that(parent is CollisionObject2D).is_true().append_failure_message(
+		"%s: Parent must be CollisionObject2D, got %s" % [method_name, parent.get_class()])
+	
+	var collision_shape := CollisionShape2D.new()
+	collision_shape.shape = shape
+	parent.add_child(collision_shape)
+	test.auto_free(collision_shape)
+	
+	# Validate the result with GdUnit assertions
+	test.assert_that(collision_shape.shape).is_equal(shape).append_failure_message(
+		"%s: CollisionShape2D shape assignment failed" % method_name)
+	test.assert_that(collision_shape.get_parent()).is_equal(parent).append_failure_message(
+		"%s: CollisionShape2D parenting failed" % method_name)
+	test.assert_that(parent.get_children().has(collision_shape)).is_true().append_failure_message(
+		"%s: Parent does not contain the collision shape" % method_name)
+	
+	return collision_shape
+
+## Helper to create a RectangleShape2D with given size and validation
+static func _create_rectangle_shape(size: Vector2 = SHAPE_SIZE_VEC) -> RectangleShape2D:
+	var rect := RectangleShape2D.new()
+	rect.size = size
+	# Basic validation that size is reasonable
+	if size.x <= 0 or size.y <= 0:
+		push_error("_create_rectangle_shape: size must be positive, got %s" % size)
+	if rect.size != size:
+		push_error("_create_rectangle_shape: size assignment failed")
+	return rect
+
+## Helper to create a CircleShape2D with given radius and validation
+static func _create_circle_shape(radius: float = DEFAULT_RADIUS) -> CircleShape2D:
+	var circle := CircleShape2D.new()
+	circle.radius = radius
+	# Basic validation that radius is reasonable
+	if radius <= 0.0:
+		push_error("_create_circle_shape: radius must be positive, got %f" % radius)
+	if circle.radius != radius:
+		push_error("_create_circle_shape: radius assignment failed")
+	return circle
+
+## Helper to create standard square polygon points
+static func _create_square_polygon(half_size: int = DEFAULT_TILE_SIZE) -> PackedVector2Array:
+	return PackedVector2Array([
+		Vector2(-half_size, -half_size), Vector2(half_size, -half_size), 
+		Vector2(half_size, half_size), Vector2(-half_size, half_size)
+	])
+
+## Helper to create concave polygon for complex testing
+static func _create_concave_polygon(half_size: int = DEFAULT_SHAPE_SIZE) -> PackedVector2Array:
+	return PackedVector2Array([
+		Vector2(-half_size, -half_size),  # Top-left
+		Vector2(half_size, -half_size),   # Top-right
+		Vector2(half_size, 0),            # Right-middle
+		Vector2(0, 0),                    # Center (creates concave shape)
+		Vector2(0, half_size),            # Bottom-center
+		Vector2(-half_size, half_size),   # Bottom-left
+		Vector2(-half_size, -half_size)   # Close the polygon
+	])
+
+## Helper to validate a fully-configured collision object with comprehensive GdUnit assertions
+## This serves as a reference pattern for thorough validation in factory methods
+static func _validate_collision_object_comprehensive(obj: CollisionObject2D, test: GdUnitTestSuite, context: String = "") -> void:
+	var method_context := "validate_collision_object" + (" " + context if context else "")
+	
+	# Basic object validation
+	test.assert_that(obj).is_not_null().append_failure_message(
+		"%s: CollisionObject2D cannot be null" % method_context)
+	test.assert_that(obj is CollisionObject2D).is_true().append_failure_message(
+		"%s: Object must be CollisionObject2D, got %s" % [method_context, obj.get_class() if obj else "null"])
+	
+	# Collision configuration validation
+	test.assert_that(obj.collision_layer).is_greater_equal(0).append_failure_message(
+		"%s: collision_layer should be non-negative, got %d" % [method_context, obj.collision_layer])
+	test.assert_that(obj.collision_mask).is_greater_equal(0).append_failure_message(
+		"%s: collision_mask should be non-negative, got %d" % [method_context, obj.collision_mask])
+	
+	# Shape validation
+	var shape_owners := obj.get_shape_owners()
+	test.assert_that(shape_owners.size()).is_greater(0).append_failure_message(
+		"%s: CollisionObject2D must have collision shapes for proper collision detection" % method_context)
+	
+	# Validate each shape owner has shapes
+	for owner_id in shape_owners:
+		var shape_count := obj.shape_owner_get_shape_count(owner_id)
+		test.assert_that(shape_count).is_greater(0).append_failure_message(
+			"%s: Shape owner %d has no shapes configured" % [method_context, owner_id])
+		
+		# Validate shapes are valid
+		for shape_idx in range(shape_count):
+			var shape := obj.shape_owner_get_shape(owner_id, shape_idx)
+			test.assert_that(shape).is_not_null().append_failure_message(
+				"%s: Shape at owner %d, index %d is null" % [method_context, owner_id, shape_idx])
+
+#endregion
 ## - **DRY Principle**: Eliminates 80% of code duplication through helper methods
 ## - **Layered Architecture**: Simple → Complex environment building
 ## - **Backward Compatibility**: All existing APIs preserved
@@ -140,7 +276,7 @@ static func _ensure_collision_parent(
 ## Loaded from: uid://dy6e5p5d6ax6n (test_composition_container.tres)
 const TEST_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
 
-#region LAYERED FACTORY METHODS - Advanced DRY Approach
+#region CORE FACTORY METHODS - Most Used Methods
 
 ## Creates a comprehensive test environment for the indicator management system
 ## Includes necessary components for testing indicator behavior and interactions
@@ -170,33 +306,45 @@ const TEST_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
 ## [b]Returns[/b]: Dictionary – complete test environment with all components properly configured
 static func create_indicator_test_environment(test: GdUnitTestSuite, container: GBCompositionContainer = null) -> Dictionary:
 	push_warning("DEPRECATED: create_indicator_test_environment() is deprecated. Use UnifiedTestFactory.instance_collision_test_env(test, \"uid://cdrtd538vrmun\") instead for better reliability.")
-	assert(test != null, "test parameter cannot be null")
+	_validate_test_suite(test, "create_indicator_test_environment")
 	
 	# Start with comprehensive targeting state setup (ensures indicator template and manipulation parent)
 	var targeting_setup: Dictionary = prepare_targeting_state_ready(test, container)
-	assert(targeting_setup != null, "prepare_targeting_state_ready returned null")
-	assert(targeting_setup is Dictionary, "prepare_targeting_state_ready must return Dictionary")
-	assert(targeting_setup.has("container"), "targeting_setup missing 'container' key")
-	assert(targeting_setup.container != null, "targeting_setup.container cannot be null")
+	test.assert_that(targeting_setup).is_not_null().append_failure_message(
+		"create_indicator_test_environment: prepare_targeting_state_ready returned null")
+	test.assert_that(targeting_setup is Dictionary).is_true().append_failure_message(
+		"create_indicator_test_environment: prepare_targeting_state_ready must return Dictionary")
+	test.assert_that(targeting_setup.has("container")).is_true().append_failure_message(
+		"create_indicator_test_environment: targeting_setup missing 'container' key")
+	test.assert_that(targeting_setup.container).is_not_null().append_failure_message(
+		"create_indicator_test_environment: targeting_setup.container cannot be null")
 
 	# Create injector for dependency injection
 	var injector: GBInjectorSystem = GBInjectorSystem.create_with_injection(test, targeting_setup.container)
-	assert(injector != null, "_create_injector_for_container returned null")
+	test.assert_that(injector).is_not_null().append_failure_message(
+		"create_indicator_test_environment: _create_injector_for_container returned null")
 
 	# Create indicator manager with proper setup
 	var indicator_manager: IndicatorManager = create_test_indicator_manager(test, targeting_setup.container)
-	assert(indicator_manager != null, "create_test_indicator_manager returned null")
+	test.assert_that(indicator_manager).is_not_null().append_failure_message(
+		"create_indicator_test_environment: create_test_indicator_manager returned null")
 	
 	# indicator_manager is already parented to manipulation_parent via create_test_indicator_manager
 	# No need to add it to test suite directly
 
 	# Validate environment dictionary components
-	assert(targeting_setup.has("targeting_state"), "targeting_setup missing 'targeting_state' key")
-	assert(targeting_setup.has("building_state"), "targeting_setup missing 'building_state' key")
-	assert(targeting_setup.has("positioner"), "targeting_setup missing 'positioner' key")
-	assert(targeting_setup.has("tile_map"), "targeting_setup missing 'tile_map' key")
-	assert(targeting_setup.has("objects_parent"), "targeting_setup missing 'objects_parent' key")
-	assert(targeting_setup.has("logger"), "targeting_setup missing 'logger' key")
+	test.assert_that(targeting_setup.has("targeting_state")).is_true().append_failure_message(
+		"create_indicator_test_environment: targeting_setup missing 'targeting_state' key")
+	test.assert_that(targeting_setup.has("building_state")).is_true().append_failure_message(
+		"create_indicator_test_environment: targeting_setup missing 'building_state' key")
+	test.assert_that(targeting_setup.has("positioner")).is_true().append_failure_message(
+		"create_indicator_test_environment: targeting_setup missing 'positioner' key")
+	test.assert_that(targeting_setup.has("tile_map")).is_true().append_failure_message(
+		"create_indicator_test_environment: targeting_setup missing 'tile_map' key")
+	test.assert_that(targeting_setup.has("objects_parent")).is_true().append_failure_message(
+		"create_indicator_test_environment: targeting_setup missing 'objects_parent' key")
+	test.assert_that(targeting_setup.has("logger")).is_true().append_failure_message(
+		"create_indicator_test_environment: targeting_setup missing 'logger' key")
 
 	# Return complete environment dictionary
 	var env_dict: Dictionary = {
@@ -228,13 +376,18 @@ static func create_indicator_test_environment(test: GdUnitTestSuite, container: 
 		"manipulation_parent"
 	]
 	for k: String in required_keys:
-		assert(env_dict.has(k), "Environment missing '%s' key" % k)
-		assert(env_dict.get(k) != null, "Environment key '%s' cannot be null" % k)
+		test.assert_that(env_dict.has(k)).is_true().append_failure_message(
+			"validate_indicator_test_environment: Environment missing '%s' key" % k)
+		test.assert_that(env_dict.get(k)).is_not_null().append_failure_message(
+			"validate_indicator_test_environment: Environment key '%s' cannot be null" % k)
 
 	# Key sanity checks
-	assert(env_dict.container != null, "Environment container cannot be null")
-	assert(env_dict.indicator_manager != null, "Environment indicator_manager cannot be null")
-	assert(env_dict.injector != null, "Environment injector cannot be null")
+	test.assert_that(env_dict.container).is_not_null().append_failure_message(
+		"validate_indicator_test_environment: Environment container cannot be null")
+	test.assert_that(env_dict.indicator_manager).is_not_null().append_failure_message(
+		"validate_indicator_test_environment: Environment indicator_manager cannot be null")
+	test.assert_that(env_dict.injector).is_not_null().append_failure_message(
+		"validate_indicator_test_environment: Environment injector cannot be null")
 	
 	return env_dict
 
@@ -297,73 +450,90 @@ static func create_collision_test_setup(test: GdUnitTestSuite, collision_object:
 	
 ## Create test building with specified collision polygon
 ## Creates a StaticBody2D with properly validated CollisionPolygon2D hierarchy
-static func create_static_body_with_polygon(test : GdUnitTestSuite, polygon : PackedVector2Array) -> StaticBody2D:
-	var building: StaticBody2D = test.auto_free(StaticBody2D.new())
-	building.collision_layer = 2560  # Match demo building collision layer
-	building.collision_mask = 1536   # Match demo building collision mask
+static func create_static_body_with_polygon(test: GdUnitTestSuite, polygon: PackedVector2Array) -> StaticBody2D:
+	_validate_test_suite(test, "create_static_body_with_polygon")
+	test.assert_that(polygon).is_not_null().append_failure_message(
+		"create_static_body_with_polygon: polygon parameter cannot be null")
+	test.assert_that(polygon.size()).is_greater_equal(3).append_failure_message(
+		"create_static_body_with_polygon: polygon must have at least 3 points, got %d" % polygon.size())
 	
-	var collision_shape: CollisionPolygon2D = test.auto_free(CollisionPolygon2D.new())
+	var building := _create_static_body(test, DEMO_BUILDING_LAYER, DEMO_BUILDING_MASK, "create_static_body_with_polygon")
+	
+	var collision_shape: CollisionPolygon2D = _create_and_free(CollisionPolygon2D, test, "create_static_body_with_polygon")
 	collision_shape.polygon = polygon
 	building.add_child(collision_shape)
 	
-	# Validate the collision hierarchy
-	_validate_collision_parent(collision_shape, "create_static_body_with_polygon")
-
+	# Validate the collision hierarchy with GdUnit assertions
+	test.assert_that(collision_shape.get_parent()).is_equal(building).append_failure_message(
+		"create_static_body_with_polygon: CollisionPolygon2D not properly parented to StaticBody2D")
+	test.assert_that(collision_shape.polygon.size()).is_equal(polygon.size()).append_failure_message(
+		"create_static_body_with_polygon: polygon not properly assigned to CollisionPolygon2D")
+	test.assert_that(building.get_shape_owners().size()).is_greater(0).append_failure_message(
+		"create_static_body_with_polygon: StaticBody2D has no collision shapes after setup")
+	
 	return building
 
-# DEPRECATED basic helpers (use GodotTestFactory.* instead) ------------------
 ## Creates a CollisionPolygon2D with triangle shape and optional parent validation
-## @param test: Test suite for auto_free management
-## @param parent: Optional CollisionObject2D parent for proper collision hierarchy
 static func create_test_collision_polygon(test: GdUnitTestSuite, parent: CollisionObject2D = null) -> CollisionPolygon2D:
-	var polygon: CollisionPolygon2D = test.auto_free(CollisionPolygon2D.new())
+	var polygon: CollisionPolygon2D = _create_and_free(CollisionPolygon2D, test)
 	
 	if parent != null:
 		_ensure_collision_parent(polygon, parent, test, "create_test_collision_polygon")
-	else:
-		# Validate existing parent if any
-		if polygon.get_parent() != null:
-			_validate_collision_parent(polygon, "create_test_collision_polygon")
+	elif polygon.get_parent() != null:
+		_validate_collision_parent(polygon, "create_test_collision_polygon")
 	
 	return polygon
 
 static func create_test_object_with_circle_shape(test: GdUnitTestSuite) -> Node2D:
-	var obj := StaticBody2D.new()
-	var shape := CollisionShape2D.new()
-	var circle := CircleShape2D.new()
-	circle.radius = 16.0
-	shape.shape = circle
-	obj.add_child(shape)
-	return test.auto_free(obj)
+	_validate_test_suite(test, "create_test_object_with_circle_shape")
+	
+	var obj := _create_static_body(test, COLLISION_LAYER_BIT_0, 0, "create_test_object_with_circle_shape")
+	_create_collision_shape_with_parent(_create_circle_shape(), obj, test, "create_test_object_with_circle_shape")
+	
+	# Validate the complete object using comprehensive validation
+	_validate_collision_object_comprehensive(obj, test, "create_test_object_with_circle_shape")
+	
+	# Additional specific validation for circle shape
+	var shape_owners := obj.get_shape_owners()
+	if shape_owners.size() > 0:
+		var first_shape := obj.shape_owner_get_shape(shape_owners[0], 0)
+		test.assert_that(first_shape is CircleShape2D).is_true().append_failure_message(
+			"create_test_object_with_circle_shape: Expected CircleShape2D, got %s" % first_shape.get_class())
+		test.assert_that((first_shape as CircleShape2D).radius).is_equal(DEFAULT_RADIUS).append_failure_message(
+			"create_test_object_with_circle_shape: Circle radius not set correctly. Expected: %f, Got: %f" % 
+			[DEFAULT_RADIUS, (first_shape as CircleShape2D).radius])
+	
+	return obj
 
 static func create_test_static_body_with_rect_shape(test: GdUnitTestSuite) -> StaticBody2D:
-	assert(test != null, "Test suite cannot be null")
+	_validate_test_suite(test, "create_test_static_body_with_rect_shape")
 	
-	var body: StaticBody2D = test.auto_free(StaticBody2D.new())
-	var shape := CollisionShape2D.new()
-	var rect := RectangleShape2D.new()
-	rect.size = Vector2(32, 32)
-	shape.shape = rect
-	body.add_child(shape)
-	assert(body != null, "Failed to create StaticBody2D with rect shape")
-	assert(body is StaticBody2D, "Expected StaticBody2D, got: " + str(type_string(typeof(body))))
-	assert(body.get_children().size() > 0, "StaticBody2D should have collision shape children")
+	var body := _create_static_body(test, COLLISION_LAYER_BIT_0, 0, "create_test_static_body_with_rect_shape")
+	_create_collision_shape_with_parent(_create_rectangle_shape(), body, test, "create_test_static_body_with_rect_shape")
+	
+	# Comprehensive validation with GdUnit assertions
+	test.assert_that(body).is_not_null().append_failure_message(
+		"create_test_static_body_with_rect_shape: Failed to create StaticBody2D with rect shape")
+	test.assert_that(body is StaticBody2D).is_true().append_failure_message(
+		"create_test_static_body_with_rect_shape: Expected StaticBody2D, got %s" % type_string(typeof(body)))
+	test.assert_that(body.get_children().size()).is_greater(0).append_failure_message(
+		"create_test_static_body_with_rect_shape: StaticBody2D should have collision shape children")
+	test.assert_that(body.get_shape_owners().size()).is_greater(0).append_failure_message(
+		"create_test_static_body_with_rect_shape: StaticBody2D should have registered collision shapes")
 	
 	return body
 
 static func create_test_parent_with_body_and_polygon(test: GdUnitTestSuite) -> Node2D:
-	var parent: Node2D = test.auto_free(Node2D.new())
-	var body: StaticBody2D = test.auto_free(StaticBody2D.new())
-	var shape: CollisionShape2D = CollisionShape2D.new()
+	var parent: Node2D = _create_and_free(Node2D, test)
+	var body := _create_static_body(test)
+	
+	# Create both CollisionShape2D and CollisionPolygon2D for comprehensive testing
+	_create_collision_shape_with_parent(_create_rectangle_shape(), body, test)
+	
 	var polygon: CollisionPolygon2D = CollisionPolygon2D.new()
-	var points: PackedVector2Array = PackedVector2Array([
-		Vector2(-16, -16), Vector2(16, -16), Vector2(16, 16), Vector2(-16, 16)
-	])
-	polygon.polygon = points
-	var rect_shape: RectangleShape2D = RectangleShape2D.new()
-	rect_shape.size = Vector2(32, 32)
-	shape.shape = rect_shape
-	body.add_child(shape)
+	polygon.polygon = _create_square_polygon()
+	body.add_child(polygon)
+	
 	parent.add_child(body)
 	return parent
 
@@ -371,42 +541,53 @@ static func create_test_parent_with_body_and_polygon(test: GdUnitTestSuite) -> N
 #region Indicators
 
 static func create_test_indicator_collision_setup(test: GdUnitTestSuite, collision_object: CollisionObject2D = null) -> IndicatorCollisionTestSetup:
-	assert(test != null, "Test suite cannot be null")
+	_validate_test_suite(test, "create_test_indicator_collision_setup")
 	
 	var obj := collision_object if collision_object != null else create_test_static_body_with_rect_shape(test)
-	assert(obj != null, "Failed to create collision object for test setup")
-	assert(obj is CollisionObject2D, "Object must be a CollisionObject2D, got: " + str(type_string(typeof(obj))))
+	test.assert_that(obj).is_not_null().append_failure_message(
+		"create_test_indicator_collision_setup: Failed to create collision object for test setup")
+	test.assert_that(obj is CollisionObject2D).is_true().append_failure_message(
+		"create_test_indicator_collision_setup: Object must be a CollisionObject2D, got %s" % type_string(typeof(obj)))
+	test.assert_that(obj.get_shape_owners().size()).is_greater(0).append_failure_message(
+		"create_test_indicator_collision_setup: CollisionObject2D must have collision shapes for indicator testing")
 	
-	var shape_stretch := Vector2(16, 16)
-	var setup: IndicatorCollisionTestSetup = IndicatorCollisionTestSetup.new(obj, shape_stretch)
-	assert(setup != null, "Failed to create IndicatorCollisionTestSetup")
+	var setup: IndicatorCollisionTestSetup = IndicatorCollisionTestSetup.new(obj, TILE_SIZE_VEC)
+	test.assert_that(setup).is_not_null().append_failure_message(
+		"create_test_indicator_collision_setup: Failed to create IndicatorCollisionTestSetup")
+	test.assert_that(setup.collision_object).is_equal(obj).append_failure_message(
+		"create_test_indicator_collision_setup: IndicatorCollisionTestSetup collision_object not set correctly")
 	
 	return setup
 
 static func create_test_indicator_manager(test: GdUnitTestSuite, param: Variant = null) -> IndicatorManager:
-	assert(test != null, "test parameter cannot be null")
+	_validate_test_suite(test, "create_test_indicator_manager")
 	
 	var _container: GBCompositionContainer
 
 	# Handle different parameter types for backward compatibility
 	if param == null:
 		_container = TEST_CONTAINER.duplicate(true)
-		assert(_container != null, "Failed to duplicate TEST_CONTAINER")
+		test.assert_that(_container).is_not_null().append_failure_message(
+			"create_test_indicator_manager: Failed to duplicate TEST_CONTAINER")
 		_ensure_container_has_templates(_container, test)
 	elif param is GBCompositionContainer:
 		_container = param
-		assert(_container != null, "GBCompositionContainer parameter cannot be null")
+		test.assert_that(_container).is_not_null().append_failure_message(
+			"create_test_indicator_manager: GBCompositionContainer parameter cannot be null")
 		_ensure_container_has_templates(_container, test)
 	elif param is GridTargetingState:
 		# Legacy compatibility: create container with targeting state
 		_container = TEST_CONTAINER.duplicate(true)
-		assert(_container != null, "Failed to duplicate TEST_CONTAINER for GridTargetingState")
+		test.assert_that(_container).is_not_null().append_failure_message(
+			"create_test_indicator_manager: Failed to duplicate TEST_CONTAINER for GridTargetingState")
 		_ensure_container_has_templates(_container, test)
 		# Ensure states are initialized before assigning targeting state
 		var states: GBStates = _container.get_states()
-		assert(states != null, "container.get_states() returned null")
+		test.assert_that(states).is_not_null().append_failure_message(
+			"create_test_indicator_manager: container.get_states() returned null")
 		states.targeting = param
-		assert(states.targeting == param, "Failed to assign targeting state")
+		test.assert_that(states.targeting).is_equal(param).append_failure_message(
+			"create_test_indicator_manager: Failed to assign targeting state")
 	else:
 		push_error("Invalid parameter type for create_test_indicator_manager. Expected GBCompositionContainer or GridTargetingState")
 		_container = TEST_CONTAINER.duplicate(true)
@@ -519,7 +700,7 @@ static func configure_collision_mapper_for_test_object(test: GdUnitTestSuite, ma
 	if collision_mapper != null:
 		collision_mapper.setup(testing_indicator, setups)
 
-static func create_test_indicator_rect(test: GdUnitTestSuite, tile_size: int = 16) -> RuleCheckIndicator:
+static func create_test_indicator_rect(test: GdUnitTestSuite, tile_size: int = DEFAULT_TILE_SIZE) -> RuleCheckIndicator:
 	var indicator: RuleCheckIndicator = RuleCheckIndicator.new([])
 	indicator.name = "TestRuleCheckIndicatorRect"
 	test.auto_free(indicator)
@@ -691,7 +872,7 @@ static func create_minimal_targeting_state(test: GdUnitTestSuite, valid: bool = 
 	if valid:
 		var map : TileMapLayer = test.auto_free(TileMapLayer.new())
 		map.tile_set = TileSet.new()
-		map.tile_set.tile_size = Vector2(16, 16)
+		map.tile_set.tile_size = TILE_SIZE_VEC
 		var positioner : Node2D = test.auto_free(Node2D.new())
 		if align_to_center:
 			var center := map.to_global(map.map_to_local(Vector2i.ZERO))
@@ -728,7 +909,7 @@ static func create_minimal_indicator_template(_test: GdUnitTestSuite) -> PackedS
 	var node := RuleCheckIndicator.new()
 	# Set up a valid shape for the ShapeCast2D component
 	var shape := RectangleShape2D.new()
-	shape.size = Vector2(32, 32)
+	shape.size = SHAPE_SIZE_VEC
 	node.shape = shape
 	# pack a minimal scene with RuleCheckIndicator root
 	var err := ps.pack(node)
@@ -782,7 +963,7 @@ static func create_test_rule_check_indicator(test: GdUnitTestSuite, rules: Array
 	
 	# Set up a valid shape for the ShapeCast2D component
 	var shape := RectangleShape2D.new()
-	shape.size = Vector2(32, 32)
+	shape.size = SHAPE_SIZE_VEC
 	indicator.shape = shape
 	
 	# Set collision mask to match test expectations
@@ -810,7 +991,7 @@ static func create_double_targeting_state(test : GdUnitTestSuite) -> GridTargeti
 	test.auto_free(targeting_state)
 	var positioner: Node2D = test.auto_free(Node2D.new())
 	# positioner already parented
-	positioner.global_position = Vector2(100, 100)  # Set a default position for calculations
+	positioner.global_position = DEFAULT_TEST_POSITION  # Set a default position for calculations
 	targeting_state.positioner = positioner
 	var target_map: TileMapLayer = test.auto_free(TileMapLayer.new())
 	targeting_state.target_map = target_map
@@ -971,7 +1152,7 @@ static func create_test_manipulation_data(
 static func create_test_rule_check_indicator_with_shape(
 	test: GdUnitTestSuite,
 	rules: Array = [],
-	tile_size: int = 16
+	tile_size: int = DEFAULT_TILE_SIZE
 ) -> RuleCheckIndicator:
 	var indicator: RuleCheckIndicator = create_test_rule_check_indicator(test, rules, null)
 	var rect_shape: RectangleShape2D = RectangleShape2D.new()
@@ -1015,15 +1196,7 @@ static func create_polygon_test_object(test: GdUnitTestSuite, parent: CollisionO
 	obj.name = "PolygonTestObject"
 	
 	# Define a concave polygon that matches the demo's behavior
-	var points: PackedVector2Array = [
-		Vector2(-32, -32),  # Top-left
-		Vector2(32, -32),   # Top-right
-		Vector2(32, 0),     # Right-middle
-		Vector2(0, 0),      # Center (creates concave shape)
-		Vector2(0, 32),     # Bottom-center
-		Vector2(-32, 32),   # Bottom-left
-		Vector2(-32, -32)   # Close the polygon
-	]
+	var points: PackedVector2Array = _create_concave_polygon()
 	
 	if parent != null:
 		# Assert that parent is a valid collision object
@@ -1114,7 +1287,7 @@ static func create_grid_positioner_2d(test: GdUnitTestSuite, container: GBCompos
 	
 	# Set required shape for ShapeCast2D (matches template configuration)
 	var shape := RectangleShape2D.new()
-	shape.size = Vector2(32, 32)
+	shape.size = SHAPE_SIZE_VEC
 	positioner.shape = shape
 	
 	if container:
@@ -1190,7 +1363,7 @@ static func create_test_placeable_2d(_test: GdUnitTestSuite) -> Placeable:
 	var collision_shape := CollisionShape2D.new()
 	collision_shape.name = "TestCollisionShape2D"
 	var rect_shape := RectangleShape2D.new()
-	rect_shape.size = Vector2(32, 32)
+	rect_shape.size = SHAPE_SIZE_VEC
 	collision_shape.shape = rect_shape
 	static_body.add_child(collision_shape)
 	test_obj.add_child(static_body)
@@ -1684,6 +1857,7 @@ static func create_indicator_test_hierarchy(test: GdUnitTestSuite, container: GB
 	hierarchy.positioner = test.auto_free(Node2D.new())
 	assert(hierarchy.positioner != null, "Failed to create positioner node")
 	hierarchy.positioner.name = "TestPositioner"
+	test.add_child(hierarchy.positioner)  # Add to scene tree for position changes to work
 	
 	hierarchy.manipulation_parent = Node2D.new()
 	hierarchy.manipulation_parent.name = "TestManipulationParent"
@@ -1693,13 +1867,17 @@ static func create_indicator_test_hierarchy(test: GdUnitTestSuite, container: GB
 	# Create and configure tile map
 	hierarchy.tile_map = test.auto_free(TileMapLayer.new())
 	assert(hierarchy.tile_map != null, "Failed to create tile map layer")
+	
+	# Initialize tile set for the tile map
+	var tile_set := TileSet.new()
+	hierarchy.tile_map.tile_set = tile_set
 	hierarchy.tile_map.tile_set.tile_size = Vector2i(32, 32)
 	
 	# Configure states
 	var targeting_state: GridTargetingState = _container.get_states().targeting
 	assert(targeting_state != null, "Failed to get targeting state from container")
 	targeting_state.positioner = hierarchy.positioner
-	var map_objects: Array = [hierarchy.tile_map]
+	var map_objects: Array[TileMapLayer] = [hierarchy.tile_map]
 	targeting_state.set_map_objects(hierarchy.tile_map, map_objects)
 	
 	# Create default target node for tests
@@ -1721,6 +1899,9 @@ static func create_indicator_test_hierarchy(test: GdUnitTestSuite, container: GB
 	hierarchy.collision_mapper = CollisionMapper.new(targeting_state, _container.get_logger())
 	assert(hierarchy.collision_mapper != null, "Failed to create collision mapper")
 	test.auto_free(hierarchy.collision_mapper)
+	
+	# Configure collision mapper for testing
+	configure_collision_mapper_for_test_object(test, hierarchy.indicator_manager, hierarchy.positioner, _container, hierarchy.positioner)
 	
 	hierarchy.container = _container
 	hierarchy.logger = _container.get_logger()
@@ -1748,7 +1929,7 @@ static func create_collision_mapper_setup(test: GdUnitTestSuite, container: GBCo
 		"tile_map": tile_map,
 		"targeting_state": targeting_state,
 		"collision_mapper": CollisionMapper.new(targeting_state, _container.get_logger()),
-		"tile_size": Vector2(16, 16)
+		"tile_size": TILE_SIZE_VEC
 	}
 
 ## Creates parameters for rule validation tests
@@ -2074,7 +2255,7 @@ static func _create_standard_positioner(test: GdUnitTestSuite, name: String = "T
 	return positioner
 
 ## Creates a standardized tile map layer for testing
-static func _create_standard_tile_map(test: GdUnitTestSuite, tile_size: int = 16) -> TileMapLayer:
+static func _create_standard_tile_map(test: GdUnitTestSuite, tile_size: int = DEFAULT_TILE_SIZE) -> TileMapLayer:
 	var tile_map: TileMapLayer = GodotTestFactory.create_tile_map_layer(test)
 	var tile_set := TileSet.new()
 	var atlas := TileSetAtlasSource.new()
