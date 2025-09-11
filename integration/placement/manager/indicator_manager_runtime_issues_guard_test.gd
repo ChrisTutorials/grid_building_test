@@ -31,11 +31,11 @@ func test_setup_indicators_aborts_when_targeting_has_runtime_issues():
 	test_obj.get_parent().remove_child(test_obj)
 	positioner.add_child(test_obj)
 	var rule := CollisionsCheckRule.new()
-	var rules: Array[Node2D][TileCheckRule] = [rule]
+	var rules: Array[TileCheckRule] = [rule]
 	var report: IndicatorSetupReport = manager.setup_indicators(test_obj, rules)
 
 	# Assert: no indicators created and report finalization did not crash
 	assert_array(report.indicators).is_empty()
 	# The manager should detect runtime issues (null target_map) naturally
-	var runtime_issues : Array[Node2D][String] = targeting_state.get_runtime_issues()
+	var runtime_issues : Array[String] = targeting_state.get_runtime_issues()
 	assert_array(runtime_issues).append_failure_message("Issues Found: %s" % runtime_issues).is_empty()

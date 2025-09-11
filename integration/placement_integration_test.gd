@@ -21,7 +21,7 @@ var _building_system : BuildingSystem
 var _map : TileMapLayer
 var _indicator_manager : IndicatorManager
 
-func before_test():
+func before_test() -> void:
 	env = UnifiedTestFactory.instance_building_test_env(self, "uid://c4ujk08n8llv8")
 	_container = env.get_container()
 	_targeting_system = env.grid_targeting_system
@@ -37,7 +37,7 @@ func before_test():
 	placement_validator = PlacementValidator.create_with_injection(_container)
 	_placed_positions = []
 
-func after_test():
+func after_test() -> void:
 	# Explicit cleanup to prevent orphan nodes
 	if placement_validator:
 		placement_validator.tear_down()
@@ -67,20 +67,20 @@ func test_placement_validation_basic(
 		["boundary_position", false, Vector2(16, 16)],
 		["origin_position", false, Vector2(0, 0)]
 	]
-):
+) -> void:
 	# Set _positioner to test position
 	_positioner.global_position = target_position
 	
 	# Setup and validate with no rules 
 	# PlacementValidator actually returns false when no rules are active
 	var empty_rules: Array[PlacementRule] = []
-	var setup_issues: Array = placement_validator.setup(empty_rules, _targeting_state)
+	var setup_issues: Dictionary = placement_validator.setup(empty_rules, _targeting_state)
 	
 	assert_bool(setup_issues.is_empty()).append_failure_message(
 		"Setup should succeed with no rules for scenario: %s" % placement_scenario
 	).is_true()
 	
-	var result = placement_validator.validate_placement()
+	var result: ValidationResults = placement_validator.validate_placement()
 	
 	# With no rules, PlacementValidator returns unsuccessful because no rules were set up
 	assert_bool(result.is_successful()).append_failure_message(
@@ -105,22 +105,22 @@ func test_placement_validation_with_rules(
 		["multiple_rules_pass", "multiple_valid", true],
 		["multiple_rules_fail", "multiple_invalid", true]  # No indicators = true by default
 	]
-):
+) -> void:
 	# Create test rules based on scenario
-	var test_rules = _create_test_rules(rule_type)
+	var test_rules: Array[PlacementRule] = _create_test_rules(rule_type)
 	
 	# Setup environment for specific rule scenarios
 	if rule_type == "collision_blocking":
 		_setup_blocking_collision()
 	
 	# Setup and validate placement
-	var setup_issues = placement_validator.setup(test_rules, _targeting_state)
+	var setup_issues: Dictionary = placement_validator.setup(test_rules, _targeting_state)
 	
 	if not setup_issues.is_empty():
 		# Log setup issues but continue test to see behavior
 		logger.log_warning(self, "Setup issues for %s: %s" % [rule_scenario, setup_issues])
 	
-	var result = placement_validator.validate()
+	var result: ValidationResults = placement_validator.validate()
 	
 	assert_bool(result.is_successful()).append_failure_message(
 		"Validation result for %s with rule type %s should be %s" % [rule_scenario, rule_type, expected_valid]
@@ -142,29 +142,29 @@ func test_placement_validation_edge_cases(
 		["no_target_map", "validation_error"],
 		["invalid_position", "position_validation"]
 	]
-):
+) -> void:
 	match edge_case:
 		"null_params":
 			# With empty rules array and null _targeting_state, setup returns empty dict
 			# because there are no rules to report issues for
 			var empty_rules: Array[PlacementRule] = []
-			var setup_issues = placement_validator.setup(empty_rules, null)
+			var setup_issues: Dictionary = placement_validator.setup(empty_rules, null)
 			assert_bool(setup_issues.is_empty()).append_failure_message(
 				"Empty rules with null _targeting_state should result in empty setup issues"
 			).is_true()
 			
 			# Test with actual rules and null _targeting_state to see issues
 			var test_rules: Array[PlacementRule] = [ValidPlacementTileRule.new()]
-			var setup_issues_with_rules = placement_validator.setup(test_rules, null)
+			var setup_issues_with_rules: Dictionary = placement_validator.setup(test_rules, null)
 			assert_bool(setup_issues_with_rules.is_empty()).append_failure_message(
 				"Rules with null parameters should cause setup issues"
 			).is_false()
 		
 		"invalid_placeable":
 			var empty_rules: Array[PlacementRule] = []
-			var _setup_issues = placement_validator.setup(empty_rules, _targeting_state)
+			var _setup_issues: Dictionary = placement_validator.setup(empty_rules, _targeting_state)
 			# With empty rules, validate() returns false because active_rules is empty
-			var result = placement_validator.validate()
+			var result: ValidationResults = placement_validator.validate()
 			assert_bool(result.is_successful()).append_failure_message(
 				"Validation with empty rules should fail (no active rules)"
 			).is_false()
@@ -174,17 +174,17 @@ func test_placement_validation_edge_cases(
 		
 		"no_target_map":
 			# Temporarily clear target _map
-			var original_map = _targeting_state.target_map
+			var original_map: TileMapLayer = _targeting_state.target_map
 			_targeting_state.target_map = null
 			var empty_rules: Array[PlacementRule] = []
-			var setup_issues = placement_validator.setup(empty_rules, _targeting_state)
+			var setup_issues: Dictionary = placement_validator.setup(empty_rules, _targeting_state)
 			
 			# Restore _map
 			_targeting_state.target_map = original_map
 			
 			# Without target _map, there might be issues
 			if setup_issues.is_empty():
-				var result = placement_validator.validate()
+				var result: ValidationResults = placement_validator.validate()
 				assert_object(result).append_failure_message(
 					"Should get validation result even with no target _map"
 				).is_not_null()
@@ -198,28 +198,28 @@ func test_placement_validation_edge_cases(
 			_positioner.global_position = Vector2(1000, 1000)  # Far out of bounds
 			
 			var empty_rules: Array[PlacementRule] = []
-			var _setup_issues = placement_validator.setup(empty_rules, _targeting_state)
-			var result = placement_validator.validate()
+			var _setup_issues: Dictionary = placement_validator.setup(empty_rules, _targeting_state)
+			var result: ValidationResults = placement_validator.validate()
 			# This might be valid or invalid depending on implementation
 			assert_object(result).append_failure_message(
 				"Invalid position should still return a result object"
 			).is_not_null()
 
 # Test performance with multiple rules
-func test_placement_validation_performance():
+func test_placement_validation_performance() -> void:
 	# Create many rules for performance testing
 	var many_rules: Array[PlacementRule] = []
 	for i in range(10):
-		var rule = ValidPlacementTileRule.new()
+		var rule: ValidPlacementTileRule = ValidPlacementTileRule.new()
 		many_rules.append(rule)
 
 	# Setup and measure validation time
-	var _setup_issues = placement_validator.setup(many_rules, _targeting_state)
+	var _setup_issues: Dictionary = placement_validator.setup(many_rules, _targeting_state)
 	
-	var start_time = Time.get_ticks_msec()
-	var result = placement_validator.validate()
-	var end_time = Time.get_ticks_msec()
-	var elapsed_ms = end_time - start_time
+	var start_time: int = Time.get_ticks_msec()
+	var result: ValidationResults = placement_validator.validate()
+	var end_time: int = Time.get_ticks_msec()
+	var elapsed_ms: int = end_time - start_time
 	
 	assert_bool(result.is_successful()).append_failure_message(
 		"Performance test should still produce valid result"
@@ -236,27 +236,27 @@ func _create_test_rules(rule_type: String) -> Array[PlacementRule]:
 	match rule_type:
 		"collision":
 			# Rule that passes when no collisions detected
-			var collision_rule = CollisionsCheckRule.new()
-			collision_rule.pass_on_collision = false  # Fail if collision detected
-			collision_rule.collision_mask = 1
-			rules.append(collision_rule)
+			var rule: CollisionsCheckRule = CollisionsCheckRule.new()
+			rule.pass_on_collision = false  # Fail if collision detected
+			rule.collision_mask = 1
+			rules.append(rule)
 		
 		"collision_blocking":
 			# Rule that fails when collision detected (blocking scenario)
-			var collision_rule = CollisionsCheckRule.new()
+			var collision_rule: CollisionsCheckRule = CollisionsCheckRule.new()
 			collision_rule.pass_on_collision = false  # Fail if collision detected  
 			collision_rule.collision_mask = 1
 			rules.append(collision_rule)
 		
 		"template":
 			# Template rule that checks tilemap data
-			var template_rule = ValidPlacementTileRule.new()
+			var template_rule: ValidPlacementTileRule = ValidPlacementTileRule.new()
 			rules.append(template_rule)
 		
 		"multiple_valid":
 			# Two rules that should both pass
-			var rule1 = ValidPlacementTileRule.new()
-			var rule2 = CollisionsCheckRule.new()
+			var rule1: ValidPlacementTileRule = ValidPlacementTileRule.new()
+			var rule2: CollisionsCheckRule = CollisionsCheckRule.new()
 			rule2.pass_on_collision = false
 			rule2.collision_mask = 2  # Different _map, no collision
 			rules.append(rule1)
@@ -264,10 +264,10 @@ func _create_test_rules(rule_type: String) -> Array[PlacementRule]:
 		
 		"multiple_invalid":
 			# Rules where at least one should fail
-			var rule1 = CollisionsCheckRule.new()
+			var rule1: CollisionsCheckRule = CollisionsCheckRule.new()
 			rule1.pass_on_collision = false  # Will fail due to blocking collision
 			rule1.collision_mask = 1
-			var rule2 = CollisionsCheckRule.new()
+			var rule2: CollisionsCheckRule = CollisionsCheckRule.new()
 			rule2.pass_on_collision = false  # Will also fail
 			rule2.collision_mask = 1
 			rules.append(rule1)
@@ -278,8 +278,8 @@ func _create_test_rules(rule_type: String) -> Array[PlacementRule]:
 
 func test_unparented_polygon_offsets_change_when_positioner_moves() -> void:
 	# Make sure the TileMapLayer has a proper transform in the scene
-	var _map : TileMapLayer = _map
-	_map.global_position = Vector2.ZERO
+	var map_layer: TileMapLayer = _map
+	map_layer.global_position = Vector2.ZERO
 	
 	var parent := UnifiedTestFactory.create_test_node2d(self)
 	
@@ -291,9 +291,9 @@ func test_unparented_polygon_offsets_change_when_positioner_moves() -> void:
 	
 	var mapper := _indicator_manager.get_collision_mapper()
 
-	var offsets1 : Array[Vector2i] = _collect_offsets(mapper, poly, _map)
+	var offsets1 : Array[Vector2i] = _collect_offsets(mapper, poly, map_layer)
 	_positioner.global_position += Vector2(32,0) # move two tiles right
-	var offsets2 = _collect_offsets(mapper, poly, _map)
+	var offsets2: Array[Vector2i] = _collect_offsets(mapper, poly, map_layer)
 	
 	# Validate that unparented polygon offsets change when _positioner moves
 	assert_array(offsets1).append_failure_message(
@@ -316,11 +316,11 @@ func test_parented_polygon_offsets_stable_when_positioner_moves() -> void:
 
 	var offsets1: Array[Vector2i] = _collect_offsets(mapper, poly, _map)
 	_positioner.global_position += Vector2(32,0)
-	var offsets2 = _collect_offsets(mapper, poly, _map)
+	var offsets2: Array[Vector2i] = _collect_offsets(mapper, poly, _map)
 	
 	# From first test run we got [(7, -1), (7, 0), (8, -1), (8, 0)] which seems reasonable
 	# Let's use that as our expected pattern since the calculation worked
-	var expected_core = [Vector2i(7,-1), Vector2i(7,0), Vector2i(8,-1), Vector2i(8,0)]
+	var expected_core: Array[Vector2i] = [Vector2i(7,-1), Vector2i(7,0), Vector2i(8,-1), Vector2i(8,0)]
 	
 	# Validate parented polygon behavior with detailed failure context
 	assert_array(offsets1).append_failure_message(
@@ -333,36 +333,38 @@ func test_parented_polygon_offsets_stable_when_positioner_moves() -> void:
 
 
 # Helper method to setup blocking collision for test scenarios
-func _setup_blocking_collision():
+func _setup_blocking_collision() -> void:
 	# Create a blocking object at the target position
-	var blocking_area = GodotTestFactory.create_area2d_with_circle_shape(self, 32.0)  # Larger radius
+	var blocking_area: Area2D = GodotTestFactory.create_area2d_with_circle_shape(self, 32.0)  # Larger radius
 	blocking_area.collision_layer = 1
 	blocking_area.collision_mask = 0  # Don't detect anything itself
 	blocking_area.global_position = _positioner.global_position
 
-func _collect_offsets(mapper: CollisionMapper, poly: CollisionPolygon2D, _map: TileMapLayer) -> Array[Vector2i]:
-	var node_tile_offsets : Dictionary = mapper.get_tile_offsets_for_collision_polygon(poly, _map)
+func _collect_offsets(mapper: CollisionMapper, poly: CollisionPolygon2D, tile_map: TileMapLayer) -> Array[Vector2i]:
+	var node_tile_offsets : Dictionary = mapper.get_tile_offsets_for_collision_polygon(poly, tile_map)
 	assert_object(node_tile_offsets).append_failure_message(
 		"CollisionMapper should return valid dictionary from get_tile_offsets_for_collision_polygon"
 	).is_not_null()
 	var arr: Array[Vector2i] = []
-	for k in node_tile_offsets.keys(): arr.append(k)
+	for k: Vector2i in node_tile_offsets.keys(): arr.append(k)
 	arr.sort()
 	
 	# Validate collected offsets with meaningful failure context. If empty, gather
 	# internal PolygonTileMapper diagnostics to help identify why coverage is missing.
 	if arr.is_empty():
-		var diag_msg = ""
+		var diag_msg: String = ""
 		# Try to get detailed diagnostics from the internal polygon mapper if available
 		if typeof(PolygonTileMapper) != TYPE_NIL:
-			var diag = PolygonTileMapper.process_polygon_with_diagnostics(poly, _map)
+			var diag: Variant = PolygonTileMapper.process_polygon_with_diagnostics(poly, tile_map)
 			diag_msg = "; diag.initial=%d, diag.final=%d, diag.was_parented=%s, diag.was_convex=%s" % [diag.initial_offset_count, diag.final_offset_count, str(diag.was_parented), str(diag.was_convex)]
 			
 			# Add coordinate _building_system diagnostics
-			var center_tile: Vector2i = _map.local_to_map(_map.to_local(poly.global_position))
-			var polygon_world_center = poly.global_position
-			var polygon_tile = _map.local_to_map(_map.to_local(polygon_world_center))
-			var tile_size = _map.tile_set.tile_size if _map.tile_set else Vector2(16, 16)
+			var center_tile: Vector2i = tile_map.local_to_map(tile_map.to_local(poly.global_position))
+			var polygon_world_center: Vector2 = poly.global_position
+			var polygon_tile: Vector2i = tile_map.local_to_map(tile_map.to_local(polygon_world_center))
+			var tile_size: Vector2 = Vector2(16, 16)
+			if tile_map.tile_set:
+				tile_size = tile_map.tile_set.tile_size
 			
 			diag_msg += "; center_tile=%s, poly_world=%s, poly_tile=%s, tile_size=%s" % [center_tile, polygon_world_center, polygon_tile, tile_size]
 		
@@ -377,7 +379,7 @@ func _collect_offsets(mapper: CollisionMapper, poly: CollisionPolygon2D, _map: T
 	return arr
 
 ## Expected FAIL: only polygon contributes currently; Area2D rectangle (112x80) should produce 7x5=35 tiles.
-func test_smithy_generates_full_rectangle_of_indicators():
+func test_smithy_generates_full_rectangle_of_indicators() -> void:
 	# Arrange preview under the active _positioner
 	var smithy_obj := UnifiedTestFactory.create_test_placeable_instance(self, _positioner, test_smithy_placeable, "Smithy")
 
@@ -486,7 +488,7 @@ func test_building_system_initialization() -> void:
 
 func test_building_mode_enter_exit() -> void:
 	# Enter build mode
-	var enter_report: Node = _building_system.enter_build_mode(test_smithy_placeable)
+	var enter_report: PlacementReport = _building_system.enter_build_mode(test_smithy_placeable)
 	assert_object(enter_report).is_not_null()
 	assert_bool(enter_report.is_successful()).is_true()
 	assert_bool(_building_system.is_in_build_mode()).append_failure_message(
@@ -517,17 +519,17 @@ func test_building_placement_attempt() -> void:
 
 func test_building_state_transitions() -> void:
 	# Test state transition sequence
-	var initial_state = _building_system.is_in_build_mode()
+	var initial_state: bool = _building_system.is_in_build_mode()
 	assert_bool(initial_state).is_false()
 	
 	# Enter build mode
 	_building_system.enter_build_mode(test_smithy_placeable)
-	var build_mode_state = _building_system.is_in_build_mode()
+	var build_mode_state: bool = _building_system.is_in_build_mode()
 	assert_bool(build_mode_state).is_true()
 	
 	# Exit and verify state
 	_building_system.exit_build_mode()
-	var final_state = _building_system.is_in_build_mode()
+	var final_state: bool = _building_system.is_in_build_mode()
 	assert_bool(final_state).is_false()
 
 func test_building_state_persistence() -> void:
@@ -549,7 +551,7 @@ func test_building_state_persistence() -> void:
 
 func test_drag_build_initialization() -> void:
 	# Check if drag build manager is available
-	var drag_manager = _building_system.get_lazy_drag_manager()
+	var drag_manager: Variant = _building_system.get_lazy_drag_manager()
 	assert_object(drag_manager).append_failure_message(
 		"Drag build manager should be available"
 	).is_not_null()
@@ -558,7 +560,7 @@ func test_drag_build_functionality() -> void:
 	_building_system.enter_build_mode(test_smithy_placeable)
 	
 	# Test drag building sequence through drag manager
-	var drag_manager = _building_system.get_lazy_drag_manager()
+	var drag_manager: Variant = _building_system.get_lazy_drag_manager()
 	drag_manager.start_drag()
 	
 	assert_bool(drag_manager.is_drag_building()).append_failure_message(
@@ -582,7 +584,7 @@ func test_single_placement_per_tile_constraint() -> void:
 	
 	_building_system.enter_build_mode(test_smithy_placeable)
 	
-	var _target_position: Vector2 = Vector2Vector2
+	var _target_position: Vector2 = Vector2(0, 0)
 
 	# First placement attempt - this should succeed because no objects are blocking placement
 	var first_report: PlacementReport = _building_system.try_build()
@@ -603,7 +605,7 @@ func test_tile_placement_validation() -> void:
 	_building_system.enter_build_mode(test_smithy_placeable)
 	
 	# Test multiple positions to verify tile-based logic
-	var positions: Array[Node2D] = [Vector2(0, 0), Vector2(16, 16), Vector2(32, 32)]
+	var positions: Array[Vector2] = [Vector2(0, 0), Vector2(16, 16), Vector2(32, 32)]
 	
 	for pos: Vector2 in positions:
 		var report: PlacementReport = _building_system.try_build()
@@ -621,9 +623,9 @@ func test_preview_name_consistency() -> void:
 	_building_system.enter_build_mode(test_smithy_placeable)
 	
 	# Check if preview _building_system maintains name consistency
-	var preview = _building_system.get_building_state().preview
+	var preview: Node2D = _building_system.get_building_state().preview
 	if preview != null:
-		var preview_name = preview.get_name()
+		var preview_name: String = preview.get_name()
 		assert_str(preview_name).append_failure_message(
 			"Preview name should be consistent with placeable"
 		).contains("Smithy")
@@ -631,16 +633,16 @@ func test_preview_name_consistency() -> void:
 	_building_system.exit_build_mode()
 
 func test_preview_rotation_consistency() -> void:
-	var manipulation_system = env.get("manipulation_system")
+	var manipulation_system: Variant = env.get("manipulation_system")
 	
 	_building_system.enter_build_mode(test_smithy_placeable)
 	
 	# Test rotation consistency - use manipulation _building_system for rotation
-	var preview = _building_system.get_building_state().preview
+	var preview: Node2D = _building_system.get_building_state().preview
 	if preview and manipulation_system:
 		manipulation_system.rotate(preview, 90.0)
 	
-	var rotated_preview = _building_system.get_building_state().preview
+	var rotated_preview: Node2D = _building_system.get_building_state().preview
 	assert_object(rotated_preview).append_failure_message(
 		"Preview should exist after rotation"
 	).is_not_null()
@@ -653,7 +655,7 @@ func test_preview_rotation_consistency() -> void:
 
 func test_complete_building_workflow() -> void:
 	_targeting_state.target = UnifiedTestFactory.create_test_node2d(self)
-	_targeting_state.target.position = Vector2position
+	_targeting_state.target.position = Vector2(0, 0)
 	
 	# Phase 2: Enter build mode
 	_building_system.enter_build_mode(test_smithy_placeable)
@@ -677,7 +679,7 @@ func test_complete_building_workflow() -> void:
 
 func test_building_error_recovery() -> void:
 	# Test recovery from invalid placeable
-	var invalid_placeable = null
+	var invalid_placeable: Variant = null
 	_building_system.enter_build_mode(invalid_placeable)
 	assert_bool(_building_system.is_in_build_mode()).is_false()
 	
@@ -695,14 +697,14 @@ func test_building_error_recovery() -> void:
 
 func test_building_system_dependencies() -> void:
 	# Verify _building_system has required dependencies
-	var issues = _building_system.get_runtime_issues()
+	var issues: Array = _building_system.get_runtime_issues()
 	assert_array(issues).append_failure_message(
 		"Building _building_system should have minimal dependency issues: %s" % [str(issues)]
 	).is_empty()
 
 func test_building_system_validation() -> void:
 	# Test _building_system validation using dependency issues
-	var issues = _building_system.get_runtime_issues()
+	var issues: Array = _building_system.get_runtime_issues()
 	assert_array(issues).append_failure_message(
 		"Building _building_system should be properly set up with no dependency issues"
 	).is_empty()
@@ -712,12 +714,12 @@ func test_building_system_validation() -> void:
 #region DRAG BUILD REGRESSION
 
 func test_drag_build_single_placement_regression() -> void:
-	var drag_manager = _building_system.get_lazy_drag_manager()
+	var drag_manager: Variant = _building_system.get_lazy_drag_manager()
 	
 	_building_system.enter_build_mode(test_smithy_placeable)
 	
 	# Start drag build
-	var drag_data = drag_manager.start_drag()
+	var drag_data: Variant = drag_manager.start_drag()
 	assert_object(drag_data).append_failure_message(
 		"Should be able to start drag operation"
 	).is_not_null()
@@ -744,8 +746,8 @@ func test_preview_indicator_consistency() -> void:
 	_building_system.enter_build_mode(test_smithy_placeable)
 	
 	# Test that preview and indicators stay consistent
-	var preview = _building_system.get_building_state().preview
-	var indicators = _indicator_manager.get_colliding_indicators()
+	var preview: Node2D = _building_system.get_building_state().preview
+	var indicators: Array = _indicator_manager.get_colliding_indicators()
 	
 	if preview != null and indicators != null:
 		# Both should exist or both should be null for consistency
@@ -757,22 +759,22 @@ func test_preview_indicator_consistency() -> void:
 #endregion
 	
 
-func _on_build_success(build_action_data: BuildActionData):
+func _on_build_success(build_action_data: BuildActionData) -> void:
 	if build_action_data.placed:
 		_placed_positions.append(build_action_data.placed.global_position)
 
 func _create_placeable_with_no_rules() -> Placeable:
 	"""Create a simple placeable with no placement rules to test the issue"""
 	# Create a simple Node2D scene
-	var simple_node = Node2D.new()
+	var simple_node: Node2D = Node2D.new()
 	simple_node.name = "SimpleBox"
 	
 	# Create PackedScene and pack the node
-	var packed_scene = PackedScene.new()
+	var packed_scene: PackedScene = PackedScene.new()
 	packed_scene.pack(simple_node)
 	
 	# Create placeable with NO rules - this is the key to the test
-	var placeable = Placeable.new(packed_scene, [])  # Empty rules array
+	var placeable: Placeable = Placeable.new(packed_scene, [])  # Empty rules array
 	placeable.display_name = "No Rules Box"
 	
 	# Clean up the temporary node
@@ -783,7 +785,7 @@ func _create_placeable_with_no_rules() -> Placeable:
 ## Demonstrates that drag building can place multiple objects on same tile
 ## when placeable has no rules. Should only place one object per tile switch.
 ## No collision pass required to place, but we expect only one placement per tiled
-func test_drag_build_should_not_stack_multiple_objects_in_the_same_spot_before_targeting_new_tile():
+func test_drag_build_should_not_stack_multiple_objects_in_the_same_spot_before_targeting_new_tile() -> void:
 	var report : PlacementReport = _building_system.enter_build_mode(test_within_tilemap_bounds_placeable)
 	assert_bool(report.is_successful()).is_true()
 	
@@ -793,9 +795,9 @@ func test_drag_build_should_not_stack_multiple_objects_in_the_same_spot_before_t
 	_building_system.start_drag()
 	
 	# First placement: Simulate drag targeting to tile (0, 0)
-	var target_tile = Vector2i(0, 0)
-	var old_tile = Vector2i(-1, -1)  # Previous tile (different)
-	var drag_data = DragPathData.new(_positioner, _targeting_state)
+	var target_tile: Vector2i = Vector2i(0, 0)
+	var old_tile: Vector2i = Vector2i(-1, -1)  # Previous tile (different)
+	var drag_data: Variant = DragPathData.new(_positioner, _targeting_state)
 	_building_system._on_drag_targeting_new_tile(drag_data, target_tile, old_tile)
 	
 	# Should have placed one object
@@ -810,15 +812,15 @@ func test_drag_build_should_not_stack_multiple_objects_in_the_same_spot_before_t
 			"Expected: no placement on same tile. " +
 			"Actual placement count: %d, positions: %s" % [_placed_positions.size(), _placed_positions]).is_equal(1)
 
-func test_drag_build_allows_placement_after_tile_switch():
+func test_drag_build_allows_placement_after_tile_switch() -> void:
 	assert(_positioner != null, "Positioner should still exist.")
 	_building_system.enter_build_mode(test_within_tilemap_bounds_placeable)
 	_building_system.start_drag()
 	
 	# First placement at tile (0, 0)
-	var drag_data = DragPathData.new(_positioner, _targeting_state)
-	var first_tile = Vector2i(0, 0)
-	var old_tile = Vector2i(-1, -1)
+	var drag_data: Variant = DragPathData.new(_positioner, _targeting_state)
+	var first_tile: Vector2i = Vector2i(0, 0)
+	var old_tile: Vector2i = Vector2i(-1, -1)
 	_building_system._on_drag_targeting_new_tile(drag_data, first_tile, old_tile)
 	_positioner.global_position = _map.to_global(_map.map_to_local(first_tile))
 	
@@ -826,7 +828,7 @@ func test_drag_build_allows_placement_after_tile_switch():
 	assert_int(_placed_positions.size()).is_equal(1)
 	
 	# Switch to different tile (1, 0) - this should allow another placement
-	var second_tile = Vector2i(1, 0)
+	var second_tile: Vector2i = Vector2i(1, 0)
 	_targeting_system.move_to_tile(_positioner, second_tile)
 	# _positioner.global_position = _map.to_global(_map.map_to_local(second_tile))
 	# _targeting_state._process(0.0)  # Force targeting update
@@ -852,7 +854,7 @@ func test_drag_build_allows_placement_after_tile_switch():
 	assert_int(_placed_positions.size()).is_equal(3)
 
 ## Check on no collision check rule
-func test_drag_building_single_placement_per_tile_switch():
+func test_drag_building_single_placement_per_tile_switch() -> void:
 	assert(_positioner != null, "Positioner should still exist.")
 	var report := _building_system.enter_build_mode(test_within_tilemap_bounds_placeable)
 	assert_bool(report.is_successful()).is_true()
@@ -862,7 +864,7 @@ func test_drag_building_single_placement_per_tile_switch():
 	
 	# Position _positioner at a safe start tile well inside the populated _map
 	# Compute a start tile with margin so indicator offsets won't be out of bounds
-	var used_rect = _map.get_used_rect()
+	var used_rect: Rect2i = _map.get_used_rect()
 	var start_tile := Vector2i(8, 8)
 	# Ensure start_tile is inside used_rect (add small margin)
 	start_tile.x = clamp(start_tile.x, int(used_rect.position.x) + 2, int(used_rect.position.x + used_rect.size.x) - 3)
@@ -870,17 +872,17 @@ func test_drag_building_single_placement_per_tile_switch():
 	_positioner.global_position = _map.to_global(_map.map_to_local(start_tile))
 	
 	# Start drag building
-	var drag_manager = _building_system.get_lazy_drag_manager()
-	var drag_data = drag_manager.start_drag()
+	var drag_manager: Variant = _building_system.get_lazy_drag_manager()
+	var drag_data: Variant = drag_manager.start_drag()
 	assert_object(drag_data).is_not_null()
 	assert_bool(drag_manager.is_drag_building()).is_true()
 	
 	# First placement attempt at tile (0,0) - this should succeed
 	# Validate placement state before attempting build and fail with appended diagnostics if invalid
-	var pre_validation = _indicator_manager.validate_placement()
+	var pre_validation: ValidationResults = _indicator_manager.validate_placement()
 	
 	assert_bool(pre_validation.is_successful()).append_failure_message("Expected to be successful before object placed").is_true()
-	var first_report = _building_system.try_build()
+	var first_report: PlacementReport = _building_system.try_build()
 	assert_object(first_report).append_failure_message("Should receive a valid placement report").is_not_null()
 	assert_bool(first_report.is_successful()).append_failure_message("First placement should be successful").is_true()
 	assert_object(first_report.placed).append_failure_message("Should have a valid placed object").is_not_null()
@@ -903,7 +905,7 @@ func test_drag_building_single_placement_per_tile_switch():
 	_building_system._on_drag_targeting_new_tile(drag_data, Vector2i(1, 0), Vector2i(0, 0))
 	
 	# Validate before attempting the second placement
-	var second_validation = _indicator_manager.validate_placement()
+	var second_validation: ValidationResults = _indicator_manager.validate_placement()
 	assert_bool(second_validation.is_successful()).append_failure_message("").is_true()
 	# This should create ONE placement at the new tile
 	assert_int(_placed_positions.size()).append_failure_message("").is_equal(2)
@@ -941,7 +943,7 @@ func test_drag_building_single_placement_per_tile_switch():
 	drag_manager.stop_drag()
 	assert_bool(drag_manager.is_drag_building()).is_false()
 
-func test_tile_tracking_prevents_duplicate_placements():
+func test_tile_tracking_prevents_duplicate_placements() -> void:
 	# Placeable has no collision checks, only that grid is valid
 	var report := _building_system.enter_build_mode(test_within_tilemap_bounds_placeable)
 	assert_bool(report.is_successful()).is_true()
@@ -950,15 +952,15 @@ func test_tile_tracking_prevents_duplicate_placements():
 	_building_system._building_settings.drag_multi_build = true
 	
 	# Position _positioner at a safe start tile inside the populated _map so placement hits valid cells
-	var used_rect = _map.get_used_rect()
+	var used_rect: Rect2i = _map.get_used_rect()
 	var start_tile := Vector2i(8, 8)
 	start_tile.x = clamp(start_tile.x, int(used_rect.position.x) + 2, int(used_rect.position.x + used_rect.size.x) - 3)
 	start_tile.y = clamp(start_tile.y, int(used_rect.position.y) + 2, int(used_rect.position.y + used_rect.size.y) - 3)
 	_positioner.global_position = _map.to_global(_map.map_to_local(start_tile))
 
 	# Start drag
-	var drag_manager = _building_system.get_lazy_drag_manager()
-	var drag_data = drag_manager.start_drag()
+	var drag_manager: Variant = _building_system.get_lazy_drag_manager()
+	var drag_data: Variant = drag_manager.start_drag()
 	
 	# Multiple rapid tile switch events to same tile should only place once
 	for i in range(5):

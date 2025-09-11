@@ -59,14 +59,14 @@ func before_test():
 ## returns rects with the correct size 
 ## Expected adjusted size to be original rect + TileSize * 1
 @warning_ignore("unused_parameter")
-func test_adjust_rect_to_testing_size(p_setups : Array[Node2D][IndicatorCollisionTestSetup], test_parameters := [
+func test_adjust_rect_to_testing_size(p_setups : Array[IndicatorCollisionTestSetup], test_parameters := [
 	[create_test_setups(eclipse_obj)],
 	[create_test_setups(rect_8_tiles_obj)],
 	[create_test_setups(test_skew_rotation_rect_obj)],
 	[create_test_setups(pillar_obj)]
 ]):
 	for setup in p_setups:
-		var rect_tests : Array[Node2D][RectCollisionTestingSetup] = setup.rect_collision_test_setups
+		var rect_tests : Array[RectCollisionTestingSetup] = setup.rect_collision_test_setups
 
 		for rect_test in rect_tests:
 			rect: Node = rect_test.rect_shape.get_rect()
@@ -78,8 +78,8 @@ func test_adjust_rect_to_testing_size(p_setups : Array[Node2D][IndicatorCollisio
 			assert_float(result_rect.size.y).is_greater_equal(minimum_expected_size.y)
 	
 
-func create_test_setups(p_container : Node) -> Array[Node2D][IndicatorCollisionTestSetup]:
-	var test_setups : Array[Node2D][IndicatorCollisionTestSetup] = []
+func create_test_setups(p_container : Node) -> Array[IndicatorCollisionTestSetup]:
+	var test_setups : Array[IndicatorCollisionTestSetup] = []
 	
 	if(p_container is CollisionObject2D):
 		test_setups.append(IndicatorCollisionTestSetup.new(p_container, Vector2(16,16)))

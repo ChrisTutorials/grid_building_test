@@ -7,7 +7,7 @@ var _targeting : GridTargetingState
 var _placer : Node2D
 var _map : TileMapLayer
 var _preview : Node2D
-var _rules : Array[Node2D][PlacementRule]
+var _rules : Array[PlacementRule]
 var _manager : IndicatorManager
 
 func before_test():
@@ -59,7 +59,7 @@ func after_test():
 	if _manager:
 		_manager.tear_down()
 
-func _collect_indicators() -> Array[Node2D][RuleCheckIndicator]:
+func _collect_indicators() -> Array[RuleCheckIndicator]:
 	return _manager.get_indicators() if _manager else []
 
 ## Expect multiple indicators but not a full bounding box fill (which would indicate concavity not handled)
@@ -68,7 +68,7 @@ func test_concave_polygon_generates_expected_indicator_distribution():
 	
 	assert_array(indicators).append_failure_message("No indicators generated for concave polygon – investigate rule attach path. Indicators not generated; test pending implementation.").is_not_empty()
 
-	var tiles : Array[Node2D][Vector2i] = []
+	var tiles : Array[Vector2i] = []
 	for ind in indicators:
 		var tile := _map.local_to_map(_map.to_local(ind.global_position))
 		if tile not in tiles:

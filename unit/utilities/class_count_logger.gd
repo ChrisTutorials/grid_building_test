@@ -21,7 +21,7 @@ func _count_classes(node: Node, counts: Dictionary[String, int]) -> void:
 ## Returns classes whose count increased (positive diff) between old_counts and new_counts.
 func diff_increases(old_counts: Dictionary[String, int], new_counts: Dictionary[String, int]) -> Dictionary[String, int]:
 	var inc: Dictionary[String, int] = {}
-	for k in new_counts.keys():
+	for k : String in new_counts.keys():
 		var before: int = old_counts.get(k, 0)
 		var after: int = new_counts[k]
 		if after > before:

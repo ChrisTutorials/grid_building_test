@@ -1,5 +1,5 @@
-## Debug helpers for placement manager tests to reduce duplication and improve debugging
-class_name TestDebugHelpers
+## class_name TestDebugHelpers
+## Debug helpers for placement manager tests to reduce duplication and improve debuggability
 
 ## Helper to create a minimal test environment with proper cleanup tracking
 static func create_minimal_test_environment(test_suite: GdUnitTestSuite) -> Dictionary:
@@ -60,7 +60,7 @@ static func create_minimal_test_environment(test_suite: GdUnitTestSuite) -> Dict
 
 ## Helper to create and validate an indicator manager with proper error reporting
 static func create_indicator_manager_with_validation(test_suite: GdUnitTestSuite, env: Dictionary) -> Dictionary:
-	var result = {}
+	var result: Dictionary = {}
 	
 	# Create indicator manager
 	var manager: IndicatorManager = IndicatorManager.create_with_injection(env.container)
@@ -85,7 +85,7 @@ static func create_basic_collision_rule(collision_layer: int = 1) -> CollisionsC
 
 ## Helper to validate indicator setup with detailed reporting
 static func validate_indicator_setup(manager: IndicatorManager, test_object: Node2D, rules: Array[TileCheckRule]) -> Dictionary:
-	var result = {}
+	var result: Dictionary = {}
 	
 	# Attempt setup
 	var report: IndicatorSetupReport = manager.setup_indicators(test_object, rules)
@@ -110,19 +110,19 @@ static func _create_setup_summary(validation_result: Dictionary) -> String:
 	
 	if validation_result.issues.size() > 0:
 		lines.append("Issues:")
-		for issue in validation_result.issues:
+		for issue : String in validation_result.issues:
 			lines.append("  - %s" % issue)
 	
 	if validation_result.notes.size() > 0:
 		lines.append("Notes:")
-		for note in validation_result.notes:
+		for note : String in validation_result.notes:
 			lines.append("  - %s" % note)
 	
 	return "\n".join(lines)
 
 ## Helper to verify building system can enter build mode
 static func validate_building_system_entry(test_suite: GdUnitTestSuite, env: Dictionary, placeable: Placeable) -> Dictionary:
-	var result = {}
+	var result : Dictionary = {}
 	
 	# Create building system
 	var building_system: BuildingSystem = BuildingSystem.create_with_injection(env.container)

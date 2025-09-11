@@ -23,7 +23,7 @@ func after_test() -> void:
 
 func test_indicator_manager_gets_dependency_injection() -> void:
 	# Test environment should have IndicatorManager properly injected
-	indicator_manager: Node = test_env.indicator_manager
+	var indicator_manager: IndicatorManager = test_env.indicator_manager
 	assert_object(indicator_manager).append_failure_message(
 		"BuildingTestEnvironment should have IndicatorManager"
 	).is_not_null()
@@ -35,27 +35,27 @@ func test_indicator_manager_gets_dependency_injection() -> void:
 
 func test_indicator_manager_registers_with_indicator_context() -> void:
 	# Test environment should have properly registered IndicatorManager
-	var indicator_context = test_env.get_container().get_indicator_context()
-	var registered_manager = indicator_context.get_manager()
+	var indicator_context : IndicatorContext = test_env.get_container().get_indicator_context()
+	var registered_manager : IndicatorManager= indicator_context.get_manager()
 	
 	assert_object(registered_manager).append_failure_message(
 		"IndicatorManager should be registered with IndicatorContext after injection"
 	).is_not_null()
-	
-	var indicator_manager = test_env.indicator_manager
+
+	var indicator_manager: IndicatorManager = test_env.indicator_manager
 	assert_object(registered_manager).append_failure_message(
 		"Specific IndicatorManager instance should be found in IndicatorContext"
 	).is_same(indicator_manager)
 
 func test_building_system_has_indicator_context_after_injection() -> void:
 	# Check BuildingSystem has access to indicator context
-	var building_system = test_env.building_system
+	var building_system: BuildingSystem = test_env.building_system
 	assert_object(building_system).append_failure_message(
 		"BuildingTestEnvironment should have BuildingSystem"
 	).is_not_null()
 	
 	# Get indicator context through the container
-	var indicator_context = test_env.get_container().get_indicator_context()
+	var indicator_context: IndicatorContext = test_env.get_container().get_indicator_context()
 	assert_object(indicator_context).append_failure_message(
 		"Container should provide indicator context after test environment setup"
 	).is_not_null()

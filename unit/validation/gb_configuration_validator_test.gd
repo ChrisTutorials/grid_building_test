@@ -18,7 +18,7 @@ func test_validate_configuration_with_complete_config():
 
 
 func test_validate_runtime_configuration():
-	var issues : Array[Node2D][String] = container.get_runtime_issues()
+	var issues : Array[String] = container.get_runtime_issues()
 	assert_int(issues.size()).is_greater(4)
 
 func test_injectable_factory_create_collision_mapper():

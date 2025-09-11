@@ -7,7 +7,7 @@ var _test_env: Dictionary
 var _manager_validation: Dictionary
 var _building_validation: Dictionary
 
-func before_test():
+func before_test() -> void:
 	# Use helper for standardized environment setup
 	_test_env = TestDebugHelpers.create_minimal_test_environment(self)
 	
@@ -16,14 +16,14 @@ func before_test():
 	assert_object(_test_env.map).is_not_null()
 	assert_object(_test_env.positioner).is_not_null()
 
-func after_test():
+func after_test() -> void:
 	# Clean up test environment
 	TestDebugHelpers.cleanup_test_environment(_test_env)
 	_test_env.clear()
 	_manager_validation.clear()
 	_building_validation.clear()
 
-func test_polygon_placeable_builds_and_generates_indicators():
+func test_polygon_placeable_builds_and_generates_indicators() -> void:
 	"""Simplified test focusing on the core functionality: building system entry and indicator generation"""
 	
 	# Step 1: Create placeable with clear debugging
@@ -48,14 +48,14 @@ func test_polygon_placeable_builds_and_generates_indicators():
 	
 	# Step 5: Create rule and test indicator generation
 	var rule: CollisionsCheckRule = TestDebugHelpers.create_basic_collision_rule(1)  # Match polygon collision layer
-	var rules: Array[Node2D][TileCheckRule] = [rule]
+	var rules: Array[TileCheckRule] = [rule]
 	
 	var indicator_result: Dictionary = TestDebugHelpers.validate_indicator_setup(_manager_validation.manager, preview, rules)
 	assert_int(indicator_result.indicator_count)\
 		.append_failure_message("Expected indicators to be generated. Details:\n%s" % indicator_result.summary)\
 		.is_greater(0)
 
-func test_polygon_indicators_align_with_geometry():
+func test_polygon_indicators_align_with_geometry() -> void:
 	"""Test that indicators generated align with the actual polygon geometry"""
 	
 	# Setup: Use the same build process as above
@@ -77,7 +77,7 @@ func test_polygon_indicators_align_with_geometry():
 	
 	# Generate indicators
 	var rule: CollisionsCheckRule = TestDebugHelpers.create_basic_collision_rule(1)
-	var rules: Array[Node2D][TileCheckRule] = [rule]
+	var rules: Array[TileCheckRule] = [rule]
 	var indicator_result: Dictionary = TestDebugHelpers.validate_indicator_setup(_manager_validation.manager, preview, rules)
 	
 	# Skip if no indicators generated
@@ -89,9 +89,9 @@ func test_polygon_indicators_align_with_geometry():
 	var center_tile: Vector2i = _test_env.map.local_to_map(_test_env.positioner.global_position)
 	var indicators_near_center: int = 0
 	
-	for indicator in indicator_result.indicators:
+	for indicator : RuleCheckIndicator in indicator_result.indicators:
 		var indicator_tile: Vector2i = _test_env.map.local_to_map(indicator.global_position)
-		var distance: float = Vector2float.length()
+		var distance: float = indicator_tile.distance_to(center_tile)
 		if distance <= 2.0:  # Within 2 tiles of center
 			indicators_near_center += 1
 	
@@ -99,7 +99,7 @@ func test_polygon_indicators_align_with_geometry():
 		.append_failure_message("Expected at least one indicator near positioner center tile %s" % str(center_tile))\
 		.is_greater(0)
 
-func test_polygon_preview_has_collision_polygon():
+func test_polygon_preview_has_collision_polygon() -> void:
 	"""Unit test to verify polygon preview contains a CollisionPolygon2D child"""
 	
 	var placeable: Placeable = UnifiedTestFactory.create_polygon_test_placeable(self)

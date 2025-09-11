@@ -6,7 +6,7 @@ const TEST_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
 # Minimal, parameterized, and double-factory-based IndicatorManager tests
 var indicator_manager: IndicatorManager
 var map_layer: TileMapLayer
-var col_checking_rules: Array[Node2D][TileCheckRule]
+var col_checking_rules: Array[TileCheckRule]
 var global_snap_pos: Vector2
 offset_logo: Node = load("uid://bqq7otaevtlqu")
 
@@ -32,7 +32,7 @@ func _setup_targeting_state():
 	map_layer.tile_set = TileSet.new()
 	map_layer.tile_set.tile_size = Vector2tile_size
 	targeting_state: Node = _container.get_states().targeting
-	var map_layers : Array[Node2D][TileMapLayer] = [map_layer]
+	var map_layers : Array[TileMapLayer] = [map_layer]
 	targeting_state.set_map_objects(map_layer, map_layers)
 	_positioner = Node2D.new()
 	auto_free(_positioner)
@@ -255,12 +255,12 @@ func _count_collision_shapes(root: Node) -> int:
 				count += 1
 	return count
 
-func _assert_collision_layer_overlaps(root: Node, tile_rules: Array[Node2D][TileCheckRule], scene_label: String):
+func _assert_collision_layer_overlaps(root: Node, tile_rules: Array[TileCheckRule], scene_label: String):
 	if tile_rules.is_empty():
 		return
 	var mask := tile_rules[0].apply_to_objects_mask
 	var overlapping := false
-	var body_layers : Array[Node2D][String] = []
+	var body_layers : Array[String] = []
 	var stack : Array[Node2D] = [root]
 	while not stack.is_empty():
 		var current: Node = stack.pop_back()
@@ -278,7 +278,7 @@ func _assert_collision_layer_overlaps(root: Node, tile_rules: Array[Node2D][Tile
 	)
 
 # Non-asserting overlap check used for optional prerequisite logic.
-func _collision_layer_overlaps(root: Node, tile_rules: Array[Node2D][TileCheckRule]) -> bool:
+func _collision_layer_overlaps(root: Node, tile_rules: Array[TileCheckRule]) -> bool:
 	if tile_rules.is_empty():
 		return false
 	var mask := tile_rules[0].apply_to_objects_mask

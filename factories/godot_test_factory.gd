@@ -71,7 +71,7 @@ static func create_tile_size(size: int = 16) -> Vector2:
 
 
 ## Creates a basic Node2D for testing with proper auto_free setup
-static func create_node2d(test: GdUnitTestSuite, p_name = "TestNode2D") -> Node2D:
+static func create_node2d(test: GdUnitTestSuite, p_name : String = "TestNode2D") -> Node2D:
 	var node: Node2D = test.auto_free(Node2D.new())
 	node.name = p_name
 	test.add_child(node)
@@ -79,7 +79,7 @@ static func create_node2d(test: GdUnitTestSuite, p_name = "TestNode2D") -> Node2
 
 ## Creates a Node with auto_free setup
 static func create_node(test: GdUnitTestSuite) -> Node:
-	var node = test.auto_free(Node.new())
+	var node: Node = test.auto_free(Node.new())
 	node.name = "TestNode"
 	test.add_child(node)
 	return node
@@ -117,7 +117,7 @@ static func create_tile_map_layer(test: GdUnitTestSuite, grid_size: int = 40) ->
 	var atlas_coords := Vector2i(0,0)
 	for x in range(0, grid_size):
 		for y in range(0, grid_size):
-			var coords = Vector2i(x, y)
+			var coords := Vector2i(x, y)
 			map_layer.set_cell(coords, tile_id, atlas_coords)
 
 	# If fallback tileset was needed, repopulate all cells after assigning new tileset
@@ -134,7 +134,7 @@ static func create_tile_map_layer(test: GdUnitTestSuite, grid_size: int = 40) ->
 		map_layer.clear()
 		for x in range(0, grid_size):
 			for y in range(0, grid_size):
-				var coords = Vector2i(x, y)
+				var coords := Vector2i(x, y)
 				map_layer.set_cell(coords, 0, Vector2i(0,0))
 
 	var actual_populated_cells := map_layer.get_used_cells().size()
@@ -170,7 +170,7 @@ static func create_tile_map_layer_with_shape(
 	var atlas_coords := Vector2i(0,0)
 	for x in range(0, grid_size):
 		for y in range(0, grid_size):
-			var coords = Vector2i(x, y)
+			var coords := Vector2i(x, y)
 			map_layer.set_cell(coords, tile_id, atlas_coords)
 
 	# If fallback tileset was needed, repopulate all cells after assigning new tileset
@@ -189,7 +189,7 @@ static func create_tile_map_layer_with_shape(
 		map_layer.clear()
 		for x in range(0, grid_size):
 			for y in range(0, grid_size):
-				var coords = Vector2i(x, y)
+				var coords := Vector2i(x, y)
 				map_layer.set_cell(coords, 0, Vector2i(0,0))
 
 	var actual_populated_cells := map_layer.get_used_cells().size()

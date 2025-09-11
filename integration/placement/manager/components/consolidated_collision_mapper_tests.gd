@@ -98,7 +98,7 @@ func test_collision_shape_coverage_comprehensive(
 func test_positioner_movement_updates_collision():
 	# Create collision object
 	var collision_polygon = CollisionPolygon2D.new()
-	collision_polygon.polygon = PackedVector2Array[Node2D]([
+	collision_polygon.polygon = PackedVector2Array([
 		Vector2(-16, -16), Vector2(16, -16), Vector2(16, 16), Vector2(-16, 16)
 	])
 	
@@ -151,7 +151,7 @@ func test_collision_mapper_polygon():
 	# Create area with polygon collision
 	var area = Area2D.new()
 	var collision_polygon = CollisionPolygon2D.new()
-	collision_polygon.polygon = PackedVector2Array[Node2D]([
+	collision_polygon.polygon = PackedVector2Array([
 		Vector2(-10, -10),
 		Vector2(10, -10),
 		Vector2(10, 10),
@@ -198,7 +198,7 @@ func test_collision_mapper_multiple_shapes():
 func test_trapezoid_core_subset_present():
 	var poly = _create_trapezoid_node(true)
 	var tile_dict = collision_mapper.get_tile_offsets_for_collision_polygon(poly, env.tile_map_layer)
-	var offsets: Array[Node2D][Vector2i] = []
+	var offsets: Array[Vector2i] = []
 	for k in tile_dict.keys(): offsets.append(k)
 	offsets.sort()
 	var core_required := [Vector2i(-1,-1), Vector2i(0,-1), Vector2i(1,-1), Vector2i(-1,0), Vector2i(0,0), Vector2i(1,0)]
@@ -219,7 +219,7 @@ func test_trapezoid_coverage_stability():
 ## Test complete processing pipeline with representative polygon shapes
 @warning_ignore("unused_parameter")
 func test_process_polygon_complete_pipeline_scenarios(
-	polygon_points: PackedVector2Array[Node2D],
+	polygon_points: PackedVector2Array,
 	global_position: Vector2,
 	is_parented: bool,
 	expected_properties: Dictionary,
@@ -228,7 +228,7 @@ func test_process_polygon_complete_pipeline_scenarios(
 	test_parameters := [
 		# Small square polygon - basic case
 		[
-			PackedVector2Array[Node2D]([Vector2(-8, -8), Vector2(8, -8), Vector2(8, 8), Vector2(-8, 8)]),
+			PackedVector2Array([Vector2(-8, -8), Vector2(8, -8), Vector2(8, 8), Vector2(-8, 8)]),
 			Vector2(0, 0),
 			true,
 			{"was_convex": true, "was_parented": true, "did_expand_trapezoid": false},
@@ -237,7 +237,7 @@ func test_process_polygon_complete_pipeline_scenarios(
 		],
 		# Large rectangle - should trigger area filtering
 		[
-			PackedVector2Array[Node2D]([Vector2(-32, -16), Vector2(32, -16), Vector2(32, 16), Vector2(-32, 16)]),
+			PackedVector2Array([Vector2(-32, -16), Vector2(32, -16), Vector2(32, 16), Vector2(-32, 16)]),
 			Vector2(0, 0),
 			true,
 			{"was_convex": true, "was_parented": true},
@@ -269,7 +269,7 @@ func test_tile_shape_drives_mapping():
 	map_layer.tile_set.tile_shape = TileSet.TILE_SHAPE_ISOMETRIC
 
 	# Simple square polygon centered at origin
-	var poly: CollisionPolygon2D = GodotTestFactory.create_collision_polygon(self, PackedVector2Array[Node2D]([Vector2(-8, -8), Vector2(8, -8), Vector2(8, 8), Vector2(-8, 8)]))
+	var poly: CollisionPolygon2D = GodotTestFactory.create_collision_polygon(self, PackedVector2Array([Vector2(-8, -8), Vector2(8, -8), Vector2(8, 8), Vector2(-8, 8)]))
 
 	var owner_context = GBOwnerContext.new(null)
 	var targeting_state_local = GridTargetingState.new(owner_context)
@@ -297,7 +297,7 @@ func test_isometric_tile_shape_produces_offsets():
 	# Build a simple polygon around origin (square) as CollisionPolygon2D
 	var poly = CollisionPolygon2D.new()
 	auto_free(poly)
-	poly.polygon = PackedVector2Array[Node2D]([Vector2(-8, -8), Vector2(8, -8), Vector2(8, 8), Vector2(-8, 8)])
+	poly.polygon = PackedVector2Array([Vector2(-8, -8), Vector2(8, -8), Vector2(8, 8), Vector2(-8, 8)])
 
 	# Create dummy targeting state and positioner
 	var owner_ctx = GBOwnerContext.new(null)
@@ -329,7 +329,7 @@ func test_tile_shape_preference_from_map():
 
 	# Create a simple CollisionPolygon2D in world space near origin
 	var poly = CollisionPolygon2D.new()
-	poly.polygon = PackedVector2Array[Node2D]([Vector2(-8, -8), Vector2(8, -8), Vector2(8, 8), Vector2(-8, 8)])
+	poly.polygon = PackedVector2Array([Vector2(-8, -8), Vector2(8, -8), Vector2(8, 8), Vector2(-8, 8)])
 	poly.global_position = Vector2global_position
 
 	# Mock positioner (centered over origin)
@@ -387,7 +387,7 @@ func _create_test_object_with_shape_enum(shape_type: TestShapeType, shape_data: 
 			test_object = CollisionObjectTestFactory.create_static_body_with_circle(self, radius, position)
 		
 		TestShapeType.TRAPEZOID:
-			var polygon = PackedVector2Array[Node2D](shape_data.get("polygon", [Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)]))
+			var polygon = PackedVector2Array(shape_data.get("polygon", [Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)]))
 			test_object = CollisionObjectTestFactory.create_static_body_with_polygon(self, polygon, position)
 		
 		TestShapeType.CAPSULE:
@@ -440,7 +440,7 @@ func _create_test_indicator() -> RuleCheckIndicator:
 
 func _create_trapezoid_node(parented := true) -> CollisionPolygon2D:
 	var poly := CollisionPolygon2D.new()
-	poly.polygon = PackedVector2Array[Node2D]([Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)])
+	poly.polygon = PackedVector2Array([Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)])
 	env.level.add_child(poly)
 	return poly
 	

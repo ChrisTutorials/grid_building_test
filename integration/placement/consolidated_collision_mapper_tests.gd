@@ -69,7 +69,7 @@ func test_geometry_calculator_basic_operations() -> void:
 
 @warning_ignore("unused_parameter")
 func test_geometry_calculator_polygon_bounds() -> void:
-	var polygon: PackedVector2Array[Node2D] = PackedVector2Array[Node2D]([
+	var polygon: PackedVector2Array = PackedVector2Array([
 		Vector2(0, 0), Vector2(16, 0), Vector2(16, 16), Vector2(0, 16)
 	])
 	
@@ -83,7 +83,7 @@ func test_geometry_calculator_polygon_bounds() -> void:
 @warning_ignore("unused_parameter")
 func test_polygon_tile_mapper_basic() -> void:
 	var tile_map = test_env.tile_map
-	var polygon: PackedVector2Array[Node2D] = PackedVector2Array[Node2D]([
+	var polygon: PackedVector2Array = PackedVector2Array([
 		Vector2(0, 0), Vector2(16, 0), Vector2(16, 16), Vector2(0, 16)
 	])
 	
@@ -97,7 +97,7 @@ func test_polygon_tile_mapper_basic() -> void:
 @warning_ignore("unused_parameter")
 func test_polygon_tile_mapper_offsets() -> void:
 	var tile_map = test_env.tile_map
-	var polygon: PackedVector2Array[Node2D] = PackedVector2Array[Node2D]([
+	var polygon: PackedVector2Array = PackedVector2Array([
 		Vector2(8, 8), Vector2(24, 8), Vector2(24, 24), Vector2(8, 24)
 	])
 	

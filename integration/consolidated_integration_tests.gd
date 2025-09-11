@@ -81,7 +81,7 @@ func _assert_reasonable_collision_positions(collision_results: Dictionary) -> vo
 		"Should generate collision tile positions"
 	).is_not_empty()
 	
-	for tile_pos in collision_results.keys():
+	for tile_pos: Variant in collision_results.keys():
 		var tile_coord: Vector2i = tile_pos as Vector2i
 		assert_int(abs(tile_coord.x)).append_failure_message(
 			"Collision tile x coordinate should be reasonable: %d" % tile_coord.x
@@ -111,15 +111,15 @@ func _assert_reasonable_collision_positions(collision_results: Dictionary) -> vo
 	).is_true()
 	
 	# Test building at validated position
-	var build_result = _building_system.try_build_at_position(valid_pos)
-	assert_object(build_result).is_not_null()
+	var build_result: PlacementReport = _building_system.try_build_at_position(valid_pos)
+	assert_object(build_result.placed).is_not_null()
 	
 	if not _enter_build_mode_successfully(smithy_placeable):
 		return
 	
 	# Test placement attempt
-	var placement_result = _building_system.try_build_at_position(Vector2(100, 100))
-	assert_object(placement_result).is_not_null()
+	var placement_result: PlacementReport = _building_system.try_build_at_position(Vector2(100, 100))
+	assert_object(placement_result.placed).is_not_null()
 	
 	# Exit build mode
 	_building_system.exit_build_mode()
@@ -132,8 +132,8 @@ func test_complete_building_workflow() -> void:
 		return
 	
 	# Test placement attempt
-	var placement_result = _building_system.try_build_at_position(Vector2(100, 100))
-	assert_object(placement_result).is_not_null()
+	var placement_result: PlacementReport = _building_system.try_build_at_position(Vector2(100, 100))
+	assert_object(placement_result.placed).is_not_null()
 	
 	# Exit build mode
 	_building_system.exit_build_mode()
@@ -156,8 +156,8 @@ func test_building_workflow_with_validation() -> void:
 	).is_true()
 	
 	# Test building at validated position
-	var build_result = _building_system.try_build_at_position(valid_pos)
-	assert_object(build_result).is_not_null()
+	var build_result: PlacementReport = _building_system.try_build_at_position(valid_pos)
+	assert_object(build_result.placed).is_not_null()
 
 #endregion
 
@@ -262,11 +262,11 @@ func test_complex_multi_system_workflow() -> void:
 	if not _enter_build_mode_successfully(smithy_placeable):
 		return
 		
-	var build_result: Node = _building_system.try_build_at_position(target_pos)
-	assert_object(build_result).is_not_null()
+	var build_result: PlacementReport = _building_system.try_build_at_position(target_pos)
+	assert_object(build_result.placed).is_not_null()
 	
 	# Phase 3: Post-build manipulation
-	env.manipulation_system.select_object(build_result)
+	env.manipulation_system.select_object(build_result.placed)
 	var manipulation_state: Dictionary = env.manipulation_system.get_current_state()
 	assert_object(manipulation_state).append_failure_message(
 		"Should have valid manipulation state after selection"
@@ -294,30 +294,30 @@ func test_cross_system_state_consistency() -> void:
 #region POLYGON TEST OBJECT INTEGRATION
 
 func test_polygon_test_object_indicator_generation() -> void:
-	var polygon_test_object = UnifiedTestFactory.create_polygon_test_placeable(self)
+	var polygon_test_object: Placeable = UnifiedTestFactory.create_polygon_test_placeable(self)
 	var indicator_manager: IndicatorManager = env.indicator_manager
 	
 	# Get polygon object rules
-	var polygon_rules = polygon_test_object.placement_rules
+	var polygon_rules: Array[PlacementRule] = polygon_test_object.placement_rules
 	assert_array(polygon_rules).append_failure_message(
 		"Polygon test object should have placement rules"
 	).is_not_empty()
 	
 	# Generate indicators for polygon object using proper parameters
-	var polygon_node = polygon_test_object.packed_scene.instantiate()
+	var polygon_node: Node = polygon_test_object.packed_scene.instantiate()
 	add_child(polygon_node)
 
-	var setup_result = indicator_manager.try_setup(polygon_rules, _gts.get_state())
+	var setup_result: PlacementReport = indicator_manager.try_setup(polygon_rules, _gts.get_state())
 	assert_bool(setup_result.is_successful()).append_failure_message(
 		"Polygon object indicator generation should succeed: %s" % str(setup_result.get_all_issues())
 	).is_true()
 
 func test_polygon_collision_integration() -> void:
-	var polygon_test_object = UnifiedTestFactory.create_polygon_test_placeable(self)
+	var polygon_test_object: Placeable = UnifiedTestFactory.create_polygon_test_placeable(self)
 	var collision_mapper: CollisionMapper = env.collision_mapper
 	
 	# Test polygon collision tile mapping
-	var polygon_runtime = polygon_test_object.packed_scene.instantiate()
+	var polygon_runtime: Node = polygon_test_object.packed_scene.instantiate()
 	add_child(polygon_runtime)
 	var collision_tiles: Dictionary = collision_mapper.get_collision_tile_positions_with_mask([polygon_runtime] as Array[Node2D], 1)
 	assert_that(collision_tiles).append_failure_message(
@@ -325,11 +325,11 @@ func test_polygon_collision_integration() -> void:
 	).is_not_empty()
 	
 	# Verify collision tiles form reasonable polygon pattern
-	var unique_x_coords = {}
-	var unique_y_coords = {}
+	var unique_x_coords: Dictionary = {}
+	var unique_y_coords: Dictionary = {}
 	
-	for tile_pos in collision_tiles.keys():
-		var tile_coord = tile_pos as Vector2i
+	for tile_pos: Variant in collision_tiles.keys():
+		var tile_coord: Vector2i = tile_pos as Vector2i
 		unique_x_coords[tile_coord.x] = true
 		unique_y_coords[tile_coord.y] = true
 	
@@ -344,29 +344,29 @@ func test_polygon_collision_integration() -> void:
 #region GRID TARGETING HIGHLIGHT INTEGRATION
 
 func test_grid_targeting_highlight_integration() -> void:
-	var highlight_manager = env.get("highlight_manager")  # May not be available in all environments
+	var highlight_manager: Variant = env.get("highlight_manager")  # May not be available in all environments
 	
 	if highlight_manager == null:
 		# Skip if highlight manager not available in test environment
 		return
 	
 	# Test targeting with highlight updates
-	var targeting_state = _targeting_system.get_state()
+	var targeting_state: GridTargetingState = _targeting_system.get_state()
 	targeting_state.target.position = Vector2(100, 100)
 	
 	# Verify highlight state updates with targeting
-	var highlight_active = highlight_manager.is_highlight_active()
+	var highlight_active: bool = highlight_manager.is_highlight_active()
 	assert_bool(highlight_active).append_failure_message(
 		"Highlight should be active when targeting position is set"
 	).is_true()
 
 func test_targeting_state_transitions() -> void:
-	var targeting_state = _targeting_system.get_state()
-	var initial_pos = Vector2.ZERO
+	var targeting_state: GridTargetingState = _targeting_system.get_state()
+	var initial_pos: Vector2 = Vector2.ZERO
 	if targeting_state.positioner != null:
 		initial_pos = targeting_state.positioner.global_position
 		targeting_state.positioner.global_position = Vector2(400, 400)
-		var updated_pos = targeting_state.positioner.global_position
+		var updated_pos: Vector2 = targeting_state.positioner.global_position
 		
 		assert_vector(updated_pos).append_failure_message(
 			"Target position should update from %s to Vector2(400, 400), got %s" % [initial_pos, updated_pos]
@@ -374,7 +374,7 @@ func test_targeting_state_transitions() -> void:
 		
 		# Test clearing target
 		targeting_state.positioner.global_position = Vector2.ZERO  # Reset to origin
-		var cleared_pos = targeting_state.positioner.global_position
+		var cleared_pos: Vector2 = targeting_state.positioner.global_position
 		
 		# Cleared position behavior depends on system implementation
 		assert_object(cleared_pos).append_failure_message(
@@ -399,15 +399,15 @@ func test_full_system_integration_workflow() -> void:
 	auto_free(smithy_node)
 	add_child(smithy_node)
 	
-	var smithy_rules = smithy_placeable.placement_rules
-	var params = _make_rule_params(smithy_node)
+	var smithy_rules: Array[PlacementRule] = smithy_placeable.placement_rules
+	var params: GridTargetingState = _make_rule_params(smithy_node)
 	
-	var indicator_result = _indicator_manager.try_setup(smithy_rules, params)
+	var indicator_result: PlacementReport = _indicator_manager.try_setup(smithy_rules, params)
 	_assert_setup_successful(indicator_result, "Full workflow indicator setup")
 	
 	# Step 3: Build at target
-	var build_result = _building_system.try_build_at_position(target_pos)
-	assert_object(build_result).is_not_null()
+	var build_result: PlacementReport = _building_system.try_build_at_position(target_pos)
+	assert_object(build_result.placed).is_not_null()
 	
 	# Step 4: Validate post-build state
 	_building_system.exit_build_mode()
@@ -415,8 +415,8 @@ func test_full_system_integration_workflow() -> void:
 
 func test_system_error_recovery() -> void:
 	# Test recovery from invalid operations
-	var invalid_placeable = null
-	var invalid_report = _building_system.enter_build_mode(invalid_placeable)
+	var invalid_placeable: Variant = null
+	var invalid_report: PlacementReport = _building_system.enter_build_mode(invalid_placeable)
 	
 	# System should return a failed report for invalid input
 	assert_object(invalid_report).is_not_null()
@@ -426,7 +426,7 @@ func test_system_error_recovery() -> void:
 		).is_false()
 	
 	# System should not be in build mode after failed enter_build_mode
-	var is_in_build_mode = _building_system.is_in_build_mode()
+	var is_in_build_mode: bool = _building_system.is_in_build_mode()
 	assert_bool(is_in_build_mode).append_failure_message(
 		"System should not be in build mode after failed enter_build_mode"
 	).is_false()

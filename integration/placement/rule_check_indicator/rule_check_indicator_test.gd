@@ -144,7 +144,7 @@ func test_indicator_starts_valid_with_no_rules():
 
 
 ## Parameterized: pass/fail scenarios reduce setup duplication
-## Each parameter: [rules:Array[Node2D][Dictionary], bodies:Array[Node2D][int], expected_valid:bool]
+## Each parameter: [rules:Array[Dictionary], bodies:Array[int], expected_valid:bool]
 ## rule spec: { "pass_on_collision": bool, "mask": int }
 @warning_ignore("unused_parameter")
 func test_indicator_validity_scenarios(

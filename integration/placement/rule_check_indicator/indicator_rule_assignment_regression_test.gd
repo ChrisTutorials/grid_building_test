@@ -42,7 +42,7 @@ func test_polygon_test_object_indicator_collision_filtering():
 	
 	# Create collision rule using DRY pattern
 	var collision_rule = UnifiedTestFactory.create_test_collisions_check_rule()
-	var rules: Array[Node2D][PlacementRule] = [collision_rule]
+	var rules: Array[PlacementRule] = [collision_rule]
 	
 	# Set up rule validation parameters
 	var targeting_state = _container.get_states().targeting
@@ -173,7 +173,7 @@ func test_polygon_test_object_center_tile_filtering():
 	
 	# Create collision rule and set up validation using DRY pattern
 	var collision_rule = UnifiedTestFactory.create_test_collisions_check_rule()
-	var rules: Array[Node2D][PlacementRule] = [collision_rule]
+	var rules: Array[PlacementRule] = [collision_rule]
 	
 	# Call try_setup directly on the IndicatorManager
 	var setup_report = indicator_manager.try_setup(rules, _container.get_targeting_state(), true)

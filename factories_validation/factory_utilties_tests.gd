@@ -305,7 +305,7 @@ func test_factory_edge_cases_null_inputs() -> void:
 	
 	# Test with valid collision object to ensure normal operation works
 	var test_body: StaticBody2D = auto_free(StaticBody2D.new())
-	var valid_setup: Variant = UnifiedTestFactory.create_test_indicator_collision_setup(self, test_body)
+	var valid_setup: IndicatorCollisionTestSetup = UnifiedTestFactory.create_test_indicator_collision_setup(self, test_body)
 	_track_object(valid_setup)
 	assert_object(valid_setup).append_failure_message(
 		"Factory should create valid setup with proper inputs"
@@ -315,7 +315,7 @@ func test_factory_edge_cases_invalid_configurations() -> void:
 	"""Test factory behavior with edge case configurations"""
 	# Test with empty collision object
 	var empty_body: StaticBody2D = auto_free(StaticBody2D.new())
-	var setup: Variant = UnifiedTestFactory.create_test_indicator_collision_setup(self, empty_body)
+	var setup: IndicatorCollisionTestSetup = UnifiedTestFactory.create_test_indicator_collision_setup(self, empty_body)
 	_track_object(setup)
 	
 	# Should still create a valid setup object
@@ -325,7 +325,7 @@ func test_factory_edge_cases_invalid_configurations() -> void:
 	
 	# Test with collision object that has no shapes
 	var no_shapes_body: StaticBody2D = auto_free(StaticBody2D.new())
-	var shape_setup: Variant = UnifiedTestFactory.create_test_indicator_collision_setup(self, no_shapes_body)
+	var shape_setup: IndicatorCollisionTestSetup = UnifiedTestFactory.create_test_indicator_collision_setup(self, no_shapes_body)
 	_track_object(shape_setup)
 	
 	assert_object(shape_setup).append_failure_message(
@@ -517,7 +517,7 @@ func test_collision_rule_validation() -> void:
 			"Rule setup should succeed"
 		).is_empty()
 		
-		var result: Variant = collision_rule.validate_placement()
+		var result: RuleResult = collision_rule.validate_placement()
 		assert_object(result).append_failure_message(
 			"Rule validation should return result"
 		).is_not_null()
@@ -549,7 +549,7 @@ func test_validation_out_of_bounds() -> void:
 		var setup_issues: Array = collision_rule.setup(gts)
 		assert_array(setup_issues).is_empty()
 
-		var result: Variant = collision_rule.validate_placement()
+		var result: RuleResult = collision_rule.validate_placement()
 		_assert_object_not_null(result, "Out-of-bounds validation result")
 
 #endregion

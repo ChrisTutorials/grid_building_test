@@ -21,7 +21,7 @@ func test_indicator_rule_assignment_via_factory():
 	add_child(parent_node)
 	
 	# Create indicator using IndicatorFactory with rules
-	var rules: Array[Node2D][TileCheckRule] = [collision_rule]
+	var rules: Array[TileCheckRule] = [collision_rule]
 	var indicator = IndicatorFactory.create_indicator(
 		Vector2i(0, 0),
 		rules,
@@ -90,7 +90,7 @@ func test_factory_uses_add_rule_method():
 	# by checking that the IndicatorFactory.create_indicator method
 	# exists and can be called (even if it returns null without template)
 	
-	var rules: Array[Node2D][TileCheckRule] = []
+	var rules: Array[TileCheckRule] = []
 	var parent_node = Node2D.new()
 	auto_free(parent_node)
 	add_child(parent_node)

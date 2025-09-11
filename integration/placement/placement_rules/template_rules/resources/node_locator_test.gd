@@ -46,7 +46,7 @@ func test_search_by_name():
 	search_target.name = search_owner_name
 	owner_node.add_child(search_target)
 
-	var all_nodes: Array[Node2D][Node] = [owner_node, item_container, search_target]
+	var all_nodes: Array[Node] = [owner_node, item_container, search_target]
 	var found_nodes = NodeSearchLogic.find_nodes_by_name(all_nodes, search_owner_name)
 	
 	assert_int(found_nodes.size()).append_failure_message("find_nodes_by_name('%s') expected 2 (owner + target) got %d -> %s" % [search_owner_name, found_nodes.size(), found_nodes]).is_equal(2)
@@ -55,7 +55,7 @@ func test_search_by_name():
 
 func test_search_by_script_name_with_extension():
 	# Use pure logic class for searching. Provide detailed failure diagnostics.
-	var all_nodes: Array[Node2D][Node] = [owner_node, item_container]
+	var all_nodes: Array[Node] = [owner_node, item_container]
 	# NodeSearchLogic.get_script_name returns the script file name if resource_path set, else NodeName.gd fallback.
 	# Our in-memory script has no resource_path so expected synthetic fallback "<NodeName>.gd"
 	var expected_script_name := "%s.gd" % item_container.name
@@ -79,7 +79,7 @@ func test_get_script_name(
 
 func test_search_by_is_in_group():
 	# Use pure logic class for searching. Provide group membership diagnostics.
-	var all_nodes: Array[Node2D][Node] = [owner_node, item_container]
+	var all_nodes: Array[Node] = [owner_node, item_container]
 	var found_nodes = NodeSearchLogic.find_nodes_by_group(all_nodes, owner_group)
 	var membership: Array[Node2D] = []
 	for n in all_nodes:

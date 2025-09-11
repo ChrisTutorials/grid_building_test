@@ -11,8 +11,8 @@ const TEST_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
 
 @warning_ignore("unused_parameter")
 func test_geometry_math_polygon_intersection() -> void:
-	var poly_a: PackedVector2Array[Node2D] = PackedVector2Array[Node2D]([Vector2(0, 0), Vector2(10, 0), Vector2(10, 10), Vector2(0, 10)])
-	var poly_b: PackedVector2Array[Node2D] = PackedVector2Array[Node2D]([Vector2(5, 5), Vector2(15, 5), Vector2(15, 15), Vector2(5, 15)])
+	var poly_a: PackedVector2Array = PackedVector2Array([Vector2(0, 0), Vector2(10, 0), Vector2(10, 10), Vector2(0, 10)])
+	var poly_b: PackedVector2Array = PackedVector2Array([Vector2(5, 5), Vector2(15, 5), Vector2(15, 15), Vector2(5, 15)])
 	
 	intersection_area: Node = GBGeometryMath.polygon_intersection_area(poly_a, poly_b)
 	assert_that(intersection_area).is_equal(25.0)  # 5x5 intersection
@@ -28,7 +28,7 @@ func test_geometry_math_tile_operations() -> void:
 
 @warning_ignore("unused_parameter")
 func test_geometry_math_polygon_overlap() -> void:
-	var polygon: PackedVector2Array[Node2D] = PackedVector2Array[Node2D]([Vector2(8, 8), Vector2(24, 8), Vector2(24, 24), Vector2(8, 24)])
+	var polygon: PackedVector2Array = PackedVector2Array([Vector2(8, 8), Vector2(24, 8), Vector2(24, 24), Vector2(8, 24)])
 	var tile_pos: Vector2 = Vector2Vector2 
 	var tile_size: Vector2 = Vector2Vector2
 	
@@ -77,7 +77,7 @@ func test_collision_geometry_utils_transform_building() -> void:
 @warning_ignore("unused_parameter") 
 func test_collision_geometry_polygon_operations() -> void:
 	var collision_polygon: CollisionPolygon2D = CollisionPolygon2D.new()
-	collision_polygon.polygon = PackedVector2Array[Node2D]([Vector2(0, 0), Vector2(10, 0), Vector2(10, 10), Vector2(0, 10)])
+	collision_polygon.polygon = PackedVector2Array([Vector2(0, 0), Vector2(10, 0), Vector2(10, 10), Vector2(0, 10)])
 	auto_free(collision_polygon)
 	add_child(collision_polygon)
 	
@@ -86,8 +86,8 @@ func test_collision_geometry_polygon_operations() -> void:
 
 @warning_ignore("unused_parameter")
 func test_collision_geometry_convex_check() -> void:
-	var convex_polygon: PackedVector2Array[Node2D] = PackedVector2Array[Node2D]([Vector2(0, 0), Vector2(10, 0), Vector2(10, 10), Vector2(0, 10)])
-	var concave_polygon: PackedVector2Array[Node2D] = PackedVector2Array[Node2D]([Vector2(0, 0), Vector2(10, 0), Vector2(5, 5), Vector2(10, 10), Vector2(0, 10)])
+	var convex_polygon: PackedVector2Array = PackedVector2Array([Vector2(0, 0), Vector2(10, 0), Vector2(10, 10), Vector2(0, 10)])
+	var concave_polygon: PackedVector2Array = PackedVector2Array([Vector2(0, 0), Vector2(10, 0), Vector2(5, 5), Vector2(10, 10), Vector2(0, 10)])
 	
 	assert_that(CollisionGeometryUtils.is_polygon_convex(convex_polygon)).is_true()
 	assert_that(CollisionGeometryUtils.is_polygon_convex(concave_polygon)).is_false()
@@ -166,7 +166,7 @@ func test_search_utils_collision_objects() -> void:
 func test_geometry_collision_integration() -> void:
 	# Test geometry and collision utilities working together
 	var collision_polygon: CollisionPolygon2D = CollisionPolygon2D.new()
-	collision_polygon.polygon = PackedVector2Array[Node2D]([Vector2(0, 0), Vector2(20, 0), Vector2(20, 20), Vector2(0, 20)])
+	collision_polygon.polygon = PackedVector2Array([Vector2(0, 0), Vector2(20, 0), Vector2(20, 20), Vector2(0, 20)])
 	auto_free(collision_polygon)
 	add_child(collision_polygon)
 	

@@ -4,7 +4,7 @@ extends GdUnitTestSuite
 func test_debug_coordinate_transformation():
 	# Create the same setup as the failing tests
 	test_map: Node = GodotTestFactory.create_top_down_tile_map_layer(self, 40)
-	var points = PackedVector2Array[Node2D]([Vector2(-16, -16), Vector2(16, -16), Vector2(16, 16), Vector2(-16, 16)])
+	var points = PackedVector2Array([Vector2(-16, -16), Vector2(16, -16), Vector2(16, 16), Vector2(-16, 16)])
 	var polygon = GodotTestFactory.create_collision_polygon(self, points)
 	polygon.position = Vector2position
 	
@@ -22,7 +22,7 @@ func test_debug_coordinate_transformation():
 	
 	# Test world polygon transformation
 	var world_points = CollisionGeometryUtils.to_world_polygon(polygon)
-	var expected_world_points = PackedVector2Array[Node2D]([
+	var expected_world_points = PackedVector2Array([
 		Vector2(304, 304), Vector2(336, 304), Vector2(336, 336), Vector2(304, 336)
 	])
 	assert_that(world_points.size()).is_equal(4).override_failure_message("World points should have 4 vertices")

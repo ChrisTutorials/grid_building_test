@@ -36,10 +36,10 @@ func _instantiate_preview(packed_scene: PackedScene) -> Node2D:
 	# Use DRY factory for synthetic preview creation
 	return UnifiedTestFactory.create_polygon_test_object(self)
 
-func _get_collision_shapes_from_node(root: Node) -> Array[Node2D][Node]:
+func _get_collision_shapes_from_node(root: Node) -> Array[Node]:
 	## Helper method to collect collision shapes using DRY pattern
-	var shapes: Array[Node2D][Node] = []
-	var nodes_to_check: Array[Node2D][Node] = [root]
+	var shapes: Array[Node] = []
+	var nodes_to_check: Array[Node] = [root]
 
 	while not nodes_to_check.is_empty():
 		current: Node = nodes_to_check.pop_back()
@@ -59,7 +59,7 @@ func _find_physics_body_ancestor(node: Node) -> Node:
 		current = current.get_parent()
 	return null
 
-func _validate_indicator_positions(indicators: Array[Node2D][RuleCheckIndicator], preview: Node2D) -> void:
+func _validate_indicator_positions(indicators: Array[RuleCheckIndicator], preview: Node2D) -> void:
 	## Helper method to validate indicator positioning using DRY patterns
 	var sample_count = min(5, indicators.size())
 	var seen_positions := {}
@@ -195,7 +195,7 @@ func test_real_world_indicator_positioning():
 	# Validate collision layer alignment using DRY pattern
 	var tile_check_rule = UnifiedTestFactory.create_test_within_tilemap_bounds_rule()
 	var has_matching_layer := false
-	var physics_body_details: Array[Node2D][String] = []
+	var physics_body_details: Array[String] = []
 
 	for shape in collision_shapes:
 		var physics_body = _find_physics_body_ancestor(shape)
@@ -218,7 +218,7 @@ func test_real_world_indicator_positioning():
 
 	# Generate indicators using DRY pattern
 	var report = indicator_manager.setup_indicators(preview, [tile_check_rule])
-	var indicators: Array[Node2D][RuleCheckIndicator] = report.indicators
+	var indicators: Array[RuleCheckIndicator] = report.indicators
 	assert_int(indicators.size()).append_failure_message(
 		"No indicators generated for preview"
 	).is_greater(0)

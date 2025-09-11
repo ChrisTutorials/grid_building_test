@@ -393,8 +393,8 @@ func _analyze_all_node_types(scene_root: Node) -> String:
 	return output
 
 # Helper functions
-func _find_all_shapecasts(node: Node) -> Array[Node2D][Node]:
-	var shapecasts: Array[Node2D][Node] = []
+func _find_all_shapecasts(node: Node) -> Array[Node]:
+	var shapecasts: Array[Node] = []
 	if node is ShapeCast2D:
 		shapecasts.append(node)
 	for child in node.get_children():
@@ -420,8 +420,8 @@ func _find_grid_building_nodes(node: Node, components: Dictionary) -> void:
 	for child in node.get_children():
 		_find_grid_building_nodes(child, components)
 
-func _find_all_nodes_of_type(node: Node, type_name: String) -> Array[Node2D][Node]:
-	var found_nodes: Array[Node2D][Node] = []
+func _find_all_nodes_of_type(node: Node, type_name: String) -> Array[Node]:
+	var found_nodes: Array[Node] = []
 	if node.get_class() == type_name or node.is_class(type_name):
 		found_nodes.append(node)
 	for child in node.get_children():

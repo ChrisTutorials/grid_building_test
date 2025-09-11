@@ -46,7 +46,7 @@ func test_indicators_are_parented_and_inside_tree():
 	var rule: CollisionsCheckRule = CollisionsCheckRule.new()
 	rule.apply_to_objects_mask = 1 << 0
 	rule.collision_mask = 1 << 0
-	var rules: Array[Node2D][PlacementRule] = [rule]
+	var rules: Array[PlacementRule] = [rule]
 	var logger : GBLogger = _container.get_logger()
 	var params := RuleValidationParameters.new(positioner, preview, targeting_state, logger)
 	var setup_results : PlacementReport = indicator_manager.try_setup(rules, params)

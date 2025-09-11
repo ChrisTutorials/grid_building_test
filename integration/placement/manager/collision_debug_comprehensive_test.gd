@@ -166,29 +166,29 @@ func test_polygon_collision_edge_cases():
 	var test_cases = [
 		{
 			"name": "Single Point",
-			"points": PackedVector2Array[Node2D]([Vector2(8, 8)]),
+			"points": PackedVector2Array([Vector2(8, 8)]),
 			"expected_valid": false
 		},
 		{
 			"name": "Two Points (Line)",
-			"points": PackedVector2Array[Node2D]([Vector2(0, 0), Vector2(16, 16)]),
+			"points": PackedVector2Array([Vector2(0, 0), Vector2(16, 16)]),
 			"expected_valid": false
 		},
 		{
 			"name": "Minimal Triangle",
-			"points": PackedVector2Array[Node2D]([Vector2(0, 0), Vector2(8, 0), Vector2(4, 4)]),
+			"points": PackedVector2Array([Vector2(0, 0), Vector2(8, 0), Vector2(4, 4)]),
 			"expected_valid": true
 		},
 		{
 			"name": "Degenerate Rectangle",
-			"points": PackedVector2Array[Node2D]([Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)]),
+			"points": PackedVector2Array([Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)]),
 			"expected_valid": false
 		}
 	]
 	
 	for test_case in test_cases:
 		print("--- Testing: %s ---" % test_case.name)
-		var points = test_case.points as PackedVector2Array[Node2D]
+		var points = test_case.points as PackedVector2Array
 		var expected_valid = test_case.expected_valid as bool
 		
 		print("Input points: %s" % points)

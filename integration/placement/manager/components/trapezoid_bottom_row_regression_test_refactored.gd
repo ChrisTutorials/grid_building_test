@@ -6,14 +6,14 @@ const DebugHelpers = preload("res://test/grid_building_test/integration/placemen
 var _test_env: Dictionary
 var _collision_mapper: CollisionMapper
 
-func before_test():
+func before_test() -> void:
 	# Use standardized test environment setup
 	_test_env = DebugHelpers.create_minimal_test_environment(self)
 	
 	# Create collision mapper with proper cleanup
 	_collision_mapper = auto_free(CollisionMapper.new(_test_env.targeting_state, _test_env.container.get_logger()))
 
-func after_test():
+func after_test() -> void:
 	# Clean up to prevent orphans
 	if _collision_mapper:
 		_collision_mapper = null
@@ -21,7 +21,7 @@ func after_test():
 	DebugHelpers.cleanup_test_environment(_test_env)
 	_test_env.clear()
 
-func test_trapezoid_bottom_row_coverage():
+func test_trapezoid_bottom_row_coverage() -> void:
 	"""Test that trapezoid produces expected bottom row coverage using public API"""
 	
 	# Create trapezoid shape that should produce 4 bottom-row tiles
@@ -29,7 +29,7 @@ func test_trapezoid_bottom_row_coverage():
 	
 	# Use public API to get collision tile positions
 	var collision_objects: Array[Node2D] = [trapezoid_body]
-	var tile_positions_dict = _collision_mapper.get_collision_tile_positions_with_mask(collision_objects, trapezoid_body.collision_layer)
+	var tile_positions_dict: Dictionary[Vector2i, Array] = _collision_mapper.get_collision_tile_positions_with_mask(collision_objects, trapezoid_body.collision_layer)
 	var tile_positions: Array = tile_positions_dict.keys()
 	
 	assert_bool(tile_positions.size() > 0)\
@@ -58,7 +58,7 @@ func test_trapezoid_bottom_row_coverage():
 		.is_equal(4)
 	
 	# Verify specific expected tiles are present
-	for expected_x in expected_bottom_tiles:
+	for expected_x : Vector2i in expected_bottom_tiles:
 		assert_bool(bottom_row_tiles.has(expected_x))\
 			.append_failure_message("Missing expected bottom-row tile x=%d; actual bottom row: %s" % [expected_x, str(bottom_row_tiles)])\
 			.is_true()
@@ -68,12 +68,12 @@ func test_trapezoid_bottom_row_coverage():
 		.append_failure_message("Bottom row should not include x=2 as it has zero geometric overlap; actual: %s" % str(bottom_row_tiles))\
 		.is_true()
 
-func test_trapezoid_total_coverage_reasonable():
+func test_trapezoid_total_coverage_reasonable() -> void:
 	"""Unit test: Trapezoid should generate reasonable total tile count"""
 	
 	var trapezoid_body: StaticBody2D = _create_trapezoid_test_object()
 	var collision_objects: Array[Node2D] = [trapezoid_body]
-	var tile_positions_dict = _collision_mapper.get_collision_tile_positions_with_mask(collision_objects, trapezoid_body.collision_layer)
+	var tile_positions_dict: Dictionary[Vector2i, Array] = _collision_mapper.get_collision_tile_positions_with_mask(collision_objects, trapezoid_body.collision_layer)
 	var tile_positions: Array = tile_positions_dict.keys()
 	
 	# Trapezoid should generate between 8-15 tiles total (reasonable range)
@@ -105,7 +105,7 @@ func _create_trapezoid_test_object() -> StaticBody2D:
 func _analyze_tile_coverage_by_row(tile_positions: Array) -> Dictionary:
 	var coverage_by_row: Dictionary = {}
 	
-	for pos in tile_positions:
+	for pos : Vector2i in tile_positions:
 		var row: int = pos.y
 		if not coverage_by_row.has(row):
 			coverage_by_row[row] = []
@@ -115,7 +115,7 @@ func _analyze_tile_coverage_by_row(tile_positions: Array) -> Dictionary:
 
 ## Parameterized test for different trapezoid shapes
 @warning_ignore("unused_parameter")
-func test_trapezoid_shapes(shape_name: String, polygon: PackedVector2Array, expected_bottom_count: int, expected_total_range: Array):
+func test_trapezoid_shapes(shape_name: String, polygon: PackedVector2Array, expected_bottom_count: int, expected_total_range: Array) -> void:
 	"""Parameterized test for different trapezoid configurations"""
 	
 	var trapezoid_body: StaticBody2D = auto_free(StaticBody2D.new())
@@ -127,7 +127,7 @@ func test_trapezoid_shapes(shape_name: String, polygon: PackedVector2Array, expe
 	_test_env.positioner.add_child(trapezoid_body)
 	
 	var collision_objects: Array[Node2D] = [trapezoid_body]
-	var tile_positions_dict = _collision_mapper.get_collision_tile_positions_with_mask(collision_objects, trapezoid_body.collision_layer)
+	var tile_positions_dict: Dictionary[Vector2i, Array] = _collision_mapper.get_collision_tile_positions_with_mask(collision_objects, trapezoid_body.collision_layer)
 	var tile_positions: Array = tile_positions_dict.keys()
 	var coverage_by_row: Dictionary = _analyze_tile_coverage_by_row(tile_positions)
 	

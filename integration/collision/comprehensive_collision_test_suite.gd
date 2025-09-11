@@ -86,14 +86,14 @@ func test_capsule_shape_validation(
 @warning_ignore("unused_parameter")
 func test_trapezoid_shape_validation(
 	case_name: String,
-	points: PackedVector2Array[Node2D],
+	points: PackedVector2Array,
 	expected_bounds: Rect2,
 	expected_tiles: Vector2i,
 	test_parameters := [
-		["Standard Trapezoid", PackedVector2Array[Node2D]([
+		["Standard Trapezoid", PackedVector2Array([
 			Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)
 		]), Rect2(-32, -12, 64, 24), Vector2i(4, 2)],
-		["Wide Trapezoid", PackedVector2Array[Node2D]([
+		["Wide Trapezoid", PackedVector2Array([
 			Vector2(-48, 16), Vector2(-24, -16), Vector2(24, -16), Vector2(48, 16)
 		]), Rect2(-48, -16, 96, 32), Vector2i(6, 2)]
 	]
@@ -155,12 +155,12 @@ func test_shape_tile_collision_detection(
 		["Capsule Center Tile", TestShapeType.CAPSULE, {"radius": 14.0, "height": 60.0}, Vector2i(0, 0), TileSet.TILE_SHAPE_SQUARE, true],
 		["Capsule Edge Tile", TestShapeType.CAPSULE, {"radius": 14.0, "height": 60.0}, Vector2i(0, 1), TileSet.TILE_SHAPE_SQUARE, true],
 		["Trapezoid Center Tile", TestShapeType.TRAPEZOID, {
-			"points": PackedVector2Array[Node2D]([
+			"points": PackedVector2Array([
 				Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)
 			])
 		}, Vector2i(0, 0), 0, true],
 		["Trapezoid Edge Tile", TestShapeType.TRAPEZOID, {
-			"points": PackedVector2Array[Node2D]([
+			"points": PackedVector2Array([
 				Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)
 			])
 		}, Vector2i(1, 0), 0, true]
@@ -208,7 +208,7 @@ func test_shape_symmetry_validation(
 		["Small Capsule", TestShapeType.CAPSULE, {"radius": 7.0, "height": 22.0}],
 		["Medium Capsule", TestShapeType.CAPSULE, {"radius": 14.0, "height": 60.0}],
 		["Standard Trapezoid", TestShapeType.TRAPEZOID, {
-			"points": PackedVector2Array[Node2D]([
+			"points": PackedVector2Array([
 				Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)
 			])
 		}]

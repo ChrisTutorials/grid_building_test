@@ -4,7 +4,7 @@ extends GdUnitTestSuite
 @warning_ignore("unused_parameter")
 @warning_ignore("return_value_discarded")
 
-var test_nodes: Array[Node2D][Node]
+var test_nodes: Array[Node]
 
 func before_test() -> void:
 	# Create test nodes for searching - use typed literal initializer
@@ -248,11 +248,11 @@ func test_filter_search_results() -> void:
 func test_sort_search_results() -> void:
 	var sort_func = func(a: Node, b: Node) -> bool: return a.name < b.name
 
-	var original_names : Array[Node2D][String] = []
+	var original_names : Array[String] = []
 	for n in test_nodes:
 		original_names.append(String(n.name))
 	var sorted = NodeSearchLogic.sort_search_results(test_nodes, sort_func)
-	var sorted_names : Array[Node2D][String] = []
+	var sorted_names : Array[String] = []
 	for n in sorted:
 		sorted_names.append(String(n.name))
 

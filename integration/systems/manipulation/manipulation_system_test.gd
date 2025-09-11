@@ -247,7 +247,7 @@ func test_try_placement(
 
 
 func test_try_move(
-	p_target_root: Variant,
+	p_target_root: Node,
 	p_expected: GBEnums.Status,
 	test_parameters := [
 		[null, GBEnums.Status.FAILED],

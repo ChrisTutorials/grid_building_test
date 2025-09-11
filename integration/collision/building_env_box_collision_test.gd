@@ -7,11 +7,10 @@ var unoccupied_space : CollisionsCheckRule = load("uid://dw6l5ddiuak8b")
 var be_on_buildable : CollisionsCheckRule = load("uid://d4l1gimbn05kb")
 
 var _container: GBCompositionContainer
-var _injector : GBInjectorSystem
 var env : BuildingTestEnvironment
 var _gts : GridTargetingState
 
-func before_test():
+func before_test() -> void:
 	env = load("uid://c4ujk08n8llv8").instantiate()
 	add_child(env)
 	auto_free(env)
@@ -21,14 +20,14 @@ func before_test():
 
 ## Create a simple test scene with just a collision object
 ## NOTE: Don't use auto_free for nodes that will be packed into PackedScene
-func test_simple_collision_object_generates_indicators():
-	test_box: Node = RigidBody2D.new()
+func test_simple_collision_object_generates_indicators() -> void:
+	var test_box: Node = RigidBody2D.new()
 	test_box.name = "SimpleBox"
 	test_box.collision_layer = 513  # Bits 0 and 9 (layers 0 and 9), matching UNOCCUPIED_RULE.apply_to_objects_mask
 	# Add collision shape
-	var shape = CollisionShape2D.new()
-	var rect = RectangleShape2D.new()
-	rect.size = Vector2size
+	var shape: CollisionShape2D = CollisionShape2D.new()
+	var rect: RectangleShape2D = RectangleShape2D.new()
+	rect.size = Vector2(16, 16)
 	shape.shape = rect
 	test_box.add_child(shape)
 	
@@ -45,22 +44,22 @@ func test_simple_collision_object_generates_indicators():
 	).is_equal(513)
 
 	# Assert box collision layer matches unoccupied space check rule's apply_to_objects_mask
-	var box_layer = test_box.collision_layer
-	var unoccupied_mask = unoccupied_space.apply_to_objects_mask # Fail fast if property doesnt exist
-	var box_layer_match = (box_layer & unoccupied_mask) != 0
+	var box_layer: int = test_box.collision_layer
+	var unoccupied_mask: int = unoccupied_space.apply_to_objects_mask # Fail fast if property doesnt exist
+	var box_layer_match: bool = (box_layer & unoccupied_mask) != 0
 	assert_bool(box_layer_match).append_failure_message(
 		"Box collision_layer %d (%s) does not match unoccupied space check rule apply_to_objects_mask %d (%s)" % [box_layer, _bitmask_to_layers_str(box_layer), unoccupied_mask, _bitmask_to_layers_str(unoccupied_mask)]
 	).is_true()
 
 	# Create a simple placeable
-	var scene = PackedScene.new()
+	var scene: PackedScene = PackedScene.new()
 	scene.pack(test_box)
-	var placeable = Placeable.new(scene, [unoccupied_space])
+	var placeable: Placeable = Placeable.new(scene, [unoccupied_space])
 	placeable.display_name = &"Simple Box"
 
 	# Preflight: container and templates sanity
 	assert_object(_container).append_failure_message("Composition container is null").is_not_null()
-	var _templates = _container.get_templates()
+	var _templates: GBTemplates = _container.get_templates()
 	assert_object(_templates).append_failure_message("Templates are missing from container").is_not_null()
 	assert_object(_templates.rule_check_indicator).append_failure_message("Indicator template (rule_check_indicator) is not set in container templates").is_not_null()
 
@@ -74,7 +73,7 @@ func test_simple_collision_object_generates_indicators():
 	assert_array(_gts.get_runtime_issues()).append_failure_message("TargetingState runtime issues prior to build: %s" % [str(_gts.get_runtime_issues())]).is_empty()
 
 	# Enter build mode
-	var entered_report = env.building_system.enter_build_mode(placeable)
+	var entered_report: PlacementReport = env.building_system.enter_build_mode(placeable)
 	assert_bool(entered_report.is_successful()).append_failure_message(
 		"Failed to enter build mode with simple box: %s" % str(entered_report.get_all_issues())
 	).is_true()
@@ -91,31 +90,31 @@ func test_simple_collision_object_generates_indicators():
 	assert_array(_gts.get_runtime_issues()).append_failure_message("TargetingState runtime issues after assigning target: %s" % [str(_gts.get_runtime_issues())]).is_empty()
 
 	# Check preview collision objects and layers
-	var preview_collision_objects : Array[Node2D][Node] = _find_collision_objects(preview)
+	var preview_collision_objects: Array[Node] = _find_collision_objects(preview)
 	
-	var preview_layers = []
+	var preview_layers: Array[int] = []
 	for obj in preview_collision_objects:
 		# Direct access for collision layer
 		preview_layers.append(int(obj.get_collision_layer()))
-	var preview_layers_str = []
-	for mask in preview_layers:
+	var preview_layers_str: Array[String] = []
+	for mask: int in preview_layers:
 		preview_layers_str.append(_bitmask_to_layers_str(mask))
 	assert_bool(preview_layers.has(513)).append_failure_message(
 		"Preview collision objects missing expected layer 513 (bits 0+9). Found layers: %s" % [preview_layers_str]
 	).is_true()
 
 	# If BuildableCheck Area2D exists, assert its collision layer matches buildable rule
-	var buildable_rule : CollisionsCheckRule = load("res://demos/platformer/rules/must_be_on_buildable.tres")
+	var buildable_rule: CollisionsCheckRule = load("res://demos/platformer/rules/must_be_on_buildable.tres")
 	if buildable_rule != null and buildable_rule.apply_to_objects_mask != 0:
-		var buildable_check = null
+		var buildable_check: Area2D = null
 		for obj in preview_collision_objects:
 			if obj is Area2D and obj.name == "BuildableCheck":
 				buildable_check = obj
 				break
 		if buildable_check != null:
-			var buildable_layer = buildable_check.collision_layer
-			var buildable_mask = buildable_rule.apply_to_objects_mask
-			var buildable_layer_match = (buildable_layer & buildable_mask) != 0
+			var buildable_layer: int = buildable_check.collision_layer
+			var buildable_mask: int = buildable_rule.apply_to_objects_mask
+			var buildable_layer_match: bool = (buildable_layer & buildable_mask) != 0
 			assert_bool(buildable_layer_match).append_failure_message(
 				"BuildableCheck Area2D collision_layer %d (%s) does not match buildable rule apply_to_objects_mask %d (%s)" % [buildable_layer, _bitmask_to_layers_str(buildable_layer), buildable_mask, _bitmask_to_layers_str(buildable_mask)]
 			).is_true()
@@ -128,10 +127,10 @@ func test_simple_collision_object_generates_indicators():
 	assert_array(env.indicator_manager.get_runtime_issues()).append_failure_message("IndicatorManager runtime issues prior to try_setup: %s" % [str(env.indicator_manager.get_runtime_issues())]).is_empty()
 
 	# Set up rule validation parameters
-	var _manip_owner = _container.get_states().manipulation.get_manipulator()
+	var _manip_owner: Node = _container.get_states().manipulation.get_manipulator()
 
 	# Set up rules
-	var setup_report : PlacementReport = env.indicator_manager.try_setup(placeable.placement_rules, _gts, false)
+	var setup_report: PlacementReport = env.indicator_manager.try_setup(placeable.placement_rules, _gts, false)
 	assert_bool(setup_report.is_successful()).append_failure_message(
 		"Failed to set up rules for simple box: %s" % str(setup_report.get_all_issues())
 	).is_true()
@@ -143,7 +142,7 @@ func test_simple_collision_object_generates_indicators():
 		.is_not_empty()
 
 	# Get generated indicators
-	var indicators : Array[Node2D][RuleCheckIndicator] = env.indicator_manager.get_indicators()
+	var indicators: Array[RuleCheckIndicator] = env.indicator_manager.get_indicators()
 	assert_array(indicators).append_failure_message(
 		"No indicators generated for simple box with collision layer 513 (bits 0+9). Preview layers: %s, rules: %s" % [preview_layers_str, str(placeable.placement_rules)]
 	).is_not_empty()
@@ -158,12 +157,12 @@ func test_simple_collision_object_generates_indicators():
 	).is_greater_equal(1)
 
 	# The indicator should have the unoccupied rule
-	var found_unoccupied_rule = false
-	var indicator_debug_info = []
+	var found_unoccupied_rule: bool = false
+	var indicator_debug_info: Array[String] = []
 	for indicator in indicators:
-		var rules = indicator.get_rules()
+		var rules: Array[TileCheckRule] = indicator.get_rules()
 		indicator_debug_info.append("Indicator %s rules: %s" % [indicator, str(rules)])
-		for rule in rules:
+		for rule: TileCheckRule in rules:
 			if rule == unoccupied_space:
 				found_unoccupied_rule = true
 				break
@@ -173,10 +172,10 @@ func test_simple_collision_object_generates_indicators():
 	).is_true()
 
 	# Extra: Assert at least one indicator has a rule with collision_mask 1 (bit 0)
-	var found_layer0_rule = false
+	var found_layer0_rule: bool = false
 	for indicator in indicators:
-		var rules = indicator.get_rules()
-		for rule in rules:
+		var rules: Array[TileCheckRule] = indicator.get_rules()
+		for rule: TileCheckRule in rules:
 			if rule.collision_mask == 1:
 				found_layer0_rule = true
 				break
@@ -186,15 +185,15 @@ func test_simple_collision_object_generates_indicators():
 
 ## Helper: Convert bitmask to layer string (e.g. 513 -> 'bits 0+9')
 func _bitmask_to_layers_str(mask: int) -> String:
-	var bits = []
+	var bits: Array[String] = []
 	for i in range(32):
 		if mask & (1 << i):
 			bits.append(str(i))
 	return "bits " + "+".join(bits)
 
 ## Helper: Find all collision objects recursively
-func _find_collision_objects(node: Node) -> Array[Node2D][Node]:
-	var collision_nodes : Array[Node2D][Node] = []
+func _find_collision_objects(node: Node) -> Array[Node]:
+	var collision_nodes: Array[Node] = []
 	
 	if node == null:
 		return collision_nodes

@@ -8,7 +8,7 @@ var container: GBCompositionContainer
 var targeting_state: GridTargetingState
 
 
-func before_test():
+func before_test() -> void:
 	container = TEST_CONTAINER
 	# Create targeting state directly instead of using factory
 	targeting_state = auto_free(GridTargetingState.new(GBOwnerContext.new()))
@@ -17,53 +17,53 @@ func before_test():
 	var target_map: TileMapLayer = auto_free(TileMapLayer.new())
 	add_child(target_map)
 	target_map.tile_set = TileSet.new()
-	target_map.tile_set.tile_size = Vector2tile_size
+	target_map.tile_set.tile_size = Vector2(32, 32)
 	targeting_state.target_map = target_map
 	var layer1: TileMapLayer = auto_free(TileMapLayer.new())
 	var layer2: TileMapLayer = auto_free(TileMapLayer.new())
 	targeting_state.maps = [layer1, layer2]
 
 
-func test_collision_mapper_static_factory():
+func test_collision_mapper_static_factory() -> void:
 	# Test the new static factory method
-	collision_mapper: Node = CollisionMapper.create_with_injection(container)
+	var collision_mapper: CollisionMapper = CollisionMapper.create_with_injection(container)
 
 	assert_that(collision_mapper).is_not_null()
 	assert_that(collision_mapper).is_instanceof(CollisionMapper)
 
 	# Verify dependencies were injected
-	var validation_issues = collision_mapper.get_runtime_issues()
+	var validation_issues: Array = collision_mapper.get_runtime_issues()
 	assert_that(validation_issues).is_empty()
 
 
-func test_placement_validator_static_factory():
+func test_placement_validator_static_factory() -> void:
 	# Test the new static factory method
-	var validator = PlacementValidator.create_with_injection(container)
+	var validator: PlacementValidator = PlacementValidator.create_with_injection(container)
 
 	assert_that(validator).is_not_null()
 	assert_that(validator).is_instanceof(PlacementValidator)
 
 	# Verify dependencies were injected
-	var validation_issues = validator.get_runtime_issues()
+	var validation_issues: Array = validator.get_runtime_issues()
 	assert_that(validation_issues).is_empty()
 
 
-func test_test_setup_factory_static_factory():
+func test_test_setup_factory_static_factory() -> void:
 	# Test the new static factory method
-	var factory = TestSetupFactory.create_with_injection(container)
+	var factory: TestSetupFactory = TestSetupFactory.create_with_injection(container)
 
 	assert_that(factory).is_not_null()
 	assert_that(factory).is_instanceof(TestSetupFactory)
 
 	# Verify dependencies were injected
-	var validation_issues = factory.get_runtime_issues()
+	var validation_issues: Array = factory.get_runtime_issues()
 	assert_that(validation_issues).is_empty()
 
 
-func test_unified_factory_wrapper_methods():
+func test_unified_factory_wrapper_methods() -> void:
 	# Test direct static factory method calls instead of wrapper methods
-	var collision_mapper = CollisionMapper.create_with_injection(container)
-	var validator = PlacementValidator.create_with_injection(container)
+	var collision_mapper: CollisionMapper = CollisionMapper.create_with_injection(container)
+	var validator: PlacementValidator = PlacementValidator.create_with_injection(container)
 
 	assert_that(collision_mapper).is_not_null()
 	assert_that(validator).is_not_null()

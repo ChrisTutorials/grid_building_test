@@ -17,7 +17,7 @@ var _map: TileMapLayer
 var _manipulation_parent: Node2D
 var _injector: GBInjectorSystem
 
-func before_test():
+func before_test() -> void:
 	# Use the shared test container
 	if ResourceLoader.exists("uid://dy6e5p5d6ax6n"):
 		_container = preload("uid://dy6e5p5d6ax6n")
@@ -92,7 +92,7 @@ func before_test():
 	# Set quiet debug level to reduce noise
 	_container.get_debug_settings().set_debug_level(GBDebugSettings.DebugLevel.ERROR)
 
-func test_polygon_test_object_no_indicator_at_origin_when_centered():
+func test_polygon_test_object_no_indicator_at_origin_when_centered() -> void:
 	"""Regression test: Polygon test object should not generate an indicator at (0,0) when centered on the positioner."""
 	if _container == null:
 		assert_bool(false).append_failure_message("No container available; test environment not wired.")
@@ -108,14 +108,14 @@ func test_polygon_test_object_no_indicator_at_origin_when_centered():
 	polygon_obj.position = Vector2.ZERO  # Ensure it's centered
 	
 	# Create proper StaticBody2D with CollisionPolygon2D child
-	var static_body = StaticBody2D.new()
+	var static_body: StaticBody2D = StaticBody2D.new()
 	static_body.name = "StaticBody2D"
 	static_body.collision_layer = 1  # Match the rule's apply_to_objects_mask
 	static_body.collision_mask = 1
 	polygon_obj.add_child(static_body)
 	
 	# Create collision polygon as child of StaticBody2D (proper structure)
-	var collision_polygon = CollisionPolygon2D.new()
+	var collision_polygon: CollisionPolygon2D = CollisionPolygon2D.new()
 	collision_polygon.name = "CollisionPolygon2D"
 	# Define a concave polygon that should generate multiple indicators
 	var points: PackedVector2Array = [
@@ -165,7 +165,7 @@ func test_polygon_test_object_no_indicator_at_origin_when_centered():
 			child_classes.append(child.get_class())
 		failure_details.append("Polygon children: %s" % str(child_classes))
 		
-		var full_diagnostic = "\n".join(failure_details)
+		var full_diagnostic: String = "\n".join(failure_details)
 		
 		# Use the diagnostic in the assertion
 		assert_bool(report.indicators.size() > 0).append_failure_message(
@@ -180,18 +180,18 @@ func test_polygon_test_object_no_indicator_at_origin_when_centered():
 	# Collect all indicator tile positions
 	var indicator_tiles: Array = []
 	for indicator in report.indicators:
-		var tile_pos = _map.local_to_map(_map.to_local(indicator.global_position))
+		var tile_pos: Vector2i = _map.local_to_map(_map.to_local(indicator.global_position))
 		indicator_tiles.append(tile_pos)
 	
 	# The main assertion: (0,0) should NOT have an indicator
-	var has_origin_indicator = Vector2i.ZERO in indicator_tiles
+	var has_origin_indicator: bool = Vector2i.ZERO in indicator_tiles
 	assert_bool(has_origin_indicator).append_failure_message(
 		"REGRESSION: Found unexpected indicator at (0,0) for polygon test object. " +
 		"Indicator tiles: " + str(indicator_tiles) + ". This indicates the collision detection is incorrectly " +
 		"including the origin tile when the polygon is centered."
 	).is_false()
 
-func test_polygon_test_object_valid_indicators_generated():
+func test_polygon_test_object_valid_indicators_generated() -> void:
 	"""Sanity check: Ensure polygon test object generates some valid indicators, just not at (0,0)."""
 	if _container == null:
 		print("[SKIP] No container available; test environment not wired.")
@@ -222,7 +222,7 @@ func test_polygon_test_object_valid_indicators_generated():
 		"Count: %d, Report: %s" % [report.indicators.size(), report.to_summary_string()]
 	).is_less_equal(15)  # Reasonable upper bound
 
-func test_polygon_test_object_centered_preview_flag():
+func test_polygon_test_object_centered_preview_flag() -> void:
 	"""Verify that the polygon test object correctly triggers the centered_preview flag in the report."""
 	if _container == null:
 		print("[SKIP] No container available; test environment not wired.")
@@ -242,7 +242,7 @@ func test_polygon_test_object_centered_preview_flag():
 	var report: IndicatorSetupReport = _indicator_manager.setup_indicators(polygon_obj, rules)
 	
 	# Assert: notes should reflect the centering
-	var notes_contain_centered = false
+	var notes_contain_centered: bool = false
 	for note in report.notes:
 		if "preview_centered" in note:
 			notes_contain_centered = true
@@ -252,7 +252,7 @@ func test_polygon_test_object_centered_preview_flag():
 		"Expected 'preview_centered' note in report when object is centered. Notes: %s" % [report.notes]
 	).is_true()
 
-func test_proper_parent_architecture_maintained():
+func test_proper_parent_architecture_maintained() -> void:
 	"""Verify that the correct parent node architecture is maintained during indicator generation."""
 	if _container == null:
 		print("[SKIP] No container available; test environment not wired.")

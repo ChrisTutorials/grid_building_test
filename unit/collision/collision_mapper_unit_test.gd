@@ -5,17 +5,17 @@ extends GdUnitTestSuite
 
 var _logger: GBLogger
 
-func before_test():
+func before_test() -> void:
 	_logger = GBLogger.new(GBDebugSettings.new())
 
 # Helper function to generate detailed mapper setup diagnostics
 func _generate_mapper_setup_diagnostics(mapper: CollisionMapper, body: Node2D) -> String:
-	diagnostics: Node = "Mapper Setup Diagnostics:\n"
-	
-	var test_indicator_valid = mapper.test_indicator != null
-	var setups_valid = mapper.collision_object_test_setups != null and not mapper.collision_object_test_setups.is_empty()
-	var has_body_setup = mapper.collision_object_test_setups.has(body) if setups_valid else false
-	var body_setup_valid = mapper.collision_object_test_setups[body] != null if has_body_setup else false
+	var diagnostics: String = "Mapper Setup Diagnostics:\n"
+
+	var test_indicator_valid: bool = mapper.test_indicator != null
+	var setups_valid: bool = mapper.collision_object_test_setups != null and not mapper.collision_object_test_setups.is_empty()
+	var has_body_setup: bool = mapper.collision_object_test_setups.has(body) if setups_valid else false
+	var body_setup_valid: bool = mapper.collision_object_test_setups[body] != null if has_body_setup else false
 	
 	diagnostics += "- Test indicator valid: %s\n" % test_indicator_valid
 	diagnostics += "- Collision setups valid: %s\n" % setups_valid
@@ -23,10 +23,10 @@ func _generate_mapper_setup_diagnostics(mapper: CollisionMapper, body: Node2D) -
 	diagnostics += "- Body setup valid: %s\n" % body_setup_valid
 	
 	if has_body_setup and body_setup_valid:
-		var body_test_setup = mapper.collision_object_test_setups[body]
+		var body_test_setup: IndicatorCollisionTestSetup = mapper.collision_object_test_setups[body]
 		diagnostics += "- Test setup rect_collision_test_setups: %d\n" % body_test_setup.rect_collision_test_setups.size()
 		if body_test_setup.rect_collision_test_setups.size() > 0:
-			var first_rect_setup = body_test_setup.rect_collision_test_setups[0]
+			var first_rect_setup: RectCollisionTestingSetup = body_test_setup.rect_collision_test_setups[0]
 			diagnostics += "- First rect setup shapes: %d\n" % first_rect_setup.shapes.size()
 			if first_rect_setup.shapes.size() > 0:
 				diagnostics += "- First shape type: %s\n" % first_rect_setup.shapes[0].get_class()
@@ -35,7 +35,7 @@ func _generate_mapper_setup_diagnostics(mapper: CollisionMapper, body: Node2D) -
 
 # Helper function to generate collision object diagnostics
 func _generate_collision_object_diagnostics(body: Node2D) -> String:
-	var diagnostics = "Collision Object Diagnostics:\n"
+	var diagnostics: String = "Collision Object Diagnostics:\n"
 	diagnostics += "- Shape owners count: %d\n" % body.get_shape_owners().size()
 	diagnostics += "- Collision layer: %d\n" % body.collision_layer
 	diagnostics += "- Position: %s\n" % body.position
@@ -44,8 +44,8 @@ func _generate_collision_object_diagnostics(body: Node2D) -> String:
 
 # Helper function to generate layer/mask matching diagnostics
 func _generate_layer_mask_diagnostics(body: Node2D, mask: int) -> String:
-	var diagnostics = "Layer/Mask Matching Diagnostics:\n"
-	var layer_matches_mask = (body.collision_layer & mask) != 0
+	var diagnostics: String = "Layer/Mask Matching Diagnostics:\n"
+	var layer_matches_mask: bool = (body.collision_layer & mask) != 0
 	diagnostics += "- Layer: %d, Mask: %d\n" % [body.collision_layer, mask]
 	diagnostics += "- Layer matches mask: %s\n" % layer_matches_mask
 	diagnostics += "- Bitwise AND result: %d\n" % (body.collision_layer & mask)
@@ -53,7 +53,7 @@ func _generate_layer_mask_diagnostics(body: Node2D, mask: int) -> String:
 
 # Helper function to generate comprehensive test failure analysis
 func _generate_comprehensive_failure_analysis(result_size: int, expected_min: int, layer_matches: bool, guard_complete: bool, body: Node2D, rule_mask: int, mapper: CollisionMapper) -> String:
-	var analysis = "\n=== COMPREHENSIVE FAILURE ANALYSIS ===\n"
+	var analysis: String = "\n=== COMPREHENSIVE FAILURE ANALYSIS ===\n"
 	analysis += "Expected: At least %d collision positions\n" % expected_min
 	analysis += "Actual: %d collision positions\n\n" % result_size
 
@@ -86,7 +86,7 @@ func _generate_comprehensive_failure_analysis(result_size: int, expected_min: in
 
 # Helper function to generate actionable next steps
 func _generate_actionable_next_steps(result_size: int, layer_matches: bool, guard_complete: bool) -> String:
-	var steps = "\n=== ACTIONABLE NEXT STEPS ===\n"
+	var steps: String = "\n=== ACTIONABLE NEXT STEPS ===\n"
 
 	if not guard_complete:
 		steps += "1. Fix mapper setup - ensure setup() is called with valid parameters\n"
@@ -113,7 +113,7 @@ func _generate_actionable_next_steps(result_size: int, layer_matches: bool, guar
 
 # Helper function to generate test setup diagnostics
 func _generate_test_setup_diagnostics(test_setup: IndicatorCollisionTestSetup) -> String:
-	var diagnostics = "Test Setup Diagnostics:\n"
+	var diagnostics: String = "Test Setup Diagnostics:\n"
 	diagnostics += "- Setup valid: %s\n" % test_setup.validate_setup()
 	diagnostics += "- Rect collision test setups: %d\n" % test_setup.rect_collision_test_setups.size()
 	return diagnostics
@@ -127,7 +127,7 @@ func test_guard_returns_empty_without_setup() -> void:
 	auto_free(body)
 	var poly := CollisionPolygon2D.new()
 	body.add_child(poly)
-	poly.polygon = PackedVector2Array[Node2D]([Vector2(-8, -8), Vector2(8, -8), Vector2(8, 8), Vector2(-8, 8)])
+	poly.polygon = PackedVector2Array([Vector2(-8, -8), Vector2(8, -8), Vector2(8, 8), Vector2(-8, 8)])
 	var rule := TileCheckRule.new()
 	var result := mapper.map_collision_positions_to_rules([poly], [rule])
 	assert_that(result.size()).is_equal(0).append_failure_message("Expected empty mapping when mapper.setup() not called")
@@ -144,11 +144,11 @@ func test_basic_collision_detection() -> void:
 	var body := StaticBody2D.new()
 	auto_free(body)
 	body.collision_layer = 1
-	body.position = Vector2position  # At origin
+	body.position = Vector2.ZERO  # At origin
 	var shape := CollisionShape2D.new()
 	auto_free(shape)
 	var rect := RectangleShape2D.new()
-	rect.size = Vector2size  # Large shape that should overlap multiple tiles
+	rect.size = Vector2(64, 64)  # Large shape that should overlap multiple tiles
 	shape.shape = rect
 	body.add_child(shape)
 	
@@ -174,10 +174,10 @@ func test_basic_collision_detection() -> void:
 	assert_that(test_setup.validate_setup()).is_true().append_failure_message("Test setup should be valid")
 	
 	# Test basic collision detection
-	var result := mapper.get_collision_tile_positions_with_mask([body], 1)
+	var result: Dictionary = mapper.get_collision_tile_positions_with_mask([body], 1)
 	
 	# Simple assertion with basic debug info
-	debug_msg: Node = "Basic collision test failed - expected > 0 collisions, got %d" % result.size()
+	var debug_msg: String = "Basic collision test failed - expected > 0 collisions, got %d" % result.size()
 	assert_that(result.size()).append_failure_message(debug_msg).is_greater(0)
 
 func test_collision_layer_matching_for_tile_check_rules() -> void:
@@ -192,10 +192,10 @@ func test_collision_layer_matching_for_tile_check_rules() -> void:
 	var body := StaticBody2D.new()
 	auto_free(body)
 	body.collision_layer = 513
-	body.position = Vector2position  # Position at center of tile (0,0)
+	body.position = Vector2.ZERO  # Position at center of tile (0,0)
 	var shape := CollisionShape2D.new()
 	var rect := RectangleShape2D.new()
-	rect.size = Vector2size
+	rect.size = Vector2(16,16)  # Small shape that fits within one tile
 	shape.shape = rect
 	body.add_child(shape)
 	
@@ -203,7 +203,7 @@ func test_collision_layer_matching_for_tile_check_rules() -> void:
 	add_child(body)
 	
 	# Verify collision object setup
-	var shape_owner_count = body.get_shape_owners().size()
+	var shape_owner_count: int = body.get_shape_owners().size()
 	assert_that(shape_owner_count).append_failure_message("Collision object must have shape owners for collision detection").is_greater(0)
 	
 	assert_that(body.collision_layer).append_failure_message("Collision layer must be set to 513 for this test").is_equal(513)
@@ -228,7 +228,7 @@ func test_collision_layer_matching_for_tile_check_rules() -> void:
 	assert_that(rule.apply_to_objects_mask).append_failure_message("Rule mask must be 1 for this test").is_equal(1)
 	
 	# Verify layer and mask compatibility
-	var layer_matches_mask = (body.collision_layer & rule.apply_to_objects_mask) != 0
+	var layer_matches_mask: bool = (body.collision_layer & rule.apply_to_objects_mask) != 0
 	assert_that(layer_matches_mask).append_failure_message(_generate_layer_mask_diagnostics(body, rule.apply_to_objects_mask)).is_true()
 	
 	# Verify mapper setup is complete
@@ -241,14 +241,14 @@ func test_collision_layer_matching_for_tile_check_rules() -> void:
 	var result := mapper.get_collision_tile_positions_with_mask([body], rule.apply_to_objects_mask)
 	
 	# Debug: Add detailed collision detection diagnostics
-	var debug_info = "\n=== COLLISION DETECTION DEBUG ===\n"
+	var debug_info: String = "\n=== COLLISION DETECTION DEBUG ===\n"
 	debug_info += "Body position: %s\n" % body.position
 	debug_info += "Body global position: %s\n" % body.global_position
 	debug_info += "Shape count: %d\n" % body.get_shape_owners().size()
 	
 	if body.get_shape_owners().size() > 0:
-		var shape_owner_id = body.get_shape_owners()[0]
-		var shape_owner = body.shape_owner_get_owner(shape_owner_id)
+		var shape_owner_id : int = body.get_shape_owners()[0]
+		var shape_owner : Object = body.shape_owner_get_owner(shape_owner_id)
 		debug_info += "First shape owner: %s\n" % shape_owner.name
 		debug_info += "Shape owner position: %s\n" % shape_owner.position
 		debug_info += "Shape owner global position: %s\n" % shape_owner.global_position
@@ -259,12 +259,12 @@ func test_collision_layer_matching_for_tile_check_rules() -> void:
 				debug_info += "Shape size: %s\n" % shape_owner.shape.size
 	
 	# Check test setup details
-	var collision_test_setup = mapper.collision_object_test_setups[body]
+	var collision_test_setup : IndicatorCollisionTestSetup = mapper.collision_object_test_setups[body]
 	debug_info += "Test setup valid: %s\n" % collision_test_setup.validate_setup()
 	debug_info += "Rect collision test setups count: %d\n" % collision_test_setup.rect_collision_test_setups.size()
 	
 	if collision_test_setup.rect_collision_test_setups.size() > 0:
-		var first_rect_setup = collision_test_setup.rect_collision_test_setups[0]
+		var first_rect_setup : RectCollisionTestingSetup = collision_test_setup.rect_collision_test_setups[0]
 		debug_info += "First rect setup shapes count: %d\n" % first_rect_setup.shapes.size()
 		if first_rect_setup.rect_shape:
 			debug_info += "First rect setup rect shape size: %s\n" % first_rect_setup.rect_shape.size
@@ -276,7 +276,7 @@ func test_collision_layer_matching_for_tile_check_rules() -> void:
 		debug_info += "Map global position: %s\n" % gts.target_map.global_position
 		
 		# Check tile coordinates
-		var body_tile = gts.target_map.local_to_map(gts.target_map.to_local(body.global_position))
+		var body_tile : Vector2i = gts.target_map.local_to_map(gts.target_map.to_local(body.global_position))
 		debug_info += "Body tile coordinates: %s\n" % body_tile
 	
 	debug_info += "Result size: %d\n" % result.size()
@@ -286,10 +286,10 @@ func test_collision_layer_matching_for_tile_check_rules() -> void:
 	assert_that(typeof(result)).append_failure_message("Result must be a Dictionary type").is_equal(TYPE_DICTIONARY)
 	
 	# Verify collision object has matching layer
-	var layer_matches = PhysicsMatchingUtils2D.object_has_matching_layer(body, rule.apply_to_objects_mask)
-	
+	var layer_matches : bool = PhysicsMatchingUtils2D.object_has_matching_layer(body, rule.apply_to_objects_mask)
+
 	# Concise failure message with debug info
-	var failure_msg = "Expected collision positions for layer %d & mask %d, but got empty result. Layer matches: %s, Result size: %d\n%s" % [
+	var failure_msg : String = "Expected collision positions for layer %d & mask %d, but got empty result. Layer matches: %s, Result size: %d\n%s" % [
 		body.collision_layer, rule.apply_to_objects_mask, layer_matches, result.size(), debug_info
 	]
 	
@@ -311,10 +311,10 @@ func test_position_rules_mapping_produces_results() -> void:
 	var body := StaticBody2D.new()
 	auto_free(body)
 	body.collision_layer = 1  # bit 0
-	body.position = Vector2position  # Position at center of tile (0,0)
+	body.position = Vector2(0, 0)  # Position at center of tile (0,0)
 	var shape := CollisionShape2D.new()
 	var rect := RectangleShape2D.new()
-	rect.size = Vector2size
+	rect.size = Vector2(16, 16)
 	shape.shape = rect
 	body.add_child(shape)
 	
@@ -322,7 +322,7 @@ func test_position_rules_mapping_produces_results() -> void:
 	add_child(body)
 	
 	# Debug: Check if collision object has shape owners
-	var shape_owner_count = body.get_shape_owners().size()
+	var shape_owner_count : int = body.get_shape_owners().size()
 	assert_that(shape_owner_count).append_failure_message("Collision object should have shape owners").is_greater(0)
 	
 	# Verify collision layer is set correctly
@@ -347,20 +347,20 @@ func test_position_rules_mapping_produces_results() -> void:
 	
 	# Verify rule mask matches collision layer
 	assert_that(rule.apply_to_objects_mask).is_equal(1).append_failure_message("Rule mask should be 1")
-	var layer_matches_mask = (body.collision_layer & rule.apply_to_objects_mask) != 0
-	assert_that(layer_matches_mask).append_failure_message("Layer %d should match mask %d (bitwise AND should be non-zero)" % [body.collision_layer, rule.apply_to_objects_mask]).is_true()
+	var layer_matches : bool = (body.collision_layer & rule.apply_to_objects_mask) != 0
+	assert_bool(layer_matches).append_failure_message("Layer %d should match mask %d (bitwise AND should be non-zero)" % [body.collision_layer, rule.apply_to_objects_mask]).is_true()
 	
 	var position_rules_map := mapper.map_collision_positions_to_rules([body], [rule])
 
 	# Debug: Add detailed collision detection diagnostics for position-rules mapping
-	var debug_info = "\n=== POSITION-RULES MAPPING DEBUG ===\n"
+	var debug_info : String = "\n=== POSITION-RULES MAPPING DEBUG ===\n"
 	debug_info += "Body position: %s\n" % body.position
 	debug_info += "Body global position: %s\n" % body.global_position
 	debug_info += "Shape count: %d\n" % body.get_shape_owners().size()
 	
 	if body.get_shape_owners().size() > 0:
-		var shape_owner_id = body.get_shape_owners()[0]
-		var shape_owner = body.shape_owner_get_owner(shape_owner_id)
+		var shape_owner_id : int = body.get_shape_owners()[0]
+		var shape_owner : Object = body.shape_owner_get_owner(shape_owner_id)
 		debug_info += "First shape owner: %s\n" % shape_owner.name
 		debug_info += "Shape owner position: %s\n" % shape_owner.position
 		debug_info += "Shape owner global position: %s\n" % shape_owner.global_position
@@ -371,12 +371,12 @@ func test_position_rules_mapping_produces_results() -> void:
 				debug_info += "Shape size: %s\n" % shape_owner.shape.size
 	
 	# Check test setup details
-	var collision_test_setup = mapper.collision_object_test_setups[body]
+	var collision_test_setup : IndicatorCollisionTestSetup = mapper.collision_object_test_setups[body]
 	debug_info += "Test setup valid: %s\n" % collision_test_setup.validate_setup()
 	debug_info += "Rect collision test setups count: %d\n" % collision_test_setup.rect_collision_test_setups.size()
 	
 	if collision_test_setup.rect_collision_test_setups.size() > 0:
-		var first_rect_setup = collision_test_setup.rect_collision_test_setups[0]
+		var first_rect_setup : RectCollisionTestingSetup = collision_test_setup.rect_collision_test_setups[0]
 		debug_info += "First rect setup shapes count: %d\n" % first_rect_setup.shapes.size()
 		if first_rect_setup.rect_shape:
 			debug_info += "First rect setup rect shape size: %s\n" % first_rect_setup.rect_shape.size
@@ -388,7 +388,7 @@ func test_position_rules_mapping_produces_results() -> void:
 		debug_info += "Map global position: %s\n" % gts.target_map.global_position
 		
 		# Check tile coordinates
-		var body_tile = gts.target_map.local_to_map(gts.target_map.to_local(body.global_position))
+		var body_tile : Vector2i = gts.target_map.local_to_map(gts.target_map.to_local(body.global_position))
 		debug_info += "Body tile coordinates: %s\n" % body_tile
 	
 	debug_info += "Position rules map size: %d\n" % position_rules_map.size()
@@ -398,7 +398,7 @@ func test_position_rules_mapping_produces_results() -> void:
 	assert_that(typeof(position_rules_map)).is_equal(TYPE_DICTIONARY).append_failure_message("Position rules map should be a Dictionary")
 
 	# Debug: Check mapper setup state for position-rules mapping
-	var guard_complete = mapper._guard_setup_complete()
+	var guard_complete : bool = mapper._guard_setup_complete()
 	assert_that(guard_complete).append_failure_message("Mapper guard setup must be complete for position-rules mapping").is_true()
 	
 	if not guard_complete:
@@ -407,7 +407,7 @@ func test_position_rules_mapping_produces_results() -> void:
 		assert_that(mapper.collision_object_test_setups.is_empty()).append_failure_message("Collision setups must not be empty when guard setup is incomplete").is_false()
 
 	# Concise failure message with debug info
-	var failure_msg = "Expected position-rules mapping for layer %d & mask %d, but got empty result. Guard complete: %s, Map size: %d\n%s" % [
+	var failure_msg : String = "Expected position-rules mapping for layer %d & mask %d, but got empty result. Guard complete: %s, Map size: %d\n%s" % [
 		body.collision_layer, rule.apply_to_objects_mask, guard_complete, position_rules_map.size(), debug_info
 	]
 

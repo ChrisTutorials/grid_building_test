@@ -15,12 +15,12 @@ var _container: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
 var placeable_2d_test: Placeable = load("uid://jgmywi04ib7c")
 
 
-func before_test():
+func before_test() -> void:
 	# Create injector system first
-	_injector: Node = UnifiedTestFactory.create_test_injector(self, _container)
+	var _injector: Node = UnifiedTestFactory.create_test_injector(self, _container)
 
 	# Create complete building system test environment
-	var env = UnifiedTestFactory.create_building_system_test_environment(self, _container)
+	var env: Dictionary = UnifiedTestFactory.create_building_system_test_environment(self, _container)
 	system = env.building_system
 
 	# Access shared states from the pre-configured test container
@@ -32,18 +32,18 @@ func before_test():
 	states.building.placed_parent = env.placed_parent
 
 
-func test_same_placeable_twice_preserves_name():
+func test_same_placeable_twice_preserves_name() -> void:
 	# Test issue #10: When the same placeable is set twice in a row
 	# via enter_build_mode, the preview instance should retain the
 	# root PackedScene's name consistently.
 
-	var expected_name = placeable_2d_test.get_packed_root_name()
+	var expected_name : String = placeable_2d_test.get_packed_root_name()
 
 	# First call to enter_build_mode
 	var report1 : PlacementReport = system.enter_build_mode(placeable_2d_test)
 	assert_bool(report1.is_successful()).is_true()
 
-	var preview1 = _container.get_states().building.preview
+	var preview1: Node2D = _container.get_states().building.preview
 	assert_object(preview1).is_not_null()
 	assert_str(preview1.name).is_equal(expected_name)
 
@@ -51,7 +51,7 @@ func test_same_placeable_twice_preserves_name():
 	var report2 : PlacementReport = system.enter_build_mode(placeable_2d_test)
 	assert_bool(report2.is_successful()).is_true()
 
-	var preview2 = _container.get_states().building.preview
+	var preview2: Node2D = _container.get_states().building.preview
 	assert_object(preview2).is_not_null()
 	(
 		assert_str(preview2.name)
@@ -68,25 +68,25 @@ func test_same_placeable_twice_preserves_name():
 	assert_object(preview2).is_not_same(preview1)
 
 
-func test_different_placeables_have_correct_names():
+func test_different_placeables_have_correct_names() -> void:
 	# Verify that different placeables get their correct names
-	var placeable1 = placeable_2d_test
-	var placeable2 = TestSceneLibrary.placeable_eclipse
+	var placeable1: Placeable = placeable_2d_test
+	var placeable2: Placeable = TestSceneLibrary.placeable_eclipse
 
-	var expected_name1 = placeable1.get_packed_root_name()
-	var expected_name2 = placeable2.get_packed_root_name()
+	var expected_name1: String = placeable1.get_packed_root_name()
+	var expected_name2: String = placeable2.get_packed_root_name()
 
 	# Set first placeable
 	system.enter_build_mode(placeable1)
-	var preview1 = _container.get_states().building.preview
+	var preview1: Node2D = _container.get_states().building.preview
 	assert_str(preview1.name).is_equal(expected_name1)
 
 	# Set second placeable
 	system.enter_build_mode(placeable2)
-	var preview2 = _container.get_states().building.preview
+	var preview2: Node2D = _container.get_states().building.preview
 	assert_str(preview2.name).is_equal(expected_name2)
 
 	# Set first placeable again
 	system.enter_build_mode(placeable1)
-	var preview3 = _container.get_states().building.preview
+	var preview3: Node2D = _container.get_states().building.preview
 	assert_str(preview3.name).is_equal(expected_name1)
