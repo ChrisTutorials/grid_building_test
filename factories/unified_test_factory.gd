@@ -754,7 +754,7 @@ static func create_placement_validator(_test: GdUnitTestSuite, rules: Array = []
 ## 2. If no parent is provided, it is added to the test suite (maintains previous auto-parent behavior).
 ## 
 ## See docs/systems/parent_node_architecture.md for production architecture guidelines.
-static func create_rule_check_indicator(test: GdUnitTestSuite, rules: Array = [], parent: Node = null, shape_size := Vector2(16,16)) -> RuleCheckIndicator:
+static func create_rule_check_indicator(test: GdUnitTestSuite, rules: Array[TileCheckRule] = [], parent: Node = null, shape_size := Vector2(16,16)) -> RuleCheckIndicator:
 	var indicator := RuleCheckIndicator.new(rules)
 	var test_shape: RectangleShape2D = RectangleShape2D.new()
 	test_shape.size = shape_size
