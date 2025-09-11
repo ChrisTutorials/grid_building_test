@@ -3,7 +3,7 @@ extends GdUnitTestSuite
 
 var name_displayer: NameDisplayer
 var test_node: Node
-var building_node_script = load("uid://cufp4o5ctq6ak")
+building_node_script: Node = load("uid://cufp4o5ctq6ak")
 var project_name_num_seperator: int
 
 func before_test():
@@ -31,7 +31,7 @@ func test_get_display_name(p_name: String, p_method_name: String, p_ex: String, 
 
 @warning_ignore("unused_parameter")
 func test_building_node_get_display_name(p_name: String, p_ex: String, test_parameters := [["TestNode_500", "Test Node"]]):
-	var building_node: Node = auto_free(building_node_script.new())
+	var var building_node = auto_free(building_node_script.new())
 	building_node.name = p_name
 	var display_name = name_displayer.get_display_name(building_node)
 	assert_str(display_name).is_equal(p_ex)

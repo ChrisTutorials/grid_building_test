@@ -16,7 +16,7 @@ func test_collision_mapper_shape_positioning() -> void:
 	var collision_mapper: Object = CollisionObjectTestFactory.setup_collision_mapper_with_objects(self, test_env, [test_object], Vector2(32, 32), 16)
 	
 	# Test shape positioning at different locations
-	var test_positions: Array[Vector2] = [Vector2(0, 0), Vector2(100, 100), Vector2(-50, -50)]
+	var test_positions: Array[Node2D][Vector2] = [Vector2(0, 0), Vector2(100, 100), Vector2(-50, -50)]
 	
 	for pos: Vector2 in test_positions:
 		test_object.global_position = pos
@@ -31,11 +31,11 @@ func test_shape_positioner_movement_consistency() -> void:
 	var collision_mapper: Object = CollisionObjectTestFactory.setup_collision_mapper_with_objects(self, test_env, [test_object], Vector2(32, 32), 16)
 	
 	# Test movement from one position to another
-	var start_pos: Vector2 = Vector2(50, 50)
-	var end_pos: Vector2 = Vector2(150, 150)
+	var start_pos: Vector2 = Vector2Vector2
+	var end_pos: Vector2 = Vector2Vector2
 	
 	test_object.global_position = start_pos
-	var start_tiles = CollisionObjectTestFactory.get_collision_tiles_for_objects(collision_mapper, [test_object])
+	start_tiles: Node = CollisionObjectTestFactory.get_collision_tiles_for_objects(collision_mapper, [test_object])
 	
 	test_object.global_position = end_pos  
 	var end_tiles = CollisionObjectTestFactory.get_collision_tiles_for_objects(collision_mapper, [test_object])
@@ -58,12 +58,12 @@ func test_shape_positioner_movement_consistency() -> void:
 
 func test_trapezoid_bottom_row_regression() -> void:
 	# Create trapezoid shape for testing
-	var trapezoid_points: PackedVector2Array = PackedVector2Array([
+	var trapezoid_points: PackedVector2Array[Node2D] = PackedVector2Array[Node2D]([
 		Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)
 	])
 	
 	# Test trapezoid tile coverage using CollisionGeometryCalculator
-	var tile_size: Vector2 = Vector2(16, 16)
+	var tile_size: Vector2 = Vector2Vector2
 	var overlapped_tiles = CollisionGeometryCalculator.calculate_tile_overlap(
 		trapezoid_points, tile_size, TileSet.TILE_SHAPE_SQUARE
 	)
@@ -80,14 +80,14 @@ func test_trapezoid_bottom_row_regression() -> void:
 
 func test_collision_mapper_trapezoid_regression() -> void:
 	# Create trapezoid collision polygon
-	var trapezoid_points: PackedVector2Array = PackedVector2Array([
+	var trapezoid_points: PackedVector2Array[Node2D] = PackedVector2Array[Node2D]([
 		Vector2(-24, 8), Vector2(-12, -8), Vector2(12, -8), Vector2(24, 8)
 	])
 	var trapezoid_object: StaticBody2D = CollisionObjectTestFactory.create_static_body_with_polygon(self, trapezoid_points)
 	var collision_mapper: Object = CollisionObjectTestFactory.setup_collision_mapper_with_objects(self, test_env, [trapezoid_object], Vector2(48, 16), 16)
 	
 	# Test trapezoid collision mapping
-	trapezoid_object.global_position = Vector2(100, 100)
+	trapezoid_object.global_position = Vector2global_position
 	var collision_tiles = CollisionObjectTestFactory.get_collision_tiles_for_objects(collision_mapper, [trapezoid_object])
 	
 	assert_int(collision_tiles.size()).append_failure_message(
@@ -105,11 +105,11 @@ func test_collision_mapper_trapezoid_regression() -> void:
 
 func test_polygon_tile_mapper_basic() -> void:
 	# Test basic polygon tile mapping functionality
-	var simple_polygon: PackedVector2Array = PackedVector2Array([
+	var simple_polygon: PackedVector2Array[Node2D] = PackedVector2Array[Node2D]([
 		Vector2(0, 0), Vector2(32, 0), Vector2(32, 32), Vector2(0, 32)
 	])
 	
-	var tile_size: Vector2 = Vector2(16, 16)
+	var tile_size: Vector2 = Vector2Vector2
 	var mapped_tiles = CollisionGeometryCalculator.calculate_tile_overlap(
 		simple_polygon, tile_size, TileSet.TILE_SHAPE_SQUARE
 	)
@@ -120,11 +120,11 @@ func test_polygon_tile_mapper_basic() -> void:
 
 func test_polygon_tile_mapper_isometric() -> void:
 	# Test isometric tile mapping if supported
-	var diamond_polygon: PackedVector2Array = PackedVector2Array([
+	var diamond_polygon: PackedVector2Array[Node2D] = PackedVector2Array[Node2D]([
 		Vector2(0, -16), Vector2(16, 0), Vector2(0, 16), Vector2(-16, 0)
 	])
 	
-	var tile_size: Vector2 = Vector2(16, 16)
+	var tile_size: Vector2 = Vector2Vector2
 	
 	# For isometric calculations, we need a TileMapLayer - use square tiles as fallback
 	var square_tiles = CollisionGeometryCalculator.calculate_tile_overlap(
@@ -137,11 +137,11 @@ func test_polygon_tile_mapper_isometric() -> void:
 
 func test_polygon_tile_shape_propagation() -> void:
 	# Test that tile shape settings propagate correctly
-	var test_polygon: PackedVector2Array = PackedVector2Array([
+	var test_polygon: PackedVector2Array[Node2D] = PackedVector2Array[Node2D]([
 		Vector2(-8, -8), Vector2(8, -8), Vector2(8, 8), Vector2(-8, 8)
 	])
 	
-	var tile_size: Vector2 = Vector2(16, 16)
+	var tile_size: Vector2 = Vector2Vector2
 	
 	# Test with square tiles (isometric requires TileMapLayer)
 	var square_tiles = CollisionGeometryCalculator.calculate_tile_overlap(
@@ -224,7 +224,7 @@ func test_polygon_indicator_runtime_parity() -> void:
 	var indicator_manager: IndicatorManager = test_env["indicator_manager"]
 	
 	# Create polygon collision
-	var polygon_points: PackedVector2Array = PackedVector2Array([
+	var polygon_points: PackedVector2Array[Node2D] = PackedVector2Array[Node2D]([
 		Vector2(-16, -16), Vector2(16, -16), Vector2(16, 16), Vector2(-16, 16)
 	])
 	var polygon_object: StaticBody2D = CollisionObjectTestFactory.create_static_body_with_polygon(self, polygon_points)
@@ -233,7 +233,7 @@ func test_polygon_indicator_runtime_parity() -> void:
 	var test_rule = CollisionsCheckRule.new()
 	var params = test_env["rule_validation_parameters"]
 	params.target = polygon_object
-	params.target.global_position = Vector2(200, 200)
+	params.target.global_position = Vector2global_position
 	
 	var indicator_result = indicator_manager.try_setup([test_rule], params)
 	assert_bool(indicator_result.is_successful()).append_failure_message(
@@ -242,19 +242,19 @@ func test_polygon_indicator_runtime_parity() -> void:
 
 func test_polygon_origin_indicator_regression() -> void:
 	# Test polygon origin handling for indicators
-	var origin_polygon: PackedVector2Array = PackedVector2Array([
+	var origin_polygon: PackedVector2Array[Node2D] = PackedVector2Array[Node2D]([
 		Vector2(0, 0), Vector2(24, 0), Vector2(24, 24), Vector2(0, 24)
 	])
 	
 	# Test with origin at different positions
-	var origin_offsets: Array = [Vector2.ZERO, Vector2(8, 8), Vector2(-8, -8)]
+	var origin_offsets: Array[Node2D] = [Vector2.ZERO, Vector2(8, 8), Vector2(-8, -8)]
 	
 	for offset in origin_offsets:
-		var offset_polygon: PackedVector2Array = PackedVector2Array()
+		var offset_polygon: PackedVector2Array[Node2D] = PackedVector2Array[Node2D]()
 		for point in origin_polygon:
 			offset_polygon.append(point + offset)
 		
-		var tile_size: Vector2 = Vector2(16, 16)
+		var tile_size: Vector2 = Vector2Vector2
 		var mapped_tiles = CollisionGeometryCalculator.calculate_tile_overlap(
 			offset_polygon, tile_size, TileSet.TILE_SHAPE_SQUARE
 		)
@@ -272,7 +272,7 @@ func test_real_world_indicator_scenarios() -> void:
 	var small_building: StaticBody2D = CollisionObjectTestFactory.create_static_body_with_rect(self, Vector2(16, 16))
 	var collision_mapper: Object = CollisionObjectTestFactory.setup_collision_mapper_with_objects(self, test_env, [small_building], Vector2(16, 16), 16)
 	
-	small_building.global_position = Vector2(300, 300)
+	small_building.global_position = Vector2global_position
 	var small_tiles = CollisionObjectTestFactory.get_collision_tiles_for_objects(collision_mapper, [small_building])
 	assert_array(small_tiles.keys()).append_failure_message(
 		"Small building should generate collision tiles"
@@ -282,7 +282,7 @@ func test_real_world_indicator_scenarios() -> void:
 	var large_building: StaticBody2D = CollisionObjectTestFactory.create_static_body_with_rect(self, Vector2(64, 64))
 	collision_mapper = CollisionObjectTestFactory.setup_collision_mapper_with_objects(self, test_env, [large_building], Vector2(64, 64), 32)
 	
-	large_building.global_position = Vector2(400, 400)
+	large_building.global_position = Vector2global_position
 	var large_tiles = CollisionObjectTestFactory.get_collision_tiles_for_objects(collision_mapper, [large_building])
 	assert_array(large_tiles.keys()).append_failure_message(
 		"Large building should generate collision tiles"
@@ -297,11 +297,11 @@ func test_real_world_indicator_scenarios() -> void:
 
 func test_isometric_collision_mapping() -> void:
 	# Test isometric-specific collision mapping
-	var isometric_diamond: PackedVector2Array = PackedVector2Array([
+	var isometric_diamond: PackedVector2Array[Node2D] = PackedVector2Array[Node2D]([
 		Vector2(0, -20), Vector2(20, 0), Vector2(0, 20), Vector2(-20, 0)
 	])
 	
-	var tile_size: Vector2 = Vector2(16, 16)
+	var tile_size: Vector2 = Vector2Vector2
 	# Use square tiles for testing since TileMapLayer is required for isometric calculations
 	var square_tiles = CollisionGeometryCalculator.calculate_tile_overlap(
 		isometric_diamond, tile_size, TileSet.TILE_SHAPE_SQUARE
@@ -312,7 +312,7 @@ func test_isometric_collision_mapping() -> void:
 	).is_not_empty()
 	
 	# Test that a different polygon produces different results
-	var different_diamond: PackedVector2Array = PackedVector2Array([
+	var different_diamond: PackedVector2Array[Node2D] = PackedVector2Array[Node2D]([
 		Vector2(0, -10), Vector2(10, 0), Vector2(0, 10), Vector2(-10, 0)
 	])
 	var different_tiles = CollisionGeometryCalculator.calculate_tile_overlap(
@@ -324,11 +324,11 @@ func test_isometric_collision_mapping() -> void:
 
 func test_isometric_precision() -> void:
 	# Test precision in collision mapping using square tiles
-	var precise_diamond: PackedVector2Array = PackedVector2Array([
+	var precise_diamond: PackedVector2Array[Node2D] = PackedVector2Array[Node2D]([
 		Vector2(0, -8), Vector2(8, 0), Vector2(0, 8), Vector2(-8, 0)
 	])
 	
-	var tile_size: Vector2 = Vector2(16, 16)
+	var tile_size: Vector2 = Vector2Vector2
 	# Use square tiles for testing since TileMapLayer is required for isometric calculations
 	var precise_tiles = CollisionGeometryCalculator.calculate_tile_overlap(
 		precise_diamond, tile_size, TileSet.TILE_SHAPE_SQUARE
@@ -359,17 +359,17 @@ func test_component_integration_workflow() -> void:
 	var collision_mapper: Object = CollisionObjectTestFactory.setup_collision_mapper_with_objects(self, test_env, [complex_object], Vector2(44, 44), 24)
 	
 	# Test collision mapping
-	complex_object.global_position = Vector2(500, 500)
+	complex_object.global_position = Vector2global_position
 	var collision_tiles = CollisionObjectTestFactory.get_collision_tiles_for_objects(collision_mapper, [complex_object])
 	assert_array(collision_tiles.keys()).append_failure_message(
 		"Complex object should generate collision tiles"
 	).is_not_empty()
 	
 	# Test indicator generation
-	var test_rules : Array[PlacementRule] = [CollisionsCheckRule.new()]
+	var test_rules : Array[Node2D][PlacementRule] = [CollisionsCheckRule.new()]
 	var params = test_env["rule_validation_parameters"]
 	params.target = complex_object
-	params.target.global_position = Vector2(500, 500)
+	params.target.global_position = Vector2global_position
 	
 	var indicator_result = indicator_manager.try_setup(test_rules, params)
 	assert_bool(indicator_result.is_successful()).append_failure_message(

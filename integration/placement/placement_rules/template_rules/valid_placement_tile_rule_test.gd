@@ -21,7 +21,7 @@ var _gts: GridTargetingState
 
 
 func before_test():
-	var injector = UnifiedTestFactory.create_test_injector(self, _container)
+	injector: Node = UnifiedTestFactory.create_test_injector(self, _container)
 	_gts = _container.get_states().targeting
 	# Rule and indicator setup. Rule requires the tile data to be grass and Green
 	rule = ValidPlacementTileRule.new()
@@ -41,7 +41,7 @@ func before_test():
 	targeting_state.target_map = map_layer
 	targeting_state.maps = [map_layer]
 
-	var placer: Node = auto_free(Node.new())
+	var var placer = auto_free(Node.new())
 	var placement_node: Node2D = GodotTestFactory.create_node2d(self)
 
 	## This must validate successfully

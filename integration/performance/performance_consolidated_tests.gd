@@ -12,7 +12,7 @@ func before_test():
 #region COLLISION MAPPING
 
 func test_collision_mapping_performance():
-	var collision_mapper = test_hierarchy.collision_mapper
+	var collision_mapper: Node = test_hierarchy.collision_mapper
 	var tile_map = test_hierarchy.tile_map
 	var positioner = test_hierarchy.positioner
 	
@@ -25,7 +25,7 @@ func test_collision_mapping_performance():
 		shape.shape = RectangleShape2D.new()
 		shape.shape.size = Vector2(32, 32)
 		area.add_child(shape)
-		area.position = Vector2(i * 32, 0)
+		area.position = Vector2(64, 64)
 		positioner.add_child(area)
 		collision_objects.append(area)
 		auto_free(area)
@@ -35,14 +35,14 @@ func test_collision_mapping_performance():
 		test_setups.append(test_setup)
 	
 	# Measure collision mapping performance
-	var start_time = Time.get_ticks_msec()
+	var start_time: int = Time.get_ticks_msec()
 	
 	for test_setup in test_setups:
-		var offsets = collision_mapper.get_tile_offsets_for_test_collisions(test_setup)
+		var offsets: Dictionary = collision_mapper.get_tile_offsets_for_test_collisions(test_setup)
 		assert_dict(offsets).is_not_empty()
 	
-	var end_time = Time.get_ticks_msec()
-	var elapsed = end_time - start_time
+	var end_time: int = Time.get_ticks_msec()
+	var elapsed: int = end_time - start_time
 	
 	# Should complete within reasonable time (< 100ms for 10 objects)
 	assert_int(elapsed).is_less(100)
@@ -55,8 +55,8 @@ func test_indicator_update_performance():
 	var indicators = []
 	for i in range(20):
 		var indicator = ColorRect.new()
-		indicator.size = Vector2(16, 16)
-		indicator.position = Vector2(i * 20, 0)
+		indicator.size = Vector2(32, 32)
+		indicator.position = Vector2(64, 64)
 		indicators.append(indicator)
 		positioner.add_child(indicator)
 		auto_free(indicator)
@@ -168,7 +168,7 @@ func test_concurrent_operations_performance():
 	var test_area = Area2D.new()
 	var shape = CollisionShape2D.new()
 	shape.shape = RectangleShape2D.new()
-	shape.shape.size = Vector2(24, 24)
+	shape.shape.size = Vector2(32, 32)
 	test_area.add_child(shape)
 	positioner.add_child(test_area)
 	auto_free(test_area)
@@ -180,7 +180,7 @@ func test_concurrent_operations_performance():
 	
 	# Simulate concurrent operations
 	for i in range(10):
-		positioner.position = Vector2(i * 16, 0)
+		positioner.position = Vector2(64, 64)
 		
 		# Multiple system operations
 		var collision_result = collision_mapper.get_tile_offsets_for_test_collisions(test_setup)

@@ -13,7 +13,7 @@ func before_test():
 
 # Test catches: CollisionShapeProcessor initialization failures
 func test_collision_shape_processor_initialization() -> void:
-	var processor = CollisionShapeProcessor.new(_cache_manager)
+	processor: Node = CollisionShapeProcessor.new(_cache_manager)
 	assert_that(processor != null).append_failure_message("CollisionShapeProcessor should initialize successfully").is_true()
 
 # Test catches: CollisionShapeProcessor handling null dependencies

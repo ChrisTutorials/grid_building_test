@@ -36,13 +36,13 @@ func _instantiate_preview(packed_scene: PackedScene) -> Node2D:
 	# Use DRY factory for synthetic preview creation
 	return UnifiedTestFactory.create_polygon_test_object(self)
 
-func _get_collision_shapes_from_node(root: Node) -> Array[Node]:
+func _get_collision_shapes_from_node(root: Node) -> Array[Node2D][Node]:
 	## Helper method to collect collision shapes using DRY pattern
-	var shapes: Array[Node] = []
-	var nodes_to_check: Array[Node] = [root]
+	var shapes: Array[Node2D][Node] = []
+	var nodes_to_check: Array[Node2D][Node] = [root]
 
 	while not nodes_to_check.is_empty():
-		var current = nodes_to_check.pop_back()
+		current: Node = nodes_to_check.pop_back()
 		for child in current.get_children():
 			nodes_to_check.append(child)
 			if child is CollisionShape2D or child is CollisionPolygon2D:
@@ -59,7 +59,7 @@ func _find_physics_body_ancestor(node: Node) -> Node:
 		current = current.get_parent()
 	return null
 
-func _validate_indicator_positions(indicators: Array[RuleCheckIndicator], preview: Node2D) -> void:
+func _validate_indicator_positions(indicators: Array[Node2D][RuleCheckIndicator], preview: Node2D) -> void:
 	## Helper method to validate indicator positioning using DRY patterns
 	var sample_count = min(5, indicators.size())
 	var seen_positions := {}
@@ -160,7 +160,7 @@ func test_real_world_indicator_positioning():
 
 	# Try to use real placeable from test library, fallback to DRY factory
 	if Engine.has_singleton("TestSceneLibrary"):
-		var tsl = Engine.get_singleton("TestSceneLibrary")
+		tsl: Node = Engine.get_singleton("TestSceneLibrary")
 		if tsl and tsl.has_variable("placeable_eclipse") and tsl.placeable_eclipse and tsl.placeable_eclipse.packed_scene:
 			preview = _instantiate_preview(tsl.placeable_eclipse.packed_scene)
 			used_real_placeable = true
@@ -172,9 +172,9 @@ func test_real_world_indicator_positioning():
 		var body = preview.get_child(0) as StaticBody2D
 		if body:
 			var secondary_shape := CollisionShape2D.new()
-			secondary_shape.position = Vector2(40, 0)
+			secondary_shape.position = Vector2position
 			var rect := RectangleShape2D.new()
-			rect.size = Vector2(16, 16)
+			rect.size = Vector2size
 			secondary_shape.shape = rect
 			body.add_child(secondary_shape)
 
@@ -195,7 +195,7 @@ func test_real_world_indicator_positioning():
 	# Validate collision layer alignment using DRY pattern
 	var tile_check_rule = UnifiedTestFactory.create_test_within_tilemap_bounds_rule()
 	var has_matching_layer := false
-	var physics_body_details: Array[String] = []
+	var physics_body_details: Array[Node2D][String] = []
 
 	for shape in collision_shapes:
 		var physics_body = _find_physics_body_ancestor(shape)
@@ -218,7 +218,7 @@ func test_real_world_indicator_positioning():
 
 	# Generate indicators using DRY pattern
 	var report = indicator_manager.setup_indicators(preview, [tile_check_rule])
-	var indicators: Array[RuleCheckIndicator] = report.indicators
+	var indicators: Array[Node2D][RuleCheckIndicator] = report.indicators
 	assert_int(indicators.size()).append_failure_message(
 		"No indicators generated for preview"
 	).is_greater(0)

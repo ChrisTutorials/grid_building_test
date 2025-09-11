@@ -22,13 +22,13 @@ func before_test():
 ## Create a simple test scene with just a collision object
 ## NOTE: Don't use auto_free for nodes that will be packed into PackedScene
 func test_simple_collision_object_generates_indicators():
-	var test_box = RigidBody2D.new()
+	test_box: Node = RigidBody2D.new()
 	test_box.name = "SimpleBox"
 	test_box.collision_layer = 513  # Bits 0 and 9 (layers 0 and 9), matching UNOCCUPIED_RULE.apply_to_objects_mask
 	# Add collision shape
 	var shape = CollisionShape2D.new()
 	var rect = RectangleShape2D.new()
-	rect.size = Vector2(16, 16)
+	rect.size = Vector2size
 	shape.shape = rect
 	test_box.add_child(shape)
 	
@@ -91,7 +91,7 @@ func test_simple_collision_object_generates_indicators():
 	assert_array(_gts.get_runtime_issues()).append_failure_message("TargetingState runtime issues after assigning target: %s" % [str(_gts.get_runtime_issues())]).is_empty()
 
 	# Check preview collision objects and layers
-	var preview_collision_objects : Array[Node] = _find_collision_objects(preview)
+	var preview_collision_objects : Array[Node2D][Node] = _find_collision_objects(preview)
 	
 	var preview_layers = []
 	for obj in preview_collision_objects:
@@ -143,7 +143,7 @@ func test_simple_collision_object_generates_indicators():
 		.is_not_empty()
 
 	# Get generated indicators
-	var indicators : Array[RuleCheckIndicator] = env.indicator_manager.get_indicators()
+	var indicators : Array[Node2D][RuleCheckIndicator] = env.indicator_manager.get_indicators()
 	assert_array(indicators).append_failure_message(
 		"No indicators generated for simple box with collision layer 513 (bits 0+9). Preview layers: %s, rules: %s" % [preview_layers_str, str(placeable.placement_rules)]
 	).is_not_empty()
@@ -193,8 +193,8 @@ func _bitmask_to_layers_str(mask: int) -> String:
 	return "bits " + "+".join(bits)
 
 ## Helper: Find all collision objects recursively
-func _find_collision_objects(node: Node) -> Array[Node]:
-	var collision_nodes : Array[Node] = []
+func _find_collision_objects(node: Node) -> Array[Node2D][Node]:
+	var collision_nodes : Array[Node2D][Node] = []
 	
 	if node == null:
 		return collision_nodes

@@ -89,7 +89,7 @@ func test__on_target_changed(
 ) -> void:
 	mode.current = p_mode
 
-	var target = auto_free(Node2D.new())
+	target: Node = auto_free(Node2D.new())
 	add_child(target)
 	highlighter._on_target_changed(target, null)
 

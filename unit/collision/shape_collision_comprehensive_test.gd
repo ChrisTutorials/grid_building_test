@@ -9,16 +9,16 @@ func test_shape_bounds_validation(
 	shape_type: String,
 	radius: float,
 	height: float,
-	points: PackedVector2Array,
+	points: PackedVector2Array[Node2D],
 	expected_bounds: Rect2,
 	test_parameters := [
-		["Small Capsule", "capsule", 7.0, 22.0, PackedVector2Array(), Rect2(-7, -11, 14, 22)],
-		["Medium Capsule", "capsule", 14.0, 60.0, PackedVector2Array(), Rect2(-14, -30, 28, 60)],
-		["Large Capsule", "capsule", 48.0, 128.0, PackedVector2Array(), Rect2(-48, -64, 96, 128)],
-		["Standard Trapezoid", "trapezoid", 0.0, 0.0, PackedVector2Array([
+		["Small Capsule", "capsule", 7.0, 22.0, PackedVector2Array[Node2D](), Rect2(-7, -11, 14, 22)],
+		["Medium Capsule", "capsule", 14.0, 60.0, PackedVector2Array[Node2D](), Rect2(-14, -30, 28, 60)],
+		["Large Capsule", "capsule", 48.0, 128.0, PackedVector2Array[Node2D](), Rect2(-48, -64, 96, 128)],
+		["Standard Trapezoid", "trapezoid", 0.0, 0.0, PackedVector2Array[Node2D]([
 			Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)
 		]), Rect2(-32, -12, 64, 24)],
-		["Wide Trapezoid", "trapezoid", 0.0, 0.0, PackedVector2Array([
+		["Wide Trapezoid", "trapezoid", 0.0, 0.0, PackedVector2Array[Node2D]([
 			Vector2(-48, 16), Vector2(-24, -16), Vector2(24, -16), Vector2(48, 16)
 		]), Rect2(-48, -16, 96, 32)]
 	]
@@ -26,7 +26,7 @@ func test_shape_bounds_validation(
 	var bounds: Rect2
 	
 	if shape_type == "capsule":
-		var capsule_shape = CapsuleShape2D.new()
+		capsule_shape: Node = CapsuleShape2D.new()
 		capsule_shape.radius = radius
 		capsule_shape.height = height
 		
@@ -71,13 +71,13 @@ func test_shape_tile_coverage(
 	shape_type: String,
 	radius: float,
 	height: float,
-	points: PackedVector2Array,
+	points: PackedVector2Array[Node2D],
 	expected_tiles: Vector2i,
 	test_parameters := [
-		["Small Capsule", "capsule", 7.0, 22.0, PackedVector2Array(), Vector2i(1, 2)],
-		["Medium Capsule", "capsule", 14.0, 60.0, PackedVector2Array(), Vector2i(2, 4)],
-		["Large Capsule", "capsule", 48.0, 128.0, PackedVector2Array(), Vector2i(6, 8)],
-		["Standard Trapezoid", "trapezoid", 0.0, 0.0, PackedVector2Array([
+		["Small Capsule", "capsule", 7.0, 22.0, PackedVector2Array[Node2D](), Vector2i(1, 2)],
+		["Medium Capsule", "capsule", 14.0, 60.0, PackedVector2Array[Node2D](), Vector2i(2, 4)],
+		["Large Capsule", "capsule", 48.0, 128.0, PackedVector2Array[Node2D](), Vector2i(6, 8)],
+		["Standard Trapezoid", "trapezoid", 0.0, 0.0, PackedVector2Array[Node2D]([
 			Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)
 		]), Vector2i(4, 2)]
 	]
@@ -110,17 +110,17 @@ func test_shape_tile_collision_detection(
 	shape_type: String,
 	radius: float,
 	height: float,
-	points: PackedVector2Array,
+	points: PackedVector2Array[Node2D],
 	tile_offset: Vector2i,
 	expected_overlap: bool,
 	test_parameters := [
-		["Capsule Center Tile", "capsule", 14.0, 60.0, PackedVector2Array(), Vector2i(0,0), true],
-		["Capsule Edge Tile", "capsule", 14.0, 60.0, PackedVector2Array(), Vector2i(1,0), false],
-		["Capsule Corner Tile", "capsule", 14.0, 60.0, PackedVector2Array(), Vector2i(1,1), false],
-		["Trapezoid Center Tile", "trapezoid", 0.0, 0.0, PackedVector2Array([
+		["Capsule Center Tile", "capsule", 14.0, 60.0, PackedVector2Array[Node2D](), Vector2i(0,0), true],
+		["Capsule Edge Tile", "capsule", 14.0, 60.0, PackedVector2Array[Node2D](), Vector2i(1,0), false],
+		["Capsule Corner Tile", "capsule", 14.0, 60.0, PackedVector2Array[Node2D](), Vector2i(1,1), false],
+		["Trapezoid Center Tile", "trapezoid", 0.0, 0.0, PackedVector2Array[Node2D]([
 			Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)
 		]), Vector2i(0,0), true],
-		["Trapezoid Edge Tile", "trapezoid", 0.0, 0.0, PackedVector2Array([
+		["Trapezoid Edge Tile", "trapezoid", 0.0, 0.0, PackedVector2Array[Node2D]([
 			Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)
 		]), Vector2i(2,0), false]
 	]
@@ -153,13 +153,13 @@ func test_shape_positioning_validation(
 	shape_type: String,
 	radius: float,
 	height: float,
-	points: PackedVector2Array,
+	points: PackedVector2Array[Node2D],
 	position: Vector2,
 	expected_center: Vector2,
 	test_parameters := [
-		["Capsule at Origin", "capsule", 14.0, 60.0, PackedVector2Array(), Vector2(0,0), Vector2(0,0)],
-		["Capsule at Position", "capsule", 14.0, 60.0, PackedVector2Array(), Vector2(400,300), Vector2(400,300)],
-		["Trapezoid at Position", "trapezoid", 0.0, 0.0, PackedVector2Array([
+		["Capsule at Origin", "capsule", 14.0, 60.0, PackedVector2Array[Node2D](), Vector2(0,0), Vector2(0,0)],
+		["Capsule at Position", "capsule", 14.0, 60.0, PackedVector2Array[Node2D](), Vector2(400,300), Vector2(400,300)],
+		["Trapezoid at Position", "trapezoid", 0.0, 0.0, PackedVector2Array[Node2D]([
 			Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)
 		]), Vector2(800,600), Vector2(800,600)]
 	]
@@ -173,7 +173,7 @@ func test_shape_positioning_validation(
 		capsule_shape.height = height
 		bounds = GBGeometryMath.get_polygon_bounds(GBGeometryMath.convert_shape_to_polygon(capsule_shape, transform))
 	elif shape_type == "trapezoid":
-		var transformed_points := PackedVector2Array()
+		var transformed_points := PackedVector2Array[Node2D]()
 		for p in points:
 			transformed_points.append(transform * p)
 		bounds = GBGeometryMath.get_polygon_bounds(transformed_points)

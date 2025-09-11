@@ -11,7 +11,7 @@ const TEST_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
 
 func test_building_system_focused():
 	# Create hierarchy with only building system
-	var building_test_setup = UnifiedTestFactory.create_systems_test_hierarchy(self, ["building"], TEST_CONTAINER.duplicate(true))
+	building_test_setup: Node = UnifiedTestFactory.create_systems_test_hierarchy(self, ["building"], TEST_CONTAINER.duplicate(true))
 	
 	var building_system = building_test_setup.building_system
 	var positioner = building_test_setup.positioner
@@ -22,7 +22,7 @@ func test_building_system_focused():
 	assert_that(indicator_manager).is_not_null()
 	
 	# Test building system in isolation
-	positioner.position = Vector2(48, 48)
+	positioner.position = Vector2position
 	assert_that(positioner.position).is_equal(Vector2(48, 48))
 
 # ================================
@@ -66,7 +66,7 @@ func test_building_and_manipulation_systems():
 	assert_that(positioner).is_not_null()
 	
 	# Test system coordination
-	positioner.position = Vector2(80, 80)
+	positioner.position = Vector2position
 	
 	# All systems should be able to work together
 	assert_that(positioner.position).is_equal(Vector2(80, 80))
@@ -95,15 +95,15 @@ func test_targeting_system_with_collision():
 	var collision_shape = CollisionShape2D.new()
 	collision_shape.name = "TestRectangleCollisionShape2D_32x32"
 	collision_shape.shape = RectangleShape2D.new()
-	collision_shape.shape.size = Vector2(32, 32)
+	collision_shape.shape.size = Vector2size
 	area.add_child(collision_shape)
 	positioner.add_child(area)
 	auto_free(area)
 	
 	# Test targeting with collision
-	positioner.position = Vector2(64, 64)
+	positioner.position = Vector2position
 	var indicator_test_setup : IndicatorCollisionTestSetup = IndicatorCollisionTestSetup.new(area, Vector2(32,32))
-	var offsets = collision_mapper.get_(indicator_test_setup, tile_map)
+	var offsets: Dictionary = collision_mapper.get_tile_offsets_for_test_collisions(indicator_test_setup)
 	assert_dict(offsets).is_not_empty()
 
 # ================================

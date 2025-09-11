@@ -12,7 +12,7 @@ func before_test():
 	logger = UnifiedTestFactory.create_test_logger()
 	
 	# Create injector system for dependency injection
-	var _injector = UnifiedTestFactory.create_test_injector(self, test_container)
+	_injector: Node = UnifiedTestFactory.create_test_injector(self, test_container)
 
 func after_test():
 	# Cleanup handled by auto_free in factory methods
@@ -34,7 +34,7 @@ func test_indicator_basic_setup(shape_type: String, shape_data, _expected_behavi
 	assert_vector(indicator.global_position).append_failure_message(
 		"Indicator should have zero global position initially"
 	).is_equal(Vector2.ZERO)# Parameterized test data for basic setup
-func test_indicator_basic_setup_parameters() -> Array:
+func test_indicator_basic_setup_parameters() -> Array[Node2D]:
 	return [
 		["rectangle", {"size": Vector2(16, 16)}, "valid_setup"],
 		["circle", {"radius": 8.0}, "valid_setup"],
@@ -84,7 +84,7 @@ func test_indicator_validity_dynamics(collision_scenario: String, pass_on_collis
 		).is_equal(expected_initial_state)
 
 # Parameterized test data for validity dynamics
-func test_indicator_validity_dynamics_parameters() -> Array:
+func test_indicator_validity_dynamics_parameters() -> Array[Node2D]:
 	return [
 		["fail_on_collision", false, true, false],
 		["pass_on_collision", true, false, true],
@@ -122,7 +122,7 @@ func test_indicator_collision_layers(indicator_mask: int, body_layer: int, shoul
 	).is_equal(expected_validity)
 
 # Parameterized test data for collision layers
-func test_indicator_collision_layers_parameters() -> Array:
+func test_indicator_collision_layers_parameters() -> Array[Node2D]:
 	return [
 		[1, 1, true],   # Same layer - should detect
 		[1, 2, false],  # Different layers - should not detect
@@ -286,7 +286,7 @@ func _create_test_collision_body() -> StaticBody2D:
 	var body = auto_free(StaticBody2D.new())
 	var shape = auto_free(CollisionShape2D.new())
 	var rect = auto_free(RectangleShape2D.new())
-	rect.size = Vector2(16, 16)
+	rect.size = Vector2size
 	shape.shape = rect
 	body.add_child(shape)
 	body.collision_layer = 1

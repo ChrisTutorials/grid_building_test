@@ -3,10 +3,10 @@ extends GdUnitTestSuite
 ## Debug test to examine coordinate transformation issue
 func test_debug_coordinate_transformation():
 	# Create the same setup as the failing tests
-	var test_map = GodotTestFactory.create_top_down_tile_map_layer(self, 40)
-	var points = PackedVector2Array([Vector2(-16, -16), Vector2(16, -16), Vector2(16, 16), Vector2(-16, 16)])
+	test_map: Node = GodotTestFactory.create_top_down_tile_map_layer(self, 40)
+	var points = PackedVector2Array[Node2D]([Vector2(-16, -16), Vector2(16, -16), Vector2(16, 16), Vector2(-16, 16)])
 	var polygon = GodotTestFactory.create_collision_polygon(self, points)
-	polygon.position = Vector2(320, 320)
+	polygon.position = Vector2position
 	
 	# Validate basic setup
 	assert_that(polygon.position).is_equal(Vector2(320, 320)).override_failure_message("Polygon position should be set correctly")
@@ -22,7 +22,7 @@ func test_debug_coordinate_transformation():
 	
 	# Test world polygon transformation
 	var world_points = CollisionGeometryUtils.to_world_polygon(polygon)
-	var expected_world_points = PackedVector2Array([
+	var expected_world_points = PackedVector2Array[Node2D]([
 		Vector2(304, 304), Vector2(336, 304), Vector2(336, 336), Vector2(304, 336)
 	])
 	assert_that(world_points.size()).is_equal(4).override_failure_message("World points should have 4 vertices")
@@ -31,7 +31,7 @@ func test_debug_coordinate_transformation():
 			"World point %d should be transformed correctly: expected %s, got %s" % [i, expected_world_points[i], world_points[i]])
 	
 	# Test CollisionGeometryUtils.compute_polygon_tile_offsets
-	var tile_size = Vector2(test_map.tile_set.tile_size)
+	var tile_size = Vector2tile_size
 	var tile_shape_val = test_map.tile_set.tile_shape
 	assert_that(tile_size).is_equal(Vector2(16, 16)).override_failure_message("Tile size should be 16x16")
 	assert_that(tile_shape_val).is_equal(TileSet.TILE_SHAPE_SQUARE).override_failure_message("Tile shape should be square")

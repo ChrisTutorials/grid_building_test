@@ -1,6 +1,36 @@
 ## Unit tests for PolygonTileMapper static methods
 extends GdUnitTestSuite
 
+## DRY Constants - reused 3+ times across test methods
+const DEFAULT_TILE_SIZE = Vector2i(16, 16)
+const DEFAULT_TEST_POSITION = Vector2(320, 320)
+const TEST_MAP_SIZE = 40
+
+## DRY Helper: Create a properly configured TileMapLayer for testing
+func _create_test_tile_map(tile_size: Vector2i = DEFAULT_TILE_SIZE) -> TileMapLayer:
+	var test_map = TileMapLayer.new()
+	var tile_set = TileSet.new()
+	tile_set.tile_size = tile_size
+	test_map.tile_set = tile_set
+	auto_free(test_map)
+	add_child(test_map)
+	return test_map
+
+## DRY Helper: Create a StaticBody2D with proper collision hierarchy setup
+func _create_static_body(position: Vector2 = DEFAULT_TEST_POSITION) -> StaticBody2D:
+	var static_body: StaticBody2D = auto_free(StaticBody2D.new())
+	static_body.position = position
+	add_child(static_body)
+	return static_body
+
+## DRY Helper: Create a CollisionPolygon2D with points and add to parent
+func _create_collision_polygon(points: PackedVector2Array, parent: Node) -> CollisionPolygon2D:
+	var polygon = CollisionPolygon2D.new()
+	polygon.polygon = points
+	parent.add_child(polygon)
+	auto_free(polygon)
+	return polygon
+
 ## Helper function to run polygon mapping tests
 func _run_polygon_test(
 	points: PackedVector2Array,
@@ -8,17 +38,19 @@ func _run_polygon_test(
 	tile_type: String = "square",
 	expected_min: int = 1,
 	expected_max: int = -1,
-	position: Vector2 = Vector2(320, 320)
+	position: Vector2 = DEFAULT_TEST_POSITION
 ) -> void:
 	var test_map : TileMapLayer
 	
 	if tile_type == "isometric":
-		test_map = GodotTestFactory.create_isometric_tile_map_layer(self, 40)
+		test_map = _create_test_tile_map()
 	else:
-		test_map = GodotTestFactory.create_top_down_tile_map_layer(self, 40)
+		test_map = _create_test_tile_map()
 
-	var polygon = GodotTestFactory.create_collision_polygon(self, points)
-	polygon.position = position
+	# Create a StaticBody2D parent for proper collision hierarchy
+	var static_body = _create_static_body(position)
+	
+	var polygon = _create_collision_polygon(points, static_body)
 
 	var result = PolygonTileMapper.compute_tile_offsets(polygon, test_map)
 
@@ -68,7 +100,7 @@ func test_process_polygon_with_diagnostics():
 
 ## Test null polygon handling
 func test_compute_tile_offsets_null_polygon():
-	var test_map = GodotTestFactory.create_top_down_tile_map_layer(self, 40)
+	var test_map = _create_test_tile_map()
 
 	var result = PolygonTileMapper.compute_tile_offsets(null, test_map)
 
@@ -76,11 +108,14 @@ func test_compute_tile_offsets_null_polygon():
 
 ## Test null map handling
 func test_compute_tile_offsets_null_map():
-	var triangle_polygon = GodotTestFactory.create_collision_polygon(self, PackedVector2Array([
+	# Create a StaticBody2D parent for proper collision hierarchy
+	var static_body = _create_static_body()
+	
+	var triangle_polygon = _create_collision_polygon(PackedVector2Array([
 		Vector2(0, 0),
 		Vector2(32, 0),
 		Vector2(16, 32)
-	]))
+	]), static_body)
 
 	var result = PolygonTileMapper.compute_tile_offsets(triangle_polygon, null)
 
@@ -91,11 +126,15 @@ func test_compute_tile_offsets_no_tile_set():
 	var test_map = TileMapLayer.new()  # No tile set
 	test_map = auto_free(test_map)
 	add_child(test_map)
-	var triangle_polygon = GodotTestFactory.create_collision_polygon(self, PackedVector2Array([
+	
+	# Create a StaticBody2D parent for proper collision hierarchy
+	var static_body = _create_static_body()
+	
+	var triangle_polygon = _create_collision_polygon(PackedVector2Array([
 		Vector2(0, 0),
 		Vector2(32, 0),
 		Vector2(16, 32)
-	]))
+	]), static_body)
 
 	var result = PolygonTileMapper.compute_tile_offsets(triangle_polygon, test_map)
 
@@ -113,8 +152,12 @@ func test_compute_tile_offsets_degenerate_polygons(
 		["two_points", PackedVector2Array([Vector2(0, 0), Vector2(32, 0)]), 0]
 	]
 ):
-	var test_map = GodotTestFactory.create_top_down_tile_map_layer(self, 40)
-	var poly = GodotTestFactory.create_collision_polygon(self, points)
+	var test_map = _create_test_tile_map()
+	
+	# Create a StaticBody2D parent for proper collision hierarchy
+	var static_body = _create_static_body()
+	
+	var poly = _create_collision_polygon(points, static_body)
 	var result = PolygonTileMapper.compute_tile_offsets(poly, test_map)
 	if expected_max == 0:
 		assert_that(result.size()).append_failure_message("Expected %s polygon to return empty result" % case_name).is_equal(0)
@@ -143,7 +186,7 @@ func test_compute_tile_offsets_with_parent():
 
 ## Test diagnostic information for convex polygon
 func test_process_polygon_with_diagnostics_convex():
-	var test_map = GodotTestFactory.create_top_down_tile_map_layer(self, 40)
+	var test_map = _create_test_tile_map()
 	var convex_polygon = CollisionPolygon2D.new()
 	convex_polygon = auto_free(convex_polygon)
 	add_child(convex_polygon)
@@ -153,7 +196,7 @@ func test_process_polygon_with_diagnostics_convex():
 		Vector2(32, 32),
 		Vector2(0, 32)
 	])  # Rectangle (convex)
-	convex_polygon.position = Vector2(320, 320)  # Center of 40x40 tilemap
+	convex_polygon.position = DEFAULT_TEST_POSITION  # Center of 40x40 tilemap
 
 	var result = PolygonTileMapper.process_polygon_with_diagnostics(convex_polygon, test_map)
 
@@ -162,7 +205,7 @@ func test_process_polygon_with_diagnostics_convex():
 
 ## Test diagnostic information for concave polygon
 func test_process_polygon_with_diagnostics_concave():
-	var test_map = GodotTestFactory.create_top_down_tile_map_layer(self, 40)
+	var test_map = _create_test_tile_map()
 	var concave_polygon = CollisionPolygon2D.new()
 	concave_polygon = auto_free(concave_polygon)
 	add_child(concave_polygon)
@@ -173,12 +216,13 @@ func test_process_polygon_with_diagnostics_concave():
 		Vector2(32, 32),
 		Vector2(0, 32)
 	])
-	concave_polygon.position = Vector2(840, 680)
+	concave_polygon.position = DEFAULT_TEST_POSITION
 
 	var result = PolygonTileMapper.process_polygon_with_diagnostics(concave_polygon, test_map)
 
 	assert_that(result.was_convex).append_failure_message("Expected indented polygon to be detected as concave").is_false()
 	assert_that(result.offsets.size()).append_failure_message("Expected concave polygon diagnostic to return offsets").is_greater(0)
+
 ## Parameterized: diagnostic information for convex/concave
 @warning_ignore("unused_parameter")
 func test_process_polygon_with_diagnostics_cases(
@@ -190,12 +234,12 @@ func test_process_polygon_with_diagnostics_cases(
 		["concave_indented", PackedVector2Array([Vector2(0, 0), Vector2(32, 0), Vector2(16, 16), Vector2(32, 32), Vector2(0, 32)]), false]
 	]
 ):
-	var test_map = GodotTestFactory.create_top_down_tile_map_layer(self, 40)
+	var test_map = _create_test_tile_map()
 	var poly = CollisionPolygon2D.new()
 	poly = auto_free(poly)
 	add_child(poly)
 	poly.polygon = points
-	poly.position = Vector2(840, 680)
+	poly.position = DEFAULT_TEST_POSITION
 	var result = PolygonTileMapper.process_polygon_with_diagnostics(poly, test_map)
 	if expected_convex:
 		assert_that(result.was_convex).append_failure_message("Expected %s to be detected as convex" % case_name).is_true()
@@ -210,7 +254,7 @@ func test_compute_tile_offsets_different_tile_sizes():
 
 ## Test polygon completely outside tilemap bounds
 func test_compute_tile_offsets_outside_bounds():
-	var test_map = GodotTestFactory.create_top_down_tile_map_layer(self, 10)  # Small 10x10 tilemap
+	var test_map = _create_test_tile_map()
 	var triangle_polygon = CollisionPolygon2D.new()
 	triangle_polygon = auto_free(triangle_polygon)
 	add_child(triangle_polygon)
@@ -240,21 +284,24 @@ func test_compute_tile_offsets_complex_polygon():
 
 ## Test to diagnose tile property detection issue
 func test_tile_property_detection_diagnostics():
-	var test_map = GodotTestFactory.create_top_down_tile_map_layer(self, 40)
-	var polygon = GodotTestFactory.create_collision_polygon(self, PackedVector2Array([
+	var test_map = _create_test_tile_map()
+	var polygon = CollisionPolygon2D.new()
+	polygon.polygon = PackedVector2Array([
 		Vector2(-16, -16), Vector2(16, -16), Vector2(16, 16), Vector2(-16, 16)
-	]))
-	polygon.position = Vector2(320, 320)
+	])
+	polygon = auto_free(polygon)
+	add_child(polygon)
+	polygon.position = DEFAULT_TEST_POSITION
 	
 	# Test tile set existence
 	assert_that(test_map.tile_set).append_failure_message("TileMapLayer should have a tile_set").is_not_null()
 	
 	# Test tile_shape property detection
-	var tile_set = test_map.tile_set
+	var tile_set_ref = test_map.tile_set
 	var has_tile_shape = false
-	var property_names: Array[String] = []
+	var property_names: Array = []
 	
-	for property in tile_set.get_property_list():
+	for property in tile_set_ref.get_property_list():
 		property_names.append(property.name)
 		if property.name == "tile_shape":
 			has_tile_shape = true
@@ -265,7 +312,7 @@ func test_tile_property_detection_diagnostics():
 	
 	# Test actual tile_shape value
 	if has_tile_shape:
-		var tile_shape_value = tile_set.tile_shape
+		var tile_shape_value = tile_set_ref.tile_shape
 		assert_that(tile_shape_value).append_failure_message("tile_shape should be valid enum value").is_not_equal(-1)
 	
 	# Use the full processing pipeline to gather diagnostics
@@ -277,7 +324,7 @@ func test_tile_property_detection_diagnostics():
 	# Compute areas for initial offsets to debug filtering
 	var world_points = CollisionGeometryUtils.to_world_polygon(polygon)
 	var center_tile = test_map.local_to_map(test_map.to_local(polygon.global_position))
-	var tile_size = Vector2(test_map.tile_set.tile_size)
+	var tile_size = test_map.tile_set.tile_size
 	var initial_offsets = CollisionGeometryUtils.compute_polygon_tile_offsets(world_points, tile_size, center_tile, test_map.tile_set.tile_shape, test_map)
 	var thresholds = PolygonTileMapper.AreaThresholds.new()
 	var tile_area = tile_size.x * tile_size.y
@@ -298,7 +345,7 @@ func test_tile_property_detection_diagnostics():
 
 ## Test that results are consistent across multiple calls
 func test_compute_tile_offsets_consistency():
-	var test_map = GodotTestFactory.create_top_down_tile_map_layer(self, 40)
+	var test_map = _create_test_tile_map()
 	var triangle_polygon = CollisionPolygon2D.new()
 	triangle_polygon = auto_free(triangle_polygon)
 	add_child(triangle_polygon)
@@ -307,7 +354,7 @@ func test_compute_tile_offsets_consistency():
 		Vector2(32, 0),
 		Vector2(16, 32)
 	])
-	triangle_polygon.position = Vector2(840, 680)
+	triangle_polygon.position = DEFAULT_TEST_POSITION
 
 	var result1 = PolygonTileMapper.compute_tile_offsets(triangle_polygon, test_map)
 	var result2 = PolygonTileMapper.compute_tile_offsets(triangle_polygon, test_map)
@@ -318,15 +365,18 @@ func test_compute_tile_offsets_consistency():
 
 ## Diagnostic: Per-offset area inspection to debug final filtering
 func test_filter_area_diagnostics():
-	var test_map = GodotTestFactory.create_top_down_tile_map_layer(self, 40)
+	var test_map = _create_test_tile_map()
 	var points = PackedVector2Array([Vector2(-16, -16), Vector2(16, -16), Vector2(16, 16), Vector2(-16, 16)])
-	var poly = GodotTestFactory.create_collision_polygon(self, points)
-	poly.position = Vector2(320, 320)
+	var poly = CollisionPolygon2D.new()
+	poly.polygon = points
+	poly = auto_free(poly)
+	add_child(poly)
+	poly.position = DEFAULT_TEST_POSITION
 
 	# Reproduce initial offsets from the low-level util
 	var world_points = CollisionGeometryUtils.to_world_polygon(poly)
 	var center_tile = test_map.local_to_map(test_map.to_local(poly.global_position))
-	var tile_size = Vector2(test_map.tile_set.tile_size)
+	var tile_size = test_map.tile_set.tile_size
 
 	var initial_offsets = CollisionGeometryUtils.compute_polygon_tile_offsets(world_points, tile_size, center_tile, test_map.tile_set.tile_shape, test_map)
 	assert_int(initial_offsets.size()).append_failure_message("Expected initial offsets from CollisionGeometryUtils, got %d" % initial_offsets.size()).is_greater_equal(1)

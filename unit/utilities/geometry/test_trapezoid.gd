@@ -2,7 +2,7 @@ extends EditorScript
 
 
 func _run():
-	var trapezoid = PackedVector2Array(
+	trapezoid: Node = PackedVector2Array[Node2D](
 		[Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)]
 	)
 

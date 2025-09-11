@@ -1,8 +1,8 @@
 extends GdUnitTestSuite
 
 func test_debug_polygon_bounds():
-	var polygon = PackedVector2Array([Vector2(1,1), Vector2(17,1), Vector2(17,17), Vector2(1,17)])
-	var tile_size = Vector2(16, 16)
+	polygon: Node = PackedVector2Array[Node2D]([Vector2(1,1), Vector2(17,1), Vector2(17,17), Vector2(1,17)])
+	var tile_size = Vector2tile_size
 	
 	# Test our understanding of the bounds calculation
 	var bounds = Rect2()
@@ -32,7 +32,7 @@ func test_debug_polygon_bounds():
 	print("start_tile: ", start_tile)
 	print("end_tile: ", end_tile)
 	
-	var tiles_checked: Array[Vector2i] = []
+	var tiles_checked: Array[Node2D][Vector2i] = []
 	for x in range(start_tile.x, end_tile.x):
 		for y in range(start_tile.y, end_tile.y):
 			tiles_checked.append(Vector2i(x, y))

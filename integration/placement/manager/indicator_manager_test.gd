@@ -6,9 +6,9 @@ const TEST_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
 # Minimal, parameterized, and double-factory-based IndicatorManager tests
 var indicator_manager: IndicatorManager
 var map_layer: TileMapLayer
-var col_checking_rules: Array[TileCheckRule]
+var col_checking_rules: Array[Node2D][TileCheckRule]
 var global_snap_pos: Vector2
-var offset_logo = load("uid://bqq7otaevtlqu")
+offset_logo: Node = load("uid://bqq7otaevtlqu")
 
 # Access to indicator template and other test scenes; avoid name clash with global class_name
 const TestSceneLibraryScene : PackedScene = preload("uid://nhlp6ks003fp")
@@ -30,9 +30,9 @@ func _setup_targeting_state():
 	map_layer = auto_free(TileMapLayer.new())
 	add_child(map_layer)
 	map_layer.tile_set = TileSet.new()
-	map_layer.tile_set.tile_size = Vector2(16, 16)
-	var targeting_state = _container.get_states().targeting
-	var map_layers : Array[TileMapLayer] = [map_layer]
+	map_layer.tile_set.tile_size = Vector2tile_size
+	targeting_state: Node = _container.get_states().targeting
+	var map_layers : Array[Node2D][TileMapLayer] = [map_layer]
 	targeting_state.set_map_objects(map_layer, map_layers)
 	_positioner = Node2D.new()
 	auto_free(_positioner)
@@ -88,7 +88,7 @@ func after() -> void:
 func test_indicator_manager_dependencies_initialized():
 	# Test that the IndicatorManager can actually function instead of testing private properties
 	# Create a test scene and verify indicators are generated
-	var shape_scene = UnifiedTestFactory.create_eclipse_test_object(self)
+	shape_scene: Node = UnifiedTestFactory.create_eclipse_test_object(self)
 	add_child(shape_scene)
 	shape_scene.global_position = global_snap_pos
 
@@ -101,12 +101,12 @@ func test_indicator_manager_dependencies_initialized():
 	)
 
 	# Attempt physics body layer overlap prerequisite; don't hard fail if only raw shapes exist.
-	var overlap_ok = _collision_layer_overlaps(shape_scene, col_checking_rules)
+	overlap_ok: Node = _collision_layer_overlaps(shape_scene, col_checking_rules)
 	if not overlap_ok:
 		print("[TEST][indicator_manager] WARNING: No physics body layer overlap for eclipse_scene; proceeding (shape-only scene)")
 
 	var indicators_report : IndicatorSetupReport = indicator_manager.setup_indicators(shape_scene, col_checking_rules)
-	var indicators = indicators_report.indicators
+	indicators: Node = indicators_report.indicators
 	var summary = indicators_report.to_summary_string()
 	
 	# Assert that indicators were created (this tests the internal functionality without exposing private properties)
@@ -136,7 +136,7 @@ func test_indicator_count_for_shapes(scene_resource: PackedScene, expected: int,
 		.append_failure_message("Test parameter scene lacks collision shapes; expected >0 for indicator generation")
 		.is_greater(0)
 	)
-	var _overlap_ok = _collision_layer_overlaps(shape_scene, col_checking_rules)
+	_overlap_ok: Node = _collision_layer_overlaps(shape_scene, col_checking_rules)
 	var report : IndicatorSetupReport = indicator_manager.setup_indicators(shape_scene, col_checking_rules)
 	var indicators = report.indicators
 	var summary = report.to_summary_string()
@@ -179,7 +179,7 @@ func test_indicator_positions_are_unique():
 	)
 
 func test_no_indicators_for_empty_scene():
-	var empty_node = auto_free(Node2D.new())
+	empty_node: Node = auto_free(Node2D.new())
 	add_child(empty_node)
 	var report : IndicatorSetupReport = indicator_manager.setup_indicators(empty_node, col_checking_rules)
 	var indicators = report.indicators
@@ -246,7 +246,7 @@ func test_indicators_are_freed_on_reset():
 # -------------------------
 func _count_collision_shapes(root: Node) -> int:
 	var count := 0
-	var stack : Array = [root]
+	var stack : Array[Node2D] = [root]
 	while not stack.is_empty():
 		var current: Node = stack.pop_back()
 		for child in current.get_children():
@@ -255,13 +255,13 @@ func _count_collision_shapes(root: Node) -> int:
 				count += 1
 	return count
 
-func _assert_collision_layer_overlaps(root: Node, tile_rules: Array[TileCheckRule], scene_label: String):
+func _assert_collision_layer_overlaps(root: Node, tile_rules: Array[Node2D][TileCheckRule], scene_label: String):
 	if tile_rules.is_empty():
 		return
 	var mask := tile_rules[0].apply_to_objects_mask
 	var overlapping := false
-	var body_layers : Array[String] = []
-	var stack : Array = [root]
+	var body_layers : Array[Node2D][String] = []
+	var stack : Array[Node2D] = [root]
 	while not stack.is_empty():
 		var current: Node = stack.pop_back()
 		for child in current.get_children():
@@ -278,11 +278,11 @@ func _assert_collision_layer_overlaps(root: Node, tile_rules: Array[TileCheckRul
 	)
 
 # Non-asserting overlap check used for optional prerequisite logic.
-func _collision_layer_overlaps(root: Node, tile_rules: Array[TileCheckRule]) -> bool:
+func _collision_layer_overlaps(root: Node, tile_rules: Array[Node2D][TileCheckRule]) -> bool:
 	if tile_rules.is_empty():
 		return false
 	var mask := tile_rules[0].apply_to_objects_mask
-	var stack : Array = [root]
+	var stack : Array[Node2D] = [root]
 	while not stack.is_empty():
 		var current: Node = stack.pop_back()
 		for child in current.get_children():

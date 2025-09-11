@@ -13,7 +13,7 @@ extends RefCounted
 ##
 ## ## Usage:
 ## ```gdscript
-## var collision_body = CollisionObjectTestFactory.create_static_body_with_diamond(self, Vector2(64, 32))
+## collision_body: Node = CollisionObjectTestFactory.create_static_body_with_diamond(self, Vector2(64, 32))
 ## var isometric_building = CollisionObjectTestFactory.create_isometric_blacksmith(self)
 ## ```
 
@@ -62,7 +62,7 @@ static func create_static_body_with_polygon(test_suite: GdUnitTestSuite, polygon
 	return collision_body
 
 ## Creates a complex collision object with multiple shapes
-static func create_complex_collision_object(test_suite: GdUnitTestSuite, rect_size: Vector2, circle_radius: float, circle_offset: Vector2 = Vector2(20, 20)) -> StaticBody2D:
+static func create_complex_collision_object(test_suite: GdUnitTestSuite, rect_size: Vector2, circle_radius: float, circle_offset: Vector2 = Vector2(16, 0)) -> StaticBody2D:
 	var collision_body: StaticBody2D = StaticBody2D.new()
 	test_suite.add_child(collision_body)
 	test_suite.auto_free(collision_body)
@@ -91,20 +91,19 @@ static func setup_collision_mapper_with_objects(
 	test_env: Dictionary,
 	collision_objects: Array[StaticBody2D],
 	bounds: Vector2,
-	indicator_size: int = 16
+	_indicator_size: int = 16
 ) -> CollisionMapper:
 	var collision_mapper: CollisionMapper = test_env.collision_mapper
-	var test_indicator = UnifiedTestFactory.create_test_indicator_rect(test_suite, indicator_size)
+	var indicator_manager: IndicatorManager = test_env.indicator_manager
+	var test_indicator: RuleCheckIndicator = indicator_manager.get_or_create_testing_indicator(test_suite)
 
 	var collision_object_test_setups: Dictionary[Node2D, IndicatorCollisionTestSetup] = {}
-	for obj in collision_objects:
-		var collision_setup = IndicatorCollisionTestSetup.new(obj as CollisionObject2D, bounds)
+	for obj: StaticBody2D in collision_objects:
+		var collision_setup: IndicatorCollisionTestSetup = IndicatorCollisionTestSetup.new(obj as CollisionObject2D, bounds)
 		collision_object_test_setups[obj] = collision_setup
 
 	collision_mapper.setup(test_indicator, collision_object_test_setups)
-	return collision_mapper
-
-## Gets collision tiles for objects with proper typing
+	return collision_mapper## Gets collision tiles for objects with proper typing
 static func get_collision_tiles_for_objects(
 	collision_mapper: CollisionMapper,
 	objects: Array[StaticBody2D],
@@ -126,7 +125,7 @@ static func check_collsion_tiles_at_position(
 ) -> Dictionary:
 	collision_object.global_position = position
 	var collision_objects_typed: Array[CollisionObject2D] = [collision_object as CollisionObject2D]
-	var collision_tiles = test_env.collision_mapper.get_collision_tile_positions_with_mask(collision_objects_typed, 1)
+	var collision_tiles: Dictionary = test_env.collision_mapper.get_collision_tile_positions_with_mask(collision_objects_typed, 1)
 
 	test_suite.assert_int(collision_tiles.size()).append_failure_message(
 		"Should generate at least %d collision tiles at position %s" % [expected_min_tiles, position]
@@ -170,8 +169,8 @@ static func create_area_with_circle_collision(
 	positioner: Node2D,
 	radius: float = 12.0
 ) -> Area2D:
-	var area = Area2D.new()
-	var shape = CollisionShape2D.new()
+	var area: Area2D = Area2D.new()
+	var shape: CollisionShape2D = CollisionShape2D.new()
 	shape.shape = CircleShape2D.new()
 	shape.shape.radius = radius
 	shape.position = Vector2.ZERO  # Explicitly set position
@@ -187,8 +186,8 @@ static func create_area_with_rect_collision(
 	positioner: Node2D,
 	size: Vector2 = Vector2(32, 32)
 ) -> Area2D:
-	var area = Area2D.new()
-	var shape = CollisionShape2D.new()
+	var area: Area2D = Area2D.new()
+	var shape: CollisionShape2D = CollisionShape2D.new()
 	shape.shape = RectangleShape2D.new()
 	shape.shape.size = size
 	shape.position = Vector2.ZERO  # Explicitly set position
@@ -215,9 +214,9 @@ static func create_static_body_with_diamond(
 	test_suite.auto_free(collision_body)
 
 	# Create diamond-shaped polygon
-	var half_width = width / 2.0
-	var half_height = height / 2.0
-	var diamond_points = PackedVector2Array([
+	var half_width: float = width / 2.0
+	var half_height: float = height / 2.0
+	var diamond_points: PackedVector2Array = PackedVector2Array([
 		Vector2(0, -half_height),    # Top
 		Vector2(half_width, 0),      # Right
 		Vector2(0, half_height),     # Bottom
@@ -233,7 +232,7 @@ static func create_static_body_with_diamond(
 
 ## Creates an isometric blacksmith building with proper collision layers
 static func create_isometric_blacksmith(test_suite: GdUnitTestSuite, position: Vector2 = Vector2.ZERO) -> StaticBody2D:
-	var blacksmith = create_static_body_with_diamond(test_suite, 32.0, 32.0, position)
+	var blacksmith: StaticBody2D = create_static_body_with_diamond(test_suite, 32.0, 32.0, position)
 	
 	# Set blacksmith-specific collision layers (common demo values)
 	blacksmith.collision_layer = 2560  # Demo blacksmith collision layer
@@ -251,7 +250,7 @@ static func create_isometric_building_with_layers(
 	height: float = 32.0,
 	position: Vector2 = Vector2.ZERO
 ) -> StaticBody2D:
-	var building = create_static_body_with_diamond(test_suite, width, height)
+	var building: StaticBody2D = create_static_body_with_diamond(test_suite, width, height)
 	building.collision_layer = collision_layer
 	building.collision_mask = collision_mask
 	building.global_position = position
@@ -265,11 +264,11 @@ static func setup_collision_test_environment(
 	building: StaticBody2D
 ) -> Dictionary:
 	# Set up collision mapper with test setup
-	var test_setup = UnifiedTestFactory.create_test_indicator_collision_setup(test_suite, building)
+	var test_setup: IndicatorCollisionTestSetup = UnifiedTestFactory.create_test_indicator_collision_setup(test_suite, building)
 	test_env.collision_mapper.collision_object_test_setups[building] = test_setup
 	
 	# Create indicator manager if needed
-	var targeting_setup = UnifiedTestFactory.prepare_targeting_state_ready(test_suite, test_env.container)
+	var targeting_setup: Dictionary = UnifiedTestFactory.prepare_targeting_state_ready(test_suite, test_env.container)
 	var indicator_manager: IndicatorManager = UnifiedTestFactory.create_test_indicator_manager(test_suite, targeting_setup.container)
 	
 	return {
@@ -290,7 +289,7 @@ static func check_collision_generation_with_rotation(
 		building.rotation = angle
 		
 		# Test collision mapping with rotation
-		var collision_tiles = collision_mapper.get_collision_tile_positions_with_mask([building], building.collision_layer)
+		var collision_tiles: Dictionary = collision_mapper.get_collision_tile_positions_with_mask([building], building.collision_layer)
 		test_suite.assert_array(collision_tiles.keys()).append_failure_message(
 			"Should generate collision tiles at rotation %s degrees" % [rad_to_deg(angle)]
 		).is_not_empty()

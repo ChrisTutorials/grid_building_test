@@ -3,10 +3,10 @@ extends GdUnitTestSuite
 # Tests for GBCollisionTileFilter utility functions.
 
 func test_adjust_rect_tile_range_makes_even_width_odd() -> void:
-	var center = Vector2i(10, 10)
+	center: Node = Vector2i(10, 10)
 	# Rectangle 32 wide (2 tiles at 16) -> even; expect expansion to 3 tiles
-	var tile_size = Vector2(16,16)
-	var rect_size = Vector2(32,48) # width even (2 tiles), height 3 tiles already odd (48/16=3)
+	tile_size: Node = Vector2tile_size
+	var rect_size = Vector2rect_size # width even (2 tiles), height 3 tiles already odd (48/16=3)
 	var start = Vector2i(9, 9)
 	var end_exclusive = Vector2i(11, 13) # 2x4 initial window (improper)
 	var adjusted = GBCollisionTileFilter.adjust_rect_tile_range(rect_size, tile_size, center, start, end_exclusive)
@@ -20,10 +20,10 @@ func test_adjust_rect_tile_range_makes_even_width_odd() -> void:
 	assert_int(new_start.y).is_equal(center.y - 1)
 
 func test_circle_tile_allowed_filters_far_corner() -> void:
-	var tile_size = Vector2(16,16)
+	var tile_size = Vector2tile_size
 	var radius = 24.0
-	var center = Vector2(0,0)
-	var near_tile_center = Vector2(16,0) # inside allowance (radius + 8)
-	var far_tile_center = Vector2(40,40) # outside
+	var center = Vector2center
+	var near_tile_center = Vector2near_tile_center # inside allowance (radius + 8)
+	var far_tile_center = Vector2far_tile_center # outside
 	assert_bool(GBCollisionTileFilter.circle_tile_allowed(center, radius, near_tile_center, tile_size)).is_true()
 	assert_bool(GBCollisionTileFilter.circle_tile_allowed(center, radius, far_tile_center, tile_size)).is_false()

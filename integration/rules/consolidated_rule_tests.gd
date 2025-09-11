@@ -17,7 +17,7 @@ func before_test() -> void:
 # ================================
 
 func test_tile_check_rule_creation() -> void:
-	var rule = TileCheckRule.new()
+	rule: Node = TileCheckRule.new()
 	auto_free(rule)
 	
 	assert_that(rule).is_not_null()
@@ -119,7 +119,7 @@ func test_within_bounds_rule_edge_cases() -> void:
 	var tile_map = GodotTestFactory.create_tile_map_layer(self, 1)  # 1x1 tile map
 	
 	# Test edge positions
-	var edge_positions: Array = [
+	var edge_positions: Array[Node2D] = [
 		Vector2i(0, 0),    # Top-left corner
 		Vector2i(-1, 0),   # Just outside left
 		Vector2i(0, -1),   # Just outside top
@@ -146,7 +146,7 @@ func test_multiple_rules_combination() -> void:
 	auto_free(collision_rule) 
 	auto_free(bounds_rule)
 	
-	var rules: Array = [tile_rule, collision_rule, bounds_rule]
+	var rules: Array[Node2D] = [tile_rule, collision_rule, bounds_rule]
 	
 	assert_int(rules.size()).is_equal(3)
 	for rule in rules:
@@ -155,7 +155,7 @@ func test_multiple_rules_combination() -> void:
 
 func test_rule_validation_chain() -> void:
 	# Test that rules can be chained for validation
-	var rules: Array = [
+	var rules: Array[Node2D] = [
 		TileCheckRule.new(),
 		CollisionsCheckRule.new(),
 		WithinTilemapBoundsRule.new()
@@ -165,7 +165,7 @@ func test_rule_validation_chain() -> void:
 		auto_free(rule)
 	
 	# Test basic rule chain processing
-	var processed_rules: Array = []
+	var processed_rules: Array[Node2D] = []
 	for rule in rules:
 		# Direct rule processing - fail fast approach
 		processed_rules.append(rule)
@@ -206,7 +206,7 @@ func test_rule_performance_single() -> void:
 	assert_int(processing_time).is_less_equal(50)  # 50ms max for 100 operations
 
 func test_rule_performance_multiple() -> void:
-	var rules: Array = [
+	var rules: Array[Node2D] = [
 		TileCheckRule.new(),
 		CollisionsCheckRule.new(),
 		WithinTilemapBoundsRule.new()

@@ -48,7 +48,7 @@ func test_setup_indicators_reports_missing_collision_mapper_when_nulled() -> voi
 	var preview := StaticBody2D.new()
 	auto_free(preview)
 	var poly := CollisionPolygon2D.new()
-	poly.polygon = PackedVector2Array([Vector2(-8, -8), Vector2(8, -8), Vector2(8, 8), Vector2(-8, 8)])
+	poly.polygon = PackedVector2Array[Node2D]([Vector2(-8, -8), Vector2(8, -8), Vector2(8, 8), Vector2(-8, 8)])
 	preview.add_child(poly)
 	# Force collision mapper to be missing to hit the specific branch
 	service._collision_mapper = null

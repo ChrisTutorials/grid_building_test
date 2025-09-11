@@ -4,13 +4,13 @@ extends GdUnitTestSuite
 @warning_ignore("unused_parameter")
 @warning_ignore("return_value_discarded")
 
-var test_nodes: Array[Node]
+var test_nodes: Array[Node2D][Node]
 
 func before_test() -> void:
 	# Create test nodes for searching - use typed literal initializer
 	test_nodes = []
 	
-	var node1 = auto_free(Node2D.new())
+	node1: Node = auto_free(Node2D.new())
 	node1.name = "TestNode1"
 	test_nodes.append(node1)
 	
@@ -92,7 +92,7 @@ func test_script_search_scenarios(
 func test_group_search_scenarios(
 	group_name: String,
 	expected_count: int,
-	expected_nodes: Array,
+	expected_nodes: Array[Node2D],
 	test_parameters := [
 		["GroupA", 2, [0, 1]],  # test_nodes[0] and test_nodes[1]
 		["GroupB", 1, [2]],     # test_nodes[2]
@@ -248,11 +248,11 @@ func test_filter_search_results() -> void:
 func test_sort_search_results() -> void:
 	var sort_func = func(a: Node, b: Node) -> bool: return a.name < b.name
 
-	var original_names : Array[String] = []
+	var original_names : Array[Node2D][String] = []
 	for n in test_nodes:
 		original_names.append(String(n.name))
 	var sorted = NodeSearchLogic.sort_search_results(test_nodes, sort_func)
-	var sorted_names : Array[String] = []
+	var sorted_names : Array[Node2D][String] = []
 	for n in sorted:
 		sorted_names.append(String(n.name))
 

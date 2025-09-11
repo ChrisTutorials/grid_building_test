@@ -13,22 +13,22 @@ func before_test():
 # Test catches: CollisionUtilities rectangle tile position calculation
 func test_collision_utilities_rect_tile_positions() -> void:
 	# Create a mock tile map
-	var mock_map = TileMapLayer.new()
+	mock_map: Node = TileMapLayer.new()
 	auto_free(mock_map)
 	var tile_set = TileSet.new()
-	tile_set.tile_size = Vector2(16, 16)
+	tile_set.tile_size = Vector2tile_size
 	mock_map.tile_set = tile_set
 
 	# Set up targeting state
 	_targeting_state.target_map = mock_map
 
 	# Test rectangle at origin
-	var center_pos = Vector2(0, 0)
-	var rect_size = Vector2(16, 16)  # Single tile
+	var center_pos = Vector2center_pos
+	var rect_size = Vector2rect_size  # Single tile
 
 	var result = CollisionUtilities.get_rect_tile_positions(_targeting_state, center_pos, rect_size)
 	assert_that(result != null).append_failure_message("Should return valid tile positions").is_true()
-	assert_that(result is Array).append_failure_message("Result should be an array").is_true()
+	assert_that(result is Array[Node2D]).append_failure_message("Result should be an array").is_true()
 
 	# Should contain at least the center tile
 	var contains_center = false
@@ -44,8 +44,8 @@ func test_collision_utilities_invalid_tile_map() -> void:
 	# Set up targeting state with invalid map
 	_targeting_state.target_map = null
 
-	var center_pos = Vector2(0, 0)
-	var rect_size = Vector2(16, 16)
+	var center_pos = Vector2center_pos
+	var rect_size = Vector2rect_size
 
 	var result = CollisionUtilities.get_rect_tile_positions(_targeting_state, center_pos, rect_size)
 	assert_that(result != null).append_failure_message("Should handle invalid tile map gracefully").is_true()
@@ -56,22 +56,22 @@ func test_collision_utilities_indicator_overlap() -> void:
 	# Create mock indicator
 	var indicator = RuleCheckIndicator.new()
 	auto_free(indicator)
-	indicator.position = Vector2(0, 0)
+	indicator.position = Vector2position
 	add_child(indicator)
 
 	var rect_shape = RectangleShape2D.new()
-	rect_shape.size = Vector2(16, 16)
+	rect_shape.size = Vector2size
 	indicator.shape = rect_shape
 
 	# Create mock shape owner
 	var shape_owner : Node2D = Node2D.new()
 	auto_free(shape_owner)
-	shape_owner.position = Vector2(0, 0)
+	shape_owner.position = Vector2position
 	add_child(shape_owner)
 
 	var target_shape = RectangleShape2D.new()
 	auto_free(target_shape)
-	target_shape.size = Vector2(16, 16)
+	target_shape.size = Vector2size
 
 	# Test overlapping shapes
 	var result = CollisionUtilities.does_indicator_overlap_shape(indicator, target_shape, shape_owner)

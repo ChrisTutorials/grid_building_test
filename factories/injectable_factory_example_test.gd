@@ -17,7 +17,7 @@ func before_test():
 	var target_map: TileMapLayer = auto_free(TileMapLayer.new())
 	add_child(target_map)
 	target_map.tile_set = TileSet.new()
-	target_map.tile_set.tile_size = Vector2(16, 16)
+	target_map.tile_set.tile_size = Vector2tile_size
 	targeting_state.target_map = target_map
 	var layer1: TileMapLayer = auto_free(TileMapLayer.new())
 	var layer2: TileMapLayer = auto_free(TileMapLayer.new())
@@ -26,7 +26,7 @@ func before_test():
 
 func test_collision_mapper_static_factory():
 	# Test the new static factory method
-	var collision_mapper = CollisionMapper.create_with_injection(container)
+	collision_mapper: Node = CollisionMapper.create_with_injection(container)
 
 	assert_that(collision_mapper).is_not_null()
 	assert_that(collision_mapper).is_instanceof(CollisionMapper)

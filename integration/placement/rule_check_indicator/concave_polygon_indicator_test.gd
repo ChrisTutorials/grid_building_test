@@ -7,7 +7,7 @@ var _targeting : GridTargetingState
 var _placer : Node2D
 var _map : TileMapLayer
 var _preview : Node2D
-var _rules : Array[PlacementRule]
+var _rules : Array[Node2D][PlacementRule]
 var _manager : IndicatorManager
 
 func before_test():
@@ -18,7 +18,7 @@ func before_test():
 	_targeting = _container.get_states().targeting
 	_map = auto_free(TileMapLayer.new())
 	_map.tile_set = TileSet.new()
-	_map.tile_set.tile_size = Vector2(16,16)
+	_map.tile_set.tile_size = Vector2tile_size
 	add_child(_map)
 	_targeting.target_map = _map
 	_targeting.maps = [_map]
@@ -43,7 +43,7 @@ func before_test():
 	_targeting.positioner.add_child(_preview)
 
 	# Reduce debug verbosity to avoid unrelated formatting/log noise during this focused geometry test
-	var dbg = _container.get_debug_settings()
+	dbg: Node = _container.get_debug_settings()
 	dbg.set_debug_level(GBDebugSettings.DebugLevel.ERROR)
 	# Build explicit collisions rule with mask bit 0
 	var rule := CollisionsCheckRule.new()
@@ -59,7 +59,7 @@ func after_test():
 	if _manager:
 		_manager.tear_down()
 
-func _collect_indicators() -> Array[RuleCheckIndicator]:
+func _collect_indicators() -> Array[Node2D][RuleCheckIndicator]:
 	return _manager.get_indicators() if _manager else []
 
 ## Expect multiple indicators but not a full bounding box fill (which would indicate concavity not handled)
@@ -68,12 +68,12 @@ func test_concave_polygon_generates_expected_indicator_distribution():
 	
 	assert_array(indicators).append_failure_message("No indicators generated for concave polygon – investigate rule attach path. Indicators not generated; test pending implementation.").is_not_empty()
 
-	var tiles : Array[Vector2i] = []
+	var tiles : Array[Node2D][Vector2i] = []
 	for ind in indicators:
 		var tile := _map.local_to_map(_map.to_local(ind.global_position))
 		if tile not in tiles:
 			tiles.append(tile)
-	var min_x = 9999 
+	min_x: Node = 9999 
 	var max_x = -9999 
 	var min_y = 9999 
 	var max_y = -9999

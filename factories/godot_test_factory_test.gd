@@ -118,7 +118,7 @@ func test_create_collision_polygon_default():
 
 
 func test_create_collision_polygon_custom():
-	var custom_points = PackedVector2Array(
+	var custom_points = PackedVector2Array[Node2D](
 		[Vector2(0, 0), Vector2(10, 0), Vector2(10, 10), Vector2(0, 10)]
 	)
 	var polygon: CollisionPolygon2D = GodotTestFactory.create_collision_polygon(self, custom_points)

@@ -7,7 +7,91 @@ extends RefCounted
 ## for the Grid Building system. It eliminates code duplication and ensures consistency
 ## across all test suites.
 ##
+## ## MIGRATION NOTICE - Environment Creation Methods Deprecated
+##
+## **The factory-based environment creation methods are being phased out in favor of**
+## **pre-configured scene-based test environments. Use the premade environment scenes:**
+##
+## - **AllSystemsTestEnvironment**: `uid://ioucajhfxc8b` (all_systems_test_environment.tscn)
+##   - Replaces: `create_systems_integration_test_environment()`
+##   - Use for: Full system integration tests
+##   - Example: `env: Node = UnifiedTestFactory.instance_all_systems_env(self, "uid://ioucajhfxc8b")`
+##
+## - **BuildingTestEnvironment**: `uid://c4ujk08n8llv8` (building_test_environment.tscn)
+##   - Replaces: `create_building_system_test_environment()`, `create_injection_test_environment()`
+##   - Use for: Building system and dependency injection tests
+##   - Example: `var env = UnifiedTestFactory.instance_building_test_env(self, "uid://c4ujk08n8llv8")`
+##
+## - **CollisionTestEnvironment**: `uid://cdrtd538vrmun` (collision_test_environment.tscn)  
+##   - Replaces: `create_indicator_test_environment()`, `create_manipulation_system_test_environment()`
+##   - Use for: Collision detection and indicator management tests
+##   - Example: `var env = UnifiedTestFactory.instance_collision_test_env(self, "uid://cdrtd538vrmun")`
+##
+## - **IsometricBuildingTestEnvironment**: `uid://d3yeah2uexha2` (isometric_building_test_environment.tscn)
+##   - Use for: Isometric view and complex building scenarios
+##   - Example: `var env = load("uid://d3yeah2uexha2").instantiate(); add_child(env); auto_free(env)`
+##
+## **Benefits of Scene-Based Approach:**
+## - ✅ **100% Passive**: No dependency injection timing issues
+## - ✅ **Scene Editor**: Visual configuration of test environments
+## - ✅ **Runtime Validation**: Built-in `get_issues()` checks
+## - ✅ **Better Performance**: Pre-configured scenes load faster than factory assembly
+##
+## ## Quick Reference - Scene UIDs:
+##
+## ```gdscript
+## # All Systems Integration Tests  
+## env: Node = UnifiedTestFactory.instance_all_systems_env(self, "uid://ioucajhfxc8b")
+##
+## # Building System & Dependency Injection Tests
+## var env = UnifiedTestFactory.instance_building_test_env(self, "uid://c4ujk08n8llv8")
+##
+## # Collision Detection & Indicator Management Tests  
+## var env = UnifiedTestFactory.instance_collision_test_env(self, "uid://cdrtd538vrmun")
+##
+## # Isometric View & Complex Building Tests
+## var env = UnifiedTestFactory.instance_isometric_building_test_env(self, "uid://d3yeah2uexha2")
+## ```
+##
 ## ## Key Features:
+
+## Helper function to validate that collision shapes have proper parents
+## @param collision_node: The CollisionPolygon2D or CollisionShape2D to validate
+## @param method_name: Name of the calling method for error reporting
+static func _validate_collision_parent(collision_node: Node, method_name: String) -> void:
+	assert(collision_node != null, "%s: collision_node cannot be null" % method_name)
+	
+	var parent: Node = collision_node.get_parent()
+	assert(parent != null, "%s: collision node must have a parent" % method_name)
+	assert(
+		parent is CollisionObject2D or parent is Area2D,
+		"%s: collision node parent must be CollisionObject2D or Area2D, got %s" % [method_name, parent.get_class()]
+	)
+
+## Helper function to ensure collision shapes are properly parented to collision objects
+## @param collision_shape: The CollisionPolygon2D or CollisionShape2D to attach
+## @param target_parent: The CollisionObject2D or Area2D to attach to  
+## @param test: Test suite for auto_free management
+## @param method_name: Name of the calling method for error reporting
+static func _ensure_collision_parent(
+	collision_shape: Node, 
+	target_parent: CollisionObject2D, 
+	test: GdUnitTestSuite,
+	method_name: String
+) -> void:
+	assert(target_parent != null, "%s: target_parent cannot be null" % method_name)
+	assert(
+		target_parent is CollisionObject2D or target_parent is Area2D,
+		"%s: target_parent must be CollisionObject2D or Area2D, got %s" % [method_name, target_parent.get_class()]
+	)
+	
+	# Remove from current parent if any
+	if collision_shape.get_parent() != null:
+		collision_shape.get_parent().remove_child(collision_shape)
+	
+	# Add to proper parent
+	target_parent.add_child(collision_shape)
+	test.auto_free(collision_shape)
 ## - **DRY Principle**: Eliminates 80% of code duplication through helper methods
 ## - **Layered Architecture**: Simple → Complex environment building
 ## - **Backward Compatibility**: All existing APIs preserved
@@ -61,42 +145,106 @@ const TEST_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
 ## Creates a comprehensive test environment for the indicator management system
 ## Includes necessary components for testing indicator behavior and interactions
 ##
+## [b]⚠️  DEPRECATED - Use Scene-Based Environments Instead[/b]
+##
+## This factory method is being deprecated in favor of pre-configured scene environments.
+## **Recommended replacement:**
+## ```gdscript
+## # OLD (deprecated):
+## var env = UnifiedTestFactory.create_indicator_test_environment(self)
+## 
+## # NEW (recommended):
+## var env = UnifiedTestFactory.instance_collision_test_env(self, "uid://cdrtd538vrmun")
+## # Access properties directly: env.indicator_manager, env.building_system, etc.
+## ```
+##
+## **Why switch?**
+## - ✅ No dependency injection timing issues (100% passive)
+## - ✅ Visual scene editor configuration
+## - ✅ Built-in runtime validation via `env.get_issues()`
+## - ✅ Better performance and reliability
+##
 ## [b]Parameters[/b]:
 ##  • [code]test[/code]: GdUnitTestSuite – test suite for parenting/autofree
 ##  • [code]container[/code]: GBCompositionContainer – base container (defaults to TEST_CONTAINER)
 ## [b]Returns[/b]: Dictionary – complete test environment with all components properly configured
 static func create_indicator_test_environment(test: GdUnitTestSuite, container: GBCompositionContainer = null) -> Dictionary:
+	push_warning("DEPRECATED: create_indicator_test_environment() is deprecated. Use UnifiedTestFactory.instance_collision_test_env(test, \"uid://cdrtd538vrmun\") instead for better reliability.")
+	assert(test != null, "test parameter cannot be null")
+	
 	# Start with comprehensive targeting state setup (ensures indicator template and manipulation parent)
-	var targeting_setup = prepare_targeting_state_ready(test, container)
+	var targeting_setup: Dictionary = prepare_targeting_state_ready(test, container)
+	assert(targeting_setup != null, "prepare_targeting_state_ready returned null")
+	assert(targeting_setup is Dictionary, "prepare_targeting_state_ready must return Dictionary")
+	assert(targeting_setup.has("container"), "targeting_setup missing 'container' key")
+	assert(targeting_setup.container != null, "targeting_setup.container cannot be null")
 
 	# Create injector for dependency injection
-	var injector = _create_injector_for_container(test, targeting_setup.container)
+	var injector: GBInjectorSystem = GBInjectorSystem.create_with_injection(test, targeting_setup.container)
+	assert(injector != null, "_create_injector_for_container returned null")
 
 	# Create indicator manager with proper setup
-	var indicator_manager = create_test_indicator_manager(test, targeting_setup.container)
-	test.add_child(indicator_manager)
+	var indicator_manager: IndicatorManager = create_test_indicator_manager(test, targeting_setup.container)
+	assert(indicator_manager != null, "create_test_indicator_manager returned null")
+	
+	# indicator_manager is already parented to manipulation_parent via create_test_indicator_manager
+	# No need to add it to test suite directly
+
+	# Validate environment dictionary components
+	assert(targeting_setup.has("targeting_state"), "targeting_setup missing 'targeting_state' key")
+	assert(targeting_setup.has("building_state"), "targeting_setup missing 'building_state' key")
+	assert(targeting_setup.has("positioner"), "targeting_setup missing 'positioner' key")
+	assert(targeting_setup.has("tile_map"), "targeting_setup missing 'tile_map' key")
+	assert(targeting_setup.has("objects_parent"), "targeting_setup missing 'objects_parent' key")
+	assert(targeting_setup.has("logger"), "targeting_setup missing 'logger' key")
 
 	# Return complete environment dictionary
-	return {
+	var env_dict: Dictionary = {
 		"container": targeting_setup.container,
 		"targeting_state": targeting_setup.targeting_state,
 		"building_state": targeting_setup.building_state,
 		"positioner": targeting_setup.positioner,
 		"tile_map": targeting_setup.tile_map,
 		"objects_parent": targeting_setup.objects_parent,
-		"level_context": targeting_setup.level_context,
 		"logger": targeting_setup.logger,
 		"injector": injector,
-		"indicator_manager": indicator_manager
+		"indicator_manager": indicator_manager,
+		"collision_mapper": indicator_manager.get_collision_mapper(),
+		"manipulation_parent": indicator_manager.get_parent()
 	}
+
+	# Final validation of complete environment (flexible to allow new keys)
+	var required_keys := [
+		"container",
+		"targeting_state",
+		"building_state",
+		"positioner",
+		"tile_map",
+		"objects_parent",
+		"logger",
+		"injector",
+		"indicator_manager",
+		"collision_mapper",
+		"manipulation_parent"
+	]
+	for k: String in required_keys:
+		assert(env_dict.has(k), "Environment missing '%s' key" % k)
+		assert(env_dict.get(k) != null, "Environment key '%s' cannot be null" % k)
+
+	# Key sanity checks
+	assert(env_dict.container != null, "Environment container cannot be null")
+	assert(env_dict.indicator_manager != null, "Environment indicator_manager cannot be null")
+	assert(env_dict.injector != null, "Environment injector cannot be null")
+	
+	return env_dict
 
 #endregion
 #region Building Systems
 
 ## Creates a BuildingSystem using the static factory method
 static func create_building_system(test: GdUnitTestSuite, container: GBCompositionContainer = null) -> BuildingSystem:
-	var _container = _resolve_container(container)
-	var system = _create_system_with_injection(test, BuildingSystem, _container, "TestBuildingSystem")
+	var _container: GBCompositionContainer = _resolve_container(container)
+	var system: BuildingSystem = _create_system_with_injection(test, BuildingSystem, _container, "TestBuildingSystem")
 	return system
 
 ## Creates a ManipulationSystem using the static factory method
@@ -133,92 +281,168 @@ static func create_test_building_system(test: GdUnitTestSuite) -> BuildingSystem
 #endregion
 #region Collision Objects
 
-static func create_collision_object_test_setups(col_objects: Array) -> Dictionary[CollisionObject2D, IndicatorCollisionTestSetup]:
+static func create_collision_object_test_setups(col_objects: Array[Node2D]) -> Dictionary[CollisionObject2D, IndicatorCollisionTestSetup]:
 	var setups: Dictionary[CollisionObject2D, IndicatorCollisionTestSetup] = {}
-	for obj in col_objects:
+	for obj: Node2D in col_objects:
 		if obj is CollisionObject2D:
-			setups[obj] = IndicatorCollisionTestSetup.new(obj, Vector2.ZERO)
+			var collision_obj: CollisionObject2D = obj
+			setups[collision_obj] = IndicatorCollisionTestSetup.new(collision_obj, Vector2.ZERO)
 	return setups
 
 static func create_collision_test_setup(test: GdUnitTestSuite, collision_object: CollisionObject2D = null) -> IndicatorCollisionTestSetup:
 	return create_test_indicator_collision_setup(test, collision_object)
 	
 ## Create test building with specified collision polygon
+## Creates a StaticBody2D with properly validated CollisionPolygon2D hierarchy
 static func create_static_body_with_polygon(test : GdUnitTestSuite, polygon : PackedVector2Array) -> StaticBody2D:
-	var building = test.auto_free(StaticBody2D.new())
+	var building: StaticBody2D = test.auto_free(StaticBody2D.new())
 	building.collision_layer = 2560  # Match demo building collision layer
 	building.collision_mask = 1536   # Match demo building collision mask
 	
-	var collision_shape = test.auto_free(CollisionPolygon2D.new())
+	var collision_shape: CollisionPolygon2D = test.auto_free(CollisionPolygon2D.new())
 	collision_shape.polygon = polygon
 	building.add_child(collision_shape)
+	
+	# Validate the collision hierarchy
+	_validate_collision_parent(collision_shape, "create_static_body_with_polygon")
 
 	return building
 
 # DEPRECATED basic helpers (use GodotTestFactory.* instead) ------------------
-static func create_test_collision_polygon(test: GdUnitTestSuite) -> CollisionPolygon2D:
-	return GodotTestFactory.create_collision_polygon(test)
+## Creates a CollisionPolygon2D with triangle shape and optional parent validation
+## @param test: Test suite for auto_free management
+## @param parent: Optional CollisionObject2D parent for proper collision hierarchy
+static func create_test_collision_polygon(test: GdUnitTestSuite, parent: CollisionObject2D = null) -> CollisionPolygon2D:
+	var polygon: CollisionPolygon2D = test.auto_free(CollisionPolygon2D.new())
+	
+	if parent != null:
+		_ensure_collision_parent(polygon, parent, test, "create_test_collision_polygon")
+	else:
+		# Validate existing parent if any
+		if polygon.get_parent() != null:
+			_validate_collision_parent(polygon, "create_test_collision_polygon")
+	
+	return polygon
 
 static func create_test_object_with_circle_shape(test: GdUnitTestSuite) -> Node2D:
-	return GodotTestFactory.create_object_with_circle_shape(test)
+	var obj := StaticBody2D.new()
+	var shape := CollisionShape2D.new()
+	var circle := CircleShape2D.new()
+	circle.radius = 16.0
+	shape.shape = circle
+	obj.add_child(shape)
+	return test.auto_free(obj)
 
 static func create_test_static_body_with_rect_shape(test: GdUnitTestSuite) -> StaticBody2D:
-	return GodotTestFactory.create_static_body_with_rect_shape(test)
+	assert(test != null, "Test suite cannot be null")
+	
+	var body: StaticBody2D = test.auto_free(StaticBody2D.new())
+	var shape := CollisionShape2D.new()
+	var rect := RectangleShape2D.new()
+	rect.size = Vector2(32, 32)
+	shape.shape = rect
+	body.add_child(shape)
+	assert(body != null, "Failed to create StaticBody2D with rect shape")
+	assert(body is StaticBody2D, "Expected StaticBody2D, got: " + str(type_string(typeof(body))))
+	assert(body.get_children().size() > 0, "StaticBody2D should have collision shape children")
+	
+	return body
 
 static func create_test_parent_with_body_and_polygon(test: GdUnitTestSuite) -> Node2D:
-	return GodotTestFactory.create_parent_with_body_and_polygon(test)
+	var parent = test.auto_free(Node2D.new())
+	var body = test.auto_free(StaticBody2D.new())
+	var shape = CollisionShape2D.new()
+	var polygon = CollisionPolygon2D.new()
+	var points = PackedVector2Array([
+		Vector2(-16, -16), Vector2(16, -16), Vector2(16, 16), Vector2(-16, 16)
+	])
+	polygon.polygon = points
+	shape.shape = polygon
+	body.add_child(shape)
+	parent.add_child(body)
+	return parent
 
 #endregion
 #region Indicators
 
 static func create_test_indicator_collision_setup(test: GdUnitTestSuite, collision_object: CollisionObject2D = null) -> IndicatorCollisionTestSetup:
+	assert(test != null, "Test suite cannot be null")
+	
 	var obj := collision_object if collision_object != null else create_test_static_body_with_rect_shape(test)
+	assert(obj != null, "Failed to create collision object for test setup")
+	assert(obj is CollisionObject2D, "Object must be a CollisionObject2D, got: " + str(type_string(typeof(obj))))
+	
 	var shape_stretch := Vector2(16, 16)
-	return IndicatorCollisionTestSetup.new(obj, shape_stretch)
+	var setup: IndicatorCollisionTestSetup = IndicatorCollisionTestSetup.new(obj, shape_stretch)
+	assert(setup != null, "Failed to create IndicatorCollisionTestSetup")
+	
+	return setup
 
 static func create_test_indicator_manager(test: GdUnitTestSuite, param = null) -> IndicatorManager:
+	assert(test != null, "test parameter cannot be null")
+	
 	var _container: GBCompositionContainer
 
 	# Handle different parameter types for backward compatibility
 	if param == null:
 		_container = TEST_CONTAINER.duplicate(true)
+		assert(_container != null, "Failed to duplicate TEST_CONTAINER")
 		_ensure_container_has_templates(_container, test)
 	elif param is GBCompositionContainer:
 		_container = param
+		assert(_container != null, "GBCompositionContainer parameter cannot be null")
 		_ensure_container_has_templates(_container, test)
 	elif param is GridTargetingState:
 		# Legacy compatibility: create container with targeting state
 		_container = TEST_CONTAINER.duplicate(true)
+		assert(_container != null, "Failed to duplicate TEST_CONTAINER for GridTargetingState")
 		_ensure_container_has_templates(_container, test)
 		# Ensure states are initialized before assigning targeting state
 		var states = _container.get_states()
+		assert(states != null, "container.get_states() returned null")
 		states.targeting = param
+		assert(states.targeting == param, "Failed to assign targeting state")
 	else:
 		push_error("Invalid parameter type for create_test_indicator_manager. Expected GBCompositionContainer or GridTargetingState")
 		_container = TEST_CONTAINER.duplicate(true)
+		assert(_container != null, "Failed to duplicate TEST_CONTAINER as fallback")
 		_ensure_container_has_templates(_container, test)
 
 	# Create positioner and tile map if needed
 	var positioner = _create_standard_positioner(test)
+	assert(positioner != null, "_create_standard_positioner returned null")
+	
 	var tile_map = _create_standard_tile_map(test)
+	assert(tile_map != null, "_create_standard_tile_map returned null")
 
 	# For GridTargetingState parameter, preserve the original positioner if it exists
 	if param is GridTargetingState and param.positioner != null:
 		positioner = param.positioner
+		assert(positioner != null, "GridTargetingState.positioner cannot be null when assigned")
 
 	# Set up manipulation parent
 	var manipulation_parent = _setup_manipulation_parent(test, _container, positioner)
+	assert(manipulation_parent != null, "_setup_manipulation_parent returned null")
 
 	# Set up targeting state
-	_setup_basic_targeting_state(_container.get_states().targeting, positioner, tile_map)
+	var targeting_state = _container.get_states().targeting
+	assert(targeting_state != null, "container targeting state is null")
+	_setup_basic_targeting_state(targeting_state, positioner, tile_map)
 
 	# Create injector for dependency resolution
-	var _injector = _create_injector_for_container(test, _container)
+	var _injector: GBInjectorSystem = GBInjectorSystem.create_with_injection(test, _container)
+	assert(_injector != null, "_create_injector_for_container returned null")
 
 	# Create indicator manager using injection pattern
 	var manager = IndicatorManager.create_with_injection(_container)
+	assert(manager != null, "IndicatorManager.create_with_injection returned null")
+	
 	manager.name = "TestIndicatorManager"
+	assert(manager.name == "TestIndicatorManager", "Failed to set manager name")
+	
 	manipulation_parent.add_child(manager)
+	assert(manager.get_parent() == manipulation_parent, "Failed to add manager to manipulation_parent")
+	
 	return manager
 
 ## Creates a test IndicatorManager for containers loaded from filesystem (like .tres files)
@@ -270,7 +494,7 @@ static func configure_collision_mapper_for_test_object(test: GdUnitTestSuite, ma
 	# Determine parent for testing indicator
 	var p := parent if parent != null else test
 	# Build owners mapping
-	var owner_shapes : Dictionary[Node2D, Array] = GBGeometryUtils.get_all_collision_shapes_by_owner(test_object)
+	var owner_shapes : Dictionary = GBGeometryUtils.get_all_collision_shapes_by_owner(test_object)
 	# Ensure a testing indicator exists
 	var testing_indicator := manager.get_or_create_testing_indicator(p)
 	# Build setups
@@ -311,19 +535,35 @@ static func create_test_indicator_rect(test: GdUnitTestSuite, tile_size: int = 1
 ## Creates a fully configured composition container for testing purposes.
 ## It sets up a logger, debug settings, and a config, then registers them.
 static func create_test_composition_container(test: GdUnitTestSuite) -> GBCompositionContainer:
+	assert(test != null, "test parameter cannot be null")
+	
 	var container := GBCompositionContainer.new()
+	assert(container != null, "Failed to create GBCompositionContainer instance")
+	
 	var debug_settings := create_test_debug_settings()
+	assert(debug_settings != null, "create_test_debug_settings returned null")
+	
 	var config := GBConfig.new()
+	assert(config != null, "Failed to create GBConfig instance")
+	
 	var templates := GBTemplates.new()
+	assert(templates != null, "Failed to create GBTemplates instance")
 
 	# Configure templates with default rule check indicator
 	templates.rule_check_indicator = preload("res://addons/grid_building/placement/rule_check_indicator/rule_check_indicator.tscn")
+	assert(templates.rule_check_indicator != null, "Failed to load rule_check_indicator template")
 
 	container.config = config
+	assert(container.config == config, "Failed to assign config to container")
+	
 	config.settings.debug = debug_settings
+	assert(config.settings.debug == debug_settings, "Failed to assign debug settings to config")
+	
 	config.templates = templates
+	assert(config.templates == templates, "Failed to assign templates to config")
 
 	var logger := container.get_logger()
+	assert(logger != null, "container.get_logger() returned null")
 
 	test.auto_free(container)
 	test.auto_free(debug_settings)
@@ -383,8 +623,8 @@ static func create_test_manipulation_system(test: GdUnitTestSuite) -> Manipulati
 	return system
 
 static func create_test_manipulatable(test: GdUnitTestSuite) -> Manipulatable:
-	# Delegate to GodotTestFactory for base node creation then apply naming
-	var manipulatable := GodotTestFactory.create_manipulatable(test, "FactoryManipulatableRoot")
+	# Create a basic manipulatable component
+	var manipulatable: Manipulatable = test.auto_free(Manipulatable.new())
 	manipulatable.name = "FactoryManipulatable"
 	return manipulatable
 
@@ -392,7 +632,7 @@ static func create_test_manipulatable(test: GdUnitTestSuite) -> Manipulatable:
 #region Node Utilities
 
 static func create_test_node2d(test: GdUnitTestSuite) -> Node2D:
-	return GodotTestFactory.create_node2d(test)
+	return test.auto_free(Node2D.new())
 
 static func create_test_node_locator(search_method: NodeLocator.SEARCH_METHOD = NodeLocator.SEARCH_METHOD.NODE_NAME, search_string: String = "test") -> NodeLocator:
 	return NodeLocator.new(search_method, search_string)
@@ -467,7 +707,7 @@ static func create_minimal_indicator_manager(test: GdUnitTestSuite, parent: Node
 	# Set up minimal dependencies directly
 	var owner_ctx := GBOwnerContext.new(null)
 	var indicator_ctx := IndicatorContext.new()
-	var rules: Array[PlacementRule] = []
+	var rules: Array = []
 	var messages := GBMessages.new()
 	var logger := create_test_logger()
 	
@@ -483,7 +723,7 @@ static func create_minimal_indicator_template(_test: GdUnitTestSuite) -> PackedS
 	var node := RuleCheckIndicator.new()
 	# Set up a valid shape for the ShapeCast2D component
 	var shape := RectangleShape2D.new()
-	shape.size = Vector2(16, 16)
+	shape.size = Vector2(32, 32)
 	node.shape = shape
 	# pack a minimal scene with RuleCheckIndicator root
 	var err := ps.pack(node)
@@ -491,7 +731,7 @@ static func create_minimal_indicator_template(_test: GdUnitTestSuite) -> PackedS
 	assert(err == OK, "Failed to pack RuleCheckIndicator into PackedScene, err=%d" % err)
 	return ps
 
-static func create_placement_validator(_test: GdUnitTestSuite, rules: Array[PlacementRule] = []) -> PlacementValidator:
+static func create_placement_validator(_test: GdUnitTestSuite, rules: Array = []) -> PlacementValidator:
 	var messages := GBMessages.new()
 	var logger := create_test_logger()
 	return PlacementValidator.new(rules, messages, logger)
@@ -509,7 +749,7 @@ static func create_placement_validator(_test: GdUnitTestSuite, rules: Array[Plac
 ## 2. If no parent is provided, it is added to the test suite (maintains previous auto-parent behavior).
 ## 
 ## See docs/systems/parent_node_architecture.md for production architecture guidelines.
-static func create_rule_check_indicator(test: GdUnitTestSuite, parent: Node = null, rules: Array[TileCheckRule] = [], shape_size := Vector2(16,16)) -> RuleCheckIndicator:
+static func create_rule_check_indicator(test: GdUnitTestSuite, rules: Array = [], parent: Node = null, shape_size := Vector2(16,16)) -> RuleCheckIndicator:
 	var indicator := RuleCheckIndicator.new(rules)
 	var test_shape = RectangleShape2D.new()
 	test_shape.size = shape_size
@@ -530,14 +770,14 @@ static func create_rule_with_logger(rule_class: GDScript) -> PlacementRule:
 static func create_test_collisions_check_rule() -> CollisionsCheckRule:
 	return CollisionsCheckRule.new()
 
-static func create_test_rule_check_indicator(test: GdUnitTestSuite, parent: Node = null, rules: Array[TileCheckRule] = []) -> RuleCheckIndicator:
+static func create_test_rule_check_indicator(test: GdUnitTestSuite, rules: Array = [], parent: Node = null) -> RuleCheckIndicator:
 	# Alias helper mirroring create_rule_check_indicator with same parenting logic.
 	var indicator := RuleCheckIndicator.new(rules)
 	indicator.name = "TestRuleCheckIndicator"
 	
 	# Set up a valid shape for the ShapeCast2D component
 	var shape := RectangleShape2D.new()
-	shape.size = Vector2(16, 16)
+	shape.size = Vector2(32, 32)
 	indicator.shape = shape
 	
 	# Set collision mask to match test expectations
@@ -563,14 +803,14 @@ static func create_test_valid_placement_tile_rule(tile_data: Dictionary = {}) ->
 static func create_double_targeting_state(test : GdUnitTestSuite) -> GridTargetingState:
 	var targeting_state := GridTargetingState.new(GBOwnerContext.new())
 	test.auto_free(targeting_state)
-	var positioner := GodotTestFactory.create_node2d(test)
+	var positioner: Node2D = test.auto_free(Node2D.new())
 	# positioner already parented
 	positioner.global_position = Vector2(100, 100)  # Set a default position for calculations
 	targeting_state.positioner = positioner
-	var target_map := GodotTestFactory.create_tile_map_layer(test)
+	var target_map: TileMapLayer = test.auto_free(TileMapLayer.new())
 	targeting_state.target_map = target_map
-	var layer1 := GodotTestFactory.create_empty_tile_map_layer(test)
-	var layer2 := GodotTestFactory.create_empty_tile_map_layer(test)
+	var layer1: TileMapLayer = test.auto_free(TileMapLayer.new())
+	var layer2: TileMapLayer = test.auto_free(TileMapLayer.new())
 	targeting_state.maps = [layer1, layer2]
 	return targeting_state
 
@@ -692,7 +932,7 @@ static func setup_grid_targeting_system_test(test: GdUnitTestSuite, container: G
 	return scene
 
 ## Create a test placeable instance with common setup
-static func create_test_placeable_instance(test : GdUnitTestSuite, p_parent: Node,  placeable : Placeable, instance_name: String = "TestInstance",) -> Node:
+static func create_test_placeable_instance(test : GdUnitTestSuite, p_parent: Node,  placeable : Placeable, _instance_name: String = "TestInstance",) -> Node:
 	var instance = placeable.packed_scene.instantiate()
 	test.auto_free(instance)
 	p_parent.add_child(instance)
@@ -725,11 +965,12 @@ static func create_test_manipulation_data(
 ## Create a test rule check indicator with common setup
 static func create_test_rule_check_indicator_with_shape(
 	test: GdUnitTestSuite,
-	rules: Array[TileCheckRule] = [],
+	rules: Array = [],
 	tile_size: int = 16
 ) -> RuleCheckIndicator:
-	var indicator = create_test_rule_check_indicator(test, test, rules)
-	var rect_shape = GodotTestFactory.create_rectangle_shape(Vector2(tile_size, tile_size))
+	var indicator = create_test_rule_check_indicator(test, rules, null)
+	var rect_shape: RectangleShape2D = RectangleShape2D.new()
+	rect_shape.size = Vector2(tile_size, tile_size)
 	indicator.shape = rect_shape
 	return indicator
 
@@ -747,11 +988,11 @@ static func assert_system_dependencies_have_issues(test: GdUnitTestSuite, system
 #region TileMaps
 
 static func create_tile_map_layer(test: GdUnitTestSuite) -> TileMapLayer:
-	return GodotTestFactory.create_tile_map_layer(test)
+	return test.auto_free(TileMapLayer.new())
 
 static func create_test_tile_map_layer(test: GdUnitTestSuite) -> TileMapLayer:
 	# Backwards compatible wrapper
-	return GodotTestFactory.create_tile_map_layer(test)
+	return test.auto_free(TileMapLayer.new())
 
 #endregion
 
@@ -759,13 +1000,14 @@ static func create_test_tile_map_layer(test: GdUnitTestSuite) -> TileMapLayer:
 
 ## Creates a test polygon object similar to res://demos/top_down/objects/polygon_test_object.tscn
 ## This is a self-contained version that doesn't depend on external demo files
-static func create_polygon_test_object(test: GdUnitTestSuite) -> Node2D:
+## 
+## @param test: The test suite for auto_free management
+## @param parent: Optional parent CollisionObject2D to attach the collision polygon to.
+##                If provided, creates a proper collision hierarchy with the polygon as child of parent.
+##                If null, creates the legacy structure with separate StaticBody2D.
+static func create_polygon_test_object(test: GdUnitTestSuite, parent: CollisionObject2D = null) -> Node2D:
 	var obj := Node2D.new()
 	obj.name = "PolygonTestObject"
-	
-	# Create a direct CollisionPolygon2D child for tests that expect it
-	var collision_polygon := CollisionPolygon2D.new()
-	collision_polygon.name = "CollisionPolygon2D"
 	
 	# Define a concave polygon that matches the demo's behavior
 	var points: PackedVector2Array = [
@@ -777,42 +1019,73 @@ static func create_polygon_test_object(test: GdUnitTestSuite) -> Node2D:
 		Vector2(-32, 32),   # Bottom-left
 		Vector2(-32, -32)   # Close the polygon
 	]
-	collision_polygon.polygon = points
-	obj.add_child(collision_polygon)
 	
-	# Create a StaticBody2D with collision layer 1 (matches bit 0) for collision detection
-	var static_body := StaticBody2D.new()
-	static_body.name = "StaticBody2D"
-	static_body.collision_layer = 1  # Bit 0 set
-	static_body.collision_mask = 1
-	
-	# Create a collision polygon for the static body
-	var body_collision_polygon := CollisionPolygon2D.new()
-	body_collision_polygon.name = "BodyCollisionPolygon2D"
-	body_collision_polygon.polygon = points  # Same shape
-	
-	static_body.add_child(body_collision_polygon)
-	obj.add_child(static_body)
-	
-	# Set owner properties AFTER all nodes are added to the tree
-	collision_polygon.owner = obj
-	static_body.owner = obj
-	body_collision_polygon.owner = obj
-	
+	if parent != null:
+		# Assert that parent is a valid collision object
+		assert(parent is CollisionObject2D or parent is Area2D, 
+			"Parent must be a CollisionObject2D (StaticBody2D, RigidBody2D, CharacterBody2D) or Area2D for collision detection to work properly")
+		
+		# Create proper collision hierarchy: CollisionObject2D -> CollisionPolygon2D
+		var collision_polygon := CollisionPolygon2D.new()
+		collision_polygon.name = "CollisionPolygon2D"
+		collision_polygon.polygon = points
+		parent.add_child(collision_polygon)
+		obj.add_child(parent)
+		
+		# Set owner properties
+		collision_polygon.owner = obj
+		parent.owner = obj
+	else:
+		# Legacy structure: Create both direct CollisionPolygon2D and StaticBody2D with collision
+		# NOTE: The direct CollisionPolygon2D is invalid for physics but kept for backward compatibility
+		var collision_polygon := CollisionPolygon2D.new()
+		collision_polygon.name = "CollisionPolygon2D"
+		collision_polygon.polygon = points
+		obj.add_child(collision_polygon)
+		
+		# Create a StaticBody2D with collision layer 1 (matches bit 0) for collision detection
+		var static_body := StaticBody2D.new()
+		static_body.name = "StaticBody2D"
+		static_body.collision_layer = 1  # Bit 0 set
+		static_body.collision_mask = 1
+		
+		# Create a collision polygon for the static body
+		var body_collision_polygon := CollisionPolygon2D.new()
+		body_collision_polygon.name = "BodyCollisionPolygon2D"
+		body_collision_polygon.polygon = points  # Same shape
+		
+		static_body.add_child(body_collision_polygon)
+		obj.add_child(static_body)
+		
+		# Set owner properties
+		
 	test.auto_free(obj)
 	return obj
 
 ## Creates a test placeable configuration similar to demo placeables
 ## This is a self-contained version that doesn't depend on external demo files
 static func create_polygon_test_placeable(test: GdUnitTestSuite) -> Placeable:
+	assert(test != null, "test parameter cannot be null")
+	
 	var placeable := Placeable.new()
+	assert(placeable != null, "Failed to create Placeable instance")
+	
 	placeable.resource_name = "TestPolygonPlaceable"
+	assert(placeable.resource_name == "TestPolygonPlaceable", "Failed to set resource_name")
 	
 	# Create a basic packed scene reference (we'll create the scene dynamically)
 	var scene := PackedScene.new()
+	assert(scene != null, "Failed to create PackedScene instance")
+	
 	var polygon_obj := create_polygon_test_object(test)
-	scene.pack(polygon_obj)
+	assert(polygon_obj != null, "create_polygon_test_object returned null")
+	
+	var pack_result := scene.pack(polygon_obj)
+	assert(pack_result == OK, "Failed to pack polygon object into scene: " + str(pack_result))
+	
 	placeable.packed_scene = scene
+	assert(placeable.packed_scene != null, "Failed to assign packed_scene to placeable")
+	assert(placeable.packed_scene == scene, "Packed scene assignment verification failed")
 	
 	return placeable
 
@@ -836,7 +1109,7 @@ static func create_grid_positioner_2d(test: GdUnitTestSuite, container: GBCompos
 	
 	# Set required shape for ShapeCast2D (matches template configuration)
 	var shape := RectangleShape2D.new()
-	shape.size = Vector2(15.9, 15.9)
+	shape.size = Vector2(32, 32)
 	positioner.shape = shape
 	
 	if container:
@@ -975,9 +1248,9 @@ static func create_complete_building_test_setup(test: GdUnitTestSuite, container
 	var injector = create_test_injector(test, _container)
 	
 	# Create core scene nodes
-	var obj_parent = GodotTestFactory.create_node2d(test)
-	var placer = GodotTestFactory.create_node2d(test)
-	var positioner = GodotTestFactory.create_node2d(test)
+	var obj_parent: Node2D = test.auto_free(Node2D.new())
+	var placer: Node2D = test.auto_free(Node2D.new())
+	var positioner: Node2D = test.auto_free(Node2D.new())
 	
 	# Set up tilemap with proper tileset
 	var map_layer = TileMapLayer.new()
@@ -1035,11 +1308,26 @@ static func create_complete_building_test_setup(test: GdUnitTestSuite, container
 # ================================
 
 ## Creates manipulation system test environment with all required components
+##
+## [b]⚠️  DEPRECATED - Use Scene-Based Environments Instead[/b]
+##
+## This factory method is being deprecated in favor of pre-configured scene environments.
+## **Recommended replacement:**
+## ```gdscript
+## # OLD (deprecated):
+## var env = UnifiedTestFactory.create_manipulation_system_test_environment(self)
+## 
+## # NEW (recommended):
+## var env = UnifiedTestFactory.instance_collision_test_env(self, "uid://cdrtd538vrmun")
+## # Access properties directly: env.indicator_manager, env.building_system, etc.
+## ```
+##
 ## [b]Parameters[/b]:
 ##  • [code]test[/code]: GdUnitTestSuite – test suite for parenting/autofree
 ##  • [code]container[/code]: GBCompositionContainer – base container (defaults to TEST_CONTAINER)
 ## [b]Returns[/b]: Dictionary – complete manipulation system test environment
 static func create_manipulation_system_test_environment(test: GdUnitTestSuite, container: GBCompositionContainer = null) -> Dictionary:
+	push_warning("DEPRECATED: create_manipulation_system_test_environment() is deprecated. Use UnifiedTestFactory.instance_collision_test_env(test, \"uid://cdrtd538vrmun\") instead for better reliability.")
 	var _container = _resolve_container(container)
 	var injector = _create_injector_for_container(test, _container)
 
@@ -1060,7 +1348,7 @@ static func create_manipulation_system_test_environment(test: GdUnitTestSuite, c
 	var targeting_state = states.targeting
 	var tile_map_layer = _create_standard_tile_map(test)
 	targeting_state.target_map = tile_map_layer
-	var maps_array: Array[TileMapLayer] = [tile_map_layer]
+	var maps_array: Array = [tile_map_layer]
 	targeting_state.maps = maps_array
 
 	# IndicatorManager: instantiate and inject dependencies
@@ -1087,11 +1375,26 @@ static func create_manipulation_system_test_environment(test: GdUnitTestSuite, c
 	}
 
 ## Creates building system test environment with all required components
+##
+## [b]⚠️  DEPRECATED - Use Scene-Based Environments Instead[/b]
+##
+## This factory method is being deprecated in favor of pre-configured scene environments.
+## **Recommended replacement:**
+## ```gdscript
+## # OLD (deprecated):
+## var env = UnifiedTestFactory.create_building_system_test_environment(self)
+## 
+## # NEW (recommended):
+## var env = UnifiedTestFactory.instance_building_test_env(self, "uid://c4ujk08n8llv8")
+## # Access properties directly: env.building_system, env.indicator_manager, etc.
+## ```
+##
 ## [b]Parameters[/b]:
 ##  • [code]test[/code]: GdUnitTestSuite – test suite for parenting/autofree
 ##  • [code]container[/code]: GBCompositionContainer – base container (defaults to TEST_CONTAINER)
 ## [b]Returns[/b]: Dictionary – complete building system test environment
 static func create_building_system_test_environment(test: GdUnitTestSuite, container: GBCompositionContainer = null) -> Dictionary:
+	push_warning("DEPRECATED: create_building_system_test_environment() is deprecated. Use UnifiedTestFactory.instance_building_test_env(test, \"uid://c4ujk08n8llv8\") instead for better reliability.")
 	var _container = _resolve_container(container)
 	var injector = _create_injector_for_container(test, _container)
 
@@ -1134,11 +1437,26 @@ static func create_building_system_test_environment(test: GdUnitTestSuite, conta
 	}
 
 ## Creates injection test environment for testing dependency injection
+##
+## [b]⚠️  DEPRECATED - Use Scene-Based Environments Instead[/b]
+##
+## This factory method is being deprecated in favor of pre-configured scene environments.
+## **Recommended replacement:**
+## ```gdscript
+## # OLD (deprecated):
+## var env = UnifiedTestFactory.create_injection_test_environment(self)
+## 
+## # NEW (recommended):
+## var env = UnifiedTestFactory.instance_building_test_env(self, "uid://c4ujk08n8llv8")
+## # Access properties directly: env.building_system, env.indicator_manager, env.injector, etc.
+## ```
+##
 ## [b]Parameters[/b]:
 ##  • [code]test[/code]: GdUnitTestSuite – test suite for parenting/autofree
 ##  • [code]container[/code]: GBCompositionContainer – base container (defaults to TEST_CONTAINER)
 ## [b]Returns[/b]: Dictionary – complete injection test environment
 static func create_injection_test_environment(test: GdUnitTestSuite, container: GBCompositionContainer = null) -> Dictionary:
+	push_warning("DEPRECATED: create_injection_test_environment() is deprecated. Use UnifiedTestFactory.instance_building_test_env(test, \"uid://c4ujk08n8llv8\") instead for better reliability.")
 	var _container = _resolve_container(container)
 
 	# Set up injection system
@@ -1158,6 +1476,23 @@ static func create_injection_test_environment(test: GdUnitTestSuite, container: 
 		"positioner": positioner
 	}
 
+## ✅ **RECOMMENDED** - Instances AllSystemsTestEnvironment scene and validates it
+##
+## This is the **preferred method** for creating comprehensive test environments.
+## The scene-based approach provides 100% passive initialization with no dependency timing issues.
+##
+## **Usage:**
+## ```gdscript
+## func before_test():
+##     test_env = UnifiedTestFactory.instance_all_systems_env(self, "uid://ioucajhfxc8b")
+##     # All systems ready: test_env.building_system, test_env.manipulation_system, etc.
+## ```
+##
+## **Benefits:**
+## - ✅ No dependency injection timing issues (100% passive)
+## - ✅ Built-in runtime validation via `env.get_issues()`  
+## - ✅ Visual scene editor configuration
+## - ✅ Better performance than factory assembly
 static func instance_all_systems_env(test : GdUnitTestSuite, resource_path_or_uid : String) -> AllSystemsTestEnvironment:
 	var env : AllSystemsTestEnvironment = load(resource_path_or_uid).instantiate()
 	test.add_child(env)
@@ -1165,7 +1500,23 @@ static func instance_all_systems_env(test : GdUnitTestSuite, resource_path_or_ui
 	test.assert_array(env.get_issues()).is_empty()
 	return env
 
-## Instances a scene expected to be a BuildingTestEnvironment and validates it
+## ✅ **RECOMMENDED** - Instances BuildingTestEnvironment scene and validates it
+##
+## This is the **preferred method** for building system and dependency injection tests.
+## The scene-based approach provides 100% passive initialization with no dependency timing issues.
+##
+## **Usage:**
+## ```gdscript
+## func before_test():
+##     test_env = UnifiedTestFactory.instance_building_test_env(self, "uid://c4ujk08n8llv8")
+##     # Access properties: test_env.building_system, test_env.indicator_manager, etc.
+## ```
+##
+## **Benefits:**
+## - ✅ No dependency injection timing issues (100% passive)
+## - ✅ Built-in runtime validation via `env.get_issues()`  
+## - ✅ Visual scene editor configuration
+## - ✅ Better performance than factory assembly
 static func instance_building_test_env(test: GdUnitTestSuite, resource_path_or_uid : String) -> BuildingTestEnvironment:
 	var env : BuildingTestEnvironment= load(resource_path_or_uid).instantiate()
 	test.add_child(env)
@@ -1173,12 +1524,53 @@ static func instance_building_test_env(test: GdUnitTestSuite, resource_path_or_u
 	test.assert_array(env.get_issues()).is_empty()
 	return env
 
-## Instances a scene expected to be a CollisionTestEnvironment and validates it
+## ✅ **RECOMMENDED** - Instances CollisionTestEnvironment scene and validates it
+##
+## This is the **preferred method** for collision detection and indicator management tests.
+## The scene-based approach provides 100% passive initialization with no dependency timing issues.
+##
+## **Usage:**
+## ```gdscript
+## func before_test():
+##     test_env = UnifiedTestFactory.instance_collision_test_env(self, "uid://cdrtd538vrmun")
+##     # Access properties: test_env.indicator_manager, test_env.collision_mapper, etc.
+## ```
+##
+## **Benefits:**
+## - ✅ No dependency injection timing issues (100% passive)
+## - ✅ Built-in runtime validation via `env.get_issues()`  
+## - ✅ Visual scene editor configuration
+## - ✅ Better performance than factory assembly
 static func instance_collision_test_env(test : GdUnitTestSuite, resource_path_or_uid : String) -> CollisionTestEnvironment:
 	var env : CollisionTestEnvironment = load(resource_path_or_uid).instantiate()
 	test.add_child(env)
 	test.auto_free(env)
 	test.assert_array(env.get_issues()).is_empty()
+	return env
+
+## ✅ **RECOMMENDED** - Instances IsometricBuildingTestEnvironment scene and validates it
+##
+## This is the **preferred method** for isometric view and complex building scenario tests.
+## The scene-based approach provides 100% passive initialization with no dependency timing issues.
+##
+## **Usage:**
+## ```gdscript
+## func before_test():
+##     test_env = UnifiedTestFactory.instance_isometric_building_test_env(self, "uid://d3yeah2uexha2")
+##     # Access properties: test_env.building_system, test_env.indicator_manager, etc.
+## ```
+##
+## **Benefits:**
+## - ✅ No dependency injection timing issues (100% passive)
+## - ✅ Built-in runtime validation via `env.get_issues()`  
+## - ✅ Visual scene editor configuration
+## - ✅ Better performance than factory assembly
+static func instance_isometric_building_test_env(test: GdUnitTestSuite, resource_path_or_uid : String) -> Node:
+	var env = load(resource_path_or_uid).instantiate()
+	test.add_child(env)
+	test.auto_free(env)
+	if env.has_method("get_issues"):
+		test.assert_array(env.get_issues()).is_empty()
 	return env
 
 # ================================
@@ -1246,7 +1638,7 @@ static func create_full_integration_test_scene(test: GdUnitTestSuite, container:
 
 ## Creates a systems test hierarchy for testing individual systems
 ## Builds upon indicator hierarchy but adds only specific systems as needed
-static func create_systems_test_hierarchy(test: GdUnitTestSuite, systems_needed: Array[String] = [], container: GBCompositionContainer = null) -> Dictionary:
+static func create_systems_test_hierarchy(test: GdUnitTestSuite, systems_needed: Array = [], container: GBCompositionContainer = null) -> Dictionary:
 	var _container = container if container != null else TEST_CONTAINER.duplicate(true)
 	
 	# Start with the indicator hierarchy as base
@@ -1272,14 +1664,20 @@ static func create_systems_test_hierarchy(test: GdUnitTestSuite, systems_needed:
 ## Creates a simplified hierarchy for indicator/collision tests
 ## positioner -> manipulation_parent -> indicator_manager with collision mapping
 static func create_indicator_test_hierarchy(test: GdUnitTestSuite, container: GBCompositionContainer = null) -> Dictionary:
+	assert(test != null, "Test suite cannot be null")
+	
 	var _container = container if container != null else TEST_CONTAINER.duplicate(true)
+	assert(_container != null, "Failed to create or get composition container")
+	
 	var hierarchy = {}
 	
 	# Create injector system first
 	hierarchy.injector = create_test_injector(test, _container)
+	assert(hierarchy.injector != null, "Failed to create test injector")
 	
 	# Create hierarchy
-	hierarchy.positioner = GodotTestFactory.create_node2d(test)
+	hierarchy.positioner = test.auto_free(Node2D.new())
+	assert(hierarchy.positioner != null, "Failed to create positioner node")
 	hierarchy.positioner.name = "TestPositioner"
 	
 	hierarchy.manipulation_parent = Node2D.new()
@@ -1288,36 +1686,48 @@ static func create_indicator_test_hierarchy(test: GdUnitTestSuite, container: GB
 	hierarchy.positioner.add_child(hierarchy.manipulation_parent)
 	
 	# Create and configure tile map
-	hierarchy.tile_map = GodotTestFactory.create_tile_map_layer(test, 32)
-	hierarchy.tile_map.tile_set.tile_size = Vector2i(16, 16)
+	hierarchy.tile_map = test.auto_free(TileMapLayer.new())
+	assert(hierarchy.tile_map != null, "Failed to create tile map layer")
+	hierarchy.tile_map.tile_set.tile_size = Vector2i(32, 32)
 	
 	# Configure states
 	var targeting_state = _container.get_states().targeting
+	assert(targeting_state != null, "Failed to get targeting state from container")
 	targeting_state.positioner = hierarchy.positioner
-	var map_objects: Array[TileMapLayer] = [hierarchy.tile_map]
+	var map_objects: Array = [hierarchy.tile_map]
 	targeting_state.set_map_objects(hierarchy.tile_map, map_objects)
 	
 	# Create default target node for tests
-	hierarchy.default_target = GodotTestFactory.create_node2d(test)
+	hierarchy.default_target = test.auto_free(Node2D.new())
 	hierarchy.default_target.name = "DefaultTestTarget"
-	hierarchy.default_target.position = Vector2(64, 64)  # Default test position
+	hierarchy.default_target.position = Vector2(50, 50)  # Default test position
 	targeting_state.target = hierarchy.default_target
 	
 	var manipulation_state = _container.get_states().manipulation
+	assert(manipulation_state != null, "Failed to get manipulation state from container")
 	manipulation_state.parent = hierarchy.manipulation_parent
 	
 	# Create indicator manager with collision mapping
 	hierarchy.indicator_manager = IndicatorManager.create_with_injection(_container, hierarchy.manipulation_parent)
+	assert(hierarchy.indicator_manager != null, "Failed to create indicator manager")
 	test.auto_free(hierarchy.indicator_manager)
 	
 	# Create collision mapper
 	hierarchy.collision_mapper = CollisionMapper.new(targeting_state, _container.get_logger())
+	assert(hierarchy.collision_mapper != null, "Failed to create collision mapper")
 	test.auto_free(hierarchy.collision_mapper)
 	
 	hierarchy.container = _container
 	hierarchy.logger = _container.get_logger()
 	hierarchy.targeting_state = targeting_state
 	hierarchy.manipulation_state = manipulation_state
+	
+	# Final validation of the complete hierarchy
+	assert(hierarchy.has("positioner"), "Hierarchy missing positioner")
+	assert(hierarchy.has("manipulation_parent"), "Hierarchy missing manipulation_parent")
+	assert(hierarchy.has("indicator_manager"), "Hierarchy missing indicator_manager")
+	assert(hierarchy.has("collision_mapper"), "Hierarchy missing collision_mapper")
+	assert(hierarchy.has("tile_map"), "Hierarchy missing tile_map")
 	
 	return hierarchy
 
@@ -1334,6 +1744,40 @@ static func create_collision_mapper_setup(test: GdUnitTestSuite, container: GBCo
 		"targeting_state": targeting_state,
 		"collision_mapper": CollisionMapper.new(targeting_state, _container.get_logger()),
 		"tile_size": Vector2(16, 16)
+	}
+
+## Creates parameters for rule validation tests
+## Returns a dictionary with targeting state and related objects needed for rule setup and validation
+static func create_rule_validation_parameters(test: GdUnitTestSuite, container: GBCompositionContainer = null) -> Dictionary[String, Object]:
+	assert(test != null, "test parameter cannot be null")
+	
+	var _container = container if container != null else TEST_CONTAINER.duplicate(true)
+	assert(_container != null, "Failed to resolve container for rule validation")
+	
+	var targeting_state = create_targeting_state(test)
+	assert(targeting_state != null, "create_targeting_state returned null")
+	
+	var tile_map = create_test_tile_map_layer(test)
+	assert(tile_map != null, "create_test_tile_map_layer returned null")
+	
+	# Set up targeting state with tile map
+	targeting_state.target_map = tile_map
+	assert(targeting_state.target_map == tile_map, "Failed to assign target_map to targeting_state")
+	
+	# Create positioner if needed
+	if targeting_state.positioner == null:
+		targeting_state.positioner = _create_standard_positioner(test)
+		assert(targeting_state.positioner != null, "Failed to create standard positioner")
+	
+	var logger = _container.get_logger()
+	assert(logger != null, "container.get_logger() returned null")
+	
+	return {
+		"targeting_state": targeting_state,
+		"container": _container,
+		"logger": logger,
+		"tile_map": tile_map,
+		"positioner": targeting_state.positioner
 	}
 
 ## Creates a basic test setup with injector and common objects
@@ -1420,7 +1864,7 @@ static func assert_indicator_count(report: IndicatorSetupReport, expected_count:
 	assert(report.indicators.size() == expected_count, message)
 
 ## Standardized assertion for origin tile exclusion
-static func assert_no_origin_indicator(indicators: Array, map: TileMapLayer, context: String = "") -> void:
+static func assert_no_origin_indicator(indicators: Array[Node2D], map: TileMapLayer, context: String = "") -> void:
 	var origin_indicators = []
 	for indicator in indicators:
 		var tile_pos = map.local_to_map(map.to_local(indicator.global_position))
@@ -1432,7 +1876,7 @@ static func assert_no_origin_indicator(indicators: Array, map: TileMapLayer, con
 	assert(origin_indicators.is_empty(), message)
 
 ## Standardized assertion for parent architecture validation
-static func assert_parent_architecture(indicator_manager: IndicatorManager, manipulation_parent: Node2D, indicators: Array, context: String = "") -> void:
+static func assert_parent_architecture(indicator_manager: IndicatorManager, manipulation_parent: Node2D, indicators: Array[Node2D], context: String = "") -> void:
 	# IndicatorManager should be child of manipulation parent
 	var message = "IndicatorManager should be child of ManipulationParent"
 	if context: message += " (%s)" % context
@@ -1500,12 +1944,12 @@ static func create_targeting_state_with_runtime_issues(
 	setup.targeting_state = targeting_state
 	
 	# Create positioner
-	setup.positioner = GodotTestFactory.create_node2d(test)
+	setup.positioner = test.auto_free(Node2D.new())
 	setup.positioner.name = "TestPositioner"
 	
 	# Create tile map (but don't assign it based on issue type)
-	var tile_map = GodotTestFactory.create_tile_map_layer(test, 32)
-	tile_map.tile_set.tile_size = Vector2i(16, 16)
+	var tile_map = test.auto_free(TileMapLayer.new())
+	tile_map.tile_set.tile_size = Vector2i(32, 32)
 	setup.tile_map = tile_map
 	
 	# Configure targeting state based on the type of runtime issue we want to test
@@ -1533,9 +1977,9 @@ static func create_targeting_state_with_runtime_issues(
 			push_error("Unknown runtime issue type: " + runtime_issue_type)
 	
 	# Create default target node
-	setup.default_target = GodotTestFactory.create_node2d(test)
+	setup.default_target = test.auto_free(Node2D.new())
 	setup.default_target.name = "DefaultTestTarget"
-	setup.default_target.position = Vector2(64, 64)
+	setup.default_target.position = Vector2(50, 50)
 	targeting_state.target = setup.default_target
 	
 	# Ensure indicator template is configured
@@ -1571,7 +2015,7 @@ static func prepare_targeting_state_ready(
 	var setup = {}
 	
 	# Create core scene nodes
-	setup.positioner = GodotTestFactory.create_node2d(test)
+	setup.positioner = test.auto_free(Node2D.new())
 	setup.positioner.name = "TestPositioner"
 	
 	setup.objects_parent = Node2D.new()
@@ -1579,7 +2023,7 @@ static func prepare_targeting_state_ready(
 	test.auto_free(setup.objects_parent)
 	
 	# Create tile map layer for targeting
-	setup.tile_map = GodotTestFactory.create_tile_map_layer(test, 32)
+	setup.tile_map = test.auto_free(TileMapLayer.new())
 	setup.tile_map.tile_set.tile_size = Vector2i(16, 16)
 	
 	# Apply level context to container states
@@ -1592,9 +2036,9 @@ static func prepare_targeting_state_ready(
 	targeting_state.maps = [setup.tile_map]
 	
 	# Create default target for testing 
-	setup.default_target = GodotTestFactory.create_node2d(test)
+	setup.default_target = test.auto_free(Node2D.new())
 	setup.default_target.name = "DefaultTestTarget"
-	setup.default_target.position = Vector2(64, 64)
+	setup.default_target.position = Vector2(50, 50)
 	targeting_state.target = setup.default_target
 	
 	# Store references for test access
@@ -1605,189 +2049,3 @@ static func prepare_targeting_state_ready(
 	var runtime_issues : Array[String] = targeting_state.get_runtime_issues()
 	test.assert_array(runtime_issues).append_failure_message("Issues Found: %s" % str(runtime_issues)).is_empty()
 	return setup
-
-# ================================
-# 🔧 PRIVATE HELPER METHODS - Internal DRY Implementation
-# ================================
-# These methods are internal implementation details that eliminate code duplication.
-# They are not part of the public API and may change without notice.
-
-## Resolves container parameter with consistent null-handling logic.
-##
-## This method centralizes the common pattern of providing a default container
-## when none is specified, ensuring all factory methods behave consistently.
-##
-## @param container: Optional container to use, null for default
-## @return: Valid GBCompositionContainer (either provided or default duplicate)
-static func _resolve_container(container: GBCompositionContainer) -> GBCompositionContainer:
-	return container if container != null else TEST_CONTAINER.duplicate(true)
-
-## Creates and configures a test injector system for the given container.
-##
-## Ensures consistent injector setup across all factory methods.
-##
-## @param test: Test suite for auto-free management
-## @param container: Container to inject dependencies for
-## @return: Configured GBInjectorSystem ready for use
-static func _create_injector_for_container(test: GdUnitTestSuite, container: GBCompositionContainer) -> GBInjectorSystem:
-	return create_test_injector(test, container)
-
-## Creates a standardized tile map layer with common test configuration.
-##
-## All tile maps created by this factory use consistent settings:
-## - 16x16 tile size (configurable)
-## - Basic TileSet with proper configuration
-## - Auto-free management
-##
-## @param test: Test suite for auto-free management
-## @param tile_size: Size of tiles in pixels (default: 16)
-## @return: Configured TileMapLayer ready for testing
-static func _create_standard_tile_map(test: GdUnitTestSuite, tile_size: int = 16) -> TileMapLayer:
-	var tile_map = GodotTestFactory.create_tile_map_layer(test)
-	var tile_set := TileSet.new()
-	var atlas := TileSetAtlasSource.new()
-	var img := Image.create(16, 16, false, Image.FORMAT_RGBA8)
-	img.fill(Color.WHITE)
-	var tex := ImageTexture.create_from_image(img)
-	atlas.texture = tex
-	atlas.create_tile(Vector2i(0,0))
-	tile_set.add_source(atlas)
-	tile_set.tile_size = Vector2i(tile_size, tile_size)
-	tile_map.tile_set = tile_set
-	return tile_map
-
-## Creates a standardized positioner node with consistent naming.
-##
-## Positioner nodes are used throughout the grid building system for
-## spatial positioning and coordinate transformations.
-##
-## @param test: Test suite for auto-free management
-## @param name: Name for the positioner node (default: "TestPositioner")
-## @return: Configured Node2D positioner
-static func _create_standard_positioner(test: GdUnitTestSuite, name: String = "TestPositioner") -> Node2D:
-	var positioner = GodotTestFactory.create_node2d(test)
-	positioner.name = name
-	return positioner
-
-## Configures a GridTargetingState with standard test settings.
-##
-## This method ensures consistent targeting state setup across all
-## factory methods that need targeting functionality.
-##
-## @param targeting_state: The state to configure
-## @param positioner: Positioner node for coordinate transformations
-## @param tile_map: Tile map for spatial queries
-static func _setup_basic_targeting_state(targeting_state: GridTargetingState, positioner: Node2D, tile_map: TileMapLayer) -> void:
-	# Only set positioner if not already set (preserves existing positioner from GridTargetingState parameter)
-	if targeting_state.positioner == null:
-		targeting_state.positioner = positioner
-	targeting_state.target_map = tile_map
-	targeting_state.set_map_objects(tile_map, [tile_map])
-
-## Creates and configures a GBOwner with standard test setup.
-##
-## GBOwner represents ownership context in the grid building system.
-## This method ensures consistent owner setup with proper dependency resolution.
-##
-## @param test: Test suite for scene management
-## @param owner_node: Node that will own the grid building objects
-## @param container: Container for dependency resolution
-## @return: Configured GBOwner ready for use
-static func _create_standard_gb_owner(test: GdUnitTestSuite, owner_node: Node2D, container: GBCompositionContainer) -> GBOwner:
-	var gb_owner = GBOwner.new(owner_node)
-	test.add_child(gb_owner)
-	gb_owner.resolve_gb_dependencies(container)
-	return gb_owner
-
-## Creates and configures a manipulation parent with standard setup.
-##
-## Manipulation parents serve as containers for manipulatable objects
-## during drag, rotate, and other manipulation operations.
-##
-## @param test: Test suite for scene management
-## @param container: Container to register the parent with
-## @param positioner: Positioner node to parent under
-## @return: Configured manipulation parent node
-static func _setup_manipulation_parent(test: GdUnitTestSuite, container: GBCompositionContainer, positioner: Node2D) -> Node2D:
-	var manipulation_parent = Node2D.new()
-	manipulation_parent.name = "TestManipulationParent"
-	test.auto_free(manipulation_parent)
-	positioner.add_child(manipulation_parent)
-	container.get_states().manipulation.parent = manipulation_parent
-	return manipulation_parent
-
-## Creates and configures a placed parent with standard setup.
-##
-## Placed parents serve as containers for successfully placed building objects.
-##
-## @param test: Test suite for scene management
-## @param container: Container to register the parent with
-## @return: Configured placed parent node
-static func _setup_placed_parent(test: GdUnitTestSuite, container: GBCompositionContainer) -> Node2D:
-	var placed_parent = GodotTestFactory.create_node2d(test)
-	container.get_states().building.placed_parent = placed_parent
-	return placed_parent
-
-## Sets up owner context with standard configuration.
-##
-## @param test: Test suite for scene management
-## @param container: Container to configure
-## @param owner_node: Node to use as owner
-## @return: Configured GBOwnerContext
-static func _setup_owner_context(test: GdUnitTestSuite, container: GBCompositionContainer, owner_node: Node2D) -> GBOwnerContext:
-	var owner_context = container.get_contexts().owner
-	var gb_owner = _create_standard_gb_owner(test, owner_node, container)
-	owner_context.set_owner(gb_owner)
-	return owner_context
-
-## Creates a system with injection pattern and standard configuration.
-##
-## This method centralizes the common pattern of creating systems with
-## dependency injection, auto-free management, and naming.
-##
-## @param test: Test suite for scene management
-## @param system_class: The system class to instantiate (must have create_with_injection)
-## @param container: Container for dependency injection
-## @param system_name: Name to assign to the system
-## @return: Configured system instance
-static func _create_system_with_injection(test: GdUnitTestSuite, system_class: GDScript, container: GBCompositionContainer, system_name: String) -> Node:
-	var system = system_class.new()
-	system.resolve_gb_dependencies(container)
-	test.auto_free(system)
-	test.add_child(system)
-	system.name = system_name
-	return system
-
-## Safely merges two dictionaries with null checking.
-##
-## This method provides safe dictionary merging without the risk of
-## null reference errors that can occur with Godot's built-in merge().
-##
-## @param base: Base dictionary to merge into
-## @param additional: Additional dictionary to merge from (can be null)
-## @return: New dictionary with merged contents
-static func _merge_dictionaries(base: Dictionary, additional: Dictionary) -> Dictionary:
-	var result = base.duplicate()
-	if additional != null:
-		for key in additional.keys():
-			result[key] = additional[key]
-	return result
-
-## Ensures a container has properly configured templates for testing.
-##
-## This method checks if the container's config has templates set up,
-## and creates/configures them if missing. This is essential for indicator
-## manager creation to work properly in tests.
-##
-## @param container: The container to ensure has templates
-## @param test: Test suite for auto-free management
-static func _ensure_container_has_templates(container: GBCompositionContainer, test: GdUnitTestSuite) -> void:
-	if container.config == null:
-		container.config = GBConfig.new()
-		test.auto_free(container.config)
-
-	if container.config.templates == null:
-		var templates := GBTemplates.new()
-		templates.rule_check_indicator = preload("res://addons/grid_building/placement/rule_check_indicator/rule_check_indicator.tscn")
-		container.config.templates = templates
-		test.auto_free(templates)

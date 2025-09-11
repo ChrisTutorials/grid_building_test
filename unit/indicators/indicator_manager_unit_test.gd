@@ -34,7 +34,7 @@ func test_indicator_manager_try_setup_generates_indicators() -> void:
 	preview.collision_layer = 513  # bits 0+9 from test
 	var shape := CollisionShape2D.new()
 	var rect := RectangleShape2D.new()
-	rect.size = Vector2(16, 16)
+	rect.size = Vector2size
 	shape.shape = rect
 	preview.add_child(shape)
 	gts.target = preview
@@ -52,10 +52,10 @@ func test_indicator_manager_try_setup_generates_indicators() -> void:
 	
 	if report.indicators_report != null:
 		var report_issues := report.indicators_report.issues
-		assert_that(report_issues is Array).append_failure_message("Indicators report should have issues array").is_true()
+		assert_that(report_issues is Array[Node2D]).append_failure_message("Indicators report should have issues array").is_true()
 		
 		var report_indicators := report.indicators_report.indicators
-		assert_that(report_indicators is Array).append_failure_message("Indicators report should have indicators array").is_true()
+		assert_that(report_indicators is Array[Node2D]).append_failure_message("Indicators report should have indicators array").is_true()
 	
 	var indicators := manager.get_indicators()
 	var all_issues := report.get_all_issues()

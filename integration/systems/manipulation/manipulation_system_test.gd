@@ -18,7 +18,7 @@ var _container: GBCompositionContainer
 
 
 func before_test():
-	var test_env = UnifiedTestFactory.create_manipulation_system_test_environment(self)
+	test_env: Node = UnifiedTestFactory.create_manipulation_system_test_environment(self)
 	_container = test_env.container
 	manipulator = test_env.manipulator
 	owner_context = test_env.owner_context
@@ -89,7 +89,7 @@ func test_move_already_moving(
 func test_cancel() -> void:
 	# Start a move via the public API; this sets up _states.manipulation.data with
 	# a source and generated target copy.
-	var source = create_manipulatable_object(TestSceneLibrary.manipulatable_settings_all_allowed)
+	source: Node = create_manipulatable_object(TestSceneLibrary.manipulatable_settings_all_allowed)
 	var move_result = system.try_move(source.root)
 	var valid_move: bool = move_result.status == GBEnums.Status.STARTED
 	assert_bool(valid_move).is_true()
@@ -169,7 +169,7 @@ func test_rotate_node2d_target_rotates_correctly(
 	var target: Node2D = p_manipulatable.root
 	# target is already added by the factory; avoid re-adding to prevent duplicate parent error
 
-	var rotation_increment = 45.0
+	rotation_increment: Node = 45.0
 	var expected_rotation_degrees = 0.0
 	var precision = 0.0001
 
@@ -234,7 +234,7 @@ func test_try_placement(
 	assert_object(move_data).is_not_null()
 	assert_object(move_data.target).is_not_null()
 
-	var test_location = Vector2(1000, 1000)
+	var test_location = Vector2test_location
 	move_data.target.root.global_position = test_location
 	var placement_results: ValidationResults = await system.try_placement(move_data)
 	assert_bool(placement_results.is_successful()).is_equal(p_expected)

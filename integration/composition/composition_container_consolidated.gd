@@ -17,7 +17,7 @@ func test_component_registration():
 	assert_object(injector.composition_container).is_not_null()
 	
 	# Test that the container has the expected states
-	var states = injector.composition_container.get_states()
+	states: Node = injector.composition_container.get_states()
 	assert_object(states).is_not_null()
 	assert_object(states.targeting).is_not_null()
 	assert_object(states.building).is_not_null()

@@ -32,7 +32,7 @@ func before_test():
 	add_child(positioner)
 	
 	# Set up targeting state
-	var targeting_state = _container.get_states().targeting
+	targeting_state: Node = _container.get_states().targeting
 	targeting_state.set_map_objects(tile_map_layer, [tile_map_layer])
 	targeting_state.positioner = positioner
 	
@@ -73,7 +73,7 @@ func test_rigid_body_with_collision_layer_513_generates_indicators():
 	# Add collision shape
 	var shape = CollisionShape2D.new()
 	var rect = RectangleShape2D.new()
-	rect.size = Vector2(16, 16)
+	rect.size = Vector2size
 	shape.shape = rect
 	test_box.add_child(shape)
 	
@@ -139,7 +139,7 @@ func test_rigid_body_with_collision_layer_513_generates_indicators():
 		collision_object_details.append(detail)
 
 	# Verify GBGeometryUtils can find collision shapes in preview
-	var owner_shapes: Dictionary[Node2D, Array] = GBGeometryUtils.get_all_collision_shapes_by_owner(preview)
+	var owner_shapes: Dictionary[Node2D, Array[Node2D]] = GBGeometryUtils.get_all_collision_shapes_by_owner(preview)
 	
 	# This assertion should fail and expose the root cause
 	assert_int(owner_shapes.size()).append_failure_message(
@@ -167,7 +167,7 @@ func test_rigid_body_with_collision_layer_513_generates_indicators():
 	).is_not_empty()
 
 ## Helper: Find all collision objects recursively
-func _find_collision_objects(node: Node, output: Array) -> void:
+func _find_collision_objects(node: Node, output: Array[Node2D]) -> void:
 	if node is CollisionObject2D or node is CollisionPolygon2D:
 		output.append(node)
 	for child in node.get_children():

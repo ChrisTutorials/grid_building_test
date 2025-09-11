@@ -41,7 +41,10 @@ func before_test():
 	# Set up targeting state
 	_targeting_state = _container.get_targeting_state()
 	_targeting_state.target_map = _map
-	_targeting_state.maps = [_map]
+	
+	# Create properly typed array for maps
+	var maps_array: Array = [_map]
+	_targeting_state.maps = maps_array
 	
 	# Create positioner at the exact center (0,0 tile)
 	if _targeting_state.positioner == null:
@@ -59,6 +62,19 @@ func before_test():
 	
 	# Set manipulation parent in container state
 	_container.get_states().manipulation.parent = _manipulation_parent
+	
+	# Set up owner context (required for many operations)
+	var owner_context: GBOwnerContext = _container.get_contexts().owner
+	var owner_node: Node = auto_free(Node2D.new())
+	owner_node.name = "TestOwner"
+	add_child(owner_node)
+	var gb_owner: GBOwner = auto_free(GBOwner.new(owner_node))
+	owner_context.set_owner(gb_owner)
+	
+	# Set up placed parent (required for BuildingState validation)
+	var placed_parent: Node2D = auto_free(Node2D.new())
+	_container.get_states().building.placed_parent = placed_parent
+	add_child(placed_parent)
 	
 	# Validate targeting state is ready
 	var issues := _targeting_state.get_runtime_issues()
@@ -79,32 +95,90 @@ func before_test():
 func test_polygon_test_object_no_indicator_at_origin_when_centered():
 	"""Regression test: Polygon test object should not generate an indicator at (0,0) when centered on the positioner."""
 	if _container == null:
-		print("[SKIP] No container available; test environment not wired.")
+		assert_bool(false).append_failure_message("No container available; test environment not wired.")
 		return
 	
-	# Arrange: Create polygon test object and parent to manipulation parent
-	# ARCHITECTURE: Preview objects being manipulated go under ManipulationParent
-	var polygon_obj = UnifiedTestFactory.create_polygon_test_object(self)
+	# Arrange: Create polygon test object using proper collision structure
+	# NOTE: UnifiedTestFactory.create_polygon_test_object creates invalid structure,
+	# so we'll create our own proper collision object
+	var polygon_obj: Node = Node2D.new()
+	polygon_obj.name = "ProperPolygonTestObject"
 	_manipulation_parent.add_child(polygon_obj)  # Preview object goes under manipulation parent
+	auto_free(polygon_obj)
 	polygon_obj.position = Vector2.ZERO  # Ensure it's centered
+	
+	# Create proper StaticBody2D with CollisionPolygon2D child
+	var static_body = StaticBody2D.new()
+	static_body.name = "StaticBody2D"
+	static_body.collision_layer = 1  # Match the rule's apply_to_objects_mask
+	static_body.collision_mask = 1
+	polygon_obj.add_child(static_body)
+	
+	# Create collision polygon as child of StaticBody2D (proper structure)
+	var collision_polygon = CollisionPolygon2D.new()
+	collision_polygon.name = "CollisionPolygon2D"
+	# Define a concave polygon that should generate multiple indicators
+	var points: PackedVector2Array = [
+		Vector2(-32, -32),  # Top-left
+		Vector2(32, -32),   # Top-right  
+		Vector2(32, 0),     # Right-middle
+		Vector2(0, 0),      # Center (creates concave shape)
+		Vector2(0, 32),     # Bottom-center
+		Vector2(-32, 32),   # Bottom-left
+		Vector2(-32, -32)   # Close the polygon
+	]
+	collision_polygon.polygon = points
+	static_body.add_child(collision_polygon)
 	
 	# Create a basic collision rule for indicator generation
 	var rule := CollisionsCheckRule.new()
 	rule.apply_to_objects_mask = 1  # Match the polygon's collision layer
 	rule.collision_mask = 1
-	var rules: Array[TileCheckRule] = [rule]
+	var rules: Array = [rule]
 	
 	# Act: Generate indicators using IndicatorManager
 	# ARCHITECTURE: IndicatorManager automatically parents indicators to itself
 	var report: IndicatorSetupReport = _indicator_manager.setup_indicators(polygon_obj, rules)
 	
-	# Assert: Check that we have indicators but NOT at (0,0)
-	assert_bool(report.indicators.size() > 0).append_failure_message(
-		"Expected indicators to be generated for polygon test object. Report: %s" % report.to_summary_string()
-	).is_true()
+	# Add diagnostic info if no indicators are generated
+	if report.indicators.size() == 0:
+		# Find StaticBody2D child to get collision layer info
+		var found_static_body: StaticBody2D = null
+		for child in polygon_obj.get_children():
+			if child is StaticBody2D:
+				found_static_body = child
+				break
+		
+		# Include diagnostic information when indicators aren't generated
+		var failure_details: Array = []
+		failure_details.append("Targeting state issues: %s" % str(_targeting_state.get_runtime_issues()))
+		
+		if found_static_body:
+			failure_details.append("Polygon object collision layers: %d" % found_static_body.collision_layer)
+		else:
+			failure_details.append("No StaticBody2D found in polygon object")
+			
+		failure_details.append("Rule apply_to_objects_mask: %d" % rule.apply_to_objects_mask)
+		failure_details.append("Report summary: %s" % report.to_summary_string())
+		var child_classes: Array = []
+		for child in polygon_obj.get_children():
+			child_classes.append(child.get_class())
+		failure_details.append("Polygon children: %s" % str(child_classes))
+		
+		var full_diagnostic = "\n".join(failure_details)
+		
+		# Use the diagnostic in the assertion
+		assert_bool(report.indicators.size() > 0).append_failure_message(
+			"Expected indicators to be generated for polygon test object.\nDiagnostic info:\n%s" % full_diagnostic
+		).is_true()
+	else:
+		# Standard assertion when we do have indicators
+		assert_bool(report.indicators.size() > 0).append_failure_message(
+			"Expected indicators to be generated for polygon test object. Report: %s" % report.to_summary_string()
+		).is_true()
 	
 	# Collect all indicator tile positions
-	var indicator_tiles: Array[Vector2i] = []
+	var indicator_tiles: Array = []
 	for indicator in report.indicators:
 		var tile_pos = _map.local_to_map(_map.to_local(indicator.global_position))
 		indicator_tiles.append(tile_pos)
@@ -116,13 +190,6 @@ func test_polygon_test_object_no_indicator_at_origin_when_centered():
 		"Indicator tiles: " + str(indicator_tiles) + ". This indicates the collision detection is incorrectly " +
 		"including the origin tile when the polygon is centered."
 	).is_false()
-	
-	# Diagnostic information
-	if has_origin_indicator:
-		print("REGRESSION DETECTED: Indicator at (0,0) found")
-		print("All indicator tiles: %s" % [indicator_tiles])
-		print("Report summary: %s" % report.to_summary_string())
-		print("Report verbose: %s" % report.to_verbose_string())
 
 func test_polygon_test_object_valid_indicators_generated():
 	"""Sanity check: Ensure polygon test object generates some valid indicators, just not at (0,0)."""
@@ -131,7 +198,7 @@ func test_polygon_test_object_valid_indicators_generated():
 		return
 	
 	# Arrange: Create polygon test object under manipulation parent
-	var polygon_obj = UnifiedTestFactory.create_polygon_test_object(self)
+	var polygon_obj: Node = UnifiedTestFactory.create_polygon_test_object(self)
 	_manipulation_parent.add_child(polygon_obj)  # Preview object goes under manipulation parent
 	polygon_obj.position = Vector2.ZERO
 	
@@ -139,7 +206,7 @@ func test_polygon_test_object_valid_indicators_generated():
 	var rule := CollisionsCheckRule.new()
 	rule.apply_to_objects_mask = 1
 	rule.collision_mask = 1
-	var rules: Array[TileCheckRule] = [rule]
+	var rules: Array = [rule]
 	
 	# Act: Generate indicators using IndicatorManager
 	var report: IndicatorSetupReport = _indicator_manager.setup_indicators(polygon_obj, rules)
@@ -162,14 +229,14 @@ func test_polygon_test_object_centered_preview_flag():
 		return
 	
 	# Arrange: Create polygon test object as child of positioner (this should trigger centered_preview)
-	var polygon_obj = UnifiedTestFactory.create_polygon_test_object(self)
+	var polygon_obj: Node = UnifiedTestFactory.create_polygon_test_object(self)
 	_targeting_state.positioner.add_child(polygon_obj)
 	
 	# Create collision rule
 	var rule := CollisionsCheckRule.new()
 	rule.apply_to_objects_mask = 1
 	rule.collision_mask = 1
-	var rules: Array[TileCheckRule] = [rule]
+	var rules: Array = [rule]
 	
 	# Act: Generate indicators using IndicatorManager
 	var report: IndicatorSetupReport = _indicator_manager.setup_indicators(polygon_obj, rules)
@@ -192,14 +259,14 @@ func test_proper_parent_architecture_maintained():
 		return
 	
 	# Arrange: Create polygon test object under manipulation parent
-	var polygon_obj = UnifiedTestFactory.create_polygon_test_object(self)
+	var polygon_obj: Node = UnifiedTestFactory.create_polygon_test_object(self)
 	_manipulation_parent.add_child(polygon_obj)
 	
 	# Create collision rule
 	var rule := CollisionsCheckRule.new()
 	rule.apply_to_objects_mask = 1
 	rule.collision_mask = 1
-	var rules: Array[TileCheckRule] = [rule]
+	var rules: Array = [rule]
 	
 	# Act: Generate indicators
 	var report: IndicatorSetupReport = _indicator_manager.setup_indicators(polygon_obj, rules)

@@ -10,11 +10,11 @@ func before_test():
     _container = preload("uid://dy6e5p5d6ax6n")
     
     # Create injector system for dependency injection
-    var _injector = UnifiedTestFactory.create_test_injector(self, _container)
+    _injector: Node = UnifiedTestFactory.create_test_injector(self, _container)
     
     _map = auto_free(TileMapLayer.new())
     _map.tile_set = TileSet.new()
-    _map.tile_set.tile_size = Vector2(16,16)
+    _map.tile_set.tile_size = Vector2tile_size
     add_child(_map)
 
     var tgt := _container.get_targeting_state()
@@ -35,7 +35,7 @@ func before_test():
     _manager = IndicatorManager.create_with_injection(_container)
     add_child(auto_free(_manager))
 
-func _collect_indicators(pm: IndicatorManager) -> Array[RuleCheckIndicator]:
+func _collect_indicators(pm: IndicatorManager) -> Array[Node2D][RuleCheckIndicator]:
     return pm.get_indicators() if pm else []
 
 func _find_child_polygon(root: Node) -> CollisionPolygon2D:
@@ -57,7 +57,7 @@ func test_polygon_preview_indicators_respect_min_overlap_ratio():
     var rule := CollisionsCheckRule.new()
     rule.apply_to_objects_mask = 1 << 0
     rule.collision_mask = 1 << 0
-    var rules : Array[PlacementRule] = [rule]
+    var rules : Array[Node2D][PlacementRule] = [rule]
     
     # Init GBOnwner + Placer Root Node
     var placer: Node2D = auto_free(Node2D.new())
@@ -69,7 +69,7 @@ func test_polygon_preview_indicators_respect_min_overlap_ratio():
     var setup_ok := _manager.try_setup(rules, _container.get_targeting_state(), true)
     assert_bool(setup_ok.is_successful()).append_failure_message("IndicatorManager.try_setup failed for polygon preview").is_true()
 
-    var indicators: Array[RuleCheckIndicator] = _collect_indicators(_manager)
+    var indicators: Array[Node2D][RuleCheckIndicator] = _collect_indicators(_manager)
     assert_array(indicators).append_failure_message("No indicators generated for polygon preview").is_not_empty()
 
     # Compute expected allowed tiles using a minimum overlap ratio (e.g., 12% of tile area)
@@ -80,21 +80,21 @@ func test_polygon_preview_indicators_respect_min_overlap_ratio():
     var min_overlap_ratio := 0.12
     # Compute absolute tiles meeting the min overlap using calculator (area-based)
     var allowed_abs : Dictionary = {}
-    var allowed_abs_tiles: Array[Vector2i] = CollisionGeometryCalculator.calculate_tile_overlap(
+    var allowed_abs_tiles: Array[Node2D][Vector2i] = CollisionGeometryCalculator.calculate_tile_overlap(
         world_points, tile_size, TileSet.TILE_SHAPE_SQUARE, 0.01, min_overlap_ratio
     )
     for abs_tile in allowed_abs_tiles:
         allowed_abs[str(abs_tile)] = true
 
     # Collect actual tiles from indicators
-    var actual_tiles : Array[Vector2i] = []
+    var actual_tiles : Array[Node2D][Vector2i] = []
     for ind in indicators:
         var t := _map.local_to_map(_map.to_local(ind.global_position))
         if t not in actual_tiles:
             actual_tiles.append(t)
 
     # Any indicator tile not in allowed set is a failure (insufficient polygon overlap)
-    var unexpected : Array[Vector2i] = []
+    var unexpected : Array[Node2D][Vector2i] = []
     for t in actual_tiles:
         if not allowed_abs.has(str(t)):
             unexpected.append(t)

@@ -10,7 +10,7 @@ func before_test():
 
 # Helper function to generate detailed mapper setup diagnostics
 func _generate_mapper_setup_diagnostics(mapper: CollisionMapper, body: Node2D) -> String:
-	var diagnostics = "Mapper Setup Diagnostics:\n"
+	diagnostics: Node = "Mapper Setup Diagnostics:\n"
 	
 	var test_indicator_valid = mapper.test_indicator != null
 	var setups_valid = mapper.collision_object_test_setups != null and not mapper.collision_object_test_setups.is_empty()
@@ -127,7 +127,7 @@ func test_guard_returns_empty_without_setup() -> void:
 	auto_free(body)
 	var poly := CollisionPolygon2D.new()
 	body.add_child(poly)
-	poly.polygon = PackedVector2Array([Vector2(-8, -8), Vector2(8, -8), Vector2(8, 8), Vector2(-8, 8)])
+	poly.polygon = PackedVector2Array[Node2D]([Vector2(-8, -8), Vector2(8, -8), Vector2(8, 8), Vector2(-8, 8)])
 	var rule := TileCheckRule.new()
 	var result := mapper.map_collision_positions_to_rules([poly], [rule])
 	assert_that(result.size()).is_equal(0).append_failure_message("Expected empty mapping when mapper.setup() not called")
@@ -144,11 +144,11 @@ func test_basic_collision_detection() -> void:
 	var body := StaticBody2D.new()
 	auto_free(body)
 	body.collision_layer = 1
-	body.position = Vector2(0, 0)  # At origin
+	body.position = Vector2position  # At origin
 	var shape := CollisionShape2D.new()
 	auto_free(shape)
 	var rect := RectangleShape2D.new()
-	rect.size = Vector2(32, 32)  # Large shape that should overlap multiple tiles
+	rect.size = Vector2size  # Large shape that should overlap multiple tiles
 	shape.shape = rect
 	body.add_child(shape)
 	
@@ -176,31 +176,9 @@ func test_basic_collision_detection() -> void:
 	# Test basic collision detection
 	var result := mapper.get_collision_tile_positions_with_mask([body], 1)
 	
-	# Debug output
-	var debug_info = "Basic collision test:\n"
-	debug_info += "Body position: %s\n" % body.position
-	debug_info += "Body global position: %s\n" % body.global_position
-	debug_info += "Shape size: %s\n" % rect.size
-	debug_info += "Test setup valid: %s\n" % test_setup.validate_setup()
-	debug_info += "Rect collision test setups count: %d\n" % test_setup.rect_collision_test_setups.size()
-	if test_setup.rect_collision_test_setups.size() > 0:
-		debug_info += "First rect setup shapes count: %d\n" % test_setup.rect_collision_test_setups[0].shapes.size()
-		if test_setup.rect_collision_test_setups[0].shapes.size() > 0:
-			var first_shape = test_setup.rect_collision_test_setups[0].shapes[0]
-			debug_info += "First rect setup rect shape size: %s\n" % first_shape.size if first_shape is RectangleShape2D else "Not RectangleShape2D"
-	debug_info += "Map tile size: %s\n" % gts.target_map.tile_set.tile_size
-	debug_info += "Map position: %s\n" % gts.target_map.position
-	debug_info += "Map global position: %s\n" % gts.target_map.global_position
-	
-	# Check tile coordinates
-	var body_tile = gts.target_map.local_to_map(gts.target_map.to_local(body.global_position))
-	debug_info += "Body tile coordinates: %s\n" % body_tile
-	
-	debug_info += "Result size: %d\n" % result.size()
-	if result.size() > 0:
-		debug_info += "Found tiles: %s\n" % result.keys()
-	
-	assert_that(result.size()).append_failure_message(debug_info).is_greater(0)
+	# Simple assertion with basic debug info
+	debug_msg: Node = "Basic collision test failed - expected > 0 collisions, got %d" % result.size()
+	assert_that(result.size()).append_failure_message(debug_msg).is_greater(0)
 
 func test_collision_layer_matching_for_tile_check_rules() -> void:
 	var gts := UnifiedTestFactory.create_minimal_targeting_state(self)
@@ -214,10 +192,10 @@ func test_collision_layer_matching_for_tile_check_rules() -> void:
 	var body := StaticBody2D.new()
 	auto_free(body)
 	body.collision_layer = 513
-	body.position = Vector2(8, 8)  # Position at center of tile (0,0)
+	body.position = Vector2position  # Position at center of tile (0,0)
 	var shape := CollisionShape2D.new()
 	var rect := RectangleShape2D.new()
-	rect.size = Vector2(16, 16)
+	rect.size = Vector2size
 	shape.shape = rect
 	body.add_child(shape)
 	
@@ -333,10 +311,10 @@ func test_position_rules_mapping_produces_results() -> void:
 	var body := StaticBody2D.new()
 	auto_free(body)
 	body.collision_layer = 1  # bit 0
-	body.position = Vector2(8, 8)  # Position at center of tile (0,0)
+	body.position = Vector2position  # Position at center of tile (0,0)
 	var shape := CollisionShape2D.new()
 	var rect := RectangleShape2D.new()
-	rect.size = Vector2(16, 16)
+	rect.size = Vector2size
 	shape.shape = rect
 	body.add_child(shape)
 	

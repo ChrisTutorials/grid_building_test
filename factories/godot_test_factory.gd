@@ -6,6 +6,41 @@ extends RefCounted
 ## Keep this separate from UnifiedTestFactory to maintain clean separation.
 
 # ================================
+# Collision Validation Helpers
+# ================================
+
+## Validates that a collision shape has a proper CollisionObject2D parent
+## @param collision_node: The CollisionShape2D or CollisionPolygon2D to validate
+## @param method_name: Name of the calling method for error messages
+static func _validate_collision_parent(collision_node: Node, method_name: String) -> void:
+	assert(collision_node != null, "%s: collision_node cannot be null" % method_name)
+	
+	var parent: Node = collision_node.get_parent()
+	assert(parent != null, "%s: Collision node must have a parent" % method_name)
+	assert(parent is CollisionObject2D, "%s: Collision shapes must be children of CollisionObject2D (StaticBody2D, RigidBody2D, CharacterBody2D, or Area2D). Found parent type: %s" % [method_name, parent.get_class()])
+
+## Ensures a collision shape is properly parented to a CollisionObject2D
+## @param collision_node: The CollisionShape2D or CollisionPolygon2D to parent
+## @param parent: The CollisionObject2D to parent to
+## @param test: Test suite for auto_free management
+## @param method_name: Name of the calling method for error messages
+static func _ensure_collision_parent(collision_node: Node, parent: CollisionObject2D, test: GdUnitTestSuite, method_name: String) -> void:
+	assert(collision_node != null, "%s: collision_node cannot be null" % method_name)
+	assert(parent != null, "%s: parent cannot be null" % method_name)
+	assert(parent is CollisionObject2D, "%s: Parent must be a CollisionObject2D (StaticBody2D, RigidBody2D, CharacterBody2D, or Area2D). Found type: %s" % [method_name, parent.get_class()])
+	
+	# If collision_node is already in the scene tree, remove it
+	if collision_node.get_parent() != null:
+		collision_node.get_parent().remove_child(collision_node)
+	
+	# Add to the proper parent
+	parent.add_child(collision_node)
+	
+	# Ensure parent is auto-freed and in test scene
+	if parent.get_parent() == null:
+		test.add_child(parent)
+
+# ================================
 # Capsule and Transform Factories
 # ================================
 
@@ -44,7 +79,7 @@ static func create_node2d(test: GdUnitTestSuite, p_name = "TestNode2D") -> Node2
 
 ## Creates a Node with auto_free setup
 static func create_node(test: GdUnitTestSuite) -> Node:
-	var node: Node = test.auto_free(Node.new())
+	var node = test.auto_free(Node.new())
 	node.name = "TestNode"
 	test.add_child(node)
 	return node
@@ -204,7 +239,7 @@ static func create_empty_tile_map_layer(test: GdUnitTestSuite) -> TileMapLayer:
 
 ## Creates a StaticBody2D with rectangular collision shape
 static func create_static_body_with_rect_shape(
-	test: GdUnitTestSuite, extents: Vector2 = Vector2(8, 8)
+	test: GdUnitTestSuite, extents: Vector2 = Vector2(16, 16)
 ) -> StaticBody2D:
 	var body: StaticBody2D = test.auto_free(StaticBody2D.new())
 	var shape: CollisionShape2D = test.auto_free(CollisionShape2D.new())
@@ -215,6 +250,10 @@ static func create_static_body_with_rect_shape(
 	body.add_child(shape)
 	body.collision_layer = 1  # Set collision layer to match test expectations
 	test.assert_object(shape.shape).append_failure_message("GodotTestFactory: Bad Generated Shape").is_not_null()
+	
+	# Validate collision hierarchy
+	_validate_collision_parent(shape, "create_static_body_with_rect_shape")
+	
 	return body
 
 
@@ -228,12 +267,21 @@ static func create_area2d_with_circle_shape(test: GdUnitTestSuite, radius: float
 	area.add_child(shape)
 	area.collision_layer = 1
 	test.add_child(area)
+	
+	# Validate collision hierarchy
+	_validate_collision_parent(shape, "create_area2d_with_circle_shape")
+	
 	return area
 
 
 ## Creates a CollisionPolygon2D with triangle shape
+## @param test: Test suite for auto_free management  
+## @param polygon: Optional polygon points (defaults to triangle)
+## @param parent: Optional CollisionObject2D parent for proper collision hierarchy
 static func create_collision_polygon(
-	test: GdUnitTestSuite, polygon: PackedVector2Array = PackedVector2Array()
+	test: GdUnitTestSuite, 
+	polygon: PackedVector2Array = PackedVector2Array(),
+	parent: CollisionObject2D = null
 ) -> CollisionPolygon2D:
 	var poly: CollisionPolygon2D = test.auto_free(CollisionPolygon2D.new())
 	if polygon.is_empty():
@@ -241,7 +289,13 @@ static func create_collision_polygon(
 		poly.polygon = PackedVector2Array([Vector2(0, 0), Vector2(16, 0), Vector2(8, 16)])
 	else:
 		poly.polygon = polygon
-	test.add_child(poly)
+	
+	if parent != null:
+		_ensure_collision_parent(poly, parent, test, "create_collision_polygon")
+	else:
+		# Add to test by default but validate later if parent changes
+		test.add_child(poly)
+	
 	return poly
 
 
@@ -255,6 +309,10 @@ static func create_object_with_circle_shape(test: GdUnitTestSuite) -> Node2D:
 	body.add_child(collision_shape)
 	body.collision_layer = 1
 	test.add_child(test_object)
+	
+	# Validate collision hierarchy
+	_validate_collision_parent(collision_shape, "create_object_with_circle_shape")
+	
 	return test_object
 
 
@@ -317,6 +375,7 @@ static func create_manipulatable(
 
 
 ## Creates a RuleCheckIndicator with rectangular shape
+## Note: This method creates a grid-building specific object. Consider moving to UnifiedTestFactory.
 static func create_rule_check_indicator(
 	test: GdUnitTestSuite, parent: Node, tile_size: int = 16
 ) -> RuleCheckIndicator:
@@ -327,7 +386,6 @@ static func create_rule_check_indicator(
 	indicator.shape = rect_shape
 	if parent:
 		parent.add_child(indicator)
-		# Set up dependency injection after adding to tree
-		var container := UnifiedTestFactory.TEST_CONTAINER
-		indicator.resolve_gb_dependencies(container)
+		# Note: Dependency injection should be handled by the caller since this factory 
+		# should remain plugin-agnostic. Use UnifiedTestFactory for grid-building setup.
 	return indicator

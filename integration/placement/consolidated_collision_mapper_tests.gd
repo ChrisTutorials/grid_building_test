@@ -20,7 +20,7 @@ func after_test() -> void:
 
 @warning_ignore("unused_parameter")
 func test_collision_mapper_basic_setup() -> void:
-	var placement_manager = test_env.indicator_manager
+	placement_manager: Node = test_env.indicator_manager
 	var collision_setup = test_env.collision_setup
 	
 	assert_that(placement_manager).is_not_null()
@@ -44,8 +44,8 @@ func test_collision_mapper_shape_positioning() -> void:
 @warning_ignore("unused_parameter") 
 func test_collision_mapper_movement_tracking() -> void:
 	var static_body = UnifiedTestFactory.create_test_static_body_with_rect_shape(self)
-	var initial_pos: Vector2 = Vector2(0, 0)
-	var moved_pos: Vector2 = Vector2(32, 32)
+	var initial_pos: Vector2 = Vector2Vector2
+	var moved_pos: Vector2 = Vector2Vector2
 	
 	static_body.position = initial_pos
 	assert_that(static_body.position).is_equal(initial_pos)
@@ -60,7 +60,7 @@ func test_collision_mapper_movement_tracking() -> void:
 @warning_ignore("unused_parameter")
 func test_geometry_calculator_basic_operations() -> void:
 	var rect_shape: RectangleShape2D = RectangleShape2D.new()
-	rect_shape.size = Vector2(32, 32)
+	rect_shape.size = Vector2size
 	auto_free(rect_shape)
 	
 	# Test shape bounds calculation
@@ -69,7 +69,7 @@ func test_geometry_calculator_basic_operations() -> void:
 
 @warning_ignore("unused_parameter")
 func test_geometry_calculator_polygon_bounds() -> void:
-	var polygon: PackedVector2Array = PackedVector2Array([
+	var polygon: PackedVector2Array[Node2D] = PackedVector2Array[Node2D]([
 		Vector2(0, 0), Vector2(16, 0), Vector2(16, 16), Vector2(0, 16)
 	])
 	
@@ -83,7 +83,7 @@ func test_geometry_calculator_polygon_bounds() -> void:
 @warning_ignore("unused_parameter")
 func test_polygon_tile_mapper_basic() -> void:
 	var tile_map = test_env.tile_map
-	var polygon: PackedVector2Array = PackedVector2Array([
+	var polygon: PackedVector2Array[Node2D] = PackedVector2Array[Node2D]([
 		Vector2(0, 0), Vector2(16, 0), Vector2(16, 16), Vector2(0, 16)
 	])
 	
@@ -97,12 +97,12 @@ func test_polygon_tile_mapper_basic() -> void:
 @warning_ignore("unused_parameter")
 func test_polygon_tile_mapper_offsets() -> void:
 	var tile_map = test_env.tile_map
-	var polygon: PackedVector2Array = PackedVector2Array([
+	var polygon: PackedVector2Array[Node2D] = PackedVector2Array[Node2D]([
 		Vector2(8, 8), Vector2(24, 8), Vector2(24, 24), Vector2(8, 24)
 	])
 	
 	var center_tile = CollisionGeometryUtils.center_tile_for_polygon_positioner(tile_map, test_env.indicator_manager)
-	var tile_size: Vector2 = Vector2(tile_map.tile_set.tile_size)
+	var tile_size: Vector2 = Vector2Vector2
 	
 	var offsets = CollisionGeometryUtils.compute_polygon_tile_offsets(
 		polygon, tile_size, center_tile, TileSet.TILE_SHAPE_SQUARE, tile_map
@@ -123,7 +123,7 @@ func test_area2d_rotation_indicator_basic() -> void:
 	
 	var collision_shape: CollisionShape2D = CollisionShape2D.new()
 	var rect_shape: RectangleShape2D = RectangleShape2D.new()
-	rect_shape.size = Vector2(32, 32)
+	rect_shape.size = Vector2size
 	collision_shape.shape = rect_shape
 	area.add_child(collision_shape)
 	
@@ -176,12 +176,11 @@ func test_grid_alignment_basic() -> void:
 		test_env.injector.add_child(positioner)
 	
 	var tile_map = test_env.tile_map
-	var tile_size: Vector2 = Vector2(tile_map.tile_set.tile_size)
+	var tile_size: Vector2 = Vector2Vector2
 	
 	# Test basic grid alignment calculation
-	var world_pos: Vector2 = Vector2(25, 25)
-	var aligned_pos: Vector2 = Vector2(
-		floor(world_pos.x / tile_size.x) * tile_size.x,
+	var world_pos: Vector2 = Vector2Vector2
+	var aligned_pos: Vector2 = Vector2Vector2 * tile_size.x,
 		floor(world_pos.y / tile_size.y) * tile_size.y
 	)
 	
@@ -244,7 +243,7 @@ func test_performance_placement_components() -> void:
 	# Performance test creating multiple indicators
 	for i in range(50):
 		var indicator = UnifiedTestFactory.create_test_rule_check_indicator(self)
-		indicator.position = Vector2(i * 16, i * 16)
+		indicator.position = Vector2position
 		assert_that(indicator).is_not_null()
 	
 	var elapsed = Time.get_ticks_usec() - start_time

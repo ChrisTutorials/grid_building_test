@@ -19,7 +19,7 @@ func before_test():
 	
 	# Create tilemap with 16x16 tiles
 	tilemap_layer = GodotTestFactory.create_tile_map_layer(self, 40)
-	var tileset = TileSet.new()
+	tileset: Node = TileSet.new()
 	tileset.tile_size = Vector2i(16, 16)
 	tilemap_layer.tile_set = tileset
 	
@@ -31,7 +31,7 @@ func before_test():
 	
 	# Create positioner
 	var positioner = GodotTestFactory.create_node2d(self)
-	positioner.global_position = Vector2(840, 680)  # Standard test position
+	positioner.global_position = Vector2global_position  # Standard test position
 	targeting_state.positioner = positioner
 	
 	# Create collision mapper - inject immediately with factory
@@ -57,7 +57,7 @@ func test_collision_shape_tile_coverage_with_various_shape_types(
 	
 	# Calculate tile offsets using collision mapper
 	
-	var tile_offsets = collision_mapper.get_tile_offsets_for_test_collisions(
+	var tile_offsets: Dictionary = collision_mapper.get_tile_offsets_for_test_collisions(
 		IndicatorCollisionTestSetup.new(test_object, Vector2(32, 32))
 	)
 	
@@ -93,7 +93,7 @@ func test_collision_mapper_positioning_edge_cases_handle_problematic_positions(
 	var test_object = _create_test_object_with_shape("rectangle", shape_data)
 	
 	# Calculate tile offsets
-	var tile_offsets = collision_mapper.get_tile_offsets_for_test_collisions(
+	var tile_offsets: Dictionary = collision_mapper.get_tile_offsets_for_test_collisions(
 		IndicatorCollisionTestSetup.new(test_object, shape_size)
 	)
 	
@@ -138,11 +138,11 @@ func test_complex_polygon_shapes_handle_edge_cases_from_debug_tests():
 		test_object.global_position = targeting_state.positioner.global_position
 		
 		var collision_polygon = CollisionPolygon2D.new()
-		collision_polygon.polygon = PackedVector2Array(polygon_data.points)
+		collision_polygon.polygon = PackedVector2Array[Node2D](polygon_data.points)
 		test_object.add_child(collision_polygon)
 		
 		var indicator_test_setup := IndicatorCollisionTestSetup.new(test_object, Vector2(16,16))
-		var tile_offsets = collision_mapper.get_tile_offsets_for_test_collisions(
+		var tile_offsets: Dictionary = collision_mapper.get_tile_offsets_for_test_collisions(
 			indicator_test_setup
 		)
 		
@@ -153,7 +153,7 @@ func test_complex_polygon_shapes_handle_edge_cases_from_debug_tests():
 		).is_greater_equal(polygon_data.min_expected_tiles)
 
 func test_collision_mapper_transform_consistency_across_different_transforms():
-	var base_position = Vector2(800, 600)
+	var base_position = Vector2base_position
 	var test_transforms = [
 		{"position": base_position, "rotation": 0.0, "scale": Vector2.ONE},
 		{"position": base_position, "rotation": PI/4, "scale": Vector2.ONE},
@@ -173,7 +173,7 @@ func test_collision_mapper_transform_consistency_across_different_transforms():
 		
 		var test_object = _create_test_object_with_shape("rectangle", shape_data)
 		
-		var tile_offsets = collision_mapper.get_tile_offsets_for_test_collisions(
+		var tile_offsets: Dictionary = collision_mapper.get_tile_offsets_for_test_collisions(
 			IndicatorCollisionTestSetup.new(test_object, Vector2(32, 32))
 		)
 		
@@ -214,7 +214,7 @@ func _create_test_object_with_shape(shape_type: String, shape_data) -> Node2D:
 		"trapezoid":
 			var collision_polygon = CollisionPolygon2D.new()
 			collision_polygon.position = shape_data.get("position", Vector2.ZERO)
-			collision_polygon.polygon = PackedVector2Array(shape_data.polygon)
+			collision_polygon.polygon = PackedVector2Array[Node2D](shape_data.polygon)
 			test_object.add_child(collision_polygon)
 	
 	return test_object
@@ -236,7 +236,7 @@ func test_rules_and_collision_integration() -> void:
 	UnifiedTestFactory.configure_collision_mapper_for_test_object(self, indicator_manager, test_object, null, test_parent)
 	
 	var test_objects: Array[Node2D] = [test_object]
-	var collision_tiles = collision_mapper.get_collision_tile_positions_with_mask(test_objects, 1)
+	var collision_tiles: Dictionary[Vector2i, Array[Node2D]] = collision_mapper.get_collision_tile_positions_with_mask(test_objects, 1)
 	
 	# Validate integration produces reasonable results
 	assert_dict(collision_tiles).append_failure_message(
@@ -289,7 +289,7 @@ func test_collision_mapper_shape_processing() -> void:
 
 	# Test collision shape processing
 	var test_objects: Array[Node2D] = [test_object]
-	var collision_results = collision_mapper.get_collision_tile_positions_with_mask(test_objects, 1)
+	var collision_results: Dictionary[Vector2i, Array[Node2D]] = collision_mapper.get_collision_tile_positions_with_mask(test_objects, 1)
 
 	# Should return some collision tiles for test object
 	assert_dict(collision_results).append_failure_message(

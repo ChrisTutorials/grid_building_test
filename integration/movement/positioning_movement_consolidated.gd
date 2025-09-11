@@ -10,10 +10,10 @@ func before_test():
 	test_hierarchy = UnifiedTestFactory.create_indicator_test_hierarchy(self, TEST_CONTAINER)
 
 func test_positioner_basic_positioning():
-	var positioner = test_hierarchy.positioner
+	positioner: Node = test_hierarchy.positioner
 	
 	# Test basic positioning
-	var test_position = Vector2(64, 32)
+	var test_position = Vector2test_position
 	positioner.position = test_position
 	
 	assert_vector(positioner.position).is_equal(test_position)
@@ -31,7 +31,7 @@ func test_positioner_with_collision_tracking():
 	
 	# Test position changes affect collision mapping
 	var positions = [Vector2.ZERO, Vector2(32, 0), Vector2(64, 32)]
-	var results : Array[Dictionary] = []
+	var results : Array[Node2D][Dictionary] = []
 	
 	# Move positioner to different positions and get collision mapping after physics update
 	for pos in positions:
@@ -62,26 +62,26 @@ func test_positioner_with_collision_tracking():
 	assert_array(keys0).is_equal(keys1)
 	assert_array(keys1).is_equal(keys2)
 	
-	# Verify that each result contains Vector2i keys and Array values
+	# Verify that each result contains Vector2i keys and Array[Node2D] values
 	for i in range(results.size()):
-		var result = results[i]
+		result: Node = results[i]
 		# Light validation only; detailed type checks removed due to flaky assert_array type inference.
 		print("[Debug] Collision result ", i, ": ", result)
 		assert_that(result).is_not_empty()
 
 func test_positioner_indicator_updates():
-	var positioner = test_hierarchy.positioner
+	positioner: Node = test_hierarchy.positioner
 	var _indicator_manager = test_hierarchy.indicator_manager
 	
 	# Add indicator to positioner
 	var indicator = ColorRect.new()
-	indicator.size = Vector2(16, 16)
+	indicator.size = Vector2size
 	positioner.add_child(indicator)
 	auto_free(indicator)
 	
 	# Test position changes trigger indicator updates
 	var initial_pos = Vector2.ZERO
-	var new_pos = Vector2(48, 48)
+	var new_pos = Vector2new_pos
 	
 	positioner.global_position = initial_pos
 	await get_tree().physics_frame
@@ -97,13 +97,13 @@ func test_movement_with_grid_alignment():
 	var tile_size = tile_map.tile_set.tile_size
 	
 	# Test grid-aligned movement
-	var unaligned_pos = Vector2(50, 50)
+	var unaligned_pos = Vector2unaligned_pos
 	positioner.position = unaligned_pos
 	
 	# Simulate grid alignment
 	var grid_aligned_x = int(positioner.position.x / tile_size.x) * tile_size.x
 	var grid_aligned_y = int(positioner.position.y / tile_size.y) * tile_size.y
-	var aligned_pos = Vector2(grid_aligned_x, grid_aligned_y)
+	var aligned_pos = Vector2aligned_pos
 	
 	positioner.position = aligned_pos
 	
@@ -126,7 +126,7 @@ func test_multi_object_positioning():
 		auto_free(obj)
 	
 	# Test positioner movement affects all children
-	var positioner_offset = Vector2(100, 50)
+	var positioner_offset = Vector2positioner_offset
 	positioner.position = positioner_offset
 	
 	for i in range(objects.size()):
@@ -159,7 +159,7 @@ func test_positioner_performance_bulk_moves():
 	var objects = []
 	for i in range(10):
 		var obj = ColorRect.new()
-		obj.size = Vector2(8, 8)
+		obj.size = Vector2size
 		positioner.add_child(obj)
 		objects.append(obj)
 		auto_free(obj)
@@ -190,7 +190,7 @@ func test_positioner_integration_workflow():
 	var area = CollisionObjectTestFactory.create_area_with_circle_collision(self, positioner)
 	
 	var indicator = ColorRect.new()
-	indicator.size = Vector2(12, 12)
+	indicator.size = Vector2size
 	indicator.color = Color.BLUE
 	positioner.add_child(indicator)
 	auto_free(indicator)
@@ -199,7 +199,7 @@ func test_positioner_integration_workflow():
 	var test_setup = UnifiedTestFactory.create_test_indicator_collision_setup(self, area)
 	
 	# Test complete workflow: move -> collision check -> rule check -> indicator update
-	var workflow_position = Vector2(64, 64)
+	var workflow_position = Vector2workflow_position
 	positioner.position = workflow_position
 	
 	# Step 1: Collision mapping

@@ -39,7 +39,7 @@ func _enter_build_mode_successfully(placeable: Placeable) -> bool:
 		).is_true()
 		return true
 	else:
-		var errors: Array[String] = setup_report.get_error_messages()
+		var errors: Array = setup_report.get_error_messages()
 		var error_msg: String = "enter_build_mode failed: " + str(errors)
 		assert_bool(false).append_failure_message(error_msg).is_true()
 		return false
@@ -68,7 +68,7 @@ func _create_preview_with_collision() -> Node2D:
 	area.collision_mask = 1
 	var shape := CollisionShape2D.new()
 	var rect := RectangleShape2D.new()
-	rect.size = Vector2(16, 16)
+	rect.size = Vector2(32, 32)
 	shape.shape = rect
 	area.add_child(shape)
 	root.add_child(area)
@@ -82,7 +82,7 @@ func _assert_reasonable_collision_positions(collision_results: Dictionary) -> vo
 	).is_not_empty()
 	
 	for tile_pos in collision_results.keys():
-		var tile_coord = tile_pos as Vector2i
+		var tile_coord: Vector2i = tile_pos as Vector2i
 		assert_int(abs(tile_coord.x)).append_failure_message(
 			"Collision tile x coordinate should be reasonable: %d" % tile_coord.x
 		).is_less_than(1000)
@@ -101,7 +101,7 @@ func _assert_reasonable_collision_positions(collision_results: Dictionary) -> vo
 		return
 	
 	# Test valid position  
-	var valid_pos: Vector2 = Vector2(50, 50)
+	var valid_pos: Vector2 = Vector2(64, 64)
 	_set_targeting_position(valid_pos)
 	
 	# Use indicator manager's validate_placement method
@@ -111,14 +111,14 @@ func _assert_reasonable_collision_positions(collision_results: Dictionary) -> vo
 	).is_true()
 	
 	# Test building at validated position
-	var build_result: Node = _building_system.try_build_at_position(valid_pos)
+	var build_result = _building_system.try_build_at_position(valid_pos)
 	assert_object(build_result).is_not_null()
 	
 	if not _enter_build_mode_successfully(smithy_placeable):
 		return
 	
 	# Test placement attempt
-	var placement_result: Node = _building_system.try_build_at_position(Vector2(100, 100))
+	var placement_result = _building_system.try_build_at_position(Vector2(100, 100))
 	assert_object(placement_result).is_not_null()
 	
 	# Exit build mode
@@ -132,7 +132,7 @@ func test_complete_building_workflow() -> void:
 		return
 	
 	# Test placement attempt
-	var placement_result: Node = _building_system.try_build_at_position(Vector2(100, 100))
+	var placement_result = _building_system.try_build_at_position(Vector2(100, 100))
 	assert_object(placement_result).is_not_null()
 	
 	# Exit build mode
@@ -146,7 +146,7 @@ func test_building_workflow_with_validation() -> void:
 		return
 	
 	# Test valid position  
-	var valid_pos: Vector2 = Vector2(50, 50)
+	var valid_pos: Vector2 = Vector2(64, 64)
 	_set_targeting_position(valid_pos)
 	
 	# Use indicator manager's validate_placement method
@@ -156,7 +156,7 @@ func test_building_workflow_with_validation() -> void:
 	).is_true()
 	
 	# Test building at validated position
-	var build_result: Node = _building_system.try_build_at_position(valid_pos)
+	var build_result = _building_system.try_build_at_position(valid_pos)
 	assert_object(build_result).is_not_null()
 
 #endregion
@@ -168,13 +168,13 @@ func test_multi_rule_indicator_attachment() -> void:
 	var tile_rule: TileCheckRule = TileCheckRule.new()
 	var _test_object: StaticBody2D = UnifiedTestFactory.create_test_static_body_with_rect_shape(self)
 
-	var rules: Array[PlacementRule] = [collision_rule, tile_rule]
+	var rules: Array = [collision_rule, tile_rule]
 	var setup_result: PlacementReport = _indicator_manager.try_setup(rules, _gts.get_state())
 
 	_assert_setup_successful(setup_result, "Multi-rule setup")
 	
 	# Verify indicators are created
-	var indicators: Array[RuleCheckIndicator] = _indicator_manager.get_indicators()
+	var indicators: Array = _indicator_manager.get_indicators()
 	assert_int(indicators.size()).append_failure_message(
 		"Should have indicators for both rules, got %d" % indicators.size()
 	).is_greater_equal(1)
@@ -189,7 +189,7 @@ func test_rule_indicator_state_synchronization() -> void:
 	assert_bool(setup_result.is_successful()).is_true()
 	
 	# Change rule state and verify indicators update
-	test_object.global_position = Vector2(96, 96)
+	test_object.global_position = Vector2(128, 128)
 	var update_result: PlacementReport = _indicator_manager.try_setup([rule], _gts.get_state())
 	
 	_assert_setup_successful(update_result, "Rule state update")
@@ -202,13 +202,13 @@ func test_indicators_are_parented_and_inside_tree() -> void:
 	var rule: CollisionsCheckRule = CollisionsCheckRule.new()
 	rule.apply_to_objects_mask = 1 << 0
 	rule.collision_mask = 1 << 0
-	var rules: Array[PlacementRule] = [rule]
+	var rules: Array = [rule]
 	
 	var params: GridTargetingState = _make_rule_params(preview)
 	var setup_results: PlacementReport = _indicator_manager.try_setup(rules, params)
 	
 	_assert_setup_successful(setup_results, "IndicatorManager.try_setup")
-	var indicators: Array[RuleCheckIndicator] = _indicator_manager.get_indicators()
+	var indicators: Array = _indicator_manager.get_indicators()
 	assert_array(indicators).append_failure_message("No indicators created").is_not_empty()
 	
 	for ind: RuleCheckIndicator in indicators:
@@ -221,7 +221,7 @@ func test_indicators_are_parented_and_inside_tree() -> void:
 #region SMITHY INDICATOR GENERATION
 
 func test_smithy_indicator_generation() -> void:
-	var smithy_rules: Array[PlacementRule] = smithy_placeable.placement_rules
+	var smithy_rules: Array = smithy_placeable.placement_rules
 	assert_array(smithy_rules).append_failure_message(
 		"Smithy should have placement rules"
 	).is_not_empty()
@@ -241,7 +241,7 @@ func test_smithy_collision_detection() -> void:
 	add_child(smithy_node)
 	
 	# Test collision tile mapping for smithy (using production method)
-	var collision_results: Dictionary = collision_mapper.get_collision_tile_positions_with_mask([smithy_node], 1)
+	var collision_results: Dictionary = collision_mapper.get_collision_tile_positions_with_mask([smithy_node] as Array[Node2D], 1)
 	_assert_reasonable_collision_positions(collision_results)
 	
 	smithy_node.queue_free()
@@ -273,7 +273,7 @@ func test_complex_multi_system_workflow() -> void:
 	).is_not_null()
 
 func test_cross_system_state_consistency() -> void:
-	var target_pos: Vector2 = Vector2(240, 240)
+	var target_pos: Vector2 = Vector2(150, 150)
 	_set_targeting_position(target_pos)
 	
 	if not _enter_build_mode_successfully(smithy_placeable):
@@ -319,7 +319,7 @@ func test_polygon_collision_integration() -> void:
 	# Test polygon collision tile mapping
 	var polygon_runtime = polygon_test_object.packed_scene.instantiate()
 	add_child(polygon_runtime)
-	var collision_tiles = collision_mapper.get_collision_tile_positions_with_mask([polygon_runtime], 1)
+	var collision_tiles: Dictionary = collision_mapper.get_collision_tile_positions_with_mask([polygon_runtime] as Array[Node2D], 1)
 	assert_that(collision_tiles).append_failure_message(
 		"Polygon test object should generate collision tile positions"
 	).is_not_empty()
@@ -352,7 +352,7 @@ func test_grid_targeting_highlight_integration() -> void:
 	
 	# Test targeting with highlight updates
 	var targeting_state = _targeting_system.get_state()
-	targeting_state.target.position = Vector2(360, 360)
+	targeting_state.target.position = Vector2(100, 100)
 	
 	# Verify highlight state updates with targeting
 	var highlight_active = highlight_manager.is_highlight_active()
@@ -388,7 +388,7 @@ func test_targeting_state_transitions() -> void:
 
 func test_full_system_integration_workflow() -> void:
 	# Step 1: Set target
-	var target_pos: Vector2 = Vector2(500, 500)
+	var target_pos: Vector2 = Vector2(300, 300)
 	_set_targeting_position(target_pos)
 	
 	# Step 2: Enter build mode with indicators

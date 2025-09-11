@@ -17,7 +17,7 @@ var placeable_2d_test: Placeable = load("uid://jgmywi04ib7c")
 
 func before_test():
 	# Create injector system first
-	var _injector = UnifiedTestFactory.create_test_injector(self, _container)
+	_injector: Node = UnifiedTestFactory.create_test_injector(self, _container)
 
 	# Create complete building system test environment
 	var env = UnifiedTestFactory.create_building_system_test_environment(self, _container)

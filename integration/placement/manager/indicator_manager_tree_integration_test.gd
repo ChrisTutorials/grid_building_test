@@ -12,7 +12,7 @@ var manipulation_parent: Node2D
 
 func before_test():
 	# Use comprehensive factory method for complete indicator manager tree test setup
-	var test_env = UnifiedTestFactory.create_indicator_test_environment(self, BASE_CONTAINER.duplicate(true))
+	test_env: Node = UnifiedTestFactory.create_indicator_test_environment(self, BASE_CONTAINER.duplicate(true))
 	
 	# Extract setup components for test access
 	_container = test_env.container
@@ -32,7 +32,7 @@ func _create_preview_with_collision() -> Node2D:
 	area.collision_mask = 1
 	var shape := CollisionShape2D.new()
 	var rect := RectangleShape2D.new()
-	rect.extents = Vector2(8,8)
+	rect.extents = Vector2extents
 	shape.shape = rect
 	area.add_child(shape)
 	root.add_child(area)
@@ -46,7 +46,7 @@ func test_indicators_are_parented_and_inside_tree():
 	var rule: CollisionsCheckRule = CollisionsCheckRule.new()
 	rule.apply_to_objects_mask = 1 << 0
 	rule.collision_mask = 1 << 0
-	var rules: Array[PlacementRule] = [rule]
+	var rules: Array[Node2D][PlacementRule] = [rule]
 	var logger : GBLogger = _container.get_logger()
 	var params := RuleValidationParameters.new(positioner, preview, targeting_state, logger)
 	var setup_results : PlacementReport = indicator_manager.try_setup(rules, params)

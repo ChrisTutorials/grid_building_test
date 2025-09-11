@@ -11,7 +11,7 @@ func before_test():
 	test_hierarchy = UnifiedTestFactory.create_indicator_test_hierarchy(self, TEST_CONTAINER)
 
 func test_indicator_manager_creation():
-	var indicator_manager = test_hierarchy.indicator_manager
+	indicator_manager: Node = test_hierarchy.indicator_manager
 	assert_that(indicator_manager).is_not_null()
 	assert_that(indicator_manager.get_parent()).is_not_null()
 
@@ -23,12 +23,12 @@ func test_indicator_setup_basic():
 	var area = Area2D.new()
 	var collision_shape = CollisionShape2D.new()
 	collision_shape.shape = RectangleShape2D.new()
-	collision_shape.shape.size = Vector2(32, 32)
+	collision_shape.shape.size = Vector2size
 	area.add_child(collision_shape)
 	manipulation_parent.add_child(area)
 	auto_free(area)
 	
-	var rules: Array[TileCheckRule] = [TileCheckRule.new()]
+	var rules: Array[Node2D][TileCheckRule] = [TileCheckRule.new()]
 	var report = indicator_manager.setup_indicators(area, rules)
 	assert_that(report).is_not_null()
 
@@ -40,12 +40,12 @@ func test_indicator_cleanup():
 	var area = Area2D.new()
 	var collision_shape = CollisionShape2D.new()
 	collision_shape.shape = RectangleShape2D.new()
-	collision_shape.shape.size = Vector2(16, 16)
+	collision_shape.shape.size = Vector2size
 	area.add_child(collision_shape)
 	manipulation_parent.add_child(area)
 	auto_free(area)
 	
-	var rules: Array[TileCheckRule] = [TileCheckRule.new()]
+	var rules: Array[Node2D][TileCheckRule] = [TileCheckRule.new()]
 	indicator_manager.setup_indicators(area, rules)
 	
 	# Test cleanup
@@ -65,18 +65,18 @@ func test_indicator_positioning():
 	var manipulation_parent = test_hierarchy.manipulation_parent
 	
 	# Position positioner at specific location
-	positioner.position = Vector2(64, 64)
+	positioner.position = Vector2position
 	
 	# Create test object
 	var area = Area2D.new()
 	var collision_shape = CollisionShape2D.new()
 	collision_shape.shape = RectangleShape2D.new()
-	collision_shape.shape.size = Vector2(24, 24)
+	collision_shape.shape.size = Vector2size
 	area.add_child(collision_shape)
 	manipulation_parent.add_child(area)
 	auto_free(area)
 	
-	var rules: Array[TileCheckRule] = [TileCheckRule.new()]
+	var rules: Array[Node2D][TileCheckRule] = [TileCheckRule.new()]
 	var report = indicator_manager.setup_indicators(area, rules)
 	
 	assert_that(report).is_not_null()
@@ -93,12 +93,12 @@ func test_multiple_setup_calls():
 	var area = Area2D.new()
 	var collision_shape = CollisionShape2D.new()
 	collision_shape.shape = RectangleShape2D.new()
-	collision_shape.shape.size = Vector2(20, 20)
+	collision_shape.shape.size = Vector2size
 	area.add_child(collision_shape)
 	manipulation_parent.add_child(area)
 	auto_free(area)
 	
-	var rules: Array[TileCheckRule] = [TileCheckRule.new()]
+	var rules: Array[Node2D][TileCheckRule] = [TileCheckRule.new()]
 	
 	# First setup
 	indicator_manager.setup_indicators(area, rules)

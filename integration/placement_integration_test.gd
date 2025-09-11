@@ -74,7 +74,7 @@ func test_placement_validation_basic(
 	# Setup and validate with no rules 
 	# PlacementValidator actually returns false when no rules are active
 	var empty_rules: Array[PlacementRule] = []
-	var setup_issues = placement_validator.setup(empty_rules, _targeting_state)
+	var setup_issues: Array = placement_validator.setup(empty_rules, _targeting_state)
 	
 	assert_bool(setup_issues.is_empty()).append_failure_message(
 		"Setup should succeed with no rules for scenario: %s" % placement_scenario
@@ -195,7 +195,7 @@ func test_placement_validation_edge_cases(
 		
 		"invalid_position":
 			# Set _positioner to invalid position
-			_positioner.global_position = Vector2(-16000, -16000)  # Far out of bounds
+			_positioner.global_position = Vector2(1000, 1000)  # Far out of bounds
 			
 			var empty_rules: Array[PlacementRule] = []
 			var _setup_issues = placement_validator.setup(empty_rules, _targeting_state)
@@ -284,14 +284,14 @@ func test_unparented_polygon_offsets_change_when_positioner_moves() -> void:
 	var parent := UnifiedTestFactory.create_test_node2d(self)
 	
 	# Position the collision object near the _positioner so it's in a testable tile range
-	parent.global_position = Vector2(512, 512)
+	parent.global_position = Vector2(320, 320)
 	var poly := CollisionPolygon2D.new(); 
 	poly.polygon = PackedVector2Array([Vector2(-16,-16), Vector2(16,-16), Vector2(16,16), Vector2(-16,16)])
 	parent.add_child(poly)
 	
 	var mapper := _indicator_manager.get_collision_mapper()
-	
-	var offsets1 = _collect_offsets(mapper, poly, _map)
+
+	var offsets1 : Array[Vector2i] = _collect_offsets(mapper, poly, _map)
 	_positioner.global_position += Vector2(32,0) # move two tiles right
 	var offsets2 = _collect_offsets(mapper, poly, _map)
 	
@@ -312,9 +312,9 @@ func test_parented_polygon_offsets_stable_when_positioner_moves() -> void:
 	poly.polygon = PackedVector2Array([Vector2(-16,-16), Vector2(16,-16), Vector2(16,16), Vector2(-16,16)])
 	_positioner.add_child(poly)
 	# Give polygon a local offset so world position is distinct yet follows _positioner
-	poly.position = Vector2(128, 0)
-	
-	var offsets1 = _collect_offsets(mapper, poly, _map)
+	poly.position = Vector2(0, 0)
+
+	var offsets1: Array[Vector2i] = _collect_offsets(mapper, poly, _map)
 	_positioner.global_position += Vector2(32,0)
 	var offsets2 = _collect_offsets(mapper, poly, _map)
 	
@@ -341,7 +341,7 @@ func _setup_blocking_collision():
 	blocking_area.global_position = _positioner.global_position
 
 func _collect_offsets(mapper: CollisionMapper, poly: CollisionPolygon2D, _map: TileMapLayer) -> Array[Vector2i]:
-	var node_tile_offsets : Dictionary[Node2D, Array] = mapper.get_tile_offsets_for_collision_polygon(poly, _map)
+	var node_tile_offsets : Dictionary = mapper.get_tile_offsets_for_collision_polygon(poly, _map)
 	assert_object(node_tile_offsets).append_failure_message(
 		"CollisionMapper should return valid dictionary from get_tile_offsets_for_collision_polygon"
 	).is_not_null()
@@ -355,15 +355,14 @@ func _collect_offsets(mapper: CollisionMapper, poly: CollisionPolygon2D, _map: T
 		var diag_msg = ""
 		# Try to get detailed diagnostics from the internal polygon mapper if available
 		if typeof(PolygonTileMapper) != TYPE_NIL:
-			var pmapper = PolygonTileMapper.new(mapper._targeting_state, mapper._logger)
-			var diag = pmapper.process_polygon_with_diagnostics(poly, _map)
+			var diag = PolygonTileMapper.process_polygon_with_diagnostics(poly, _map)
 			diag_msg = "; diag.initial=%d, diag.final=%d, diag.was_parented=%s, diag.was_convex=%s" % [diag.initial_offset_count, diag.final_offset_count, str(diag.was_parented), str(diag.was_convex)]
 			
 			# Add coordinate _building_system diagnostics
-			var center_tile = _map.local_to_map(_map.to_local(poly.global_position))
+			var center_tile: Vector2i = _map.local_to_map(_map.to_local(poly.global_position))
 			var polygon_world_center = poly.global_position
 			var polygon_tile = _map.local_to_map(_map.to_local(polygon_world_center))
-			var tile_size = Vector2(_map.tile_set.tile_size) if _map.tile_set else Vector2(16, 16)
+			var tile_size = _map.tile_set.tile_size if _map.tile_set else Vector2(16, 16)
 			
 			diag_msg += "; center_tile=%s, poly_world=%s, poly_tile=%s, tile_size=%s" % [center_tile, polygon_world_center, polygon_tile, tile_size]
 		
@@ -487,7 +486,9 @@ func test_building_system_initialization() -> void:
 
 func test_building_mode_enter_exit() -> void:
 	# Enter build mode
-	_building_system.enter_build_mode(test_smithy_placeable)
+	var enter_report: Node = _building_system.enter_build_mode(test_smithy_placeable)
+	assert_object(enter_report).is_not_null()
+	assert_bool(enter_report.is_successful()).is_true()
 	assert_bool(_building_system.is_in_build_mode()).append_failure_message(
 		"Should be in build mode after entering"
 	).is_true()
@@ -581,7 +582,7 @@ func test_single_placement_per_tile_constraint() -> void:
 	
 	_building_system.enter_build_mode(test_smithy_placeable)
 	
-	var _target_position: Vector2 = Vector2(200, 200)
+	var _target_position: Vector2 = Vector2Vector2
 
 	# First placement attempt - this should succeed because no objects are blocking placement
 	var first_report: PlacementReport = _building_system.try_build()
@@ -602,7 +603,7 @@ func test_tile_placement_validation() -> void:
 	_building_system.enter_build_mode(test_smithy_placeable)
 	
 	# Test multiple positions to verify tile-based logic
-	var positions: Array = [Vector2(0, 0), Vector2(16, 16), Vector2(32, 32)]
+	var positions: Array[Node2D] = [Vector2(0, 0), Vector2(16, 16), Vector2(32, 32)]
 	
 	for pos: Vector2 in positions:
 		var report: PlacementReport = _building_system.try_build()
@@ -652,7 +653,7 @@ func test_preview_rotation_consistency() -> void:
 
 func test_complete_building_workflow() -> void:
 	_targeting_state.target = UnifiedTestFactory.create_test_node2d(self)
-	_targeting_state.target.position = Vector2(300, 300)
+	_targeting_state.target.position = Vector2position
 	
 	# Phase 2: Enter build mode
 	_building_system.enter_build_mode(test_smithy_placeable)

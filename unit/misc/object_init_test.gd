@@ -10,7 +10,7 @@ extends GdUnitTestSuite
 
 
 func test_resource_stack_init():
-	var resource_stack = ResourceStack.new()
+	resource_stack: Node = ResourceStack.new()
 
 	assert_object(resource_stack).is_not_null()
 

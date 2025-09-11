@@ -30,7 +30,7 @@ func test_capsule_shape_validation(
 		["Large Capsule", 48.0, 128.0, Rect2(-48, -64, 96, 128), Vector2i(6, 8)]
 	]
 ):
-	var capsule_shape = CapsuleShape2D.new()
+	capsule_shape: Node = CapsuleShape2D.new()
 	capsule_shape.radius = radius
 	capsule_shape.height = height
 
@@ -66,7 +66,7 @@ func test_capsule_shape_validation(
 	)
 
 	# Test tile coverage calculation
-	var tile_size = Vector2(16, 16)
+	var tile_size = Vector2tile_size
 	var tiles_wide = int(ceil(bounds.size.x / tile_size.x))
 	var tiles_high = int(ceil(bounds.size.y / tile_size.y))
 	
@@ -86,14 +86,14 @@ func test_capsule_shape_validation(
 @warning_ignore("unused_parameter")
 func test_trapezoid_shape_validation(
 	case_name: String,
-	points: PackedVector2Array,
+	points: PackedVector2Array[Node2D],
 	expected_bounds: Rect2,
 	expected_tiles: Vector2i,
 	test_parameters := [
-		["Standard Trapezoid", PackedVector2Array([
+		["Standard Trapezoid", PackedVector2Array[Node2D]([
 			Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)
 		]), Rect2(-32, -12, 64, 24), Vector2i(4, 2)],
-		["Wide Trapezoid", PackedVector2Array([
+		["Wide Trapezoid", PackedVector2Array[Node2D]([
 			Vector2(-48, 16), Vector2(-24, -16), Vector2(24, -16), Vector2(48, 16)
 		]), Rect2(-48, -16, 96, 32), Vector2i(6, 2)]
 	]
@@ -126,7 +126,7 @@ func test_trapezoid_shape_validation(
 		.is_equal_approx(expected_bounds.size.y, tolerance)
 	)
 
-	var tile_size = Vector2(16, 16)
+	var tile_size = Vector2tile_size
 	var tiles_wide = int(ceil(bounds.size.x / tile_size.x))
 	var tiles_high = int(ceil(bounds.size.y / tile_size.y))
 
@@ -155,22 +155,19 @@ func test_shape_tile_collision_detection(
 		["Capsule Center Tile", TestShapeType.CAPSULE, {"radius": 14.0, "height": 60.0}, Vector2i(0, 0), TileSet.TILE_SHAPE_SQUARE, true],
 		["Capsule Edge Tile", TestShapeType.CAPSULE, {"radius": 14.0, "height": 60.0}, Vector2i(0, 1), TileSet.TILE_SHAPE_SQUARE, true],
 		["Trapezoid Center Tile", TestShapeType.TRAPEZOID, {
-			"points": PackedVector2Array([
+			"points": PackedVector2Array[Node2D]([
 				Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)
 			])
 		}, Vector2i(0, 0), 0, true],
 		["Trapezoid Edge Tile", TestShapeType.TRAPEZOID, {
-			"points": PackedVector2Array([
+			"points": PackedVector2Array[Node2D]([
 				Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)
 			])
 		}, Vector2i(1, 0), 0, true]
 	]
 ):
-	var tile_size = Vector2(16, 16)
-	var tile_pos = Vector2(
-		tile_offset.x * tile_size.x,
-		tile_offset.y * tile_size.y
-	)
+	var tile_size = Vector2tile_size
+	var tile_pos = Vector2tile_pos
 	
 	var overlaps = false
 	
@@ -211,7 +208,7 @@ func test_shape_symmetry_validation(
 		["Small Capsule", TestShapeType.CAPSULE, {"radius": 7.0, "height": 22.0}],
 		["Medium Capsule", TestShapeType.CAPSULE, {"radius": 14.0, "height": 60.0}],
 		["Standard Trapezoid", TestShapeType.TRAPEZOID, {
-			"points": PackedVector2Array([
+			"points": PackedVector2Array[Node2D]([
 				Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)
 			])
 		}]
@@ -258,7 +255,7 @@ func test_collision_detection_performance():
 	capsule_shape.radius = 48.0
 	capsule_shape.height = 128.0
 	
-	var tile_size = Vector2(16, 16)
+	var tile_size = Vector2tile_size
 	var test_positions = []
 	
 	# Generate test positions in a grid

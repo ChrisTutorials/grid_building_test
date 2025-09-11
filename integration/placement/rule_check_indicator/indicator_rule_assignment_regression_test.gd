@@ -13,7 +13,7 @@ var placer: Node2D
 var obj_parent: Node2D
 
 func before_test():
-	var setup = UnifiedTestFactory.create_complete_building_test_setup(self)
+	setup: Node = UnifiedTestFactory.create_complete_building_test_setup(self)
 	
 	_container = setup.container
 	_injector = setup.injector
@@ -42,7 +42,7 @@ func test_polygon_test_object_indicator_collision_filtering():
 	
 	# Create collision rule using DRY pattern
 	var collision_rule = UnifiedTestFactory.create_test_collisions_check_rule()
-	var rules: Array[PlacementRule] = [collision_rule]
+	var rules: Array[Node2D][PlacementRule] = [collision_rule]
 	
 	# Set up rule validation parameters
 	var targeting_state = _container.get_states().targeting
@@ -132,7 +132,7 @@ func test_indicator_rule_validation():
 	var indicator = UnifiedTestFactory.create_test_rule_check_indicator_with_shape(self, [collision_rule])
 	
 	# Position indicator at a location with no collisions
-	indicator.global_position = Vector2(1000, 1000)
+	indicator.global_position = Vector2global_position
 	
 	indicator.force_shapecast_update()
 	
@@ -144,10 +144,10 @@ func test_indicator_rule_validation():
 	var collision_shape = CollisionShape2D.new()
 	auto_free(collision_shape)
 	var shape = RectangleShape2D.new()
-	shape.size = Vector2(32, 32)
+	shape.size = Vector2size
 	collision_shape.shape = shape
 	collision_object.add_child(collision_shape)
-	collision_object.global_position = Vector2(1000, 1000)
+	collision_object.global_position = Vector2global_position
 	collision_object.collision_layer = 1
 	placer.add_child(collision_object)
 	
@@ -173,7 +173,7 @@ func test_polygon_test_object_center_tile_filtering():
 	
 	# Create collision rule and set up validation using DRY pattern
 	var collision_rule = UnifiedTestFactory.create_test_collisions_check_rule()
-	var rules: Array[PlacementRule] = [collision_rule]
+	var rules: Array[Node2D][PlacementRule] = [collision_rule]
 	
 	# Call try_setup directly on the IndicatorManager
 	var setup_report = indicator_manager.try_setup(rules, _container.get_targeting_state(), true)

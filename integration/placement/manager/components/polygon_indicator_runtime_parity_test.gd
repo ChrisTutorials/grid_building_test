@@ -14,11 +14,14 @@ func before_test():
 	# Set up targeting state with map and positioner
 	_map = auto_free(TileMapLayer.new())
 	_map.tile_set = TileSet.new()
-	_map.tile_set.tile_size = Vector2(16,16)
+	_map.tile_set.tile_size = Vector2tile_size
 	add_child(_map)
 	var tgt := _container.get_targeting_state()
 	tgt.target_map = _map
-	tgt.maps = [_map]
+	
+	# Create properly typed array for maps
+	var maps_array: Array[Node2D][TileMapLayer] = [_map]
+	tgt.maps = maps_array
 	if tgt.positioner == null:
 		tgt.positioner = auto_free(Node2D.new())
 		add_child(tgt.positioner)
@@ -30,7 +33,7 @@ func before_test():
 	
 	# Set up owner context (required for BuildingState.get_owner() to work)
 	var owner_context: GBOwnerContext = _container.get_contexts().owner
-	var owner_node = auto_free(Node2D.new())
+	owner_node: Node = auto_free(Node2D.new())
 	owner_node.name = "TestOwner"
 	add_child(owner_node)
 	var gb_owner := GBOwner.new(owner_node)
@@ -48,23 +51,36 @@ func before_test():
 	_manager = IndicatorManager.create_with_injection(_container)
 	add_child(auto_free(_manager))
 
-func _collect_indicators(pm: IndicatorManager) -> Array[RuleCheckIndicator]:
+func _collect_indicators(pm: IndicatorManager) -> Array[Node2D][RuleCheckIndicator]:
 	return pm.get_indicators() if pm else []
 
 func test_polygon_object_only_generates_overlapping_indicators_and_aligns_preview():
 	var placeable := UnifiedTestFactory.create_polygon_test_placeable(self)
+	
+	# Validate targeting state before entering build mode
+	var targeting_issues: Array[Node2D][String] = _container.get_targeting_state().get_runtime_issues()
+	assert_array(targeting_issues).append_failure_message("Targeting state has issues: %s" % str(targeting_issues)).is_empty()
+	
+	# Set up basic placement rules for BuildingSystem to use
+	var rule := CollisionsCheckRule.new()
+	rule.apply_to_objects_mask = 1 << 0
+	rule.collision_mask = 1 << 0
+	var rules : Array[Node2D][PlacementRule] = [rule]
+	
+	# Configure placeable with our rules so BuildingSystem can use them
+	placeable.placement_rules = rules
+	
 	var report : PlacementReport = _building.enter_build_mode(placeable)
-	assert_bool(report.is_successful()).append_failure_message("enter_build_mode failed").is_true()
+	var error_details = ""
+	if not report.is_successful():
+		error_details = "Build mode errors: %s" % str(report.get_all_issues())
+	assert_bool(report.is_successful()).append_failure_message("enter_build_mode failed. %s" % error_details).is_true()
 
 	# Acquire preview and set up indicators via IndicatorManager
 	var preview := _container.get_building_state().preview as Node2D
 	assert_object(preview).append_failure_message("Preview missing after enter_build_mode").is_not_null()
 
-	# Build basic collisions rule targeting layer bit 0 (to match demo object)
-	var rule := CollisionsCheckRule.new()
-	rule.apply_to_objects_mask = 1 << 0
-	rule.collision_mask = 1 << 0
-	var rules : Array[PlacementRule] = [rule]
+	# Set up indicators using the same rules and ignore base rules (empty in container)
 	var setup_ok := _manager.try_setup(rules, _container.get_states().targeting, true)
 	assert_bool(setup_ok.is_successful()).append_failure_message("IndicatorManager.try_setup failed").is_true()
 
@@ -78,17 +94,17 @@ func test_polygon_object_only_generates_overlapping_indicators_and_aligns_previe
 			poly = c; break
 	assert_object(poly).append_failure_message("Preview lacks CollisionPolygon2D child").is_not_null()
 	var gx := poly.get_global_transform()
-	var world_points := PackedVector2Array()
+	var world_points := PackedVector2Array[Node2D]()
 	for p in poly.polygon:
 		world_points.append(gx * p)
 
 	var tile_size := Vector2(16,16)
 	var min_area := tile_size.x * tile_size.y * 0.05
-	var non_overlapping : Array[String] = []
+	var non_overlapping : Array[Node2D][String] = []
 	for ind in indicators:
 		var center: Vector2 = ind.global_position
 		var top_left := center - tile_size*0.5
-		var area := GBGeometryMath.intersection_area_with_tile(world_points, top_left, tile_size, 0)
+		var area := GBGeometryMath.intersection_area_with_tile(world_points, top_left, tile_size, TileSet.TILE_SHAPE_SQUARE)
 		if area < min_area:
 			non_overlapping.append("%s@%s area=%.3f" % [ind.name, str(_map.local_to_map(_map.to_local(center))), area])
 

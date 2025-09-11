@@ -17,7 +17,7 @@ func test_indicator_collision_test_setup_creation() -> void:
 	auto_free(shape)
 	var rect := RectangleShape2D.new()
 	auto_free(rect)
-	rect.size = Vector2(16, 16)
+	rect.size = Vector2size
 	shape.shape = rect
 	body.add_child(shape)
 
@@ -25,7 +25,7 @@ func test_indicator_collision_test_setup_creation() -> void:
 	await get_tree().process_frame
 
 	# Debug: Check shape owners
-	var shape_owner_count = body.get_shape_owners().size()
+	shape_owner_count: Node = body.get_shape_owners().size()
 	print("DEBUG: Shape owner count: ", shape_owner_count)
 
 	if shape_owner_count > 0:

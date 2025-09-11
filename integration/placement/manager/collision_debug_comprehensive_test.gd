@@ -39,7 +39,7 @@ func test_collision_object_debug_scenarios(
 	add_child(collision_obj)
 	
 	# Create collision shape based on type
-	var collision_shape = auto_free(CollisionShape2D.new())
+	collision_shape: Node = auto_free(CollisionShape2D.new())
 	collision_shape.name = "TestCollisionShape"
 	
 	var shape: Shape2D
@@ -119,7 +119,7 @@ func test_packed_scene_collision_debug_scenarios(
 	var collision_shape = CollisionShape2D.new()  # NO auto_free for PackedScene
 	collision_shape.name = "OriginalCollisionShape"
 	var rect_shape = RectangleShape2D.new()
-	rect_shape.size = Vector2(16, 16)
+	rect_shape.size = Vector2size
 	collision_shape.shape = rect_shape
 	original_obj.add_child(collision_shape)
 	
@@ -166,29 +166,29 @@ func test_polygon_collision_edge_cases():
 	var test_cases = [
 		{
 			"name": "Single Point",
-			"points": PackedVector2Array([Vector2(8, 8)]),
+			"points": PackedVector2Array[Node2D]([Vector2(8, 8)]),
 			"expected_valid": false
 		},
 		{
 			"name": "Two Points (Line)",
-			"points": PackedVector2Array([Vector2(0, 0), Vector2(16, 16)]),
+			"points": PackedVector2Array[Node2D]([Vector2(0, 0), Vector2(16, 16)]),
 			"expected_valid": false
 		},
 		{
 			"name": "Minimal Triangle",
-			"points": PackedVector2Array([Vector2(0, 0), Vector2(8, 0), Vector2(4, 4)]),
+			"points": PackedVector2Array[Node2D]([Vector2(0, 0), Vector2(8, 0), Vector2(4, 4)]),
 			"expected_valid": true
 		},
 		{
 			"name": "Degenerate Rectangle",
-			"points": PackedVector2Array([Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)]),
+			"points": PackedVector2Array[Node2D]([Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)]),
 			"expected_valid": false
 		}
 	]
 	
 	for test_case in test_cases:
 		print("--- Testing: %s ---" % test_case.name)
-		var points = test_case.points as PackedVector2Array
+		var points = test_case.points as PackedVector2Array[Node2D]
 		var expected_valid = test_case.expected_valid as bool
 		
 		print("Input points: %s" % points)

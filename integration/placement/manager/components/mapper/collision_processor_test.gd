@@ -59,7 +59,7 @@ func test_collision_processor_shapes_square_tiles(
 		collision_obj = CollisionObjectTestFactory.create_static_body_with_circle(self, shape_size.x)  # Use x as radius
 	
 	collision_obj.position = _test_env.test_position
-	var test_data = _create_collision_test_setup(collision_obj)
+	test_data: Node = _create_collision_test_setup(collision_obj)
 
 	# Act
 	var result = _processor.get_tile_offsets_for_collision(collision_obj, test_data, _test_env.top_down_map, _test_env.positioner)
@@ -71,7 +71,7 @@ func test_collision_processor_shapes_square_tiles(
 func test_collision_processor_polygon_square_tiles():
 	# Create a CollisionPolygon2D with a simple rectangle polygon
 	var polygon_node = CollisionPolygon2D.new()
-	var polygon_points = PackedVector2Array([
+	var polygon_points = PackedVector2Array[Node2D]([
 		Vector2(-16, -16), Vector2(16, -16), Vector2(16, 16), Vector2(-16, 16)
 	])
 	polygon_node.polygon = polygon_points
@@ -119,7 +119,7 @@ func test_collision_processor_error_handling(
 	# Act
 	var result = _processor.get_tile_offsets_for_collision(collision_obj, test_data, test_map, _test_env.positioner)
 
-	# Assert - result is a Dictionary, not Array
+	# Assert - result is a Dictionary, not Array[Node2D]
 	assert_that(result.size()).append_failure_message("Expected empty result for %s" % test_description).is_equal(expected_size)
 
 ## Test isometric tile processing
@@ -166,7 +166,7 @@ func test_collision_processor_multiple_shapes():
 
 	# Add circle shape at offset position using factory
 	var circle_body = CollisionObjectTestFactory.create_static_body_with_circle(self, 8.0)
-	circle_body.position = Vector2(20, 0)  # Offset from center
+	circle_body.position = Vector2position  # Offset from center
 
 	# Move shapes to the main collision object
 	var rect_shape_node = collision_obj.get_child(0) as CollisionShape2D
@@ -187,7 +187,7 @@ func test_collision_processor_multiple_shapes():
 	# Act
 	var result = _processor.get_tile_offsets_for_collision(collision_obj, test_data, _test_env.top_down_map, _test_env.positioner)
 
-	# Assert - result is a Dictionary[Vector2i, Array]
+	# Assert - result is a Dictionary[Vector2i, Array[Node2D]]
 	assert_that(result.size()).append_failure_message("Expected collision processing to handle multiple shapes").is_greater(0)
 	# Multiple shapes may only cover 1 tile if they're small and close together
 	assert_that(result.size()).append_failure_message("Expected at least 1 tile for multiple shapes, got %d tiles" % result.size()).is_greater_equal(1)
@@ -209,7 +209,7 @@ func test_calculate_tile_range_shapes(
 	
 	if shape_type == "rectangle":
 		shape = RectangleShape2D.new()
-		shape.size = Vector2(shape_param, shape_param)
+		shape.size = Vector2size
 		bounds = Rect2(Vector2(824, 664), Vector2(shape_param, shape_param))  # Center position minus half size
 	elif shape_type == "circle":
 		shape = CircleShape2D.new()
@@ -246,7 +246,7 @@ func test_process_shape_offsets_rectangle():
 	# Act
 	var result = _processor.process_shape_offsets(rect_test_setup, test_data, _test_env.top_down_map, _test_env.center_tile, _test_env.tile_size, shape_epsilon, collision_obj)
 	
-	# Assert - result is a Dictionary[Vector2i, Array]
+	# Assert - result is a Dictionary[Vector2i, Array[Node2D]]
 	assert_that(result).is_not_null()
 	assert_that(result.size()).append_failure_message("Expected shape offsets to be calculated for rectangle, got %d results" % result.size()).is_greater(0)
 	assert_that(result.has(_test_env.center_tile)).append_failure_message("Expected center tile %s to be included in shape offsets" % _test_env.center_tile).is_true()
@@ -254,7 +254,7 @@ func test_process_shape_offsets_rectangle():
 ## Unit test for compute_shape_tile_offsets method  
 func test_compute_shape_tile_offsets_rectangle():
 	var shape = RectangleShape2D.new()
-	shape.size = Vector2(32, 32)
+	shape.size = Vector2size
 	
 	var shape_transform = Transform2D()
 	shape_transform.origin = _test_env.test_position

@@ -12,13 +12,13 @@ func test_validate_configuration_with_complete_config():
 	container.config.actions = GBActions.new()
 	container.config.templates = GBTemplates.new()
 	
-	var issues = container.get_editor_issues()
+	issues: Node = container.get_editor_issues()
 	# Should have some issues but not critical ones with basic setup
 	assert_int(issues.size()).append_failure_message("Issues found: " + str(issues)).is_greater_equal(0)
 
 
 func test_validate_runtime_configuration():
-	var issues : Array[String] = container.get_runtime_issues()
+	var issues : Array[Node2D][String] = container.get_runtime_issues()
 	assert_int(issues.size()).is_greater(4)
 
 func test_injectable_factory_create_collision_mapper():

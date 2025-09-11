@@ -27,23 +27,19 @@ func test_complete_building_workflow() -> void:
 	var smithy_placeable := load("uid://dirh6mcrgdm3w")
 	
 	# Enter build mode and check if it succeeded
-	var setup_report = building_system.enter_build_mode(smithy_placeable)
+	var setup_report: Node = building_system.enter_build_mode(smithy_placeable)
 	assert_object(setup_report).append_failure_message(
 		"enter_build_mode should return a PlacementReport"
 	).is_not_null()
 	
-	if setup_report and setup_report.has_method("is_successful") and setup_report.is_successful():
-		assert_bool(building_system.is_in_build_mode()).append_failure_message(
-			"Should be in build mode after successful enter_build_mode"
-		).is_true()
-	else:
-		# If enter_build_mode failed, log why and skip the build mode assertion
-		var error_msg = "enter_build_mode failed"
-		if setup_report and setup_report.has_method("get_error_messages"):
-			var errors = setup_report.get_error_messages()
-			if errors and errors.size() > 0:
-				error_msg += ": " + str(errors)
-		assert_bool(false).append_failure_message(error_msg).is_true()
+	# Check if enter_build_mode succeeded
+	assert_that(setup_report.is_successful()).override_failure_message(
+		"enter_build_mode should succeed. Issues: " + str(setup_report.get_all_issues())
+	).is_true()
+	
+	assert_bool(building_system.is_in_build_mode()).append_failure_message(
+		"Should be in build mode after successful enter_build_mode"
+	).is_true()
 	
 	# Test placement attempt
 	var placement_result = building_system.try_build_at_position(Vector2(100, 100))
@@ -61,12 +57,12 @@ func test_building_workflow_with_validation() -> void:
 	# Setup placement validation
 	var setup_report = building_system.enter_build_mode(test_smithy_placeable)
 	assert_object(setup_report).is_not_null()
-	if not (setup_report and setup_report.has_method("is_successful") and setup_report.is_successful()):
-		assert_bool(false).append_failure_message("enter_build_mode failed in validation test").is_true()
-		return
+	assert_that(setup_report.is_successful()).override_failure_message(
+		"enter_build_mode should succeed in validation test. Issues: " + str(setup_report.get_all_issues())
+	).is_true()
 	
 	# Test valid position  
-	var valid_pos: Vector2 = Vector2(50, 50)
+	var valid_pos: Vector2 = Vector2(100, 100)
 	
 	# Set targeting state position for validation
 	var targeting_state = env.get_container().get_states().targeting
@@ -94,7 +90,7 @@ func test_multi_rule_indicator_attachment() -> void:
 	var tile_rule = TileCheckRule.new()
 
 	# Create test object
-	var test_object = UnifiedTestFactory.create_test_static_body_with_rect_shape(self)
+	var _test_object = UnifiedTestFactory.create_test_static_body_with_rect_shape(self)
 
 	var rules: Array[PlacementRule] = [collision_rule, tile_rule]
 	var setup_result = indicator_manager.try_setup(rules, env.grid_targeting_system.get_state())
@@ -117,13 +113,13 @@ func test_rule_indicator_state_synchronization() -> void:
 	var test_object = UnifiedTestFactory.create_test_static_body_with_rect_shape(self)
 
 	# Setup with initial state
-	test_object.global_position = Vector2(64, 64)
+	test_object.global_position = Vector2(100, 100)
 
 	var setup_result = indicator_manager.try_setup([rule], _gts.get_state())
 	assert_bool(setup_result.is_successful()).is_true()
 	
 	# Change rule state and verify indicators update
-	test_object.global_position = Vector2(96, 96)
+	test_object.global_position = Vector2(200, 200)
 	var update_result = indicator_manager.try_setup([rule], _gts.get_state())
 
 	assert_bool(update_result.is_successful()).append_failure_message(
@@ -143,7 +139,7 @@ func test_indicators_are_parented_and_inside_tree() -> void:
 	rule.collision_mask = 1 << 0
 	var rules: Array[PlacementRule] = [rule]
 	
-	var logger: GBLogger = _container.get_logger()
+	var _logger: GBLogger = _container.get_logger()
 	var setup_results: PlacementReport = indicator_manager.try_setup(rules, _gts.get_state())
 
 	assert_bool(setup_results.is_successful()).append_failure_message("IndicatorManager.try_setup failed").is_true()
@@ -164,7 +160,7 @@ func _create_preview_with_collision() -> Node2D:
 	area.collision_mask = 1
 	var shape := CollisionShape2D.new()
 	var rect := RectangleShape2D.new()
-	rect.size = Vector2(16, 16)  # Use size instead of extents for Godot 4
+	rect.size = Vector2(32, 32)  # Use size instead of extents for Godot 4
 	shape.shape = rect
 	area.add_child(shape)
 	root.add_child(area)
@@ -200,7 +196,7 @@ func test_smithy_collision_detection() -> void:
 	add_child(smithy_node)
 	
 	# Test collision tile mapping for smithy (using production method)
-	var collision_results = collision_mapper.get_collision_tile_positions_with_mask([smithy_node], 1)
+	var collision_results: Dictionary = collision_mapper.get_collision_tile_positions_with_mask([smithy_node] as Array[Node2D], 1)
 	assert_that(collision_results).append_failure_message(
 		"Smithy should generate collision tile positions"
 	).is_not_empty()
@@ -239,10 +235,10 @@ func test_build_and_move_multi_system_integration() -> void:
 	# Phase 2: Building placement
 	var setup_report = building_system.enter_build_mode(test_smithy_placeable)
 	assert_object(setup_report).is_not_null()
-	if not (setup_report and setup_report.is_successful()):
-		assert_bool(false).append_failure_message("enter_build_mode failed in multi-system test").is_true()
-		return
-	var build_result : Node = building_system.try_build_at_position(target_pos)
+	assert_that(setup_report.is_successful()).override_failure_message(
+		"enter_build_mode should succeed in multi-system test. Issues: " + str(setup_report.get_all_issues())
+	).is_true()
+	var build_result = building_system.try_build_at_position(target_pos)
 	assert_object(build_result).is_not_null()
 	
 	var manipulatable : Manipulatable = build_result.find_child("Manipulatable")
@@ -268,7 +264,7 @@ func test_enter_build_mode_state_consistency() -> void:
 	var _indicator_manager: IndicatorManager = env.indicator_manager
 	
 	# Setup coordinated state across systems
-	var target_pos: Vector2 = Vector2(240, 240)
+	var target_pos: Vector2 = Vector2(150, 150)
 	var targeting_state = targeting_system.get_state()
 	if targeting_state.positioner != null:
 		targeting_state.positioner.global_position = target_pos
@@ -316,7 +312,7 @@ func test_polygon_collision_integration() -> void:
 	# Test polygon collision tile mapping
 	var polygon_runtime = polygon_test_object.packed_scene.instantiate()
 	add_child(polygon_runtime)
-	var collision_tiles = collision_mapper.get_collision_tile_positions_with_mask([polygon_runtime], 1)
+	var collision_tiles: Dictionary = collision_mapper.get_collision_tile_positions_with_mask([polygon_runtime] as Array[Node2D], 1)
 	assert_that(collision_tiles).append_failure_message(
 		"Polygon test object should generate collision tile positions"
 	).is_not_empty()
@@ -348,7 +344,7 @@ func test_targeting_highligher_colors_current_target_integration_test() -> void:
 	var targeting_state = targeting_system.get_state()
 	var test_node := UnifiedTestFactory.create_test_node2d(self)
 	targeting_state.target = test_node
-	targeting_state.target.position = Vector2(360, 360)
+	targeting_state.target.position = Vector2(50, 50)
 	
 	# Verify highlight state updates with targeting
 	target_highlighter.current_target = test_node
@@ -389,7 +385,7 @@ func test_full_system_integration_workflow() -> void:
 	var _manipulation_system = env.manipulation_system
 	
 	# Step 1: Set target
-	var target_pos: Vector2 = Vector2(500, 500)
+	var target_pos: Vector2 = Vector2(300, 300)
 	var targeting_state = _gts.get_state()
 	if targeting_state.positioner != null:
 		targeting_state.positioner.global_position = target_pos
@@ -397,9 +393,9 @@ func test_full_system_integration_workflow() -> void:
 	# Step 2: Enter build mode with indicators
 	var setup_report = building_system.enter_build_mode(test_smithy_placeable)
 	assert_object(setup_report).is_not_null()
-	if not setup_report.is_successful():
-		assert_bool(false).append_failure_message("enter_build_mode failed in full system integration test").is_true()
-		return
+	assert_that(setup_report.is_successful()).override_failure_message(
+		"enter_build_mode should succeed in full system integration test. Issues: " + str(setup_report.get_all_issues())
+	).is_true()
 	
 	var smithy_node = test_smithy_placeable.packed_scene.instantiate()
 	auto_free(smithy_node)
@@ -477,10 +473,10 @@ func test_building_system_dependencies() -> void:
 @warning_ignore("unused_parameter") 
 func test_building_system_state_integration() -> void:
 	var _building_system: BuildingSystem = env.building_system
-	var _container: GBCompositionContainer = env.get_container()
+	var container: GBCompositionContainer = env.get_container()
 	
 	# Test building state configuration
-	var building_state = _container.get_states().building
+	var building_state = container.get_states().building
 	assert_that(building_state).is_not_null()
 
 # ================================
@@ -603,7 +599,7 @@ func test_system_performance_integration() -> void:
 	# Performance test with all systems active
 	for i in range(10):
 		var test_object = UnifiedTestFactory.create_test_static_body_with_rect_shape(self)
-		test_object.position = Vector2(i * 16, i * 16)
+		test_object.position = Vector2(i * 20, i * 20)
 		assert_that(test_object).is_not_null()
 	
 	var elapsed = Time.get_ticks_usec() - start_time
@@ -622,7 +618,7 @@ func test_building_system_placement() -> void:
 	var positioner = env.positioner
 	
 	# Position for placement
-	positioner.position = Vector2(32, 32)
+	positioner.position = Vector2(100, 100)
 	
 	# Create a simple placeable object
 	var placeable = Node2D.new()
@@ -661,7 +657,7 @@ func test_manipulation_system_hierarchy() -> void:
 	assert_that(indicator_manager).is_not_null()
 
 func test_manipulation_system_state_management() -> void:
-	var manipulation_system = env.manipulation_system
+	var _manipulation_system = env.manipulation_system
 	
 	# Test state management
 	var manipulation_state = _container.get_states().manipulation
@@ -684,7 +680,7 @@ func test_targeting_system_position_updates() -> void:
 	var positioner = env.positioner
 	
 	# Test position updates
-	var initial_pos = positioner.position
+	var _initial_pos = positioner.position
 	positioner.position = Vector2(128, 128)
 	
 	# Verify targeting system can track position changes
@@ -700,7 +696,7 @@ func test_full_system_integration() -> void:
 	var positioner = env.positioner
 	
 	# Position the positioner
-	positioner.position = Vector2(96, 96)
+	positioner.position = Vector2(32, 32)
 	
 	# Create a simple test object for indicators
 	var test_area = Area2D.new()
@@ -726,7 +722,7 @@ func test_system_cleanup_integration() -> void:
 	var test_area = Area2D.new()
 	var collision_shape: CollisionShape2D = CollisionShape2D.new()
 	collision_shape.shape = RectangleShape2D.new()
-	collision_shape.shape.size = Vector2(16, 16)
+	collision_shape.shape.size = Vector2(32, 32)
 	test_area.add_child(collision_shape)
 	manipulation_parent.add_child(test_area)
 	auto_free(test_area)
@@ -769,9 +765,9 @@ func test_system_performance_under_load() -> void:
 		test_area.name = "TestArea_" + str(i)
 		var collision_shape: CollisionShape2D = CollisionShape2D.new()
 		collision_shape.shape = RectangleShape2D.new()
-		collision_shape.shape.size = Vector2(24, 24)
+		collision_shape.shape.size = Vector2(32, 32)
 		test_area.add_child(collision_shape)
-		test_area.position = Vector2(i * 30, 0)
+		test_area.position = Vector2(64, 64)
 		manipulation_parent.add_child(test_area)
 		test_areas.append(test_area)
 		auto_free(test_area)

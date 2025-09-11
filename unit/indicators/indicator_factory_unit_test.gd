@@ -16,7 +16,7 @@ func test_indicator_factory_creates_indicators_from_position_map() -> void:
 
 	# Create a simple position-rules map
 	var rule := TileCheckRule.new()
-	var position_rules_map: Dictionary[Vector2i, Array] = {}
+	var position_rules_map: Dictionary[Vector2i, Array[Node2D]] = {}
 	position_rules_map[Vector2i(0, 0)] = [rule]
 	position_rules_map[Vector2i(1, 0)] = [rule]
 
@@ -36,7 +36,7 @@ func test_indicator_factory_handles_empty_position_map() -> void:
 	add_child(parent)
 
 	# Create empty position-rules map
-	var position_rules_map: Dictionary[Vector2i, Array] = {}
+	var position_rules_map: Dictionary[Vector2i, Array[Node2D]] = {}
 
 	var indicators := IndicatorFactory.generate_indicators(position_rules_map, template, parent, gts)
 	assert_that(indicators.size() == 0).append_failure_message("Expected 0 indicators for empty position map").is_true()
@@ -55,7 +55,7 @@ func test_indicator_factory_handles_multiple_rules_per_position() -> void:
 	var rule2 := TileCheckRule.new()
 	rule2.resource_name = "rule2"
 
-	var position_rules_map: Dictionary[Vector2i, Array] = {}
+	var position_rules_map: Dictionary[Vector2i, Array[Node2D]] = {}
 	position_rules_map[Vector2i(0, 0)] = [rule1, rule2]
 
 	var indicators := IndicatorFactory.generate_indicators(position_rules_map, template, parent, gts)

@@ -11,27 +11,27 @@ extends GdUnitTestSuite
 func test_geometry_debug_scenarios_with_tile_shapes(
 	test_name: String,
 	polygon_name: String, 
-	polygon_data: PackedVector2Array, 
+	polygon_data: PackedVector2Array[Node2D], 
 	tile_pos: Vector2,
 	tile_shape: TileSet.TileShape,
 	expected_overlap: bool,
 	test_parameters := [
 		# Square tile tests
-		["trapezoid_square", "trapezoid", PackedVector2Array([Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)]), Vector2(0, 8), TileSet.TILE_SHAPE_SQUARE, true],
-		["rectangle_square", "rectangle", PackedVector2Array([Vector2(-16, -16), Vector2(16, -16), Vector2(16, 16), Vector2(-16, 16)]), Vector2(0, 0), TileSet.TILE_SHAPE_SQUARE, true],
-		["triangle_square", "triangle", PackedVector2Array([Vector2(0, -20), Vector2(20, 20), Vector2(-20, 20)]), Vector2(0, 0), TileSet.TILE_SHAPE_SQUARE, true],
-		["small_square_square", "small_square", PackedVector2Array([Vector2(5, 5), Vector2(10, 5), Vector2(10, 10), Vector2(5, 10)]), Vector2(8, 8), TileSet.TILE_SHAPE_SQUARE, true],
+		["trapezoid_square", "trapezoid", PackedVector2Array[Node2D]([Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)]), Vector2(0, 8), TileSet.TILE_SHAPE_SQUARE, true],
+		["rectangle_square", "rectangle", PackedVector2Array[Node2D]([Vector2(-16, -16), Vector2(16, -16), Vector2(16, 16), Vector2(-16, 16)]), Vector2(0, 0), TileSet.TILE_SHAPE_SQUARE, true],
+		["triangle_square", "triangle", PackedVector2Array[Node2D]([Vector2(0, -20), Vector2(20, 20), Vector2(-20, 20)]), Vector2(0, 0), TileSet.TILE_SHAPE_SQUARE, true],
+		["small_square_square", "small_square", PackedVector2Array[Node2D]([Vector2(5, 5), Vector2(10, 5), Vector2(10, 10), Vector2(5, 10)]), Vector2(8, 8), TileSet.TILE_SHAPE_SQUARE, true],
 		
 		# Isometric tile tests
-		["trapezoid_isometric", "trapezoid", PackedVector2Array([Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)]), Vector2(0, 8), TileSet.TILE_SHAPE_ISOMETRIC, true],
-		["rectangle_isometric", "rectangle", PackedVector2Array([Vector2(-16, -16), Vector2(16, -16), Vector2(16, 16), Vector2(-16, 16)]), Vector2(0, 0), TileSet.TILE_SHAPE_ISOMETRIC, true],
-		["triangle_isometric", "triangle", PackedVector2Array([Vector2(0, -20), Vector2(20, 20), Vector2(-20, 20)]), Vector2(0, 0), TileSet.TILE_SHAPE_ISOMETRIC, true],
-		["diamond_isometric", "diamond", PackedVector2Array([Vector2(8, 0), Vector2(16, 8), Vector2(8, 16), Vector2(0, 8)]), Vector2(0, 0), TileSet.TILE_SHAPE_ISOMETRIC, true],
+		["trapezoid_isometric", "trapezoid", PackedVector2Array[Node2D]([Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)]), Vector2(0, 8), TileSet.TILE_SHAPE_ISOMETRIC, true],
+		["rectangle_isometric", "rectangle", PackedVector2Array[Node2D]([Vector2(-16, -16), Vector2(16, -16), Vector2(16, 16), Vector2(-16, 16)]), Vector2(0, 0), TileSet.TILE_SHAPE_ISOMETRIC, true],
+		["triangle_isometric", "triangle", PackedVector2Array[Node2D]([Vector2(0, -20), Vector2(20, 20), Vector2(-20, 20)]), Vector2(0, 0), TileSet.TILE_SHAPE_ISOMETRIC, true],
+		["diamond_isometric", "diamond", PackedVector2Array[Node2D]([Vector2(8, 0), Vector2(16, 8), Vector2(8, 16), Vector2(0, 8)]), Vector2(0, 0), TileSet.TILE_SHAPE_ISOMETRIC, true],
 		
 		# Half-offset square tile tests
-		["trapezoid_half_offset", "trapezoid", PackedVector2Array([Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)]), Vector2(0, 8), TileSet.TILE_SHAPE_HALF_OFFSET_SQUARE, true],
-		["rectangle_half_offset", "rectangle", PackedVector2Array([Vector2(-16, -16), Vector2(16, -16), Vector2(16, 16), Vector2(-16, 16)]), Vector2(0, 0), TileSet.TILE_SHAPE_HALF_OFFSET_SQUARE, true],
-		["triangle_half_offset", "triangle", PackedVector2Array([Vector2(0, -20), Vector2(20, 20), Vector2(-20, 20)]), Vector2(0, 0), TileSet.TILE_SHAPE_HALF_OFFSET_SQUARE, true],
+		["trapezoid_half_offset", "trapezoid", PackedVector2Array[Node2D]([Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)]), Vector2(0, 8), TileSet.TILE_SHAPE_HALF_OFFSET_SQUARE, true],
+		["rectangle_half_offset", "rectangle", PackedVector2Array[Node2D]([Vector2(-16, -16), Vector2(16, -16), Vector2(16, 16), Vector2(-16, 16)]), Vector2(0, 0), TileSet.TILE_SHAPE_HALF_OFFSET_SQUARE, true],
+		["triangle_half_offset", "triangle", PackedVector2Array[Node2D]([Vector2(0, -20), Vector2(20, 20), Vector2(-20, 20)]), Vector2(0, 0), TileSet.TILE_SHAPE_HALF_OFFSET_SQUARE, true],
 	]
 ) -> void:
 	var tile_size: Vector2 = GodotTestFactory.create_tile_size()
@@ -56,15 +56,15 @@ func test_geometry_debug_scenarios_with_tile_shapes(
 @warning_ignore("unused_parameter")
 func test_geometry_debug_scenarios(
 	polygon_name: String, 
-	polygon_data: PackedVector2Array, 
+	polygon_data: PackedVector2Array[Node2D], 
 	tile_pos: Vector2, 
 	expected_overlap: bool,
 	test_parameters := [
-		["trapezoid", PackedVector2Array([Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)]), Vector2(0, 8), true],
-		["rectangle", PackedVector2Array([Vector2(-16, -16), Vector2(16, -16), Vector2(16, 16), Vector2(-16, 16)]), Vector2(0, 0), true],
-		["triangle", PackedVector2Array([Vector2(0, -20), Vector2(20, 20), Vector2(-20, 20)]), Vector2(0, 0), true],
-		["small_square", PackedVector2Array([Vector2(5, 5), Vector2(10, 5), Vector2(10, 10), Vector2(5, 10)]), Vector2(8, 8), true],
-		["offset_triangle", PackedVector2Array([Vector2(100, 100), Vector2(120, 100), Vector2(110, 120)]), Vector2(110, 110), true]
+		["trapezoid", PackedVector2Array[Node2D]([Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)]), Vector2(0, 8), true],
+		["rectangle", PackedVector2Array[Node2D]([Vector2(-16, -16), Vector2(16, -16), Vector2(16, 16), Vector2(-16, 16)]), Vector2(0, 0), true],
+		["triangle", PackedVector2Array[Node2D]([Vector2(0, -20), Vector2(20, 20), Vector2(-20, 20)]), Vector2(0, 0), true],
+		["small_square", PackedVector2Array[Node2D]([Vector2(5, 5), Vector2(10, 5), Vector2(10, 10), Vector2(5, 10)]), Vector2(8, 8), true],
+		["offset_triangle", PackedVector2Array[Node2D]([Vector2(100, 100), Vector2(120, 100), Vector2(110, 120)]), Vector2(110, 110), true]
 	]
 ) -> void:
 	var tile_size: Vector2 = GodotTestFactory.create_tile_size()
@@ -100,8 +100,8 @@ func _tile_shape_name(tile_shape: TileSet.TileShape) -> String:
 
 func test_polygon_below_threshold_excluded() -> void:
 	# 16x16 tile => area 256. 5% threshold => 12.8. Use 2x2 square (area=4)
-	var poly: PackedVector2Array = PackedVector2Array([Vector2(0,0), Vector2(2,0), Vector2(2,2), Vector2(0,2)])
-	var tiles: Array = CollisionGeometryCalculator.calculate_tile_overlap(
+	var poly: PackedVector2Array[Node2D] = PackedVector2Array[Node2D]([Vector2(0,0), Vector2(2,0), Vector2(2,2), Vector2(0,2)])
+	var tiles: Array[Node2D] = CollisionGeometryCalculator.calculate_tile_overlap(
 		poly, Vector2(16,16), TileSet.TILE_SHAPE_SQUARE, 0.01, 0.05
 	)
 	var tile_count: int = tiles.size()
@@ -111,8 +111,8 @@ func test_polygon_below_threshold_excluded() -> void:
 
 func test_polygon_above_threshold_included() -> void:
 	# 4x4 square (area=16) > 12.8 threshold
-	var poly: PackedVector2Array = PackedVector2Array([Vector2(0,0), Vector2(4,0), Vector2(4,4), Vector2(0,4)])
-	var tiles: Array = CollisionGeometryCalculator.calculate_tile_overlap(
+	var poly: PackedVector2Array[Node2D] = PackedVector2Array[Node2D]([Vector2(0,0), Vector2(4,0), Vector2(4,4), Vector2(0,4)])
+	var tiles: Array[Node2D] = CollisionGeometryCalculator.calculate_tile_overlap(
 		poly, Vector2(16,16), TileSet.TILE_SHAPE_SQUARE, 0.01, 0.05
 	)
 	var tile_count: int = tiles.size()
@@ -122,11 +122,11 @@ func test_polygon_above_threshold_included() -> void:
 
 func test_concave_polygon_void_handling() -> void:
 	# C-shaped polygon with internal void
-	var poly: PackedVector2Array = PackedVector2Array([
+	var poly: PackedVector2Array[Node2D] = PackedVector2Array[Node2D]([
 		Vector2(0,0), Vector2(12,0), Vector2(12,4), Vector2(4,4), 
 		Vector2(4,12), Vector2(12,12), Vector2(12,16), Vector2(0,16)
 	])
-	var tiles = CollisionGeometryCalculator.calculate_tile_overlap(
+	tiles: Node = CollisionGeometryCalculator.calculate_tile_overlap(
 		poly, Vector2(16,16), TileSet.TILE_SHAPE_SQUARE, 0.01, 0.05
 	)
 	# Ensure void isn't filled with phantom tiles
@@ -136,23 +136,23 @@ func test_concave_polygon_void_handling() -> void:
 
 func test_trapezoid_top_left_overlap() -> void:
 	# Simple trapezoid from runtime analysis
-	var trapezoid: PackedVector2Array = PackedVector2Array([
+	var trapezoid: PackedVector2Array[Node2D] = PackedVector2Array[Node2D]([
 		Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)
 	])
 	var tile_size = GodotTestFactory.create_tile_size()
 	
 	# Position at runtime location
-	var positioner_offset: Vector2 = Vector2(808, 680)
-	var collision_polygon_offset: Vector2 = Vector2(8, -8)
+	var positioner_offset: Vector2 = Vector2Vector2
+	var collision_polygon_offset: Vector2 = Vector2Vector2
 	
 	# Transform to world coordinates
-	var world_trapezoid: PackedVector2Array = PackedVector2Array()
+	var world_trapezoid: PackedVector2Array[Node2D] = PackedVector2Array[Node2D]()
 	for point in trapezoid:
 		world_trapezoid.append(positioner_offset + collision_polygon_offset + point)
 	
 	# Test problematic tile from runtime
 	var problematic_tile_coord = Vector2i(49, 41)
-	var tile_world_pos: Vector2 = Vector2(49 * 16, 41 * 16)
+	var tile_world_pos: Vector2 = Vector2Vector2
 	
 	var epsilon = tile_size.x * tile_size.y * 0.05
 	var overlaps = GBGeometryMath.does_polygon_overlap_tile_optimized(
@@ -166,7 +166,7 @@ func test_trapezoid_top_left_overlap() -> void:
 
 func test_correct_trapezoid_geometry() -> void:
 	# Test trapezoid with known geometry properties
-	var trapezoid_points: PackedVector2Array = PackedVector2Array([
+	var trapezoid_points: PackedVector2Array[Node2D] = PackedVector2Array[Node2D]([
 		Vector2(-16, 8), Vector2(-8, -8), Vector2(8, -8), Vector2(16, 8)
 	])
 	
@@ -189,15 +189,15 @@ func test_correct_trapezoid_geometry() -> void:
 @warning_ignore("unused_parameter") 
 func test_polygon_shape_validation(
 	shape_name: String,
-	polygon_points: PackedVector2Array,
+	polygon_points: PackedVector2Array[Node2D],
 	expected_valid: bool,
 	test_parameters := [
-		["valid_triangle", PackedVector2Array([Vector2(0,0), Vector2(16,0), Vector2(8,16)]), true],
-		["valid_rectangle", PackedVector2Array([Vector2(0,0), Vector2(16,0), Vector2(16,16), Vector2(0,16)]), true],
-		["degenerate_line", PackedVector2Array([Vector2(0,0), Vector2(16,0)]), false],
-		["single_point", PackedVector2Array([Vector2(5,5)]), false],
-		["empty_polygon", PackedVector2Array([]), false],
-		["self_intersecting", PackedVector2Array([Vector2(0,0), Vector2(16,16), Vector2(16,0), Vector2(0,16)]), true] # Still valid polygon
+		["valid_triangle", PackedVector2Array[Node2D]([Vector2(0,0), Vector2(16,0), Vector2(8,16)]), true],
+		["valid_rectangle", PackedVector2Array[Node2D]([Vector2(0,0), Vector2(16,0), Vector2(16,16), Vector2(0,16)]), true],
+		["degenerate_line", PackedVector2Array[Node2D]([Vector2(0,0), Vector2(16,0)]), false],
+		["single_point", PackedVector2Array[Node2D]([Vector2(5,5)]), false],
+		["empty_polygon", PackedVector2Array[Node2D]([]), false],
+		["self_intersecting", PackedVector2Array[Node2D]([Vector2(0,0), Vector2(16,16), Vector2(16,0), Vector2(0,16)]), true] # Still valid polygon
 	]
 ) -> void:
 	var is_valid = polygon_points.size() >= 3
@@ -219,14 +219,14 @@ func test_polygon_shape_validation(
 
 func test_indicator_polygon_heuristics() -> void:
 	# Test various polygon types for indicator generation
-	var test_polygons: Array = [
-		{"name": "simple_rect", "points": PackedVector2Array([Vector2(0,0), Vector2(16,0), Vector2(16,16), Vector2(0,16)]), "expected_tiles": 1},
-		{"name": "large_rect", "points": PackedVector2Array([Vector2(0,0), Vector2(32,0), Vector2(32,32), Vector2(0,32)]), "expected_tiles": 4},
-		{"name": "thin_line", "points": PackedVector2Array([Vector2(0,0), Vector2(32,0), Vector2(32,1), Vector2(0,1)]), "expected_tiles": 2}
+	var test_polygons: Array[Node2D] = [
+		{"name": "simple_rect", "points": PackedVector2Array[Node2D]([Vector2(0,0), Vector2(16,0), Vector2(16,16), Vector2(0,16)]), "expected_tiles": 1},
+		{"name": "large_rect", "points": PackedVector2Array[Node2D]([Vector2(0,0), Vector2(32,0), Vector2(32,32), Vector2(0,32)]), "expected_tiles": 4},
+		{"name": "thin_line", "points": PackedVector2Array[Node2D]([Vector2(0,0), Vector2(32,0), Vector2(32,1), Vector2(0,1)]), "expected_tiles": 2}
 	]
 	
 	for polygon_data: Dictionary in test_polygons:
-		var points = polygon_data["points"] as PackedVector2Array
+		var points = polygon_data["points"] as PackedVector2Array[Node2D]
 		var expected_tiles = polygon_data["expected_tiles"] as int
 		var polygon_name = polygon_data["name"] as String
 		
@@ -242,9 +242,9 @@ func test_indicator_polygon_heuristics() -> void:
 
 func test_geometry_math_edge_cases() -> void:
 	# Test edge cases for geometry calculations
-	var empty_polygon: PackedVector2Array = PackedVector2Array([])
-	var single_point: PackedVector2Array = PackedVector2Array([Vector2(5,5)])
-	var line_segment: PackedVector2Array = PackedVector2Array([Vector2(0,0), Vector2(10,0)])
+	var empty_polygon: PackedVector2Array[Node2D] = PackedVector2Array[Node2D]([])
+	var single_point: PackedVector2Array[Node2D] = PackedVector2Array[Node2D]([Vector2(5,5)])
+	var line_segment: PackedVector2Array[Node2D] = PackedVector2Array[Node2D]([Vector2(0,0), Vector2(10,0)])
 	
 	# Test bounds calculations
 	var empty_bounds = GBGeometryMath.get_polygon_bounds(empty_polygon)
@@ -258,8 +258,8 @@ func test_geometry_math_edge_cases() -> void:
 
 func test_polygon_area_calculations() -> void:
 	# Test area calculations using bounds approximation
-	var unit_square: PackedVector2Array = PackedVector2Array([Vector2(0,0), Vector2(1,0), Vector2(1,1), Vector2(0,1)])
-	var triangle: PackedVector2Array = PackedVector2Array([Vector2(0,0), Vector2(2,0), Vector2(1,2)])
+	var unit_square: PackedVector2Array[Node2D] = PackedVector2Array[Node2D]([Vector2(0,0), Vector2(1,0), Vector2(1,1), Vector2(0,1)])
+	var triangle: PackedVector2Array[Node2D] = PackedVector2Array[Node2D]([Vector2(0,0), Vector2(2,0), Vector2(1,2)])
 	
 	var square_bounds = GBGeometryMath.get_polygon_bounds(unit_square)
 	var triangle_bounds = GBGeometryMath.get_polygon_bounds(triangle)
@@ -272,15 +272,15 @@ func test_polygon_area_calculations() -> void:
 
 func test_tile_overlap_comprehensive() -> void:
 	# Test comprehensive tile overlap scenarios
-	var test_cases: Array = [
-		{"polygon": PackedVector2Array([Vector2(8,8), Vector2(24,8), Vector2(24,24), Vector2(8,24)]), "expected_count": 4},  # 2x2 overlap
-		{"polygon": PackedVector2Array([Vector2(0,0), Vector2(15,0), Vector2(15,15), Vector2(0,15)]), "expected_count": 1},  # Single tile
-		{"polygon": PackedVector2Array([Vector2(1,1), Vector2(17,1), Vector2(17,17), Vector2(1,17)]), "expected_count": 3}     # 16x16 polygon offset by 1 pixel - overlaps 3 tiles
+	var test_cases: Array[Node2D] = [
+		{"polygon": PackedVector2Array[Node2D]([Vector2(8,8), Vector2(24,8), Vector2(24,24), Vector2(8,24)]), "expected_count": 4},  # 2x2 overlap
+		{"polygon": PackedVector2Array[Node2D]([Vector2(0,0), Vector2(15,0), Vector2(15,15), Vector2(0,15)]), "expected_count": 1},  # Single tile
+		{"polygon": PackedVector2Array[Node2D]([Vector2(1,1), Vector2(17,1), Vector2(17,17), Vector2(1,17)]), "expected_count": 3}     # 16x16 polygon offset by 1 pixel - overlaps 3 tiles
 	]
 	
 	for i in test_cases.size():
 		var test_case = test_cases[i]
-		var polygon = test_case["polygon"] as PackedVector2Array
+		var polygon = test_case["polygon"] as PackedVector2Array[Node2D]
 		var expected = test_case["expected_count"] as int
 		
 		var tiles = CollisionGeometryCalculator.calculate_tile_overlap(
@@ -334,7 +334,7 @@ func test_get_tile_polygon_for_all_shapes(
 @warning_ignore("unused_parameter") 
 func test_intersection_area_with_tile_for_all_shapes(
 	test_case_name: String,
-	polygon: PackedVector2Array,
+	polygon: PackedVector2Array[Node2D],
 	tile_pos: Vector2,
 	tile_size: Vector2,
 	tile_shape: TileSet.TileShape,
@@ -342,19 +342,19 @@ func test_intersection_area_with_tile_for_all_shapes(
 	expected_area_max: float,
 	test_parameters := [
 		# Small square polygon with various tile shapes
-		["small_square_square_tile", PackedVector2Array([Vector2(4, 4), Vector2(12, 4), Vector2(12, 12), Vector2(4, 12)]), Vector2(0, 0), Vector2(16, 16), TileSet.TILE_SHAPE_SQUARE, 60.0, 70.0],
-		["small_square_isometric_tile", PackedVector2Array([Vector2(4, 4), Vector2(12, 4), Vector2(12, 12), Vector2(4, 12)]), Vector2(0, 0), Vector2(16, 16), TileSet.TILE_SHAPE_ISOMETRIC, 40.0, 70.0],
-		["small_square_half_offset_tile", PackedVector2Array([Vector2(4, 4), Vector2(12, 4), Vector2(12, 12), Vector2(4, 12)]), Vector2(0, 0), Vector2(16, 16), TileSet.TILE_SHAPE_HALF_OFFSET_SQUARE, 60.0, 70.0],
+		["small_square_square_tile", PackedVector2Array[Node2D]([Vector2(4, 4), Vector2(12, 4), Vector2(12, 12), Vector2(4, 12)]), Vector2(0, 0), Vector2(16, 16), TileSet.TILE_SHAPE_SQUARE, 60.0, 70.0],
+		["small_square_isometric_tile", PackedVector2Array[Node2D]([Vector2(4, 4), Vector2(12, 4), Vector2(12, 12), Vector2(4, 12)]), Vector2(0, 0), Vector2(16, 16), TileSet.TILE_SHAPE_ISOMETRIC, 40.0, 70.0],
+		["small_square_half_offset_tile", PackedVector2Array[Node2D]([Vector2(4, 4), Vector2(12, 4), Vector2(12, 12), Vector2(4, 12)]), Vector2(0, 0), Vector2(16, 16), TileSet.TILE_SHAPE_HALF_OFFSET_SQUARE, 60.0, 70.0],
 		
 		# Center square polygon (should fully overlap with all tile types)
-		["center_square_square_tile", PackedVector2Array([Vector2(6, 6), Vector2(10, 6), Vector2(10, 10), Vector2(6, 10)]), Vector2(0, 0), Vector2(16, 16), TileSet.TILE_SHAPE_SQUARE, 15.0, 17.0],
-		["center_square_isometric_tile", PackedVector2Array([Vector2(6, 6), Vector2(10, 6), Vector2(10, 10), Vector2(6, 10)]), Vector2(0, 0), Vector2(16, 16), TileSet.TILE_SHAPE_ISOMETRIC, 15.0, 17.0],
-		["center_square_half_offset_tile", PackedVector2Array([Vector2(6, 6), Vector2(10, 6), Vector2(10, 10), Vector2(6, 10)]), Vector2(0, 0), Vector2(16, 16), TileSet.TILE_SHAPE_HALF_OFFSET_SQUARE, 15.0, 17.0],
+		["center_square_square_tile", PackedVector2Array[Node2D]([Vector2(6, 6), Vector2(10, 6), Vector2(10, 10), Vector2(6, 10)]), Vector2(0, 0), Vector2(16, 16), TileSet.TILE_SHAPE_SQUARE, 15.0, 17.0],
+		["center_square_isometric_tile", PackedVector2Array[Node2D]([Vector2(6, 6), Vector2(10, 6), Vector2(10, 10), Vector2(6, 10)]), Vector2(0, 0), Vector2(16, 16), TileSet.TILE_SHAPE_ISOMETRIC, 15.0, 17.0],
+		["center_square_half_offset_tile", PackedVector2Array[Node2D]([Vector2(6, 6), Vector2(10, 6), Vector2(10, 10), Vector2(6, 10)]), Vector2(0, 0), Vector2(16, 16), TileSet.TILE_SHAPE_HALF_OFFSET_SQUARE, 15.0, 17.0],
 		
 		# No overlap cases
-		["no_overlap_square_tile", PackedVector2Array([Vector2(20, 20), Vector2(24, 20), Vector2(24, 24), Vector2(20, 24)]), Vector2(0, 0), Vector2(16, 16), TileSet.TILE_SHAPE_SQUARE, 0.0, 0.1],
-		["no_overlap_isometric_tile", PackedVector2Array([Vector2(20, 20), Vector2(24, 20), Vector2(24, 24), Vector2(20, 24)]), Vector2(0, 0), Vector2(16, 16), TileSet.TILE_SHAPE_ISOMETRIC, 0.0, 0.1],
-		["no_overlap_half_offset_tile", PackedVector2Array([Vector2(20, 20), Vector2(24, 20), Vector2(24, 24), Vector2(20, 24)]), Vector2(0, 0), Vector2(16, 16), TileSet.TILE_SHAPE_HALF_OFFSET_SQUARE, 0.0, 0.1],
+		["no_overlap_square_tile", PackedVector2Array[Node2D]([Vector2(20, 20), Vector2(24, 20), Vector2(24, 24), Vector2(20, 24)]), Vector2(0, 0), Vector2(16, 16), TileSet.TILE_SHAPE_SQUARE, 0.0, 0.1],
+		["no_overlap_isometric_tile", PackedVector2Array[Node2D]([Vector2(20, 20), Vector2(24, 20), Vector2(24, 24), Vector2(20, 24)]), Vector2(0, 0), Vector2(16, 16), TileSet.TILE_SHAPE_ISOMETRIC, 0.0, 0.1],
+		["no_overlap_half_offset_tile", PackedVector2Array[Node2D]([Vector2(20, 20), Vector2(24, 20), Vector2(24, 24), Vector2(20, 24)]), Vector2(0, 0), Vector2(16, 16), TileSet.TILE_SHAPE_HALF_OFFSET_SQUARE, 0.0, 0.1],
 	]
 ) -> void:
 	var intersection_area = GBGeometryMath.intersection_area_with_tile(polygon, tile_pos, tile_size, tile_shape)
@@ -372,21 +372,21 @@ func test_intersection_area_with_tile_for_all_shapes(
 @warning_ignore("unused_parameter")
 func test_does_polygon_overlap_tile_for_all_shapes(
 	test_case_name: String,
-	polygon: PackedVector2Array,
+	polygon: PackedVector2Array[Node2D],
 	tile_pos: Vector2,
 	tile_size: Vector2,
 	tile_shape: TileSet.TileShape,
 	expected_overlap: bool,
 	test_parameters := [
 		# Overlapping cases
-		["overlap_square_tile", PackedVector2Array([Vector2(8, 8), Vector2(16, 8), Vector2(16, 16), Vector2(8, 16)]), Vector2(0, 0), Vector2(16, 16), TileSet.TILE_SHAPE_SQUARE, true],
-		["overlap_isometric_tile", PackedVector2Array([Vector2(8, 8), Vector2(16, 8), Vector2(16, 16), Vector2(8, 16)]), Vector2(0, 0), Vector2(16, 16), TileSet.TILE_SHAPE_ISOMETRIC, true],
-		["overlap_half_offset_tile", PackedVector2Array([Vector2(8, 8), Vector2(16, 8), Vector2(16, 16), Vector2(8, 16)]), Vector2(0, 0), Vector2(16, 16), TileSet.TILE_SHAPE_HALF_OFFSET_SQUARE, true],
+		["overlap_square_tile", PackedVector2Array[Node2D]([Vector2(8, 8), Vector2(16, 8), Vector2(16, 16), Vector2(8, 16)]), Vector2(0, 0), Vector2(16, 16), TileSet.TILE_SHAPE_SQUARE, true],
+		["overlap_isometric_tile", PackedVector2Array[Node2D]([Vector2(8, 8), Vector2(16, 8), Vector2(16, 16), Vector2(8, 16)]), Vector2(0, 0), Vector2(16, 16), TileSet.TILE_SHAPE_ISOMETRIC, true],
+		["overlap_half_offset_tile", PackedVector2Array[Node2D]([Vector2(8, 8), Vector2(16, 8), Vector2(16, 16), Vector2(8, 16)]), Vector2(0, 0), Vector2(16, 16), TileSet.TILE_SHAPE_HALF_OFFSET_SQUARE, true],
 		
 		# Non-overlapping cases  
-		["no_overlap_square_tile", PackedVector2Array([Vector2(20, 20), Vector2(24, 20), Vector2(24, 24), Vector2(20, 24)]), Vector2(0, 0), Vector2(16, 16), TileSet.TILE_SHAPE_SQUARE, false],
-		["no_overlap_isometric_tile", PackedVector2Array([Vector2(20, 20), Vector2(24, 20), Vector2(24, 24), Vector2(20, 24)]), Vector2(0, 0), Vector2(16, 16), TileSet.TILE_SHAPE_ISOMETRIC, false],
-		["no_overlap_half_offset_tile", PackedVector2Array([Vector2(20, 20), Vector2(24, 20), Vector2(24, 24), Vector2(20, 24)]), Vector2(0, 0), Vector2(16, 16), TileSet.TILE_SHAPE_HALF_OFFSET_SQUARE, false],
+		["no_overlap_square_tile", PackedVector2Array[Node2D]([Vector2(20, 20), Vector2(24, 20), Vector2(24, 24), Vector2(20, 24)]), Vector2(0, 0), Vector2(16, 16), TileSet.TILE_SHAPE_SQUARE, false],
+		["no_overlap_isometric_tile", PackedVector2Array[Node2D]([Vector2(20, 20), Vector2(24, 20), Vector2(24, 24), Vector2(20, 24)]), Vector2(0, 0), Vector2(16, 16), TileSet.TILE_SHAPE_ISOMETRIC, false],
+		["no_overlap_half_offset_tile", PackedVector2Array[Node2D]([Vector2(20, 20), Vector2(24, 20), Vector2(24, 24), Vector2(20, 24)]), Vector2(0, 0), Vector2(16, 16), TileSet.TILE_SHAPE_HALF_OFFSET_SQUARE, false],
 	]
 ) -> void:
 	var overlaps = GBGeometryMath.does_polygon_overlap_tile(polygon, tile_pos, tile_size, tile_shape, 0.01)
@@ -398,22 +398,22 @@ func test_does_polygon_overlap_tile_for_all_shapes(
 
 func test_gb_geometry_math_edge_cases() -> void:
 	# Test edge cases for geometry math functions
-	var tile_size = Vector2(16, 16)
-	var tile_pos = Vector2(0, 0)
+	var tile_size = Vector2tile_size
+	var tile_pos = Vector2tile_pos
 	
 	# Empty polygon
-	var empty_polygon = PackedVector2Array([])
+	var empty_polygon = PackedVector2Array[Node2D]([])
 	var empty_area = GBGeometryMath.intersection_area_with_tile(empty_polygon, tile_pos, tile_size, TileSet.TILE_SHAPE_SQUARE)
 	assert_float(empty_area).is_equal(0.0)
 	
 	# Single point
-	var point_polygon = PackedVector2Array([Vector2(8, 8)])
+	var point_polygon = PackedVector2Array[Node2D]([Vector2(8, 8)])
 	var point_area = GBGeometryMath.intersection_area_with_tile(point_polygon, tile_pos, tile_size, TileSet.TILE_SHAPE_SQUARE) 
 	assert_float(point_area).is_equal(0.0)
 	
 	# Zero-size tile
 	var zero_tile_area = GBGeometryMath.intersection_area_with_tile(
-		PackedVector2Array([Vector2(0, 0), Vector2(8, 0), Vector2(8, 8), Vector2(0, 8)]), 
+		PackedVector2Array[Node2D]([Vector2(0, 0), Vector2(8, 0), Vector2(8, 8), Vector2(0, 8)]), 
 		Vector2(0, 0), 
 		Vector2(0, 0), 
 		TileSet.TILE_SHAPE_SQUARE

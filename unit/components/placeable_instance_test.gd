@@ -3,7 +3,7 @@ extends GdUnitTestSuite
 @warning_ignore("unused_parameter")
 @warning_ignore("return_value_discarded")
 
-var placeable_path = "uid://cqknt0ejxvq4m"
+placeable_path: Node = "uid://cqknt0ejxvq4m"
 
 
 func test_instance_from_save_does_not_duplicate_node():

@@ -9,7 +9,7 @@ var _container: GBCompositionContainer
 
 func before_test() -> void:
 	# Use a basic test environment
-	var test_env = UnifiedTestFactory.instance_building_test_env(self, "uid://c4ujk08n8llv8")
+	test_env: Node = UnifiedTestFactory.instance_building_test_env(self, "uid://c4ujk08n8llv8")
 	_container = test_env.get_container()
 
 func after_test() -> void:
