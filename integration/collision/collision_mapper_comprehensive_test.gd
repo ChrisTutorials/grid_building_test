@@ -326,10 +326,3 @@ func test_collision_mapper_shape_processing() -> void:
 	assert_dict(collision_results).append_failure_message(
 		"Test collision object should generate collision tiles"
 	).is_not_empty()
-
-func test_collision_mapper_caching() -> void:
-	# Skip caching test - internal cache implementation not exposed via public API
-	# The collision processor handles caching internally via invalidate_cache()
-	assert_bool(true).append_failure_message(
-		"Caching test skipped - implementation details not exposed"
-	).is_true()

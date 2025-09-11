@@ -171,16 +171,16 @@ func test_simple_collision_object_generates_indicators() -> void:
 		"No indicator found with the unoccupied space rule. Indicators: %s, Preview layers: %s, Placeable rules: %s" % [str(indicator_debug_info), preview_layers_str, str(placeable.placement_rules)]
 	).is_true()
 
-	# Extra: Assert at least one indicator has a rule with collision_mask 1 (bit 0)
+	# Extra: Assert at least one indicator has a rule with collision_mask 513 (bits 0+9)
 	var found_layer0_rule: bool = false
 	for indicator in indicators:
 		var rules: Array[TileCheckRule] = indicator.get_rules()
 		for rule: TileCheckRule in rules:
-			if rule.collision_mask == 1:
+			if rule.collision_mask == 513:  # Updated to match unoccupied_space rule collision_mask
 				found_layer0_rule = true
 				break
 	assert_bool(found_layer0_rule).append_failure_message(
-		"No indicator found with a rule for collision_mask 1 (bit 0). Indicators: %s" % [str(indicator_debug_info)]
+		"No indicator found with a rule for collision_mask 513 (bits 0+9). Indicators: %s" % [str(indicator_debug_info)]
 	).is_true()
 
 ## Helper: Convert bitmask to layer string (e.g. 513 -> 'bits 0+9')
