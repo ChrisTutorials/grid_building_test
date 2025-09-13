@@ -10,7 +10,7 @@ var _preview : Node2D
 var _rules : Array[PlacementRule]
 var _manager : IndicatorManager
 
-func before_test():
+func before_test() -> void:
 	# Use the shared test container (injected resource) and its targeting state so internal systems see configured maps
 	_container = preload("uid://dy6e5p5d6ax6n")
 	
@@ -18,7 +18,7 @@ func before_test():
 	_targeting = _container.get_states().targeting
 	_map = auto_free(TileMapLayer.new())
 	_map.tile_set = TileSet.new()
-	_map.tile_set.tile_size = Vector2tile_size
+	_map.tile_set.tile_size = Vector2(16, 16)
 	add_child(_map)
 	_targeting.target_map = _map
 	_targeting.maps = [_map]
@@ -43,17 +43,17 @@ func before_test():
 	_targeting.positioner.add_child(_preview)
 
 	# Reduce debug verbosity to avoid unrelated formatting/log noise during this focused geometry test
-	dbg: Node = _container.get_debug_settings()
+	var dbg: GBDebugSettings = _container.get_debug_settings()
 	dbg.set_debug_level(GBDebugSettings.DebugLevel.ERROR)
 	# Build explicit collisions rule with mask bit 0
-	var rule := CollisionsCheckRule.new()
+	var rule: CollisionsCheckRule = CollisionsCheckRule.new()
 	rule.apply_to_objects_mask = 1 << 0
 	rule.collision_mask = 1 << 0
 	_rules = [rule]
 	var setup_ok := _manager.try_setup(_rules, _container.get_targeting_state(), true)
 	assert_bool(setup_ok.is_successful()).append_failure_message("IndicatorManager.try_setup failed for concave polygon test").is_true()
 
-func after_test():
+func after_test() -> void:
 	if _validator:
 		_validator.tear_down()
 	if _manager:
@@ -63,20 +63,20 @@ func _collect_indicators() -> Array[RuleCheckIndicator]:
 	return _manager.get_indicators() if _manager else []
 
 ## Expect multiple indicators but not a full bounding box fill (which would indicate concavity not handled)
-func test_concave_polygon_generates_expected_indicator_distribution():
-	var indicators := _collect_indicators()
-	
+func test_concave_polygon_generates_expected_indicator_distribution() -> void:
+	var indicators: Array[RuleCheckIndicator] = _collect_indicators()
+
 	assert_array(indicators).append_failure_message("No indicators generated for concave polygon – investigate rule attach path. Indicators not generated; test pending implementation.").is_not_empty()
 
-	var tiles : Array[Vector2i] = []
+	var tiles: Array[Vector2i] = []
 	for ind in indicators:
 		var tile := _map.local_to_map(_map.to_local(ind.global_position))
 		if tile not in tiles:
 			tiles.append(tile)
-	min_x: Node = 9999 
-	var max_x = -9999 
-	var min_y = 9999 
-	var max_y = -9999
+	var min_x: int = 9999
+	var max_x: int = -9999
+	var min_y: int = 9999
+	var max_y: int = -9999
 
 	for t in tiles:
 		min_x = min(min_x,t.x) 
@@ -84,6 +84,6 @@ func test_concave_polygon_generates_expected_indicator_distribution():
 		min_y = min(min_y,t.y) 
 		max_y = max(max_y,t.y)
 
-	var bbox_cells = (max_x-min_x+1)*(max_y-min_y+1)
-	var is_size_less_than_bbox_cells = tiles.size() < bbox_cells
+	var bbox_cells: int = (max_x-min_x+1)*(max_y-min_y+1)
+	var is_size_less_than_bbox_cells: bool = tiles.size() < bbox_cells
 	assert_bool(is_size_less_than_bbox_cells).append_failure_message("Concavity not reflected; full rectangle filled. tiles=%s" % [tiles]).is_true()

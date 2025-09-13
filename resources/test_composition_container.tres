@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="GBCompositionContainer" load_steps=37 format=3 uid="uid://dy6e5p5d6ax6n"]
+[gd_resource type="Resource" script_class="GBCompositionContainer" load_steps=38 format=3 uid="uid://dy6e5p5d6ax6n"]
 
 [ext_resource type="Script" uid="uid://des845magnt6c" path="res://addons/grid_building/resources/gb_composition_container.gd" id="1_dmsol"]
 [ext_resource type="Script" uid="uid://b8qexmaqap2qt" path="res://addons/grid_building/resources/actions/gb_actions.gd" id="1_ytodv"]
@@ -23,6 +23,7 @@
 [ext_resource type="Script" uid="uid://bx4yfcdkh6gy0" path="res://addons/grid_building/components/cursor_settings.gd" id="18_mlskn"]
 [ext_resource type="Script" uid="uid://b4kfcjekrmwxx" path="res://addons/grid_building/systems/grid_targeting/highlight_settings.gd" id="19_qmmuh"]
 [ext_resource type="Script" uid="uid://cfctk3ri3cvda" path="res://addons/grid_building/ui/target_informer/target_info_settings.gd" id="21_2wnb5"]
+[ext_resource type="Resource" uid="uid://du7xu07247202" path="res://test/grid_building_test/resources/rules/test_collision_rule.tres" id="22_collision"]
 
 [sub_resource type="Resource" id="Resource_tvqac"]
 script = ExtResource("1_ytodv")
@@ -117,7 +118,7 @@ manipulation = SubResource("Resource_2wnb5")
 targeting = ExtResource("10_4v08y")
 visual = SubResource("Resource_2w8xp")
 messages = SubResource("Resource_2l661")
-placement_rules = Array[ExtResource("8_ytodv")]([])
+placement_rules = Array[ExtResource("8_ytodv")]([ExtResource("22_collision")])
 runtime_checks = SubResource("Resource_h32ty")
 debug = SubResource("Resource_qmmuh")
 metadata/_custom_type_script = "uid://c07xmsvybhcx7"

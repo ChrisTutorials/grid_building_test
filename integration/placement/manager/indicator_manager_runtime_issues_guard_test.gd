@@ -2,7 +2,7 @@ extends GdUnitTestSuite
 	
 var _injector : GBInjectorSystem
 
-func test_setup_indicators_aborts_when_targeting_has_runtime_issues():
+func test_setup_indicators_aborts_when_targeting_has_runtime_issues() -> void:
 	# Arrange: create composition container and setup with intentional runtime issues
 	var container := UnifiedTestFactory.create_test_composition_container(self)
 	_injector = UnifiedTestFactory.create_test_injector(self, container)

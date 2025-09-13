@@ -12,7 +12,7 @@ func before_test() -> void:
 #region COLLISION MAPPING
 
 func test_collision_mapping_performance() -> void:
-	var collision_mapper: Node = test_hierarchy.collision_mapper
+	var collision_mapper: CollisionMapper = test_hierarchy.indicator_manager.get_collision_mapper()
 	var _tile_map: TileMapLayer = test_hierarchy.tile_map
 	var positioner: Node2D = test_hierarchy.positioner
 	
@@ -92,7 +92,7 @@ func test_rule_checking_performance() -> void:
 	for pos: Vector2 in positions:
 		positioner.position = pos
 		# Use validate_placement method from IndicatorManager
-		var result: Variant = indicator_manager.validate_placement()
+		var result: PlacementReport = indicator_manager.validate_placement()
 		assert_that(result).is_not_null()
 	
 	var end_time: int = Time.get_ticks_msec()
@@ -102,8 +102,8 @@ func test_rule_checking_performance() -> void:
 	assert_int(elapsed).is_less(75)
 
 func test_full_system_integration_performance() -> void:
-	var building_system: Variant = test_hierarchy.building_system
-	var targeting_system: Variant = test_hierarchy.targeting_system
+	var building_system: BuildingSystem = test_hierarchy.building_system
+	var targeting_system: GridTargetingSystem = test_hierarchy.targeting_system
 	
 	# Test full workflow performance
 	var test_positions: Array[Vector2] = [
@@ -116,7 +116,7 @@ func test_full_system_integration_performance() -> void:
 	for pos: Vector2 in test_positions:
 		# Simulate full interaction workflow
 		if targeting_system:
-			var targeting_state: Variant = targeting_system.get_state()
+			var targeting_state: GridTargetingState = targeting_system.get_state()
 			targeting_state.target.position = pos
 		
 		if building_system:

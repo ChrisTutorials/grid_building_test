@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="TileCheckRule" load_steps=2 format=3 uid="uid://bbmmdkiwwuj4a"]
+
+[ext_resource type="Script" uid="uid://cddjwc7btgmqk" path="res://addons/grid_building/placement/placement_rules/tile_check_rule.gd" id="1_gwqww"]
+
+[resource]
+script = ExtResource("1_gwqww")
+apply_to_objects_mask = 1
+visual_priority = 0
+metadata/_custom_type_script = "uid://cddjwc7btgmqk"

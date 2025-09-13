@@ -17,8 +17,38 @@ var data_source_is_target: ManipulationData
 var data_source_is_not_target: ManipulationData
 var composition_container: GBCompositionContainer
 
+# ================================
+# Helper Functions for DRY Patterns
+# ================================
 
-func before_test():
+func create_test_target_with_manipulatable() -> Node2D:
+	"""Create a test target Node2D with a manipulatable child for valid state testing."""
+	var target: Node2D = auto_free(Node2D.new())
+	add_child(target)
+	var manipulatable: Manipulatable = auto_free(Manipulatable.new())
+	manipulatable.settings = create_default_manipulatable_settings()
+	target.add_child(manipulatable)
+	return target
+
+func create_default_manipulatable_settings() -> ManipulatableSettings:
+	"""Create default ManipulatableSettings with movable and demolishable enabled."""
+	var manipulatable_settings: ManipulatableSettings = ManipulatableSettings.new()
+	manipulatable_settings.movable = true
+	manipulatable_settings.demolishable = true
+	return manipulatable_settings
+
+func assert_color_equal(actual: Color, expected: Color, context: String = "") -> void:
+	"""Assert that two colors are equal with optional context."""
+	assert_that(actual).append_failure_message("Color assertion failed: %s" % context).is_equal(expected)
+
+func setup_mode_and_assert_initial_state(mode_value: GBEnums.Mode, canvas: Node2D) -> void:
+	"""Set the mode and assert initial canvas state."""
+	highlighter.mode_state.current = mode_value
+	assert_that(highlighter.mode_state.current).is_equal(mode_value)
+	assert_color_equal(canvas.modulate, Color.WHITE, "Initial canvas modulate should be white")
+
+
+func before_test() -> void:
 	highlighter = TargetHighlighter.new()
 	settings = HighlightSettings.new()
 	composition_container = GBCompositionContainer.new()
@@ -70,7 +100,7 @@ func test_target_modulate_clears_on_target_null() -> void:
 	await await_idle_frame()
 	assert_that(highlighter.current_target).is_null()
 	assert_that(target).is_not_null()
-	assert_that(target.modulate).is_equal(settings.reset_color)
+	assert_color_equal(target.modulate, settings.reset_color, "Target modulate should reset to reset_color")
 
 
 @warning_ignore("unused_parameter")
@@ -82,33 +112,29 @@ func test__on_target_changed(
 	p_expected_valid: Color,
 	test_parameters := [
 		[GBEnums.Mode.OFF, settings.reset_color, settings.reset_color],
-		[GBEnums.Mode.BUILD, settings.build_preview_color, settings.build_preview_color],  # NOTE: There is no invalid build preview so color is the same
+		[GBEnums.Mode.BUILD, settings.build_preview_color, settings.build_preview_color],
 		[GBEnums.Mode.MOVE, settings.move_invalid_color, settings.move_valid_color],
 		[GBEnums.Mode.DEMOLISH, settings.demolish_invalid_color, settings.demolish_valid_color]
 	]
 ) -> void:
 	mode.current = p_mode
 
-	target: Node = auto_free(Node2D.new())
+	var target: Node2D = auto_free(Node2D.new())
 	add_child(target)
 	highlighter._on_target_changed(target, null)
 
 	assert_object(highlighter.current_target).is_equal(target)
-	assert_object(target.modulate).is_equal(p_expected_invalid)
+	assert_color_equal(target.modulate, p_expected_invalid, "Target should have invalid color initially")
 
 	#region Add manipulatable to make it valid
-	var manipulatable = auto_free(Manipulatable.new())
-	manipulatable.settings = ManipulatableSettings.new()
-	manipulatable.settings.movable = true
-	manipulatable.settings.demolishable = true
-	target.add_child(manipulatable)
+	var target_with_manipulatable: Node2D = create_test_target_with_manipulatable()
 
 	# Reset the target so that when it's added again, it can check for manipulatable a second time
 	highlighter.current_target = null
-	highlighter._on_target_changed(target, null)
+	highlighter._on_target_changed(target_with_manipulatable, null)
 	#endregion
 
-	assert_object(target.modulate).is_equal(p_expected_valid)
+	assert_color_equal(target_with_manipulatable.modulate, p_expected_valid, "Target with manipulatable should have valid color")
 
 
 @warning_ignore("unused_parameter")
@@ -117,7 +143,7 @@ func test__on_target_changed(
 func test_set_movable_display(
 	p_moveable: bool,
 	p_expected_color: Color,
-	p_target,
+	p_target: Node2D,
 	test_parameters := [
 		[true, settings.move_valid_color, auto_free(Node2D.new())],
 		[false, settings.move_invalid_color, auto_free(Node2D.new())],
@@ -125,8 +151,8 @@ func test_set_movable_display(
 	]
 ) -> void:
 	highlighter.current_target = p_target
-	var result_color = highlighter.set_movable_display(p_target, p_moveable)
-	assert_that(result_color).is_equal(p_expected_color)
+	var result_color: Color = highlighter.set_movable_display(p_target, p_moveable)
+	assert_color_equal(result_color, p_expected_color)
 
 
 @warning_ignore("unused_parameter")
@@ -135,15 +161,15 @@ func test_set_movable_display(
 func test_set_demolish_display(
 	p_moveable: bool,
 	p_expected_color: Color,
-	p_target,
+	p_target: Node2D,
 	test_parameters := [
 		[true, settings.demolish_valid_color, auto_free(Node2D.new())],
 		[false, settings.demolish_invalid_color, auto_free(Node2D.new())],
 		[false, Color.BLACK, null]  # Null target test
 	]
 ) -> void:
-	var color = highlighter.set_demolish_display(p_target, p_moveable)
-	assert_that(color).is_equal(p_expected_color)
+	var color: Color = highlighter.set_demolish_display(p_target, p_moveable)
+	assert_color_equal(color, p_expected_color)
 
 
 @warning_ignore("unused_parameter")
@@ -161,25 +187,23 @@ func test_set_actionable_colors(
 		[GBEnums.Mode.DEMOLISH, true, settings.demolish_valid_color],
 	]
 ) -> void:
-	var canvas = auto_free(Node2D.new())
+	var canvas: Node2D = auto_free(Node2D.new())
 	add_child(canvas)
-	highlighter.mode_state.current = p_mode
+	setup_mode_and_assert_initial_state(p_mode, canvas)
 
 	if p_add_manipulatable_settings:
 		add_child_manipulatable_with_settings(canvas)
 
-	assert_that(highlighter.mode_state.current).is_equal(p_mode)
-	assert_that(canvas.modulate).is_equal(Color.WHITE)
-	var result = highlighter.set_actionable_colors(canvas)
-	assert_that(result).is_equal(p_expected)
+	var result: Color = highlighter.set_actionable_colors(canvas)
+	assert_color_equal(result, p_expected)
 
 
 ## Creates a child manipulatable with ManipulatableSettings set to default
 ## as a child of the p_target node
-func add_child_manipulatable_with_settings(p_target: Node):
-	var manipulatable = auto_free(Manipulatable.new())
+func add_child_manipulatable_with_settings(p_target: Node) -> void:
+	var manipulatable: Manipulatable = auto_free(Manipulatable.new())
 	p_target.add_child(manipulatable)
-	var manipulatable_settings = ManipulatableSettings.new()
+	var manipulatable_settings: ManipulatableSettings = create_default_manipulatable_settings()
 	manipulatable.settings = manipulatable_settings
 
 

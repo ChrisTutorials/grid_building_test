@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="CollisionsCheckRule" load_steps=2 format=3 uid="uid://du7xu07247202"]
+
+[ext_resource type="Script" uid="uid://canj8n1of5xmx" path="res://addons/grid_building/placement/placement_rules/template_rules/collisions_check_rule.gd" id="1_collision_rule"]
+
+[resource]
+script = ExtResource("1_collision_rule")
+pass_on_collision = false
+collision_mask = 1
+apply_to_objects_mask = 1
+visual_priority = 3

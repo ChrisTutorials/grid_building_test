@@ -12,7 +12,7 @@ func before_test():
 	logger = UnifiedTestFactory.create_test_logger()
 	
 	# Create injector system for dependency injection
-	_injector: Node = UnifiedTestFactory.create_test_injector(self, test_container)
+	var _injector: Node = UnifiedTestFactory.create_test_injector(self, test_container)
 
 func after_test():
 	# Cleanup handled by auto_free in factory methods

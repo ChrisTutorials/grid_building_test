@@ -8,7 +8,7 @@ extends GdUnitTestSuite
 
 var _logger: GBLogger
 
-func before_test():
+func before_test() -> void:
 	_logger = GBLogger.new(GBDebugSettings.new())
 
 # Test catches: Missing template and invalid targeting state causing setup failures

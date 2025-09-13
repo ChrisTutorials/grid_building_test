@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Test Suite: Name Displayer Tests
+# Test Suite: Name Displayer Test Suite
 # -----------------------------------------------------------------------------
 # This test suite validates the NameDisplayer class functionality for generating
 # human-readable display names from Node objects, including custom name methods

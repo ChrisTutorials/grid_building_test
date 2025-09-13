@@ -14,7 +14,7 @@ func test_geometry_math_polygon_intersection() -> void:
 	var poly_a: PackedVector2Array = PackedVector2Array([Vector2(0, 0), Vector2(10, 0), Vector2(10, 10), Vector2(0, 10)])
 	var poly_b: PackedVector2Array = PackedVector2Array([Vector2(5, 5), Vector2(15, 5), Vector2(15, 15), Vector2(5, 15)])
 	
-	intersection_area: Node = GBGeometryMath.polygon_intersection_area(poly_a, poly_b)
+	var intersection_area: float = GBGeometryMath.polygon_intersection_area(poly_a, poly_b)
 	assert_that(intersection_area).is_equal(25.0)  # 5x5 intersection
 
 @warning_ignore("unused_parameter") 

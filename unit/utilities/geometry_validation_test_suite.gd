@@ -1,14 +1,14 @@
 # -----------------------------------------------------------------------------
-# Test Suite: Consolidated Geometry Tests
+# Test Suite: Geometry Validation Test Suite
 # -----------------------------------------------------------------------------
-# This test suite consolidates multiple geometry-related test files to validate
+# This test suite provides comprehensive validation of geometry operations including
 # polygon operations, tile overlap calculations, collision geometry utilities,
 # and spatial transformations. It tests intersection areas, bounds calculations,
 # tile shape handling, and geometry math edge cases across different tile types.
 # -----------------------------------------------------------------------------
 
 
-class_name ConsolidatedGeometryTestSuite
+class_name GeometryValidationTestSuite
 extends GdUnitTestSuite
 
 # -----------------------------------------------------------------------------

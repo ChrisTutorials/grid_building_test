@@ -1,53 +1,60 @@
 extends GdUnitTestSuite
 
-# NOTE: This file intentionally performs direct instantiation of objects from the
-# grid_building plugin (for example, RuleCheckIndicator). These tests verify
-# that plugin classes construct cleanly without relying on test factory helpers.
-# Do NOT replace these direct `.new()` calls with `UnifiedTestFactory` helpers.
-# The factory helpers are intended for higher-level integration tests that need
-# injected loggers, auto_free management, or parented nodes. This file's goal
-# is simple constructor sanity checks.
+# -----------------------------------------------------------------------------
+# Test Suite: Object Initialization Tests
+# -----------------------------------------------------------------------------
+# This test suite verifies that core grid building plugin classes can be
+# instantiated correctly without errors. Each test performs direct object
+# construction and validates that the resulting object is not null.
+# These are unit-level sanity checks for constructor functionality.
+# -----------------------------------------------------------------------------
 
 
-func test_resource_stack_init():
-	resource_stack: Node = ResourceStack.new()
+# -----------------------------------------------------------------------------
+# Helper Functions
+# -----------------------------------------------------------------------------
+func _assert_object_initializes(obj: Object) -> void:
+	assert_object(obj).is_not_null()
 
-	assert_object(resource_stack).is_not_null()
+
+# -----------------------------------------------------------------------------
+# Test Functions
+# -----------------------------------------------------------------------------
+func test_resource_stack_init() -> void:
+	var resource_stack: ResourceStack = ResourceStack.new()
+
+	_assert_object_initializes(resource_stack)
 
 
-func test_building_system_init():
-	var building_system = BuildingSystem.new()
+func test_building_system_init() -> void:
+	var building_system: BuildingSystem = BuildingSystem.new()
 
-	assert_object(building_system).is_not_null()
-
+	_assert_object_initializes(building_system)
 	building_system.free()
 
 
-func test_grid_targeter_system_init():
-	var grid_targeter_system = GridTargetingSystem.new()
+func test_grid_targeter_system_init() -> void:
+	var grid_targeter_system: GridTargetingSystem = GridTargetingSystem.new()
 
-	assert_object(grid_targeter_system).is_not_null()
-
+	_assert_object_initializes(grid_targeter_system)
 	grid_targeter_system.free()
 
 
-func test_rule_check_indicator_init():
-	var rule_check_indicator = RuleCheckIndicator.new([])
+func test_rule_check_indicator_init() -> void:
+	var rule_check_indicator: RuleCheckIndicator = RuleCheckIndicator.new([])
 
-	assert_object(rule_check_indicator).is_not_null()
-
+	_assert_object_initializes(rule_check_indicator)
 	rule_check_indicator.free()
 
 
-func test_rule_check_indicator_manager_init():
-	var indicator_manager = IndicatorManager.new()
+func test_rule_check_indicator_manager_init() -> void:
+	var indicator_manager: IndicatorManager = IndicatorManager.new()
 
-	assert_object(indicator_manager).is_not_null()
-
+	_assert_object_initializes(indicator_manager)
 	indicator_manager.free()
 
 
-func test_node_locator_init():
-	var node_locator = NodeLocator.new()
+func test_node_locator_init() -> void:
+	var node_locator: NodeLocator = NodeLocator.new()
 
-	assert_object(node_locator).is_not_null()
+	_assert_object_initializes(node_locator)

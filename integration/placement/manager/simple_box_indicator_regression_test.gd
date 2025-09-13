@@ -1,20 +1,40 @@
+# -----------------------------------------------------------------------------
+# Test Suite: Simple Box Indicator Regression Tests
+# -----------------------------------------------------------------------------
+# This test suite validates regression fixes for indicator generation with simple
+# box collision objects. It specifically tests that RigidBody2D objects with
+# collision layer 513 generate proper placement indicators through the indicator
+# manager and collision geometry utilities.
+# -----------------------------------------------------------------------------
+
+
 extends GdUnitTestSuite
 
-# Regression test for simple box collision detection issue
-# This test reproduces the specific failure where a RigidBody2D with collision layer 513
-# should generate indicators but doesn't.
-
+# -----------------------------------------------------------------------------
+# Constants
+# -----------------------------------------------------------------------------
 const BASE_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
+const TEST_COLLISION_LAYER: int = 513  # Bits 0 and 9 (layers 1 and 10)
+const TILEMAP_SIZE: int = 7  # 5x5 around origin (-3 to 3)
+const TILEMAP_OFFSET: int = -3
+const TILE_SIZE: Vector2i = Vector2i(0, 0)
+const COLLISION_SHAPE_SIZE: Vector2 = Vector2.ONE
 
+# -----------------------------------------------------------------------------
+# Test Variables
+# -----------------------------------------------------------------------------
 var unoccupied_space: CollisionsCheckRule = load("uid://dw6l5ddiuak8b")
 var _container: GBCompositionContainer
 var building_system: BuildingSystem
 var positioner: Node2D
 var tile_map_layer: TileMapLayer
-var _injector : GBInjectorSystem
-var _gts : GridTargetingState
+var _injector: GBInjectorSystem
+var _gts: GridTargetingState
 
-func before_test():
+# -----------------------------------------------------------------------------
+# Setup and Teardown
+# -----------------------------------------------------------------------------
+func before_test() -> void:
 	_container = BASE_CONTAINER.duplicate(true)
 	_injector = UnifiedTestFactory.create_test_injector(self, _container)
 	_gts = _container.get_states().targeting
@@ -22,9 +42,9 @@ func before_test():
 	# Create 5x5 tile map around origin
 	tile_map_layer = auto_free(TileMapLayer.new())
 	tile_map_layer.tile_set = load("uid://d11t2vm1pby6y")
-	for x in range(-3, 4):
-		for y in range(-3, 4):
-			tile_map_layer.set_cell(Vector2i(x, y), 0, Vector2i(0, 0))
+	for x in range(TILEMAP_OFFSET, TILEMAP_OFFSET + TILEMAP_SIZE):
+		for y in range(TILEMAP_OFFSET, TILEMAP_OFFSET + TILEMAP_SIZE):
+			tile_map_layer.set_cell(Vector2i(x, y), 0, TILE_SIZE)
 	add_child(tile_map_layer)
 	
 	# Positioner
@@ -32,7 +52,7 @@ func before_test():
 	add_child(positioner)
 	
 	# Set up targeting state
-	targeting_state: Node = _container.get_states().targeting
+	var targeting_state: GridTargetingState = _container.get_states().targeting
 	targeting_state.set_map_objects(tile_map_layer, [tile_map_layer])
 	targeting_state.positioner = positioner
 	
@@ -41,7 +61,7 @@ func before_test():
 	
 	# Set up owner context
 	var owner_context: GBOwnerContext = _container.get_contexts().owner
-	var owner_node = auto_free(Node2D.new())
+	var owner_node: Node2D = auto_free(Node2D.new())
 	owner_node.name = "Owner"
 	add_child(owner_node)
 	var gb_owner := GBOwner.new(owner_node)
@@ -63,17 +83,20 @@ func before_test():
 		var pm := IndicatorManager.create_with_injection(_container)
 		add_child(auto_free(pm))
 
-func test_rigid_body_with_collision_layer_513_generates_indicators():
+# -----------------------------------------------------------------------------
+# Test Functions
+# -----------------------------------------------------------------------------
+func test_rigid_body_with_collision_layer_513_generates_indicators() -> void:
 	# Create a simple test scene with just a collision object
 	# NOTE: Don't use auto_free for nodes that will be packed into PackedScene
-	var test_box = RigidBody2D.new()
+	var test_box: RigidBody2D = RigidBody2D.new()
 	test_box.name = "SimpleBox"
-	test_box.collision_layer = 513  # Bits 0 and 9 (layers 1 and 10)
+	test_box.collision_layer = TEST_COLLISION_LAYER  # Bits 0 and 9 (layers 1 and 10)
 	
 	# Add collision shape
-	var shape = CollisionShape2D.new()
-	var rect = RectangleShape2D.new()
-	rect.size = Vector2size
+	var shape: CollisionShape2D = CollisionShape2D.new()
+	var rect: RectangleShape2D = RectangleShape2D.new()
+	rect.size = COLLISION_SHAPE_SIZE
 	shape.shape = rect
 	test_box.add_child(shape)
 	
@@ -86,22 +109,22 @@ func test_rigid_body_with_collision_layer_513_generates_indicators():
 	test_box.global_position = positioner.global_position
 
 	# Verify the collision layer matches the unoccupied space rule
-	var box_layer = test_box.collision_layer
-	var unoccupied_mask = unoccupied_space.apply_to_objects_mask
-	var box_layer_match = (box_layer & unoccupied_mask) != 0
+	var box_layer: int = test_box.collision_layer
+	var unoccupied_mask: int = unoccupied_space.apply_to_objects_mask
+	var box_layer_match: bool = (box_layer & unoccupied_mask) != 0
 	assert_bool(box_layer_match).append_failure_message(
 		"Box collision_layer %d does not match unoccupied space check rule apply_to_objects_mask %d" % [box_layer, unoccupied_mask]
 	).is_true()
 
 	# Create a simple placeable
-	var scene = PackedScene.new()
+	var scene: PackedScene = PackedScene.new()
 	scene.pack(test_box)
-	var placeable = Placeable.new(scene, [unoccupied_space])
+	var placeable: Placeable = Placeable.new(scene, [unoccupied_space])
 	placeable.display_name = &"Simple Box"
 
 	# Enter build mode
 	building_system.selected_placeable = placeable
-	var entered = building_system.enter_build_mode(placeable)
+	var entered: PlacementReport = building_system.enter_build_mode(placeable)
 	assert_bool(entered.is_successful()).append_failure_message(
 		"Failed to enter build mode with simple box"
 	).is_true()
@@ -113,33 +136,33 @@ func test_rigid_body_with_collision_layer_513_generates_indicators():
 	).is_not_null()
 
 	# Verify preview contains collision objects
-	var preview_collision_objects = []
+	var preview_collision_objects: Array[Node2D] = []
 	_find_collision_objects(preview, preview_collision_objects)
 	assert_array(preview_collision_objects).append_failure_message(
 		"Preview should contain collision objects"
 	).is_not_empty()
 
 	# Debug the preview structure - this should contain collision objects
-	var collision_object_details = []
+	var collision_object_details: Array[String] = []
 	for i in range(preview_collision_objects.size()):
-		var obj = preview_collision_objects[i]
-		var detail = "%s (%s)" % [obj.name, obj.get_class()]
+		var obj: Node2D = preview_collision_objects[i]
+		var detail: String = "%s (%s)" % [obj.name, obj.get_class()]
 		if obj is CollisionObject2D:
 			detail += " [layer: %d, shape_owners: %s]" % [obj.collision_layer, obj.get_shape_owners()]
-			var shapes_from_owner = GBGeometryUtils.get_shapes_from_owner(obj)
+			var shapes_from_owner: Array = GBGeometryUtils.get_shapes_from_owner(obj)
 			detail += " [shapes: %d]" % shapes_from_owner.size()
 			# Debug children
-			var children_info = []
-			for child in obj.get_children():
+			var children_info: Array[String] = []
+			for child: Node in obj.get_children():
 				if child is CollisionShape2D:
-					var child_detail = "%s: shape=%s" % [child.name, child.shape != null]
+					var child_detail: String = "%s: shape=%s" % [child.name, child.shape != null]
 					children_info.append(child_detail)
 			if not children_info.is_empty():
 				detail += " [children: %s]" % [children_info]
 		collision_object_details.append(detail)
 
 	# Verify GBGeometryUtils can find collision shapes in preview
-	var owner_shapes: Dictionary[Node2D, Array[Node2D]] = GBGeometryUtils.get_all_collision_shapes_by_owner(preview)
+	var owner_shapes: Dictionary[Node2D, Array] = GBGeometryUtils.get_all_collision_shapes_by_owner(preview)
 	
 	# This assertion should fail and expose the root cause
 	assert_int(owner_shapes.size()).append_failure_message(
@@ -152,20 +175,23 @@ func test_rigid_body_with_collision_layer_513_generates_indicators():
 	).is_not_null()
 
 	# Set up rule validation parameters (same as test)
-	var manip_owner = _container.get_states().manipulation.get_manipulator()
+	var _manip_owner: Node = _container.get_states().manipulation.get_manipulator()
 
 	# Set up rules
-	var setup_success = manager.try_setup(placeable.placement_rules, _gts, false)
+	var setup_success: PlacementReport = manager.try_setup(placeable.placement_rules, _gts, false)
 	assert_bool(setup_success.is_successful()).append_failure_message(
 		"Failed to set up rules for simple box"
 	).is_true()
 
 	# Get generated indicators - THIS IS THE REGRESSION TEST
-	var indicators = manager.get_indicators()
+	var indicators: Array[RuleCheckIndicator] = manager.get_indicators()
 	assert_array(indicators).append_failure_message(
 		"REGRESSION: No indicators generated for simple box with collision layer 513. Preview collision objects: %d, Owner shapes: %d" % [preview_collision_objects.size(), owner_shapes.size()]
 	).is_not_empty()
 
+# -----------------------------------------------------------------------------
+# Helper Functions
+# -----------------------------------------------------------------------------
 ## Helper: Find all collision objects recursively
 func _find_collision_objects(node: Node, output: Array[Node2D]) -> void:
 	if node is CollisionObject2D or node is CollisionPolygon2D:
@@ -175,8 +201,8 @@ func _find_collision_objects(node: Node, output: Array[Node2D]) -> void:
 
 ## Helper: Debug node structure recursively
 func _debug_node_recursively(node: Node, depth: int) -> void:
-	var indent = "  ".repeat(depth)
-	var node_info = "%s%s (%s)" % [indent, node.name, node.get_class()]
+	var indent: String = "  ".repeat(depth)
+	var node_info: String = "%s%s (%s)" % [indent, node.name, node.get_class()]
 	if node is CollisionObject2D:
 		node_info += " [layer: %d]" % node.collision_layer
 	print(node_info)

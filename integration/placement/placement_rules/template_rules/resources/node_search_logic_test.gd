@@ -1,8 +1,30 @@
 ## Test suite for NodeSearchLogic pure logic class.
-## Tests pure functions without complex object setup.
+## Tests comprehensive node search functionality including:
+## - Name-based node searching with exact and partial matches
+## - Script-based searching by script file names
+## - Group-based searching by group membership
+## - Class-based searching by node class types
+## - Property-based searching with custom property values
+## - Method result-based searching with dynamic return values
+## - Script name extraction and validation
+## - Complex search result operations (combine, filter, sort)
+## - Parameter validation for search operations
+## Tests pure functions without complex object setup or dependencies.
 extends GdUnitTestSuite
 @warning_ignore("unused_parameter")
 @warning_ignore("return_value_discarded")
+
+## Test constants to eliminate magic strings
+const TEST_NODE_1_NAME := "TestNode1"
+const TEST_NODE_2_NAME := "TestNode2"
+const TEST_NODE_3_NAME := "TestNode3"
+const TEST_NODE_PREFIX := "TestNode"
+const GROUP_A_NAME := "GroupA"
+const GROUP_B_NAME := "GroupB"
+const CUSTOM_PROPERTY_NAME := "custom_property"
+const TEST_METHOD_NAME := "test_method"
+const TEST_SCRIPT_SOURCE := "extends Node2D\nvar custom_property = null\nfunc test_method(): return null"
+const DYNAMIC_SCRIPT_TEMPLATE := "extends Node2D\nvar %s = null\nfunc %s(): return %%s"
 
 var test_nodes: Array[Node]
 
@@ -10,63 +32,71 @@ func before_test() -> void:
 	# Create test nodes for searching - use typed literal initializer
 	test_nodes = []
 	
-	node1: Node = auto_free(Node2D.new())
-	node1.name = "TestNode1"
+	var node1: Node = _create_test_node_with_script(TEST_NODE_1_NAME, true)
 	test_nodes.append(node1)
 	
-	var node2 = auto_free(Node2D.new())
-	node2.name = "TestNode2"
+	var node2: Node2D = _create_test_node_with_script(TEST_NODE_2_NAME, true)
 	test_nodes.append(node2)
 	
-	var node3 = auto_free(Node2D.new())
-	node3.name = "TestNode3"
+	var node3: Node2D = _create_test_node_with_script(TEST_NODE_3_NAME, false)
 	test_nodes.append(node3)
 	
-	# Add scripts to some nodes
-	var script1 = auto_free(GDScript.new())
-	script1.source_code = "extends Node2D\nvar custom_property = null\nfunc test_method(): return null"
-	script1.reload()
-	node1.set_script(script1)
-
-	var script2 = auto_free(GDScript.new())
-	script2.source_code = "extends Node2D\nvar custom_property = null\nfunc test_method(): return null"
-	script2.reload()
-	node2.set_script(script2)
-	
 	# Add nodes to groups
-	node1.add_to_group("GroupA")
-	node2.add_to_group("GroupA")
-	node3.add_to_group("GroupB")
+	node1.add_to_group(GROUP_A_NAME)
+	node2.add_to_group(GROUP_A_NAME)
+	node3.add_to_group(GROUP_B_NAME)
 
 func after_test() -> void:
 	# Clean up test nodes - auto_free handles this automatically
 	test_nodes.clear()
 
+## Helper Functions
+## Common test utilities to reduce code duplication
+
+# Helper for asserting search result counts with descriptive messages
+func _assert_search_result_count(found_nodes: Array[Node], expected_count: int, search_description: String) -> void:
+	assert_int(found_nodes.size()).append_failure_message("%s expected %d got %d -> %s" % [search_description, expected_count, found_nodes.size(), found_nodes]).is_equal(expected_count)
+
+# Helper for creating a test node with optional script
+func _create_test_node_with_script(node_name: String, add_script: bool = false) -> Node2D:
+	var node: Node2D = auto_free(Node2D.new())
+	node.name = node_name
+	if add_script:
+		var script: GDScript = auto_free(GDScript.new())
+		script.source_code = TEST_SCRIPT_SOURCE
+		script.reload()
+		node.set_script(script)
+	return node
+
 ## COMPREHENSIVE PARAMETERIZED TESTS - Following DRY principles
 
 ### Name Search Tests
+#region Name Search Tests
 @warning_ignore("unused_parameter")
 func test_name_search_scenarios(
 	search_name: String,
 	expected_count: int,
 	expected_node_name: String,
 	test_parameters := [
-		["TestNode1", 1, "TestNode1"],
-		["TestNode2", 1, "TestNode2"],
-		["TestNode3", 1, "TestNode3"],
-		["TestNode", 0, ""],  # Exact match only
+		[TEST_NODE_1_NAME, 1, TEST_NODE_1_NAME],
+		[TEST_NODE_2_NAME, 1, TEST_NODE_2_NAME],
+		[TEST_NODE_3_NAME, 1, TEST_NODE_3_NAME],
+		[TEST_NODE_PREFIX, 0, ""],  # Exact match only
 		["NonExistent", 0, ""],
 		["", 0, ""]
 	]
 ) -> void:
-	var found_nodes = NodeSearchLogic.find_nodes_by_name(test_nodes, search_name)
-	assert_int(found_nodes.size()).append_failure_message("Name search '%s' expected %d got %d -> %s" % [search_name, expected_count, found_nodes.size(), found_nodes]).is_equal(expected_count)
+	var found_nodes: Array[Node] = NodeSearchLogic.find_nodes_by_name(test_nodes, search_name)
+	_assert_search_result_count(found_nodes, expected_count, "Name search '%s'" % search_name)
 	
 	if expected_count > 0:
 		assert_object(found_nodes[0]).is_not_null()
 		assert_str(found_nodes[0].name).is_equal(expected_node_name)
 
+#endregion
+
 ### Script Search Tests
+#region Script Search Tests
 @warning_ignore("unused_parameter")
 func test_script_search_scenarios(
 	script_name: String,
@@ -80,12 +110,14 @@ func test_script_search_scenarios(
 		["", 0, false]
 	]
 ) -> void:
-	var found_nodes = NodeSearchLogic.find_nodes_by_script(test_nodes, script_name)
-	assert_int(found_nodes.size()).append_failure_message("Script search '%s' expected %d got %d" % [script_name, expected_count, found_nodes.size()]).is_equal(expected_count)
+	var found_nodes: Array[Node] = NodeSearchLogic.find_nodes_by_script(test_nodes, script_name)
+	_assert_search_result_count(found_nodes, expected_count, "Script search '%s'" % script_name)
 	
 	if expected_count > 0:
 		assert_object(found_nodes[0]).is_not_null()
 		assert_bool(found_nodes[0].get_script() != null).is_equal(expected_has_script)
+
+#endregion
 
 ### Group Search Tests
 @warning_ignore("unused_parameter")
@@ -94,14 +126,14 @@ func test_group_search_scenarios(
 	expected_count: int,
 	expected_nodes: Array[Node2D],
 	test_parameters := [
-		["GroupA", 2, [0, 1]],  # test_nodes[0] and test_nodes[1]
-		["GroupB", 1, [2]],     # test_nodes[2]
+		[GROUP_A_NAME, 2, [0, 1]],  # test_nodes[0] and test_nodes[1]
+		[GROUP_B_NAME, 1, [2]],     # test_nodes[2]
 		["NonExistentGroup", 0, []],
 		["", 0, []]
 	]
 ) -> void:
-	var found_nodes = NodeSearchLogic.find_nodes_by_group(test_nodes, group_name)
-	assert_int(found_nodes.size()).append_failure_message("Group search '%s' expected %d got %d" % [group_name, expected_count, found_nodes.size()]).is_equal(expected_count)
+	var found_nodes: Array[Node] = NodeSearchLogic.find_nodes_by_group(test_nodes, group_name)
+	_assert_search_result_count(found_nodes, expected_count, "Group search '%s'" % group_name)
 	
 	# Verify expected nodes are found
 	for expected_index in expected_nodes:
@@ -120,11 +152,11 @@ func test_class_search_scenarios(
 		["", 0, ""]
 	]
 ) -> void:
-	var found_nodes = NodeSearchLogic.find_nodes_by_class(test_nodes, cls_name)
-	assert_int(found_nodes.size()).append_failure_message("Class search '%s' expected %d got %d" % [cls_name, expected_count, found_nodes.size()]).is_equal(expected_count)
+	var found_nodes: Array[Node] = NodeSearchLogic.find_nodes_by_class(test_nodes, cls_name)
+	_assert_search_result_count(found_nodes, expected_count, "Class search '%s'" % cls_name)
 	
 	if expected_count > 0:
-		for node in found_nodes:
+		for node: Node in found_nodes:
 			assert_str(node.get_class()).is_equal(expected_class)
 
 ### Property Search Tests
@@ -135,7 +167,7 @@ func test_property_search_scenarios(
 	expected_count: int,
 	setup_property: bool,
 	test_parameters := [
-		["custom_property", "test_value", 1, true],
+		[CUSTOM_PROPERTY_NAME, "test_value", 1, true],
 		["non_existent_property", "value", 0, false],
 		["", "value", 0, false]
 	]
@@ -144,8 +176,8 @@ func test_property_search_scenarios(
 	if setup_property:
 		test_nodes[0].set(property_name, property_value)
 	
-	var found_nodes = NodeSearchLogic.find_nodes_by_property(test_nodes, property_name, property_value)
-	assert_int(found_nodes.size()).append_failure_message("Property search '%s' expected %d got %d" % [property_name, expected_count, found_nodes.size()]).is_equal(expected_count)
+	var found_nodes: Array[Node] = NodeSearchLogic.find_nodes_by_property(test_nodes, property_name, property_value)
+	_assert_search_result_count(found_nodes, expected_count, "Property search '%s'" % property_name)
 	
 	if expected_count > 0:
 		assert_object(found_nodes[0]).is_not_null()
@@ -158,7 +190,7 @@ func test_method_result_search_scenarios(
 	expected_count: int,
 	setup_method: bool,
 	test_parameters := [
-		["test_method", "expected_result", 1, true],
+		[TEST_METHOD_NAME, "expected_result", 1, true],
 		["non_existent_method", "value", 0, false],
 		["", "value", 0, false]
 	]
@@ -171,12 +203,12 @@ func test_method_result_search_scenarios(
 			result_literal = '"%s"' % expected_result
 		else:
 			result_literal = str(expected_result)
-		dynamic_script.source_code = "extends Node2D\nvar custom_property = null\nfunc test_method(): return %s" % result_literal
+		dynamic_script.source_code = DYNAMIC_SCRIPT_TEMPLATE % [CUSTOM_PROPERTY_NAME, TEST_METHOD_NAME, result_literal]
 		dynamic_script.reload()
 		test_nodes[0].set_script(dynamic_script)
 
-	var found_nodes = NodeSearchLogic.find_nodes_by_method_result(test_nodes, method_name, expected_result)
-	assert_int(found_nodes.size()).append_failure_message("Method result search '%s' expected %d got %d" % [method_name, expected_count, found_nodes.size()]).is_equal(expected_count)
+	var found_nodes: Array[Node] = NodeSearchLogic.find_nodes_by_method_result(test_nodes, method_name, expected_result)
+	_assert_search_result_count(found_nodes, expected_count, "Method result search '%s'" % method_name)
 
 	if expected_count > 0:
 		assert_object(found_nodes[0]).is_not_null()
@@ -188,13 +220,13 @@ func test_script_name_scenarios(
 	expected_empty: bool,
 	expected_contains: String,
 	test_parameters := [
-		[0, false, "TestNode1"],  # Has script
+		[0, false, TEST_NODE_1_NAME],  # Has script
 		[2, true, ""],            # No script
 		[-1, true, ""]            # Invalid index
 	]
 ) -> void:
-	var node = test_nodes[node_index] if node_index >= 0 and node_index < test_nodes.size() else null
-	var script_name = NodeSearchLogic.get_script_name(node)
+	var node: Node = test_nodes[node_index] if node_index >= 0 and node_index < test_nodes.size() else null
+	var script_name: String = NodeSearchLogic.get_script_name(node)
 	
 	if expected_empty:
 		assert_str(script_name).is_empty()
@@ -217,7 +249,7 @@ func test_validation_scenarios(
 		[-5, "any_string", false, "must be non-negative"]   # Very negative method invalid
 	]
 ) -> void:
-	var issues = NodeSearchLogic.validate_search_params(search_method, search_string)
+	var issues: Array[String] = NodeSearchLogic.validate_search_params(search_method, search_string)
 	assert_bool(issues.is_empty()).is_equal(expected_valid)
 	
 	if not expected_valid:
@@ -226,10 +258,10 @@ func test_validation_scenarios(
 ### Complex Operation Tests
 
 func test_combine_search_results() -> void:
-	var result1 = [test_nodes[0], test_nodes[1]]
-	var result2 = [test_nodes[1], test_nodes[2]]  # Overlap with result1
+	var result1: Array[Node] = [test_nodes[0], test_nodes[1]]
+	var result2: Array[Node] = [test_nodes[1], test_nodes[2]]  # Overlap with result1
 	
-	var combined = NodeSearchLogic.combine_search_results([result1, result2])
+	var combined: Array[Node] = NodeSearchLogic.combine_search_results([result1, result2])
 	
 	assert_int(combined.size()).append_failure_message("Combine search expected 3 got %d -> %s" % [combined.size(), combined]).is_equal(3)  # Should have all unique nodes
 	assert_bool(combined.has(test_nodes[0])).is_true()
@@ -237,23 +269,23 @@ func test_combine_search_results() -> void:
 	assert_bool(combined.has(test_nodes[2])).is_true()
 
 func test_filter_search_results() -> void:
-	var filter_func = func(node: Node) -> bool: return node.name.begins_with("TestNode")
+	var filter_func: Callable = func(node: Node) -> bool: return node.name.begins_with(TEST_NODE_PREFIX)
 	
-	var filtered = NodeSearchLogic.filter_search_results(test_nodes, filter_func)
+	var filtered: Array[Node] = NodeSearchLogic.filter_search_results(test_nodes, filter_func)
 	
 	assert_int(filtered.size()).append_failure_message("Filter expected 3 got %d" % filtered.size()).is_equal(3)
-	for node in filtered:
-		assert_str(node.name).contains("TestNode")
+	for node: Node in filtered:
+		assert_str(node.name).contains(TEST_NODE_PREFIX)
 
 func test_sort_search_results() -> void:
-	var sort_func = func(a: Node, b: Node) -> bool: return a.name < b.name
+	var sort_func: Callable = func(a: Node, b: Node) -> bool: return a.name < b.name
 
-	var original_names : Array[String] = []
-	for n in test_nodes:
+	var original_names: Array[String] = []
+	for n: Node in test_nodes:
 		original_names.append(String(n.name))
-	var sorted = NodeSearchLogic.sort_search_results(test_nodes, sort_func)
-	var sorted_names : Array[String] = []
-	for n in sorted:
+	var sorted: Array[Node] = NodeSearchLogic.sort_search_results(test_nodes, sort_func)
+	var sorted_names: Array[String] = []
+	for n: Node in sorted:
 		sorted_names.append(String(n.name))
 
 	assert_int(sorted.size()).append_failure_message("Sort expected 3 got %d original=%s sorted=%s" % [sorted.size(), original_names, sorted_names]).is_equal(3)
@@ -262,5 +294,5 @@ func test_sort_search_results() -> void:
 	assert_str(sorted[1].name).append_failure_message("Sorted names mismatch original=%s sorted=%s" % [original_names, sorted_names]).is_equal("TestNode2")
 	assert_str(sorted[2].name).append_failure_message("Sorted names mismatch original=%s sorted=%s" % [original_names, sorted_names]).is_equal("TestNode3")
 	# Set equality guard to surface unexpected mutation (names should match originals set)
-	for expected in ["TestNode1", "TestNode2", "TestNode3"]:
+	for expected: String in [TEST_NODE_1_NAME, TEST_NODE_2_NAME, TEST_NODE_3_NAME]:
 		assert_bool(sorted_names.has(expected)).append_failure_message("Expected name '%s' not present -> originals=%s sorted=%s" % [expected, original_names, sorted_names]).is_true()

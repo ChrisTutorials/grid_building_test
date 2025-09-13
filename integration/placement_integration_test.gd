@@ -563,13 +563,13 @@ func test_drag_build_functionality() -> void:
 	var drag_manager: Variant = _building_system.get_lazy_drag_manager()
 	drag_manager.start_drag()
 	
-	assert_bool(drag_manager.is_drag_building()).append_failure_message(
+	assert_bool(drag_manager.is_dragging()).append_failure_message(
 		"Should be in drag building mode after start"
 	).is_true()
 	
 	drag_manager.stop_drag()
 	
-	assert_bool(drag_manager.is_drag_building()).append_failure_message(
+	assert_bool(drag_manager.is_dragging()).append_failure_message(
 		"Should not be in drag building mode after end"
 	).is_false()
 	
@@ -730,7 +730,7 @@ func test_drag_build_single_placement_regression() -> void:
 		# Simulate multiple updates to same position
 		# Since we can't directly test placement count without internal access,
 		# we'll verify the drag operation itself works
-		assert_bool(drag_manager.is_drag_building()).append_failure_message(
+		assert_bool(drag_manager.is_dragging()).append_failure_message(
 			"Drag building should be active"
 		).is_true()
 	
@@ -875,7 +875,7 @@ func test_drag_building_single_placement_per_tile_switch() -> void:
 	var drag_manager: Variant = _building_system.get_lazy_drag_manager()
 	var drag_data: Variant = drag_manager.start_drag()
 	assert_object(drag_data).is_not_null()
-	assert_bool(drag_manager.is_drag_building()).is_true()
+	assert_bool(drag_manager.is_dragging()).is_true()
 	
 	# First placement attempt at tile (0,0) - this should succeed
 	# Validate placement state before attempting build and fail with appended diagnostics if invalid
@@ -941,7 +941,7 @@ func test_drag_building_single_placement_per_tile_switch() -> void:
 
 	# Stop drag
 	drag_manager.stop_drag()
-	assert_bool(drag_manager.is_drag_building()).is_false()
+	assert_bool(drag_manager.is_dragging()).is_false()
 
 func test_tile_tracking_prevents_duplicate_placements() -> void:
 	# Placeable has no collision checks, only that grid is valid

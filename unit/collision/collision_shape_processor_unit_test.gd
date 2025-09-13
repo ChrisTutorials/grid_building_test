@@ -1,28 +1,44 @@
+# -----------------------------------------------------------------------------
+# Test Suite: Collision Shape Processor Unit Tests
+# -----------------------------------------------------------------------------
+# This test suite validates the CollisionShapeProcessor class initialization and
+# basic functionality. It focuses on catching geometry calculation issues that
+# could cause collision mapping failures in higher-level integration tests.
+# -----------------------------------------------------------------------------
+
+
 extends GdUnitTestSuite
 
-# Unit tests for CollisionShapeProcessor to catch geometry calculation issues
-# that cause collision mapping failures in higher-level tests.
-
-const CollisionShapeProcessor = preload("uid://dldggcreyq33n")
+# -----------------------------------------------------------------------------
+# Constants
+# -----------------------------------------------------------------------------
+const CollisionShapeProcessor = preload("uid://dtk40r28wldb4")
 const GeometryCacheManager = preload("uid://d0cdgiqycnh43")
 
+# -----------------------------------------------------------------------------
+# Test Variables
+# -----------------------------------------------------------------------------
 var _cache_manager: GeometryCacheManager
+var _processor: CollisionShapeProcessor
 
-func before_test():
+# -----------------------------------------------------------------------------
+# Setup and Teardown
+# -----------------------------------------------------------------------------
+func before_test() -> void:
 	_cache_manager = GeometryCacheManager.new()
+	_processor = CollisionShapeProcessor.new(_cache_manager)
 
+# -----------------------------------------------------------------------------
+# Test Functions
+# -----------------------------------------------------------------------------
 # Test catches: CollisionShapeProcessor initialization failures
 func test_collision_shape_processor_initialization() -> void:
-	processor: Node = CollisionShapeProcessor.new(_cache_manager)
-	assert_that(processor != null).append_failure_message("CollisionShapeProcessor should initialize successfully").is_true()
+	assert_that(_processor != null).append_failure_message("CollisionShapeProcessor should initialize successfully").is_true()
 
 # Test catches: CollisionShapeProcessor handling null dependencies
 # Note: This component has strict assertions for required dependencies
 func test_collision_shape_processor_null_dependencies() -> void:
-	# CollisionShapeProcessor requires non-null logger and cache manager
-	# This test verifies the component's strict dependency requirements
-	var processor = CollisionShapeProcessor.new(_cache_manager)
-	assert_that(processor != null).append_failure_message("CollisionShapeProcessor should initialize with valid dependencies").is_true()
+	assert_that(_processor != null).append_failure_message("CollisionShapeProcessor should initialize with valid dependencies").is_true()
 
 	# Test that null logger causes assertion (this would normally crash in debug mode)
 	# We skip this test in release builds where assertions might be disabled
@@ -35,10 +51,8 @@ func test_collision_shape_processor_null_dependencies() -> void:
 # Note: This test focuses on initialization and basic validation since the processor
 # requires complex test setup infrastructure that may not be available
 func test_collision_shape_processor_basic_rectangle() -> void:
-	var processor = CollisionShapeProcessor.new(_cache_manager)
-
 	# Test that processor initializes correctly
-	assert_that(processor != null).append_failure_message("CollisionShapeProcessor should initialize successfully").is_true()
+	assert_that(_processor != null).append_failure_message("CollisionShapeProcessor should initialize successfully").is_true()
 
 	# Test that processor has required dependencies
 	assert_that(_cache_manager != null).append_failure_message("GeometryCacheManager should be available").is_true()
@@ -49,7 +63,7 @@ func test_collision_shape_processor_basic_rectangle() -> void:
 
 # Test catches: CollisionShapeProcessor handling invalid tile map
 func test_collision_shape_processor_invalid_tile_map() -> void:
-	var processor = CollisionShapeProcessor.new(_cache_manager)
+	var processor: CollisionShapeProcessor = CollisionShapeProcessor.new(_cache_manager)
 
 	# Test that processor can handle basic validation
 	assert_that(processor != null).append_failure_message("CollisionShapeProcessor should initialize successfully").is_true()
@@ -61,7 +75,7 @@ func test_collision_shape_processor_invalid_tile_map() -> void:
 
 # Test catches: CollisionShapeProcessor handling null positioner
 func test_collision_shape_processor_null_positioner() -> void:
-	var processor = CollisionShapeProcessor.new(_cache_manager)
+	var processor: CollisionShapeProcessor = CollisionShapeProcessor.new(_cache_manager)
 
 	# Test that processor can be created and has valid dependencies
 	assert_that(processor != null).append_failure_message("CollisionShapeProcessor should initialize successfully").is_true()
@@ -69,6 +83,6 @@ func test_collision_shape_processor_null_positioner() -> void:
 
 	# Since the processor requires complex setup, we focus on testing the basic
 	# initialization that would be needed for any collision processing
-	var positioner = Node2D.new()
+	var positioner: Node2D = Node2D.new()
 	assert_that(positioner != null).append_failure_message("Should be able to create positioner").is_true()
 	auto_free(positioner)
