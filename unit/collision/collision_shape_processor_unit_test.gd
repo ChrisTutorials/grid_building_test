@@ -57,7 +57,7 @@ func test_collision_shape_processor_basic_rectangle() -> void:
 	# Test that processor has required dependencies
 	assert_that(_cache_manager != null).append_failure_message("GeometryCacheManager should be available").is_true()
 
-	# Since the processor requires IndicatorCollisionTestSetup which doesn't exist,
+	# Since the processor requires CollisionTestSetup2D which doesn't exist,
 	# we focus on testing that the processor can be created and has valid dependencies
 	# This catches initialization failures that would prevent the processor from working
 

@@ -1,6 +1,6 @@
 extends GdUnitTestSuite
 
-# Unit test to isolate IndicatorCollisionTestSetup creation issues
+# Unit test to isolate CollisionTestSetup2D creation issues
 # This tests the lowest level dependency that's causing the collision mapper tests to fail
 
 # Constants
@@ -46,19 +46,19 @@ func _debug_shape_owners(body: StaticBody2D) -> void:
 			print(DEBUG_PREFIX + "Owner: ", owner_node.name, ", Shape count: ", shape_count)
 
 # Helper: Debug test setup validation
-func _debug_test_setup_validation(test_setup: IndicatorCollisionTestSetup) -> void:
+func _debug_test_setup_validation(test_setup: CollisionTestSetup2D) -> void:
 	var is_valid: bool = test_setup.validate_setup()
 	print(DEBUG_PREFIX + "Test setup valid: ", is_valid)
 	print(DEBUG_PREFIX + "Issues: ", test_setup.issues)
 	print(DEBUG_PREFIX + "Rect collision test setups size: ", test_setup.rect_collision_test_setups.size())
 
 # Helper: Create and validate test setup
-func _create_and_validate_test_setup(body: StaticBody2D, tile_size: Vector2 = TEST_TILE_SIZE) -> IndicatorCollisionTestSetup:
-	var test_setup: IndicatorCollisionTestSetup = IndicatorCollisionTestSetup.new(body, tile_size)
+func _create_and_validate_test_setup(body: StaticBody2D, tile_size: Vector2 = TEST_TILE_SIZE) -> CollisionTestSetup2D:
+	var test_setup: CollisionTestSetup2D = CollisionTestSetup2D.new(body, tile_size)
 	test_setup.validate_setup()
 	return test_setup
 
-# Test: IndicatorCollisionTestSetup creation with CollisionShape2D
+# Test: CollisionTestSetup2D creation with CollisionShape2D
 func test_indicator_collision_test_setup_creation() -> void:
 	# Create a StaticBody2D with CollisionShape2D
 	var body := _create_body_with_rectangle_shape()
@@ -79,7 +79,7 @@ func test_indicator_collision_test_setup_creation() -> void:
 	assert_that(test_setup.validate_setup()).is_true()
 	assert_that(test_setup.rect_collision_test_setups.size()).is_greater(0)
 
-# Test: IndicatorCollisionTestSetup with no shapes (should fail gracefully)
+# Test: CollisionTestSetup2D with no shapes (should fail gracefully)
 func test_indicator_collision_test_setup_empty_body() -> void:
 	var body := _create_empty_body()
 

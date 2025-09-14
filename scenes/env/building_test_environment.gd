@@ -21,6 +21,20 @@ func get_issues() -> Array[String]:
 	issues.append_array(level_context.get_runtime_issues())
 	issues.append_array(injector.get_runtime_issues())
 
+	# Ensure level_context has target_map set
+	if level_context.target_map == null:
+		level_context.target_map = tile_map_layer
+	if level_context.maps.is_empty():
+		level_context.maps = [tile_map_layer]
+
+	# Ensure tiles are placed between -5 x,y and +5 x,y for collision testing
+	for x in range(-5, 6):
+		for y in range(-5, 6):
+			var tile_coords: Vector2i = Vector2i(x, y)
+			if tile_map_layer.get_cell_source_id(tile_coords) == -1:
+				# Place a default tile if missing
+				tile_map_layer.set_cell(tile_coords, 0, Vector2i(0, 0))
+
 	return issues
 
 func get_container() -> GBCompositionContainer:

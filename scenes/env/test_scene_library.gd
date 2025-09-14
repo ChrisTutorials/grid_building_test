@@ -1,5 +1,5 @@
 class_name TestSceneLibrary
-extends GdUnitTestSuite
+extends RefCounted
 
 @export_group("Indicator Templates")
 static var indicator: PackedScene = load("uid://l00rt6twodlt")

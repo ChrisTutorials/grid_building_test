@@ -1,6 +1,6 @@
+## Name: CollisionTestEnvironmentValidationTest 
 ## Unit test to validate CollisionTestEnvironment scene integrity
 ## Tests that collision-specific systems are properly initialized and connected
-class_name CollisionTestEnvironmentValidationTest
 extends GdUnitTestSuite
 
 var test_env: CollisionTestEnvironment

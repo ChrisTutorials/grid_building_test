@@ -15,8 +15,8 @@ extends GdUnitTestSuite
 var indicator: RuleCheckIndicator
 var test_layers: int = 1  # Bitmask
 
-## Logo offset away from the center for testing
-var offset_logo: Texture2D = load("uid://bqq7otaevtlqu")
+## Logo offset away from the center for testing - using Godot icon as test texture
+var offset_logo: Texture2D = load("res://icon.svg")
 
 ## Test container for dependency injection
 const TEST_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")

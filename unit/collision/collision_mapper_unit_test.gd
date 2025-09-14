@@ -23,7 +23,7 @@ func _generate_mapper_setup_diagnostics(mapper: CollisionMapper, body: Node2D) -
 	diagnostics += "- Body setup valid: %s\n" % body_setup_valid
 	
 	if has_body_setup and body_setup_valid:
-		var body_test_setup: IndicatorCollisionTestSetup = mapper.collision_object_test_setups[body]
+		var body_test_setup: CollisionTestSetup2D = mapper.collision_object_test_setups[body]
 		diagnostics += "- Test setup rect_collision_test_setups: %d\n" % body_test_setup.rect_collision_test_setups.size()
 		if body_test_setup.rect_collision_test_setups.size() > 0:
 			var first_rect_setup: RectCollisionTestingSetup = body_test_setup.rect_collision_test_setups[0]
@@ -112,7 +112,7 @@ func _generate_actionable_next_steps(result_size: int, layer_matches: bool, guar
 	return steps
 
 # Helper function to generate test setup diagnostics
-func _generate_test_setup_diagnostics(test_setup: IndicatorCollisionTestSetup) -> String:
+func _generate_test_setup_diagnostics(test_setup: CollisionTestSetup2D) -> String:
 	var diagnostics: String = "Test Setup Diagnostics:\n"
 	diagnostics += "- Setup valid: %s\n" % test_setup.validate_setup()
 	diagnostics += "- Rect collision test setups: %d\n" % test_setup.rect_collision_test_setups.size()
@@ -160,9 +160,8 @@ func test_basic_collision_detection() -> void:
 	var test_indicator := template.instantiate()
 	auto_free(test_indicator)
 	
-	var test_setup := IndicatorCollisionTestSetup.new(body, Vector2(16, 16))
-	var setups: Dictionary[Node2D, IndicatorCollisionTestSetup] = {}
-	setups[body] = test_setup
+	var test_setup := CollisionTestSetup2D.new(body, Vector2(16, 16))
+	var setups: Array[CollisionTestSetup2D] = [test_setup]
 	mapper.setup(test_indicator, setups)
 	
 	# Validate setup first
@@ -214,11 +213,10 @@ func test_collision_layer_matching_for_tile_check_rules() -> void:
 	auto_free(test_indicator)
 	
 	# Create test setup and validate it
-	var test_setup := IndicatorCollisionTestSetup.new(body, Vector2(16, 16))
+	var test_setup := CollisionTestSetup2D.new(body, Vector2(16, 16))
 	assert_that(test_setup.validate_setup()).append_failure_message(_generate_test_setup_diagnostics(test_setup)).is_true()
 	
-	var setups: Dictionary[Node2D, IndicatorCollisionTestSetup] = {}
-	setups[body] = test_setup
+	var setups: Array[CollisionTestSetup2D] = [test_setup]
 	mapper.setup(test_indicator, setups)
 	
 	# Create rule with collision mask that should match layer 513
@@ -259,7 +257,7 @@ func test_collision_layer_matching_for_tile_check_rules() -> void:
 				debug_info += "Shape size: %s\n" % shape_owner.shape.size
 	
 	# Check test setup details
-	var collision_test_setup : IndicatorCollisionTestSetup = mapper.collision_object_test_setups[body]
+	var collision_test_setup : CollisionTestSetup2D = mapper.collision_object_test_setups[body]
 	debug_info += "Test setup valid: %s\n" % collision_test_setup.validate_setup()
 	debug_info += "Rect collision test setups count: %d\n" % collision_test_setup.rect_collision_test_setups.size()
 	
@@ -334,11 +332,10 @@ func test_position_rules_mapping_produces_results() -> void:
 	auto_free(test_indicator)
 	
 	# Create test setup and validate it
-	var test_setup := IndicatorCollisionTestSetup.new(body, Vector2(16, 16))
+	var test_setup := CollisionTestSetup2D.new(body, Vector2(16, 16))
 	assert_that(test_setup.validate_setup()).append_failure_message("Test setup should be valid").is_true()
 	
-	var setups: Dictionary[Node2D, IndicatorCollisionTestSetup] = {}
-	setups[body] = test_setup
+	var setups: Array[CollisionTestSetup2D] = [test_setup]
 	mapper.setup(test_indicator, setups)
 	
 	# Create rule that should match
@@ -371,7 +368,7 @@ func test_position_rules_mapping_produces_results() -> void:
 				debug_info += "Shape size: %s\n" % shape_owner.shape.size
 	
 	# Check test setup details
-	var collision_test_setup : IndicatorCollisionTestSetup = mapper.collision_object_test_setups[body]
+	var collision_test_setup : CollisionTestSetup2D = mapper.collision_object_test_setups[body]
 	debug_info += "Test setup valid: %s\n" % collision_test_setup.validate_setup()
 	debug_info += "Rect collision test setups count: %d\n" % collision_test_setup.rect_collision_test_setups.size()
 	

@@ -97,10 +97,10 @@ static func setup_collision_mapper_with_objects(
 	var indicator_manager: IndicatorManager = test_env.indicator_manager
 	var test_indicator: RuleCheckIndicator = indicator_manager.get_or_create_testing_indicator(test_suite)
 
-	var collision_object_test_setups: Dictionary[Node2D, IndicatorCollisionTestSetup] = {}
+	var collision_object_test_setups: Array[CollisionTestSetup2D] = []
 	for obj: StaticBody2D in collision_objects:
-		var collision_setup: IndicatorCollisionTestSetup = IndicatorCollisionTestSetup.new(obj as CollisionObject2D, bounds)
-		collision_object_test_setups[obj] = collision_setup
+		var collision_setup: CollisionTestSetup2D = CollisionTestSetup2D.new(obj as CollisionObject2D, bounds)
+		collision_object_test_setups.append(collision_setup)
 
 	collision_mapper.setup(test_indicator, collision_object_test_setups)
 	return collision_mapper## Gets collision tiles for objects with proper typing
@@ -264,7 +264,7 @@ static func setup_collision_test_environment(
 	building: StaticBody2D
 ) -> Dictionary:
 	# Set up collision mapper with test setup
-	var test_setup: IndicatorCollisionTestSetup = UnifiedTestFactory.create_test_indicator_collision_setup(test_suite, building)
+	var test_setup: CollisionTestSetup2D = UnifiedTestFactory.create_test_indicator_collision_setup(test_suite, building)
 	test_env.collision_mapper.collision_object_test_setups[building] = test_setup
 	
 	# Create indicator manager if needed

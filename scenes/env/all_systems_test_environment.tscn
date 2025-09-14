@@ -8,7 +8,7 @@
 [ext_resource type="Script" uid="uid://b8uqw4y2hgns3" path="res://addons/grid_building/components/target_highlighter.gd" id="6_8ccnd"]
 [ext_resource type="Script" uid="uid://4mfr58yhmove" path="res://addons/grid_building/systems/building/building_system.gd" id="6_tepc3"]
 [ext_resource type="Script" uid="uid://ckwhivepsvl0n" path="res://addons/grid_building/components/gb_level_context.gd" id="7_tnep3"]
-[ext_resource type="TileSet" uid="uid://cksvuukyxc5pd" path="res://test/resources/tile_set/test_square_16x16_tileset.tres" id="8_wghmx"]
+[ext_resource type="PackedScene" uid="uid://3shi30ob8pna" path="res://test/grid_building_test/scenes/tile_map/TEST_buildable_10x10_tile_map.tscn" id="8_8ccnd"]
 [ext_resource type="Script" uid="uid://dasmm18l8fxdo" path="res://addons/grid_building/user/gb_owner.gd" id="9_s5uet"]
 [ext_resource type="PackedScene" uid="uid://dm3722ecrh3e4" path="res://templates/grid_building_templates/grid_positioner_stack.tscn" id="10_6yyi1"]
 
@@ -26,7 +26,7 @@ positioner = NodePath("World/GridPositioner2D")
 world = NodePath("World")
 level = NodePath("World/Level")
 level_context = NodePath("World/Level/GBLevelContext")
-tile_map_layer = NodePath("World/Level/TileMapLayer")
+tile_map_layer = NodePath("World/Level/TESTBuildable10x10TileMap")
 objects_parent = NodePath("World/Level/PlacedObjectsParent")
 placer = NodePath("World/Level/Placer")
 
@@ -56,15 +56,14 @@ metadata/_custom_type_script = "uid://4mfr58yhmove"
 
 [node name="Level" type="Node2D" parent="World"]
 
+[node name="TESTBuildable10x10TileMap" parent="World/Level" instance=ExtResource("8_8ccnd")]
+
 [node name="GBLevelContext" type="Node" parent="World/Level" node_paths=PackedStringArray("target_map", "maps", "objects_parent")]
 script = ExtResource("7_tnep3")
-target_map = NodePath("../TileMapLayer")
-maps = [NodePath("../TileMapLayer")]
+target_map = NodePath("../TESTBuildable10x10TileMap")
+maps = [NodePath("../TESTBuildable10x10TileMap")]
 objects_parent = NodePath("../PlacedObjectsParent")
 metadata/_custom_type_script = "uid://ckwhivepsvl0n"
-
-[node name="TileMapLayer" type="TileMapLayer" parent="World/Level"]
-tile_set = ExtResource("8_wghmx")
 
 [node name="PlacedObjectsParent" type="Node2D" parent="World/Level"]
 
