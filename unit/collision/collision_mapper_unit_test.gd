@@ -4,18 +4,26 @@ extends GdUnitTestSuite
 # that can cause integration test failures at higher levels.
 
 var _logger: GBLogger
+var indicator_template : PackedScene = preload("uid://dhox8mb8kuaxa")
 
 func before_test() -> void:
 	_logger = GBLogger.new(GBDebugSettings.new())
+
+# Helper function to get CollisionTestSetup2D for a given collision body
+func _get_test_setup_for_body(mapper: CollisionMapper, body: Node2D) -> CollisionTestSetup2D:
+	for setup in mapper.test_setups:
+		if setup.collision_object == body:
+			return setup
+	return null
 
 # Helper function to generate detailed mapper setup diagnostics
 func _generate_mapper_setup_diagnostics(mapper: CollisionMapper, body: Node2D) -> String:
 	var diagnostics: String = "Mapper Setup Diagnostics:\n"
 
 	var test_indicator_valid: bool = mapper.test_indicator != null
-	var setups_valid: bool = mapper.collision_object_test_setups != null and not mapper.collision_object_test_setups.is_empty()
-	var has_body_setup: bool = mapper.collision_object_test_setups.has(body) if setups_valid else false
-	var body_setup_valid: bool = mapper.collision_object_test_setups[body] != null if has_body_setup else false
+	var setups_valid: bool = mapper.test_setups != null and not mapper.test_setups.is_empty()
+	var has_body_setup: bool = _get_test_setup_for_body(mapper, body) != null if setups_valid else false
+	var body_setup_valid: bool = has_body_setup
 	
 	diagnostics += "- Test indicator valid: %s\n" % test_indicator_valid
 	diagnostics += "- Collision setups valid: %s\n" % setups_valid
@@ -23,7 +31,7 @@ func _generate_mapper_setup_diagnostics(mapper: CollisionMapper, body: Node2D) -
 	diagnostics += "- Body setup valid: %s\n" % body_setup_valid
 	
 	if has_body_setup and body_setup_valid:
-		var body_test_setup: CollisionTestSetup2D = mapper.collision_object_test_setups[body]
+		var body_test_setup: CollisionTestSetup2D = _get_test_setup_for_body(mapper, body)
 		diagnostics += "- Test setup rect_collision_test_setups: %d\n" % body_test_setup.rect_collision_test_setups.size()
 		if body_test_setup.rect_collision_test_setups.size() > 0:
 			var first_rect_setup: RectCollisionTestingSetup = body_test_setup.rect_collision_test_setups[0]
@@ -65,10 +73,10 @@ func _generate_comprehensive_failure_analysis(result_size: int, expected_min: in
 	if not guard_complete:
 		analysis += "GUARD FAILURE DETAILS:\n"
 		analysis += "- Test indicator: %s\n" % ("null" if mapper.test_indicator == null else "valid")
-		analysis += "- Collision setups: %s\n" % ("null" if mapper.collision_object_test_setups == null else "initialized")
-		if mapper.collision_object_test_setups != null:
-			analysis += "- Setups count: %d\n" % mapper.collision_object_test_setups.size()
-			analysis += "- Has body setup: %s\n" % mapper.collision_object_test_setups.has(body)
+		analysis += "- Collision setups: %s\n" % ("null" if mapper.test_setups == null else "initialized")
+		if mapper.test_setups != null:
+			analysis += "- Setups count: %d\n" % mapper.test_setups.size()
+			analysis += "- Has body setup: %s\n" % (_get_test_setup_for_body(mapper, body) != null)
 
 	if not layer_matches:
 		analysis += "\nLAYER/MASK FAILURE DETAILS:\n"
@@ -91,7 +99,7 @@ func _generate_actionable_next_steps(result_size: int, layer_matches: bool, guar
 	if not guard_complete:
 		steps += "1. Fix mapper setup - ensure setup() is called with valid parameters\n"
 		steps += "2. Verify test_indicator is not null\n"
-		steps += "3. Verify collision_object_test_setups contains the collision body\n"
+		steps += "3. Verify test_setups contains the collision body\n"
 
 	if not layer_matches:
 		steps += "1. Check collision layer settings on collision objects\n"
@@ -156,8 +164,7 @@ func test_basic_collision_detection() -> void:
 	add_child(body)
 	
 	# Setup mapper
-	var template := UnifiedTestFactory.create_minimal_indicator_template(self)
-	var test_indicator := template.instantiate()
+	var test_indicator : RuleCheckIndicator = indicator_template.instantiate() as RuleCheckIndicator
 	auto_free(test_indicator)
 	
 	var test_setup := CollisionTestSetup2D.new(body, Vector2(16, 16))
@@ -166,8 +173,8 @@ func test_basic_collision_detection() -> void:
 	
 	# Validate setup first
 	assert_that(mapper.test_indicator).is_not_null().append_failure_message("Test indicator should be set after setup")
-	assert_that(mapper.collision_object_test_setups).is_not_null().append_failure_message("Collision setups should be initialized")
-	assert_that(mapper.collision_object_test_setups.has(body)).is_true().append_failure_message("Setup should contain the body")
+	assert_that(mapper.test_setups).is_not_null().append_failure_message("Collision setups should be initialized")
+	assert_that(_get_test_setup_for_body(mapper, body)).is_not_null().append_failure_message("Setup should contain the body")
 	
 	# Test the test_setup validation
 	assert_that(test_setup.validate_setup()).is_true().append_failure_message("Test setup should be valid")
@@ -208,8 +215,7 @@ func test_collision_layer_matching_for_tile_check_rules() -> void:
 	assert_that(body.collision_layer).append_failure_message("Collision layer must be set to 513 for this test").is_equal(513)
 	
 	# Create testing indicator and setup mapper
-	var template := UnifiedTestFactory.create_minimal_indicator_template(self)
-	var test_indicator := template.instantiate()
+	var test_indicator : RuleCheckIndicator = indicator_template.instantiate() as RuleCheckIndicator
 	auto_free(test_indicator)
 	
 	# Create test setup and validate it
@@ -231,10 +237,9 @@ func test_collision_layer_matching_for_tile_check_rules() -> void:
 	
 	# Verify mapper setup is complete
 	assert_that(mapper.test_indicator).append_failure_message("Mapper test indicator must be set after setup").is_not_null()
-	assert_that(mapper.collision_object_test_setups).append_failure_message("Mapper collision setups must be initialized").is_not_null()
-	assert_that(mapper.collision_object_test_setups.is_empty()).append_failure_message("Mapper collision setups must not be empty").is_false()
-	assert_that(mapper.collision_object_test_setups.has(body)).append_failure_message("Mapper must have setup for the collision body").is_true()
-	assert_that(mapper.collision_object_test_setups[body]).append_failure_message("Mapper body setup must not be null").is_not_null()
+	assert_that(mapper.test_setups).append_failure_message("Mapper collision setups must be initialized").is_not_null()
+	assert_that(mapper.test_setups.is_empty()).append_failure_message("Mapper collision setups must not be empty").is_false()
+	assert_that(_get_test_setup_for_body(mapper, body)).append_failure_message("Mapper must have setup for the collision body").is_not_null()
 	
 	var result := mapper.get_collision_tile_positions_with_mask([body], rule.apply_to_objects_mask)
 	
@@ -257,7 +262,7 @@ func test_collision_layer_matching_for_tile_check_rules() -> void:
 				debug_info += "Shape size: %s\n" % shape_owner.shape.size
 	
 	# Check test setup details
-	var collision_test_setup : CollisionTestSetup2D = mapper.collision_object_test_setups[body]
+	var collision_test_setup : CollisionTestSetup2D = _get_test_setup_for_body(mapper, body)
 	debug_info += "Test setup valid: %s\n" % collision_test_setup.validate_setup()
 	debug_info += "Rect collision test setups count: %d\n" % collision_test_setup.rect_collision_test_setups.size()
 	
@@ -327,8 +332,7 @@ func test_position_rules_mapping_produces_results() -> void:
 	assert_that(body.collision_layer).append_failure_message("Collision layer should be 1").is_equal(1)
 	
 	# Setup mapper
-	var template := UnifiedTestFactory.create_minimal_indicator_template(self)
-	var test_indicator := template.instantiate()
+	var test_indicator : RuleCheckIndicator = indicator_template.instantiate() as RuleCheckIndicator
 	auto_free(test_indicator)
 	
 	# Create test setup and validate it
@@ -368,7 +372,7 @@ func test_position_rules_mapping_produces_results() -> void:
 				debug_info += "Shape size: %s\n" % shape_owner.shape.size
 	
 	# Check test setup details
-	var collision_test_setup : CollisionTestSetup2D = mapper.collision_object_test_setups[body]
+	var collision_test_setup : CollisionTestSetup2D = _get_test_setup_for_body(mapper, body)
 	debug_info += "Test setup valid: %s\n" % collision_test_setup.validate_setup()
 	debug_info += "Rect collision test setups count: %d\n" % collision_test_setup.rect_collision_test_setups.size()
 	
@@ -400,8 +404,8 @@ func test_position_rules_mapping_produces_results() -> void:
 	
 	if not guard_complete:
 		assert_that(mapper.test_indicator).append_failure_message("Test indicator must not be null when guard setup is incomplete").is_not_null()
-		assert_that(mapper.collision_object_test_setups).append_failure_message("Collision setups must not be null when guard setup is incomplete").is_not_null()
-		assert_that(mapper.collision_object_test_setups.is_empty()).append_failure_message("Collision setups must not be empty when guard setup is incomplete").is_false()
+		assert_that(mapper.test_setups).append_failure_message("Collision setups must not be null when guard setup is incomplete").is_not_null()
+		assert_that(mapper.test_setups.is_empty()).append_failure_message("Collision setups must not be empty when guard setup is incomplete").is_not_true()
 
 	# Concise failure message with debug info
 	var failure_msg : String = "Expected position-rules mapping for layer %d & mask %d, but got empty result. Guard complete: %s, Map size: %d\n%s" % [

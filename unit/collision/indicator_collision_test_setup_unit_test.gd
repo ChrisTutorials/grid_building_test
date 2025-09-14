@@ -33,25 +33,6 @@ func _create_empty_body() -> StaticBody2D:
 	add_child(body)
 	return body
 
-# Helper: Debug shape owners information
-func _debug_shape_owners(body: StaticBody2D) -> void:
-	var shape_owner_count: int = body.get_shape_owners().size()
-	print(DEBUG_PREFIX + "Shape owner count: ", shape_owner_count)
-
-	if shape_owner_count > 0:
-		var shape_owner_ids: Array = body.get_shape_owners()
-		for owner_id: int in shape_owner_ids:
-			var owner_node: Node2D = body.shape_owner_get_owner(owner_id)
-			var shape_count: int = body.shape_owner_get_shape_count(owner_id)
-			print(DEBUG_PREFIX + "Owner: ", owner_node.name, ", Shape count: ", shape_count)
-
-# Helper: Debug test setup validation
-func _debug_test_setup_validation(test_setup: CollisionTestSetup2D) -> void:
-	var is_valid: bool = test_setup.validate_setup()
-	print(DEBUG_PREFIX + "Test setup valid: ", is_valid)
-	print(DEBUG_PREFIX + "Issues: ", test_setup.issues)
-	print(DEBUG_PREFIX + "Rect collision test setups size: ", test_setup.rect_collision_test_setups.size())
-
 # Helper: Create and validate test setup
 func _create_and_validate_test_setup(body: StaticBody2D, tile_size: Vector2 = TEST_TILE_SIZE) -> CollisionTestSetup2D:
 	var test_setup: CollisionTestSetup2D = CollisionTestSetup2D.new(body, tile_size)
@@ -66,18 +47,12 @@ func test_indicator_collision_test_setup_creation() -> void:
 	# Ensure the scene tree is ready
 	await get_tree().process_frame
 
-	# Debug: Check shape owners
-	_debug_shape_owners(body)
-
 	# Create test setup
 	var test_setup := _create_and_validate_test_setup(body)
 
-	# Debug: Check validation
-	_debug_test_setup_validation(test_setup)
-
 	# This should pass if the setup is working correctly
-	assert_that(test_setup.validate_setup()).is_true()
-	assert_that(test_setup.rect_collision_test_setups.size()).is_greater(0)
+	assert_that(test_setup.validate_setup()).is_true().append_failure_message("CollisionTestSetup2D should validate successfully with proper collision shapes")
+	assert_that(test_setup.rect_collision_test_setups.size()).is_greater(0).append_failure_message("Expected at least one rect collision test setup")
 
 # Test: CollisionTestSetup2D with no shapes (should fail gracefully)
 func test_indicator_collision_test_setup_empty_body() -> void:
@@ -86,5 +61,70 @@ func test_indicator_collision_test_setup_empty_body() -> void:
 	var test_setup := _create_and_validate_test_setup(body)
 
 	var is_valid: bool = test_setup.validate_setup()
-	assert_that(is_valid).is_false()
-	assert_that(test_setup.issues.size()).is_greater(0)
+	assert_that(is_valid).is_false().append_failure_message("Empty body should fail validation")
+	assert_that(test_setup.issues.size()).is_greater(0).append_failure_message("Validation should produce issues for empty body")
+
+# Test: create_test_setups_for_collision_owners with valid collision object
+func test_create_test_setups_for_collision_owners_with_valid_object() -> void:
+	var body := _create_body_with_rectangle_shape()
+	var targeting_state := GridTargetingState.new(GBOwnerContext.new())
+
+	# Create owner_shapes dictionary manually
+	var owner_shapes: Dictionary[Node2D, Array] = {}
+	var shapes: Array[Shape2D] = []
+	for child in body.get_children():
+		if child is CollisionShape2D and child.shape:
+			shapes.append(child.shape)
+	owner_shapes[body] = shapes
+
+	var owner_collision_setups: Dictionary[Node2D, CollisionTestSetup2D] = CollisionTestSetup2D.create_test_setups_for_collision_owners(owner_shapes, targeting_state)
+
+	assert_that(owner_collision_setups.size()).is_greater(0).append_failure_message("Expected at least one test setup for valid collision object")
+	assert_that(owner_collision_setups.has(body)).is_true().append_failure_message("Expected body to be in setups dictionary")
+	assert_that(owner_collision_setups[body]).is_not_null().append_failure_message("Expected non-null setup for body")
+	assert_that(owner_collision_setups[body] is CollisionTestSetup2D).is_true().append_failure_message("Expected setup to be CollisionTestSetup2D instance")
+
+# Test: create_test_setups_for_collision_owners with empty dictionary
+func test_create_test_setups_for_collision_owners_empty() -> void:
+	var targeting_state := GridTargetingState.new(GBOwnerContext.new())
+	var owner_shapes: Dictionary[Node2D, Array] = {}
+
+	var owner_collision_setups: Dictionary[Node2D, CollisionTestSetup2D] = CollisionTestSetup2D.create_test_setups_for_collision_owners(owner_shapes, targeting_state)
+
+	assert_that(owner_collision_setups.size()).is_equal(0).append_failure_message("Expected empty setups dictionary for empty owner_shapes")
+
+# Test: create_test_setups_from_test_node with valid collision object
+func test_create_test_setups_from_test_node_with_valid_object() -> void:
+	var body := _create_body_with_rectangle_shape()
+	var targeting_state := GridTargetingState.new(GBOwnerContext.new())
+
+	var node_collision_setups: Array[CollisionTestSetup2D] = CollisionTestSetup2D.create_test_setups_from_test_node(body, targeting_state)
+
+	assert_that(node_collision_setups.size()).is_greater(0).append_failure_message("Expected at least one setup from valid test node")
+	# Should have at least one setup for the body itself or its collision shapes
+	var has_valid_setup := false
+	for setup: CollisionTestSetup2D in node_collision_setups:
+		if setup is CollisionTestSetup2D:
+			has_valid_setup = true
+			break
+	assert_that(has_valid_setup).is_true().append_failure_message("Expected at least one valid CollisionTestSetup2D in setups array")
+
+# Test: create_test_setups_from_test_node with empty body
+func test_create_test_setups_from_test_node_empty_body() -> void:
+	var body := _create_empty_body()
+	var targeting_state := GridTargetingState.new(GBOwnerContext.new())
+
+	var node_collision_setups: Array[CollisionTestSetup2D] = CollisionTestSetup2D.create_test_setups_from_test_node(body, targeting_state)
+
+	# Even with no collision shapes, should return a dictionary (possibly empty or with null values)
+	assert_that(node_collision_setups).is_not_null().append_failure_message("Expected non-null setups array even for empty body")
+
+# Test: create_test_setups_from_test_node with null node (should handle gracefully)
+func test_create_test_setups_from_test_node_null_input() -> void:
+	var targeting_state := GridTargetingState.new(GBOwnerContext.new())
+
+	# This should not crash and should handle null input gracefully
+	var node_collision_setups: Array[CollisionTestSetup2D] = CollisionTestSetup2D.create_test_setups_from_test_node(null, targeting_state)
+
+	# Should return empty dictionary for null input
+	assert_that(node_collision_setups.size()).is_equal(0)

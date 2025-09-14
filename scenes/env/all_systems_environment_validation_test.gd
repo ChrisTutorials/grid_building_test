@@ -87,11 +87,11 @@ func test_building_system_can_enter_build_mode() -> void:
 	# This is the exact test that was failing in all_systems_integration_tests.gd
 	# We need a placeable resource to test with - let's check if any are available
 	var container: GBCompositionContainer = test_env.get_container()
-	if container != null and container.has_method("get_placement_rules"):
+	if container != null:
 		var placement_rules: Array = container.get_placement_rules()
 		if placement_rules != null and placement_rules.size() > 0:
 			var first_rule: Variant = placement_rules[0]
-			if first_rule != null and first_rule.has_method("get_placeable"):
+			if first_rule != null:
 				var placeable: Variant = first_rule.get_placeable()
 				if placeable != null:
 					var result: Variant = test_env.building_system.enter_build_mode(placeable)
@@ -118,7 +118,7 @@ func test_scene_node_structure() -> void:
 func test_placement_rules_available() -> void:
 	# Check if there are placement rules available (the "0 base placement rules" issue)
 	var container: GBCompositionContainer = test_env.get_container()
-	if container != null and container.has_method("get_placement_rules"):
+	if container != null:
 		var placement_rules: Array = container.get_placement_rules()
 		# We don't necessarily need placement rules for the environment to work,
 		# but we should be able to check this without errors

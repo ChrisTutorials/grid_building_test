@@ -123,7 +123,7 @@ func _analyze_placement_indicators(scene_root: Node) -> String:
 			output += "  Class: %s\n" % shapecast.get_class()
 			output += "  Position: %s (global: %s)\n" % [shapecast.position, shapecast.global_position]
 			output += "  Rotation: %.2f° | Scale: %s\n" % [shapecast.rotation_degrees, shapecast.scale]
-			output += "  Visible: %s | Enabled: %s\n" % [shapecast.visible, shapecast.enabled if shapecast.has_method("set_enabled") else "N/A"]
+			output += "  Visible: %s | Enabled: %s\n" % [shapecast.visible, shapecast.enabled if shapecast is ShapeCast2D else "N/A"]
 			
 			# Parent information
 			if shapecast.get_parent():
@@ -194,15 +194,13 @@ func _analyze_placement_indicators(scene_root: Node) -> String:
 							rule_types.append("Script: Custom Rule")
 				
 				# Check for custom properties that might indicate rule type
-				if shapecast.has_method("get_rule_type"):
-					var rule_type: String = shapecast.get_rule_type()
-					if rule_type:
-						rule_types.append("Property: %s" % rule_type)
+				var rule_type: String = shapecast.get_rule_type()
+				if rule_type:
+					rule_types.append("Property: %s" % rule_type)
 				
-				if shapecast.has_method("get_validation_type"):
-					var validation_type: String = shapecast.get_validation_type()
-					if validation_type:
-						rule_types.append("Validation: %s" % validation_type)
+				var validation_type: String = shapecast.get_validation_type()
+				if validation_type:
+					rule_types.append("Validation: %s" % validation_type)
 			
 			if patterns.size() > 0:
 				output += "  Grid Patterns: %s\n" % ", ".join(patterns)

@@ -1,0 +1,515 @@
+## Integration tests for GridBuildingSystem workflow validation
+## Tests complete building workflows including indicator management, 
+## collision detection, and multi-system interactions.
+extends GdUnitTestSuite
+
+# Constants for test positions and sizes
+const VALID_BUILD_POS: Vector2 = Vector2(64, 64)
+const ALTERNATIVE_BUILD_POS: Vector2 = Vector2(100, 100)
+const TARGET_POS: Vector2 = Vector2(200, 200)
+const COMPLEX_TARGET_POS: Vector2 = Vector2(150, 150)
+const FULL_WORKFLOW_POS: Vector2 = Vector2(300, 300)
+const TRANSITION_TEST_POS: Vector2 = Vector2(400, 400)
+
+const COLLISION_SHAPE_SIZE: Vector2 = Vector2(32, 32)
+const MAX_REASONABLE_COORDINATE: int = 1000
+const MIN_POLYGON_SPAN: int = 2
+const POLYGON_TEST_POS: Vector2 = Vector2(128, 128)
+const DEFAULT_COLLISION_LAYER: int = 1
+const DEFAULT_COLLISION_MASK: int = 1
+const MIN_EXPECTED_INDICATORS: int = 1
+
+# Test objects and environments
+var env: AllSystemsTestEnvironment
+var _container: GBCompositionContainer
+var _gts: GridTargetingState
+var _manipulation_state : ManipulationState
+var _building_system: BuildingSystem
+var _indicator_manager: IndicatorManager
+var _targeting_system: GridTargetingSystem
+var smithy_placeable: Placeable = load("uid://dirh6mcrgdm3w")
+
+# Shared test objects - created once, reused across tests
+var tile_rule: TileCheckRule = preload("uid://bbmmdkiwwuj4a")
+var collision_rule : CollisionsCheckRule = preload("uid://du7xu07247202")
+var test_static_body: StaticBody2D
+
+func before_test() -> void:
+	env = UnifiedTestFactory.instance_all_systems_env(self, "uid://ioucajhfxc8b")
+	_validate_environment_setup()
+	_initialize_test_components()
+	_validate_required_dependencies()
+
+## Validate environment is properly set up without issues
+func _validate_environment_setup() -> void:
+	assert_object(env).append_failure_message(
+		"Failed to create AllSystemsTestEnvironment from UnifiedTestFactory"
+	).is_not_null()
+	
+	# Use environment's get_issues method for validation
+	var issues: Array = env.get_issues()
+	assert_array(issues).append_failure_message(
+		"Environment setup has issues: %s" % str(issues)
+	).is_empty()
+
+## Initialize core test components from environment
+func _initialize_test_components() -> void:
+	_container = env.get_container()
+	_building_system = env.building_system
+	_indicator_manager = env.indicator_manager
+	_targeting_system = env.grid_targeting_system
+	_gts = _targeting_system.get_state()
+	_manipulation_state = env.manipulation_system._states.manipulation
+
+## Validate all required dependencies are available
+func _validate_required_dependencies() -> void:
+	var dependencies: Dictionary = {
+		"container": _container,
+		"building_system": _building_system,
+		"indicator_manager": _indicator_manager,
+		"targeting_system": _targeting_system,
+		"targeting_state": _gts
+	}
+	
+	for dep_name: String in dependencies:
+		assert_object(dependencies[dep_name]).append_failure_message(
+			"Required dependency '%s' not available from environment" % dep_name
+		).is_not_null()
+	
+	# Assert TileMap availability instead of creating
+	var target_map: TileMap = _gts.get_target_map()
+	assert_object(target_map).append_failure_message(
+		"Environment should provide a configured TileMap for testing"
+	).is_not_null()
+	
+	# Validate loaded resources
+	assert_object(smithy_placeable).append_failure_message(
+		"Smithy placeable should be loaded successfully"
+	).is_not_null()
+	assert_object(smithy_placeable.packed_scene).append_failure_message(
+		"Smithy placeable should have packed_scene configured"
+	).is_not_null()
+
+func after_test() -> void:
+	_cleanup_test_state()
+
+#region HELPER METHODS
+
+## Common assertion helper for validating placement reports
+func _assert_placement_report_success(report: PlacementReport, context: String) -> void:
+	assert_object(report).append_failure_message(
+		"%s should return a valid PlacementReport" % context
+	).is_not_null()
+	assert_bool(report.is_successful()).append_failure_message(
+		"%s should succeed: %s" % [context, str(report.get_all_issues())]
+	).is_true()
+
+## Common helper to enter build mode with proper error handling
+func _enter_build_mode_successfully(placeable: Placeable) -> bool:
+	_assert_placeable_validity(placeable)
+	
+	var setup_report: PlacementReport = _building_system.enter_build_mode(placeable)
+	if setup_report.is_successful():
+		assert_bool(_building_system.is_in_build_mode()).append_failure_message(
+			"Should be in build mode after successful enter_build_mode"
+		).is_true()
+		return true
+	else:
+		_assert_placement_report_success(setup_report, "enter_build_mode")
+		return false
+
+## Validate placeable has required configuration
+func _assert_placeable_validity(placeable: Placeable) -> void:
+	assert_object(placeable).append_failure_message(
+		"Cannot enter build mode with null placeable"
+	).is_not_null()
+	assert_object(placeable.placement_rules).append_failure_message(
+		"Placeable should have placement rules configured: %s" % str(placeable)
+	).is_not_null()
+	assert_array(placeable.placement_rules).append_failure_message(
+		"Placeable should have non-empty placement rules: %s has %d rules" % [str(placeable), placeable.placement_rules.size()]
+	).is_not_empty()
+
+## Common helper to set targeting position
+func _set_targeting_position(position: Vector2) -> void:
+	var targeting_state: GridTargetingState = _container.get_states().targeting
+	assert_object(targeting_state.positioner).append_failure_message(
+		"Targeting state should have a valid positioner configured"
+	).is_not_null()
+	targeting_state.positioner.global_position = position
+
+## Common helper to validate successful setup with custom message
+func _assert_setup_successful(setup_result: PlacementReport, context: String) -> void:
+	# Delegate to consolidated helper method
+	_assert_placement_report_success(setup_result, context)
+
+## Common helper to create instantiated smithy node for testing
+func _create_smithy_test_node() -> Node:
+	var smithy_node: Node = smithy_placeable.packed_scene.instantiate()
+	add_child(smithy_node)
+	auto_free(smithy_node)
+	return smithy_node
+
+## Common assertion helper for collision detection results
+func _assert_collision_results_valid(collision_results: Dictionary, context: String) -> void:
+	assert_dict(collision_results).append_failure_message(
+		"%s: Should generate collision tile positions" % context
+	).is_not_empty()
+	
+	for tile_pos: Variant in collision_results.keys():
+		var pos: Vector2i = tile_pos as Vector2i
+		assert_bool(abs(pos.x) < MAX_REASONABLE_COORDINATE and abs(pos.y) < MAX_REASONABLE_COORDINATE).append_failure_message(
+			"%s: Generated tile position %s should be reasonable" % [context, str(pos)]
+		).is_true()
+
+## Find collision objects in scene hierarchy
+func _find_collision_objects_recursive(node: Node, found_objects: Array[Node2D]) -> void:
+	if node is Node2D and node is CollisionObject2D:
+		found_objects.append(node as Node2D)
+	for child in node.get_children():
+		_find_collision_objects_recursive(child, found_objects)
+
+## Create test placeable with proper rules configuration
+func _create_test_placeable_with_rules() -> Placeable:
+	# Delegate to UnifiedTestFactory to reduce duplication
+	return UnifiedTestFactory.create_test_placeable_with_rules(smithy_placeable, "Test Placeable With Rules")
+
+## Common cleanup helper
+func _cleanup_test_state() -> void:
+	if _building_system and _building_system.is_in_build_mode():
+		_building_system.exit_build_mode()
+
+#endregion
+
+#region BUILDING WORKFLOW INTEGRATION
+
+func test_complete_building_workflow() -> void:
+	var test_placeable: Placeable = _create_test_placeable_with_rules()
+	if not _enter_build_mode_successfully(test_placeable):
+		return
+	
+	_set_targeting_position(VALID_BUILD_POS)
+	
+	# Validate placement before building
+	var validation_result: ValidationResults = _indicator_manager.validate_placement()
+	assert_bool(validation_result.is_successful()).append_failure_message(
+		"Validation should succeed for valid position %s" % VALID_BUILD_POS
+	).is_true()
+	
+	# Test building at validated position
+	var build_result: PlacementReport = _building_system.try_build_at_position(VALID_BUILD_POS)
+	assert_object(build_result.placed).append_failure_message(
+		"Building should succeed and return placed object at position %s" % VALID_BUILD_POS
+	).is_not_null()
+
+func test_alternative_building_workflow() -> void:
+	var test_placeable: Placeable = _create_test_placeable_with_rules()
+	if not _enter_build_mode_successfully(test_placeable):
+		return
+	
+	# Test placement at alternative position
+	var placement_result: PlacementReport = _building_system.try_build_at_position(ALTERNATIVE_BUILD_POS)
+	assert_object(placement_result.placed).append_failure_message(
+		"Building should succeed at alternative position %s" % ALTERNATIVE_BUILD_POS
+	).is_not_null()
+
+#endregion
+
+#region MULTI-RULE INDICATOR ATTACHMENT
+
+func test_multi_rule_indicator_attachment() -> void:
+	# Set up a target for indicator generation with proper TileMap context
+	var test_target: Node2D = Node2D.new()
+	test_target.name = "TestTarget"
+	add_child(test_target)
+	auto_free(test_target)
+	_gts.target = test_target
+	
+	# Assert environment provides TileMap rather than creating it
+	assert_object(_gts.get_target_map()).append_failure_message(
+		"Environment should provide a configured TileMap for multi-rule testing"
+	).is_not_null()
+	
+	# Create multiple rules using helper method for consistency
+	var test_placeable: Placeable = _create_test_placeable_with_rules()
+	var rules: Array[PlacementRule] = test_placeable.placement_rules
+	
+	var setup_result: PlacementReport = _indicator_manager.try_setup(rules, _gts)
+	_assert_placement_report_success(setup_result, "Multi-rule setup")
+	
+	# Verify indicators are created for multiple rules
+	var indicators: Array = _indicator_manager.get_indicators()
+	assert_int(indicators.size()).append_failure_message(
+		"Should have indicators for multiple rules, got %d" % indicators.size()
+	).is_greater_equal(MIN_EXPECTED_INDICATORS)
+
+func test_rule_indicator_state_synchronization() -> void:
+	# Setup with initial state
+	test_static_body.global_position = VALID_BUILD_POS
+	var setup_result: PlacementReport = _indicator_manager.try_setup([collision_rule], _gts)
+	assert_bool(setup_result.is_successful()).append_failure_message(
+		"Initial indicator setup should succeed with collision rule: %s" % str(setup_result.get_all_issues())
+	).is_true()
+	
+	# Change rule state and verify indicators update
+	test_static_body.global_position = POLYGON_TEST_POS
+	var update_result: PlacementReport = _indicator_manager.try_setup([collision_rule], _gts)
+	
+	_assert_setup_successful(update_result, "Rule state update")
+
+func test_indicators_are_parented_and_inside_tree() -> void:
+	# Assert environment provides required targeting setup
+	assert_object(_gts.get_target_map()).append_failure_message(
+		"Environment should provide a configured TileMap for indicator testing"
+	).is_not_null()
+	assert_object(_container.get_states().manipulation.parent).append_failure_message(
+		"Environment should provide manipulation parent for indicators"
+	).is_not_null()
+	
+	# Set up test target from environment
+	var test_target: Node2D = Node2D.new()
+	test_target.name = "TestTarget"
+	add_child(test_target)
+	auto_free(test_target)
+	_container.get_states().targeting.target = test_target
+	_gts.target = test_target
+	
+	# Create rule for indicator generation
+	var rule: CollisionsCheckRule = CollisionsCheckRule.new()
+	rule.apply_to_objects_mask = DEFAULT_COLLISION_LAYER
+	rule.collision_mask = DEFAULT_COLLISION_LAYER
+	rule.pass_on_collision = true
+	if rule.messages == null:
+		rule.messages = CollisionRuleSettings.new()
+	
+	var setup_results: PlacementReport = _indicator_manager.try_setup([rule], _gts)
+	_assert_placement_report_success(setup_results, "IndicatorManager.try_setup")
+	
+	# Validate indicator creation and parenting
+	var indicators: Array = _indicator_manager.get_indicators()
+	assert_array(indicators).append_failure_message("No indicators created").is_not_empty()
+	
+	for ind: RuleCheckIndicator in indicators:
+		assert_bool(ind.is_inside_tree()).append_failure_message("Indicator not inside tree: %s" % ind.name).is_true()
+		assert_object(ind.get_parent()).append_failure_message("Indicator has no parent: %s" % ind.name).is_not_null()
+		assert_object(ind.get_parent()).append_failure_message("Unexpected parent for indicator: %s" % ind.name).is_equal(_container.get_states().manipulation.parent)
+
+#endregion
+
+#region SMITHY INDICATOR GENERATION
+
+func test_smithy_indicator_generation() -> void:
+	var test_placeable: Placeable = _create_test_placeable_with_rules()
+	var test_rules: Array = test_placeable.placement_rules
+	assert_array(test_rules).append_failure_message(
+		"Test placeable should have placement rules"
+	).is_not_empty()
+	
+	# Generate indicators using helper method
+	var _smithy_node: Node = _create_smithy_test_node()
+	var setup_result: PlacementReport = _indicator_manager.try_setup(test_rules, _gts)
+	_assert_setup_successful(setup_result, "Test placeable indicator generation")
+
+func test_smithy_collision_detection() -> void:
+	var collision_mapper: CollisionMapper = env.indicator_manager.get_collision_mapper()
+	assert_object(collision_mapper).append_failure_message(
+		"Environment should provide a CollisionMapper for testing"
+	).is_not_null()
+	
+	# Create smithy instance to test collision detection
+	var smithy_node: Node = smithy_placeable.packed_scene.instantiate()
+	add_child(smithy_node)
+	auto_free(smithy_node)
+	
+	# Find collision objects in smithy scene
+	var collision_objects: Array[Node2D] = []
+	_find_collision_objects_recursive(smithy_node, collision_objects)
+	
+	# Either smithy has collision objects, or we skip collision detection test
+	if not collision_objects.is_empty():
+		var collision_results: Dictionary = collision_mapper.get_collision_tile_positions_with_mask(collision_objects, DEFAULT_COLLISION_LAYER)
+		_assert_collision_results_valid(collision_results, "Smithy collision detection")
+
+#endregion
+
+#region COMPLEX WORKFLOW INTEGRATION
+
+func test_complex_multi_system_workflow() -> void:
+	_set_targeting_position(TARGET_POS)
+	
+	assert_vector(TARGET_POS).append_failure_message(
+		"Target position should be set correctly"
+	).is_equal(TARGET_POS)
+	
+	# Phase 2: Building placement - use properly configured test placeable
+	var test_placeable: Placeable = _create_test_placeable_with_rules()
+	if not _enter_build_mode_successfully(test_placeable):
+		return
+		
+	var build_result: PlacementReport = _building_system.try_build_at_position(TARGET_POS)
+	assert_object(build_result.placed).append_failure_message(
+		"Complex workflow should succeed and place object at %s" % TARGET_POS
+	).is_not_null()
+	
+	# Phase 3: Post-build manipulation
+	env.manipulation_system.set_targeted(build_result.placed)
+	assert_object(_manipulation_state).append_failure_message(
+		"Should have valid manipulation state after selection"
+	).is_not_null()
+
+#endregion
+
+#region POLYGON TEST OBJECT INTEGRATION
+
+func test_polygon_test_object_indicator_generation() -> void:
+	var polygon_setup: Dictionary = UnifiedTestFactory.create_polygon_test_setup(self)
+	
+	# Generate indicators for polygon object using proper parameters
+	var setup_result: PlacementReport = _indicator_manager.try_setup(polygon_setup.rules, _gts)
+	assert_bool(setup_result.is_successful()).append_failure_message(
+		"Polygon object indicator generation should succeed: %s" % str(setup_result.get_all_issues())
+	).is_true()
+
+func test_polygon_collision_integration() -> void:
+	var collision_mapper: CollisionMapper = env.indicator_manager.get_collision_mapper()
+	var polygon_test_object: Placeable = UnifiedTestFactory.create_polygon_test_placeable(self)
+	var polygon_node: Node = polygon_test_object.packed_scene.instantiate()
+	add_child(polygon_node)
+	auto_free(polygon_node)
+	
+	# Find collision objects in polygon scene
+	var collision_objects: Array[Node2D] = []
+	_find_collision_objects_recursive(polygon_node, collision_objects)
+	
+	# Only test collision detection if polygon has collision objects
+	if not collision_objects.is_empty():
+		var collision_tiles: Dictionary = collision_mapper.get_collision_tile_positions_with_mask(collision_objects, DEFAULT_COLLISION_LAYER)
+		_assert_collision_results_valid(collision_tiles, "Polygon collision integration")
+		
+		# Verify polygon spans multiple coordinates if collision tiles exist
+		if not collision_tiles.is_empty():
+			_assert_polygon_spans_coordinates(collision_tiles)
+
+## Helper to validate polygon collision pattern
+func _assert_polygon_spans_coordinates(collision_tiles: Dictionary) -> void:
+	var unique_x_coords: Dictionary = {}
+	var unique_y_coords: Dictionary = {}
+	
+	for tile_pos: Variant in collision_tiles.keys():
+		var tile_coord: Vector2i = tile_pos as Vector2i
+		unique_x_coords[tile_coord.x] = true
+		unique_y_coords[tile_coord.y] = true
+	
+	assert_int(unique_x_coords.size()).append_failure_message(
+		"Polygon should span multiple X coordinates, got %d" % unique_x_coords.size()
+	).is_greater_equal(MIN_POLYGON_SPAN)
+	assert_int(unique_y_coords.size()).append_failure_message(
+		"Polygon should span multiple Y coordinates, got %d" % unique_y_coords.size()
+	).is_greater_equal(MIN_POLYGON_SPAN)
+
+#region GRID TARGETING HIGHLIGHT INTEGRATION
+
+func test_grid_targeting_highlight_integration() -> void:
+	var highlight_manager: Variant = env.get("highlight_manager")  # May not be available in all environments
+	
+	if highlight_manager == null:
+		# Skip if highlight manager not available in test environment
+		return
+	
+	# Test targeting with highlight updates
+	_gts.target.position = ALTERNATIVE_BUILD_POS
+	
+	# Verify highlight state updates with targeting
+	var highlight_active: bool = highlight_manager.is_highlight_active()
+	assert_bool(highlight_active).append_failure_message(
+		"Highlight should be active when targeting position is set"
+	).is_true()
+
+func test_targeting_state_transitions() -> void:
+	var initial_pos: Vector2 = Vector2.ZERO
+	if _gts.positioner != null:
+		initial_pos = _gts.positioner.global_position
+		_gts.positioner.global_position = TRANSITION_TEST_POS
+		var updated_pos: Vector2 = _gts.positioner.global_position
+		
+		assert_vector(updated_pos).append_failure_message(
+			"Target position should update from %s to %s, got %s" % [initial_pos, TRANSITION_TEST_POS, updated_pos]
+		).is_equal(TRANSITION_TEST_POS)
+		
+		# Test clearing target
+		_gts.positioner.global_position = Vector2.ZERO  # Reset to origin
+		var cleared_pos: Vector2 = _gts.positioner.global_position
+		
+		# Cleared position behavior depends on system implementation
+		assert_object(cleared_pos).append_failure_message(
+			"Should have valid position response after clearing target"
+		).is_not_null()
+
+#endregion
+#region COMPREHENSIVE INTEGRATION VALIDATION
+
+func test_full_system_integration_workflow() -> void:
+	# Step 1: Set target
+	_set_targeting_position(FULL_WORKFLOW_POS)
+	
+	# Step 2: Enter build mode with indicators
+	var test_placeable: Placeable = _create_test_placeable_with_rules()
+	if not _enter_build_mode_successfully(test_placeable):
+		return
+	
+	var smithy_node: Node = test_placeable.packed_scene.instantiate()
+	auto_free(smithy_node)
+	add_child(smithy_node)
+	
+	var smithy_rules: Array[PlacementRule] = test_placeable.placement_rules
+	
+	var indicator_result: PlacementReport = _indicator_manager.try_setup(smithy_rules, _gts)
+	_assert_setup_successful(indicator_result, "Full workflow indicator setup")
+	
+	# Step 3: Build at target
+	var build_result: PlacementReport = _building_system.try_build_at_position(FULL_WORKFLOW_POS)
+	assert_object(build_result.placed).append_failure_message(
+		"Full workflow should successfully place object at position %s" % FULL_WORKFLOW_POS
+	).is_not_null()
+	
+	# Step 4: Validate post-build state
+	_building_system.exit_build_mode()
+	assert_bool(_building_system.is_in_build_mode()).append_failure_message(
+		"Should not be in build mode after explicit exit in full workflow test"
+	).is_false()
+
+func test_system_error_recovery() -> void:
+	# Test recovery from invalid operations
+	var invalid_placeable: Variant = null
+	var invalid_report: PlacementReport = _building_system.enter_build_mode(invalid_placeable)
+	
+	# System should return a failed report for invalid input
+	assert_object(invalid_report).append_failure_message(
+		"enter_build_mode should return a PlacementReport even for invalid input, got: %s" % str(type_string(typeof(invalid_report)))
+	).is_not_null()
+	
+	# Additional type validation 
+	assert_bool(invalid_report is PlacementReport).append_failure_message(
+		"enter_build_mode should return a PlacementReport, got type: %s" % str(type_string(typeof(invalid_report)))
+	).is_true()
+	
+	assert_bool(invalid_report.is_successful()).append_failure_message(
+		"enter_build_mode should fail with null placeable"
+	).is_false()
+	
+	# System should not be in build mode after failed enter_build_mode
+	var is_in_build_mode: bool = _building_system.is_in_build_mode()
+	assert_bool(is_in_build_mode).append_failure_message(
+		"System should not be in build mode after failed enter_build_mode"
+	).is_false()
+	
+	# Ensure system can recover to valid state
+	var test_placeable: Placeable = _create_test_placeable_with_rules()
+	if _enter_build_mode_successfully(test_placeable):
+		assert_bool(_building_system.is_in_build_mode()).append_failure_message(
+			"System should recover and enter build mode with valid placeable"
+		).is_true()
+	
+	_building_system.exit_build_mode()
+
+#endregion

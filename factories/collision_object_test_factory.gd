@@ -88,7 +88,7 @@ static func create_complex_collision_object(test_suite: GdUnitTestSuite, rect_si
 ## Sets up collision mapper with test indicator and collision object setups
 static func setup_collision_mapper_with_objects(
 	test_suite: GdUnitTestSuite,
-	test_env: Dictionary,
+	test_env: CollisionTestEnvironment,
 	collision_objects: Array[StaticBody2D],
 	bounds: Vector2,
 	_indicator_size: int = 16
@@ -263,13 +263,15 @@ static func setup_collision_test_environment(
 	test_env: Dictionary, 
 	building: StaticBody2D
 ) -> Dictionary:
-	# Set up collision mapper with test setup
-	var test_setup: CollisionTestSetup2D = UnifiedTestFactory.create_test_indicator_collision_setup(test_suite, building)
+	# Set up collision mapper with test setup - create directly instead of circular call
+	var test_setup: CollisionTestSetup2D = CollisionTestSetup2D.new(building as CollisionObject2D, Vector2(32, 32))
+	test_suite.auto_free(test_setup)
 	test_env.collision_mapper.collision_object_test_setups[building] = test_setup
 	
-	# Create indicator manager if needed
-	var targeting_setup: Dictionary = UnifiedTestFactory.prepare_targeting_state_ready(test_suite, test_env.container)
-	var indicator_manager: IndicatorManager = UnifiedTestFactory.create_test_indicator_manager(test_suite, targeting_setup.container)
+	# Create indicator manager directly
+	var indicator_manager: IndicatorManager = IndicatorManager.new()
+	test_suite.add_child(indicator_manager)
+	test_suite.auto_free(indicator_manager)
 	
 	return {
 		"building": building,
@@ -338,3 +340,35 @@ static func create_test_object_with_shape(
 		test_suite.fail("Unknown shape type: %s" % shape_type)
 		
 	return collision_body
+
+## Creates a polygon test object for testing indicator behavior
+static func create_polygon_test_object(test_suite: GdUnitTestSuite, parent: CollisionObject2D = null) -> Node2D:
+	var obj := Node2D.new()
+	obj.name = "PolygonTestObject"
+	test_suite.add_child(obj)
+	test_suite.auto_free(obj)
+	
+	# Define a concave polygon for testing
+	var points: PackedVector2Array = [
+		Vector2(-32, -16), Vector2(32, -16), Vector2(16, 0),
+		Vector2(32, 16), Vector2(-32, 16), Vector2(-16, 0)
+	]
+	
+	if parent != null:
+		# Create proper collision hierarchy: CollisionObject2D -> CollisionPolygon2D
+		var collision_polygon := CollisionPolygon2D.new()
+		collision_polygon.name = "CollisionPolygon2D" 
+		collision_polygon.polygon = points
+		parent.add_child(collision_polygon)
+		obj.add_child(parent)
+	else:
+		# Create StaticBody2D with collision polygon for physics
+		var static_body := StaticBody2D.new()
+		static_body.name = "StaticBody2D"
+		var collision_polygon := CollisionPolygon2D.new()
+		collision_polygon.name = "CollisionPolygon2D"
+		collision_polygon.polygon = points
+		static_body.add_child(collision_polygon)
+		obj.add_child(static_body)
+	
+	return obj
