@@ -33,34 +33,38 @@ var _gts: GridTargetingState
 
 func before_test() -> void:
 	# var injector: Node = UnifiedTestFactory.create_test_injector(self, _container)
-	_gts = _container.get_states().targeting
+	_gts = UnifiedTestFactory.create_double_targeting_state(self)
 	# Rule and indicator setup. Rule requires the tile data to be grass and Green
 	rule = ValidPlacementTileRule.new()
 	rule.expected_tile_custom_data = {"type": "grass", "color": Color.GREEN}
-	no_setup_indicator = auto_free(TestSceneLibrary.indicator.instantiate()) as RuleCheckIndicator
+
+	## Use the standard indicator scene for testing
+	var indicator_scene : PackedScene = GBTestConstants.TEST_INDICATOR_TD_PLATFORMER
+	no_setup_indicator = auto_free(indicator_scene.instantiate()) as RuleCheckIndicator
 	no_setup_indicator.add_rule(rule)
+	no_setup_indicator.resolve_gb_dependencies(_container)
 	add_child(no_setup_indicator)
 
-	valid_indicator = auto_free(TestSceneLibrary.indicator.instantiate()) as RuleCheckIndicator
+	valid_indicator = auto_free(indicator_scene.instantiate()) as RuleCheckIndicator
 	valid_indicator.add_rule(rule)
+	valid_indicator.resolve_gb_dependencies(_container)
 	add_child(valid_indicator)
 
-	# Map and targeting state setup
-	map_layer = auto_free(TestSceneLibrary.tile_map_layer_buildable.instantiate()) as TileMapLayer
+	# Map and targeting state setup - override the factory defaults with test constants
+	map_layer = auto_free(GBTestConstants.TEST_TILE_MAP_LAYER_BUILDABLE.instantiate()) as TileMapLayer
 	add_child(map_layer)
-	var targeting_state := _container.get_states().targeting
-	targeting_state.target_map = map_layer
-	targeting_state.maps = [map_layer]
-
-	# var placer : Node = auto_free(Node.new())
-	# var placement_node: Node2D = GodotTestFactory.create_node2d(self)
+	_gts.target_map = map_layer
+	_gts.maps = [map_layer]
+	# Positioner is already set by the factory, but ensure it's in the scene tree
+	if _gts.positioner and _gts.positioner.get_parent() == null:
+		add_child(_gts.positioner)
 
 	## This must validate successfully
 	var setup_issues := rule.setup(_gts)
 	assert_array(setup_issues).is_empty()
 
 	# Assign the TileSet to the TileMap
-	map_layer.tile_set = TestSceneLibrary.custom_data_tile_set
+	map_layer.tile_set = GBTestConstants.TEST_CUSTOM_DATA_TILE_SET
 
 	# Initialize TileData objects for test cases using different tile positions
 	tile_data_full_match = _create_tile_data.call(
@@ -111,7 +115,7 @@ func after_test() -> void:
 
 
 func after() -> void:
-	# Clean up TestSceneLibrary
+	# Clean up GBTestConstants resources
 	pass
 
 

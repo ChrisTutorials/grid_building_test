@@ -1,19 +1,25 @@
 class_name UnifiedTestFactory
 extends RefCounted
 
-## Unified Test Factory - Delegator Pattern Implementation
+## Unified Test Factory - Convenience Facade for Test Creation
 ##
-## REFACTORED: Delegates to specialized factories for better maintainability.
-## Following GdUnit best practices: DRY, single responsibility, centralized object creation.
+## MIGRATION IN PROGRESS: Moving toward "Env pattern" for complex objects.
+## This factory serves as a convenience layer and maintains backward compatibility.
 ##
-## Specialized Factories:
+## NEW PATTERN: Use EnvironmentTestFactory for complete test environments
+## - AllSystemsTestEnvironment: Full system integration testing
+## - BuildingTestEnvironment: Building system focused testing
+## - CollisionTestEnvironment: Collision system focused testing
+##
+## LEGACY METHODS: Individual object factories are being phased out.
+## Use environments for complex object graphs, individual factories only for simple objects.
+##
+## Specialized Factories (use directly for new code):
 ## - EnvironmentTestFactory: Test environments and validation
-## - PlaceableTestFactory: Placeable objects with rules  
+## - PlaceableTestFactory: Placeable objects with rules
 ## - PlacementRuleTestFactory: Collision/tile placement rules
-## - CollisionObjectTestFactory: Collision shapes/objects (existing)
-## - GodotTestFactory: Basic Godot objects (existing)
-##
-## Maintains backward compatibility. New code should use specialized factories directly.
+## - GodotTestFactory: Basic Godot objects
+## - CollisionObjectTestFactory: Collision shapes/objects
 
 #region ENVIRONMENT DELEGATE METHODS
 
@@ -76,6 +82,7 @@ static func create_test_collisions_check_rule() -> CollisionsCheckRule:
 #region BASIC SETUP DELEGATE METHODS
 
 ## Delegate: Create basic test setup dictionary
+## @deprecated Use AllSystemsTestEnvironment or specific test environments instead
 static func create_basic_test_setup(test: GdUnitTestSuite, container: GBCompositionContainer = null) -> Dictionary:
 	if container == null:
 		container = create_test_composition_container(test)
@@ -86,6 +93,7 @@ static func create_basic_test_setup(test: GdUnitTestSuite, container: GBComposit
 	}
 
 ## Delegate: Create rule validation parameters
+## @deprecated Use AllSystemsTestEnvironment or specific test environments instead
 static func create_rule_validation_parameters(test: GdUnitTestSuite, container: GBCompositionContainer = null) -> Dictionary:
 	if container == null:
 		container = create_test_composition_container(test)
@@ -96,6 +104,7 @@ static func create_rule_validation_parameters(test: GdUnitTestSuite, container: 
 	}
 
 ## Delegate: Create collision mapper setup
+## @deprecated Use CollisionTestEnvironment or AllSystemsTestEnvironment instead
 static func create_collision_mapper_setup(test: GdUnitTestSuite) -> Dictionary:
 	# Delegate to proper factory method instead of creating directly
 	var targeting_state: GridTargetingState = create_minimal_targeting_state(test)
@@ -115,8 +124,9 @@ static func create_test_composition_container(test: GdUnitTestSuite) -> GBCompos
 ## Delegate: Create owner context
 static func create_owner_context(test: GdUnitTestSuite) -> GBOwnerContext:
 	var context: GBOwnerContext = GBOwnerContext.new()
-	context.owner_id = "test_owner"
-	context.game_time = 0.0
+	# TODO: Fix owner context setup - requires GBOwner object, not string
+	# context.owner_id = "test_owner"
+	# context.game_time = 0.0
 	test.auto_free(context)
 	return context
 
@@ -132,18 +142,29 @@ static func create_test_node2d(test: GdUnitTestSuite) -> Node2D:
 static func create_double_targeting_state(test: GdUnitTestSuite) -> GridTargetingState:
 	var state: GridTargetingState = GridTargetingState.new(GBOwnerContext.new())
 	test.auto_free(state)
+	
+	# Set up maps and positioner automatically
+	var test_map := GodotTestFactory.create_tile_map_layer(test)
+	test.auto_free(test_map)
+	state.target_map = test_map
+	state.maps = [test_map]
+	
+	var test_positioner := create_test_node2d(test)
+	test.auto_free(test_positioner)
+	state.positioner = test_positioner
+	
 	return state
 
 ## Delegate: Create minimal targeting state
-static func create_minimal_targeting_state(test: GdUnitTestSuite, is_active: bool = true, is_ready: bool = true) -> GridTargetingState:
+static func create_minimal_targeting_state(test: GdUnitTestSuite, _is_active: bool = true, _is_ready: bool = true) -> GridTargetingState:
 	var state: GridTargetingState = create_double_targeting_state(test)
-	state.is_active = is_active
+	state.ready = _is_ready
 	return state
 
 
 ## Delegate: Create test static body with rect shape
 static func create_test_static_body_with_rect_shape(test: GdUnitTestSuite) -> StaticBody2D:
-	return GodotTestFactory.create_static_body_with_rect_shape(test, Vector2(32, 32))
+	return GodotTestFactory.create_static_body_with_rect_shape(test, Vector2(32, 32))  # TODO: Use GBTestConstants.DEFAULT_TILE_SIZE
 
 ## Delegate: Create eclipse test object
 static func create_eclipse_test_object(test: GdUnitTestSuite) -> Node2D:
@@ -173,11 +194,14 @@ static func create_tile_map_layer(test: GdUnitTestSuite) -> TileMapLayer:
 
 #region ESSENTIAL LEGACY METHODS
 
-## Legacy constants for backward compatibility
-const DEFAULT_TILE_SIZE := 16
-const COLLISION_LAYER_BIT_0 := 1
-const ALL_SYSTEMS_ENV_UID := "uid://ioucajhfxc8b"
-const TEST_CONTAINER := preload("res://test/grid_building_test/resources/test_composition_container.tres")
+## Legacy constants for backward compatibility - DEPRECATED: Use GBTestConstants instead
+## @deprecated Use GBTestConstants.DEFAULT_TILE_SIZE
+const DEFAULT_TILE_SIZE := Vector2(32, 32)  # From GBTestConstants.DEFAULT_TILE_SIZE
+## @deprecated Use GBTestConstants.TEST_COLLISION_LAYER  
+const COLLISION_LAYER_BIT_0 := 1  # From GBTestConstants.TEST_COLLISION_LAYER
+## @deprecated Use GBTestConstants.ALL_SYSTEMS_ENV_UID
+const ALL_SYSTEMS_ENV_UID := "uid://ioucajhfxc8b"  # From GBTestConstants.ALL_SYSTEMS_ENV_UID
+# TEST_CONTAINER removed - resource file does not exist
 
 ## Essential method still used by PlaceableTestFactory - delegate to CollisionObjectTestFactory
 static func create_polygon_test_object(test: Node) -> Node2D:
@@ -185,28 +209,12 @@ static func create_polygon_test_object(test: Node) -> Node2D:
 
 #endregion
 
-## Delegate: Create manipulation system
-static func create_manipulation_system(test: GdUnitTestSuite, container: GBCompositionContainer = null) -> ManipulationSystem:
-	if container == null:
-		container = create_test_composition_container(test)
-	var system: ManipulationSystem = ManipulationSystem.new()
-	test.add_child(system)
-	test.auto_free(system)
-	return system
-
 ## Delegate: Create test manipulatable
 static func create_test_manipulatable(test: GdUnitTestSuite) -> Manipulatable:
 	var manipulatable: Manipulatable = Manipulatable.new()
+	test.add_child(manipulatable)
 	test.auto_free(manipulatable)
 	return manipulatable
-
-## Delegate: Setup manipulation system test
-static func setup_manipulation_system_test(test: GdUnitTestSuite, container: GBCompositionContainer) -> Dictionary:
-	var manipulation_system: ManipulationSystem = create_manipulation_system(test, container)
-	return {
-		"manipulation_system": manipulation_system,
-		"container": container
-	}
 
 ## Delegate: Assert placement report success
 static func assert_placement_report_success(_test: GdUnitTestSuite, report: PlacementReport) -> void:

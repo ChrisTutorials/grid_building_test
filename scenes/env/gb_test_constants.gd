@@ -1,0 +1,151 @@
+## Test Constants
+##
+## Centralized constants for test environment UIDs, paths, and configuration values.
+## This ensures consistency across all test files and provides a single point of maintenance.
+class_name GBTestConstants
+extends RefCounted
+
+#region Environment Scene UIDs
+## These UIDs correspond to test environment scenes that provide pre-configured
+## systems and components for various test scenarios.
+
+## All Systems Test Environment - Complete grid building system setup
+## Path: res://test/grid_building_test/scenes/env/all_systems_test_environment.tscn
+const ALL_SYSTEMS_ENV_UID: String = "uid://ioucajhfxc8b"
+
+## Building Test Environment - Focused on building system components
+## Path: res://test/grid_building_test/scenes/env/building_test_environment.tscn
+const BUILDING_TEST_ENV_UID: String = "uid://building_test_env"
+
+## Collision Test Environment - Optimized for collision and placement testing
+## Path: res://test/grid_building_test/scenes/env/collision_test_environment.tscn
+const COLLISION_TEST_ENV_UID: String = "uid://collision_test_env"
+
+## Environment Scene Paths
+##
+## Fallback paths in case UID loading fails. These should match the UIDs above.
+const ALL_SYSTEMS_ENV_PATH: String = "res://test/grid_building_test/scenes/env/all_systems_test_environment.tscn"
+const BUILDING_TEST_ENV_PATH: String = "res://test/grid_building_test/scenes/env/building_test_environment.tscn"
+const COLLISION_TEST_ENV_PATH: String = "res://test/grid_building_test/scenes/env/collision_test_environment.tscn"
+
+#endregion
+#region Test Object Scene UIDs
+## UIDs for test objects used in collision and placement testing
+
+## Rectangular test object (15 tiles coverage)
+const RECT_15_TILES_UID: String = "uid://rect_15_tiles"
+
+## Test smithy placeable
+const SMITHY_UID: String = "uid://test_smithy"
+
+## Gigantic egg test object
+const GIGANTIC_EGG_UID: String = "uid://gigantic_egg"
+
+## Test pillar object
+const PILLAR_UID: String = "uid://test_pillar"
+
+## Ellipse test object
+const ELLIPSE_UID: String = "uid://test_ellipse"
+
+#endregion
+#region Object Scene Paths
+## Fallback paths for test objects
+const RECT_15_TILES_PATH: String = "res://test/grid_building_test/scenes/objects/test_rect_15_tiles.tscn"
+const SMITHY_PATH: String = "res://test/grid_building_test/scenes/objects/test_smithy.tscn"
+const GIGANTIC_EGG_PATH: String = "res://test/grid_building_test/scenes/objects/test_gigantic_egg.tscn"
+const PILLAR_PATH: String = "res://test/grid_building_test/scenes/objects/test_pillar.tscn"
+const ELLIPSE_PATH: String = "res://test/grid_building_test/scenes/objects/test_elipse.tscn"
+
+#endregion
+
+#region Test Indicators
+
+## Top down platformer square indicator for placement rule testing
+static var TEST_INDICATOR_TD_PLATFORMER : PackedScene = preload("uid://dhox8mb8kuaxa")
+
+## Isometric indicator for placement rule testing
+static var TEST_INDICATOR_ISOMETRIC : PackedScene = preload("uid://bas7hdwotyoiy")
+
+#endregion
+#region Test Configuration Constants
+## Common values used across multiple tests
+
+## Default tile size for test environments
+const DEFAULT_TILE_SIZE: Vector2 = Vector2(32, 32)
+
+## Default test grid size
+const DEFAULT_GRID_SIZE: Vector2i = Vector2i(20, 20)
+
+## Test timeout for async operations (milliseconds)
+const TEST_TIMEOUT_MS: int = 5000
+
+## Maximum number of indicators to generate in performance tests
+const MAX_PERFORMANCE_INDICATORS: int = 1000
+
+## Default collision layer for test objects
+const TEST_COLLISION_LAYER: int = 1
+
+## Default collision mask for test objects
+const TEST_COLLISION_MASK: int = 1
+
+#endregion
+#region Common Test Positions
+## Frequently used positions in test scenarios
+const ORIGIN: Vector2 = Vector2.ZERO
+const CENTER: Vector2 = Vector2(160, 160)  # 5x5 tiles at 32px
+const TOP_LEFT: Vector2 = Vector2(32, 32)
+const TOP_RIGHT: Vector2 = Vector2(288, 32)
+const BOTTOM_LEFT: Vector2 = Vector2(32, 288)
+const BOTTOM_RIGHT: Vector2 = Vector2(288, 288)
+const OFF_GRID: Vector2 = Vector2(50, 50)  # Not aligned to tile boundaries
+
+#endregion
+#region Test Tile Maps and Sets
+
+## Buildable tile map layer for testing
+static var TEST_TILE_MAP_LAYER_BUILDABLE : PackedScene = preload("uid://3shi30ob8pna")
+
+## Tileset with "type", "color", "height" custom data properties for tiles
+static var TEST_CUSTOM_DATA_TILE_SET : TileSet = preload("uid://b0shp63l248fm")
+
+#endregion
+## Static methods for validating test constants and scenes
+
+## Validate that all environment scenes exist and can be loaded
+static func validate_environment_scenes() -> Array[String]:
+	var issues: Array[String] = []
+
+	# Check ALL_SYSTEMS environment
+	var all_systems_scene := load(ALL_SYSTEMS_ENV_UID)
+	if not all_systems_scene:
+		# Fallback to path loading
+		all_systems_scene = load(ALL_SYSTEMS_ENV_PATH)
+		if not all_systems_scene:
+			issues.append("All Systems environment scene not found: " + ALL_SYSTEMS_ENV_PATH)
+
+	return issues
+
+## Get the best available scene reference (UID first, then path fallback)
+static func get_environment_scene(environment_type: String) -> PackedScene:
+	var scene: PackedScene = null
+
+	match environment_type:
+		"all_systems":
+			scene = load(ALL_SYSTEMS_ENV_UID)
+			if not scene:
+				scene = load(ALL_SYSTEMS_ENV_PATH)
+		"building_test":
+			scene = load(BUILDING_TEST_ENV_UID)
+			if not scene:
+				scene = load(BUILDING_TEST_ENV_PATH)
+		"collision_test":
+			scene = load(COLLISION_TEST_ENV_UID)
+			if not scene:
+				scene = load(COLLISION_TEST_ENV_PATH)
+
+	return scene
+
+## Check if a test object scene exists
+static func validate_test_object_scene(object_uid: String) -> bool:
+	var scene := load(object_uid)
+	return scene != null

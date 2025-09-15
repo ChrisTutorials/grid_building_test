@@ -2,29 +2,25 @@ extends GdUnitTestSuite
 
 ## Consolidated composition container tests using factory patterns
 
-const TEST_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
-
-var test_hierarchy: Dictionary
-var injector: GBInjectorSystem
+var env: AllSystemsTestEnvironment
 
 func before_test() -> void:
-	test_hierarchy = UnifiedTestFactory.create_basic_test_setup(self, TEST_CONTAINER)
-	injector = test_hierarchy.injector
+	env = EnvironmentTestFactory.create_all_systems_env(self, GBTestConstants.ALL_SYSTEMS_ENV_UID)
 
 func test_component_registration() -> void:
 	# Test that the injector system is properly initialized with container
-	assert_object(injector).is_not_null()
-	assert_object(injector.composition_container).is_not_null()
+	assert_object(env.injector).is_not_null()
+	assert_object(env.injector.composition_container).is_not_null()
 	
 	# Test that the container has the expected states
-	var states : GBStates = injector.composition_container.get_states()
+	var states : GBStates = env.injector.composition_container.get_states()
 	assert_object(states).is_not_null()
 	assert_object(states.targeting).is_not_null()
 	assert_object(states.building).is_not_null()
 
 func test_dependency_resolution() -> void:
 	# Test that we can access components through the container's states
-	var targeting_state: GridTargetingState = injector.composition_container.get_states().targeting
+	var targeting_state: GridTargetingState = env.injector.composition_container.get_states().targeting
 	assert_object(targeting_state).is_not_null()
 	
 	# Test that targeting state has expected properties
@@ -32,7 +28,7 @@ func test_dependency_resolution() -> void:
 	assert_object(targeting_state.target_map).is_not_null()
 	
 	# Test component access through container states
-	var building_state : BuildingState = injector.composition_container.get_states().building
+	var building_state : BuildingState = env.injector.composition_container.get_states().building
 	assert_object(building_state).is_not_null()
 
 func test_component_lifecycle() -> void:
@@ -52,11 +48,11 @@ func test_component_lifecycle() -> void:
 
 func test_component_defaults() -> void:
 	# Test that components have proper default configurations through the container
-	var targeting_state: GridTargetingState = injector.composition_container.get_states().targeting
+	var targeting_state: GridTargetingState = env.injector.composition_container.get_states().targeting
 	assert_object(targeting_state).is_not_null()
 	
 	# Test that the container has proper default settings
-	var config: GBConfig = injector.composition_container.config
+	var config: GBConfig = env.injector.composition_container.config
 	assert_object(config).is_not_null()
 	
 	# Test that states have default configurations
@@ -64,15 +60,15 @@ func test_component_defaults() -> void:
 	assert_object(targeting_state.target_map).is_not_null()
 
 func test_injector_initialization() -> void:
-	assert_object(injector).is_not_null()
-	assert_object(injector.composition_container).is_not_null()
+	assert_object(env.injector).is_not_null()
+	assert_object(env.injector.composition_container).is_not_null()
 	
 	# Test that injector is of expected type
-	assert_object(injector).is_instanceof(GBInjectorSystem)
+	assert_object(env.injector).is_instanceof(GBInjectorSystem)
 	
 	# Test that the container is properly configured
-	var contexts: GBContexts = injector.composition_container.get_contexts()
-	var states: GBStates = injector.composition_container.get_states()
+	var contexts: GBContexts = env.injector.composition_container.get_contexts()
+	var states: GBStates = env.injector.composition_container.get_states()
 	assert_object(contexts).is_not_null()
 	assert_object(states).is_not_null()
 	
@@ -83,7 +79,7 @@ func test_injector_initialization() -> void:
 
 func test_container_integration() -> void:
 	# Test integration through the composition container's state management
-	var targeting_state: GridTargetingState = injector.composition_container.get_states().targeting
+	var targeting_state: GridTargetingState = env.injector.composition_container.get_states().targeting
 	var positioner: Node2D = targeting_state.positioner
 	var tile_map: TileMapLayer = targeting_state.target_map
 	
@@ -94,12 +90,12 @@ func test_container_integration() -> void:
 	assert_bool(positioner.get_parent() != null).is_true()
 	
 	# Test that container properly manages state relationships
-	var building_state: BuildingState = injector.composition_container.get_states().building
+	var building_state: BuildingState = env.injector.composition_container.get_states().building
 	assert_object(building_state).is_not_null()
 
 func test_component_type_validation() -> void:
 	# Test that components accessed through the container have expected types
-	var targeting_state: GridTargetingState = injector.composition_container.get_states().targeting
+	var targeting_state: GridTargetingState = env.injector.composition_container.get_states().targeting
 	
 	# Test that targeting state has expected properties
 	assert_object(targeting_state.positioner).is_not_null()
@@ -111,7 +107,7 @@ func test_component_type_validation() -> void:
 
 func test_multiple_component_access() -> void:
 	# Test accessing multiple components through the container's state system
-	var states: GBStates = injector.composition_container.get_states()
+	var states: GBStates = env.injector.composition_container.get_states()
 	var targeting_state: GridTargetingState = states.targeting
 	var building_state: BuildingState = states.building
 	var manipulation_state: ManipulationState = states.manipulation
@@ -131,13 +127,13 @@ func test_multiple_component_access() -> void:
 
 func test_component_persistence() -> void:
 	# Test that components persist through the container's state management
-	var first_access: TileMapLayer = injector.composition_container.get_states().targeting.target_map
-	var second_access: TileMapLayer = injector.composition_container.get_states().targeting.target_map
+	var first_access: TileMapLayer = env.injector.composition_container.get_states().targeting.target_map
+	var second_access: TileMapLayer = env.injector.composition_container.get_states().targeting.target_map
 	
 	# Should return same instance (state persistence)
 	assert_object(first_access).is_same(second_access)
 	
 	# Test that positioner persists as well
-	var first_positioner: Node2D = injector.composition_container.get_states().targeting.positioner
-	var second_positioner: Node2D = injector.composition_container.get_states().targeting.positioner
+	var first_positioner: Node2D = env.injector.composition_container.get_states().targeting.positioner
+	var second_positioner: Node2D = env.injector.composition_container.get_states().targeting.positioner
 	assert_object(first_positioner).is_same(second_positioner)

@@ -23,18 +23,64 @@ var _indicator_manager : IndicatorManager
 
 func before_test() -> void:
 	env = UnifiedTestFactory.instance_building_test_env(self, "uid://c4ujk08n8llv8")
+	
+	# Fail-fast validation of environment setup
+	if env == null:
+		fail("Test environment creation failed - check UnifiedTestFactory.instance_building_test_env()")
+		return
+	
+	# Validate and extract core components
 	_container = env.get_container()
+	if _container == null:
+		fail("Container is null in test environment")
+		return
+	
 	_targeting_system = env.grid_targeting_system
+	if _targeting_system == null:
+		fail("Grid targeting system is null in test environment")
+		return
+	
 	_targeting_state = _container.get_states().targeting
+	if _targeting_state == null:
+		fail("Targeting state is null from container")
+		return
+	
 	_building_system = env.building_system
+	if _building_system == null:
+		fail("Building system is null in test environment")
+		return
+	
 	_positioner = env.positioner
+	if _positioner == null:
+		fail("Positioner is null in test environment")
+		return
+	
 	_map = env.tile_map_layer
+	if _map == null:
+		fail("Tile map layer is null in test environment")
+		return
+	
 	_indicator_manager = env.indicator_manager
+	if _indicator_manager == null:
+		fail("Indicator manager is null in test environment")
+		return
+	
 	logger = _container.get_logger()
+	if logger == null:
+		fail("Logger is null from container")
+		return
+	
 	user_node = env.get_owner_root()
+	if user_node == null:
+		fail("Owner root is null in test environment")
+		return
 	
 	# Create placement validator
 	placement_validator = PlacementValidator.create_with_injection(_container)
+	if placement_validator == null:
+		fail("Placement validator creation failed")
+		return
+	
 	_placed_positions = []
 
 func after_test() -> void:
@@ -76,14 +122,14 @@ func test_placement_validation_basic(
 	var empty_rules: Array[PlacementRule] = []
 	var setup_issues: Dictionary = placement_validator.setup(empty_rules, _targeting_state)
 	
-	assert_bool(setup_issues.is_empty()).append_failure_message(
+	assert_that(setup_issues.is_empty()).append_failure_message(
 		"Setup should succeed with no rules for scenario: %s" % placement_scenario
 	).is_true()
 	
 	var result: ValidationResults = placement_validator.validate_placement()
 	
 	# With no rules, PlacementValidator returns unsuccessful because no rules were set up
-	assert_bool(result.is_successful()).append_failure_message(
+	assert_that(result.is_successful()).append_failure_message(
 		"Validation with no rules returns unsuccessful (expected behavior) for scenario: %s at position %s" % [placement_scenario, target_position]
 	).is_equal(expected_valid)
 	
@@ -122,7 +168,7 @@ func test_placement_validation_with_rules(
 	
 	var result: ValidationResults = placement_validator.validate()
 	
-	assert_bool(result.is_successful()).append_failure_message(
+	assert_that(result.is_successful()).append_failure_message(
 		"Validation result for %s with rule type %s should be %s" % [rule_scenario, rule_type, expected_valid]
 	).is_equal(expected_valid)
 	

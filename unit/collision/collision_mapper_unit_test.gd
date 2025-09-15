@@ -2,6 +2,7 @@ extends GdUnitTestSuite
 
 # Unit tests for CollisionMapper to catch guard behaviors and setup issues
 # that can cause integration test failures at higher levels.
+## DO NOT use a full environment here - this is a unit test to isolate issues
 
 var _logger: GBLogger
 var indicator_template : PackedScene = preload("uid://dhox8mb8kuaxa")
@@ -142,11 +143,11 @@ func test_guard_returns_empty_without_setup() -> void:
 
 func test_basic_collision_detection() -> void:
 	var gts := UnifiedTestFactory.create_minimal_targeting_state(self)
+	
 	var mapper := CollisionMapper.new(gts, _logger)
 	
-	# Add the map to the scene tree
-	if gts.target_map != null:
-		add_child(gts.target_map)
+	# Note: Don't add gts.target_map to scene tree - it's managed by auto_free from factory
+	# The mapper uses the targeting state for coordinate transformations, not scene tree presence
 	
 	# Create collision object at origin with a shape that should definitely overlap
 	var body := StaticBody2D.new()
@@ -188,11 +189,10 @@ func test_basic_collision_detection() -> void:
 
 func test_collision_layer_matching_for_tile_check_rules() -> void:
 	var gts := UnifiedTestFactory.create_minimal_targeting_state(self)
+	
 	var mapper := CollisionMapper.new(gts, _logger)
 	
-	# Add the map to the scene tree (required for proper node operations)
-	if gts.target_map != null:
-		add_child(gts.target_map)
+	# Note: Don't add gts.target_map to scene tree - it's managed by auto_free from factory
 	
 	# Create collision object with specific layer (513 = bits 0+9)
 	var body := StaticBody2D.new()
@@ -304,11 +304,10 @@ func test_collision_layer_matching_for_tile_check_rules() -> void:
 # integration tests to show "0 indicators generated" despite valid collision objects
 func test_position_rules_mapping_produces_results() -> void:
 	var gts := UnifiedTestFactory.create_minimal_targeting_state(self)
+	
 	var mapper := CollisionMapper.new(gts, _logger)
 	
-	# Add the map to the scene tree (required for proper node operations)
-	if gts.target_map != null:
-		add_child(gts.target_map)
+	# Note: Don't add gts.target_map to scene tree - it's managed by auto_free from factory
 	
 	# Create collision object
 	var body := StaticBody2D.new()

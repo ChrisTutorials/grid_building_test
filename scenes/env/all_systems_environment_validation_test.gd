@@ -85,26 +85,14 @@ func test_environment_no_issues() -> void:
 ## Test: BuildingSystem can enter build mode (the core failing test)
 func test_building_system_can_enter_build_mode() -> void:
 	# This is the exact test that was failing in all_systems_integration_tests.gd
-	# We need a placeable resource to test with - let's check if any are available
-	var container: GBCompositionContainer = test_env.get_container()
-	if container != null:
-		var placement_rules: Array = container.get_placement_rules()
-		if placement_rules != null and placement_rules.size() > 0:
-			var first_rule: Variant = placement_rules[0]
-			if first_rule != null:
-				var placeable: Variant = first_rule.get_placeable()
-				if placeable != null:
-					var result: Variant = test_env.building_system.enter_build_mode(placeable)
-					assert_that(result).is_true().override_failure_message("BuildingSystem should be able to enter build mode with available placeable")
-				else:
-					# No placeable available, just test that the building system is ready
-					assert_that(test_env.building_system).is_not_null().override_failure_message("BuildingSystem should exist even without placeable")
-			else:
-				assert_that(test_env.building_system).is_not_null().override_failure_message("BuildingSystem should exist even without placement rules")
-		else:
-			assert_that(test_env.building_system).is_not_null().override_failure_message("BuildingSystem should exist even without placement rules")
+	# We need a placeable resource to test with - create one using the factory
+	var placeable: Placeable = UnifiedTestFactory.create_polygon_test_placeable(self)
+	if placeable != null:
+		var result: PlacementReport = test_env.building_system.enter_build_mode(placeable)
+		assert_that(result.is_successful()).is_true().override_failure_message("BuildingSystem should be able to enter build mode with test placeable")
 	else:
-		assert_that(test_env.building_system).is_not_null().override_failure_message("BuildingSystem should exist even without container")
+		# Factory couldn't create placeable, just test that the building system exists
+		assert_that(test_env.building_system).is_not_null().override_failure_message("BuildingSystem should exist even when placeable creation fails")
 
 ## Test: Scene hierarchy and node paths are correct
 func test_scene_node_structure() -> void:
