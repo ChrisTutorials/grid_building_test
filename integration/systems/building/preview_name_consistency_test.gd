@@ -8,10 +8,11 @@
 extends GdUnitTestSuite
 
 #region Test Environment Variables
+var env: AllSystemsTestEnvironment
 var system: BuildingSystem
 var targeting_state: GridTargetingState
 var mode_state: ModeState
-var _container: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
+var _container: GBCompositionContainer
 var placeable_2d_test: Placeable = load("uid://jgmywi04ib7c")
 var placeable_with_rules: Placeable
 #endregion
@@ -20,16 +21,12 @@ var placeable_with_rules: Placeable
 func before_test() -> void:
 	# Validate test resources are loaded
 	assert_object(placeable_2d_test).is_not_null()
-	assert_object(_container).is_not_null()
 
-	# Create injector system first
-	var _injector: Node = UnifiedTestFactory.create_test_injector(self, _container)
-
-	# Create complete building system test environment
-	var env: Dictionary = UnifiedTestFactory.create_building_system_test_environment(self, _container)
+	# Create complete all systems test environment
+	env = UnifiedTestFactory.instance_all_systems_env(self, "uid://ioucajhfxc8b")
+	_container = env.get_container()
 	system = env.building_system
-	assert_object(system).is_not_null()
-
+	
 	# Access shared states from the pre-configured test container
 	var states := _container.get_states()
 	assert_object(states).is_not_null()
@@ -37,7 +34,7 @@ func before_test() -> void:
 	mode_state = states.mode
 
 	# Assign placed_parent so built instances have a parent
-	states.building.placed_parent = env.placed_parent
+	states.building.placed_parent = env
 	
 	# Create a placeable with rules for testing
 	placeable_with_rules = _create_test_placeable_with_rules()
@@ -95,17 +92,17 @@ func test_different_placeables_have_correct_names() -> void:
 	var expected_name2: String = _get_expected_preview_name(placeable2)
 
 	# Set first placeable
-	_ = system.enter_build_mode(placeable1)
+	system.enter_build_mode(placeable1)
 	var preview1: Node2D = _get_current_preview()
 	_assert_preview_valid_and_named(preview1, expected_name1)
 
 	# Set second placeable
-	_ = system.enter_build_mode(placeable2)
+	system.enter_build_mode(placeable2)
 	var preview2: Node2D = _get_current_preview()
 	_assert_preview_valid_and_named(preview2, expected_name2)
 
 	# Set first placeable again
-	_ = system.enter_build_mode(placeable1)
+	system.enter_build_mode(placeable1)
 	var preview3: Node2D = _get_current_preview()
 	_assert_preview_valid_and_named(preview3, expected_name1)
 #endregion

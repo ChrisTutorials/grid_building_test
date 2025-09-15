@@ -1,22 +1,20 @@
 extends GdUnitTestSuite
 
-## Refactored indicator manager tests using consolidated factory
+## Refactored indicator manager tests using AllSystemsTestEnvironment
 
-const TEST_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
-
-var test_hierarchy: Dictionary
+var env: AllSystemsTestEnvironment
 
 func before_test() -> void:
-	# Use the indicator test hierarchy factory
-	test_hierarchy = UnifiedTestFactory.create_indicator_test_hierarchy(self, TEST_CONTAINER)
+	# Use the all systems test environment
+	env = UnifiedTestFactory.instance_all_systems_env(self, "uid://ioucajhfxc8b")
 
 func test_indicator_manager_creation() -> void:
-	var indicator_manager: IndicatorManager = test_hierarchy.indicator_manager
+	var indicator_manager: IndicatorManager = env.indicator_manager
 	assert_that(indicator_manager).is_not_null()
 	assert_that(indicator_manager.get_parent()).is_not_null()
 
 func test_indicator_setup_basic() -> void:
-	var indicator_manager: IndicatorManager = test_hierarchy.indicator_manager
+	var indicator_manager: IndicatorManager = env.indicator_manager
 	
 	# Create and setup test area
 	var area: Area2D = _create_test_area()
@@ -27,8 +25,8 @@ func test_indicator_setup_basic() -> void:
 	assert_that(report).is_not_null()
 
 func test_indicator_cleanup() -> void:
-	var indicator_manager: IndicatorManager = test_hierarchy.indicator_manager
-	var manipulation_parent: Node2D = test_hierarchy.manipulation_parent
+	var indicator_manager: IndicatorManager = env.indicator_manager
+	var manipulation_parent: Node2D = env.manipulation_parent
 	
 	# Create and setup test indicators first
 	var area: Area2D = _create_test_area()
@@ -45,9 +43,9 @@ func test_indicator_cleanup() -> void:
 	assert_int(indicator_count).is_equal(0)
 
 func test_indicator_positioning() -> void:
-	var indicator_manager: IndicatorManager = test_hierarchy.indicator_manager
-	var positioner: Node2D = test_hierarchy.positioner
-	var manipulation_parent: Node2D = test_hierarchy.manipulation_parent
+	var indicator_manager: IndicatorManager = env.indicator_manager
+	var positioner: Node2D = env.positioner
+	var manipulation_parent: Node2D = env.manipulation_parent
 	
 	# Position positioner at specific location
 	positioner.position = Vector2(32, 32)
@@ -65,8 +63,8 @@ func test_indicator_positioning() -> void:
 		assert_that(child.global_position).is_not_equal(Vector2.ZERO)
 
 func test_multiple_setup_calls() -> void:
-	var indicator_manager: IndicatorManager = test_hierarchy.indicator_manager
-	var manipulation_parent: Node2D = test_hierarchy.manipulation_parent
+	var indicator_manager: IndicatorManager = env.indicator_manager
+	var manipulation_parent: Node2D = env.manipulation_parent
 	
 	# Create and setup test object
 	var area: Area2D = _create_test_area()
@@ -97,7 +95,7 @@ func _create_test_rules() -> Array[TileCheckRule]:
 	return [TileCheckRule.new()]
 
 func _setup_test_area(area: Area2D) -> void:
-	var manipulation_parent: Node2D = test_hierarchy.manipulation_parent
+	var manipulation_parent: Node2D = env.manipulation_parent
 	manipulation_parent.add_child(area)
 	auto_free(area)
 
