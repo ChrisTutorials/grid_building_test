@@ -381,7 +381,9 @@ func _collect_offsets(mapper: CollisionMapper, poly: CollisionPolygon2D, tile_ma
 ## Expected FAIL: only polygon contributes currently; Area2D rectangle (112x80) should produce 7x5=35 tiles.
 func test_smithy_generates_full_rectangle_of_indicators() -> void:
 	# Arrange preview under the active _positioner
-	var smithy_obj := UnifiedTestFactory.create_test_placeable_instance(self, _positioner, test_smithy_placeable, "Smithy")
+	var smithy_obj: Node2D = auto_free(test_smithy_placeable.packed_scene.instantiate())
+	_positioner.add_child(smithy_obj)
+	smithy_obj.global_position = _positioner.global_position
 
 	# Rule mask includes both Area2D (2560) and StaticBody2D (513) layers of the Smithy
 	var mask := 2560 | 513

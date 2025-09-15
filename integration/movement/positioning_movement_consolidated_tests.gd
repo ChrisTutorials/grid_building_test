@@ -61,9 +61,8 @@ func test_positioner_with_collision_tracking() -> void:
 	positioner.add_child(collision_body)
 	
 	# Create proper test setup for collision mapping
-	var logger: GBLogger = GBLogger.new()
 	var targeting_state: GridTargetingState = GridTargetingState.new(GBOwnerContext.new())
-	var setups: Array[CollisionTestSetup2D] = CollisionTestSetup2D.create_test_setups_from_test_node(collision_body, targeting_state, logger)
+	var setups: Array[CollisionTestSetup2D] = CollisionTestSetup2D.create_test_setups_from_test_node(collision_body, targeting_state)
 	var test_setup: CollisionTestSetup2D = setups[0] if setups.size() > 0 else null
 	
 	# Test position changes affect collision mapping
@@ -218,9 +217,8 @@ func test_positioner_integration_workflow() -> void:
 	auto_free(indicator)
 	
 	# Create proper test setup for collision mapping
-	var logger: GBLogger = GBLogger.new()
 	var targeting_state: GridTargetingState = GridTargetingState.new(GBOwnerContext.new())
-	var setups: Array[CollisionTestSetup2D] = CollisionTestSetup2D.create_test_setups_from_test_node(collision_body, targeting_state, logger)
+	var setups: Array[CollisionTestSetup2D] = CollisionTestSetup2D.create_test_setups_from_test_node(collision_body, targeting_state)
 	var test_setup: CollisionTestSetup2D = setups[0] if setups.size() > 0 else null
 	
 	# Test complete workflow: move -> collision check -> rule check -> indicator update

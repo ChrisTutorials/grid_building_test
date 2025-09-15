@@ -1,8 +1,6 @@
 ## Refactored isometric collision mapping test with orphan node prevention
 extends GdUnitTestSuite
 
-const UnifiedTestFactory = preload("res://test/grid_building_test/factories/unified_test_factory.gd")
-
 const TestDebugHelpers = preload("uid://cjtkkhcp460sg")
 
 var _test_env: Dictionary
@@ -80,10 +78,9 @@ func _get_tile_position_count_for_polygon(polygon: PackedVector2Array) -> int:
 	add_child(building)  # Add to test suite for auto cleanup
 	
 	# Essential: Set up collision mapper with test setup for proper collision detection
-	var logger: GBLogger = GBLogger.new()
 	var targeting_state: GridTargetingState = GridTargetingState.new(GBOwnerContext.new())
-	var setups = CollisionTestSetup2D.create_test_setups_from_test_node(building, targeting_state, logger)
-	var test_setup: CollisionTestSetup2D = setups.get(building, null)
+	var setups: Array[CollisionTestSetup2D] = CollisionTestSetup2D.create_test_setups_from_test_node(building, targeting_state)
+	var test_setup: CollisionTestSetup2D = setups[0] if setups.size() > 0 else null
 	assert(test_setup != null, "Test setup creation failed")
 	assert(_collision_mapper != null, "Collision mapper is null")
 	

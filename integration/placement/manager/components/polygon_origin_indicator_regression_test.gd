@@ -10,94 +10,36 @@
 ## See docs/systems/parent_node_architecture.md for detailed architecture documentation.
 extends GdUnitTestSuite
 
-const UnifiedTestFactory = preload("res://test/grid_building_test/factories/unified_test_factory.gd")
+## AllSystemsTestEnvironment UID for consistent test setup
+const ALL_SYSTEMS_ENV_UID: String = "uid://ioucajhfxc8b"
 
-var _container: GBCompositionContainer
+var test_env: AllSystemsTestEnvironment
 var _indicator_manager: IndicatorManager
 var _targeting_state: GridTargetingState
 var _map: TileMapLayer
 var _manipulation_parent: Node2D
-var _injector: GBInjectorSystem
 
 func before_test() -> void:
-	# Use the shared test container
-	if ResourceLoader.exists("uid://dy6e5p5d6ax6n"):
-		_container = preload("uid://dy6e5p5d6ax6n")
-	else:
-		print("[SKIP] No container available; test environment not wired.")
-		return
+	# Use the premade CollisionTestEnvironment for collision and indicator testing
+	test_env = UnifiedTestFactory.instance_all_systems_env(self, ALL_SYSTEMS_ENV_UID)
+	assert_object(test_env).append_failure_message("AllSystemsTestEnvironment should be created successfully").is_not_null()
 	
-	# Create injector system for dependency injection
-	_injector = UnifiedTestFactory.create_test_injector(self, _container)
+	# Extract commonly used components
+	_indicator_manager = null  # CollisionTestEnvironment may not have indicator manager
+	_targeting_state = test_env.grid_targeting_system.get_state()
+	_map = test_env.tile_map_layer
+	_manipulation_parent = null  # CollisionTestEnvironment may not have manipulation parent
 	
-	# Set up tile map layer
-	_map = auto_free(TileMapLayer.new())
-	_map.tile_set = load("uid://d11t2vm1pby6y")  # Use standard test tileset
-	add_child(_map)
-	
-	# Populate a small centered region for testing
-	for x in range(-5, 6):
-		for y in range(-5, 6):
-			_map.set_cell(Vector2i(x, y), 0, Vector2i(0, 0))
-	
-	# Set up targeting state
-	_targeting_state = _container.get_targeting_state()
-	_targeting_state.target_map = _map
-	
-	# Create properly typed array for maps
-	var maps_array: Array = [_map]
-	_targeting_state.maps = maps_array
-	
-	# Create positioner at the exact center (0,0 tile)
-	if _targeting_state.positioner == null:
-		_targeting_state.positioner = auto_free(Node2D.new())
-		add_child(_targeting_state.positioner)
-	
-	# Position the positioner at the exact center of tile (0,0)
-	_targeting_state.positioner.global_position = _map.to_global(_map.map_to_local(Vector2i.ZERO))
-	
-	# Create manipulation parent as child of positioner (following proper architecture)
-	# ManipulationParent: Parents objects being manipulated + IndicatorManager
-	_manipulation_parent = auto_free(Node2D.new())
-	_manipulation_parent.name = "ManipulationParent"
-	_targeting_state.positioner.add_child(_manipulation_parent)
-	
-	# Set manipulation parent in container state
-	_container.get_states().manipulation.parent = _manipulation_parent
-	
-	# Set up owner context (required for many operations)
-	var owner_context: GBOwnerContext = _container.get_contexts().owner
-	var owner_node: Node = auto_free(Node2D.new())
-	owner_node.name = "TestOwner"
-	add_child(owner_node)
-	var gb_owner: GBOwner = auto_free(GBOwner.new(owner_node))
-	owner_context.set_owner(gb_owner)
-	
-	# Set up placed parent (required for BuildingState validation)
-	var placed_parent: Node2D = auto_free(Node2D.new())
-	_container.get_states().building.placed_parent = placed_parent
-	add_child(placed_parent)
-	
-	# Validate targeting state is ready
-	var issues := _targeting_state.get_runtime_issues()
-	
-	if not issues.is_empty():
-		print("[SKIP] Targeting state invalid: %s" % [issues])
-		return
-	
-	# Create placement manager as child of manipulation parent (following proper architecture)
-	# IndicatorManager: Parents rule check indicators (visual feedback)
-	_indicator_manager = IndicatorManager.create_with_injection(_container)
-	_manipulation_parent.add_child(_indicator_manager)
-	auto_free(_indicator_manager)
-	
-	# Set quiet debug level to reduce noise
-	_container.get_debug_settings().set_debug_level(GBDebugSettings.DebugLevel.ERROR)
+	# Validate essential components
+	assert_object(_indicator_manager).append_failure_message("IndicatorManager should be available").is_not_null()
+	assert_object(_targeting_state).append_failure_message("TargetingState should be available").is_not_null()
+	assert_object(_map).append_failure_message("TileMapLayer should be available").is_not_null()
+	assert_object(_manipulation_parent).append_failure_message("ManipulationParent should be available").is_not_null()
 
 func test_polygon_test_object_no_indicator_at_origin_when_centered() -> void:
 	"""Regression test: Polygon test object should not generate an indicator at (0,0) when centered on the positioner."""
-	if _container == null:
-		assert_bool(false).append_failure_message("No container available; test environment not wired.")
+	if test_env == null:
+		assert_bool(false).append_failure_message("Test environment not properly initialized.")
 		return
 	
 	# Arrange: Create polygon test object using proper collision structure
@@ -153,7 +95,7 @@ func test_polygon_test_object_no_indicator_at_origin_when_centered() -> void:
 		
 		# Include diagnostic information when indicators aren't generated
 		var failure_details: Array = []
-		failure_details.append("Targeting state issues: %s" % str(_targeting_state.get_runtime_issues()))
+		failure_details.append("Test environment initialized: %s" % (test_env != null))
 		
 		if found_static_body:
 			failure_details.append("Polygon object collision layers: %d" % found_static_body.collision_layer)
@@ -195,8 +137,8 @@ func test_polygon_test_object_no_indicator_at_origin_when_centered() -> void:
 
 func test_polygon_test_object_valid_indicators_generated() -> void:
 	"""Sanity check: Ensure polygon test object generates some valid indicators, just not at (0,0)."""
-	if _container == null:
-		print("[SKIP] No container available; test environment not wired.")
+	if test_env == null:
+		assert_bool(false).append_failure_message("Test environment not properly initialized.")
 		return
 	
 	# Arrange: Create polygon test object under manipulation parent
@@ -226,8 +168,8 @@ func test_polygon_test_object_valid_indicators_generated() -> void:
 
 func test_polygon_test_object_centered_preview_flag() -> void:
 	"""Verify that the polygon test object correctly triggers the centered_preview flag in the report."""
-	if _container == null:
-		print("[SKIP] No container available; test environment not wired.")
+	if test_env == null:
+		assert_bool(false).append_failure_message("Test environment not properly initialized.")
 		return
 	
 	# Arrange: Create polygon test object as child of positioner (this should trigger centered_preview)
@@ -256,8 +198,8 @@ func test_polygon_test_object_centered_preview_flag() -> void:
 
 func test_proper_parent_architecture_maintained() -> void:
 	"""Verify that the correct parent node architecture is maintained during indicator generation."""
-	if _container == null:
-		print("[SKIP] No container available; test environment not wired.")
+	if test_env == null:
+		assert_bool(false).append_failure_message("Test environment not properly initialized.")
 		return
 	
 	# Arrange: Create polygon test object under manipulation parent
