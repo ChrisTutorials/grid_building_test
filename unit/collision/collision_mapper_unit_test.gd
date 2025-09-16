@@ -10,6 +10,26 @@ var indicator_template : PackedScene = preload("uid://dhox8mb8kuaxa")
 func before_test() -> void:
 	_logger = GBLogger.new(GBDebugSettings.new())
 
+# Helper method to create minimal targeting state for unit testing
+func _create_minimal_targeting_state() -> GridTargetingState:
+	var state: GridTargetingState = GridTargetingState.new(GBOwnerContext.new())
+	
+	# Set up maps and positioner automatically
+	var test_map := TileMapLayer.new()
+	auto_free(test_map)
+	add_child(test_map)
+	var tile_set := TileSet.new()
+	test_map.tile_set = tile_set
+	state.target_map = test_map
+	state.maps = [test_map]
+	
+	var test_positioner := Node2D.new()
+	auto_free(test_positioner)
+	add_child(test_positioner)
+	state.positioner = test_positioner
+	
+	return state
+
 # Helper function to get CollisionTestSetup2D for a given collision body
 func _get_test_setup_for_body(mapper: CollisionMapper, body: Node2D) -> CollisionTestSetup2D:
 	for setup in mapper.test_setups:
@@ -129,7 +149,7 @@ func _generate_test_setup_diagnostics(test_setup: CollisionTestSetup2D) -> Strin
 
 # Test catches: CollisionMapper guard behavior when setup() not called (EXPECTED to pass)
 func test_guard_returns_empty_without_setup() -> void:
-	var gts := UnifiedTestFactory.create_minimal_targeting_state(self)
+	var gts := _create_minimal_targeting_state()
 	var mapper := CollisionMapper.new(gts, _logger)
 	# Create a polygon owner but do not call setup(); guard should prevent mapping
 	var body := StaticBody2D.new()
@@ -142,7 +162,7 @@ func test_guard_returns_empty_without_setup() -> void:
 	assert_that(result.size()).is_equal(0).append_failure_message("Expected empty mapping when mapper.setup() not called")
 
 func test_basic_collision_detection() -> void:
-	var gts := UnifiedTestFactory.create_minimal_targeting_state(self)
+	var gts := _create_minimal_targeting_state()
 	
 	var mapper := CollisionMapper.new(gts, _logger)
 	
@@ -188,7 +208,7 @@ func test_basic_collision_detection() -> void:
 	assert_that(result.size()).append_failure_message(debug_msg).is_greater(0)
 
 func test_collision_layer_matching_for_tile_check_rules() -> void:
-	var gts := UnifiedTestFactory.create_minimal_targeting_state(self)
+	var gts := _create_minimal_targeting_state()
 	
 	var mapper := CollisionMapper.new(gts, _logger)
 	
@@ -303,7 +323,7 @@ func test_collision_layer_matching_for_tile_check_rules() -> void:
 # This test failure indicates the collision mapping system has issues that would cause
 # integration tests to show "0 indicators generated" despite valid collision objects
 func test_position_rules_mapping_produces_results() -> void:
-	var gts := UnifiedTestFactory.create_minimal_targeting_state(self)
+	var gts := _create_minimal_targeting_state()
 	
 	var mapper := CollisionMapper.new(gts, _logger)
 	

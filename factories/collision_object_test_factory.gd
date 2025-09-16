@@ -17,6 +17,55 @@ extends RefCounted
 ## var isometric_building = CollisionObjectTestFactory.create_isometric_blacksmith(self)
 ## ```
 
+#region Constants
+
+## Default collision layer for test objects
+const DEFAULT_COLLISION_LAYER: int = 1
+
+## Default collision mask for test objects  
+const DEFAULT_COLLISION_MASK: int = 1
+
+## Demo blacksmith collision layer (used in demo scenes)
+const DEMO_BLACKSMITH_COLLISION_LAYER: int = 2560
+
+## Demo blacksmith collision mask (used in demo scenes)
+const DEMO_BLACKSMITH_COLLISION_MASK: int = 1536
+
+## Default test object size (32x32 pixels)
+const DEFAULT_TEST_SIZE: Vector2 = Vector2(32, 32)
+
+## Default circle radius for test objects
+const DEFAULT_CIRCLE_RADIUS: float = 16.0
+
+## Default capsule radius
+const DEFAULT_CAPSULE_RADIUS: float = 16.0
+
+## Default capsule height
+const DEFAULT_CAPSULE_HEIGHT: float = 32.0
+
+## Small circle radius for tests
+const SMALL_CIRCLE_RADIUS: float = 12.0
+
+## Diamond shape default dimensions
+const DIAMOND_DEFAULT_WIDTH: float = 32.0
+const DIAMOND_DEFAULT_HEIGHT: float = 32.0
+
+## Trapezoid polygon points (relative coordinates)
+static var TRAPEZOID_POLYGON_POINTS: PackedVector2Array = PackedVector2Array([
+	Vector2(-20, -10),
+	Vector2(20, -10), 
+	Vector2(15, 10),
+	Vector2(-15, 10)
+])
+
+## Concave polygon points for testing complex shapes
+static var CONCAVE_POLYGON_POINTS: PackedVector2Array = PackedVector2Array([
+	Vector2(-32, -16), Vector2(32, -16), Vector2(16, 0),
+	Vector2(32, 16), Vector2(-32, 16), Vector2(-16, 0)
+])
+
+#endregion
+
 
 ## Creates a StaticBody2D with a rectangular collision shape
 static func create_static_body_with_rect(test_suite: GdUnitTestSuite, size: Vector2, position: Vector2 = Vector2.ZERO) -> StaticBody2D:
@@ -30,7 +79,10 @@ static func create_static_body_with_rect(test_suite: GdUnitTestSuite, size: Vect
 	collision_shape.shape = rect_shape
 	collision_shape.position = position
 	collision_body.add_child(collision_shape)
-
+	
+	# Ensure collision layer matches the test mask
+	collision_body.collision_layer = DEFAULT_COLLISION_LAYER
+	
 	return collision_body
 
 ## Creates a StaticBody2D with a circular collision shape
@@ -45,6 +97,9 @@ static func create_static_body_with_circle(test_suite: GdUnitTestSuite, radius: 
 	collision_shape.shape = circle_shape
 	collision_shape.position = position
 	collision_body.add_child(collision_shape)
+	
+	# Ensure collision layer matches the test mask
+	collision_body.collision_layer = DEFAULT_COLLISION_LAYER
 
 	return collision_body
 
@@ -58,8 +113,27 @@ static func create_static_body_with_polygon(test_suite: GdUnitTestSuite, polygon
 	collision_polygon.polygon = polygon_points
 	collision_polygon.position = position
 	collision_body.add_child(collision_polygon)
+	
+	# Ensure collision layer matches the test mask
+	collision_body.collision_layer = DEFAULT_COLLISION_LAYER
 
 	return collision_body
+
+## Creates an Area2D with a polygon collision shape
+static func create_area_with_polygon(test_suite: GdUnitTestSuite, polygon_points: PackedVector2Array, position: Vector2 = Vector2.ZERO) -> Area2D:
+	var area: Area2D = Area2D.new()
+	test_suite.add_child(area)
+	test_suite.auto_free(area)
+
+	var collision_polygon: CollisionPolygon2D = CollisionPolygon2D.new()
+	collision_polygon.polygon = polygon_points
+	collision_polygon.position = position
+	area.add_child(collision_polygon)
+	
+	# Ensure collision layer matches the test mask
+	area.collision_layer = DEFAULT_COLLISION_LAYER
+
+	return area
 
 ## Creates a complex collision object with multiple shapes
 static func create_complex_collision_object(test_suite: GdUnitTestSuite, rect_size: Vector2, circle_radius: float, circle_offset: Vector2 = Vector2(16, 0)) -> StaticBody2D:
@@ -82,6 +156,9 @@ static func create_complex_collision_object(test_suite: GdUnitTestSuite, rect_si
 	circle_collision.shape = circle_shape
 	circle_collision.position = circle_offset
 	collision_body.add_child(circle_collision)
+	
+	# Ensure collision layer matches the test mask
+	collision_body.collision_layer = DEFAULT_COLLISION_LAYER
 
 	return collision_body
 
@@ -107,7 +184,7 @@ static func setup_collision_mapper_with_objects(
 static func get_collision_tiles_for_objects(
 	collision_mapper: CollisionMapper,
 	objects: Array[StaticBody2D],
-	mask: int = 1
+	mask: int = DEFAULT_COLLISION_MASK
 ) -> Dictionary:
 	# Can include CollisionObject2D, Area2D, etc. Should have a CollisionShape2D or CollisionPolygon2D attached.
 	var collision_objects: Array[Node2D] = []
@@ -125,7 +202,7 @@ static func check_collsion_tiles_at_position(
 ) -> Dictionary:
 	collision_object.global_position = position
 	var collision_objects_typed: Array[CollisionObject2D] = [collision_object as CollisionObject2D]
-	var collision_tiles: Dictionary = test_env.collision_mapper.get_collision_tile_positions_with_mask(collision_objects_typed, 1)
+	var collision_tiles: Dictionary = test_env.collision_mapper.get_collision_tile_positions_with_mask(collision_objects_typed, DEFAULT_COLLISION_MASK)
 
 	test_suite.assert_int(collision_tiles.size()).append_failure_message(
 		"Should generate at least %d collision tiles at position %s" % [expected_min_tiles, position]
@@ -138,6 +215,8 @@ static func create_area_with_rect(test_suite: GdUnitTestSuite, size: Vector2, po
 	var area: Area2D = Area2D.new()
 	test_suite.add_child(area)
 	test_suite.auto_free(area)
+	
+	area.collision_layer = DEFAULT_COLLISION_LAYER
 
 	var collision_shape: CollisionShape2D = CollisionShape2D.new()
 	var rect_shape: RectangleShape2D = RectangleShape2D.new()
@@ -153,6 +232,8 @@ static func create_area_with_circle(test_suite: GdUnitTestSuite, radius: float, 
 	var area: Area2D = Area2D.new()
 	test_suite.add_child(area)
 	test_suite.auto_free(area)
+	
+	area.collision_layer = DEFAULT_COLLISION_LAYER
 
 	var collision_shape: CollisionShape2D = CollisionShape2D.new()
 	var circle_shape: CircleShape2D = CircleShape2D.new()
@@ -167,7 +248,7 @@ static func create_area_with_circle(test_suite: GdUnitTestSuite, radius: float, 
 static func create_area_with_circle_collision(
 	test_suite: GdUnitTestSuite,
 	positioner: Node2D,
-	radius: float = 12.0
+	radius: float = SMALL_CIRCLE_RADIUS
 ) -> Area2D:
 	var area: Area2D = Area2D.new()
 	var shape: CollisionShape2D = CollisionShape2D.new()
@@ -184,7 +265,7 @@ static func create_area_with_circle_collision(
 static func create_area_with_rect_collision(
 	test_suite: GdUnitTestSuite,
 	positioner: Node2D,
-	size: Vector2 = Vector2(32, 32)
+	size: Vector2 = DEFAULT_TEST_SIZE
 ) -> Area2D:
 	var area: Area2D = Area2D.new()
 	var shape: CollisionShape2D = CollisionShape2D.new()
@@ -205,8 +286,8 @@ static func create_area_with_rect_collision(
 ## Creates a StaticBody2D with a diamond/rhombus collision shape (for isometric buildings)
 static func create_static_body_with_diamond(
 	test_suite: GdUnitTestSuite, 
-	width: float = 32.0, 
-	height: float = 32.0, 
+	width: float = DIAMOND_DEFAULT_WIDTH, 
+	height: float = DIAMOND_DEFAULT_HEIGHT, 
 	position: Vector2 = Vector2.ZERO
 ) -> StaticBody2D:
 	var collision_body: StaticBody2D = StaticBody2D.new()
@@ -232,11 +313,11 @@ static func create_static_body_with_diamond(
 
 ## Creates an isometric blacksmith building with proper collision layers
 static func create_isometric_blacksmith(test_suite: GdUnitTestSuite, position: Vector2 = Vector2.ZERO) -> StaticBody2D:
-	var blacksmith: StaticBody2D = create_static_body_with_diamond(test_suite, 32.0, 32.0, position)
+	var blacksmith: StaticBody2D = create_static_body_with_diamond(test_suite, DIAMOND_DEFAULT_WIDTH, DIAMOND_DEFAULT_HEIGHT, position)
 	
 	# Set blacksmith-specific collision layers (common demo values)
-	blacksmith.collision_layer = 2560  # Demo blacksmith collision layer
-	blacksmith.collision_mask = 1536   # Demo blacksmith collision mask
+	blacksmith.collision_layer = DEMO_BLACKSMITH_COLLISION_LAYER
+	blacksmith.collision_mask = DEMO_BLACKSMITH_COLLISION_MASK
 	blacksmith.global_position = position
 
 	return blacksmith
@@ -246,8 +327,8 @@ static func create_isometric_building_with_layers(
 	test_suite: GdUnitTestSuite, 
 	collision_layer: int, 
 	collision_mask: int,
-	width: float = 32.0,
-	height: float = 32.0,
+	width: float = DIAMOND_DEFAULT_WIDTH,
+	height: float = DIAMOND_DEFAULT_HEIGHT,
 	position: Vector2 = Vector2.ZERO
 ) -> StaticBody2D:
 	var building: StaticBody2D = create_static_body_with_diamond(test_suite, width, height)
@@ -311,30 +392,25 @@ static func create_test_object_with_shape(
 	if shape_type == "rectangle":
 		var collision_shape: CollisionShape2D = CollisionShape2D.new()
 		var rect_shape: RectangleShape2D = RectangleShape2D.new()
-		rect_shape.size = Vector2(32, 32)
+		rect_shape.size = DEFAULT_TEST_SIZE
 		collision_shape.shape = rect_shape
 		collision_body.add_child(collision_shape)
 	elif shape_type == "circle":
 		var collision_shape: CollisionShape2D = CollisionShape2D.new()
 		var circle_shape: CircleShape2D = CircleShape2D.new()
-		circle_shape.radius = 16.0
+		circle_shape.radius = DEFAULT_CIRCLE_RADIUS
 		collision_shape.shape = circle_shape
 		collision_body.add_child(collision_shape)
 	elif shape_type == "capsule":
 		var collision_shape: CollisionShape2D = CollisionShape2D.new()
 		var capsule_shape: CapsuleShape2D = CapsuleShape2D.new()
-		capsule_shape.radius = 16.0
-		capsule_shape.height = 32.0
+		capsule_shape.radius = DEFAULT_CAPSULE_RADIUS
+		capsule_shape.height = DEFAULT_CAPSULE_HEIGHT
 		collision_shape.shape = capsule_shape
 		collision_body.add_child(collision_shape)
 	elif shape_type == "trapezoid":
 		var collision_polygon: CollisionPolygon2D = CollisionPolygon2D.new()
-		collision_polygon.polygon = PackedVector2Array([
-			Vector2(-20, -10),
-			Vector2(20, -10),
-			Vector2(15, 10),
-			Vector2(-15, 10)
-		])
+		collision_polygon.polygon = TRAPEZOID_POLYGON_POINTS
 		collision_body.add_child(collision_polygon)
 	else:
 		test_suite.fail("Unknown shape type: %s" % shape_type)
@@ -349,10 +425,7 @@ static func create_polygon_test_object(test_suite: GdUnitTestSuite, parent: Coll
 	test_suite.auto_free(obj)
 	
 	# Define a concave polygon for testing
-	var points: PackedVector2Array = [
-		Vector2(-32, -16), Vector2(32, -16), Vector2(16, 0),
-		Vector2(32, 16), Vector2(-32, 16), Vector2(-16, 0)
-	]
+	var points: PackedVector2Array = CONCAVE_POLYGON_POINTS
 	
 	if parent != null:
 		# Create proper collision hierarchy: CollisionObject2D -> CollisionPolygon2D

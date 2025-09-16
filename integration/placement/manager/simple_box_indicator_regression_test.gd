@@ -13,7 +13,6 @@ extends GdUnitTestSuite
 # -----------------------------------------------------------------------------
 # Constants
 # -----------------------------------------------------------------------------
-const BASE_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
 const TEST_COLLISION_LAYER: int = 513  # Bits 0 and 9 (layers 1 and 10)
 const TILEMAP_SIZE: int = 7  # 5x5 around origin (-3 to 3)
 const TILEMAP_OFFSET: int = -3
@@ -35,9 +34,15 @@ var _gts: GridTargetingState
 # Setup and Teardown
 # -----------------------------------------------------------------------------
 func before_test() -> void:
-	_container = BASE_CONTAINER.duplicate(true)
-	_injector = UnifiedTestFactory.create_test_injector(self, _container)
-	_gts = _container.get_states().targeting
+	# Create environment using premade scene
+	var env_scene: PackedScene = GBTestConstants.get_environment_scene(GBTestConstants.EnvironmentType.ALL_SYSTEMS)
+	assert_that(env_scene).is_not_null()
+	var env: AllSystemsTestEnvironment = env_scene.instantiate()
+	add_child(env)
+	
+	_container = env.get_container()
+	_injector = env.injector
+	_gts = env.grid_targeting_system.get_state()
 
 	# Create 5x5 tile map around origin
 	tile_map_layer = auto_free(TileMapLayer.new())

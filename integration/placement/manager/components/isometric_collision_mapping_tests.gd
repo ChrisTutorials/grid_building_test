@@ -1,27 +1,44 @@
 ## Refactored isometric collision mapping test with orphan node prevention
 extends GdUnitTestSuite
 
-const TestDebugHelpers = preload("uid://cjtkkhcp460sg")
-
 var _test_env: Dictionary
 var _collision_mapper: CollisionMapper
 
 func before_test() -> void:
-	# Use helper for clean environment setup
-	_test_env = TestDebugHelpers.create_minimal_test_environment(self)
+	# Use premade isometric environment scene
+	var env_scene: PackedScene = GBTestConstants.get_environment_scene(GBTestConstants.EnvironmentType.ISOMETRIC_TEST)
+	if not env_scene:
+		fail("Failed to load isometric test environment scene")
+		return
 	
-	# Set up isometric tilemap
-	_test_env.map.tile_set = load("uid://d11t2vm1pby6y")  # Standard isometric tileset
+	var env_instance: BuildingTestEnvironment = env_scene.instantiate()
+	add_child(env_instance)
 	
-	# Create collision mapper with proper cleanup
-	_collision_mapper = auto_free(CollisionMapper.new(_test_env.targeting_state, _test_env.container.get_logger()))
+	# Get container using proper environment API
+	var container: GBCompositionContainer = env_instance.get_container()
+	if not container:
+		fail("Failed to get container from environment")
+		return
+	
+	# Set up targeting state and collision mapper using injection pattern
+	_test_env = {
+		"environment": env_instance,
+		"map": env_instance.tile_map_layer,
+		"targeting_state": container.get_states().targeting,
+		"container": container,
+		"logger": env_instance.get_logger() if env_instance.has_method("get_logger") else null
+	}
+	
+	# Create collision mapper with proper injection
+	_collision_mapper = CollisionMapper.create_with_injection(container)
 
 func after_test() -> void:
 	# Explicit cleanup to prevent orphans
 	if _collision_mapper:
 		_collision_mapper = null
 	
-	TestDebugHelpers.cleanup_test_environment(_test_env)
+	if _test_env and _test_env.has("environment"):
+		_test_env.environment.queue_free()
 	_test_env.clear()
 
 func test_isometric_small_diamond_single_tile() -> void:
@@ -75,23 +92,32 @@ func _get_tile_position_count_for_polygon(polygon: PackedVector2Array) -> int:
 	# Set up collision polygon
 	collision_polygon.polygon = polygon
 	building.add_child(collision_polygon)
-	add_child(building)  # Add to test suite for auto cleanup
 	
-	# Essential: Set up collision mapper with test setup for proper collision detection
-	var targeting_state: GridTargetingState = GridTargetingState.new(GBOwnerContext.new())
-	var setups: Array[CollisionTestSetup2D] = CollisionTestSetup2D.create_test_setups_from_test_node(building, targeting_state)
-	var test_setup: CollisionTestSetup2D = setups[0] if setups.size() > 0 else null
-	assert(test_setup != null, "Test setup creation failed")
-	assert(_collision_mapper != null, "Collision mapper is null")
+	# Add building to the environment level (required for collision detection)
+	_test_env.environment.level.add_child(building)
+	auto_free(building)  # Still auto-free for cleanup
 	
-	_collision_mapper.collision_object_test_setups[building] = test_setup
+	# Create collision test setups using proper API
+	var collision_object_test_setups: Array[CollisionTestSetup2D] = CollisionTestSetup2D.create_test_setups_from_test_node(building, _test_env.targeting_state)
+	if collision_object_test_setups.is_empty():
+		push_error("Failed to create collision test setups")
+		return 0
 	
-	# Set position in targeting state for proper grid calculation
+	# Create test indicator for collision mapper setup
+	var indicator_scene: PackedScene = GBTestConstants.TEST_INDICATOR_TD_PLATFORMER
+	var test_indicator: RuleCheckIndicator = indicator_scene.instantiate()
+	add_child(test_indicator)
+	auto_free(test_indicator)
+	
+	# Setup collision mapper with proper API
+	_collision_mapper.setup(test_indicator, collision_object_test_setups)
+	
+	# Set positioner position for proper grid calculation
 	_test_env.targeting_state.positioner.global_position = Vector2.ZERO
 	
-	# Get tile positions using collision mapper with correct API
-	var collision_objects: Array[Node2D] = [building]
-	var tile_positions_dict: Dictionary[Vector2i, Array] = _collision_mapper.get_collision_tile_positions_with_mask(collision_objects, building.collision_layer)
+	# Get tile positions using correct API - pass the collision shapes to check
+	var collision_shapes: Array[Node2D] = [collision_polygon]
+	var tile_positions_dict: Dictionary[Vector2i, Array] = _collision_mapper.get_collision_tile_positions_with_mask(collision_shapes, building.collision_layer)
 	var tile_positions: Array[Vector2i] = tile_positions_dict.keys()
 	
 	return tile_positions.size()

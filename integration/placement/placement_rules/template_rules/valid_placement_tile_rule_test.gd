@@ -26,14 +26,15 @@ var tile_data_missing_key: TileData
 var tile_data_full_match: TileData
 var tile_data_none: TileData
 var _container: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
+var _env: AllSystemsTestEnvironment
 var _gts: GridTargetingState
 
 # Test setup and teardown
 # ================================================================================
 
 func before_test() -> void:
-	# var injector: Node = UnifiedTestFactory.create_test_injector(self, _container)
-	_gts = UnifiedTestFactory.create_double_targeting_state(self)
+	_env = UnifiedTestFactory.instance_all_systems_env(self, GBTestConstants.ALL_SYSTEMS_ENV_UID)
+	_gts = _env.targeting_state
 	# Rule and indicator setup. Rule requires the tile data to be grass and Green
 	rule = ValidPlacementTileRule.new()
 	rule.expected_tile_custom_data = {"type": "grass", "color": Color.GREEN}

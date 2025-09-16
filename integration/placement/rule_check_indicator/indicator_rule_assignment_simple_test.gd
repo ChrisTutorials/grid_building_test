@@ -3,11 +3,15 @@
 ## and validation without complex scene setup dependencies
 extends GdUnitTestSuite
 
-const TEST_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
-
 func before_test() -> void:
-	# Create injector system for dependency injection
-	var _injector: Node = UnifiedTestFactory.create_test_injector(self, TEST_CONTAINER)
+	# Create environment using premade scene
+	var env_scene: PackedScene = GBTestConstants.get_environment_scene(GBTestConstants.EnvironmentType.ALL_SYSTEMS)
+	assert_that(env_scene).is_not_null()
+	var env: AllSystemsTestEnvironment = env_scene.instantiate()
+	add_child(env)
+	
+	# Injector is automatically set up by environment
+	var _injector: GBInjectorSystem = env.injector
 
 # region Helper functions
 # Creates a standard collision rule for testing

@@ -166,7 +166,7 @@ func test_placement_validation_with_rules(
 		# Log setup issues but continue test to see behavior
 		logger.log_warning(self, "Setup issues for %s: %s" % [rule_scenario, setup_issues])
 	
-	var result: ValidationResults = placement_validator.validate()
+	var result: ValidationResults = placement_validator.validate_placement()
 	
 	assert_that(result.is_successful()).append_failure_message(
 		"Validation result for %s with rule type %s should be %s" % [rule_scenario, rule_type, expected_valid]
@@ -210,7 +210,7 @@ func test_placement_validation_edge_cases(
 			var empty_rules: Array[PlacementRule] = []
 			var _setup_issues: Dictionary = placement_validator.setup(empty_rules, _targeting_state)
 			# With empty rules, validate() returns false because active_rules is empty
-			var result: ValidationResults = placement_validator.validate()
+			var result: ValidationResults = placement_validator.validate_placement()
 			assert_bool(result.is_successful()).append_failure_message(
 				"Validation with empty rules should fail (no active rules)"
 			).is_false()
@@ -230,7 +230,7 @@ func test_placement_validation_edge_cases(
 			
 			# Without target _map, there might be issues
 			if setup_issues.is_empty():
-				var result: ValidationResults = placement_validator.validate()
+				var result: ValidationResults = placement_validator.validate_placement()
 				assert_object(result).append_failure_message(
 					"Should get validation result even with no target _map"
 				).is_not_null()
@@ -245,7 +245,7 @@ func test_placement_validation_edge_cases(
 			
 			var empty_rules: Array[PlacementRule] = []
 			var _setup_issues: Dictionary = placement_validator.setup(empty_rules, _targeting_state)
-			var result: ValidationResults = placement_validator.validate()
+			var result: ValidationResults = placement_validator.validate_placement()
 			# This might be valid or invalid depending on implementation
 			assert_object(result).append_failure_message(
 				"Invalid position should still return a result object"
@@ -263,7 +263,7 @@ func test_placement_validation_performance() -> void:
 	var _setup_issues: Dictionary = placement_validator.setup(many_rules, _targeting_state)
 	
 	var start_time: int = Time.get_ticks_msec()
-	var result: ValidationResults = placement_validator.validate()
+	var result: ValidationResults = placement_validator.validate_placement()
 	var end_time: int = Time.get_ticks_msec()
 	var elapsed_ms: int = end_time - start_time
 	

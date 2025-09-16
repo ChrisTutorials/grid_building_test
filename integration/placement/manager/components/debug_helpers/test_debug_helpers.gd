@@ -1,75 +1,18 @@
 ## class_name TestDebugHelpers
 ## Debug helpers for placement manager tests to reduce duplication and improve debuggability
 
-## Helper to create a minimal test environment with proper cleanup tracking
-static func create_minimal_test_environment(test_suite: GdUnitTestSuite) -> Dictionary:
-	var env: Dictionary = {}
-	
-	# Create container and injector
-	var container: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
-	var injector: GBInjectorSystem = UnifiedTestFactory.create_test_injector(test_suite, container)
-	
-	# Create map with proper cleanup
-	var map: TileMapLayer = test_suite.auto_free(TileMapLayer.new())
-	map.tile_set = TileSet.new()
-	map.tile_set.tile_size = Vector2(16, 16)
-	test_suite.add_child(map)
-	
-	# Create positioner
-	var positioner: Node2D = test_suite.auto_free(Node2D.new())
-	positioner.name = "TestPositioner"
-	test_suite.add_child(positioner)
-	positioner.global_position = map.to_global(map.map_to_local(Vector2i.ZERO))
-	
-	# Set up targeting state
-	var targeting_state: GridTargetingState = container.get_targeting_state()
-	targeting_state.target_map = map
-	targeting_state.maps = [map]
-	targeting_state.positioner = positioner
-	
-	# Set up manipulation parent
-	var manipulation_parent: Node2D = test_suite.auto_free(Node2D.new())
-	manipulation_parent.name = "ManipulationParent"
-	positioner.add_child(manipulation_parent)
-	container.get_states().manipulation.parent = manipulation_parent
-	
-	# Set up owner context
-	var owner_context: GBOwnerContext = container.get_contexts().owner
-	var owner_node: Node2D = test_suite.auto_free(Node2D.new())
-	owner_node.name = "TestOwner"
-	test_suite.add_child(owner_node)
-	var gb_owner: GBOwner = test_suite.auto_free(GBOwner.new(owner_node))
-	owner_context.set_owner(gb_owner)
-	
-	# Set up placed parent
-	var placed_parent: Node2D = test_suite.auto_free(Node2D.new())
-	placed_parent.name = "PlacedParent"
-	container.get_states().building.placed_parent = placed_parent
-	test_suite.add_child(placed_parent)
-	
-	env.container = container
-	env.injector = injector
-	env.map = map
-	env.positioner = positioner
-	env.manipulation_parent = manipulation_parent
-	env.targeting_state = targeting_state
-	env.owner_context = owner_context
-	env.placed_parent = placed_parent
-	
-	return env
-
 ## Helper to create and validate an indicator manager with proper error reporting
-static func create_indicator_manager_with_validation(test_suite: GdUnitTestSuite, env: Dictionary) -> Dictionary:
+static func create_indicator_manager_with_validation(test_suite: GdUnitTestSuite, env: AllSystemsTestEnvironment) -> Dictionary:
 	var result: Dictionary = {}
 	
 	# Create indicator manager
-	var manager: IndicatorManager = IndicatorManager.create_with_injection(env.container)
+	var manager: IndicatorManager = IndicatorManager.create_with_injection(env.injector.composition_container)
 	manager.name = "TestIndicatorManager"
 	env.manipulation_parent.add_child(manager)
 	test_suite.auto_free(manager)
 	
 	# Validate targeting state
-	var issues: Array[String] = env.targeting_state.get_runtime_issues()
+	var issues: Array[String] = env.injector.composition_container.get_targeting_state().get_runtime_issues()
 	result.manager = manager
 	result.setup_issues = issues
 	result.is_valid = issues.is_empty()
@@ -121,11 +64,11 @@ static func _create_setup_summary(validation_result: Dictionary) -> String:
 	return "\n".join(lines)
 
 ## Helper to verify building system can enter build mode
-static func validate_building_system_entry(test_suite: GdUnitTestSuite, env: Dictionary, placeable: Placeable) -> Dictionary:
+static func validate_building_system_entry(test_suite: GdUnitTestSuite, env: AllSystemsTestEnvironment, placeable: Placeable) -> Dictionary:
 	var result : Dictionary = {}
 	
 	# Create building system
-	var building_system: BuildingSystem = BuildingSystem.create_with_injection(env.container)
+	var building_system: BuildingSystem = BuildingSystem.create_with_injection(env.injector.composition_container)
 	building_system.name = "TestBuildingSystem"
 	test_suite.add_child(building_system)
 	test_suite.auto_free(building_system)
@@ -136,7 +79,7 @@ static func validate_building_system_entry(test_suite: GdUnitTestSuite, env: Dic
 	result.building_system = building_system
 	result.report = report
 	result.is_successful = report.is_successful() if report else false
-	result.preview = env.container.get_building_state().preview if result.is_successful else null
+	result.preview = env.injector.composition_container.get_building_state().preview if result.is_successful else null
 	result.error_summary = _create_build_mode_summary(result)
 	
 	return result
@@ -154,9 +97,7 @@ static func _create_build_mode_summary(validation_result: Dictionary) -> String:
 	return "\n".join(lines)
 
 ## Helper to cleanup all test nodes and prevent orphans
-static func cleanup_test_environment(env: Dictionary) -> void:
-	# Clear any remaining references
-	if env.has("container"):
-		env.container = null
-	if env.has("injector"):
-		env.injector = null
+static func cleanup_test_environment(_env: AllSystemsTestEnvironment) -> void:
+	# The environment itself will be auto-freed by the test suite
+	# No additional cleanup needed for the strongly typed environment
+	pass

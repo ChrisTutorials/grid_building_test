@@ -18,9 +18,6 @@ var map_layer: TileMapLayer
 var col_checking_rules: Array[TileCheckRule]
 var global_snap_pos: Vector2
 
-# Access to indicator template and other test scenes; avoid name clash with global class_name
-const TestSceneLibraryScene : PackedScene = preload("uid://nhlp6ks003fp")
-
 var _positioner : Node2D
 var _injector: GBInjectorSystem
 var _container : GBCompositionContainer

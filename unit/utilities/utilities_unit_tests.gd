@@ -31,18 +31,26 @@ const POLYGON_VERTEX_COUNT := 4
 const PERFORMANCE_ITERATION_COUNT := 100
 const PERFORMANCE_MAX_TIME_US := 100000  # 0.1 seconds
 
+## Test string constants
+const TEST_NODE_NAME := "test_node_name"
+const TEST_STATIC_BODY_NAME := "TestStaticBody"
+
+## Assertion message constants
+const SCENE_LOAD_SUCCESS_MESSAGE := "Scene should load successfully: "
+const COLLISION_OBJECT_COUNT_MESSAGE := "Scene {scene_path} should have exactly {expected_count} collision objects"
+
 ## Test scene paths and expected collision object counts
 const TEST_SCENE_DATA := [
-	["res://test/grid_building_test/scenes/objects/test_gigantic_egg.tscn", 1],
-	["res://test/grid_building_test/scenes/objects/test_pillar.tscn", 1],
-	["res://test/grid_building_test/scenes/objects/test_rect_15_tiles.tscn", 1],
-	["res://test/grid_building_test/scenes/objects/test_smithy.tscn", 2],
-	["res://test/grid_building_test/scenes/objects/test_placeable_instance_scene_2d.tscn", 0],
-	["res://test/grid_building_test/scenes/objects/2d_test_object.tscn", 0],
-	["res://test/grid_building_test/scenes/objects/test_elipse.tscn", 1],
-	["res://test/grid_building_test/scenes/objects/test_skew_rotation_rect.tscn", 1],
-	["res://test/grid_building_test/scenes/objects/isometric_building.tscn", 1],
-	["res://test/grid_building_test/scenes/objects/script_keep_scene.tscn", 0],
+	[GBTestConstants.GIGANTIC_EGG_PATH, 1],
+	[GBTestConstants.PILLAR_PATH, 1],
+	[GBTestConstants.RECT_15_TILES_PATH, 1],
+	[GBTestConstants.SMITHY_PATH, 2],
+	[GBTestConstants.PLACEABLE_INSTANCE_2D_PATH, 0],
+	[GBTestConstants.TEST_2D_OBJECT_PATH, 0],
+	[GBTestConstants.ELLIPSE_PATH, 1],
+	[GBTestConstants.SKEW_ROTATION_RECT_PATH, 1],
+	[GBTestConstants.ISOMETRIC_BUILDING_PATH, 1],
+	[GBTestConstants.SCRIPT_KEEP_SCENE_PATH, 0],
 ]
 
 #endregion
@@ -123,8 +131,8 @@ func test_collision_geometry_convex_check() -> void:
 
 @warning_ignore("unused_parameter")
 func test_string_utilities_name_conversion() -> void:
-	var readable_name: String = GBString.convert_name_to_readable("test_node_name")
-	assert_that(readable_name).is_not_equal("test_node_name")  # Should be converted
+	var readable_name: String = GBString.convert_name_to_readable(TEST_NODE_NAME)
+	assert_that(readable_name).is_not_equal(TEST_NODE_NAME)  # Should be converted
 
 @warning_ignore("unused_parameter")
 func test_string_utilities_separator_matching(
@@ -132,10 +140,18 @@ func test_string_utilities_separator_matching(
 	separator_type: int,
 	expected: bool,
 	test_parameters := [
-		["_", 2, true], ["-", 3, true], [" ", 1, true],
-		["_ ", 0, false], ["_ ", 1, false], ["_ ", 3, false],
-		["- ", 0, false], ["- ", 1, false], ["- ", 2, false],
-		["  ", 0, false], ["  ", 2, false], ["  ", 3, false]
+		["_", GBString.SeparatorType.UNDERSCORE, true],
+		["-", GBString.SeparatorType.DASH, true],
+		[" ", GBString.SeparatorType.SPACE, true],
+		["_ ", GBString.SeparatorType.NONE, false],
+		["_ ", GBString.SeparatorType.SPACE, false],
+		["_ ", GBString.SeparatorType.DASH, false],
+		["- ", GBString.SeparatorType.NONE, false],
+		["- ", GBString.SeparatorType.SPACE, false],
+		["- ", GBString.SeparatorType.UNDERSCORE, false],
+		["  ", GBString.SeparatorType.NONE, false],
+		["  ", GBString.SeparatorType.UNDERSCORE, false],
+		["  ", GBString.SeparatorType.DASH, false]
 	]
 ) -> void:
 	var result: bool = GBString.match_num_seperator(separator, separator_type)
@@ -146,7 +162,10 @@ func test_string_utilities_get_separator_string(
 	separator_type: int,
 	expected: String,
 	test_parameters := [
-		[0, ""], [1, " "], [2, "_"], [3, "-"]
+		[GBString.SeparatorType.NONE, ""],
+		[GBString.SeparatorType.SPACE, " "],
+		[GBString.SeparatorType.UNDERSCORE, "_"],
+		[GBString.SeparatorType.DASH, "-"]
 	]
 ) -> void:
 	var result: String = GBString.get_separator_string(separator_type)
@@ -296,7 +315,7 @@ func _create_test_parent_with_static_body() -> Node2D:
 	var parent := Node2D.new()
 
 	var static_body := StaticBody2D.new()
-	static_body.name = "TestStaticBody"
+	static_body.name = TEST_STATIC_BODY_NAME
 	parent.add_child(static_body)
 
 	return parent

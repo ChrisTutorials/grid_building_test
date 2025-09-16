@@ -5,6 +5,16 @@
 class_name GBTestConstants
 extends RefCounted
 
+#region Environment Types
+## Enum for environment types to avoid string-based matching
+enum EnvironmentType {
+	ALL_SYSTEMS,
+	BUILDING_TEST,
+	COLLISION_TEST,
+	ISOMETRIC_TEST
+}
+#endregion
+
 #region Environment Scene UIDs
 ## These UIDs correspond to test environment scenes that provide pre-configured
 ## systems and components for various test scenarios.
@@ -21,12 +31,17 @@ const BUILDING_TEST_ENV_UID: String = "uid://building_test_env"
 ## Path: res://test/grid_building_test/scenes/env/collision_test_environment.tscn
 const COLLISION_TEST_ENV_UID: String = "uid://collision_test_env"
 
+## Isometric Test Environment - Optimized for isometric tile mapping and collision testing
+## Path: res://test/grid_building_test/scenes/env/isometric_test_environment.tscn
+const ISOMETRIC_TEST_ENV_UID: String = "uid://d3yeah2uexha2"
+
 ## Environment Scene Paths
 ##
 ## Fallback paths in case UID loading fails. These should match the UIDs above.
 const ALL_SYSTEMS_ENV_PATH: String = "res://test/grid_building_test/scenes/env/all_systems_test_environment.tscn"
 const BUILDING_TEST_ENV_PATH: String = "res://test/grid_building_test/scenes/env/building_test_environment.tscn"
 const COLLISION_TEST_ENV_PATH: String = "res://test/grid_building_test/scenes/env/collision_test_environment.tscn"
+const ISOMETRIC_TEST_ENV_PATH: String = "res://test/grid_building_test/scenes/env/isometric_test_environment.tscn"
 
 #endregion
 #region Test Object Scene UIDs
@@ -45,7 +60,10 @@ const GIGANTIC_EGG_UID: String = "uid://gigantic_egg"
 const PILLAR_UID: String = "uid://test_pillar"
 
 ## Ellipse test object
-const ELLIPSE_UID: String = "uid://test_ellipse"
+const ELLIPSE_UID: String = "uid://j5837ml5dduu"
+
+## Eclipse test scene (alias for ellipse)
+static var eclipse_scene : PackedScene = preload("uid://j5837ml5dduu")
 
 #endregion
 #region Object Scene Paths
@@ -55,6 +73,11 @@ const SMITHY_PATH: String = "res://test/grid_building_test/scenes/objects/test_s
 const GIGANTIC_EGG_PATH: String = "res://test/grid_building_test/scenes/objects/test_gigantic_egg.tscn"
 const PILLAR_PATH: String = "res://test/grid_building_test/scenes/objects/test_pillar.tscn"
 const ELLIPSE_PATH: String = "res://test/grid_building_test/scenes/objects/test_elipse.tscn"
+const PLACEABLE_INSTANCE_2D_PATH: String = "res://test/grid_building_test/scenes/objects/test_placeable_instance_scene_2d.tscn"
+const TEST_2D_OBJECT_PATH: String = "res://test/grid_building_test/scenes/objects/2d_test_object.tscn"
+const SKEW_ROTATION_RECT_PATH: String = "res://test/grid_building_test/scenes/objects/test_skew_rotation_rect.tscn"
+const ISOMETRIC_BUILDING_PATH: String = "res://test/grid_building_test/scenes/objects/isometric_building.tscn"
+const SCRIPT_KEEP_SCENE_PATH: String = "res://test/grid_building_test/scenes/objects/script_keep_scene.tscn"
 
 #endregion
 
@@ -87,6 +110,9 @@ const TEST_COLLISION_LAYER: int = 1
 
 ## Default collision mask for test objects
 const TEST_COLLISION_MASK: int = 1
+
+## Test composition container for dependency injection
+const TEST_COMPOSITION_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
 
 #endregion
 #region Common Test Positions
@@ -126,22 +152,26 @@ static func validate_environment_scenes() -> Array[String]:
 	return issues
 
 ## Get the best available scene reference (UID first, then path fallback)
-static func get_environment_scene(environment_type: String) -> PackedScene:
+static func get_environment_scene(environment_type: EnvironmentType) -> PackedScene:
 	var scene: PackedScene = null
 
 	match environment_type:
-		"all_systems":
+		EnvironmentType.ALL_SYSTEMS:
 			scene = load(ALL_SYSTEMS_ENV_UID)
 			if not scene:
 				scene = load(ALL_SYSTEMS_ENV_PATH)
-		"building_test":
+		EnvironmentType.BUILDING_TEST:
 			scene = load(BUILDING_TEST_ENV_UID)
 			if not scene:
 				scene = load(BUILDING_TEST_ENV_PATH)
-		"collision_test":
+		EnvironmentType.COLLISION_TEST:
 			scene = load(COLLISION_TEST_ENV_UID)
 			if not scene:
 				scene = load(COLLISION_TEST_ENV_PATH)
+		EnvironmentType.ISOMETRIC_TEST:
+			scene = load(ISOMETRIC_TEST_ENV_UID)
+			if not scene:
+				scene = load(ISOMETRIC_TEST_ENV_PATH)
 
 	return scene
 

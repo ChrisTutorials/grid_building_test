@@ -18,15 +18,21 @@ func before_test() -> void:
 # integration tests to show "0 indicators generated" despite valid collision objects and rules
 # Debug output shows: validation passes (no issues) but 0 indicators generated
 func test_indicator_manager_try_setup_generates_indicators() -> void:
-	# Create environment similar to integration test
-	var gts := UnifiedTestFactory.create_minimal_targeting_state(self, true, true)
-	var template := UnifiedTestFactory.create_minimal_indicator_template(self)
-	var parent := Node2D.new()
+	# Create environment using premade scene instead of factory methods
+	var env_scene: PackedScene = GBTestConstants.get_environment_scene(GBTestConstants.EnvironmentType.ALL_SYSTEMS)
+	assert_that(env_scene).is_not_null()
+	var env: AllSystemsTestEnvironment = env_scene.instantiate()
+	add_child(env)
+
+	# Get components from environment
+	var gts: GridTargetingState = env.grid_targeting_system.get_state()
+	var parent: Node2D = Node2D.new()
 	auto_free(parent)
 	add_child(parent)  # Parent the manager
 
-	# Create IndicatorManager directly without container
-	var manager := UnifiedTestFactory.create_minimal_indicator_manager(self, parent, gts, template)
+	# Get indicator manager from environment
+	var manager: IndicatorManager = env.indicator_manager
+	assert_that(manager).is_not_null()
 
 	# Create preview object with collision shape matching integration test setup
 	var preview := StaticBody2D.new()
@@ -46,7 +52,7 @@ func test_indicator_manager_try_setup_generates_indicators() -> void:
 
 	var report := manager.try_setup([rule], gts)
 	assert_that(report != null).append_failure_message("Expected non-null PlacementReport").is_true()
-	
+
 	# Verify indicators report structure and content
 	assert_that(report.indicators_report != null).append_failure_message("Expected non-null indicators report").is_true()
 	

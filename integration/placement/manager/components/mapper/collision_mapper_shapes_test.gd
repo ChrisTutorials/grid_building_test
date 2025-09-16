@@ -32,6 +32,18 @@ const TEST_POSITION_SMALL := Vector2(8, 8)
 const TEST_POSITION_NEGATIVE := Vector2(-8, -8)
 const OFFSET_POSITION := Vector2(16, 0)
 
+# Local helper methods
+func _create_rule_check_indicator(parent: Node = null, tile_size: int = 16) -> RuleCheckIndicator:
+	var indicator: RuleCheckIndicator = RuleCheckIndicator.new([])
+	var rect_shape := RectangleShape2D.new()
+	auto_free(rect_shape)  # Clean up shape resource
+	rect_shape.size = Vector2(tile_size, tile_size)
+	indicator.shape = rect_shape
+	if parent:
+		parent.add_child(indicator)
+	auto_free(indicator)  # Always auto_free the indicator
+	return indicator
+
 var collision_mapper: CollisionMapper
 var tilemap_layer: TileMapLayer
 var targeting_state: GridTargetingState
@@ -49,6 +61,7 @@ func before_test() -> void:
 	# Create tilemap with consistent tile size
 	tilemap_layer = GodotTestFactory.create_tile_map_layer(self, GRID_SIZE)
 	var tileset: TileSet = TileSet.new()
+	auto_free(tileset)  # Clean up tileset resource
 	tileset.tile_size = TILE_SIZE
 	tilemap_layer.tile_set = tileset
 	
@@ -250,6 +263,7 @@ func _create_test_object_with_shape(shape_type: String, shape_data: Dictionary) 
 
 func test_rules_and_collision_integration() -> void:
 	var rule: CollisionsCheckRule = CollisionsCheckRule.new()
+	auto_free(rule)  # Clean up rule instance
 	var setup_issues: Array = rule.setup(targeting_state)
 	assert_array(setup_issues).is_empty()
 	
@@ -262,9 +276,7 @@ func test_rules_and_collision_integration() -> void:
 	test_parent.name = "TestParent2"
 	add_child(test_parent)
 	auto_free(test_parent)
-	var mapper : CollisionMapper = indicator_manager.get_collision_mapper()
-	mapper.setup()
-	UnifiedTestFactory.configure_collision_mapper_for_test_object(self, indicator_manager, test_object, null, test_parent)
+	# Mapper should already be configured by the environment
 	
 	# Use the collision mapper from the indicator manager
 	var configured_collision_mapper: CollisionMapper = indicator_manager.get_collision_mapper()
@@ -283,6 +295,7 @@ func test_rules_and_collision_integration() -> void:
 
 func test_collisions_check_rule_setup() -> void:
 	var rule: CollisionsCheckRule = CollisionsCheckRule.new()
+	auto_free(rule)  # Clean up rule instance
 	var setup_issues: Array = rule.setup(targeting_state)
 	assert_array(setup_issues).append_failure_message(
 		"Rule setup should succeed with valid parameters: %s" % str(setup_issues)
@@ -290,6 +303,7 @@ func test_collisions_check_rule_setup() -> void:
 
 func test_tile_check_rule_basic() -> void:
 	var rule: TileCheckRule = TileCheckRule.new()
+	auto_free(rule)  # Clean up rule instance
 	var setup_issues: Array = rule.setup(targeting_state)
 	assert_array(setup_issues).append_failure_message(
 		"Tile rule setup should succeed: %s" % str(setup_issues)
@@ -315,7 +329,9 @@ func test_collision_mapper_shape_processing() -> void:
 	var test_setup: CollisionTestSetup2D = CollisionTestSetup2D.new(test_object, Vector2(16, 16))
 	var collision_setups: Array[CollisionTestSetup2D] = [test_setup]
 
-	var test_indicator: Node = UnifiedTestFactory.create_rule_check_indicator(self, [] as Array[TileCheckRule], test_parent)
+	var test_indicator: RuleCheckIndicator = _create_rule_check_indicator()
+	add_child(test_indicator)  # Add to test suite first before reparenting
+	test_indicator.reparent(test_parent)
 
 	# Setup collision mapper directly
 	local_collision_mapper.setup(test_indicator, collision_setups)

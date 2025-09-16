@@ -18,16 +18,21 @@ var test_layers: int = 1  # Bitmask
 ## Logo offset away from the center for testing - using Godot icon as test texture
 var offset_logo: Texture2D = load("res://icon.svg")
 
-## Test container for dependency injection
-const TEST_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
+## Environment and container for tests
+var _env: AllSystemsTestEnvironment
+var _container: GBCompositionContainer
 
 ## Helper method to create a test logger
 func create_test_logger() -> GBLogger:
-	return GBLogger.create_with_injection(TEST_CONTAINER)
+	return GBLogger.new()
 
 func before_test() -> void:
-	# Create injector system for dependency injection
-	var _injector: Node = UnifiedTestFactory.create_test_injector(self, TEST_CONTAINER)
+	# Create environment using premade scene
+	var env_scene: PackedScene = GBTestConstants.get_environment_scene(GBTestConstants.EnvironmentType.ALL_SYSTEMS)
+	assert_that(env_scene).is_not_null()
+	_env = env_scene.instantiate()
+	add_child(_env)
+	_container = _env.get_container()
 	
 	# Create indicator and configure all exported properties BEFORE adding to scene tree so _ready uses them.
 	indicator = UnifiedTestFactory.create_test_rule_check_indicator(self)
@@ -72,7 +77,7 @@ func test_indicator_validity_switches_on_dynamic_collision() -> void:
 
 	var test_indicator: RuleCheckIndicator = UnifiedTestFactory.create_test_rule_check_indicator(self)
 	test_indicator.shape = RectangleShape2D.new(); test_indicator.shape.size = Vector2.ONE
-	test_indicator.resolve_gb_dependencies(TEST_CONTAINER)
+	test_indicator.resolve_gb_dependencies(_container)
 	test_indicator.add_rule(rule)
 
 	var signal_states: Array[bool] = []
@@ -122,7 +127,7 @@ func test_validity_sprite_texture_switches_on_validity_change() -> void:
 	indicator2.invalid_settings = invalid_settings_res2
 	indicator2.validity_sprite = auto_free(Sprite2D.new())
 	indicator2.add_child(indicator2.validity_sprite)
-	indicator2.resolve_gb_dependencies(TEST_CONTAINER)
+	indicator2.resolve_gb_dependencies(_container)
 	indicator2.add_rule(rule2)
 
 	await get_tree().physics_frame
@@ -377,7 +382,7 @@ func test_ready_debug_log_format_no_rules() -> void:
 	dbg.level = GBDebugSettings.DebugLevel.DEBUG
 	var test_indicator: RuleCheckIndicator = UnifiedTestFactory.create_test_rule_check_indicator(self)
 	test_indicator.shape = RectangleShape2D.new(); test_indicator.shape.size = Vector2.ONE
-	test_indicator.resolve_gb_dependencies(TEST_CONTAINER)
+	test_indicator.resolve_gb_dependencies(_container)
 	await get_tree().process_frame
 	# We can't intercept internal logger messages without a spy; assert valid state and zero rules
 	assert_int(test_indicator.get_rules().size()).is_equal(0)

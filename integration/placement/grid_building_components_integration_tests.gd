@@ -29,7 +29,7 @@ func after_test() -> void:
 
 # Helper: Create test rule check indicator
 func _create_test_rule_check_indicator() -> RuleCheckIndicator:
-	var scene: PackedScene = load("res://godot/test/grid_building_test/scenes/indicators/test_indicator.tscn")
+	var scene: PackedScene = GBTestConstants.TEST_INDICATOR_TD_PLATFORMER
 	var indicator: RuleCheckIndicator = scene.instantiate()
 	auto_free(indicator)
 	add_child(indicator)

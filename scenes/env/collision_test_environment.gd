@@ -3,6 +3,53 @@ class_name CollisionTestEnvironment
 extends GBTestEnvironment
 
 @export var indicator_manager : IndicatorManager
+var collision_setup : CollisionTestSetup2D
+var collision_mapper : CollisionMapper
+var logger : GBLogger
+
+var rule_validation_parameters : Dictionary
+var targeting_state : GridTargetingState
+var container : GBCompositionContainer
+
+func _ready() -> void:
+	# Initialize container reference for convenience
+	container = get_container()
+	
+	# Initialize logger from container
+	if container:
+		logger = container.get_logger()
+	
+	# Initialize rule validation parameters directly
+	rule_validation_parameters = {
+		"validation_container": container,
+		"rule_context": GBOwnerContext.new(),
+		"rules": []
+	}
+	
+	# Initialize targeting state
+	if container and container.get_states():
+		targeting_state = container.get_states().targeting
+		
+		# Initialize collision mapper if we have the required components
+		if targeting_state and logger:
+			collision_mapper = CollisionMapper.new(targeting_state, logger)
+	
+	# Set up level context with proper targeting state configuration
+	_setup_level_context()
+
+## Set up the level context with target map and apply to targeting state
+func _setup_level_context() -> void:
+	# Ensure level_context has target_map set
+	if level_context.target_map == null:
+		level_context.target_map = tile_map_layer
+	if level_context.maps.is_empty():
+		level_context.maps = [tile_map_layer]
+	
+	# Apply level context settings to targeting state
+	if container and container.get_states():
+		var states: GBStates = container.get_states()
+		if states.targeting and states.building:
+			level_context.apply_to(states.targeting, states.building)
 
 func get_issues() -> Array[String]:
 	var issues : Array[String] = super()

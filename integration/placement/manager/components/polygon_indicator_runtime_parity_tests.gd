@@ -4,23 +4,28 @@ extends GdUnitTestSuite
 const TestDebugHelpers = preload("uid://cjtkkhcp460sg")
 const UnifiedTestFactory = preload("res://test/grid_building_test/factories/unified_test_factory.gd")
 
-var _test_env: Dictionary
+var _test_env: AllSystemsTestEnvironment
 var _manager_validation: Dictionary
 var _building_validation: Dictionary
 
 func before_test() -> void:
-	# Use helper for standardized environment setup
-	_test_env = TestDebugHelpers.create_minimal_test_environment(self)
+	# Use pre-made environment directly for more robust setup
+	var env_scene: PackedScene = GBTestConstants.get_environment_scene(GBTestConstants.EnvironmentType.ALL_SYSTEMS)
+	assert_object(env_scene).is_not_null().append_failure_message("Failed to load ALL_SYSTEMS environment scene")
+	
+	_test_env = env_scene.instantiate() as AllSystemsTestEnvironment
+	assert_object(_test_env).is_not_null().append_failure_message("Failed to instantiate environment")
+	add_child(_test_env)
+	auto_free(_test_env)
 	
 	# Validate environment setup
-	assert_object(_test_env.container).is_not_null()
-	assert_object(_test_env.map).is_not_null()
+	assert_object(_test_env.injector.composition_container).is_not_null()
+	assert_object(_test_env.tile_map_layer).is_not_null()
 	assert_object(_test_env.positioner).is_not_null()
 
 func after_test() -> void:
 	# Clean up test environment
 	TestDebugHelpers.cleanup_test_environment(_test_env)
-	_test_env.clear()
 	_manager_validation.clear()
 	_building_validation.clear()
 
@@ -87,11 +92,11 @@ func test_polygon_indicators_align_with_geometry() -> void:
 		return
 	
 	# Verify at least one indicator is near the positioner center
-	var center_tile: Vector2i = _test_env.map.local_to_map(_test_env.positioner.global_position)
+	var center_tile: Vector2i = _test_env.tile_map_layer.local_to_map(_test_env.positioner.global_position)
 	var indicators_near_center: int = 0
 	
 	for indicator : RuleCheckIndicator in indicator_result.indicators:
-		var indicator_tile: Vector2i = _test_env.map.local_to_map(indicator.global_position)
+		var indicator_tile: Vector2i = _test_env.tile_map_layer.local_to_map(indicator.global_position)
 		var distance: float = indicator_tile.distance_to(center_tile)
 		if distance <= 2.0:  # Within 2 tiles of center
 			indicators_near_center += 1

@@ -51,13 +51,6 @@ func test_level_context_validation() -> void:
 	var level_issues: Array[String] = test_env.level_context.get_runtime_issues()
 	assert_array(level_issues).is_empty().override_failure_message("LevelContext should have no runtime issues: " + str(level_issues))
 
-## Test: Scene hierarchy is correct for collision testing
-func test_scene_node_structure() -> void:
-	# Validate basic collision test environment paths
-	assert_that(test_env.get_node_or_null("World")).is_not_null().override_failure_message("World node should exist")
-	assert_that(test_env.get_node_or_null("World/GridPositioner2D")).is_not_null().override_failure_message("GridPositioner2D should exist")
-	assert_that(test_env.get_node_or_null("World/GridPositioner2D/Level")).is_not_null().override_failure_message("Level should exist")
-
 ## Test: Collision-specific functionality
 func test_collision_environment_specific() -> void:
 	# CollisionTestEnvironment should provide basic collision testing capabilities

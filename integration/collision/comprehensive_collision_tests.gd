@@ -73,7 +73,7 @@ func _generate_test_positions(grid_size: int = 21, tile_size: Vector2 = TILE_SIZ
 
 func before_test() -> void:
 	# Use the unified test factory to get a proper test container
-	test_container = UnifiedTestFactory.TEST_CONTAINER.duplicate(true)
+	test_container = GBTestConstants.TEST_COMPOSITION_CONTAINER.duplicate(true)
 
 ## Test capsule shape bounds and tile coverage
 @warning_ignore("unused_parameter")

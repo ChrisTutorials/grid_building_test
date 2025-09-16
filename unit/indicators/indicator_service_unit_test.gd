@@ -25,8 +25,14 @@ func test_validate_setup_environment_collects_targeting_issues() -> void:
 
 # Test catches: Preview objects without collision shapes causing early abort
 func test_setup_indicators_reports_no_collision_shapes() -> void:
-	var gts := UnifiedTestFactory.create_minimal_targeting_state(self, true, true)
-	var template := UnifiedTestFactory.create_minimal_indicator_template(self)
+	# Create environment using premade scene
+	var env_scene: PackedScene = GBTestConstants.get_environment_scene(GBTestConstants.EnvironmentType.ALL_SYSTEMS)
+	assert_that(env_scene).is_not_null()
+	var env: AllSystemsTestEnvironment = env_scene.instantiate()
+	add_child(env)
+
+	var gts: GridTargetingState = env.grid_targeting_system.get_state()
+	var template: PackedScene = GBTestConstants.TEST_INDICATOR_TD_PLATFORMER
 	var parent := Node2D.new()
 	auto_free(parent)
 	var service := IndicatorService.new(parent, gts, template, _logger)
@@ -39,8 +45,14 @@ func test_setup_indicators_reports_no_collision_shapes() -> void:
 
 # Test catches: Missing collision mapper causing setup failure
 func test_setup_indicators_reports_missing_collision_mapper_when_nulled() -> void:
-	var gts := UnifiedTestFactory.create_minimal_targeting_state(self, true, true)
-	var template := UnifiedTestFactory.create_minimal_indicator_template(self)
+	# Create environment using premade scene
+	var env_scene: PackedScene = GBTestConstants.get_environment_scene(GBTestConstants.EnvironmentType.ALL_SYSTEMS)
+	assert_that(env_scene).is_not_null()
+	var env: AllSystemsTestEnvironment = env_scene.instantiate()
+	add_child(env)
+
+	var gts: GridTargetingState = env.grid_targeting_system.get_state()
+	var template: PackedScene = GBTestConstants.TEST_INDICATOR_TD_PLATFORMER
 	var parent := Node2D.new()
 	auto_free(parent)
 	var service := IndicatorService.new(parent, gts, template, _logger)

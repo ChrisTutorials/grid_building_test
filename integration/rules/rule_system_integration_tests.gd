@@ -19,12 +19,10 @@ const CENTER_POSITION_Y: int = 4
 const OUTSIDE_BOUNDS_X: int = 10
 const OUTSIDE_BOUNDS_Y: int = 10
 
-var test_setup: Dictionary
+var env: AllSystemsTestEnvironment
 
 func before_test() -> void:
-	test_setup = UnifiedTestFactory.create_basic_test_setup(self, TEST_CONTAINER)
-	test_setup.merge(UnifiedTestFactory.create_rule_validation_parameters(self))
-	test_setup.merge(UnifiedTestFactory.create_collision_mapper_setup(self))
+	env = UnifiedTestFactory.instance_all_systems_env(self, GBTestConstants.ALL_SYSTEMS_ENV_UID)
 
 # Helper functions for DRY patterns
 
@@ -67,7 +65,7 @@ func test_tile_check_rule_basic_validation() -> void:
 	var rule: TileCheckRule = TileCheckRule.new()
 	auto_free(rule)
 	
-	var _logger: GBLogger = test_setup.logger
+	var _logger: GBLogger = GBLogger.new()
 	var owner_context: GBOwnerContext = UnifiedTestFactory.create_owner_context(self)
 	var targeting_state: GridTargetingState = GridTargetingState.new(owner_context)
 	auto_free(targeting_state)

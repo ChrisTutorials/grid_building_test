@@ -15,7 +15,7 @@ var _preview_ref: Variant
 
 func before_test() -> void:
 	# Load premade environment using GBTestConstants
-	var env_scene: PackedScene = GBTestConstants.get_environment_scene("all_systems")
+	var env_scene: PackedScene = GBTestConstants.get_environment_scene(GBTestConstants.EnvironmentType.ALL_SYSTEMS)
 
 	if not env_scene:
 		fail("Could not load all_systems test environment")

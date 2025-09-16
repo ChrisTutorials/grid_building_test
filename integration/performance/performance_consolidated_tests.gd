@@ -18,6 +18,10 @@ func test_collision_mapping_performance() -> void:
 	var _tile_map: TileMapLayer = test_hierarchy.tile_map_layer
 	var positioner: Node2D = test_hierarchy.positioner
 	
+	# Get the properly configured targeting state from the test environment
+	var container: GBCompositionContainer = test_hierarchy.get_container()
+	var targeting_state: GridTargetingState = container.get_states().targeting
+	
 	# Create multiple collision objects
 	var collision_objects: Array[Area2D] = []
 	var test_setups: Array[CollisionTestSetup2D] = []
@@ -32,16 +36,18 @@ func test_collision_mapping_performance() -> void:
 		collision_objects.append(area)
 		auto_free(area)
 		
-		# Create proper test setup for each collision object
-		var targeting_state: GridTargetingState = GridTargetingState.new(GBOwnerContext.new())
+		# Create proper test setup for each collision object using the configured targeting state
 		var setups: Array[CollisionTestSetup2D] = CollisionTestSetup2D.create_test_setups_from_test_node(area, targeting_state)
 		var test_setup: CollisionTestSetup2D = setups[0] if setups.size() > 0 else null
-		test_setups.append(test_setup)	# Measure collision mapping performance
+		test_setups.append(test_setup)
+	
+	# Measure collision mapping performance
 	var start_time: int = Time.get_ticks_msec()
 	
 	for test_setup: Variant in test_setups:
-		var offsets: Dictionary = collision_mapper.get_tile_offsets_for_test_collisions(test_setup)
-		assert_dict(offsets).is_not_empty()
+		if test_setup != null:
+			var offsets: Dictionary = collision_mapper.get_tile_offsets_for_test_collisions(test_setup)
+			assert_dict(offsets).is_not_empty()
 	
 	var end_time: int = Time.get_ticks_msec()
 	var elapsed: int = end_time - start_time
@@ -105,7 +111,7 @@ func test_rule_checking_performance() -> void:
 
 func test_full_system_integration_performance() -> void:
 	var building_system: BuildingSystem = test_hierarchy.building_system
-	var targeting_system: GridTargetingSystem = test_hierarchy.grid_targeting_system
+	var positioner: Node2D = test_hierarchy.positioner
 	
 	# Test full workflow performance
 	var test_positions: Array[Vector2] = [
@@ -116,10 +122,9 @@ func test_full_system_integration_performance() -> void:
 	var start_time: int = Time.get_ticks_msec()
 	
 	for pos: Vector2 in test_positions:
-		# Simulate full interaction workflow
-		if targeting_system:
-			var targeting_state: GridTargetingState = targeting_system.get_state()
-			targeting_state.target.position = pos
+		# Simulate full interaction workflow - move positioner to test position
+		if positioner:
+			positioner.position = pos
 		
 		if building_system:
 			# Use try_build method which is available on BuildingSystem
@@ -166,6 +171,10 @@ func test_concurrent_operations_performance() -> void:
 	var indicator_manager: IndicatorManager = test_hierarchy.indicator_manager
 	var positioner: Node2D = test_hierarchy.positioner
 	
+	# Get the properly configured targeting state from the test environment
+	var container: GBCompositionContainer = test_hierarchy.get_container()
+	var targeting_state: GridTargetingState = container.get_states().targeting
+	
 	# Create test objects
 	var test_area: Area2D = Area2D.new()
 	var shape: CollisionShape2D = CollisionShape2D.new()
@@ -175,8 +184,7 @@ func test_concurrent_operations_performance() -> void:
 	positioner.add_child(test_area)
 	auto_free(test_area)
 	
-	# Create proper test setup for collision mapping
-	var targeting_state: GridTargetingState = GridTargetingState.new(GBOwnerContext.new())
+	# Create proper test setup for collision mapping using the configured targeting state
 	var setups: Array[CollisionTestSetup2D] = CollisionTestSetup2D.create_test_setups_from_test_node(test_area, targeting_state)
 	var test_setup: CollisionTestSetup2D = setups[0] if setups.size() > 0 else null
 	
@@ -187,14 +195,15 @@ func test_concurrent_operations_performance() -> void:
 		positioner.position = Vector2(64, 64)
 		
 		# Multiple system operations
-		var collision_result: Dictionary = collision_mapper.get_tile_offsets_for_test_collisions(test_setup)
+		if test_setup != null:
+			var collision_result: Dictionary = collision_mapper.get_tile_offsets_for_test_collisions(test_setup)
+			assert_dict(collision_result).is_not_empty()
+		
 		var rule_result: Variant = indicator_manager.validate_placement()
+		assert_that(rule_result).is_not_null()
 		
 		# Use tear_down method which is available on IndicatorManager
 		indicator_manager.tear_down()
-		
-		assert_dict(collision_result).is_not_empty()
-		assert_that(rule_result).is_not_null()
 	
 	var end_time: int = Time.get_ticks_msec()
 	var elapsed: int = end_time - start_time

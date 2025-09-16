@@ -14,7 +14,7 @@
 ##
 ## Test Structure:
 ## - Comprehensive Shape Coverage: Tests all supported collision shape types
-## - Movement & Positioning: Validates collision updates during positioner movement  
+## - Movement & Positioning: Validates collision updates during positioner movement
 ## - Basic Collision Mapping: Core collision mapper functionality
 ## - Trapezoid Regression: Specific edge cases for complex polygon shapes
 ## - Polygon Tile Mapper: Integration tests with polygon mapping system
@@ -66,6 +66,7 @@ var collision_mapper: CollisionMapper
 ## removed unused: polygon_mapper, logger
 var targeting_state: GridTargetingState
 var _container : GBCompositionContainer
+var tilemap_layer: TileMapLayer
 
 #endregion
 
@@ -91,6 +92,7 @@ enum TestShapeType {
 func before_test() -> void:
 	_initialize_test_environment()
 	_validate_environment_health()
+	_initialize_collision_mapper()
 
 func after_test() -> void:
 	# Validate state consistency before cleanup
@@ -114,6 +116,20 @@ func _initialize_test_environment() -> void:
 		return
 		
 	targeting_state = _container.get_states().targeting
+	if env.has_method("get_tile_map_layer"):
+		targeting_state.target_map = env.get_tile_map_layer()
+	elif env.tile_map_layer:
+		targeting_state.target_map = env.tile_map_layer
+	
+	# Create tilemap with consistent tile size for tests that need it
+	tilemap_layer = GodotTestFactory.create_tile_map_layer(self, 40)
+	var tileset: TileSet = TileSet.new()
+	tileset.tile_size = Vector2i(DEFAULT_TILE_SIZE)
+	tilemap_layer.tile_set = tileset
+	targeting_state.target_map = tilemap_layer
+
+## Initialize the collision mapper after environment validation
+func _initialize_collision_mapper() -> void:
 	collision_mapper = CollisionMapper.create_with_injection(_container)
 
 ## Validate that the test environment is healthy and ready for testing
@@ -268,6 +284,7 @@ func test_positioner_movement_updates_collision_detection_dynamically() -> void:
 		
 	# Arrange: Create collision object with known geometry
 	var collision_polygon: CollisionPolygon2D = CollisionPolygon2D.new()
+	auto_free(collision_polygon)  # Clean up collision polygon
 	collision_polygon.polygon = PackedVector2Array([
 		Vector2(-16, -16), Vector2(16, -16), Vector2(16, 16), Vector2(-16, 16)
 	])
@@ -307,7 +324,9 @@ func test_collision_mapper_tracks_shape_movement_across_positions() -> void:
 		
 	# Arrange: Create collision object using factory for consistency
 	var area: Area2D = Area2D.new()
+	auto_free(area)  # Clean up area
 	var collision_shape: CollisionShape2D = CollisionShape2D.new()
+	auto_free(collision_shape)  # Clean up collision shape
 	collision_shape.shape = RectangleShape2D.new()
 	collision_shape.shape.size = Vector2(24, 24)
 	area.add_child(collision_shape)
@@ -347,7 +366,9 @@ func test_collision_mapper_tracks_shape_movement_across_positions() -> void:
 func test_collision_mapper_processes_polygon_shapes_correctly() -> void:
 	# Arrange: Create area with polygon collision shape
 	var area: Area2D = Area2D.new()
+	auto_free(area)  # Clean up area
 	var collision_polygon: CollisionPolygon2D = CollisionPolygon2D.new()
+	auto_free(collision_polygon)  # Clean up collision polygon
 	collision_polygon.polygon = PackedVector2Array([
 		Vector2(-10, -10),
 		Vector2(10, -10),
@@ -371,9 +392,11 @@ func test_collision_mapper_processes_polygon_shapes_correctly() -> void:
 func test_collision_mapper_handles_multiple_collision_shapes() -> void:
 	# Arrange: Create area with multiple collision shapes
 	var area: Area2D = Area2D.new()
+	auto_free(area)  # Clean up area
 
 	# First collision shape
 	var shape1: CollisionShape2D = CollisionShape2D.new()
+	auto_free(shape1)  # Clean up shape1
 	shape1.shape = RectangleShape2D.new()
 	shape1.shape.size = Vector2(24, 24)
 	shape1.position = Vector2(-16, -16)
@@ -381,6 +404,7 @@ func test_collision_mapper_handles_multiple_collision_shapes() -> void:
 
 	# Second collision shape  
 	var shape2: CollisionShape2D = CollisionShape2D.new()
+	auto_free(shape2)  # Clean up shape2
 	shape2.shape = RectangleShape2D.new()
 	shape2.shape.size = Vector2(24, 24)
 	shape2.position = Vector2(16, 16)
@@ -597,40 +621,45 @@ func _create_test_object_with_shape_enum(shape_type: TestShapeType, shape_data: 
 	match shape_type:
 		TestShapeType.RECTANGLE_SMALL:
 			var size: Vector2 = shape_data.get("size", Vector2(16, 16))
-			test_object = CollisionObjectTestFactory.create_static_body_with_rect(self, size, position)
+			test_object = CollisionObjectTestFactory.create_area_with_rect(self, size, position)
 		
 		TestShapeType.RECTANGLE_STANDARD:
 			var size: Vector2 = shape_data.get("size", Vector2(32, 32))
-			test_object = CollisionObjectTestFactory.create_static_body_with_rect(self, size, position)
+			test_object = CollisionObjectTestFactory.create_area_with_rect(self, size, position)
 		
 		TestShapeType.RECTANGLE_LARGE:
 			var size: Vector2 = shape_data.get("size", Vector2(64, 48))
-			test_object = CollisionObjectTestFactory.create_static_body_with_rect(self, size, position)
+			test_object = CollisionObjectTestFactory.create_area_with_rect(self, size, position)
 		
 		TestShapeType.RECTANGLE_OFFSET:
 			var size: Vector2 = shape_data.get("size", Vector2(32, 32))
-			test_object = CollisionObjectTestFactory.create_static_body_with_rect(self, size, position)
+			test_object = CollisionObjectTestFactory.create_area_with_rect(self, size, position)
 		
 		TestShapeType.CIRCLE_SMALL:
 			var radius: float = shape_data.get("radius", 8.0)
-			test_object = CollisionObjectTestFactory.create_static_body_with_circle(self, radius, position)
+			test_object = CollisionObjectTestFactory.create_area_with_circle(self, radius, position)
 		
 		TestShapeType.CIRCLE_MEDIUM:
 			var radius: float = shape_data.get("radius", 16.0)
-			test_object = CollisionObjectTestFactory.create_static_body_with_circle(self, radius, position)
+			test_object = CollisionObjectTestFactory.create_area_with_circle(self, radius, position)
 		
 		TestShapeType.CIRCLE_LARGE:
 			var radius: float = shape_data.get("radius", 24.0)
-			test_object = CollisionObjectTestFactory.create_static_body_with_circle(self, radius, position)
+			test_object = CollisionObjectTestFactory.create_area_with_circle(self, radius, position)
 		
 		TestShapeType.TRAPEZOID:
 			var polygon: PackedVector2Array = PackedVector2Array(shape_data.get("polygon", [Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)]))
-			test_object = CollisionObjectTestFactory.create_static_body_with_polygon(self, polygon, position)
+			var poly: CollisionPolygon2D = CollisionPolygon2D.new()
+			add_child(poly)
+			auto_free(poly)
+			poly.polygon = polygon
+			poly.position = position
+			test_object = poly
 		
 		TestShapeType.CAPSULE:
 			# Create capsule as rectangle for now (factory doesn't have capsule method)
 			var size: Vector2 = shape_data.get("size", Vector2(16, 32))
-			test_object = CollisionObjectTestFactory.create_static_body_with_rect(self, size, position)
+			test_object = CollisionObjectTestFactory.create_area_with_rect(self, size, position)
 	
 	# Remove from test suite parent since we'll be parenting it to the positioner
 	if test_object.get_parent() == self:
@@ -808,13 +837,18 @@ func _run_collision_mapping_test(test_object: Node2D, expected_min_tiles: int = 
 		test_object.reparent(env.level)
 	
 	# Create collision test setup using consolidated method with validation
-	var collision_object_test_setups: Array[CollisionTestSetup2D] = _create_collision_test_setups(test_object)
-	if collision_object_test_setups.is_empty():
-		push_error("Failed to create collision test setups for object: " + str(test_object))
-		return {}
+	var collision_object_test_setups: Array[CollisionTestSetup2D]
+	if test_object is CollisionPolygon2D:
+		# CollisionPolygon2D doesn't need test setups
+		collision_object_test_setups = []
+	else:
+		collision_object_test_setups = _create_collision_test_setups(test_object)
+		if collision_object_test_setups.is_empty():
+			push_error("Failed to create collision test setups for object: " + str(test_object))
+			return {}
 	
 	# Create test indicator with proper cleanup and validation
-	var indicator_scene: PackedScene = load("res://godot/test/grid_building_test/scenes/indicators/test_indicator.tscn")
+	var indicator_scene: PackedScene = GBTestConstants.TEST_INDICATOR_TD_PLATFORMER
 	var test_indicator: RuleCheckIndicator = indicator_scene.instantiate()
 	add_child(test_indicator)
 	auto_free(test_indicator)
@@ -822,11 +856,28 @@ func _run_collision_mapping_test(test_object: Node2D, expected_min_tiles: int = 
 		push_error("Failed to create rule check indicator")
 		return {}
 	
-	# Setup collision mapper with error handling
-	collision_mapper.setup(test_indicator, collision_object_test_setups)
+	# Find collision shapes in the test object to pass to the collision mapper
+	var collision_shapes: Array[Shape2D] = []
+	var shapes_by_owner: Dictionary[Node2D, Array] = GBGeometryUtils.get_all_collision_shapes_by_owner(test_object)
+	for shape_owner: Node2D in shapes_by_owner.keys():
+		for shape: Variant in shapes_by_owner[shape_owner]:
+			if shape is Shape2D:
+				collision_shapes.append(shape)
 	
-	# Get collision results directly (synchronous)
-	var result: Dictionary[Vector2i, Array] = collision_mapper.get_collision_tile_positions_with_mask([], DEFAULT_COLLISION_MASK)
+	# Setup collision mapper with error handling
+	if not collision_object_test_setups.is_empty():
+		collision_mapper.setup(test_indicator, collision_object_test_setups)
+	
+	# Get collision results directly (synchronous) - pass the test object as collision object
+	var result: Dictionary[Vector2i, Array]
+	if test_object is CollisionPolygon2D:
+		# For direct CollisionPolygon2D objects, use PolygonTileMapper directly
+		var offsets: Array[Vector2i] = PolygonTileMapper.compute_tile_offsets(test_object, env.tile_map_layer)
+		for off: Vector2i in offsets:
+			result[off] = [test_object]
+	else:
+		# For CollisionObject2D objects, use the collision mapper
+		result = collision_mapper.get_collision_tile_positions_with_mask([test_object], DEFAULT_COLLISION_MASK)
 	
 	# Enhanced validation with better error messages
 	assert_dict(result).append_failure_message(

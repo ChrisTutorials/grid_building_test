@@ -8,8 +8,13 @@ var test_container: GBCompositionContainer
 var _injector : GBInjectorSystem
 
 func before_test() -> void:
-	var test_composition_container: GBCompositionContainer = load("uid://dy6e5p5d6ax6n")
-	_injector = UnifiedTestFactory.create_test_injector(self, test_composition_container)
+	# Use test environment instead of factory method
+	var env_scene: PackedScene = GBTestConstants.get_environment_scene(GBTestConstants.EnvironmentType.ALL_SYSTEMS)
+	var env: AllSystemsTestEnvironment = env_scene.instantiate()
+	add_child(env)
+	auto_free(env)
+	
+	_injector = env.injector
 
 
 func test_create_node2d() -> void:
