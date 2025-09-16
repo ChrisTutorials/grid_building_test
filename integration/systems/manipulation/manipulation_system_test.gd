@@ -46,7 +46,7 @@ var _container: GBCompositionContainer
 #region Setup and Teardown
 func before_test() -> void:
 	# Use the premade AllSystemsTestEnvironment scene
-	test_hierarchy = UnifiedTestFactory.instance_all_systems_env(self, ALL_SYSTEMS_ENV_UID)
+	test_hierarchy = UnifiedTestFactory.instance_all_systems_env(self)
 	
 	# Extract environment components for test access
 	_container = test_hierarchy.container

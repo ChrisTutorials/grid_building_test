@@ -8,7 +8,7 @@ const ALL_SYSTEMS_ENV_UID: String = "uid://ioucajhfxc8b"
 var test_env: AllSystemsTestEnvironment
 
 func before_test() -> void:
-	test_env = UnifiedTestFactory.instance_all_systems_env(self, ALL_SYSTEMS_ENV_UID)
+	test_env = EnvironmentTestFactory.create_all_systems_env(self, GBTestConstants.ALL_SYSTEMS_ENV_UID)
 
 # ================================
 # Building System Only Tests

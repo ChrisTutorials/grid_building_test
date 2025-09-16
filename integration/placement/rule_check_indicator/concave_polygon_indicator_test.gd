@@ -44,7 +44,7 @@ func before_test() -> void:
 
 	# Reduce debug verbosity to avoid unrelated formatting/log noise during this focused geometry test
 	var dbg: GBDebugSettings = _container.get_debug_settings()
-	dbg.set_debug_level(GBDebugSettings.DebugLevel.ERROR)
+	dbg.set_debug_level(GBDebugSettings.Level.ERROR)
 	# Build explicit collisions rule with mask bit 0
 	var rule: CollisionsCheckRule = CollisionsCheckRule.new()
 	rule.apply_to_objects_mask = 1 << 0

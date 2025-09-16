@@ -2,7 +2,7 @@
 ## Tests the unified collision processing for both CollisionObject2D and CollisionPolygon2D
 extends GdUnitTestSuite
 
-const UnifiedTestFactory = preload("res://test/grid_building_test/factories/unified_test_factory.gd")
+const TEST_FACTORY = preload("res://test/grid_building_test/factories/unified_test_factory.gd")
 
 var _processor: CollisionProcessor
 var _test_env: Dictionary

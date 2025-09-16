@@ -30,7 +30,7 @@ var test_manipulatable: Manipulatable
 #region Setup and Teardown
 func before_test() -> void:
 	# Use the AllSystems test environment for proper integration testing
-	test_environment = UnifiedTestFactory.instance_all_systems_env(self, ALL_SYSTEMS_ENV_UID)
+	test_environment = UnifiedTestFactory.instance_all_systems_env(self)
 
 	# Extract components for testing
 	container = test_environment.injector.composition_container

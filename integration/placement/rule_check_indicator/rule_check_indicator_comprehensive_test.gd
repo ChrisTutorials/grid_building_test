@@ -4,12 +4,10 @@ extends GdUnitTestSuite
 # Tests indicator creation, validation, collision detection, and edge cases
 
 var test_container: GBCompositionContainer
-var logger: GBLogger
 
 func before_test() -> void:
 	# Set up test infrastructure using factories
 	test_container = UnifiedTestFactory.create_test_composition_container(self)
-	logger = UnifiedTestFactory.create_test_logger()
 
 	# Create injector system for dependency injection
 	var _injector: Node = UnifiedTestFactory.create_test_injector(self, test_container)

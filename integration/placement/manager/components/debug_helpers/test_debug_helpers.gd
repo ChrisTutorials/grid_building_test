@@ -1,6 +1,13 @@
 ## class_name TestDebugHelpers
 ## Debug helpers for placement manager tests to reduce duplication and improve debuggability
 
+## Helper to create minimal test environment
+static func create_minimal_test_environment(test_suite: GdUnitTestSuite) -> AllSystemsTestEnvironment:
+	var env: AllSystemsTestEnvironment = EnvironmentTestFactory.create_all_systems_env(test_suite, GBTestConstants.ALL_SYSTEMS_ENV_UID)
+	test_suite.add_child(env)
+	test_suite.auto_free(env)
+	return env
+
 ## Helper to create and validate an indicator manager with proper error reporting
 static func create_indicator_manager_with_validation(test_suite: GdUnitTestSuite, env: AllSystemsTestEnvironment) -> Dictionary:
 	var result: Dictionary = {}

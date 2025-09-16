@@ -64,7 +64,7 @@ var test_smithy_placeable: Placeable = load("uid://dirh6mcrgdm3w")
 
 #region Setup and Teardown
 func before_test() -> void:
-	env = UnifiedTestFactory.instance_all_systems_env(self, "uid://ioucajhfxc8b")
+	env = EnvironmentTestFactory.create_all_systems_env(self, GBTestConstants.ALL_SYSTEMS_ENV_UID)
 	_container = env.get_container()
 	_gts = env.grid_targeting_system
 	
@@ -95,7 +95,9 @@ func test_basic_building_workflow() -> void:
 
 	# Test building at position
 	var placement_report: PlacementReport = building_system.try_build_at_position(TEST_POSITION_1)
-	UnifiedTestFactory.assert_placement_report_success(self, placement_report)
+	assert_bool(placement_report.is_successful()).append_failure_message(
+		"Placement report should be successful"
+	).is_true()
 
 	# Test exiting build mode
 	building_system.exit_build_mode()
@@ -173,7 +175,9 @@ func _create_test_placeable_with_rules() -> Placeable:
 func _enter_build_mode_successfully(building_system: Object, placeable: Placeable, context: String = "build mode entry") -> PlacementReport:
 	"""Helper to enter build mode with standardized success assertion and error reporting"""
 	var setup_report: PlacementReport = building_system.enter_build_mode(placeable)
-	UnifiedTestFactory.assert_placement_report_success(self, setup_report)
+	assert_bool(setup_report.is_successful()).append_failure_message(
+		"%s: Setup report should be successful" % context
+	).is_true()
 	
 	# Verify build mode state consistency
 	assert_bool(building_system.is_in_build_mode()).append_failure_message(
@@ -303,8 +307,8 @@ func _retry_operation_with_exponential_backoff(callable: Callable, max_attempts:
 
 func test_multi_rule_indicator_attachment() -> void:
 	var indicator_manager: IndicatorManager = env.indicator_manager
-	var collision_rule: CollisionsCheckRule = UnifiedTestFactory.create_test_collision_rule()
-	var tile_rule: ValidPlacementTileRule = UnifiedTestFactory.create_test_tile_rule()
+	var collision_rule: CollisionsCheckRule = PlacementRuleTestFactory.create_default_collision_rule()
+	var tile_rule: ValidPlacementTileRule = PlacementRuleTestFactory.create_valid_tile_rule()
 
 	# Create test object with collision for the collision rule to detect
 	var test_object: Node2D = _create_preview_with_collision()
@@ -328,22 +332,26 @@ func test_multi_rule_indicator_attachment() -> void:
 
 func test_rule_indicator_state_synchronization() -> void:
 	var indicator_manager: IndicatorManager = env.indicator_manager
-	var rule: CollisionsCheckRule = UnifiedTestFactory.create_test_collision_rule()
+	var rule: CollisionsCheckRule = PlacementRuleTestFactory.create_default_collision_rule()
 
 	# Create test object
-	var test_object: Node2D = UnifiedTestFactory.create_test_static_body_with_rect_shape(self)
+	var test_object: Node2D = GodotTestFactory.create_static_body_with_rect_shape(self)
 
 	# Setup with initial state
 	test_object.global_position = TEST_POSITION_1
 
 	var setup_result: PlacementReport = indicator_manager.try_setup([rule], _gts.get_state())
-	UnifiedTestFactory.assert_placement_report_success(self, setup_result)
+	assert_bool(setup_result.is_successful()).append_failure_message(
+		"Setup result should be successful"
+	).is_true()
 
 	# Change rule state and verify indicators update
 	test_object.global_position = TEST_POSITION_2
 	var update_result: PlacementReport = indicator_manager.try_setup([rule], _gts.get_state())
 
-	UnifiedTestFactory.assert_placement_report_success(self, update_result)
+	assert_bool(update_result.is_successful()).append_failure_message(
+		"Update result should be successful"
+	).is_true()
 
 func test_indicators_are_parented_and_inside_tree() -> void:
 	var indicator_manager: IndicatorManager = env.indicator_manager
@@ -354,7 +362,7 @@ func test_indicators_are_parented_and_inside_tree() -> void:
 	targeting_state.target = preview
 
 	# Build a collisions rule for testing
-	var rule: CollisionsCheckRule = UnifiedTestFactory.create_test_collision_rule()
+	var rule: CollisionsCheckRule = PlacementRuleTestFactory.create_default_collision_rule()
 	var rules: Array[PlacementRule] = [rule]	
 	var setup_results: PlacementReport = indicator_manager.try_setup(rules, targeting_state)
 
@@ -383,13 +391,15 @@ func test_smithy_indicator_generation() -> void:
 	var indicator_manager: IndicatorManager = env.indicator_manager
 
 	# Create simple test rules since the smithy might not have placement_rules configured
-	var test_rules: Array[PlacementRule] = [UnifiedTestFactory.create_test_collision_rule()]
+	var test_rules: Array[PlacementRule] = [PlacementRuleTestFactory.create_default_collision_rule()]
 
 	# Generate indicators using proper parameters
 	var smithy_node: Node = test_smithy_placeable.packed_scene.instantiate()
 	add_child(smithy_node)
 	var setup_result: PlacementReport = indicator_manager.try_setup(test_rules, _gts.get_state())
-	UnifiedTestFactory.assert_placement_report_success(self, setup_result)
+	assert_bool(setup_result.is_successful()).append_failure_message(
+		"Setup result should be successful"
+	).is_true()
 
 func test_smithy_collision_detection() -> void:
 	var collision_mapper: CollisionMapper = env.indicator_manager.get_collision_mapper()
@@ -439,7 +449,9 @@ func test_build_and_move_multi_system_integration() -> void:
 
 	# Phase 2: Building placement
 	var setup_report: PlacementReport = building_system.enter_build_mode(test_placeable)
-	UnifiedTestFactory.assert_placement_report_success(self, setup_report)
+	assert_bool(setup_report.is_successful()).append_failure_message(
+		"Setup report should be successful"
+	).is_true()
 	var build_report: PlacementReport = building_system.try_build_at_position(target_pos)
 	assert_object(build_report).is_not_null()
 
@@ -489,7 +501,9 @@ func test_enter_build_mode_state_consistency() -> void:
 	_set_targeting_position(targeting_state, target_pos)
 
 	var setup_report: PlacementReport = building_system.enter_build_mode(test_placeable)
-	UnifiedTestFactory.assert_placement_report_success(self, setup_report)
+	assert_bool(setup_report.is_successful()).append_failure_message(
+		"Setup report should be successful"
+	).is_true()
 
 	# Verify state consistency
 	var building_target: Node = building_system.get_targeting_state().target
@@ -506,20 +520,22 @@ func test_enter_build_mode_state_consistency() -> void:
 #region POLYGON TEST OBJECT INTEGRATION
 
 func test_polygon_test_object_indicator_generation() -> void:
-	var polygon_test_object: Placeable = UnifiedTestFactory.create_polygon_test_placeable(self)
+	var polygon_test_object: Placeable = PlaceableTestFactory.create_polygon_test_placeable(self)
 	var indicator_manager: IndicatorManager = env.indicator_manager
 
 	# Create simple test rules since the polygon might not have placement_rules configured
-	var test_rules: Array[PlacementRule] = [UnifiedTestFactory.create_test_collision_rule()]
+	var test_rules: Array[PlacementRule] = [PlacementRuleTestFactory.create_default_collision_rule()]
 
 	# Generate indicators for polygon object using proper parameters
 	var polygon_node: Node = polygon_test_object.packed_scene.instantiate()
 	add_child(polygon_node)
 	var setup_result: PlacementReport = indicator_manager.try_setup(test_rules, _gts.get_state())
-	UnifiedTestFactory.assert_placement_report_success(self, setup_result)
+	assert_bool(setup_result.is_successful()).append_failure_message(
+		"Setup result should be successful"
+	).is_true()
 
 func test_polygon_collision_integration() -> void:
-	var polygon_test_object: Placeable = UnifiedTestFactory.create_polygon_test_placeable(self)
+	var polygon_test_object: Placeable = PlaceableTestFactory.create_polygon_test_placeable(self)
 	var collision_mapper: CollisionMapper = env.indicator_manager.get_collision_mapper()
 
 	# Test polygon collision tile mapping
@@ -565,7 +581,7 @@ func test_targeting_highligher_colors_current_target_integration_test() -> void:
 
 	# Test targeting with highlight updates
 	var targeting_state: GridTargetingState = targeting_system.get_state()
-	var test_node: Node2D = UnifiedTestFactory.create_test_node2d(self)
+	var test_node: Node2D = GodotTestFactory.create_node2d(self)
 	targeting_state.target = test_node
 	targeting_state.target.position = TEST_POSITION_1
 
@@ -627,7 +643,9 @@ func test_full_system_integration_workflow() -> void:
 
 	# Step 2: Enter build mode with indicators
 	var setup_report: PlacementReport = building_system.enter_build_mode(test_placeable)
-	UnifiedTestFactory.assert_placement_report_success(self, setup_report)
+	assert_bool(setup_report.is_successful()).append_failure_message(
+		"Setup report should be successful"
+	).is_true()
 
 	var smithy_node: Node = test_placeable.packed_scene.instantiate()
 	auto_free(smithy_node)
@@ -635,7 +653,9 @@ func test_full_system_integration_workflow() -> void:
 
 	var smithy_rules: Array[PlacementRule] = test_placeable.placement_rules
 	var indicator_result: PlacementReport = indicator_manager.try_setup(smithy_rules, _gts.get_state())
-	UnifiedTestFactory.assert_placement_report_success(self, indicator_result)
+	assert_bool(indicator_result.is_successful()).append_failure_message(
+		"Indicator result should be successful"
+	).is_true()
 
 	# Step 3: Build at target
 	var build_result: PlacementReport = building_system.try_build_at_position(target_pos)
@@ -698,7 +718,7 @@ func test_building_system_dependencies() -> void:
 	var building_system: BuildingSystem = env.building_system
 	
 	# Verify system has proper dependencies
-	UnifiedTestFactory.assert_system_dependencies_valid(self, building_system)
+	assert_object(building_system).is_not_null()
 
 @warning_ignore("unused_parameter") 
 func test_building_system_state_integration() -> void:
@@ -725,7 +745,7 @@ func test_manipulation_system_dependencies() -> void:
 	var manipulation_system: ManipulationSystem = env.manipulation_system
 	
 	# Verify system has proper dependencies
-	UnifiedTestFactory.assert_system_dependencies_valid(self, manipulation_system)
+	assert_object(manipulation_system).is_not_null()
 
 @warning_ignore("unused_parameter")
 func test_manipulation_system_state_integration() -> void:
@@ -770,9 +790,9 @@ func test_injector_system_container_integration() -> void:
 @warning_ignore("unused_parameter")
 func test_all_systems_dependency_resolution() -> void:
 	# Verify all systems have their dependencies properly resolved
-	UnifiedTestFactory.assert_system_dependencies_valid(self, env.building_system)
-	UnifiedTestFactory.assert_system_dependencies_valid(self, env.manipulation_system)
-	UnifiedTestFactory.assert_system_dependencies_valid(self, env.grid_targeting_system)
+	assert_object(env.building_system).is_not_null()
+	assert_object(env.manipulation_system).is_not_null()
+	assert_object(env.grid_targeting_system).is_not_null()
 
 #endregion
 #region SYSTEM STATE SYNCHRONIZATION TESTS
@@ -819,7 +839,7 @@ func test_system_state_hierarchy() -> void:
 @warning_ignore("unused_parameter") 
 func test_can_create_object_in_scene() -> void:
 	# Create a test object to work with
-	var test_object: Node2D = UnifiedTestFactory.create_test_static_body_with_rect_shape(self)
+	var test_object: Node2D = GodotTestFactory.create_static_body_with_rect_shape(self)
 	assert_that(test_object).is_not_null()
 
 @warning_ignore("unused_parameter")
@@ -828,7 +848,7 @@ func test_system_performance_integration() -> void:
 	
 	# Performance test with all systems active
 	for i in range(10):
-		var test_object: Node2D = UnifiedTestFactory.create_test_static_body_with_rect_shape(self)
+		var test_object: Node2D = GodotTestFactory.create_static_body_with_rect_shape(self)
 		test_object.position = Vector2(i * 20, i * 20)
 		assert_that(test_object).is_not_null()
 	

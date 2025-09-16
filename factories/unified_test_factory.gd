@@ -23,10 +23,6 @@ extends RefCounted
 
 #region ENVIRONMENT DELEGATE METHODS
 
-## Delegate: Create AllSystemsTestEnvironment
-static func instance_all_systems_env(test: GdUnitTestSuite, resource_path_or_uid: String) -> AllSystemsTestEnvironment:
-	return EnvironmentTestFactory.create_all_systems_env(test, resource_path_or_uid)
-
 ## Delegate: Create building test environment (legacy)
 static func instance_building_test_env(test: GdUnitTestSuite, resource_path_or_uid: String) -> Node:
 	var env: Node = load(resource_path_or_uid).instantiate()
@@ -61,6 +57,15 @@ static func create_standard_placement_rules(include_tile_rule: bool = true) -> A
 static func create_test_collisions_check_rule() -> CollisionsCheckRule:
 	return PlacementRuleTestFactory.create_default_collision_rule()
 
+## Delegate: Prepare targeting state ready
+static func prepare_targeting_state_ready(test: GdUnitTestSuite, container: GBCompositionContainer) -> Dictionary:
+	var setup: Dictionary = {}
+	var targeting_state: GridTargetingState = container.get_targeting_state()
+	var positioner: GridPositioner2D = UnifiedTestFactory.create_grid_positioner(test)
+	setup.targeting_state = targeting_state
+	setup.positioner = positioner
+	return setup
+
 #endregion
 
 #region BASIC SETUP DELEGATE METHODS
@@ -77,6 +82,28 @@ static func create_owner_context(_test: GdUnitTestSuite) -> GBOwnerContext:
 	# context.owner_id = "test_owner"
 	# context.game_time = 0.0
 	return context
+
+## Delegate: Create indicator manager
+static func create_indicator_manager(test: GdUnitTestSuite) -> IndicatorManager:
+	var manager: IndicatorManager = IndicatorManager.new()
+	test.add_child(manager)
+	test.auto_free(manager)
+	return manager
+
+## Delegate: Create test injector with container
+static func create_test_injector(test: GdUnitTestSuite, container: GBCompositionContainer) -> GBInjectorSystem:
+	var injector: GBInjectorSystem = GBInjectorSystem.new()
+	container.injector = injector
+	test.add_child(injector)
+	test.auto_free(injector)
+	return injector
+
+## Delegate: Create eclipse test object
+static func create_eclipse_test_object(test: GdUnitTestSuite) -> Node2D:
+	var obj: Node2D = Node2D.new()
+	test.add_child(obj)
+	test.auto_free(obj)
+	return obj
 
 #endregion
 
@@ -104,15 +131,6 @@ static func create_test_placeable_with_rules(base_placeable: Placeable, display_
 ## Delegate: Create polygon test setup
 static func create_polygon_test_setup(test_instance: Node) -> Dictionary:
 	return PlaceableTestFactory.create_polygon_test_setup(test_instance)
-
-## Delegate: Prepare targeting state ready
-static func prepare_targeting_state_ready(container: GBCompositionContainer) -> void:
-	# Ensure targeting state is initialized
-	if container and container.get_states():
-		var targeting_state: GridTargetingState = container.get_states().targeting
-		if targeting_state:
-			# Targeting state is ready
-			pass
 
 ## Delegate: Create test rule check indicator
 static func create_test_rule_check_indicator(test_instance: Node) -> RuleCheckIndicator:
@@ -162,7 +180,7 @@ static func create_grid_positioner(_test: GdUnitTestSuite) -> GridPositioner2D:
 	return positioner
 
 ## Delegate: Create tile map layer parented to p_parent
-static func create_tile_map_layer(test: GdUnitTestSuite, p_parent : Node) -> TileMapLayer:
+static func create_tile_map_layer(test: GdUnitTestSuite, _p_parent : Node = null) -> TileMapLayer:
 	var tile_map: TileMapLayer = TileMapLayer.new()
 	test.add_child(tile_map)
 	test.auto_free(tile_map)
@@ -173,15 +191,6 @@ static func create_tile_map_layer(test: GdUnitTestSuite, p_parent : Node) -> Til
 #region ESSENTIAL LEGACY METHODS
 
 #endregion
-
-#endregion
-
-## Delegate: Create test manipulatable
-static func create_test_manipulatable(test: GdUnitTestSuite) -> Manipulatable:
-	var manipulatable: Manipulatable = Manipulatable.new()
-	test.add_child(manipulatable)
-	test.auto_free(manipulatable)
-	return manipulatable
 
 ## Delegate: Assert placement report success
 static func assert_placement_report_success(_test: GdUnitTestSuite, report: PlacementReport) -> void:

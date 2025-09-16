@@ -74,11 +74,12 @@ static func create_static_body_with_rect(test_suite: GdUnitTestSuite, size: Vect
 	test_suite.auto_free(collision_body)
 
 	var collision_shape: CollisionShape2D = CollisionShape2D.new()
+	collision_body.add_child(collision_shape)
+	test_suite.auto_free(collision_shape)
 	var rect_shape: RectangleShape2D = RectangleShape2D.new()
 	rect_shape.size = size
 	collision_shape.shape = rect_shape
 	collision_shape.position = position
-	collision_body.add_child(collision_shape)
 	
 	# Ensure collision layer matches the test mask
 	collision_body.collision_layer = DEFAULT_COLLISION_LAYER

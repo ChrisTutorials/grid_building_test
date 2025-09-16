@@ -33,7 +33,7 @@ func before_test() -> void:
 	indicator_manager = setup.indicator_manager
 
 	# Ensure indicator template is configured
-	UnifiedTestFactory.ensure_indicator_template_configured(_container)
+	UnifiedTestFactory.ensure_indicator_template_configured(indicator_manager)
 
 # ================================
 # Helper Functions for DRY Patterns
@@ -135,7 +135,7 @@ func test_indicator_rule_assignment_during_creation() -> void:
 	var collision_rule: CollisionsCheckRule = UnifiedTestFactory.create_test_collisions_check_rule()
 
 	# Create indicator using DRY pattern with proper collision shape
-	var indicator: RuleCheckIndicator = UnifiedTestFactory.create_test_rule_check_indicator_with_shape(self, [collision_rule])
+	var indicator: RuleCheckIndicator = UnifiedTestFactory.create_test_rule_check_indicator_with_shape(self, RectangleShape2D.new())
 
 	assert_object(indicator).is_not_null()
 
@@ -162,7 +162,7 @@ func test_indicator_rule_validation() -> void:
 	assert_array(setup_issues).is_empty()
 
 	# Create indicator with the rule using DRY pattern with proper collision shape
-	var indicator: RuleCheckIndicator = UnifiedTestFactory.create_test_rule_check_indicator_with_shape(self, [collision_rule])
+	var indicator: RuleCheckIndicator = UnifiedTestFactory.create_test_rule_check_indicator_with_shape(self, RectangleShape2D.new())
 
 	# Position indicator at a location with no collisions
 	indicator.global_position = DEFAULT_POSITION

@@ -37,7 +37,7 @@ func before_test() -> void:
     _container.get_states().manipulation.parent = tgt.positioner
 
     # Quiet debug spam
-    _container.get_debug_settings().set_debug_level(GBDebugSettings.DebugLevel.ERROR)
+    _container.get_debug_settings().set_debug_level(GBDebugSettings.Level.ERROR)
     
     _manager = IndicatorManager.create_with_injection(_container)
     add_child(auto_free(_manager))

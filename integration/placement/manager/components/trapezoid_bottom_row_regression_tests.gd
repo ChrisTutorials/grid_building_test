@@ -1,9 +1,9 @@
 ## Refactored trapezoid test that uses public API instead of private properties
 extends GdUnitTestSuite
 
-const DebugHelpers = preload("res://test/integration/placement/manager/components/debug_helpers/test_debug_helpers.gd")
+const DebugHelpers = preload("res://test/grid_building_test/integration/placement/manager/components/debug_helpers/test_debug_helpers.gd")
 
-var _test_env: Dictionary
+var _test_env: AllSystemsTestEnvironment
 var _collision_mapper: CollisionMapper
 
 func before_test() -> void:
