@@ -21,7 +21,7 @@ var _manipulation_parent: Node2D
 
 func before_test() -> void:
 	# Use the premade CollisionTestEnvironment for collision and indicator testing
-	test_env = UnifiedTestFactory.instance_all_systems_env(self)
+	test_env = EnvironmentTestFactory.create_all_systems_env(self, GBTestConstants.ALL_SYSTEMS_ENV_UID)
 	assert_object(test_env).append_failure_message("AllSystemsTestEnvironment should be created successfully").is_not_null()
 	
 	# Extract commonly used components using exported properties

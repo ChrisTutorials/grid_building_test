@@ -23,7 +23,7 @@ func before_test() -> void:
 	assert_object(placeable_2d_test).is_not_null()
 
 	# Create complete all systems test environment
-	env = UnifiedTestFactory.instance_all_systems_env(self)
+	env = EnvironmentTestFactory.create_all_systems_env(self, GBTestConstants.ALL_SYSTEMS_ENV_UID)
 	_container = env.get_container()
 	system = env.building_system
 	

@@ -22,11 +22,36 @@ var _map : TileMapLayer
 var _indicator_manager : IndicatorManager
 
 func before_test() -> void:
-	env = UnifiedTestFactory.instance_building_test_env(self, "uid://c4ujk08n8llv8")
-	var env_issues: Array[String] = env.get_issues()
-	if env_issues.size() > 0:
-		fail("Test environment has issues: %s" % env_issues)
+	env = EnvironmentTestFactory.create_building_system_test_environment(self)
+	if env == null:
+		fail("Failed to create building test environment - check EnvironmentTestFactory.create_building_system_test_environment()")
 		return
+	
+	# Initialize required variables from environment
+	_building_system = env.building_system
+	_positioner = env.positioner
+	_map = env.tile_map_layer
+	_indicator_manager = env.indicator_manager
+	_targeting_system = env.grid_targeting_system
+	_container = env.get_container()
+	
+	# Pull placement validator from the environment's IndicatorManager (fail fast if missing)
+	placement_validator = _indicator_manager.get_placement_validator()
+	assert_object(placement_validator).append_failure_message("IndicatorManager did not provide a PlacementValidator").is_not_null()
+
+	# Get targeting state from grid targeting system - it should already be properly configured
+	_targeting_state = _targeting_system.get_state()
+	
+	# Initialize other variables
+	user_node = Node2D.new()
+	add_child(user_node)
+	auto_free(user_node)
+	
+	gb_owner = env.gb_owner
+	logger = GBLogger.new()
+	auto_free(logger)
+	
+	_placed_positions = []
 
 func after_test() -> void:
 	# Explicit cleanup to prevent orphan nodes
@@ -59,6 +84,8 @@ func test_placement_validation_basic(
 		["origin_position", false, Vector2(0, 0)]
 	]
 ) -> void:
+	assert_object(placement_validator).append_failure_message("PlacementValidator missing in test").is_not_null()
+
 	# Set _positioner to test position
 	_positioner.global_position = target_position
 	
@@ -97,6 +124,8 @@ func test_placement_validation_with_rules(
 		["multiple_rules_fail", "multiple_invalid", true]  # No indicators = true by default
 	]
 ) -> void:
+	assert_object(placement_validator).append_failure_message("PlacementValidator missing in test").is_not_null()
+
 	# Create test rules based on scenario
 	var test_rules: Array[PlacementRule] = _create_test_rules(rule_type)
 	
@@ -104,14 +133,9 @@ func test_placement_validation_with_rules(
 	if rule_type == "collision_blocking":
 		_setup_blocking_collision()
 	
-	# Setup and validate placement
-	var setup_issues: Dictionary = placement_validator.setup(test_rules, _targeting_state)
-	
-	if not setup_issues.is_empty():
-		# Log setup issues but continue test to see behavior
-		logger.log_warning(self, "Setup issues for %s: %s" % [rule_scenario, setup_issues])
-	
-	var result: ValidationResults = placement_validator.validate_placement()
+	# Setup and validate placement through IndicatorManager so indicators are generated
+	var _report: PlacementReport = _indicator_manager.try_setup(test_rules, _targeting_state)
+	var result: ValidationResults = _indicator_manager.validate_placement()
 	
 	assert_that(result.is_successful()).append_failure_message(
 		"Validation result for %s with rule type %s should be %s" % [rule_scenario, rule_type, expected_valid]
@@ -134,6 +158,8 @@ func test_placement_validation_edge_cases(
 		["invalid_position", "position_validation"]
 	]
 ) -> void:
+	assert_object(placement_validator).append_failure_message("PlacementValidator missing in test").is_not_null()
+
 	match edge_case:
 		"null_params":
 			# With empty rules array and null _targeting_state, setup returns empty dict
@@ -198,17 +224,18 @@ func test_placement_validation_edge_cases(
 
 # Test performance with multiple rules
 func test_placement_validation_performance() -> void:
+	assert_object(placement_validator).append_failure_message("PlacementValidator missing in test").is_not_null()
 	# Create many rules for performance testing
 	var many_rules: Array[PlacementRule] = []
 	for i in range(10):
 		var rule: ValidPlacementTileRule = ValidPlacementTileRule.new()
 		many_rules.append(rule)
 
-	# Setup and measure validation time
-	var _setup_issues: Dictionary = placement_validator.setup(many_rules, _targeting_state)
-	
+	# Setup and measure validation time via IndicatorManager to include indicator generation cost
+	var _report: PlacementReport = _indicator_manager.try_setup(many_rules, _targeting_state)
+
 	var start_time: int = Time.get_ticks_msec()
-	var result: ValidationResults = placement_validator.validate_placement()
+	var result: ValidationResults = _indicator_manager.validate_placement()
 	var end_time: int = Time.get_ticks_msec()
 	var elapsed_ms: int = end_time - start_time
 	

@@ -24,8 +24,7 @@ func before_test() -> void:
 	assert_object(_test_env.positioner).is_not_null()
 
 func after_test() -> void:
-	# Clean up test environment
-	TestDebugHelpers.cleanup_test_environment(_test_env)
+	# Test environment will be auto-freed by the test framework
 	_manager_validation.clear()
 	_building_validation.clear()
 

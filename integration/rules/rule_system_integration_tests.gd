@@ -22,7 +22,7 @@ const OUTSIDE_BOUNDS_Y: int = 10
 var env: AllSystemsTestEnvironment
 
 func before_test() -> void:
-	env = UnifiedTestFactory.instance_all_systems_env(self)
+	env = EnvironmentTestFactory.create_all_systems_env(self, GBTestConstants.ALL_SYSTEMS_ENV_UID)
 
 # Helper functions for DRY patterns
 

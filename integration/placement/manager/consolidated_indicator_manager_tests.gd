@@ -9,6 +9,9 @@ var env: CollisionTestEnvironment
 
 func before_test() -> void:
 	env = UnifiedTestFactory.instance_collision_test_env(self, COLLISION_TEST_ENV_UID)
+	
+	# Wait for environment initialization to complete
+	await await_idle_frame()
 
 # ===== COLLISION MAPPER SHAPE POSITIONING TESTS =====
 

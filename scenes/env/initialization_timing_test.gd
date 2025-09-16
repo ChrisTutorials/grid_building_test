@@ -12,7 +12,7 @@ func before_test() -> void:
 	initialization_log.clear()
 	warning_count = 0
 	# Load the AllSystemsTestEnvironment scene directly to observe initialization order
-	test_env = UnifiedTestFactory.instance_all_systems_env(self, "uid://ioucajhfxc8b")
+	test_env = EnvironmentTestFactory.create_all_systems_env(self, GBTestConstants.ALL_SYSTEMS_ENV_UID)
 
 func after_test() -> void:
 	if test_env != null:
@@ -105,7 +105,7 @@ func test_no_positioner_warnings_during_initialization() -> void:
 	# The fix moves validation from apply_to() to _ready() to avoid timing issues
 	
 	# Create a fresh environment and monitor for warnings
-	var fresh_env : AllSystemsTestEnvironment = UnifiedTestFactory.instance_all_systems_env(self, "uid://ioucajhfxc8b")
+	var fresh_env : AllSystemsTestEnvironment = EnvironmentTestFactory.create_all_systems_env(self, GBTestConstants.ALL_SYSTEMS_ENV_UID)
 
 	# Wait for initialization to complete
 	await get_tree().process_frame

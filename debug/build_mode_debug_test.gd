@@ -6,7 +6,7 @@ var test_env: AllSystemsTestEnvironment
 var placeable : Placeable = preload("uid://cqknt0ejxvq4m")
 
 func before_test() -> void:
-	test_env = UnifiedTestFactory.instance_all_systems_env(self, "uid://ioucajhfxc8b")
+	test_env = EnvironmentTestFactory.create_all_systems_env(self, GBTestConstants.ALL_SYSTEMS_ENV_UID)
 
 func after_test() -> void:
 	if test_env != null:

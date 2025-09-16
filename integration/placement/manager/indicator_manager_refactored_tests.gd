@@ -6,7 +6,7 @@ var env: AllSystemsTestEnvironment
 
 func before_test() -> void:
 	# Use the all systems test environment
-	env = UnifiedTestFactory.instance_all_systems_env(self)
+	env = EnvironmentTestFactory.create_all_systems_env(self, GBTestConstants.ALL_SYSTEMS_ENV_UID)
 
 func test_indicator_manager_creation() -> void:
 	var indicator_manager: IndicatorManager = env.indicator_manager

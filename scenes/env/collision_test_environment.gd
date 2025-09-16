@@ -3,7 +3,6 @@ class_name CollisionTestEnvironment
 extends GBTestEnvironment
 
 @export var indicator_manager : IndicatorManager
-var collision_setup : CollisionTestSetup2D
 var collision_mapper : CollisionMapper
 var logger : GBLogger
 
@@ -36,6 +35,13 @@ func _ready() -> void:
 	
 	# Set up level context with proper targeting state configuration
 	_setup_level_context()
+	
+	# Ensure indicator_manager references the injected manager from context
+	if container:
+		var indicator_context: IndicatorContext = container.get_indicator_context()
+		if indicator_context and indicator_context.has_manager():
+			# Use the injected manager from the context instead of any scene export
+			indicator_manager = indicator_context.get_manager()
 
 ## Set up the level context with target map and apply to targeting state
 func _setup_level_context() -> void:

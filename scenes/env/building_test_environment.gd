@@ -37,6 +37,14 @@ func get_issues() -> Array[String]:
 
 	return issues
 
+func _ready() -> void:
+	# Ensure indicator_manager references the injected manager from context
+	if get_container():
+		var indicator_context: IndicatorContext = get_container().get_indicator_context()
+		if indicator_context and indicator_context.has_manager():
+			# Use the injected manager from the context instead of any scene export
+			indicator_manager = indicator_context.get_manager()
+
 func get_container() -> GBCompositionContainer:
 	return injector.composition_container
 

@@ -7,7 +7,7 @@ var test_env: AllSystemsTestEnvironment
 
 func before_test() -> void:
 	# Load the AllSystemsTestEnvironment scene directly
-	test_env = UnifiedTestFactory.instance_all_systems_env(self, "uid://ioucajhfxc8b")
+	test_env = EnvironmentTestFactory.create_all_systems_env(self, GBTestConstants.ALL_SYSTEMS_ENV_UID)
 
 func after_test() -> void:
 	if test_env != null:
@@ -86,7 +86,7 @@ func test_environment_no_issues() -> void:
 func test_building_system_can_enter_build_mode() -> void:
 	# This is the exact test that was failing in all_systems_integration_tests.gd
 	# We need a placeable resource to test with - create one using the factory
-	var placeable: Placeable = UnifiedTestFactory.create_polygon_test_placeable(self)
+	var placeable: Placeable = PlaceableTestFactory.create_polygon_test_placeable(self)
 	if placeable != null:
 		var result: PlacementReport = test_env.building_system.enter_build_mode(placeable)
 		assert_that(result.is_successful()).is_true().override_failure_message("BuildingSystem should be able to enter build mode with test placeable")

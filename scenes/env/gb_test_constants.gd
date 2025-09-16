@@ -94,7 +94,7 @@ static var TEST_INDICATOR_ISOMETRIC : PackedScene = preload("uid://bas7hdwotyoiy
 ## Common values used across multiple tests
 
 ## Default tile size for test environments
-const DEFAULT_TILE_SIZE: Vector2 = Vector2(32, 32)
+const DEFAULT_TILE_SIZE: Vector2 = Vector2(16, 16)
 
 ## Default test grid size
 const DEFAULT_GRID_SIZE: Vector2i = Vector2i(20, 20)

@@ -1,14 +1,10 @@
-class_name GodotTestFactory
-extends RefCounted
-
 ## Factory for creating Godot base class objects in tests.
 ## Provides convenient methods for common Godot objects used in testing.
 ## Keep this separate from UnifiedTestFactory to maintain clean separation.
+class_name GodotTestFactory
+extends RefCounted
 
-# ================================
-# Collision Validation Helpers
-# ================================
-
+#region Collision Validation Helpers
 ## Validates that a collision shape has a proper CollisionObject2D parent
 ## @param collision_node: The CollisionShape2D or CollisionPolygon2D to validate
 ## @param method_name: Name of the calling method for error messages
@@ -40,10 +36,8 @@ static func _ensure_collision_parent(collision_node: Node, parent: CollisionObje
 	if parent.get_parent() == null:
 		test.add_child(parent)
 
-# ================================
-# Capsule and Transform Factories
-# ================================
-
+#endregion
+#region Capsule and Transform Factories
 
 ## Creates a CapsuleShape2D with specified radius and height
 static func create_capsule_shape(radius: float = 48.0, height: float = 128.0) -> CapsuleShape2D:
@@ -64,11 +58,8 @@ static func create_transform2d(origin: Vector2 = Vector2.ZERO) -> Transform2D:
 static func create_tile_size(size: int = 16) -> Vector2:
 	return Vector2(size, size)
 
-
-# ================================
-# Node Creation
-# ================================
-
+#endregion
+#region Node Creation
 
 ## Creates a basic Node2D for testing with proper auto_free setup
 static func create_node2d(test: GdUnitTestSuite, p_name : String = "TestNode2D") -> Node2D:
@@ -91,11 +82,8 @@ static func create_canvas_item(test: GdUnitTestSuite) -> CanvasItem:
 	test.add_child(item)
 	return item
 
-
-# ================================
-# TileMap Objects
-# ================================
-
+#endregion
+#region TileMap Objects
 
 ## Creates a TileMapLayer with basic tile set and populated grid for testing.
 ## grid_size: overall width/height in tiles (square). Reduced default for faster unit tests.
@@ -232,9 +220,8 @@ static func create_empty_tile_map_layer(test: GdUnitTestSuite) -> TileMapLayer:
 	return map_layer as TileMapLayer
 
 
-# ================================
-# Collision Objects
-# ================================
+#endregion
+#region Collision Objects
 
 
 ## Creates a StaticBody2D with rectangular collision shape

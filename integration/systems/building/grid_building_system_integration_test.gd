@@ -35,7 +35,7 @@ var collision_rule : CollisionsCheckRule = preload("uid://du7xu07247202")
 var test_static_body: StaticBody2D
 
 func before_test() -> void:
-	env = UnifiedTestFactory.instance_all_systems_env(self)
+	env = EnvironmentTestFactory.create_all_systems_env(self, GBTestConstants.ALL_SYSTEMS_ENV_UID)
 	_validate_environment_setup()
 	_initialize_test_components()
 	_validate_required_dependencies()

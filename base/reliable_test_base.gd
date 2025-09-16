@@ -12,17 +12,16 @@ extends GdUnitTestSuite
 class_name ReliableTestBase
 
 var test_environment: AllSystemsTestEnvironment
-var test_factory: UnifiedTestFactory
 
 ## Override this method in child classes to perform additional environment setup
 ## Call super() first to ensure base environment validation
 func before_test() -> void:
 	# Create test environment
-	test_environment = UnifiedTestFactory.instance_all_systems_env(self, "uid://ioucajhfxc8b")
+	test_environment = EnvironmentTestFactory.create_all_systems_env(self, GBTestConstants.ALL_SYSTEMS_ENV_UID)
 	
 	# Fail fast if environment is invalid
 	if not test_environment:
-		fail("Test environment creation failed - check UnifiedTestFactory.instance_all_systems_env()")
+		fail("Test environment creation failed - check EnvironmentTestFactory.create_all_systems_env()")
 		return
 	
 	# Validate core components exist

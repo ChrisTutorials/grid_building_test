@@ -4,8 +4,7 @@
 ## Helper to create minimal test environment
 static func create_minimal_test_environment(test_suite: GdUnitTestSuite) -> AllSystemsTestEnvironment:
 	var env: AllSystemsTestEnvironment = EnvironmentTestFactory.create_all_systems_env(test_suite, GBTestConstants.ALL_SYSTEMS_ENV_UID)
-	test_suite.add_child(env)
-	test_suite.auto_free(env)
+	# Environment is already added to test_suite and auto_free is already called by the factory
 	return env
 
 ## Helper to create and validate an indicator manager with proper error reporting
@@ -102,9 +101,3 @@ static func _create_build_mode_summary(validation_result: Dictionary) -> String:
 		lines.append("Issues: %s" % str(validation_result.report.get_all_issues()))
 	
 	return "\n".join(lines)
-
-## Helper to cleanup all test nodes and prevent orphans
-static func cleanup_test_environment(_env: AllSystemsTestEnvironment) -> void:
-	# The environment itself will be auto-freed by the test suite
-	# No additional cleanup needed for the strongly typed environment
-	pass

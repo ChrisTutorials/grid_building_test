@@ -22,7 +22,20 @@ const PERFORMANCE_TIME_LIMIT_US: int = 500000
 var test_env: CollisionTestEnvironment
 
 func before_test() -> void:
-	test_env = UnifiedTestFactory.instance_collision_test_env(self, "uid://cdrtd538vrmun")
+	# Load collision test environment scene from GBTestConstants
+	var env_scene: PackedScene = GBTestConstants.get_environment_scene(GBTestConstants.EnvironmentType.COLLISION_TEST)
+	if not env_scene:
+		# Try the path fallback directly
+		env_scene = load(GBTestConstants.COLLISION_TEST_ENV_PATH)
+	
+	if not env_scene:
+		# Last fallback to the old UID that was in the test 
+		env_scene = load("uid://cdrtd538vrmun")
+	
+	assert(env_scene != null, "Failed to load collision test environment scene")
+	test_env = env_scene.instantiate() as CollisionTestEnvironment
+	add_child(test_env)
+	auto_free(test_env)
 
 func after_test() -> void:
 	pass
@@ -36,8 +49,9 @@ func _create_test_rule_check_indicator() -> RuleCheckIndicator:
 	return indicator
 
 # Helper: Configure collision mapper for test object
-func _configure_collision_mapper_for_test_object(_test_object: StaticBody2D, _indicator_manager: IndicatorManager, container: GBCompositionContainer) -> void:
-	var targeting_state: GridTargetingState = GridTargetingState.new(container.get_contexts().owner)
+func _configure_collision_mapper_for_test_object(_test_object: StaticBody2D, _indicator_manager: IndicatorManager, _container: GBCompositionContainer) -> void:
+	# Use the targeting state from test environment instead of creating a new one
+	var targeting_state: GridTargetingState = test_env.targeting_state
 	var _setups: Array[CollisionTestSetup2D] = CollisionTestSetup2D.create_test_setups_from_test_node(_test_object, targeting_state)
 	# Note: Actual configuration would depend on collision mapper API
 	# For now, just create the setups to use CollisionTestSetup2D factory
@@ -47,15 +61,19 @@ func _configure_collision_mapper_for_test_object(_test_object: StaticBody2D, _in
 @warning_ignore("unused_parameter")
 func test_collision_mapper_basic_setup() -> void:
 	var indicator_manager: IndicatorManager = test_env.indicator_manager
-	var collision_setup: CollisionTestSetup2D = test_env.collision_setup
+	# Create a collision setup using factory instead of expecting it from environment
+	var test_object: StaticBody2D = CollisionObjectTestFactory.create_static_body_with_rect(self, DEFAULT_RECT_SIZE)
+	var collision_setups: Array[CollisionTestSetup2D] = CollisionTestSetup2D.create_test_setups_from_test_node(test_object, test_env.targeting_state)
 	
 	assert_that(indicator_manager).is_not_null()
+	assert_that(collision_setups.size()).is_greater(0)
+	var collision_setup: CollisionTestSetup2D = collision_setups[0]
 	assert_that(collision_setup).is_not_null()
 	assert_that(collision_setup.collision_object).is_not_null()
 
 @warning_ignore("unused_parameter")
 func test_collision_mapper_shape_positioning() -> void:
-	var test_object: StaticBody2D = UnifiedTestFactory.create_test_static_body_with_rect_shape(self)
+	var test_object: StaticBody2D = CollisionObjectTestFactory.create_static_body_with_rect(self, DEFAULT_RECT_SIZE)
 	var indicator_manager: IndicatorManager = test_env.indicator_manager
 	
 	# Configure collision mapper for the test object
@@ -69,7 +87,7 @@ func test_collision_mapper_shape_positioning() -> void:
 
 @warning_ignore("unused_parameter") 
 func test_collision_mapper_movement_tracking() -> void:
-	var static_body: StaticBody2D = UnifiedTestFactory.create_test_static_body_with_rect_shape(self)
+	var static_body: StaticBody2D = CollisionObjectTestFactory.create_static_body_with_rect(self, DEFAULT_RECT_SIZE)
 	var initial_pos: Vector2 = Vector2.ZERO
 	var moved_pos: Vector2 = TILE_SIZE
 	
@@ -112,7 +130,7 @@ func test_geometry_calculator_polygon_bounds() -> void:
 
 @warning_ignore("unused_parameter")
 func test_polygon_tile_mapper_basic() -> void:
-	var tile_map: TileMapLayer = test_env.tile_map
+	var tile_map: TileMapLayer = test_env.tile_map_layer
 	var polygon: PackedVector2Array = PackedVector2Array([
 		Vector2(0, 0), Vector2(16, 0), Vector2(16, 16), Vector2(0, 16)
 	])
@@ -121,12 +139,12 @@ func test_polygon_tile_mapper_basic() -> void:
 	var bounds: Rect2 = GBGeometryMath.get_polygon_bounds(polygon)
 	var iteration_range: Dictionary = CollisionGeometryUtils.compute_tile_iteration_range(bounds, tile_map)
 	
-	assert_object(iteration_range.min_tile).is_not_null()
-	assert_object(iteration_range.max_tile).is_not_null()
+	assert_object(iteration_range.start).is_not_null()
+	assert_object(iteration_range.end_exclusive).is_not_null()
 
 @warning_ignore("unused_parameter")
 func test_polygon_tile_mapper_offsets() -> void:
-	var tile_map: TileMapLayer = test_env.tile_map
+	var tile_map: TileMapLayer = test_env.tile_map_layer
 	var polygon: PackedVector2Array = PackedVector2Array([
 		Vector2(8, 8), Vector2(24, 8), Vector2(24, 24), Vector2(8, 24)
 	])
@@ -230,14 +248,14 @@ func test_grid_alignment_basic() -> void:
 
 @warning_ignore("unused_parameter")
 func test_collision_layer_rule_setup_validation() -> void:
-	var collision_rule: CollisionsCheckRule = UnifiedTestFactory.create_test_collisions_check_rule()
+	var collision_rule: CollisionsCheckRule = PlacementRuleTestFactory.create_default_collision_rule()
 	
 	assert_that(collision_rule).is_not_null()
 	assert_that(collision_rule.collision_mask).is_equal(1)  # Default mask
 
 @warning_ignore("unused_parameter")
 func test_collision_layer_rule_setup_with_custom_mask() -> void:
-	var collision_rule: CollisionsCheckRule = UnifiedTestFactory.create_test_collisions_check_rule()
+	var collision_rule: CollisionsCheckRule = PlacementRuleTestFactory.create_default_collision_rule()
 	collision_rule.collision_mask = 256  # Custom mask
 	
 	assert_that(collision_rule.collision_mask).is_equal(256)
@@ -253,15 +271,15 @@ func test_placement_environment_integration() -> void:
 	# Verify all components of placement system environment work together
 	assert_that(test_env.injector).is_not_null()
 	assert_that(test_env.logger).is_not_null()
-	assert_that(test_env.tile_map).is_not_null()
+	assert_that(test_env.tile_map_layer).is_not_null()
 	assert_that(test_env.container).is_equal(TEST_CONTAINER)
 	assert_that(test_env.indicator_manager).is_not_null()
-	assert_that(test_env.collision_setup).is_not_null()
+	# Note: collision_setup property was removed from environment - collision setups are now created per-test as needed
 
 @warning_ignore("unused_parameter")
 func test_placement_components_workflow() -> void:
 	var indicator_manager: IndicatorManager = test_env.indicator_manager
-	var test_object: StaticBody2D = UnifiedTestFactory.create_test_static_body_with_rect_shape(self)
+	var test_object: StaticBody2D = CollisionObjectTestFactory.create_static_body_with_rect(self, DEFAULT_RECT_SIZE)
 	
 	# Test complete workflow from object to collision detection
 	_configure_collision_mapper_for_test_object(

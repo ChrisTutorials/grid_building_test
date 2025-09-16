@@ -1,41 +1,59 @@
-class_name EnvironmentTestFactory
-extends RefCounted
-
 ## Environment Test Factory
 ## Centralized creation of test environments and system containers
 ## Following GdUnit best practices: DRY principle, centralize common object creation
+class_name EnvironmentTestFactory
+extends RefCounted
 
-## Creates an AllSystemsTestEnvironment (extracted from UnifiedTestFactory)
-## @param test_instance: Test instance for node management
-## @param scene_uid: Scene UID for environment setup
-static func create_all_systems_env(test_instance: Node, scene_uid: String) -> AllSystemsTestEnvironment:
+## Creates an AllSystemsTestEnvironment (extracted from UnifiedTestFactory) [br]
+## [param test]: Test instance for node management [br]
+## [param scene_uid]: Scene UID for environment setup
+static func create_all_systems_env(test: GdUnitTestSuite, scene_uid: String = GBTestConstants.ALL_SYSTEMS_ENV_UID) -> AllSystemsTestEnvironment:
 	var env: AllSystemsTestEnvironment = load(scene_uid).instantiate()
-	test_instance.add_child(env)
-	
-	# Use GdUnit test suite auto_free if available, otherwise handle manually
-	if test_instance.has_method("auto_free"):
-		test_instance.auto_free(env)
-	
-	# Validate environment setup
-	var issues: Array = env.get_issues()
-	if not issues.is_empty():
-		push_error("Environment is not properly setup. Issues: %s" % str(issues))
-	
+	if not _prepare_test_environment(test, env):
+		return null
 	return env
 
 ## Creates a basic building system test environment
-## @param test_instance: Test instance for node management  
-## @param scene_uid: Scene UID for environment setup
-static func create_building_system_test_environment(test_instance: Node, scene_uid: String) -> AllSystemsTestEnvironment:
-	# Delegate for now, can be specialized later
-	return create_all_systems_env(test_instance, scene_uid)
+## [param test]: Test instance for node management
+## [param scene_uid]: Scene UID for environment setup
+static func create_building_system_test_environment(test: GdUnitTestSuite, scene_uid: String = GBTestConstants.BUILDING_TEST_ENV_PATH) -> BuildingTestEnvironment:
+	var env: BuildingTestEnvironment = load(scene_uid).instantiate()
+	# Pass the environment directly; it already extends GBTestEnvironment.
+	if not _prepare_test_environment(test, env):
+		return null
+	return env
 
 ## Creates an indicator manager test environment
-## @param test_instance: Test instance for node management
-## @param scene_uid: Scene UID for environment setup  
-static func create_indicator_manager_test_environment(test_instance: Node, scene_uid: String) -> AllSystemsTestEnvironment:
-	# Delegate for now, can be specialized later
-	return create_all_systems_env(test_instance, scene_uid)
+## [param test]: Test instance for node management
+## [param scene_uid]: Scene UID for environment setup
+static func create_collision_test_environment(test: GdUnitTestSuite, scene_uid: String = GBTestConstants.COLLISION_TEST_ENV_PATH) -> CollisionTestEnvironment:
+	var env: CollisionTestEnvironment = load(scene_uid).instantiate()
+	_prepare_test_environment(test, env)
+	return env
+
+## Add shared test suite setup so it is parented and tears down after test properly.
+## Validates environment setup and fails test if issues found.
+static func _prepare_test_environment(test: GdUnitTestSuite, env: GBTestEnvironment) -> bool:
+	test.add_child(env)
+	test.auto_free(env)
+	
+	# Validate environment setup
+	var issues: Array[String] = env.get_issues()
+	if not issues.is_empty():
+		test.fail("Test environment has issues: %s" % str(issues))
+		return false
+	
+	return true
+
+## Validates that an environment is properly set up without issues
+static func _validate_test_environment(env: GBTestEnvironment) -> bool:
+	# Validate environment setup
+	var issues: Array[String] = env.get_issues()
+	if not issues.is_empty():
+		var logger : GBLogger = env.get_container().get_logger()
+		logger.log_error(env, "Environment has setup issues: %s" % str(issues))
+
+	return issues.is_empty()
 
 ## Validates that an environment is properly set up without issues
 ## @param env: The environment to validate

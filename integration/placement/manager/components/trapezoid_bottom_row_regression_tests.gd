@@ -10,16 +10,20 @@ func before_test() -> void:
 	# Use standardized test environment setup
 	_test_env = DebugHelpers.create_minimal_test_environment(self)
 	
+	# Get targeting state from the environment  
+	var targeting_state: GridTargetingState = _test_env.grid_targeting_system.get_state()
+	var container: GBCompositionContainer = _test_env.get_container()
+	
 	# Create collision mapper with proper cleanup
-	_collision_mapper = auto_free(CollisionMapper.new(_test_env.targeting_state, _test_env.container.get_logger()))
+	_collision_mapper = auto_free(CollisionMapper.new(targeting_state, container.get_logger()))
 
 func after_test() -> void:
 	# Clean up to prevent orphans
 	if _collision_mapper:
 		_collision_mapper = null
 	
-	DebugHelpers.cleanup_test_environment(_test_env)
-	_test_env.clear()
+	# Test environment will be auto-freed by the test framework
+	_test_env = null
 
 func test_trapezoid_bottom_row_coverage() -> void:
 	"""Test that trapezoid produces expected bottom row coverage using public API"""

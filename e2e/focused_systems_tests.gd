@@ -72,5 +72,3 @@ func test_targeting_system_with_collision() -> void:
 	var indicator_test_setup : CollisionTestSetup2D = CollisionTestSetup2D.new(area, Vector2(32,32))
 	var offsets: Dictionary = test_env.collision_mapper.get_tile_offsets_for_test_collisions(indicator_test_setup)
 	assert_dict(offsets).is_not_empty()
-
-
