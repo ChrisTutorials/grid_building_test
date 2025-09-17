@@ -3,9 +3,31 @@ extends GdUnitTestSuite
 ## Consolidated targeting system tests using CollisionTestEnvironment
 
 var env: CollisionTestEnvironment
+var default_target: Node2D
 
 func before_test() -> void:
 	env = UnifiedTestFactory.instance_collision_test_env(self, "uid://cdrtd538vrmun")
+	_setup_default_target()
+
+func after_test() -> void:
+	# Clean up default target
+	if is_instance_valid(default_target):
+		default_target.queue_free()
+		default_target = null
+
+## Set up a default target for all tests to use
+func _setup_default_target() -> void:
+	var targeting_system: GridTargetingSystem = env.grid_targeting_system
+	var targeting_state: GridTargetingState = targeting_system.get_state()
+	
+	# Only create a target if none exists
+	if targeting_state.target == null:
+		default_target = Node2D.new()
+		default_target.position = Vector2(64, 64)
+		default_target.name = "TestTarget"
+		env.level.add_child(default_target)
+		targeting_state.target = default_target
+		# Note: Don't use auto_free() on shared target - managed in after_test
 
 func test_targeting_basic() -> void:
 	var targeting_system: GridTargetingSystem = env.grid_targeting_system
@@ -18,18 +40,10 @@ func test_targeting_basic() -> void:
 		"Targeting state should be accessible from targeting system"
 	).is_not_null()
 	
-	# Set up a default target if not present
-	if targeting_state.target == null:
-		var test_target: Node2D = Node2D.new()
-		test_target.position = Vector2(64, 64)
-		env.level.add_child(test_target)
-		targeting_state.target = test_target
-		auto_free(test_target)
-	
-	# Test basic targeting using the target
+	# Default target should have been created in before_test
 	var current_target: Variant = targeting_state.target
 	assert_object(current_target).append_failure_message(
-		"Targeting system should have a target set"
+		"Default target should be available from setup"
 	).is_not_null()
 	assert_vector(current_target.position).append_failure_message(
 		"Default target should be positioned at (64, 64)"
@@ -67,12 +81,20 @@ func test_targeting_validation() -> void:
 	# Test invalid position (out of bounds) by creating a specific target
 	var invalid_target: Node2D = Node2D.new()
 	invalid_target.position = Vector2(1000, 1000)
+	env.level.add_child(invalid_target)
+	auto_free(invalid_target)
+	
+	# Store original target before setting invalid one
+	var original_target: Node2D = targeting_state.target
 	targeting_state.target = invalid_target
 	
 	# The system should still function but may have different behavior
 	assert_object(targeting_state.target).append_failure_message(
 		"Targeting state should maintain target reference even for invalid positions"
 	).is_not_null()
+	
+	# Restore original target before invalid target is freed
+	targeting_state.target = original_target
 	
 	auto_free(invalid_target)
 

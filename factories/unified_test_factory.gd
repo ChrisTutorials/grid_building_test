@@ -157,6 +157,12 @@ static func create_polygon_test_setup(test_instance: Node) -> Dictionary:
 ## @deprecated: Use RuleCheckIndicator.new() directly or specific factory methods
 static func create_test_rule_check_indicator(test_instance: Node) -> RuleCheckIndicator:
 	var indicator: RuleCheckIndicator = RuleCheckIndicator.new()
+	
+	# Assign default shape to prevent "Invalid shape" errors
+	var default_shape: RectangleShape2D = RectangleShape2D.new()
+	default_shape.size = Vector2(16, 16)  # Default tile size
+	indicator.shape = default_shape
+	
 	test_instance.add_child(indicator)
 	if test_instance.has_method("auto_free"):
 		test_instance.auto_free(indicator)
@@ -204,6 +210,12 @@ static func create_manipulation_system(test_instance: Node) -> Object:
 ## @deprecated: Use GridPositioner2D.new() directly
 static func create_grid_positioner(_test: GdUnitTestSuite) -> GridPositioner2D:
 	var positioner: GridPositioner2D = GridPositioner2D.new()
+	
+	# Assign default shape to prevent "Invalid shape" errors
+	var default_shape: RectangleShape2D = RectangleShape2D.new()
+	default_shape.size = Vector2(16, 16)  # Default tile size
+	positioner.shape = default_shape
+	
 	return positioner
 
 ## Delegate: Create tile map layer parented to p_parent

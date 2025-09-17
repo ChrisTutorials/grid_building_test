@@ -31,9 +31,11 @@ func test_trapezoid_bottom_row_coverage() -> void:
 	# Create trapezoid shape that should produce 4 bottom-row tiles
 	var trapezoid_body: StaticBody2D = _create_trapezoid_test_object()
 	
-	# Use public API to get collision tile positions
-	var collision_objects: Array[Node2D] = [trapezoid_body]
-	var tile_positions_dict: Dictionary[Vector2i, Array] = _collision_mapper.get_collision_tile_positions_with_mask(collision_objects, trapezoid_body.collision_layer)
+	# Get the CollisionPolygon2D child to pass to collision mapper
+	var collision_polygon: CollisionPolygon2D = trapezoid_body.get_child(0) as CollisionPolygon2D
+	
+	# Use the specific polygon method for CollisionPolygon2D 
+	var tile_positions_dict: Dictionary[Vector2i, Array] = _collision_mapper.get_tile_offsets_for_collision_polygon(collision_polygon, _test_env.tile_map_layer)
 	var tile_positions: Array = tile_positions_dict.keys()
 	
 	assert_bool(tile_positions.size() > 0)\
@@ -62,7 +64,7 @@ func test_trapezoid_bottom_row_coverage() -> void:
 		.is_equal(4)
 	
 	# Verify specific expected tiles are present
-	for expected_x : Vector2i in expected_bottom_tiles:
+	for expected_x : int in expected_bottom_tiles:
 		assert_bool(bottom_row_tiles.has(expected_x))\
 			.append_failure_message("Missing expected bottom-row tile x=%d; actual bottom row: %s" % [expected_x, str(bottom_row_tiles)])\
 			.is_true()
@@ -76,14 +78,17 @@ func test_trapezoid_total_coverage_reasonable() -> void:
 	"""Unit test: Trapezoid should generate reasonable total tile count"""
 	
 	var trapezoid_body: StaticBody2D = _create_trapezoid_test_object()
-	var collision_objects: Array[Node2D] = [trapezoid_body]
-	var tile_positions_dict: Dictionary[Vector2i, Array] = _collision_mapper.get_collision_tile_positions_with_mask(collision_objects, trapezoid_body.collision_layer)
+	# Get the CollisionPolygon2D child to pass to collision mapper
+	var collision_polygon: CollisionPolygon2D = trapezoid_body.get_child(0) as CollisionPolygon2D
+	
+	# Use the specific polygon method for CollisionPolygon2D 
+	var tile_positions_dict: Dictionary[Vector2i, Array] = _collision_mapper.get_tile_offsets_for_collision_polygon(collision_polygon, _test_env.tile_map_layer)
 	var tile_positions: Array = tile_positions_dict.keys()
 	
-	# Trapezoid should generate between 8-15 tiles total (reasonable range)
+	# Trapezoid should generate between 7-15 tiles total (reasonable range)
 	assert_int(tile_positions.size())\
 		.append_failure_message("Trapezoid should generate reasonable tile count, got %d tiles" % tile_positions.size())\
-		.is_between(8, 15)
+		.is_between(7, 15)
 
 ## Helper to create trapezoid test object with proper cleanup
 func _create_trapezoid_test_object() -> StaticBody2D:

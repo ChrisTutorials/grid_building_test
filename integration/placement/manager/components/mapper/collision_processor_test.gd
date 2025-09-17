@@ -251,7 +251,9 @@ func test_process_shape_offsets_rectangle() -> void:
 	# Assert - result is a Dictionary[Vector2i, Array[Node2D]]
 	assert_that(result).is_not_null()
 	assert_that(result.size()).append_failure_message("Expected shape offsets to be calculated for rectangle, got %d results" % result.size()).is_greater(0)
-	assert_that(result.has(_test_env.center_tile)).append_failure_message("Expected center tile %s to be included in shape offsets" % _test_env.center_tile).is_true()
+	# Since collision object and center_tile are at same position, relative offset should be (0, 0)
+	var expected_relative_offset: Vector2i = Vector2i(0, 0)
+	assert_that(result.has(expected_relative_offset)).append_failure_message("Expected relative offset %s to be included in shape offsets for collision object at center position" % expected_relative_offset).is_true()
 
 ## Unit test for compute_shape_tile_offsets method  
 func test_compute_shape_tile_offsets_rectangle() -> void:

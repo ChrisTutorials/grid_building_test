@@ -9,6 +9,7 @@ const DEFAULT_POSITION: Vector2 = Vector2(100, 100)
 const ORIGIN_POSITION: Vector2 = Vector2(0, 0)
 const ORIGIN_TILE: Vector2i = Vector2i(0, 0)
 
+var _env : BuildingTestEnvironment
 var _container: GBCompositionContainer
 var _injector: GBInjectorSystem
 var building_system: BuildingSystem
@@ -20,24 +21,20 @@ var placer: Node2D
 var obj_parent: Node2D
 
 func before_test() -> void:
-	var setup: Dictionary = UnifiedTestFactory.create_complete_building_test_setup(self)
+	_env = EnvironmentTestFactory.create_building_system_test_environment(self)
+	_container = _env.get_container()
+	_injector = _env.injector
+	obj_parent = _env.objects_parent
+	placer = _env.placer
+	positioner = _env.positioner
+	map_layer = _env.tile_map_layer
+	targeting_system = _env.grid_targeting_system
+	building_system = _env.building_system
+	indicator_manager = _env.indicator_manager
 
-	_container = setup.container
-	_injector = setup.injector
-	obj_parent = setup.obj_parent
-	placer = setup.placer
-	positioner = setup.positioner
-	map_layer = setup.map_layer
-	targeting_system = setup.targeting_system
-	building_system = setup.building_system
-	indicator_manager = setup.indicator_manager
+	assert_array(_env.get_issues()).is_empty()
 
-	# Ensure indicator template is configured
-	UnifiedTestFactory.ensure_indicator_template_configured(indicator_manager)
-
-# ================================
-# Helper Functions for DRY Patterns
-# ================================
+#region Helper Functions for DRY Patterns
 
 func find_center_indicator(indicators: Array[RuleCheckIndicator]) -> RuleCheckIndicator:
 	"""Find the indicator at the center position (offset 0,0) from the positioner."""
@@ -142,7 +139,8 @@ func test_indicator_rule_assignment_during_creation() -> void:
 	# Verify rules are properly assigned
 	var assigned_rules: Array[TileCheckRule] = indicator.get_rules()
 	assert_array(assigned_rules).has_size(1)
-	assert_object(assigned_rules[0]).is_same(collision_rule)
+	
+	assert_object(assigned_rules.get(0)).is_same(collision_rule)
 
 	# Verify bidirectional relationship - rule should have indicator in its indicators array
 	assert_array(collision_rule.indicators).contains([indicator])

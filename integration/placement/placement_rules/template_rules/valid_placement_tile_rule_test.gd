@@ -29,12 +29,15 @@ var _container: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
 var _env: AllSystemsTestEnvironment
 var _gts: GridTargetingState
 
-# Test setup and teardown
-# ================================================================================
+#region Test setup and teardown
 
 func before_test() -> void:
 	_env = EnvironmentTestFactory.create_all_systems_env(self, GBTestConstants.ALL_SYSTEMS_ENV_UID)
-	_gts = _env.targeting_state
+	if _env and _container:
+		_gts = _container.get_states().targeting
+	else:
+		fail("Environment or container not properly initialized in before_test")
+		return
 	# Rule and indicator setup. Rule requires the tile data to be grass and Green
 	rule = ValidPlacementTileRule.new()
 	rule.expected_tile_custom_data = {"type": "grass", "color": Color.GREEN}
@@ -80,9 +83,8 @@ func before_test() -> void:
 		TILE_COORD_EXTRA, {"type": "grass", "color": Color.GREEN, "height": 10}
 	)
 
-
-# Test suite methods
-# ================================================================================
+#endregion
+#region Test suite methods
 
 @warning_ignore("unused_parameter")
 func test_does_tile_have_valid_data(
@@ -90,6 +92,10 @@ func test_does_tile_have_valid_data(
 	p_expected: bool,
 	test_parameters := [[null, false], [no_setup_indicator, true], [valid_indicator, true]]
 ) -> void:
+	assert_object(rule).append_failure_message("Rule should not be null after setup").is_not_null()
+	if not rule:
+		fail("Rule is null - cannot test does_tile_have_valid_data")
+		return
 	var result: bool = rule.does_tile_have_valid_data(p_indicator, [map_layer])
 	assert_bool(result).is_equal(p_expected)
 
@@ -106,22 +112,16 @@ func test_test_tile_data_for_all_matches(
 		[null, false],  # Null tile data
 	]
 ) -> void:
+	assert_object(rule).append_failure_message("Rule should not be null after setup").is_not_null()
+	if not rule:
+		fail("Rule is null - cannot test _test_tile_data_for_all_matches")
+		return
+	assert_object(rule.expected_tile_custom_data).append_failure_message("Rule expected_tile_custom_data should not be null").is_not_null()
 	var result: bool = rule._test_tile_data_for_all_matches(p_tile_data, rule.expected_tile_custom_data)
 	assert_bool(result).is_equal(p_expected)
 
-
-func after_test() -> void:
-	# Clean up any resources created during the test
-	pass
-
-
-func after() -> void:
-	# Clean up GBTestConstants resources
-	pass
-
-
-# Helper methods
-# ================================================================================
+#endregion
+#region Helper methods
 
 # Helper function to create TileData at a specific tile position
 func _create_tile_data(coords: Vector2i, custom_data: Dictionary) -> TileData:

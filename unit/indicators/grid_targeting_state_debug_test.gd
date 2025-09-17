@@ -23,7 +23,7 @@ func test_basic_targeting_state_creation() -> void:
 	
 	# Test tile_set access - this should work
 	var retrieved_tile_set = targeting_state.get_target_map_tile_set()
-	assert_that(retrieved_tile_set).is_not_null()
-	assert_that(retrieved_tile_set.tile_size).is_equal(Vector2i(16, 16))
+	assert_that(retrieved_tile_set).append_failure_message("Expected tile set to be available").is_not_null()
+	assert_that(retrieved_tile_set.tile_size).append_failure_message("Expected tile size to be 16x16").is_equal(Vector2i(16, 16))
 	
 	print("Basic GridTargetingState test passed successfully")

@@ -123,7 +123,7 @@ func test_bitmask_conversion_consistency() -> void:
 		var reconstructed_mask: int = 0
 		for layer in layers:
 			reconstructed_mask |= (1 << layer)
-		assert_that(reconstructed_mask).is_equal(mask)
+		assert_that(reconstructed_mask).append_failure_message("Expected reconstructed mask to match original mask: " + str(mask)).is_equal(mask)
 
 # Helper function to assert array contains exactly the expected elements (order doesn't matter)
 func assert_array_contains_exactly(actual: Array[int], expected: Array[int], _message: String = "") -> void:

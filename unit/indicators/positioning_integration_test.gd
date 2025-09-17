@@ -34,8 +34,8 @@ func test_collision_mapping_produces_relative_offsets() -> void:
 	# For now, this is a placeholder test that verifies the environment is set up correctly
 	# The real test would need more complex collision object setup
 	
-	assert_that(test_env.positioner.global_position).is_equal(Vector2(456.0, 552.0))
-	assert_that(collision_mapper).is_not_null()
+	assert_that(test_env.positioner.global_position).append_failure_message("Expected positioner at correct coordinates").is_equal(Vector2(456.0, 552.0))
+	assert_that(collision_mapper).append_failure_message("Expected collision mapper to be available").is_not_null()
 	
 	print("Environment setup successful - collision mapper available at correct position")
 	print("The fix in collision_processor.gd should prevent absolute coordinates from being returned")

@@ -24,7 +24,7 @@ const GROUP_B_NAME := "GroupB"
 const CUSTOM_PROPERTY_NAME := "custom_property"
 const TEST_METHOD_NAME := "test_method"
 const TEST_SCRIPT_SOURCE := "extends Node2D\nvar custom_property = null\nfunc test_method(): return null"
-const DYNAMIC_SCRIPT_TEMPLATE := "extends Node2D\nvar %s = null\nfunc %s(): return %%s"
+const DYNAMIC_SCRIPT_TEMPLATE := "extends Node2D\nvar %s: Variant = null\nfunc %s() -> Variant: return %s"
 
 var test_nodes: Array[Node]
 
@@ -124,7 +124,7 @@ func test_script_search_scenarios(
 func test_group_search_scenarios(
 	group_name: String,
 	expected_count: int,
-	expected_nodes: Array[Node2D],
+	expected_nodes: Array[int],
 	test_parameters := [
 		[GROUP_A_NAME, 2, [0, 1]],  # test_nodes[0] and test_nodes[1]
 		[GROUP_B_NAME, 1, [2]],     # test_nodes[2]

@@ -81,9 +81,9 @@ func test_search_by_is_in_group() -> void:
 	# Use pure logic class for searching. Provide group membership diagnostics.
 	var all_nodes: Array[Node] = [owner_node, item_container]
 	var found_nodes: Array[Node] = NodeSearchLogic.find_nodes_by_group(all_nodes, owner_group)
-	var membership: Array[Node2D] = []
+	var membership: Array[String] = []
 	for n in all_nodes:
-		membership.append([n.name, n.is_in_group(owner_group)])
+		membership.append("%s:%s" % [n.name, n.is_in_group(owner_group)])
 	assert_int(found_nodes.size()).append_failure_message("find_nodes_by_group('%s') expected 2 (owner + child) got %d -> %s memberships=%s" % [owner_group, found_nodes.size(), found_nodes, membership]).is_equal(2)
 	if found_nodes.size() == 2:
 		assert_object(found_nodes[0]).is_not_null()

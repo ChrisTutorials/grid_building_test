@@ -25,11 +25,11 @@ const ALL_SYSTEMS_ENV_UID: String = "uid://ioucajhfxc8b"
 
 ## Building Test Environment - Focused on building system components
 ## Path: res://test/grid_building_test/scenes/env/building_test_environment.tscn
-const BUILDING_TEST_ENV_UID: String = "uid://building_test_env"
+const BUILDING_TEST_ENV_UID: String = "uid://c4ujk08n8llv8"
 
 ## Collision Test Environment - Optimized for collision and placement testing
 ## Path: res://test/grid_building_test/scenes/env/collision_test_environment.tscn
-const COLLISION_TEST_ENV_UID: String = "uid://collision_test_env"
+const COLLISION_TEST_ENV_UID: String = "uid://cdrtd538vrmun"
 
 ## Isometric Test Environment - Optimized for isometric tile mapping and collision testing
 ## Path: res://test/grid_building_test/scenes/env/isometric_test_environment.tscn

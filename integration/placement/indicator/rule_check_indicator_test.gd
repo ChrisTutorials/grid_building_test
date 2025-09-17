@@ -26,6 +26,24 @@ var _container: GBCompositionContainer
 func create_test_logger() -> GBLogger:
 	return GBLogger.new()
 
+## Helper method to get properly initialized GridTargetingState from environment
+func create_rule_targeting_state() -> GridTargetingState:
+	# Get the targeting state from the environment which should already be properly initialized
+	var targeting_state: GridTargetingState = _container.get_states().targeting
+	
+	# Validate that the environment properly set up the targeting state
+	assert_that(targeting_state).append_failure_message(
+		"Environment should provide targeting state"
+	).is_not_null()
+	assert_that(targeting_state.target_map).append_failure_message(
+		"Environment targeting state should have target_map set"
+	).is_not_null()
+	assert_that(targeting_state.positioner).append_failure_message(
+		"Environment targeting state should have positioner set"
+	).is_not_null()
+	
+	return targeting_state
+
 func before_test() -> void:
 	# Create environment using premade scene
 	var env_scene: PackedScene = GBTestConstants.get_environment_scene(GBTestConstants.EnvironmentType.ALL_SYSTEMS)
@@ -72,7 +90,8 @@ func test_indicator_validity_switches_on_dynamic_collision() -> void:
 	var rule: CollisionsCheckRule = UnifiedTestFactory.create_test_collisions_check_rule()
 	rule.pass_on_collision = false
 	rule.collision_mask = 1
-	var targeting_state: GridTargetingState = GridTargetingState.new(GBOwnerContext.new())
+	
+	var targeting_state: GridTargetingState = create_rule_targeting_state()
 	rule.setup(targeting_state)
 
 	var test_indicator: RuleCheckIndicator = UnifiedTestFactory.create_test_rule_check_indicator(self)
@@ -96,14 +115,20 @@ func test_indicator_validity_switches_on_dynamic_collision() -> void:
 	await get_tree().physics_frame
 	assert_bool(test_indicator.valid).append_failure_message("Indicator should be invalid after collision, but was valid. signal_states=%s" % [str(signal_states)]).is_false()
 	# After collision we expect last emission to be false
-	assert_bool(signal_states.back()).append_failure_message("Signal states after collision: %s" % [str(signal_states)]).is_false()
+	if signal_states.size() > 0:
+		assert_bool(signal_states.back()).append_failure_message("Signal states after collision: %s" % [str(signal_states)]).is_false()
+	else:
+		assert_that(signal_states.size()).append_failure_message("Expected at least one signal emission after collision").is_greater(0)
 
 	# Remove the body to restore validity
 	body.queue_free()
 	await get_tree().physics_frame
 	await get_tree().physics_frame
 	assert_bool(test_indicator.valid).append_failure_message("Indicator should be valid after body removal, but was invalid. signal_states=%s" % [str(signal_states)]).is_true()
-	assert_bool(signal_states.back()).append_failure_message("Signal states after body removal: %s" % [str(signal_states)]).is_true()
+	if signal_states.size() > 0:
+		assert_bool(signal_states.back()).append_failure_message("Signal states after body removal: %s" % [str(signal_states)]).is_true()
+	else:
+		assert_that(signal_states.size()).append_failure_message("Expected at least one signal emission after body removal").is_greater(0)
 
 ## Test: validity_sprite texture changes when indicator validity changes
 func test_validity_sprite_texture_switches_on_validity_change() -> void:
@@ -111,7 +136,7 @@ func test_validity_sprite_texture_switches_on_validity_change() -> void:
 	var rule2: CollisionsCheckRule = UnifiedTestFactory.create_test_collisions_check_rule()
 	rule2.pass_on_collision = false
 	rule2.collision_mask = 1
-	var targeting_state2: GridTargetingState = GridTargetingState.new(GBOwnerContext.new())
+	var targeting_state2: GridTargetingState = create_rule_targeting_state()
 	rule2.setup(targeting_state2)
 
 	var indicator2: RuleCheckIndicator = UnifiedTestFactory.create_test_rule_check_indicator(self)
@@ -154,6 +179,8 @@ func test_validity_sprite_texture_switches_on_validity_change() -> void:
 
 ## Test that indicators start in valid state when no rules are present
 func test_indicator_starts_valid_with_no_rules() -> void:
+	# Wait for physics frame to allow _physics_process to run and update validity
+	await get_tree().physics_frame
 	assert_bool(indicator.valid).is_true()
 	# Allow deferred post-ready visual application to run
 	await get_tree().physics_frame
@@ -201,7 +228,7 @@ func test_indicator_validity_scenarios(
 			var rule: CollisionsCheckRule = UnifiedTestFactory.create_test_collisions_check_rule()
 			rule.pass_on_collision = r["pass_on_collision"]
 			rule.collision_mask = int(r["mask"])
-			var targeting_state: GridTargetingState = GridTargetingState.new(GBOwnerContext.new())
+			var targeting_state: GridTargetingState = create_rule_targeting_state()
 			rule.setup(targeting_state)
 			indicator.add_rule(rule)
 
@@ -227,7 +254,7 @@ func test_valid_changed_signal_emitted_on_state_change(
 	var rule: CollisionsCheckRule = UnifiedTestFactory.create_test_collisions_check_rule()
 	rule.pass_on_collision = rule_spec["pass_on_collision"]
 	rule.collision_mask = int(rule_spec["mask"])
-	var targeting_state: GridTargetingState = GridTargetingState.new(GBOwnerContext.new())
+	var targeting_state: GridTargetingState = create_rule_targeting_state()
 	rule.setup(targeting_state)
 
 	var collision_body: Node2D = _create_test_body()
@@ -256,7 +283,7 @@ func test_visual_settings_update_on_validity_change() -> void:
 	var failing_rule: CollisionsCheckRule = UnifiedTestFactory.create_test_collisions_check_rule()
 	failing_rule.pass_on_collision = true
 	failing_rule.collision_mask = 1
-	var targeting_state: GridTargetingState = GridTargetingState.new(GBOwnerContext.new())
+	var targeting_state: GridTargetingState = create_rule_targeting_state()
 	failing_rule.setup(targeting_state)
 
 	var collision_body: Node2D = _create_test_body()
@@ -288,7 +315,7 @@ func test_force_validation_update(
 	var rule: CollisionsCheckRule = UnifiedTestFactory.create_test_collisions_check_rule()
 	rule.pass_on_collision = rule_spec["pass_on_collision"]
 	rule.collision_mask = int(rule_spec["mask"])
-	var targeting_state: GridTargetingState = GridTargetingState.new(GBOwnerContext.new())
+	var targeting_state: GridTargetingState = create_rule_targeting_state()
 	rule.setup(targeting_state)
 
 	var collision_body: Node2D = _create_test_body()
@@ -318,7 +345,7 @@ func test_rules_added_after_ready() -> void:
 	failing_rule.collision_mask = 1
 	
 	# Initialize the rule properly for testing
-	var targeting_state: GridTargetingState = GridTargetingState.new(GBOwnerContext.new())
+	var targeting_state: GridTargetingState = create_rule_targeting_state()
 	failing_rule.setup(targeting_state)
 
 	var collision_body: Node2D = _create_test_body()
@@ -345,7 +372,7 @@ func test_rules_removed() -> void:
 	failing_rule.collision_mask = 1
 	
 	# Initialize the rule properly for testing
-	var targeting_state: GridTargetingState = GridTargetingState.new(GBOwnerContext.new())
+	var targeting_state: GridTargetingState = create_rule_targeting_state()
 	failing_rule.setup(targeting_state)
 
 	var collision_body: Node2D = _create_test_body()
@@ -394,7 +421,7 @@ func test_per_frame_validation_env_flag() -> void:
 	var rule: CollisionsCheckRule = UnifiedTestFactory.create_test_collisions_check_rule()
 	rule.pass_on_collision = false
 	rule.collision_mask = 1
-	var targeting_state: GridTargetingState = GridTargetingState.new(GBOwnerContext.new())
+	var targeting_state: GridTargetingState = create_rule_targeting_state()
 	rule.setup(targeting_state)
 	var body: StaticBody2D = _create_test_body(); add_child(body); body.global_position = indicator.global_position
 	indicator.add_rule(rule)
@@ -435,7 +462,7 @@ func test_indicator_collide_and_get_contacts(
 
 	#region Execution
 	indicator.position = original_position + (p_move_shape_size_multiplier * indicator_shape_size)
-	var result: Array[Node2D] = indicator.shape.collide_and_get_contacts(
+	var result: PackedVector2Array = indicator.shape.collide_and_get_contacts(
 		indicator.global_transform, shape.shape, shape.global_transform
 	)
 	(
