@@ -21,6 +21,12 @@ func test_indicator_factory_creates_indicators_from_position_map() -> void:
 	var parent := Node2D.new()
 	auto_free(parent)
 	add_child(parent)
+	
+	# Create test object for positioning
+	var test_object := Node2D.new()
+	auto_free(test_object)
+	add_child(test_object)
+	test_object.global_position = Vector2(100, 100)  # Set a known position
 
 	# Create a simple position-rules map
 	var rule := TileCheckRule.new()
@@ -28,7 +34,7 @@ func test_indicator_factory_creates_indicators_from_position_map() -> void:
 	position_rules_map[Vector2i(0, 0)] = [rule]
 	position_rules_map[Vector2i(1, 0)] = [rule]
 
-	var indicators := IndicatorFactory.generate_indicators(position_rules_map, GBTestConstants.TEST_INDICATOR_TD_PLATFORMER, parent, env.get_container().get_states().targeting)
+	var indicators := IndicatorFactory.generate_indicators(position_rules_map, GBTestConstants.TEST_INDICATOR_TD_PLATFORMER, parent, env.get_container().get_states().targeting, test_object)
 	assert_that(indicators.size() == 2).append_failure_message("Expected 2 indicators for 2 positions in map").is_true()
 
 	# Verify indicators have rules assigned
@@ -50,11 +56,17 @@ func test_indicator_factory_handles_empty_position_map() -> void:
 	var parent := Node2D.new()
 	auto_free(parent)
 	add_child(parent)
+	
+	# Create test object for positioning
+	var test_object := Node2D.new()
+	auto_free(test_object)
+	add_child(test_object)
+	test_object.global_position = Vector2(50, 50)
 
 	# Create empty position-rules map
 	var position_rules_map: Dictionary[Vector2i, Array] = {}
 
-	var indicators := IndicatorFactory.generate_indicators(position_rules_map, GBTestConstants.TEST_INDICATOR_TD_PLATFORMER, parent, env.get_container().get_states().targeting)
+	var indicators := IndicatorFactory.generate_indicators(position_rules_map, GBTestConstants.TEST_INDICATOR_TD_PLATFORMER, parent, env.get_container().get_states().targeting, test_object)
 	assert_that(indicators.size() == 0).append_failure_message("Expected 0 indicators for empty position map").is_true()
 
 # Test catches: IndicatorFactory creating indicators with multiple rules per position
@@ -72,6 +84,12 @@ func test_indicator_factory_handles_multiple_rules_per_position() -> void:
 	var parent := Node2D.new()
 	auto_free(parent)
 	add_child(parent)
+	
+	# Create test object for positioning
+	var test_object := Node2D.new()
+	auto_free(test_object)
+	add_child(test_object)
+	test_object.global_position = Vector2(200, 200)
 
 	# Create position-rules map with multiple rules per position
 	var rule1 := TileCheckRule.new()
@@ -82,7 +100,7 @@ func test_indicator_factory_handles_multiple_rules_per_position() -> void:
 	var position_rules_map : Dictionary[Vector2i, Array] = {}
 	position_rules_map[Vector2i(0, 0)] = [rule1, rule2]
 
-	var indicators : Array[RuleCheckIndicator] = IndicatorFactory.generate_indicators(position_rules_map, GBTestConstants.TEST_INDICATOR_TD_PLATFORMER, parent, env.get_container().get_states().targeting)
+	var indicators : Array[RuleCheckIndicator] = IndicatorFactory.generate_indicators(position_rules_map, GBTestConstants.TEST_INDICATOR_TD_PLATFORMER, parent, env.get_container().get_states().targeting, test_object)
 	assert_that(indicators.size() == 1).append_failure_message("Expected 1 indicator for 1 position in map").is_true()
 
 	# Verify indicator has both rules assigned

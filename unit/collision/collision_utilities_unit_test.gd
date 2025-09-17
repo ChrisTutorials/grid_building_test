@@ -24,9 +24,8 @@ var _targeting_state: GridTargetingState
 func before_test() -> void:
 	_targeting_state = GridTargetingState.new(GBOwnerContext.new(null))
 
-# ================================
-# Helper Functions for DRY Patterns
-# ================================
+#endregion
+#region Helper Functions for DRY Patterns
 
 func create_mock_tile_map() -> TileMapLayer:
 	var mock_map: TileMapLayer = TileMapLayer.new()
@@ -71,9 +70,8 @@ func assert_contains_position(positions: Array[Vector2i], target_pos: Vector2i, 
 			break
 	assert_that(contains_pos).append_failure_message(message).is_true()
 
-# ================================
-# Test Functions
-# ================================
+#endregion
+#region Test Functions
 func test_collision_utilities_rect_tile_positions() -> void:
 	# Create and setup mock tile map
 	var mock_map: TileMapLayer = create_mock_tile_map()

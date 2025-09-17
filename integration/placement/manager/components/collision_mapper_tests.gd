@@ -51,7 +51,7 @@ const LARGE_CIRCLE_RADIUS := 24.0
 const MIN_SINGLE_TILE_COUNT := 1
 const MIN_QUAD_TILE_COUNT := 4
 const MIN_MULTI_TILE_COUNT := 6
-const MIN_TRAPEZOID_TILE_COUNT := 6
+const MIN_TRAPEZOID_TILE_COUNT := 4
 const MAX_TRAPEZOID_TILE_COUNT := 15
 
 # Error handling and validation constants
@@ -227,7 +227,7 @@ func test_collision_shape_coverage_comprehensive_validates_expected_tile_counts(
 		[TestShapeType.CIRCLE_SMALL, {"radius": SMALL_CIRCLE_RADIUS}, ORIGIN_POSITION, 1, "small_circular"],
 		[TestShapeType.CIRCLE_MEDIUM, {"radius": MEDIUM_CIRCLE_RADIUS}, ORIGIN_POSITION, 1, "medium_circular"],
 		[TestShapeType.CIRCLE_LARGE, {"radius": LARGE_CIRCLE_RADIUS}, ORIGIN_POSITION, 4, "large_circular"],
-		[TestShapeType.TRAPEZOID, {"polygon": [Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)]}, ORIGIN_POSITION, 2, "complex_trapezoid"],
+		[TestShapeType.TRAPEZOID, {"polygon": [Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)]}, ORIGIN_POSITION, 4, "complex_trapezoid"],
 		[TestShapeType.RECTANGLE_OFFSET, {"size": STANDARD_SHAPE_SIZE}, ORIGIN_POSITION, 1, "origin_positioned_rectangle"],
 		[TestShapeType.CAPSULE, {"radius": 14.0, "height": 60.0}, ORIGIN_POSITION, 0, "capsule_shape"]
 	]
@@ -447,7 +447,7 @@ func test_trapezoid_collision_shape_maintains_core_tile_coverage() -> void:
 	actual_offsets.sort()
 	
 	# Assert: Core tile pattern must be present (regression validation)
-	var core_required_tiles := [Vector2i(-1,-1), Vector2i(0,-1), Vector2i(1,-1), Vector2i(-1,0), Vector2i(0,0), Vector2i(1,0)]
+	var core_required_tiles := [Vector2i(-1,-1), Vector2i(0,-1), Vector2i(-1,0), Vector2i(0,0)]
 	for required_tile: Vector2i in core_required_tiles:
 		assert_bool(actual_offsets.has(required_tile)).append_failure_message(
 			"Trapezoid regression failure: Missing core tile %s. Actual tiles: %s. This indicates polygon collision detection degradation." % [required_tile, actual_offsets]

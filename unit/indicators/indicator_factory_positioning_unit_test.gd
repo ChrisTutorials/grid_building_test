@@ -22,6 +22,7 @@ var _targeting_state: GridTargetingState
 var _positioner: Node2D
 var _parent_node: Node2D
 var _indicator_template: PackedScene
+var _test_object: Node2D
 
 func before_test() -> void:
 	# Create minimal tile map setup
@@ -47,6 +48,11 @@ func before_test() -> void:
 	# Create parent node for indicators
 	_parent_node = auto_free(Node2D.new())
 	add_child(_parent_node)
+	
+	# Create test object for positioning relative to
+	_test_object = auto_free(Node2D.new())
+	add_child(_test_object)
+	_test_object.global_position = Vector2(80, 80)  # Position at a known location
 	
 	# Load indicator template from correct path
 	_indicator_template = GBTestConstants.TEST_INDICATOR_TD_PLATFORMER
@@ -96,7 +102,8 @@ func test_generate_indicators_positions_correctly() -> void:
 		position_rules_map,
 		_indicator_template,
 		_parent_node,
-		_targeting_state
+		_targeting_state,
+		_test_object
 	)
 	
 	# Verify correct number of indicators created
@@ -125,7 +132,8 @@ func test_positioner_position_affects_indicator_positions() -> void:
 		position_rules_map_origin,
 		_indicator_template,
 		_parent_node,
-		_targeting_state
+		_targeting_state,
+		_test_object
 	)
 	
 	var origin_indicator_pos: Vector2 = indicators_at_origin[0].global_position if indicators_at_origin.size() > 0 else Vector2.ZERO
@@ -136,7 +144,8 @@ func test_positioner_position_affects_indicator_positions() -> void:
 		position_rules_map_origin,
 		_indicator_template,
 		_parent_node,
-		_targeting_state
+		_targeting_state,
+		_test_object
 	)
 	
 	var offset_indicator_pos: Vector2 = indicators_at_offset[0].global_position if indicators_at_offset.size() > 0 else Vector2.ZERO
@@ -159,7 +168,8 @@ func test_indicators_use_global_positioning() -> void:
 		position_rules_map,
 		_indicator_template,
 		_parent_node,
-		_targeting_state
+		_targeting_state,
+		_test_object
 	)
 	
 	assert_that(indicators.size()).is_equal(2)
@@ -193,7 +203,8 @@ func test_parent_transforms_do_not_interfere() -> void:
 		position_rules_map,
 		_indicator_template,
 		_parent_node,
-		_targeting_state
+		_targeting_state,
+		_test_object
 	)
 	
 	assert_that(indicators.size()).is_equal(1)
@@ -238,3 +249,117 @@ func _verify_indicators_distributed_on_grid(indicators: Array[RuleCheckIndicator
 		assert_that(position_error).append_failure_message(
 			"Indicator %d should be at grid position: expected_offset=%s, expected_tile=%s, expected_world=%s, actual=%s, error=%f" % [i, expected_offset, expected_tile, expected_world_pos, actual_pos, position_error]
 		).is_less(2.0)  # Allow small error for floating point precision
+
+# REGRESSION TEST for 800+ pixel offset positioning bug
+# Reproduces runtime scene analysis issue where indicators appear at wrong positions
+func test_indicator_positioning_regression_800_pixel_offset() -> void:
+	# Set test object and positioner at specific coordinates that match runtime analysis
+	var expected_pos := Vector2(456.0, 552.0)  # From runtime scene analysis
+	_test_object.global_position = expected_pos
+	_positioner.global_position = expected_pos
+	
+	# Create simple single-indicator test
+	var position_rules_map: Dictionary[Vector2i, Array] = {}
+	position_rules_map[Vector2i(0, 0)] = []  # Single indicator at same tile as positioner
+	
+	# Generate indicator
+	var indicators: Array[RuleCheckIndicator] = IndicatorFactory.generate_indicators(
+		position_rules_map,
+		_indicator_template,
+		_parent_node,
+		_targeting_state,
+		_test_object
+	)
+	
+	# Validate basic generation
+	assert_that(indicators.size()).is_equal(1).append_failure_message("Expected exactly 1 indicator")
+	
+	var indicator: RuleCheckIndicator = indicators[0]
+	var indicator_pos: Vector2 = indicator.global_position
+	var distance: float = indicator_pos.distance_to(expected_pos)
+	
+	# Log detailed positioning data for analysis (matches runtime analysis format)
+	print("=== POSITIONING REGRESSION TEST ===")
+	print("Distance: %.1f pixels" % distance)
+	print("Offset vector: ", indicator_pos - expected_pos)
+
+	assert_vector(expected_pos).append_failure_message("Expected position for indicator").is_equal(indicator_pos)
+	
+	# Key assertion: This should FAIL if 800+ pixel regression is present
+	# If indicators appear at positions like (1272.0, 888.0), the distance will be ~800+ pixels
+	assert_that(distance).is_less(100.0).append_failure_message(
+		"REGRESSION DETECTED: Indicator positioned at (%s), expected near (%s). " % [indicator_pos, expected_pos] +
+		"Distance is %.1f pixels. The 800+ pixel offset regression means indicators appear far from expected positions." % distance
+	)
+
+# DEBUG TEST to investigate what position data comes from collision system
+func test_debug_collision_position_mapping() -> void:
+	# This test simulates the full collision pipeline to see what position offsets are generated
+	
+	# Set up a realistic scenario matching the runtime environment
+	_test_object.global_position = Vector2(456.0, 552.0)  # From runtime analysis
+	_positioner.global_position = Vector2(456.0, 552.0)
+	
+	# Mock a collision position that would cause the 800+ pixel offset
+	# From runtime analysis: local position (816.0, 336.0) results in global (1272.0, 888.0)
+	# So the offset being passed to IndicatorFactory might be (816/16, 336/16) = (51, 21) tiles
+	var suspicious_offset := Vector2i(51, 21)  # This should cause 816+ pixel offset
+	
+	# Test with the suspicious offset to see if this reproduces the issue
+	var position_rules_map: Dictionary[Vector2i, Array] = {}
+	position_rules_map[suspicious_offset] = []
+	
+	var indicators: Array[RuleCheckIndicator] = IndicatorFactory.generate_indicators(
+		position_rules_map,
+		_indicator_template,
+		_parent_node,
+		_targeting_state,
+		_test_object
+	)
+	
+	assert_that(indicators.size()).is_equal(1)
+	
+	var indicator: RuleCheckIndicator = indicators[0]
+	var expected_pos := Vector2(456.0, 552.0)
+	var actual_pos := indicator.global_position
+	var distance := actual_pos.distance_to(expected_pos)
+	
+	print("=== COLLISION POSITION MAPPING DEBUG ===")
+	print("Suspicious offset: ", suspicious_offset)
+	print("Expected position: ", expected_pos)
+	print("Actual position: ", actual_pos)
+	print("Distance: %.1f pixels" % distance)
+	print("Local position offset: ", actual_pos - expected_pos)
+	
+	# After the fix, this should no longer create a massive offset
+	if distance > 800.0:
+		print("REGRESSION STILL PRESENT: Large offset detected - collision system still generating wrong tile positions")
+		print("Tile offset %s creates %.1f pixel displacement" % [suspicious_offset, distance])
+		assert_that(false).append_failure_message("Fix didn't work - still getting 800+ pixel offsets").is_true()
+	else:
+		print("POTENTIALLY FIXED: This offset doesn't reproduce the massive displacement issue")
+	
+	# Test with a small relative offset to ensure normal behavior still works
+	var small_offset := Vector2i(1, 0)  # Should create ~16 pixel offset
+	var small_position_rules_map: Dictionary[Vector2i, Array] = {}
+	small_position_rules_map[small_offset] = []
+	
+	var small_indicators: Array[RuleCheckIndicator] = IndicatorFactory.generate_indicators(
+		small_position_rules_map,
+		_indicator_template,
+		_parent_node,
+		_targeting_state,
+		_test_object
+	)
+	
+	assert_that(small_indicators.size()).is_equal(1)
+	
+	var small_indicator := small_indicators[0]
+	var small_distance := small_indicator.global_position.distance_to(expected_pos)
+	
+	print("Small offset test: ", small_offset, " creates ", small_distance, " pixel distance")
+	
+	# Small offsets should create reasonable distances (~16 pixels for 1 tile)
+	assert_that(small_distance).is_greater(10.0).is_less(30.0).append_failure_message(
+		"Small offset should create reasonable distance, got %.1f pixels" % small_distance
+	)

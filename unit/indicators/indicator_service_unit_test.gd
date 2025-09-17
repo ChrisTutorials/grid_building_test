@@ -79,8 +79,13 @@ func _create_preview_with_collision_shapes() -> StaticBody2D:
 	
 	return preview
 
-func _create_empty_tile_check_rules() -> Array[TileCheckRule]:
-	return []
+func _create_valid_tile_check_rules() -> Array[TileCheckRule]:
+	# Create a valid tile check rule for testing instead of empty array
+	# This ensures validation passes and indicators can be generated
+	var rules: Array[TileCheckRule] = []
+	var rule := TileCheckRule.new()
+	rules.append(rule)
+	return rules
 #endregion
 
 
@@ -93,7 +98,7 @@ func test_validate_setup_environment_collects_targeting_issues() -> void:
 	auto_free(preview)
 	
 	# Missing template and invalid targeting state -> validate should fail and add issues
-	var report := service.setup_indicators(preview, _create_empty_tile_check_rules())
+	var report := service.setup_indicators(preview, _create_valid_tile_check_rules())
 	
 	assert_that(report).is_not_null().append_failure_message("Expected report to be created")
 	var issues := report.issues
@@ -108,10 +113,10 @@ func test_setup_indicators_reports_no_collision_shapes() -> void:
 	var preview := Node2D.new()
 	auto_free(preview)
 	
-	var report := _service.setup_indicators(preview, _create_empty_tile_check_rules())
+	var report := _service.setup_indicators(preview, _create_valid_tile_check_rules())
 	
 	assert_that(report).is_not_null().append_failure_message("Expected report to be created")
-	assert_array(report.issues).append_failure_message("Should report no collision shapes found").contains(["setup_indicators: no collision shapes found on test object; aborting indicator generation"])
+	assert_array(report.issues).append_failure_message("Should report no collision shapes found").contains(["setup_indicators: No collision shapes found on test object"])
 
 # Test catches: Missing collision mapper causing setup failure
 func test_setup_indicators_reports_missing_collision_mapper_when_nulled() -> void:
@@ -122,10 +127,83 @@ func test_setup_indicators_reports_missing_collision_mapper_when_nulled() -> voi
 	
 	# Force collision mapper to be missing to hit the specific branch
 	_service._collision_mapper = null
-	var report := _service.setup_indicators(preview, _create_empty_tile_check_rules())
+	var report := _service.setup_indicators(preview, _create_valid_tile_check_rules())
 	
 	assert_that(report).is_not_null().append_failure_message("Expected report to be created")
-	assert_array(report.issues).append_failure_message("Should report missing collision mapper").contains(["setup_indicators: collision_mapper is not available."])
+	assert_array(report.issues).append_failure_message("Should report missing collision mapper").contains(["setup_indicators: Collision mapper is not available"])
+
+#endregion
+
+#region Regression Tests
+
+# REGRESSION TEST: Test for 800+ pixel offset positioning bug 
+# This test reproduces the runtime scene analysis issue where indicators appear
+# at positions like (1272.0, 888.0) instead of near expected positions like (456.0, 552.0)
+# Expected failure: Catches positioning regression where indicators are offset by ~800+ pixels
+func test_indicator_positioning_regression_800_pixel_offset() -> void:
+	_service = _create_test_service()
+	
+	# Create a test object at a known position that matches runtime analysis data
+	var test_object := StaticBody2D.new()
+	test_object.name = "RegressionTestObject"
+	test_object.global_position = Vector2(456.0, 552.0)  # Expected position from runtime analysis
+	add_child(test_object)
+	auto_free(test_object)
+	
+	# Add collision shape to test object
+	var collision_shape := CollisionShape2D.new()
+	var rect_shape := RectangleShape2D.new()
+	rect_shape.size = Vector2(64, 64)  # 2x2 tiles
+	collision_shape.shape = rect_shape
+	test_object.collision_layer = GBTestConstants.TEST_COLLISION_LAYER
+	test_object.add_child(collision_shape)
+	
+	# Create targeting state with positioner
+	var targeting_state := _test_env.grid_targeting_system.get_state()
+	var positioner := Node2D.new()
+	positioner.name = "TestPositioner" 
+	positioner.global_position = test_object.global_position  # Same position as test object
+	add_child(positioner)
+	auto_free(positioner)
+	targeting_state.positioner = positioner
+	
+	# Create a simple rule that should apply to our test object
+	var rule := TileCheckRule.new()
+	rule.apply_to_objects_mask = GBTestConstants.TEST_COLLISION_LAYER
+	
+	# Generate indicators directly using IndicatorFactory to isolate the positioning issue
+	var position_rules_map: Dictionary[Vector2i, Array] = {}
+	position_rules_map[Vector2i(0, 0)] = [rule]  # Simple 1-tile offset from positioner
+	
+	var indicators: Array[RuleCheckIndicator] = IndicatorFactory.generate_indicators(
+		position_rules_map,
+		GBTestConstants.TEST_INDICATOR_TD_PLATFORMER,
+		_indicators_parent,
+		targeting_state,
+		test_object
+	)
+	
+	# Validate that indicators exist
+	assert_that(indicators.size()).is_greater(0).append_failure_message("Expected indicators to be generated")
+	
+	# CRITICAL ASSERTION: Check that indicators are positioned near the expected position
+	# This should fail with current regression, showing ~800+ pixel offset
+	for indicator in indicators:
+		var indicator_pos := indicator.global_position
+		var expected_pos := test_object.global_position
+		var distance := indicator_pos.distance_to(expected_pos)
+		
+		# Log positions for debugging (matching runtime analysis format)
+		_logger.log_debug(self, "Indicator positioned at global: (%s), expected near: (%s), distance: %.1f" % [
+			indicator_pos, expected_pos, distance
+		])
+		
+		# This assertion should FAIL with current regression - indicators appearing 800+ pixels away
+		assert_that(distance).is_less(100.0).append_failure_message(
+			"Indicator at (%s) is %.1f pixels away from expected position (%s). " % [
+				indicator_pos, distance, expected_pos
+			] + "This indicates the 800+ pixel offset regression is present."
+		)
 
 #endregion
 
@@ -141,7 +219,7 @@ func test_indicators_positioned_at_correct_tile_positions() -> void:
 	# Position the preview at a known location
 	preview.global_position = Vector2(GBTestConstants.DEFAULT_TILE_SIZE.x * TILE_GRID_OFFSET_X, GBTestConstants.DEFAULT_TILE_SIZE.y * TILE_GRID_OFFSET_Y)
 	
-	var report := _service.setup_indicators(preview, _create_empty_tile_check_rules())
+	var report := _service.setup_indicators(preview, _create_valid_tile_check_rules())
 	
 	assert_that(report).is_not_null().append_failure_message("Expected successful indicator setup")
 	assert_that(report.issues).is_empty().append_failure_message("Expected no setup issues: " + str(report.issues))
@@ -165,7 +243,7 @@ func test_indicators_have_offset_based_naming() -> void:
 	_service = _create_test_service()
 	
 	var preview := _create_preview_with_collision_shapes()
-	var report := _service.setup_indicators(preview, _create_empty_tile_check_rules())
+	var report := _service.setup_indicators(preview, _create_valid_tile_check_rules())
 	
 	assert_that(report.issues).is_empty().append_failure_message("Expected no setup issues: " + str(report.issues))
 	
@@ -174,10 +252,10 @@ func test_indicators_have_offset_based_naming() -> void:
 	
 	# Verify naming follows the pattern "RuleCheckIndicator-Offset(X,Y)"
 	for indicator in indicators:
-		assert_that(indicator.name).contains("RuleCheckIndicator-Offset(").append_failure_message(
+		assert_that("RuleCheckIndicator-Offset(" in indicator.name).is_true().append_failure_message(
 			"Expected indicator name to contain offset pattern, got: " + indicator.name
 		)
-		assert_that(indicator.name).contains(",").append_failure_message(
+		assert_that("," in indicator.name).is_true().append_failure_message(
 			"Expected indicator name to contain coordinate separator, got: " + indicator.name
 		)
 
@@ -194,33 +272,26 @@ func test_testing_indicator_freed_after_setup() -> void:
 	# Track the testing indicator before setup (unused but could be useful for debugging)
 	var _testing_indicator_before := _service._testing_indicator
 	
-	var report := _service.setup_indicators(preview, _create_empty_tile_check_rules())
+	var report := _service.setup_indicators(preview, _create_valid_tile_check_rules())
 	
 	assert_that(report.issues).is_empty().append_failure_message("Expected no setup issues: " + str(report.issues))
 	
 	# Give some time for cleanup operations
 	await get_tree().process_frame
 	
-	# The testing indicator should be configured during setup but may persist for reuse
-	# What we care about is that it's not leaked and the service is properly managing it
+	# The testing indicator should be freed after setup to prevent memory leaks
+	# IndicatorSetupUtils calls queue_free() on the testing indicator after use
 	var testing_indicator_after := _service._testing_indicator
 	
-	# The key test is that the testing indicator exists and is properly managed
-	assert_that(testing_indicator_after).is_not_null().append_failure_message("Expected testing indicator to be managed by service")
-	
-	# Verify the testing indicator is not one of the generated indicators
-	var generated_indicators := _service._indicators
-	for indicator in generated_indicators:
-		assert_that(indicator).is_not_same(testing_indicator_after).append_failure_message(
-			"Testing indicator should not be included in generated indicators"
-		)
+	# The testing indicator reference should be null after cleanup
+	assert_that(testing_indicator_after).is_null().append_failure_message("Expected testing indicator to be freed after setup")
 
 # Test: Testing indicator should be reusable across multiple setups
 func test_testing_indicator_reusable_across_setups() -> void:
 	_service = _create_test_service()
 	
 	var preview1 := _create_preview_with_collision_shapes()
-	var report1 := _service.setup_indicators(preview1, _create_empty_tile_check_rules())
+	var report1 := _service.setup_indicators(preview1, _create_valid_tile_check_rules())
 	
 	assert_that(report1.issues).is_empty().append_failure_message("Expected no issues in first setup")
 	
@@ -231,7 +302,7 @@ func test_testing_indicator_reusable_across_setups() -> void:
 	_service.clear_indicators()
 	
 	var preview2 := _create_preview_with_collision_shapes()
-	var report2 := _service.setup_indicators(preview2, _create_empty_tile_check_rules())
+	var report2 := _service.setup_indicators(preview2, _create_valid_tile_check_rules())
 	
 	assert_that(report2.issues).is_empty().append_failure_message("Expected no issues in second setup")
 	
