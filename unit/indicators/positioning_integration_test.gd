@@ -7,17 +7,18 @@ var collision_mapper: CollisionMapper
 
 func before_test() -> void:
 	# Create a test environment using GBTestConstants
-	var env_scene = GBTestConstants.get_environment_scene(GBTestConstants.ALL_SYSTEMS_ENV_UID)
+	var env_scene : PackedScene = GBTestConstants.get_environment_scene(GBTestConstants.EnvironmentType.ALL_SYSTEMS)
 	if env_scene:
 		test_env = env_scene.instantiate()
 		add_child(test_env)
+		auto_free(test_env)
 		collision_mapper = test_env.building_system.get_collision_mapper()
 		# Set positioner to runtime position
 		test_env.positioner.global_position = Vector2(456.0, 552.0)
 
 func after_test() -> void:
 	if test_env:
-		test_env.queue_free()
+		test_env.free()
 
 func test_collision_mapping_produces_relative_offsets() -> void:
 	# Skip test if required components are missing

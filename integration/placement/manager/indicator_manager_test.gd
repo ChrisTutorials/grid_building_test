@@ -9,7 +9,9 @@ const TEST_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
 # Test constants for common values
 const TILE_SIZE: Vector2 = Vector2(32, 32)
 const EXPECTED_ECLIPSE_INDICATORS: int = 31
-const EXPECTED_LOGO_INDICATORS: int = 4
+
+## For square object 17x17px expect 4 16x16 indicators
+const EXPECTED_SQUARE_INDICATORS: int = 4
 const INDICATOR_SPACING: float = 16.0
 
 # Minimal, parameterized, and double-factory-based IndicatorManager tests
@@ -22,16 +24,15 @@ var _positioner : Node2D
 var _injector: GBInjectorSystem
 var _container : GBCompositionContainer
 
-# ================================
-# DRY Helper Functions
-# ================================
-
+#region Helper Functions
+"""Set up indicators for a scene and return the report."""
 func setup_scene_with_indicators(scene: Node2D) -> IndicatorSetupReport:
-	"""Set up indicators for a scene and return the report."""
+	
 	return indicator_manager.setup_indicators(scene, col_checking_rules)
 
+"""Assert that a scene has collision shapes and return the count."""
 func assert_scene_has_collision_shapes(scene: Node2D, context: String = "") -> int:
-	"""Assert that a scene has collision shapes and return the count."""
+	
 	var count := _count_collision_shapes(scene)
 	assert_int(count).append_failure_message("Scene lacks collision shapes%s" % context).is_greater(0)
 	return count
@@ -42,6 +43,8 @@ func get_indicators_and_summary(report: IndicatorSetupReport) -> Dictionary:
 		"indicators": report.indicators,
 		"summary": report.to_summary_string()
 	}
+
+#endregion
 
 func before_test() -> void:
 	_container = TEST_CONTAINER.duplicate()
@@ -114,7 +117,6 @@ func test_indicator_manager_dependencies_initialized() -> void:
 	# Test that the IndicatorManager can actually function instead of testing private properties
 	# Create a test scene and verify indicators are generated
 	var shape_scene: Node = UnifiedTestFactory.create_eclipse_test_object(self)
-	add_child(shape_scene)
 	shape_scene.global_position = global_snap_pos
 
 	# Pre-assert the scene has at least one collision shape/polygon
@@ -141,17 +143,12 @@ func test_indicator_manager_dependencies_initialized() -> void:
 	# Initially there should be no colliding indicators since we just set them up
 	assert_int(colliding_indicators.size()).is_equal(0)
 
-func test_indicator_count_for_shapes(shape_scene: Node2D, expected: int, _test_parameters := [
+@warning_ignore("unused_parameter")
+func test_indicator_count_for_shapes(shape_scene: Node2D, expected: int, test_parameters := [
 	[UnifiedTestFactory.create_eclipse_test_object(self), EXPECTED_ECLIPSE_INDICATORS],  # Adjusted after RectangleShape2D size fix (extents->size reduced coverage)
-	[null, EXPECTED_LOGO_INDICATORS]  # TODO: Replace null with proper logo test object
+	[CollisionObjectTestFactory.create_area_with_rect(self, Vector2(17,17)), EXPECTED_SQUARE_INDICATORS]  # TODO: Replace null with proper logo test object
 ]) -> void:
-	if shape_scene == null:
-		# Skip logo test for now - need to implement proper logo test object
-		return
-		
-	add_child(shape_scene)
 	shape_scene.global_position = global_snap_pos
-
 	assert_scene_has_collision_shapes(shape_scene, "; expected >0 for indicator generation")
 
 	var _overlap_ok: bool = _collision_layer_overlaps(shape_scene, col_checking_rules)
@@ -167,7 +164,6 @@ func test_indicator_count_for_shapes(shape_scene: Node2D, expected: int, _test_p
 
 func test_indicator_positions_are_unique() -> void:
 	var shape_scene: Node2D = UnifiedTestFactory.create_eclipse_test_object(self)
-	add_child(shape_scene)
 	shape_scene.global_position = global_snap_pos
 
 	assert_scene_has_collision_shapes(shape_scene, " for uniqueness test")
@@ -210,10 +206,12 @@ func test_no_indicators_for_empty_scene() -> void:
 		[indicators.size(), summary]
 	).is_equal(0)
 
+## Expects at least two indicators to be generated and then calculate the distance between them which
+## should match the expected distance
+@warning_ignore("unused_parameter")
 func test_indicator_generation_distance(shape_scene: Node2D, expected_distance: float, _test_parameters := [
 	[UnifiedTestFactory.create_eclipse_test_object(self), INDICATOR_SPACING]
 ]) -> void:
-	add_child(shape_scene)
 	shape_scene.global_position = global_snap_pos
 	var report : IndicatorSetupReport = setup_scene_with_indicators(shape_scene)
 	var data: Dictionary = get_indicators_and_summary(report)
@@ -225,8 +223,15 @@ func test_indicator_generation_distance(shape_scene: Node2D, expected_distance: 
 		[indicators.size(), str(shape_scene), summary]
 	).is_greater(1)
 
-	var indicator_0: RuleCheckIndicator = indicators[0]
-	var indicator_1: RuleCheckIndicator = indicators[1]
+	var indicator_0: RuleCheckIndicator = indicators.get(0)
+	var indicator_1: RuleCheckIndicator = indicators.get(1)
+	
+	assert_bool(indicator_0 != null && indicator_1 != null).append_failure_message("Expected to generate 2 indicators for this test: [%s, %s]" % [indicator_0, indicator_1]).is_true()
+	
+	if indicator_0 == null || indicator_1 == null:
+		fail("Cannot finish test if the two indicators did not generate")
+		return
+	
 	var distance_to: float = indicator_0.global_position.distance_to(indicator_1.global_position)
 
 	assert_float(distance_to).append_failure_message(
@@ -236,7 +241,6 @@ func test_indicator_generation_distance(shape_scene: Node2D, expected_distance: 
 
 func test_indicators_are_freed_on_reset() -> void:
 	var shape_scene: Node2D = UnifiedTestFactory.create_eclipse_test_object(self)
-	add_child(shape_scene)
 	shape_scene.global_position = global_snap_pos
 	var report : IndicatorSetupReport = setup_scene_with_indicators(shape_scene)
 	var data: Dictionary = get_indicators_and_summary(report)

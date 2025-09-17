@@ -60,7 +60,7 @@ func _instantiate_preview(packed_scene: PackedScene) -> Node2D:
 		return packed_scene.instantiate()
 
 	# Use DRY factory for synthetic preview creation
-	return UnifiedTestFactory.create_polygon_test_object(self)
+	return CollisionObjectTestFactory.create_polygon_test_object(self)
 
 func _get_collision_shapes_from_node(root: Node) -> Array[Node]:
 	## Helper method to collect collision shapes using DRY pattern

@@ -1,9 +1,9 @@
 [gd_resource type="Resource" script_class="GBCompositionContainer" load_steps=3 format=3 uid="uid://kxdod6rj5icx"]
 
-[ext_resource type="Resource" uid="uid://c5yrcennys32p" path="res://demos/isometric/settings/isometric_config.tres" id="1_n0qg7"]
+[ext_resource type="Resource" uid="uid://dktj7r4bimgg0" path="res://test/grid_building_test/resources/settings/test_isometric_config.tres" id="1_3itt7"]
 [ext_resource type="Script" uid="uid://des845magnt6c" path="res://addons/grid_building/resources/gb_composition_container.gd" id="2_mff4u"]
 
 [resource]
 script = ExtResource("2_mff4u")
-config = ExtResource("1_n0qg7")
+config = ExtResource("1_3itt7")
 metadata/_custom_type_script = "uid://des845magnt6c"

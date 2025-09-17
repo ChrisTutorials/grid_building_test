@@ -10,9 +10,13 @@ size = Vector2(30, 30)
 
 [sub_resource type="Resource" id="Resource_yk7gq"]
 script = ExtResource("4_w5adq")
+move_rules = Array[ExtResource("3_qcsol")]([])
+ignore_base_rules = false
 rotateable = true
 flip_horizontal = true
 flip_vertical = true
+movable = true
+demolishable = true
 
 [node name="OffsetLogo" type="StaticBody2D"]
 collision_layer = 2561

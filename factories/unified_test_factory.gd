@@ -83,6 +83,21 @@ static func prepare_targeting_state_ready(test: GdUnitTestSuite, container: GBCo
 ## Delegate: Create test composition container
 ## @deprecated: Use GBCompositionContainer.new() directly or specific factory methods
 static func create_test_composition_container(_test: GdUnitTestSuite) -> GBCompositionContainer:
+	# Prefer duplicating the repo-provided test composition container so config
+	# and placement_rules are present during test runs. Fall back to a new empty
+	# container when the shared test resource is unavailable.
+	# Prefer duplicating the repo-provided test composition container so tests
+	# receive a container with preconfigured `config.settings.placement_rules`.
+	var base_container: GBCompositionContainer = null
+	# GBTestConstants.TEST_COMPOSITION_CONTAINER is a preloaded resource used
+	# across tests (see `gb_test_constants.gd`). Use it when available.
+	base_container = GBTestConstants.TEST_COMPOSITION_CONTAINER
+
+	if base_container:
+		var dup: GBCompositionContainer = base_container.duplicate(true)
+		return dup
+
+	# Fallback: create an empty container (legacy behaviour)
 	var container: GBCompositionContainer = GBCompositionContainer.new()
 	return container
 
@@ -107,18 +122,33 @@ static func create_indicator_manager(test: GdUnitTestSuite) -> IndicatorManager:
 ## @deprecated: Use GBInjectorSystem.new() directly or specific factory methods
 static func create_test_injector(test: GdUnitTestSuite, container: GBCompositionContainer) -> GBInjectorSystem:
 	var injector: GBInjectorSystem = GBInjectorSystem.new()
+	# Diagnostic logging to help trace composition container assignment during tests
+	if container != null:
+		var pr: Array = []
+		if container.get_placement_rules():
+			pr = container.get_placement_rules()
+		var prc: int = pr.size() if pr.size() > 0 else 0
+		var path_info: String = container.resource_path if "resource_path" in container else str(container)
+		if container and container.has_method("get_logger"):
+			var _log: GBLogger = container.get_logger()
+			if _log:
+				_log.log_debug(null, "[UnifiedTestFactory] Assigning container path=%s placement_rules_count=%s" % [str(path_info), str(prc)])
+			else:
+				print("[DIAG][UnifiedTestFactory] Assigning container path=%s placement_rules_count=%s" % [str(path_info), str(prc)])
+		else:
+			print("[DIAG][UnifiedTestFactory] Assigning container path=%s placement_rules_count=%s" % [str(path_info), str(prc)])
+	else:
+		print("[DIAG][UnifiedTestFactory] Assigning NULL container to injector")
 	container.injector = injector
 	test.add_child(injector)
 	test.auto_free(injector)
 	return injector
 
 ## Delegate: Create eclipse test object
-## @deprecated: Use Node2D.new() directly or specific factory methods
+## @deprecated: Use CollisionObjectTestFactory.create_polygon_test_object() directly
 static func create_eclipse_test_object(test: GdUnitTestSuite) -> Node2D:
-	var obj: Node2D = Node2D.new()
-	test.add_child(obj)
-	test.auto_free(obj)
-	return obj
+	# Create an object with actual collision shapes for testing
+	return CollisionObjectTestFactory.create_polygon_test_object(test)
 
 #endregion
 
@@ -164,8 +194,7 @@ static func create_test_rule_check_indicator(test_instance: Node) -> RuleCheckIn
 	indicator.shape = default_shape
 	
 	test_instance.add_child(indicator)
-	if test_instance.has_method("auto_free"):
-		test_instance.auto_free(indicator)
+	test_instance.auto_free(indicator)
 	return indicator
 
 ## Delegate: Create test rule check indicator with shape
@@ -210,6 +239,8 @@ static func create_manipulation_system(test_instance: Node) -> Object:
 ## @deprecated: Use GridPositioner2D.new() directly
 static func create_grid_positioner(_test: GdUnitTestSuite) -> GridPositioner2D:
 	var positioner: GridPositioner2D = GridPositioner2D.new()
+	_test.add_child(positioner)
+	_test.auto_free(positioner)
 	
 	# Assign default shape to prevent "Invalid shape" errors
 	var default_shape: RectangleShape2D = RectangleShape2D.new()

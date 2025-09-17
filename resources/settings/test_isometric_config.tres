@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="GBConfig" load_steps=8 format=3 uid="uid://dktj7r4bimgg0"]
+
+[ext_resource type="Script" uid="uid://b8qexmaqap2qt" path="res://addons/grid_building/resources/actions/gb_actions.gd" id="1_rh8gn"]
+[ext_resource type="Script" uid="uid://bt4psxjklha65" path="res://addons/grid_building/systems/manipulation/name_displayer.gd" id="2_rnvdd"]
+[ext_resource type="Script" uid="uid://candxhdqm5c6q" path="res://addons/grid_building/resources/gb_config.gd" id="3_ojvtr"]
+[ext_resource type="Resource" uid="uid://dlybk11b6ids7" path="res://demos/isometric/settings/isometric_settings.tres" id="4_ffj7c"]
+[ext_resource type="Resource" uid="uid://4i3a25wdlke" path="res://demos/isometric/settings/isometric_templates.tres" id="5_oinst"]
+
+[sub_resource type="Resource" id="Resource_dgukk"]
+script = ExtResource("1_rh8gn")
+off_mode = &"off_mode"
+info_mode = &"info_mode"
+build_mode = &"build_mode"
+moving_mode = &"moving_mode"
+demolish_mode = &"demolish_mode"
+confirm_build = &"confirm"
+confirm_manipulation = &"confirm"
+rotate_right = &"rotate_right"
+rotate_left = &"rotate_left"
+flip_horizontal = &"flip_horizontal"
+flip_vertical = &"flip_vertical"
+metadata/_custom_type_script = "uid://b8qexmaqap2qt"
+
+[sub_resource type="Resource" id="Resource_aym73"]
+script = ExtResource("2_rnvdd")
+missing_name = "<none>"
+custom_name_method = &""
+metadata/_custom_type_script = "uid://bt4psxjklha65"
+
+[resource]
+script = ExtResource("3_ojvtr")
+settings = ExtResource("4_ffj7c")
+templates = ExtResource("5_oinst")
+actions = SubResource("Resource_dgukk")
+name_displayer = SubResource("Resource_aym73")
+metadata/_custom_type_script = "uid://candxhdqm5c6q"

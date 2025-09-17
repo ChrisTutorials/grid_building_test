@@ -39,6 +39,8 @@ func create_mock_indicator(position: Vector2 = DEFAULT_POSITION) -> RuleCheckInd
 	var indicator: RuleCheckIndicator = RuleCheckIndicator.new()
 	auto_free(indicator)
 	indicator.position = position
+	indicator.shape = RectangleShape2D.new()
+	indicator.shape.size = Vector2(16,16)
 	add_child(indicator)
 	return indicator
 
@@ -81,7 +83,7 @@ func test_collision_utilities_rect_tile_positions() -> void:
 	var center_pos: Vector2 = DEFAULT_POSITION
 	var rect_size: Vector2 = TILE_SIZE  # Single tile
 
-	var result: Array[Vector2i] = CollisionUtilities.get_rect_tile_positions(_targeting_state, center_pos, rect_size)
+	var result: Array[Vector2i] = CollisionUtilities.get_rect_tile_positions(_targeting_state.target_map, center_pos, rect_size)
 	assert_array_not_null_and_type(result, "Should return valid tile positions")
 
 	# Should contain at least the center tile
@@ -95,7 +97,7 @@ func test_collision_utilities_invalid_tile_map() -> void:
 	var center_pos: Vector2 = DEFAULT_POSITION
 	var rect_size: Vector2 = TILE_SIZE
 
-	var result: Array[Vector2i] = CollisionUtilities.get_rect_tile_positions(_targeting_state, center_pos, rect_size)
+	var result: Array[Vector2i] = CollisionUtilities.get_rect_tile_positions(_targeting_state.target_map, center_pos, rect_size)
 	assert_array_not_null_and_type(result, "Should handle invalid tile map gracefully")
 	assert_that(result.is_empty()).append_failure_message("Should return empty array for invalid tile map").is_true()
 

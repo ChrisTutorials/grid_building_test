@@ -124,7 +124,11 @@ func _get_tile_position_count_for_polygon(polygon: PackedVector2Array) -> int:
 
 ## DRY helper for parameterized testing of multiple building shapes
 @warning_ignore("unused_parameter")
-func test_isometric_building_shapes(shape_name: String, polygon: PackedVector2Array, expected_tiles: int, description: String) -> void:
+func test_isometric_building_shapes(shape_name: String, polygon: PackedVector2Array, expected_tiles: int, description: String, test_parameters :=  [
+		["Small Diamond", PackedVector2Array([Vector2(-42, 0), Vector2(0, -24), Vector2(42, 0), Vector2(0, 24)]), 1, "84x48px diamond should fit in single 90x50 tile"],
+		["Square Building", PackedVector2Array([Vector2(-40, -20), Vector2(40, -20), Vector2(40, 20), Vector2(-40, 20)]), 1, "80x40px square should fit in single 90x50 tile"],
+		["Medium Diamond", PackedVector2Array([Vector2(-48, -16), Vector2(0, -44), Vector2(48, -16), Vector2(0, 12)]), 1, "96x56px diamond should fit in single 90x50 tile with proper calculation"]
+	]) -> void:
 	"""Parameterized test for different building shapes"""
 	
 	var tile_count: int = _get_tile_position_count_for_polygon(polygon)
@@ -132,11 +136,3 @@ func test_isometric_building_shapes(shape_name: String, polygon: PackedVector2Ar
 	assert_int(tile_count)\
 		.append_failure_message("%s: %s (actual: %d, expected: %d)" % [shape_name, description, tile_count, expected_tiles])\
 		.is_equal(expected_tiles)
-
-## Test parameters for parameterized building shapes test
-func test_isometric_building_shapes_parameters() -> Array[Array]:
-	return [
-		["Small Diamond", PackedVector2Array([Vector2(-42, 0), Vector2(0, -24), Vector2(42, 0), Vector2(0, 24)]), 1, "84x48px diamond should fit in single 90x50 tile"],
-		["Square Building", PackedVector2Array([Vector2(-40, -20), Vector2(40, -20), Vector2(40, 20), Vector2(-40, 20)]), 1, "80x40px square should fit in single 90x50 tile"],
-		["Medium Diamond", PackedVector2Array([Vector2(-48, -16), Vector2(0, -44), Vector2(48, -16), Vector2(0, 12)]), 1, "96x56px diamond should fit in single 90x50 tile with proper calculation"]
-	]

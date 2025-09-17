@@ -61,15 +61,23 @@ func test_polygon_test_object_no_indicator_at_origin_when_centered() -> void:
 	# Create collision polygon as child of StaticBody2D (proper structure)
 	var collision_polygon: CollisionPolygon2D = CollisionPolygon2D.new()
 	collision_polygon.name = "CollisionPolygon2D"
-	# Define a concave polygon that should generate multiple indicators
+	# Define a polygon that surrounds the origin but doesn't overlap the (0,0) tile
+	# This creates a "donut" shape with a hole at the center that excludes the origin tile
+	# With 16x16 tiles, tile (0,0) covers from (-8,-8) to (8,8)
+	# So we create a polygon that has a hole bigger than this tile
 	var points: PackedVector2Array = [
-		Vector2(-32, -32),  # Top-left
-		Vector2(32, -32),   # Top-right  
-		Vector2(32, 0),     # Right-middle
-		Vector2(0, 0),      # Center (creates concave shape)
-		Vector2(0, 32),     # Bottom-center
-		Vector2(-32, 32),   # Bottom-left
-		Vector2(-32, -32)   # Close the polygon
+		# Outer ring (clockwise to be outer boundary)
+		Vector2(-32, -32),  # Outer top-left
+		Vector2(32, -32),   # Outer top-right  
+		Vector2(32, 32),    # Outer bottom-right
+		Vector2(-32, 32),   # Outer bottom-left
+		Vector2(-32, -32),  # Close outer ring
+		# Inner ring (counter-clockwise to create hole)
+		Vector2(-12, -12),  # Inner top-left (hole bigger than one tile)
+		Vector2(-12, 12),   # Inner bottom-left  
+		Vector2(12, 12),    # Inner bottom-right
+		Vector2(12, -12),   # Inner top-right
+		Vector2(-12, -12)   # Close inner ring
 	]
 	collision_polygon.polygon = points
 	static_body.add_child(collision_polygon)
@@ -125,7 +133,7 @@ func test_polygon_test_object_valid_indicators_generated() -> void:
 		return
 	
 	# Arrange: Create polygon test object under manipulation parent
-	var polygon_obj: Node = UnifiedTestFactory.create_polygon_test_object(self)
+	var polygon_obj: Node = CollisionObjectTestFactory.create_polygon_test_object(self)
 	# Remove from test suite and add to manipulation parent
 	if polygon_obj.get_parent():
 		polygon_obj.get_parent().remove_child(polygon_obj)
@@ -173,7 +181,7 @@ func test_polygon_test_object_centered_preview_flag() -> void:
 		return
 	
 	# Arrange: Create polygon test object as child of positioner (this should trigger centered_preview)
-	var polygon_obj: Node = UnifiedTestFactory.create_polygon_test_object(self)
+	var polygon_obj: Node = CollisionObjectTestFactory.create_polygon_test_object(self)
 	# Remove from test suite and add to positioner
 	if polygon_obj.get_parent():
 		polygon_obj.get_parent().remove_child(polygon_obj)
@@ -220,7 +228,7 @@ func test_proper_parent_architecture_maintained() -> void:
 		return
 	
 	# Arrange: Create polygon test object under manipulation parent
-	var polygon_obj: Node = UnifiedTestFactory.create_polygon_test_object(self)
+	var polygon_obj: Node = CollisionObjectTestFactory.create_polygon_test_object(self)
 	# Remove from test suite and add to manipulation parent
 	if polygon_obj.get_parent():
 		polygon_obj.get_parent().remove_child(polygon_obj)

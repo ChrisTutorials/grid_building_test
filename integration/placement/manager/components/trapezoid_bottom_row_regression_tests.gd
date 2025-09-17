@@ -124,7 +124,11 @@ func _analyze_tile_coverage_by_row(tile_positions: Array) -> Dictionary:
 
 ## Parameterized test for different trapezoid shapes
 @warning_ignore("unused_parameter")
-func test_trapezoid_shapes(shape_name: String, polygon: PackedVector2Array, expected_bottom_count: int, expected_total_range: Array) -> void:
+func test_trapezoid_shapes(shape_name: String, polygon: PackedVector2Array, expected_bottom_count: int, expected_total_range: Array, test_parameters := [
+		["Standard", PackedVector2Array([Vector2(-16, -12), Vector2(16, -12), Vector2(32, 12), Vector2(-32, 12)]), 4, [7, 7]],
+		["Wide", PackedVector2Array([Vector2(-8, -12), Vector2(8, -12), Vector2(48, 12), Vector2(-48, 12)]), 5, [8, 8]],
+		["Narrow", PackedVector2Array([Vector2(-24, -12), Vector2(24, -12), Vector2(16, 12), Vector2(-16, 12)]), 3, [6, 6]]
+	]) -> void:
 	"""Parameterized test for different trapezoid configurations"""
 	
 	var trapezoid_body: StaticBody2D = auto_free(StaticBody2D.new())
@@ -155,11 +159,3 @@ func test_trapezoid_shapes(shape_name: String, polygon: PackedVector2Array, expe
 		assert_int(bottom_count)\
 			.append_failure_message("%s: Expected %d bottom-row tiles, got %d" % [shape_name, expected_bottom_count, bottom_count])\
 			.is_equal(expected_bottom_count)
-
-## Test parameters for parameterized trapezoid shapes
-func test_trapezoid_shapes_parameters() -> Array:
-	return [
-		["Standard", PackedVector2Array([Vector2(-16, -12), Vector2(16, -12), Vector2(32, 12), Vector2(-32, 12)]), 4, [8, 15]],
-		["Wide", PackedVector2Array([Vector2(-8, -12), Vector2(8, -12), Vector2(48, 12), Vector2(-48, 12)]), 6, [10, 20]],
-		["Narrow", PackedVector2Array([Vector2(-24, -12), Vector2(24, -12), Vector2(16, 12), Vector2(-16, 12)]), 2, [6, 12]]
-	]

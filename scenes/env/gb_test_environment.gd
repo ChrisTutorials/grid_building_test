@@ -53,4 +53,4 @@ func get_issues() -> Array[String]:
 	return issues
 
 func get_container() -> GBCompositionContainer:
-	return injector.composition_container
+	return injector.composition_container if injector else null

@@ -45,7 +45,6 @@ var _container: GBCompositionContainer
 
 ## Creates a ManipulationData instance for testing move operations, initializing source and target Manipulatable objects with the provided settings, and setting the action to MOVE.
 func _create_test_manipulation_data(p_settings: ManipulatableSettings) -> ManipulationData:
-	
 	var source: Manipulatable = _create_test_manipulatable(p_settings)
 	var target: Manipulatable = _create_test_manipulatable(p_settings)
 	
@@ -160,10 +159,11 @@ func test_cancel() -> void:
 			assert_object(_container.get_states().manipulation.data).is_null()
 			assert_vector(active_data.source.root.global_position).is_equal(Vector2.ZERO)
 
+@warning_ignore("unused_parameter")
 func test_try_move(
 	p_target_root: Node,
 	p_expected: GBEnums.Status,
-	_test_parameters := [
+	test_parameters := [
 		[null, GBEnums.Status.FAILED],
 		[auto_free(Node.new()), GBEnums.Status.FAILED],
 		[auto_free(Manipulatable.new()), GBEnums.Status.FAILED],
@@ -203,10 +203,11 @@ func test_demolish(
 
 	assert_bool(success).is_equal(p_expected)
 
+@warning_ignore("unused_parameter")
 func test_try_placement(
 	p_settings: ManipulatableSettings,
 	p_expected: bool,
-	_test_parameters := [[manipulatable_settings_all_allowed, true]]
+	test_parameters := [[manipulatable_settings_all_allowed, true]]
 ) -> void:
 	var source: Manipulatable = _create_test_manipulatable(p_settings)
 	assert_that(source).is_not_null()
@@ -232,13 +233,14 @@ func test_try_placement(
 #endregion
 
 #region Helper Methods
+## Create a test manipulatable with specified settings
 func _create_test_manipulatable(p_settings: ManipulatableSettings) -> Manipulatable:
-	"""Create a test manipulatable with specified settings"""
-	var manipulatable: Manipulatable = Manipulatable.new()
+	var manipulatable: Manipulatable = auto_free(Manipulatable.new())
 	manipulatable.settings = p_settings
 	manipulatable.root = Node2D.new()
 	add_child(manipulatable.root)
 	auto_free(manipulatable.root)
+	manipulatable.root.add_child(manipulatable)
 	return manipulatable
 
 func _create_test_move_data(p_settings: ManipulatableSettings) -> ManipulationData:

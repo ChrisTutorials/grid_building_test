@@ -3,7 +3,7 @@ extends GdUnitTestSuite
 var container: GBCompositionContainer
 
 func before_test() -> void:
-	container = GBCompositionContainer.new()
+	container = UnifiedTestFactory.create_test_composition_container(self)
 	container.config = GBConfig.new()
 
 func test_validate_configuration_with_complete_config() -> void:

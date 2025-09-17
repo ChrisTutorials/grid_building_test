@@ -1,0 +1,93 @@
+## Unit test to reproduce indicator generation emptiness
+## This test creates a minimal environment via EnvironmentTestFactory,
+## ensures the environment contains the indicator manager and container,
+## then attempts to run IndicatorManager.try_setup with placement rules from
+## GBTestConstants and verifies that indicators are produced.
+extends GdUnitTestSuite
+
+var _env: BuildingTestEnvironment
+var _manager: IndicatorManager
+var _container: GBCompositionContainer
+var _state: GridTargetingState
+
+func before_test() -> void:
+	_env = EnvironmentTestFactory.create_building_system_test_environment(self)
+	_manager = _env.indicator_manager
+	_container = _env.get_container()
+	_state = _env.grid_targeting_system.get_state()
+	assert_object(_manager).is_not_null()
+	assert_object(_container).is_not_null()
+	assert_object(_state).is_not_null()
+
+func test_indicator_generation_from_container_rules() -> void:
+	# Arrange: create a polygon preview like integration tests do
+	var preview: Node2D = CollisionObjectTestFactory.create_polygon_test_object(self)
+	auto_free(preview)
+	# Reparent if factory already attached it somewhere
+	var old_parent := preview.get_parent() if is_instance_valid(preview) else null
+	if old_parent != null:
+		old_parent.remove_child(preview)
+
+	# Parent under the environment's positioner (runtime-like)
+	_state.positioner.add_child(preview)
+	_state.target = preview
+	_state.positioner.global_position = Vector2(64, 64)
+
+	# Acquire placement rules from the container (or GBTestConstants fallback)
+	var rules: Array[PlacementRule] = _container.get_placement_rules()
+	if rules.size() == 0:
+		# fallback to canonical collisions rule from GBTestConstants
+		var cr: CollisionsCheckRule = GBTestConstants.COLLISIONS_CHECK_RULE
+		rules = [cr]
+
+	# Enhanced diagnostics: trace rule identity and characteristics
+	print("[RULE_TRACE] === CONTAINER RULE ANALYSIS ===")
+	print("[RULE_TRACE] container placement_rules size = %s" % [_container.get_placement_rules().size()])
+	print("[RULE_TRACE] using rules size = %s" % [rules.size()])
+	
+	for i in range(rules.size()):
+		var r: PlacementRule = rules[i]
+		print("[RULE_TRACE] rule[%d] IDENTITY: object_id=%s, class=%s" % [i, str(r.get_instance_id()), r.get_class()])
+		print("[RULE_TRACE] rule[%d] TYPE_INFO: typeof=%s, is_PlacementRule=%s, is_TileCheckRule=%s, is_CollisionsCheckRule=%s" % [i, typeof(r), str(r is PlacementRule), str(r is TileCheckRule), str(r is CollisionsCheckRule)])
+		if r.has_method("get_script"):
+			print("[RULE_TRACE] rule[%d] SCRIPT: %s" % [i, str(r.get_script())])
+		# Direct property access instead of has_property() - fail fast pattern
+		print("[RULE_TRACE] rule[%d] RESOURCE_PATH: %s" % [i, str(r.resource_path) if "resource_path" in r else "N/A"])
+		print("[RULE_TRACE] rule[%d] STRING_REPR: %s" % [i, str(r)])
+
+	# Ensure rules are setup and trace setup results
+	print("[RULE_TRACE] === RULE SETUP PHASE ===")
+	for idx in range(rules.size()):
+		var rule: PlacementRule = rules[idx]
+		if rule is CollisionsCheckRule:
+			var collisions_rule: CollisionsCheckRule = rule as CollisionsCheckRule
+			print("[RULE_TRACE] rule[%d] SETUP_BEFORE: apply_to_objects_mask=%s, collision_mask=%s" % [idx, collisions_rule.apply_to_objects_mask, collisions_rule.collision_mask])
+			var setup_issues: Array[String] = collisions_rule.setup(_state)
+			print("[RULE_TRACE] rule[%d] SETUP_RESULT: issues_count=%s, issues=%s" % [idx, setup_issues.size(), str(setup_issues)])
+			assert_array(setup_issues).append_failure_message("Rule setup failed for rule %d" % idx).is_empty()
+			print("[RULE_TRACE] rule[%d] SETUP_AFTER: still_same_id=%s, still_CollisionsCheckRule=%s" % [idx, str(rule.get_instance_id()), str(rule is CollisionsCheckRule)])
+		elif rule is TileCheckRule:
+			var tile_rule: TileCheckRule = rule as TileCheckRule
+			var setup_issues: Array[String] = tile_rule.setup(_state)
+			print("[RULE_TRACE] rule[%d] TILE_SETUP_RESULT: issues_count=%s" % [idx, setup_issues.size()])
+			assert_array(setup_issues).append_failure_message("Rule setup failed for rule %d" % idx).is_empty()
+
+	# Act: Run try_setup
+	var report: PlacementReport = _manager.try_setup(rules, _state, true)
+	assert_object(report).append_failure_message("IndicatorManager.try_setup returned null").is_not_null()
+
+	# Diagnostics: dump report details
+	if report:
+		print("[diagnostic] report.is_successful = %s" % [report.is_successful()])
+		if report.indicators_report:
+			var ind_list: Array[RuleCheckIndicator] = report.indicators_report.indicators
+			print("[diagnostic] indicators_report.indicators size = %s" % [ind_list.size()])
+			for j in range(ind_list.size()):
+				var ind: RuleCheckIndicator = ind_list[j]
+				print("[diagnostic] indicator[%d] = %s" % [j, str(ind)])
+	# Check success
+	if not report.is_successful():
+		fail("try_setup reported failure: %s" % [str(report.get_issues())])
+
+	var indicators: Array[RuleCheckIndicator] = report.indicators_report.indicators
+	assert_array(indicators).append_failure_message("No indicators generated (unit test)").is_not_empty()

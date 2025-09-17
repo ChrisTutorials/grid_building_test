@@ -52,9 +52,9 @@ func after_test() -> void:
 func test_indicator_positioning_at_multiple_offsets() -> void:
 	# Create position-rules map with multiple positions
 	var position_rules_map: Dictionary[Vector2i, Array] = {}
-	var test_setup = PlaceableTestFactory.create_polygon_test_setup(self)
+	var test_setup : Dictionary = PlaceableTestFactory.create_polygon_test_setup(self)
 	var test_rule: TileCheckRule = null
-	for rule in test_setup.rules:
+	for rule : TileCheckRule in test_setup.rules:
 		if rule is TileCheckRule:
 			test_rule = rule
 			break
@@ -67,7 +67,7 @@ func test_indicator_positioning_at_multiple_offsets() -> void:
 	position_rules_map[Vector2i(2, 2)] = [test_rule]
 
 	# Generate indicators
-	var indicators = IndicatorFactory.generate_indicators(
+	var indicators : Array[RuleCheckIndicator] = IndicatorFactory.generate_indicators(
 		position_rules_map,
 		test_indicator_template,
 		test_parent,
@@ -79,24 +79,24 @@ func test_indicator_positioning_at_multiple_offsets() -> void:
 	assert_that(indicators.size()).is_equal(4).append_failure_message("Should generate 4 indicators for 4 positions")
 
 	# Verify each indicator is positioned correctly
-	var positioner_tile_pos = test_tile_map.local_to_map(test_tile_map.to_local(test_targeting_state.positioner.global_position))
+	var positioner_tile_pos : Vector2i = test_tile_map.local_to_map(test_tile_map.to_local(test_targeting_state.positioner.global_position))
 
 	for indicator in indicators:
 		assert_that(indicator).is_not_null().append_failure_message("Indicator should not be null")
 
 		# Extract offset from indicator name (format: "RuleCheckIndicator-Offset(X,Y)")
-		var name_parts = indicator.name.split("-Offset(")
+		var name_parts : PackedStringArray = indicator.name.split("-Offset(")
 		if name_parts.size() >= 2:
-			var offset_str = name_parts[1].split(")")[0]
-			var offset_parts = offset_str.split(",")
+			var offset_str : String = name_parts[1].split(")")[0]
+			var offset_parts : PackedStringArray = offset_str.split(",")
 			if offset_parts.size() >= 2:
-				var offset_x = int(offset_parts[0])
-				var offset_y = int(offset_parts[1])
-				var expected_offset = Vector2i(offset_x, offset_y)
+				var offset_x : int = int(offset_parts[0])
+				var offset_y := int(offset_parts[1])
+				var expected_offset := Vector2i(offset_x, offset_y)
 
 				# Calculate expected world position
-				var expected_tile = positioner_tile_pos + expected_offset
-				var expected_world_pos = test_tile_map.to_global(test_tile_map.map_to_local(expected_tile))
+				var expected_tile : Vector2i = positioner_tile_pos + expected_offset
+				var expected_world_pos : Vector2 = test_tile_map.to_global(test_tile_map.map_to_local(expected_tile))
 
 				assert_that(indicator.global_position).is_equal(expected_world_pos).append_failure_message(
 					"Indicator at offset %s should be positioned at %s but is at %s" %
@@ -106,9 +106,9 @@ func test_indicator_positioning_at_multiple_offsets() -> void:
 ## Test that indicators without targeting state are positioned at (0,0)
 func test_indicators_without_targeting_state_position_at_origin() -> void:
 	var position_rules_map: Dictionary[Vector2i, Array] = {}
-	var test_setup = PlaceableTestFactory.create_polygon_test_setup(self)
+	var test_setup : Dictionary = PlaceableTestFactory.create_polygon_test_setup(self)
 	var test_rule: TileCheckRule = null
-	for rule in test_setup.rules:
+	for rule : TileCheckRule in test_setup.rules:
 		if rule is TileCheckRule:
 			test_rule = rule
 			break
@@ -116,7 +116,7 @@ func test_indicators_without_targeting_state_position_at_origin() -> void:
 	position_rules_map[Vector2i(1, 1)] = [test_rule]
 
 	# Generate indicators without targeting state
-	var indicators = IndicatorFactory.generate_indicators(
+	var indicators : Array[RuleCheckIndicator] = IndicatorFactory.generate_indicators(
 		position_rules_map,
 		test_indicator_template,
 		test_parent,
@@ -126,7 +126,7 @@ func test_indicators_without_targeting_state_position_at_origin() -> void:
 
 	assert_that(indicators.size()).is_equal(1).append_failure_message("Should generate 1 indicator")
 
-	var indicator = indicators[0]
+	var indicator : RuleCheckIndicator = indicators[0]
 	assert_that(indicator.global_position).is_equal(Vector2(0, 0)).append_failure_message(
 		"Indicator without targeting state should be at origin (0,0)"
 	)
@@ -134,15 +134,15 @@ func test_indicators_without_targeting_state_position_at_origin() -> void:
 ## Test that null targeting state components don't break positioning
 func test_null_targeting_state_components_handled_gracefully() -> void:
 	# Create targeting state with null components
-	var owner_context = GBOwnerContext.new()
-	var broken_targeting_state = GridTargetingState.new(owner_context)
+	var owner_context := GBOwnerContext.new()
+	var broken_targeting_state := GridTargetingState.new(owner_context)
 	broken_targeting_state.target_map = null
 	broken_targeting_state.positioner = null
 
 	var position_rules_map: Dictionary[Vector2i, Array] = {}
-	var test_setup = PlaceableTestFactory.create_polygon_test_setup(self)
+	var test_setup : Dictionary = PlaceableTestFactory.create_polygon_test_setup(self)
 	var test_rule: TileCheckRule = null
-	for rule in test_setup.rules:
+	for rule : TileCheckRule in test_setup.rules:
 		if rule is TileCheckRule:
 			test_rule = rule
 			break
@@ -150,7 +150,7 @@ func test_null_targeting_state_components_handled_gracefully() -> void:
 	position_rules_map[Vector2i(1, 1)] = [test_rule]
 
 	# This should not crash and should position at (0,0)
-	var indicators = IndicatorFactory.generate_indicators(
+	var indicators : Array[RuleCheckIndicator] = IndicatorFactory.generate_indicators(
 		position_rules_map,
 		test_indicator_template,
 		test_parent,
@@ -160,7 +160,7 @@ func test_null_targeting_state_components_handled_gracefully() -> void:
 
 	assert_that(indicators.size()).is_equal(1).append_failure_message("Should generate 1 indicator despite null components")
 
-	var indicator = indicators[0]
+	var indicator : RuleCheckIndicator = indicators[0]
 	assert_that(indicator.global_position).is_equal(Vector2(0, 0)).append_failure_message(
 		"Indicator with null targeting components should be at origin (0,0)"
 	)

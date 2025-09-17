@@ -40,6 +40,7 @@ var test_hierarchy: AllSystemsTestEnvironment
 var system: ManipulationSystem
 var manipulation_state: ManipulationState
 var all_manipulatable: Manipulatable
+var manipulation_hierarchy : Dictionary[String, Node]
 var _container: GBCompositionContainer
 #endregion
 
@@ -49,11 +50,25 @@ func before_test() -> void:
 	test_hierarchy = EnvironmentTestFactory.create_all_systems_env(self, GBTestConstants.ALL_SYSTEMS_ENV_UID)
 	
 	# Extract environment components for test access
-	_container = test_hierarchy.container
+	_container = test_hierarchy.get_container()
 	system = test_hierarchy.manipulation_system
-	manipulation_state = test_hierarchy.manipulation_state
-	all_manipulatable = test_hierarchy.test_manipulatable
+	manipulation_state = _container.get_manipulation_state()
+	manipulation_hierarchy = _instance_manipulatable_hierarchy()
+	all_manipulatable = manipulation_hierarchy.get("manipulatable", null)
 #endregion
+
+func _instance_manipulatable_hierarchy() -> Dictionary[String, Node]:
+	var root : Node = auto_free(Node.new())
+	add_child(root)
+	var manipulatable : Manipulatable = auto_free(Manipulatable.new())
+	root.add_child(manipulatable)
+
+	return {
+		"null": null,
+		"root": root,
+		"manipulatable": manipulatable,
+		"manipulatable_root": manipulatable.root
+	}
 
 #region Movement Operation Tests
 @warning_ignore("unused_parameter")
@@ -142,17 +157,18 @@ func test_cancel() -> void:
 			assert_object(_container.get_states().manipulation.data).is_null()
 			assert_vector(active_data.source.root.global_position).is_equal(Vector2.ZERO)
 
+@warning_ignore("unused_parameter")
 func test_try_move(
-	p_target_root: Node,
+	p_move_target: String,
 	p_expected: GBEnums.Status,
-	_test_parameters := [
-		[null, GBEnums.Status.FAILED],
-		[auto_free(Node.new()), GBEnums.Status.FAILED],
-		[auto_free(Manipulatable.new()), GBEnums.Status.FAILED],
-		[all_manipulatable.root, GBEnums.Status.STARTED]
+	test_parameters := [
+		["null", GBEnums.Status.FAILED],
+		["root", GBEnums.Status.FAILED],
+		["manipulatable", GBEnums.Status.FAILED],
+		["manipulatable_root", GBEnums.Status.STARTED]
 	]
 ) -> void:
-	var result_data: ManipulationData = system.try_move(p_target_root)
+	var result_data: ManipulationData = system.try_move(manipulation_hierarchy.get(p_move_target, null))
 	
 	# Ensure result is not null to prevent property access errors
 	assert_that(result_data).append_failure_message(
@@ -164,10 +180,11 @@ func test_try_move(
 #endregion
 
 #region Demolish and Placement Tests
+@warning_ignore("unused_parameter")
 func test_demolish(
 	p_settings: ManipulatableSettings,
 	p_expected: bool,
-	_test_parameters := [
+	test_parameters := [
 		[manipulatable_settings_none_allowed, false],
 		[manipulatable_settings_all_allowed, true]
 	]
@@ -185,10 +202,11 @@ func test_demolish(
 	
 	assert_bool(success).is_equal(p_expected)
 
+@warning_ignore("unused_parameter")
 func test_try_placement(
 	p_settings: ManipulatableSettings,
 	p_expected: bool,
-	_test_parameters := [[manipulatable_settings_all_allowed, true]]
+	test_parameters := [[manipulatable_settings_all_allowed, true]]
 ) -> void:
 	var source: Manipulatable = _create_test_manipulatable(p_settings)
 	assert_that(source).is_not_null()
@@ -220,9 +238,10 @@ func test_try_placement(
 #endregion
 
 #region Transform Operation Tests
+@warning_ignore("unused_parameter")
 func test_flip_horizontal(
 	p_manipulatable: Manipulatable, 
-	_test_parameters := [[all_manipulatable]]
+	test_parameters := [[all_manipulatable]]
 ) -> void:
 	_validate_manipulatable_for_transform(p_manipulatable, "flip_horizontal")
 	var target: Node2D = p_manipulatable.root
@@ -233,9 +252,10 @@ func test_flip_horizontal(
 	assert_float(target.scale.x).is_equal_approx(original_scale.x * -1, SCALE_PRECISION)
 	assert_float(target.scale.y).is_equal_approx(original_scale.y, SCALE_PRECISION)
 
+@warning_ignore("unused_parameter")
 func test_flip_vertical(
 	p_manipulatable: Manipulatable, 
-	_test_parameters := [[all_manipulatable]]
+	test_parameters := [[all_manipulatable]]
 ) -> void:
 	_validate_manipulatable_for_transform(p_manipulatable, "flip_vertical")
 	var target: Node2D = p_manipulatable.root
@@ -246,9 +266,10 @@ func test_flip_vertical(
 	assert_float(target.scale.x).is_equal_approx(original_scale.x, SCALE_PRECISION)
 	assert_float(target.scale.y).is_equal_approx(original_scale.y * -1, SCALE_PRECISION)
 
+@warning_ignore("unused_parameter")
 func test_rotate_node2d_target_rotates_correctly(
 	p_manipulatable: Manipulatable, 
-	_test_parameters := [[all_manipulatable]]
+	test_parameters := [[all_manipulatable]]
 ) -> void:
 	_validate_manipulatable_for_transform(p_manipulatable, "rotate")
 	var target: Node2D = p_manipulatable.root
@@ -369,12 +390,9 @@ func _normalize_rotation(rotation_degrees: float) -> float:
 		normalized += 360.0
 	return normalized
 
+
+## Clean up manipulation system state
 func after_test() -> void:
-	# Clean up manipulation system state
 	if system:
-		# Cancel any ongoing manipulation
-		system.try_cancel()
-		
-		# Note: ManipulationState does not have a reset method
-		# State cleanup is handled by canceling ongoing operations
+		system.cancel()
 #endregion

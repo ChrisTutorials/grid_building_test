@@ -16,15 +16,11 @@ var indicator: RuleCheckIndicator
 var test_layers: int = 1  # Bitmask
 
 ## Logo offset away from the center for testing - using Godot icon as test texture
-var offset_logo: Texture2D = load("res://icon.svg")
+var offset_logo: PackedScene = load("res://test/grid_building_test/offset_logo.tscn")
 
 ## Environment and container for tests
 var _env: AllSystemsTestEnvironment
 var _container: GBCompositionContainer
-
-## Helper method to create a test logger
-func create_test_logger() -> GBLogger:
-	return GBLogger.new()
 
 ## Helper method to get properly initialized GridTargetingState from environment
 func create_rule_targeting_state() -> GridTargetingState:
@@ -80,13 +76,20 @@ func before_test() -> void:
 
 	assert_object(indicator.get_parent()).is_not_null()
 
+	# Ensure indicator starts in valid state before resolving dependencies so
+	# visuals and any immediate validations consider it valid by default.
+	indicator.valid = true
+
+	# Resolve runtime dependencies so logger, debug settings and visuals are applied
+	# Tests rely on resolve_gb_dependencies() to set the _logger and apply current display settings
+	indicator.resolve_gb_dependencies(_container)
+
 func test_setup_indicator_defaults() -> void:
 		assert_object(indicator).append_failure_message("[indicator] must not be null").is_not_null()
 		assert_vector(indicator.global_position).is_equal(Vector2.ZERO)
 
 ## Integration test: indicator switches valid → fail → valid as collision body is added/removed
 func test_indicator_validity_switches_on_dynamic_collision() -> void:
-	var _logger: GBLogger = create_test_logger()
 	var rule: CollisionsCheckRule = UnifiedTestFactory.create_test_collisions_check_rule()
 	rule.pass_on_collision = false
 	rule.collision_mask = 1
@@ -132,7 +135,6 @@ func test_indicator_validity_switches_on_dynamic_collision() -> void:
 
 ## Test: validity_sprite texture changes when indicator validity changes
 func test_validity_sprite_texture_switches_on_validity_change() -> void:
-	var _logger2: GBLogger = create_test_logger()
 	var rule2: CollisionsCheckRule = UnifiedTestFactory.create_test_collisions_check_rule()
 	rule2.pass_on_collision = false
 	rule2.collision_mask = 1
@@ -281,7 +283,8 @@ func test_visual_settings_update_on_validity_change() -> void:
 	
 	# Create a failing rule to trigger visual change
 	var failing_rule: CollisionsCheckRule = UnifiedTestFactory.create_test_collisions_check_rule()
-	failing_rule.pass_on_collision = true
+	# This rule should fail when there is a collision
+	failing_rule.pass_on_collision = false
 	failing_rule.collision_mask = 1
 	var targeting_state: GridTargetingState = create_rule_targeting_state()
 	failing_rule.setup(targeting_state)
@@ -404,8 +407,7 @@ func test_rules_removed() -> void:
 ## Test improved debug log format when no rules present at _ready
 func test_ready_debug_log_format_no_rules() -> void:
 	# Simulate logger with debug enabled
-	var _logger: GBLogger = create_test_logger()
-	var dbg: GBDebugSettings = _logger.get_debug_settings()
+	var dbg: GBDebugSettings = _env.get_container().get_debug_settings()
 	dbg.level = GBDebugSettings.Level.DEBUG
 	var test_indicator: RuleCheckIndicator = UnifiedTestFactory.create_test_rule_check_indicator(self)
 	test_indicator.shape = RectangleShape2D.new(); test_indicator.shape.size = Vector2.ONE
@@ -438,8 +440,6 @@ func test_per_frame_validation_env_flag() -> void:
 
 ## Testing move distance for an indicator compared to where it will still have collisions with it's shape at the starting position or not
 @warning_ignore("unused_parameter")
-
-
 func test_indicator_collide_and_get_contacts(
 	p_move_shape_size_multiplier: Vector2,
 	p_expected_empty: bool,
@@ -455,13 +455,13 @@ func test_indicator_collide_and_get_contacts(
 	var body: StaticBody2D = _create_test_body()
 	var shape: CollisionShape2D = body.get_child(0)
 	var original_position: Vector2 = indicator.global_position
-	var indicator_shape_size: Vector2 = indicator.shape.get_rect().size
+	var indicator_shape_size: Vector2 = indicator.shape.get_rect().size / 2.0
 	indicator.global_position = Vector2.ZERO
 	body.global_position = Vector2.ZERO
 	#endregion
 
 	#region Execution
-	indicator.position = original_position + (p_move_shape_size_multiplier * indicator_shape_size)
+	indicator.global_position = original_position + (p_move_shape_size_multiplier * indicator_shape_size)
 	var result: PackedVector2Array = indicator.shape.collide_and_get_contacts(
 		indicator.global_transform, shape.shape, shape.global_transform
 	)
@@ -474,7 +474,6 @@ func test_indicator_collide_and_get_contacts(
 
 
 @warning_ignore("unused_parameter")
-
 
 ## Count the number of collisions when instancing a p_test_scene at the origin 0,0 and seeing
 ## if it matches the expected number
@@ -490,8 +489,6 @@ func test_instance_collisions(
 
 
 @warning_ignore("unused_parameter")
-
-
 func test__update_visuals(
 	p_settings: IndicatorVisualSettings, test_parameters := [[load("uid://dpph3i22e5qev")]]
 ) -> void:

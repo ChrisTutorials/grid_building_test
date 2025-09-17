@@ -4,20 +4,23 @@ extends GdUnitTestSuite
 # Tests indicator creation, validation, collision detection, and edge cases
 
 var test_container: GBCompositionContainer
+var env : CollisionTestEnvironment
 
 func before_test() -> void:
-	# Set up test infrastructure using factories
-	test_container = UnifiedTestFactory.create_test_composition_container(self)
-
-	# Create injector system for dependency injection
-	var _injector: Node = UnifiedTestFactory.create_test_injector(self, test_container)
+	env = EnvironmentTestFactory.create_collision_test_environment(self)
 
 func after_test() -> void:
 	# Cleanup handled by auto_free in factory methods
 	pass
 
 # Test basic indicator setup and configuration
-func test_indicator_basic_setup(shape_type: String, shape_data: Dictionary, _expected_behavior: String) -> void:
+@warning_ignore("unused_parameter")
+func test_indicator_basic_setup(shape_type: String, shape_data: Dictionary, test_parameters := [
+		["rectangle", {"size": Vector2(16, 16)}],
+		["circle", {"radius": 8.0}],
+		["rectangle_large", {"size": Vector2(32, 32)}],
+		["rectangle_tiny", {"size": Vector2(1, 1)}]
+]) -> void:
 	var indicator: RuleCheckIndicator = _create_test_indicator(shape_type, shape_data)
 
 	# Verify basic setup
@@ -33,17 +36,15 @@ func test_indicator_basic_setup(shape_type: String, shape_data: Dictionary, _exp
 		"Indicator should have zero global position initially"
 	).is_equal(Vector2.ZERO)
 
-# Parameterized test data for basic setup
-func test_indicator_basic_setup_parameters() -> Array:
-	return [
-		["rectangle", {"size": Vector2(16, 16)}, "valid_setup"],
-		["circle", {"radius": 8.0}, "valid_setup"],
-		["rectangle_large", {"size": Vector2(32, 32)}, "valid_setup"],
-		["rectangle_tiny", {"size": Vector2(1, 1)}, "valid_setup"]
-	]
-
 # Test indicator validity switching with dynamic collision
-func test_indicator_validity_dynamics(collision_scenario: String, pass_on_collision: bool, expected_initial_state: bool, expected_final_state: bool) -> void:
+@warning_ignore("unused_parameter")
+func test_indicator_validity_dynamics(pass_on_collision: bool, simulate_collision: bool, expected_valid: bool, test_parameters := [
+	# pass_on_collision, simulate_collision, expected_valid
+	[false, false, true],  # no collision, rule expects no collision -> valid
+	[false, true, false],  # collision present, rule expects no collision -> invalid
+	[true, false, false],  # no collision, rule expects collision -> invalid
+	[true, true, true],    # collision present, rule expects collision -> valid
+]) -> void:
 	var indicator: RuleCheckIndicator = _create_test_indicator("rectangle", {"size": Vector2(16, 16)})
 	var rule: CollisionsCheckRule = UnifiedTestFactory.create_test_collisions_check_rule()
 	rule.pass_on_collision = pass_on_collision
@@ -63,15 +64,15 @@ func test_indicator_validity_dynamics(collision_scenario: String, pass_on_collis
 
 	await get_tree().physics_frame
 
-	# Test collision scenarios
-	if collision_scenario.contains("collision"):
+	# Optionally simulate a collision and assert expected validity
+	if simulate_collision:
 		var body: StaticBody2D = _create_test_collision_body()
 		body.global_position = indicator.global_position
 		await get_tree().physics_frame
 
 		assert_bool(indicator.valid).append_failure_message(
-			"Indicator validity should be %s after collision in scenario: %s" % [expected_final_state, collision_scenario]
-		).is_equal(expected_final_state)
+			"Indicator validity should be %s after collision in scenario" % [expected_valid]
+		).is_equal(expected_valid)
 
 		# Clean up temporary collision body to avoid affecting subsequent parameter runs
 		if is_instance_valid(body):
@@ -80,20 +81,20 @@ func test_indicator_validity_dynamics(collision_scenario: String, pass_on_collis
 	else:
 		# No collision case
 		assert_bool(indicator.valid).append_failure_message(
-			"Indicator validity should be %s with no collision in scenario: %s" % [expected_initial_state, collision_scenario]
-		).is_equal(expected_initial_state)
+			"Indicator validity should be %s with no collision in scenario" % [expected_valid]
+		).is_equal(expected_valid)
 
-# Parameterized test data for validity dynamics
-func test_indicator_validity_dynamics_parameters() -> Array:
-	return [
-		["fail_on_collision", false, true, false],
-		["pass_on_collision", true, false, true],
-		["no_collision_fail", false, true, true],
-		["no_collision_pass", true, false, false]
-	]
 
 # Test indicator collision detection with various collision layers and masks
-func test_indicator_collision_layers(indicator_mask: int, body_layer: int, should_detect: bool) -> void:
+@warning_ignore("unused_parameter")
+func test_indicator_collision_layers(indicator_mask: int, body_layer: int, should_detect: bool, test_parameters := [
+		[1, 1, true],   # Same layer - should detect
+		[1, 2, false],  # Different layers - should not detect
+		[3, 1, true],   # Mask includes layer - should detect
+		[3, 2, true],   # Mask includes layer - should detect
+		[3, 4, false],  # Mask excludes layer - should not detect
+		[7, 4, true],   # Complex mask includes layer - should detect
+]) -> void:
 	var indicator: RuleCheckIndicator = _create_test_indicator("rectangle", {"size": Vector2(16, 16)})
 	indicator.collision_mask = indicator_mask
 

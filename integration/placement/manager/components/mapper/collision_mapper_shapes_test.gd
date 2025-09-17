@@ -262,7 +262,7 @@ func _create_test_object_with_shape(shape_type: String, shape_data: Dictionary) 
 	return test_object
 
 func test_rules_and_collision_integration() -> void:
-	var rule: CollisionsCheckRule = CollisionsCheckRule.new()
+	var rule: CollisionsCheckRule = GBTestConstants.COLLISIONS_CHECK_RULE.duplicate()
 	auto_free(rule)  # Clean up rule instance
 	var setup_issues: Array = rule.setup(targeting_state)
 	assert_array(setup_issues).is_empty()
@@ -270,18 +270,26 @@ func test_rules_and_collision_integration() -> void:
 	# Test that collision mapper and rules work together
 	var test_object: Node2D = UnifiedTestFactory.create_test_static_body_with_rect_shape(self)
 	
-	# Set up collision mapper with test object
+	# Set up collision mapper with test object and proper positioner
 	var indicator_manager: IndicatorManager = env.indicator_manager
 	var test_parent: Node2D = Node2D.new()
 	test_parent.name = "TestParent2"
 	add_child(test_parent)
 	auto_free(test_parent)
-	# Mapper should already be configured by the environment
 	
 	# Use the collision mapper from the indicator manager
 	var configured_collision_mapper: CollisionMapper = indicator_manager.get_collision_mapper()
+	
+	# Set up collision mapper with test indicator and test setups
+	var test_indicator: RuleCheckIndicator = _create_rule_check_indicator(test_parent)
+	var test_setups: Array[CollisionTestSetup2D] = [CollisionTestSetup2D.new(test_object, STANDARD_SHAPE_SIZE)]
+	auto_free(test_setups[0])
+	
+	# Configure collision mapper properly
+	configured_collision_mapper.setup(test_indicator, test_setups)
+	
 	var test_objects: Array[Node2D] = [test_object]
-	var collision_tiles: Dictionary = configured_collision_mapper.get_collision_tile_positions_with_mask(test_objects, 1)
+	var collision_tiles: Dictionary[Vector2i, Array] = configured_collision_mapper.get_collision_tile_positions_with_mask(test_objects, 1)
 	
 	# Validate integration produces reasonable results
 	assert_dict(collision_tiles).append_failure_message(

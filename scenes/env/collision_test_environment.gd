@@ -3,6 +3,7 @@ class_name CollisionTestEnvironment
 extends GBTestEnvironment
 
 @export var indicator_manager : IndicatorManager
+
 var collision_mapper : CollisionMapper
 var logger : GBLogger
 

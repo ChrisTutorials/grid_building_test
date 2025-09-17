@@ -42,33 +42,13 @@ const TEST_SCENE_DATA = [
 var _targeting_state: GridTargetingState
 var _indicator_template: PackedScene
 var _test_rule: TileCheckRule
+var env : CollisionTestEnvironment
 
 func before_test() -> void:
 	# Setup common test dependencies
-	_targeting_state = GridTargetingState.new(GBOwnerContext.new())
-	
-	# Create a test tile map with proper tile set
-	var test_map: TileMapLayer = TileMapLayer.new()
-	auto_free(test_map)
-	var tile_set: TileSet = TileSet.new()
-	tile_set.tile_size = Vector2i(GBTestConstants.DEFAULT_TILE_SIZE.x, GBTestConstants.DEFAULT_TILE_SIZE.y)
-	test_map.tile_set = tile_set
-	add_child(test_map)
-	
-	# Create a positioner for the targeting state
-	var positioner: Node2D = Node2D.new()
-	auto_free(positioner)
-	add_child(positioner)
-	positioner.global_position = Vector2.ZERO
-	
-	# Set up the targeting state with the tile map and positioner
-	_targeting_state.target_map = test_map
-	_targeting_state.maps = [test_map]
-	_targeting_state.positioner = positioner
-	
+	env = EnvironmentTestFactory.create_collision_test_environment(self)
+	_targeting_state = env.get_container().get_targeting_state()
 	_indicator_template = GBTestConstants.TEST_INDICATOR_TD_PLATFORMER
-	
-	# Create a simple test rule
 	_test_rule = TileCheckRule.new()
 
 ## Test gather_collision_shapes with null input
@@ -136,7 +116,7 @@ func test_gather_collision_shapes_with_collision_object() -> void:
 	assert_that(result).append_failure_message("Expected collision shapes to be found").is_not_empty()
 	assert_that(result.has(collision_owner)).append_failure_message("Expected collision_owner to be in result").is_true()
 	assert_that(result[collision_owner]).append_failure_message("Expected shapes array to not be empty").is_not_empty()
-	assert_that(result[collision_owner][0]).append_failure_message("Expected first shape to be RectangleShape2D").is_isinstance(RectangleShape2D)
+	assert_that(result[collision_owner][0]).append_failure_message("Expected first shape to be RectangleShape2D").is_class("RectangleShape2D")
 	assert_that(result[collision_owner][0].size).append_failure_message("Expected shape size to be Vector2(32, 32)").is_equal(Vector2(32, 32))
 	
 	# Cleanup
@@ -318,7 +298,7 @@ func test_build_collision_test_setups_collision_object_owner() -> void:
 	assert_that(result).append_failure_message("Expected collision setups to be created").is_not_empty()
 	assert_that(result.has(collision_owner)).append_failure_message("Expected collision_owner to be in result").is_true()
 	assert_that(result[collision_owner]).append_failure_message("Expected setup to not be null").is_not_null()
-	assert_that(result[collision_owner]).append_failure_message("Expected setup to be CollisionTestSetup2D").is_isinstance(CollisionTestSetup2D)
+	assert_that(result[collision_owner]).append_failure_message("Expected setup to be CollisionTestSetup2D").is_class("CollisionTestSetup2D")
 	
 	# Verify the stretch amount calculation (tile_size * 2.0)
 	var expected_stretch := Vector2(32, 32)  # 16 * 2.0
@@ -391,6 +371,8 @@ func test_validate_setup_preconditions_empty_rules() -> void:
 ## Test validate_setup_preconditions with null collision mapper
 func test_validate_setup_preconditions_null_collision_mapper() -> void:
 	var test_object := Node2D.new()
+	auto_free(test_object)
+	add_child(test_object)
 	var rules: Array[TileCheckRule] = [TileCheckRule.new()]
 	
 	var result := IndicatorSetupUtils.validate_setup_preconditions(test_object, rules, null)
@@ -398,7 +380,7 @@ func test_validate_setup_preconditions_null_collision_mapper() -> void:
 	assert_that(result.has("Collision mapper is not available")).append_failure_message("Expected specific error message about collision mapper").is_true()
 	
 	# Cleanup
-	test_object.queue_free()
+	test_object.free()
 
 ## Helper method to create a test object with collision shapes
 func _create_test_object_with_shapes() -> Node2D:

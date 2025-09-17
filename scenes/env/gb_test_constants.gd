@@ -44,6 +44,11 @@ const COLLISION_TEST_ENV_PATH: String = "res://test/grid_building_test/scenes/en
 const ISOMETRIC_TEST_ENV_PATH: String = "res://test/grid_building_test/scenes/env/isometric_test_environment.tscn"
 
 #endregion
+#region Placement Rules
+
+const COLLISIONS_CHECK_RULE : CollisionsCheckRule = preload("uid://du7xu07247202")
+
+#endregion
 #region Test Object Scene UIDs
 ## UIDs for test objects used in collision and placement testing
 
@@ -111,8 +116,11 @@ const TEST_COLLISION_LAYER: int = 1
 ## Default collision mask for test objects
 const TEST_COLLISION_MASK: int = 1
 
-## Test composition container for dependency injection
+## Test composition container for dependency injection - Used for Top Down and Sidescrolling games with square tiles
 const TEST_COMPOSITION_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
+
+## Default isometric composition container for isometric-game specific tests
+const ISO_COMPOSITION_CONTAINER : GBCompositionContainer = preload("uid://kxdod6rj5icx")
 
 #endregion
 #region Common Test Positions

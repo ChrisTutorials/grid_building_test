@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="GBConfig" load_steps=6 format=3 uid="uid://c61e3vpaj7ym2"]
+
+[ext_resource type="Resource" uid="uid://bnxwufjpc73wk" path="res://demos/shared/settings/demo_action_names.tres" id="1_5jcve"]
+[ext_resource type="Resource" uid="uid://vjpoofl2x3xi" path="res://demos/shared/settings/demo_name_displayer.tres" id="2_mewtm"]
+[ext_resource type="Script" uid="uid://candxhdqm5c6q" path="res://addons/grid_building/resources/gb_config.gd" id="3_lexmi"]
+[ext_resource type="Resource" uid="uid://btx4aumxk22fj" path="res://demos/top_down/config/settings/td_settings.tres" id="4_hl3vc"]
+[ext_resource type="Resource" uid="uid://d0xrs05orngyc" path="res://demos/top_down/config/td_demo_templates.tres" id="5_rpevv"]
+
+[resource]
+script = ExtResource("3_lexmi")
+settings = ExtResource("4_hl3vc")
+templates = ExtResource("5_rpevv")
+actions = ExtResource("1_5jcve")
+name_displayer = ExtResource("2_mewtm")
+metadata/_custom_type_script = "uid://candxhdqm5c6q"

@@ -12,7 +12,7 @@ var _manager : IndicatorManager
 
 func before_test() -> void:
 	# Use the shared test container (injected resource) and its targeting state so internal systems see configured maps
-	_container = preload("uid://dy6e5p5d6ax6n")
+	_container = GBTestConstants.TEST_COMPOSITION_CONTAINER.duplicate(true)
 	
 	# Acquire container states and configure targeting FIRST (positioner, target map, maps) 
 	_targeting = _container.get_states().targeting
@@ -39,17 +39,21 @@ func before_test() -> void:
 	_validator = PlacementValidator.create_with_injection(_container)
 
 	# Instantiate concave polygon test object and parent under positioner to mimic runtime placement preview hierarchy
-	_preview = UnifiedTestFactory.create_polygon_test_object(self)
+	_preview = CollisionObjectTestFactory.create_polygon_test_object(self)
 	_targeting.positioner.add_child(_preview)
 
 	# Reduce debug verbosity to avoid unrelated formatting/log noise during this focused geometry test
 	var dbg: GBDebugSettings = _container.get_debug_settings()
 	dbg.set_debug_level(GBDebugSettings.Level.ERROR)
-	# Build explicit collisions rule with mask bit 0
-	var rule: CollisionsCheckRule = CollisionsCheckRule.new()
+	# Use canonical collisions rule from test constants to match injection expectations
+	# Create a fresh collisions rule with proper script class
+	var rule: CollisionsCheckRule = PlacementRuleTestFactory.create_default_collision_rule()
 	rule.apply_to_objects_mask = 1 << 0
 	rule.collision_mask = 1 << 0
 	_rules = [rule]
+	# Ensure rule is setup for the targeting state
+	var setup_issues: Array[String] = rule.setup(_container.get_targeting_state())
+	assert_array(setup_issues).append_failure_message("Concave test: rule.setup reported issues").is_empty()
 	var setup_ok := _manager.try_setup(_rules, _container.get_targeting_state(), true)
 	assert_bool(setup_ok.is_successful()).append_failure_message("IndicatorManager.try_setup failed for concave polygon test").is_true()
 

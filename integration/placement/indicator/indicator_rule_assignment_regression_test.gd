@@ -3,15 +3,15 @@
 ## at positions that should fail collision checks
 extends GdUnitTestSuite
 
-# Constants for test values
-const TILE_SIZE: Vector2 = Vector2(32, 32)
-const DEFAULT_POSITION: Vector2 = Vector2(100, 100)
-const ORIGIN_POSITION: Vector2 = Vector2(0, 0)
+# Use constants from GBTestConstants for consistency
+const TILE_SIZE: Vector2 = GBTestConstants.DEFAULT_TILE_SIZE
+const DEFAULT_POSITION: Vector2 = GBTestConstants.CENTER
+const ORIGIN_POSITION: Vector2 = GBTestConstants.OFF_GRID
 const ORIGIN_TILE: Vector2i = Vector2i(0, 0)
 
 var _env : BuildingTestEnvironment
-var _container: GBCompositionContainer
-var _injector: GBInjectorSystem
+var _container : GBCompositionContainer
+var _state : GridTargetingState
 var building_system: BuildingSystem
 var targeting_system: GridTargetingSystem
 var indicator_manager: IndicatorManager
@@ -22,8 +22,8 @@ var obj_parent: Node2D
 
 func before_test() -> void:
 	_env = EnvironmentTestFactory.create_building_system_test_environment(self)
+	_state = _env.grid_targeting_system.get_state()
 	_container = _env.get_container()
-	_injector = _env.injector
 	obj_parent = _env.objects_parent
 	placer = _env.placer
 	positioner = _env.positioner
@@ -34,7 +34,7 @@ func before_test() -> void:
 
 	assert_array(_env.get_issues()).is_empty()
 
-#region Helper Functions for DRY Patterns
+#region Helper Functions
 
 func find_center_indicator(indicators: Array[RuleCheckIndicator]) -> RuleCheckIndicator:
 	"""Find the indicator at the center position (offset 0,0) from the positioner."""
@@ -62,15 +62,15 @@ func create_collision_object_at(position: Vector2) -> StaticBody2D:
 	placer.add_child(collision_object)
 	return collision_object
 
-# ================================
-# Test Functions
-# ================================
+#endregion
+
+#region Test Functions
 
 ## Test that indicators properly evaluate rules and filter out indicators
 ## at positions that should fail collision checks
 func test_polygon_test_object_indicator_collision_filtering() -> void:
 	# Use DRY pattern to create test polygon placeable
-	var polygon_placeable : Placeable = UnifiedTestFactory.create_polygon_test_placeable(self)
+	var polygon_placeable : Placeable = PlaceableTestFactory.create_polygon_test_placeable(self)
 
 	# Place an existing object at position (0,0) to create collision
 	var existing_object : Node2D = polygon_placeable.packed_scene.instantiate()
@@ -78,15 +78,56 @@ func test_polygon_test_object_indicator_collision_filtering() -> void:
 	existing_object.global_position = Vector2.ZERO
 	obj_parent.add_child(existing_object)
 
-	# Create collision rule using DRY pattern
-	var collision_rule : CollisionsCheckRule = UnifiedTestFactory.create_test_collisions_check_rule()
-	var rules: Array[PlacementRule] = [collision_rule]
+	# Create and set a preview/target instance so the targeting state points to the test object
+	var preview_instance: Node2D = polygon_placeable.packed_scene.instantiate()
+	auto_free(preview_instance)
+	preview_instance.global_position = Vector2.ZERO
+	obj_parent.add_child(preview_instance)
+	_state.target = preview_instance
+
+	# Position the positioner at a valid location
+	positioner.global_position = Vector2(64, 64)
+
+	# Use the container's placement rules instead of creating new ones
+	# This ensures we test the actual integration with ExtResource resolution
+	var rules: Array[PlacementRule] = _container.get_placement_rules()
+
+	# Diagnostic: log rule types and counts before setup
+	var logger: GBLogger = _container.get_logger()
+	if logger != null:
+		logger.log_debug(self, "indicator_rule_assignment: rules count=%d" % [rules.size()])
+	else:
+		print("indicator_rule_assignment: rules count=%d" % [rules.size()])
 
 	# Set up rule validation parameters
 	var targeting_state : GridTargetingState = _container.get_states().targeting
 
+	# Setup the collision rules (ensure each rule has its targeting context initialized)
+	for rule: PlacementRule in rules:
+		if logger != null:
+			logger.log_debug(self, "  rule: %s" % [rule.get_class()])
+		if rule is CollisionsCheckRule:
+			var setup_issues: Array[String] = rule.setup(targeting_state)
+			assert_array(setup_issues).append_failure_message("Rule.setup failed for %s" % [rule.get_class()]).is_empty()
+
 	# Call try_setup directly on the IndicatorManager (correct DRY pattern)
+	# Diagnostic: dump rule runtime info before calling try_setup
+	for i in range(rules.size()):
+		var r: PlacementRule = rules[i]
+		if logger != null:
+			logger.log_debug(self, "  rule[%d] class=%s, is_Collisions=%s, is_TileCheck=%s, is_valid=%s" % [i, r.get_class(), str(r is CollisionsCheckRule), str(r is TileCheckRule), str(is_instance_valid(r))])
+		else:
+			print("rule[%d] class=%s, is_Collisions=%s, is_TileCheck=%s, is_valid=%s" % [i, r.get_class(), str(r is CollisionsCheckRule), str(r is TileCheckRule), str(is_instance_valid(r))])
+
 	var setup_report : PlacementReport = indicator_manager.try_setup(rules, targeting_state, true)
+
+	# Diagnostic: report summary
+	if setup_report != null:
+		var diag_logger: GBLogger = _container.get_logger()
+		if diag_logger != null:
+			diag_logger.log_debug(self, "setup_report success=%s, indicators=%d" % [str(setup_report.is_successful()), setup_report.indicators_report.indicators.size() if setup_report.indicators_report != null else 0])
+		else:
+			print("setup_report success=%s, indicators=%d" % [str(setup_report.is_successful()), setup_report.indicators_report.indicators.size() if setup_report.indicators_report != null else 0])
 	assert_object(setup_report).append_failure_message("IndicatorManager.try_setup returned null").is_not_null()
 	assert_bool(setup_report.is_successful()).append_failure_message("IndicatorManager.try_setup failed").is_true()
 
@@ -129,10 +170,16 @@ func test_polygon_test_object_indicator_collision_filtering() -> void:
 ## Test that rules are properly assigned to indicators during creation
 func test_indicator_rule_assignment_during_creation() -> void:
 	# Create a simple collision rule using DRY pattern
-	var collision_rule: CollisionsCheckRule = UnifiedTestFactory.create_test_collisions_check_rule()
+	var collision_rule: CollisionsCheckRule = PlacementRuleTestFactory.create_default_collision_rule()
 
 	# Create indicator using DRY pattern with proper collision shape
-	var indicator: RuleCheckIndicator = UnifiedTestFactory.create_test_rule_check_indicator_with_shape(self, RectangleShape2D.new())
+	var indicator: RuleCheckIndicator = RuleCheckIndicator.new()
+	indicator.shape = RectangleShape2D.new()
+	add_child(indicator)
+	auto_free(indicator)
+
+	# Assign the collision rule to the indicator
+	indicator.add_rule(collision_rule)
 
 	assert_object(indicator).is_not_null()
 
@@ -148,7 +195,7 @@ func test_indicator_rule_assignment_during_creation() -> void:
 ## Test that indicators properly validate rules when updated
 func test_indicator_rule_validation() -> void:
 	# Create a collision rule using DRY pattern
-	var collision_rule: CollisionsCheckRule = UnifiedTestFactory.create_test_collisions_check_rule()
+	var collision_rule: CollisionsCheckRule = PlacementRuleTestFactory.create_default_collision_rule()
 
 	# Set up rule parameters
 	var targeting_state: GridTargetingState = _container.get_states().targeting
@@ -160,7 +207,13 @@ func test_indicator_rule_validation() -> void:
 	assert_array(setup_issues).is_empty()
 
 	# Create indicator with the rule using DRY pattern with proper collision shape
-	var indicator: RuleCheckIndicator = UnifiedTestFactory.create_test_rule_check_indicator_with_shape(self, RectangleShape2D.new())
+	var indicator: RuleCheckIndicator = RuleCheckIndicator.new()
+	indicator.shape = RectangleShape2D.new()
+	add_child(indicator)
+	auto_free(indicator)
+
+	# Assign the collision rule to the indicator
+	indicator.add_rule(collision_rule)
 
 	# Position indicator at a location with no collisions
 	indicator.global_position = DEFAULT_POSITION
@@ -182,7 +235,7 @@ func test_indicator_rule_validation() -> void:
 ## Test the specific polygon_test_object scenario
 func test_polygon_test_object_center_tile_filtering() -> void:
 	# Create polygon test object using DRY pattern
-	var polygon_placeable: Placeable = UnifiedTestFactory.create_polygon_test_placeable(self)
+	var polygon_placeable: Placeable = PlaceableTestFactory.create_polygon_test_placeable(self)
 
 	# Create an instance to examine its collision shape
 	var test_instance: Node2D = polygon_placeable.packed_scene.instantiate()
@@ -192,11 +245,22 @@ func test_polygon_test_object_center_tile_filtering() -> void:
 	# The polygon has a complex shape that should NOT cover the center tile (0,0)
 	# when positioned at the origin, so an indicator at (0,0) should be valid
 
-	# Create collision rule and set up validation using DRY pattern
-	var collision_rule: CollisionsCheckRule = UnifiedTestFactory.create_test_collisions_check_rule()
-	var rules: Array[PlacementRule] = [collision_rule]
+	# Use the container's placement rules instead of creating new ones
+	var rules: Array[PlacementRule] = _container.get_placement_rules()
+
+	# Setup the collision rules
+	for rule: PlacementRule in rules:
+		if rule is CollisionsCheckRule:
+			var setup_issues: Array[String] = rule.setup(_container.get_targeting_state())
+			assert_array(setup_issues).is_empty()
 
 	# Call try_setup directly on the IndicatorManager
+	# Ensure the targeting state has the test instance as the current target
+	_container.get_targeting_state().target = test_instance
+
+	# Position the positioner at a valid location
+	positioner.global_position = Vector2.ZERO
+
 	var setup_report: PlacementReport = indicator_manager.try_setup(rules, _container.get_targeting_state(), true)
 	assert_object(setup_report).append_failure_message("IndicatorManager.try_setup returned null").is_not_null()
 	assert_bool(setup_report.is_successful()).append_failure_message("IndicatorManager.try_setup failed").is_true()
