@@ -39,6 +39,7 @@ func create_mock_indicator(position: Vector2 = DEFAULT_POSITION) -> RuleCheckInd
 	var indicator: RuleCheckIndicator = RuleCheckIndicator.new()
 	auto_free(indicator)
 	indicator.position = position
+	indicator.target_position = Vector2.ZERO  # Set for proper test alignment
 	indicator.shape = RectangleShape2D.new()
 	indicator.shape.size = Vector2(16,16)
 	add_child(indicator)

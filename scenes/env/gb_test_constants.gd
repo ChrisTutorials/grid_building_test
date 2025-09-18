@@ -53,22 +53,28 @@ const COLLISIONS_CHECK_RULE : CollisionsCheckRule = preload("uid://du7xu07247202
 ## UIDs for test objects used in collision and placement testing
 
 ## Rectangular test object (15 tiles coverage)
-const RECT_15_TILES_UID: String = "uid://rect_15_tiles"
-
-## Test smithy placeable
-const SMITHY_UID: String = "uid://test_smithy"
+const SCENE_RECT_15_TILES: PackedScene = preload("uid://blgwelirrimr1")
 
 ## Gigantic egg test object
-const GIGANTIC_EGG_UID: String = "uid://gigantic_egg"
+const GIGANTIC_EGG_UID: String = "uid://dr0nu4jwbvhvx"
 
 ## Test pillar object
-const PILLAR_UID: String = "uid://test_pillar"
+const PILLAR_UID: String = "uid://enlg28ry7lxk"
 
 ## Ellipse test object
 const ELLIPSE_UID: String = "uid://j5837ml5dduu"
 
 ## Eclipse test scene (alias for ellipse)
 static var eclipse_scene : PackedScene = preload("uid://j5837ml5dduu")
+
+#endregion
+#region Placeables
+
+## Test smithy placeable
+const PLACEABLE_SMITHY: Placeable = preload("uid://dirh6mcrgdm3w")
+
+## Good placeable test for polygon
+const PLACEABLE_TRAPEZOID : Placeable = preload("uid://c8i072rgno71t")
 
 #endregion
 #region Object Scene Paths
@@ -182,6 +188,14 @@ static func get_environment_scene(environment_type: EnvironmentType) -> PackedSc
 				scene = load(ISOMETRIC_TEST_ENV_PATH)
 
 	return scene
+
+## Returns an array of test placeables for use as test parameters
+static func get_placeables() -> Array[Placeable]:
+	var placeables : Array[Placeable] = [
+		PLACEABLE_SMITHY,
+		PLACEABLE_TRAPEZOID
+	]
+	return placeables
 
 ## Check if a test object scene exists
 static func validate_test_object_scene(object_uid: String) -> bool:

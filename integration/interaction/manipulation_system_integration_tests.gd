@@ -169,12 +169,12 @@ func test_cancel() -> void:
 func test_try_move(
 	p_target_root: Node = null,
 	p_expected: GBEnums.Status = GBEnums.Status.FAILED,
-	# test_parameters := [
-	# 	[null, GBEnums.Status.FAILED],
-	# 	[auto_free(Node.new()), GBEnums.Status.FAILED],
-	# 	[auto_free(Manipulatable.new()), GBEnums.Status.FAILED],
-	# 	[all_manipulatable.root, GBEnums.Status.STARTED]  # Resource object causes GdUnit4 parsing failure
-	# ]
+	test_parameters := [
+		[null, GBEnums.Status.FAILED],
+		[auto_free(Node.new()), GBEnums.Status.FAILED],
+		[auto_free(Manipulatable.new()), GBEnums.Status.FAILED],
+		[all_manipulatable.root, GBEnums.Status.STARTED]  # Resource object causes GdUnit4 parsing failure
+	]
 ) -> void:
 	var result_data: ManipulationData = system.try_move(p_target_root)
 
@@ -191,10 +191,10 @@ func test_try_move(
 func test_demolish(
 	p_settings: ManipulatableSettings = null,
 	p_expected: bool = false,
-	# _test_parameters := [
-	# 	[manipulatable_settings_none_allowed, false],  # Resource object causes GdUnit4 parsing failure
-	# 	[manipulatable_settings_all_allowed, true]     # Resource object causes GdUnit4 parsing failure
-	# ]
+	_test_parameters := [
+		[manipulatable_settings_none_allowed, false],  # Resource object causes GdUnit4 parsing failure
+		[manipulatable_settings_all_allowed, true]     # Resource object causes GdUnit4 parsing failure
+	]
 ) -> void:
 	var target_manipulatable: Manipulatable = _create_test_manipulatable(p_settings) if p_settings != null else all_manipulatable
 	assert_that(target_manipulatable).is_not_null()
@@ -213,7 +213,7 @@ func test_demolish(
 func test_try_placement(
 	p_settings: ManipulatableSettings,
 	p_expected: bool,
-	# test_parameters := [[manipulatable_settings_all_allowed, true]]  # Disabled for GdUnit4 parsing
+	test_parameters := [[manipulatable_settings_all_allowed, true]]  # Disabled for GdUnit4 parsing
 ) -> void:
 	var source: Manipulatable = _create_test_manipulatable(p_settings)
 	assert_that(source).is_not_null()

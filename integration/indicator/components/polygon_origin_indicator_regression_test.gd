@@ -133,7 +133,7 @@ func test_polygon_test_object_valid_indicators_generated() -> void:
 		return
 	
 	# Arrange: Create polygon test object under manipulation parent
-	var polygon_obj: Node = CollisionObjectTestFactory.create_polygon_test_object(self)
+	var polygon_obj: Node = CollisionObjectTestFactory.create_polygon_test_object(self, self)
 	# Remove from test suite and add to manipulation parent
 	if polygon_obj.get_parent():
 		polygon_obj.get_parent().remove_child(polygon_obj)
@@ -181,7 +181,7 @@ func test_polygon_test_object_centered_preview_flag() -> void:
 		return
 	
 	# Arrange: Create polygon test object as child of positioner (this should trigger centered_preview)
-	var polygon_obj: Node = CollisionObjectTestFactory.create_polygon_test_object(self)
+	var polygon_obj: Node = CollisionObjectTestFactory.create_polygon_test_object(self, self)
 	# Remove from test suite and add to positioner
 	if polygon_obj.get_parent():
 		polygon_obj.get_parent().remove_child(polygon_obj)
@@ -228,7 +228,7 @@ func test_proper_parent_architecture_maintained() -> void:
 		return
 	
 	# Arrange: Create polygon test object under manipulation parent
-	var polygon_obj: Node = CollisionObjectTestFactory.create_polygon_test_object(self)
+	var polygon_obj: Node = CollisionObjectTestFactory.create_polygon_test_object(self, self)
 	# Remove from test suite and add to manipulation parent
 	if polygon_obj.get_parent():
 		polygon_obj.get_parent().remove_child(polygon_obj)

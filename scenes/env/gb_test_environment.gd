@@ -54,3 +54,7 @@ func get_issues() -> Array[String]:
 
 func get_container() -> GBCompositionContainer:
 	return injector.composition_container if injector else null
+
+func get_logger() -> GBLogger:
+	var container : GBCompositionContainer = get_container()
+	return container.get_logger() if container else null

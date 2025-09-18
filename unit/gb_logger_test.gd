@@ -9,7 +9,9 @@ var _received_logs: Array[Dictionary]
 
 
 func before_test() -> void:
-	_logger = GBLogger.new(DBG_LEVEL.DEBUG)
+	var debug_settings := GBDebugSettings.new()
+	debug_settings.level = DBG_LEVEL.DEBUG
+	_logger = GBLogger.new(debug_settings)
 	
 	_received_logs = []
 	var sink: Callable = func(level: int, context: String, message: String) -> void:

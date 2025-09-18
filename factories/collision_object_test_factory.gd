@@ -104,6 +104,30 @@ static func create_static_body_with_circle(test_suite: GdUnitTestSuite, radius: 
 
 	return collision_body
 
+## Creates a StaticBody2D with an elliptical / capsule collision shape
+static func create_static_body_with_capsule(
+	test_suite: GdUnitTestSuite,
+	radius: float = DEFAULT_CAPSULE_RADIUS,
+	height: float = DEFAULT_CAPSULE_HEIGHT,
+	position: Vector2 = Vector2.ZERO
+) -> StaticBody2D:
+	var collision_body: StaticBody2D = StaticBody2D.new()
+	test_suite.add_child(collision_body)
+	test_suite.auto_free(collision_body)
+
+	var collision_shape: CollisionShape2D = CollisionShape2D.new()
+	var capsule_shape: CapsuleShape2D = CapsuleShape2D.new()
+	capsule_shape.radius = radius
+	capsule_shape.height = height
+	collision_shape.shape = capsule_shape
+	collision_shape.position = position
+	collision_body.add_child(collision_shape)
+	
+	# Ensure collision layer matches the test mask
+	collision_body.collision_layer = DEFAULT_COLLISION_LAYER
+
+	return collision_body
+
 ## Creates a StaticBody2D with a polygon collision shape
 static func create_static_body_with_polygon(test_suite: GdUnitTestSuite, polygon_points: PackedVector2Array, position: Vector2 = Vector2.ZERO) -> StaticBody2D:
 	var collision_body: StaticBody2D = StaticBody2D.new()
@@ -419,62 +443,35 @@ static func create_test_object_with_shape(
 	return collision_body
 
 ## Creates a polygon test object for testing indicator behavior
-static func create_polygon_test_object(test_suite: GdUnitTestSuite, parent: CollisionObject2D = null) -> Node2D:
-	var obj := Node2D.new()
-	obj.name = "PolygonTestObject"
-	test_suite.add_child(obj)
-	test_suite.auto_free(obj)
+static func create_polygon_test_object(test_suite: GdUnitTestSuite, parent: Node) -> StaticBody2D:
+	var body := StaticBody2D.new()
+	body.name = "PolygonTestObject"
+	parent.add_child(body)
+	test_suite.auto_free(body)
 	
 	# Define a concave polygon for testing
 	var points: PackedVector2Array = CONCAVE_POLYGON_POINTS
 	
-	# Ensure collision polygon is parented under the root object that will be packed
-	if parent != null:
-		# If caller provided a CollisionObject2D to reuse, attach it to obj and add the polygon as its child
-		obj.add_child(parent)
-		test_suite.auto_free(parent)
-		var collision_polygon := CollisionPolygon2D.new()
-		collision_polygon.name = "CollisionPolygon2D"
-		collision_polygon.polygon = points
-		parent.add_child(collision_polygon)
-		# Ensure the collision polygon is owned by the root node to be included when packing
-		collision_polygon.owner = obj
-		# Also set the provided parent node's owner so the hierarchy is preserved
-		parent.owner = obj
-	else:
-		# Create CollisionPolygon2D directly under the root object so previews will contain it
-		# Create a CollisionObject2D parent (StaticBody2D) so resolver can find a collision owner
-		var owner_node := StaticBody2D.new()
-		owner_node.name = "CollisionOwner"
-		obj.add_child(owner_node)
-		# Mark owner_node to be owned by root for packing
-		owner_node.owner = obj
-
-		# Add collision polygon under the CollisionObject2D owner for mapping
-		var collision_polygon := CollisionPolygon2D.new()
-		collision_polygon.name = "CollisionPolygon2D"
-		collision_polygon.polygon = points
-		owner_node.add_child(collision_polygon)
-		# Ensure the collision polygon is also owned by the root so PackedScene.pack includes it
-		collision_polygon.owner = obj
-
-		# ALSO add a mirror CollisionPolygon2D directly under the root so tests that expect
-		# a direct CollisionPolygon2D child on the preview will find it. This mirror is kept
-		# separate from the owner polygon to satisfy both resolver and test expectations.
-		var mirror_polygon := CollisionPolygon2D.new()
-		mirror_polygon.name = "CollisionPolygon2D_Mirror"
-		mirror_polygon.polygon = points
-		obj.add_child(mirror_polygon)
-		mirror_polygon.owner = obj
-
+	# Create the polygon shape
+	var polygon := CollisionPolygon2D.new()
+	polygon.name = "CollisionPolygon2D"
+	polygon.polygon = points
+	body.add_child(polygon)
+	
 	# Debug: print children of the created object for test diagnostics
 	var child_list := []
-	for c in obj.get_children():
-		child_list.append(str(c.get_class()) + ":" + str(c.name))
+	for child : Node in body.get_children():
+		child_list.append(str(child.get_class()) + ":" + str(child.name))
 	# Also print owner info for each child for debugging pack inclusion
 	var owner_info := []
-	for c in obj.get_children():
-		owner_info.append(str(c.name) + "->owner=" + (str(c.owner) if c.owner != null else "null"))
+	for child : Node in body.get_children():
+		owner_info.append(str(child.name) + "->owner=" + (str(child.owner) if child.owner != null else "null"))
 	print("create_polygon_test_object: created obj with children=%s owners=%s" % [str(child_list), str(owner_info)])
 	
-	return obj
+	return body
+
+static func instance_placeable(p_test : GdUnitTestSuite, p_placeable : Placeable, p_parent : Node) -> Node2D:
+	var root : Node2D = p_placeable.packed_scene.instantiate()
+	p_test.auto_free(root)
+	p_parent.add_child(root)
+	return root

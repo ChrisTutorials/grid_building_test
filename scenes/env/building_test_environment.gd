@@ -47,6 +47,10 @@ func _ready() -> void:
 
 func get_container() -> GBCompositionContainer:
 	return injector.composition_container
+	
+## Returns the collision mapper used by the indicator manager
+func get_collision_mapper() -> CollisionMapper:
+	return indicator_manager.get_collision_mapper() if indicator_manager else null
 
 func get_owner_root() -> Node:
 	return gb_owner.owner_root

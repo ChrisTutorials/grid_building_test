@@ -116,7 +116,7 @@ func test_building_workflow_with_validation() -> void:
 	# Skip validation if indicators couldn't be set up
 	if not validation_setup.validation_ready:
 		print("Indicator setup failed for validation test (may be expected in some configurations): ", 
-			validation_setup.indicator_setup.get_all_issues())
+			validation_setup.indicator_setup.get_issues())
 		return
 
 	# Perform validation with helper
@@ -212,7 +212,7 @@ func _assert_validation_result_with_context(validation_result: ValidationResults
 			# Expected success case
 			pass
 		else:
-			var issues: Array[String] = validation_result.get_all_issues()
+			var issues: Array[String] = validation_result.get_issues()
 			print("Validation failed at %s for %s (may be expected): %s" % [position, context, issues])
 	else:
 		assert_bool(validation_result.is_successful()).append_failure_message(
@@ -369,7 +369,7 @@ func test_indicators_are_parented_and_inside_tree() -> void:
 	# Check if setup was successful - if not, skip the rest of the test
 	if not setup_results.is_successful():
 		# Log why setup failed but don't fail the test
-		print("Indicator setup failed (expected in some configurations): ", setup_results.get_all_issues())
+		print("Indicator setup failed (expected in some configurations): ", setup_results.get_issues())
 		return
 
 	var indicators: Array[RuleCheckIndicator] = indicator_manager.get_indicators()
@@ -1062,7 +1062,7 @@ func test_edge_case_positions_comprehensive() -> void:
 		if result == null:
 			print("Position %s: returned null (expected for out-of-bounds)" % position)
 		elif not result.is_successful():
-			print("Position %s: failed with issues: %s" % [position, result.get_all_issues()])
+			print("Position %s: failed with issues: %s" % [position, result.get_issues()])
 		else:
 			print("Position %s: placement successful" % position)
 	
@@ -1113,7 +1113,7 @@ func test_collision_layer_edge_cases() -> void:
 			print("Layer %d: setup successful" % layer)
 			building_system.exit_build_mode()
 		else:
-			var issues: Array[String] = setup_result.get_all_issues() if setup_result != null else ["null result"]
+			var issues: Array[String] = setup_result.get_issues() if setup_result != null else ["null result"]
 			print("Layer %d: setup failed: %s" % [layer, issues])
 		
 		# Ensure system is clean between tests

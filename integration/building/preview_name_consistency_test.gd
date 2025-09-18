@@ -64,7 +64,7 @@ func test_same_placeable_twice_preserves_name() -> void:
 	# First call to enter_build_mode
 	var report1: PlacementReport = system.enter_build_mode(placeable_with_rules)
 	assert_bool(report1.is_successful()).append_failure_message(
-		"First enter_build_mode should succeed, but failed with: " + str(report1.get_all_issues())
+		"First enter_build_mode should succeed, but failed with: " + str(report1.get_issues())
 	).is_true()
 
 	var preview1: Node2D = _get_current_preview()
@@ -73,7 +73,7 @@ func test_same_placeable_twice_preserves_name() -> void:
 	# Second call to enter_build_mode with same placeable
 	var report2: PlacementReport = system.enter_build_mode(placeable_with_rules)
 	assert_bool(report2.is_successful()).append_failure_message(
-		"Second enter_build_mode should succeed, but failed with: " + str(report2.get_all_issues())
+		"Second enter_build_mode should succeed, but failed with: " + str(report2.get_issues())
 	).is_true()
 
 	var preview2: Node2D = _get_current_preview()

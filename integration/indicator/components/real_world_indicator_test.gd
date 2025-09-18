@@ -60,7 +60,7 @@ func _instantiate_preview(packed_scene: PackedScene) -> Node2D:
 		return packed_scene.instantiate()
 
 	# Use DRY factory for synthetic preview creation
-	return CollisionObjectTestFactory.create_polygon_test_object(self)
+	return CollisionObjectTestFactory.create_polygon_test_object(self, self)
 
 func _get_collision_shapes_from_node(root: Node) -> Array[Node]:
 	## Helper method to collect collision shapes using DRY pattern
@@ -194,7 +194,7 @@ func test_real_world_indicator_positioning() -> void:
 	# 		used_real_placeable = true
 
 	# Use DRY factory for synthetic preview (ellipse scene UID is invalid)
-	preview = UnifiedTestFactory.create_polygon_test_object(self)
+	preview = CollisionObjectTestFactory.create_polygon_test_object(self, self)
 	# Add secondary collision shape for multiple indicator testing
 	var body: StaticBody2D = preview.get_child(0) as StaticBody2D
 	if body:

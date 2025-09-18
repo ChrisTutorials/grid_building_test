@@ -1,7 +1,7 @@
 ## Refactored polygon runtime parity test with improved debugging and DRY helpers
 extends GdUnitTestSuite
 
-const TestDebugHelpers = preload("uid://cjtkkhcp460sg")
+const DebugHelper = preload("uid://cjtkkhcp460sg")
 const TEST_FACTORY = preload("res://test/grid_building_test/factories/unified_test_factory.gd")
 
 var _test_env: AllSystemsTestEnvironment
@@ -32,11 +32,11 @@ func test_polygon_placeable_builds_and_generates_indicators() -> void:
 	"""Simplified test focusing on the core functionality: building system entry and indicator generation"""
 	
 	# Step 1: Create placeable with clear debugging
-	var placeable: Placeable = UnifiedTestFactory.create_polygon_test_placeable(self)
+	var placeable: Placeable = PlaceableTestFactory.create_polygon_test_placeable(self)
 	assert_object(placeable).append_failure_message("Failed to create polygon test placeable").is_not_null()
 	
 	# Step 2: Validate building system can enter build mode
-	_building_validation = TestDebugHelpers.validate_building_system_entry(self, _test_env, placeable)
+	_building_validation = DebugHelper.validate_building_system_entry(self, _test_env, placeable)
 	assert_bool(_building_validation.is_successful)\
 		.append_failure_message("Building system failed to enter build mode. Details:\n%s" % _building_validation.error_summary)\
 		.is_true()
@@ -46,16 +46,16 @@ func test_polygon_placeable_builds_and_generates_indicators() -> void:
 	assert_object(preview).append_failure_message("No preview created after successful build mode entry").is_not_null()
 	
 	# Step 4: Create indicator manager and validate setup
-	_manager_validation = TestDebugHelpers.create_indicator_manager_with_validation(self, _test_env)
+	_manager_validation = DebugHelper.create_indicator_manager_with_validation(self, _test_env)
 	assert_bool(_manager_validation.is_valid)\
 		.append_failure_message("Indicator manager setup failed. Issues: %s" % str(_manager_validation.setup_issues))\
 		.is_true()
 	
 	# Step 5: Create rule and test indicator generation
-	var rule: CollisionsCheckRule = TestDebugHelpers.create_basic_collision_rule(1)  # Match polygon collision layer
+	var rule: CollisionsCheckRule = DebugHelper.create_basic_collision_rule(1)  # Match polygon collision layer
 	var rules: Array[TileCheckRule] = [rule]
 	
-	var indicator_result: Dictionary = TestDebugHelpers.validate_indicator_setup(_manager_validation.manager, preview, rules)
+	var indicator_result: Dictionary = DebugHelper.validate_indicator_setup(_manager_validation.manager, preview, rules)
 	assert_int(indicator_result.indicator_count)\
 		.append_failure_message("Expected indicators to be generated. Details:\n%s" % indicator_result.summary)\
 		.is_greater(0)
@@ -64,8 +64,8 @@ func test_polygon_indicators_align_with_geometry() -> void:
 	"""Test that indicators generated align with the actual polygon geometry"""
 	
 	# Setup: Use the same build process as above
-	var placeable: Placeable = UnifiedTestFactory.create_polygon_test_placeable(self)
-	_building_validation = TestDebugHelpers.validate_building_system_entry(self, _test_env, placeable)
+	var placeable: Placeable = PlaceableTestFactory.create_polygon_test_placeable(self)
+	_building_validation = DebugHelper.validate_building_system_entry(self, _test_env, placeable)
 	
 	# Skip test if build mode fails 
 	if not _building_validation.is_successful:
@@ -73,7 +73,7 @@ func test_polygon_indicators_align_with_geometry() -> void:
 		return
 	
 	var preview: Node2D = _building_validation.preview
-	_manager_validation = TestDebugHelpers.create_indicator_manager_with_validation(self, _test_env)
+	_manager_validation = DebugHelper.create_indicator_manager_with_validation(self, _test_env)
 	
 	# Skip test if manager setup fails
 	if not _manager_validation.is_valid:
@@ -81,9 +81,9 @@ func test_polygon_indicators_align_with_geometry() -> void:
 		return
 	
 	# Generate indicators
-	var rule: CollisionsCheckRule = TestDebugHelpers.create_basic_collision_rule(1)
+	var rule: CollisionsCheckRule = DebugHelper.create_basic_collision_rule(1)
 	var rules: Array[TileCheckRule] = [rule]
-	var indicator_result: Dictionary = TestDebugHelpers.validate_indicator_setup(_manager_validation.manager, preview, rules)
+	var indicator_result: Dictionary = DebugHelper.validate_indicator_setup(_manager_validation.manager, preview, rules)
 	
 	# Skip if no indicators generated
 	if indicator_result.indicator_count == 0:
@@ -107,8 +107,8 @@ func test_polygon_indicators_align_with_geometry() -> void:
 func test_polygon_preview_has_collision_polygon() -> void:
 	"""Unit test to verify polygon preview contains a CollisionPolygon2D child"""
 	
-	var placeable: Placeable = UnifiedTestFactory.create_polygon_test_placeable(self)
-	_building_validation = TestDebugHelpers.validate_building_system_entry(self, _test_env, placeable)
+	var placeable: Placeable = PlaceableTestFactory.create_polygon_test_placeable(self)
+	_building_validation = DebugHelper.validate_building_system_entry(self, _test_env, placeable)
 	
 	# This test can provide useful debugging even if build mode fails
 	if not _building_validation.is_successful:

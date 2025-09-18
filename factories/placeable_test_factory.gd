@@ -34,7 +34,7 @@ static func create_polygon_test_placeable(test_instance: Node) -> Placeable:
 	var scene := PackedScene.new()
 	assert(scene != null, "Failed to create PackedScene instance")
 	
-	var polygon_obj := CollisionObjectTestFactory.create_polygon_test_object(test_instance)
+	var polygon_obj := CollisionObjectTestFactory.create_polygon_test_object(test_instance, test_instance)
 	assert(polygon_obj != null, "create_polygon_test_object returned null")
 	
 	var pack_result := scene.pack(polygon_obj)

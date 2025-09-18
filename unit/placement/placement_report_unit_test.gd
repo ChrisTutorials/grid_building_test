@@ -1,7 +1,7 @@
 extends GdUnitTestSuite
 
 # High-value unit tests targeting failures seen in integration:
-# - PlacementReport.is_successful / get_all_issues
+# - PlacementReport.is_successful / get_issues
 # - RuleResult backward compatibility (is_empty alias)
 # - ValidationResults aggregation using mixed RuleResult API
 
@@ -16,10 +16,10 @@ func after_test() -> void:
 func test_rule_result_backward_compatibility_is_empty() -> void:
 	var rr := RuleResult.new(_dummy_rule)
 	assert_that(rr.is_empty()).is_true()
-	assert_that(rr.get_all_issues()).is_empty()
+	assert_that(rr.get_issues()).is_empty()
 	rr.add_issue("failure A")
 	assert_that(rr.is_empty()).is_false()
-	assert_array(rr.get_all_issues()).has_size(1)
+	assert_array(rr.get_issues()).has_size(1)
 
 func test_validation_results_mixed_api_support() -> void:
 	var rr1 := RuleResult.new(_dummy_rule) # empty success
@@ -32,7 +32,7 @@ func test_validation_results_mixed_api_support() -> void:
 	# Re-add failing
 	vr.add_rule_result(_dummy_rule, rr2)
 	assert_that(vr.has_failing_rules()).is_true()
-	assert_array(vr.get_all_issues()).has_size(1)
+	assert_array(vr.get_issues()).has_size(1)
 
 func test_placement_report_aggregates_indicator_and_primary_issues() -> void:
 	var rr := RuleResult.new(_dummy_rule)
@@ -48,6 +48,6 @@ func test_placement_report_aggregates_indicator_and_primary_issues() -> void:
 	var preview: Node2D = auto_free(Node2D.new())
 	var report := PlacementReport.new(dummy_owner, preview, ind_report, GBEnums.Action.BUILD)
 	report.add_issue("primary fail")
-	var issues := report.get_all_issues()
+	var issues := report.get_issues()
 	# Expect at least the manually added and primary issue; rule collision fail comes via ValidationResults only if indicators_report exposes it.
 	assert_that(issues.size() > 1).is_true()

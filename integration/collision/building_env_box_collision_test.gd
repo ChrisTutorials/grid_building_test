@@ -76,7 +76,7 @@ func test_build_mode_entry() -> void:
 	# Enter build mode
 	var entered_report: PlacementReport = env.building_system.enter_build_mode(placeable)
 	assert_bool(entered_report.is_successful())\
-		.append_failure_message("Failed to enter build mode: %s" % str(entered_report.get_all_issues()))\
+		.append_failure_message("Failed to enter build mode: %s" % str(entered_report.get_issues()))\
 		.is_true()
 
 	# Verify preview was created
@@ -98,7 +98,7 @@ func test_indicator_generation() -> void:
 	# Set up rules and check indicators
 	var setup_report: PlacementReport = env.indicator_manager.try_setup(placeable.placement_rules, _gts, false)
 	assert_bool(setup_report.is_successful())\
-		.append_failure_message("Failed to set up rules: %s" % str(setup_report.get_all_issues()))\
+		.append_failure_message("Failed to set up rules: %s" % str(setup_report.get_issues()))\
 		.is_true()
 
 	# Verify indicators were generated

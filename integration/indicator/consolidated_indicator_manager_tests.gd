@@ -235,7 +235,7 @@ func test_polygon_indicator_runtime_parity() -> void:
 	
 	var indicator_result: PlacementReport = indicator_manager.try_setup([test_rule], env.targeting_state)
 	assert_bool(indicator_result.is_successful()).append_failure_message(
-		"Polygon indicator generation should succeed: %s" % str(indicator_result.get_all_issues())
+		"Polygon indicator generation should succeed: %s" % str(indicator_result.get_issues())
 	).is_true()
 
 func test_polygon_origin_indicator_regression() -> void:

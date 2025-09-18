@@ -144,14 +144,6 @@ static func create_test_injector(test: GdUnitTestSuite, container: GBComposition
 	test.auto_free(injector)
 	return injector
 
-## Delegate: Create eclipse test object
-## @deprecated: Use CollisionObjectTestFactory.create_polygon_test_object() directly
-static func create_eclipse_test_object(test: GdUnitTestSuite) -> Node2D:
-	# Create an object with actual collision shapes for testing
-	return CollisionObjectTestFactory.create_polygon_test_object(test)
-
-#endregion
-
 ## Delegate: Create test Node2D
 ## @deprecated: Use GodotTestFactory.create_node2d() directly
 static func create_test_node2d(test: GdUnitTestSuite) -> Node2D:
@@ -162,21 +154,6 @@ static func create_test_node2d(test: GdUnitTestSuite) -> Node2D:
 ## @deprecated: Use GodotTestFactory.create_static_body_with_rect_shape() directly
 static func create_test_static_body_with_rect_shape(test: GdUnitTestSuite) -> StaticBody2D:
 	return GodotTestFactory.create_static_body_with_rect_shape(test, Vector2(32, 32))  # TODO: Use GBTestConstants.DEFAULT_TILE_SIZE
-
-## Delegate: Create polygon test object
-## @deprecated: Use CollisionObjectTestFactory.create_polygon_test_object() directly
-static func create_polygon_test_object(test_instance: Node) -> Node2D:
-	return CollisionObjectTestFactory.create_polygon_test_object(test_instance)
-
-## Delegate: Create polygon test placeable
-## @deprecated: Use PlaceableTestFactory.create_polygon_test_placeable() directly
-static func create_polygon_test_placeable(test_instance: Node) -> Placeable:
-	return PlaceableTestFactory.create_polygon_test_placeable(test_instance)
-
-## Delegate: Create test placeable with rules
-## @deprecated: Use PlaceableTestFactory.create_test_placeable_with_rules() directly
-static func create_test_placeable_with_rules(base_placeable: Placeable, display_name: String = "Test Placeable With Rules", include_tile_rule: bool = true) -> Placeable:
-	return PlaceableTestFactory.create_test_placeable_with_rules(base_placeable, display_name, include_tile_rule)
 
 ## Delegate: Create polygon test setup
 ## @deprecated: Use PlaceableTestFactory.create_polygon_test_setup() directly
@@ -192,6 +169,9 @@ static func create_test_rule_check_indicator(test_instance: Node) -> RuleCheckIn
 	var default_shape: RectangleShape2D = RectangleShape2D.new()
 	default_shape.size = Vector2(16, 16)  # Default tile size
 	indicator.shape = default_shape
+	
+	# Set target_position to Vector2.ZERO for proper test alignment
+	indicator.target_position = Vector2.ZERO
 	
 	test_instance.add_child(indicator)
 	test_instance.auto_free(indicator)

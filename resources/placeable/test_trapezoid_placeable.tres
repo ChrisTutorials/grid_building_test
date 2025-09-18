@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="Placeable" load_steps=5 format=3 uid="uid://c8i072rgno71t"]
+
+[ext_resource type="PackedScene" uid="uid://blllj8hw6xgpl" path="res://test/grid_building_test/scenes/objects/test_trapezoid.tscn" id="1_psach"]
+[ext_resource type="Script" uid="uid://ceem2vqcha7ki" path="res://addons/grid_building/placement/placement_rules/placement_rule.gd" id="2_gxlnl"]
+[ext_resource type="Script" uid="uid://b01uvfnfuldd6" path="res://addons/grid_building/placement/placeable/placeable.gd" id="3_4s7vb"]
+[ext_resource type="Script" uid="uid://b064bdpoigkqi" path="res://addons/grid_building/placement/placeable/categorical_tag.gd" id="4_ue4qk"]
+
+[resource]
+script = ExtResource("3_4s7vb")
+display_name = &"Test Trapezoid"
+packed_scene = ExtResource("1_psach")
+tags = Array[ExtResource("4_ue4qk")]([])
+placement_rules = Array[ExtResource("2_gxlnl")]([])
+ignore_base_rules = false
+metadata/_custom_type_script = "uid://b01uvfnfuldd6"

@@ -1,4 +1,4 @@
-## class_name TestDebugHelpers
+class_name TestDebugHelpers
 ## Debug helpers for placement manager tests to reduce duplication and improve debuggability
 
 ## Helper to create minimal test environment
@@ -98,6 +98,6 @@ static func _create_build_mode_summary(validation_result: Dictionary) -> String:
 	lines.append("Has Preview: %s" % str(validation_result.preview != null))
 	
 	if not validation_result.is_successful and validation_result.report:
-		lines.append("Issues: %s" % str(validation_result.report.get_all_issues()))
+		lines.append("Issues: %s" % str(validation_result.report.get_issues()))
 	
 	return "\n".join(lines)

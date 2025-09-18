@@ -5,6 +5,8 @@
 ## GBTestConstants and verifies that indicators are produced.
 extends GdUnitTestSuite
 
+const DEFAULT_POSITION: Vector2 = Vector2(0, 0)
+
 var _env: BuildingTestEnvironment
 var _manager: IndicatorManager
 var _container: GBCompositionContainer
@@ -21,7 +23,7 @@ func before_test() -> void:
 
 func test_indicator_generation_from_container_rules() -> void:
 	# Arrange: create a polygon preview like integration tests do
-	var preview: Node2D = CollisionObjectTestFactory.create_polygon_test_object(self)
+	var preview: Node2D = CollisionObjectTestFactory.create_polygon_test_object(self, self)
 	auto_free(preview)
 	# Reparent if factory already attached it somewhere
 	var old_parent := preview.get_parent() if is_instance_valid(preview) else null
@@ -91,3 +93,17 @@ func test_indicator_generation_from_container_rules() -> void:
 
 	var indicators: Array[RuleCheckIndicator] = report.indicators_report.indicators
 	assert_array(indicators).append_failure_message("No indicators generated (unit test)").is_not_empty()
+
+func test_indicators_are_freed_on_reset() -> void:
+	var shape_scene: Node2D = CollisionObjectTestFactory.create_polygon_test_object(self, self)
+	shape_scene.global_position = DEFAULT_POSITION
+	var col_checking_rules: Array[TileCheckRule] = [GBTestConstants.COLLISIONS_CHECK_RULE]
+	_manager.setup_indicators(shape_scene, col_checking_rules)
+	
+	assert_array(_manager.get_active_indicators())\
+		.append_failure_message("No indicators generated before reset (unit test)")\
+		.is_not_empty()
+
+	# Reset the indicator manager and verify indicators are freed
+	_manager.reset()
+	assert_that(_manager.get_active_indicators()).is_empty()

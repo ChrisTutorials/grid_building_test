@@ -43,4 +43,4 @@ func test_debug_enter_build_mode_failure() -> void:
 	# Try enter_build_mode and verify success
 	var setup_report: PlacementReport = building_system.enter_build_mode(smithy_placeable)
 	assert_that(setup_report).append_failure_message("Setup report should exist").is_not_null()
-	assert_that(setup_report.is_successful()).append_failure_message("Enter build mode should succeed. Issues: " + str(setup_report.get_all_issues())).is_true()
+	assert_that(setup_report.is_successful()).append_failure_message("Enter build mode should succeed. Issues: " + str(setup_report.get_issues())).is_true()

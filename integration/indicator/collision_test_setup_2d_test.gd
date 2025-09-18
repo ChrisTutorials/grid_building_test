@@ -20,7 +20,7 @@ func before_test() -> void:
 	tile_map_16px.tile_set = TileSet.new()
 	tile_map_16px.tile_set.tile_size = TILE_SIZE
 	
-	eclipse_obj = UnifiedTestFactory.create_eclipse_test_object(self)
+	eclipse_obj = CollisionObjectTestFactory.create_static_body_with_capsule(self)
 	add_child(eclipse_obj)
 	
 	# Create simple rectangular objects for the other test cases

@@ -177,6 +177,7 @@ func test_indicator_rule_assignment_during_creation() -> void:
 	var _rect_shape2 := RectangleShape2D.new()
 	_rect_shape2.size = TILE_SIZE
 	indicator.shape = _rect_shape2
+	indicator.target_position = Vector2.ZERO  # Set for proper test alignment
 	indicator.collision_mask = 1
 	add_child(indicator)
 	auto_free(indicator)
@@ -215,6 +216,7 @@ func test_indicator_rule_validation() -> void:
 	var _rect_shape := RectangleShape2D.new()
 	_rect_shape.size = TILE_SIZE
 	indicator.shape = _rect_shape
+	indicator.target_position = Vector2.ZERO  # Set for proper test alignment
 	# Ensure indicator queries the default collision layer used by test objects
 	indicator.collision_mask = 1
 	add_child(indicator)

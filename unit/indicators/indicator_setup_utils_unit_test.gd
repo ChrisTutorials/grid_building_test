@@ -141,7 +141,7 @@ func test_execute_indicator_setup_basic_success() -> void:
 	# Arrange
 	var test_object: Node2D = _create_test_object_with_shapes()
 	var tile_check_rules: Array[TileCheckRule] = _create_tile_check_rules()
-	var collision_mapper: CollisionMapper = CollisionMapper.new(_targeting_state, GBLogger.new())
+	var collision_mapper: CollisionMapper = CollisionMapper.new(_targeting_state, env.get_logger())
 	var indicators_parent: Node2D = Node2D.new()
 	add_child(indicators_parent)
 	
@@ -179,7 +179,7 @@ func test_calculate_indicator_count_parameterized() -> void:
 		var test_object: Node2D = scene.instantiate() as Node2D
 		add_child(test_object)
 		
-		var collision_mapper: CollisionMapper = CollisionMapper.new(_targeting_state, GBLogger.new())
+		var collision_mapper: CollisionMapper = CollisionMapper.new(_targeting_state, env.get_logger())
 		var rules: Array[TileCheckRule] = [_test_rule]
 		
 		var count: int = IndicatorSetupUtils.calculate_indicator_count(
