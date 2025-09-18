@@ -187,7 +187,10 @@ func test_create_circle_shape() -> void:
 
 
 func test_create_rule_check_indicator() -> void:
-	var indicator: RuleCheckIndicator = GodotTestFactory.create_rule_check_indicator(self, self, 32)
+	var indicator: RuleCheckIndicator = UnifiedTestFactory.create_test_rule_check_indicator(self)
+	# Adjust size to 32x32 for this test case
+	if indicator.shape is RectangleShape2D:
+		(indicator.shape as RectangleShape2D).size = Vector2(32, 32)
 
 	assert_object(indicator).is_not_null()
 	assert_object(indicator.shape).is_not_null()

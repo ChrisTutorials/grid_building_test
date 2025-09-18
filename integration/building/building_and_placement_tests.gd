@@ -42,14 +42,24 @@ func before_test() -> void:
 	# Get targeting state from grid targeting system - it should already be properly configured
 	_targeting_state = _targeting_system.get_state()
 	
-	# Initialize other variables
-	user_node = Node2D.new()
-	add_child(user_node)
-	auto_free(user_node)
-	
+	# Get dependencies from environment instead of creating them manually
 	gb_owner = env.gb_owner
-	logger = GBLogger.new()
-	auto_free(logger)
+	logger = _container.get_logger()
+	
+	# Use placer from environment instead of creating new user_node
+	user_node = env.placer
+	
+	# For collision rule tests, add a collision shape to the test object
+	_setup_test_object_collision_shapes()
+	
+	# Set the targeting state target to the user_node/placer for tests
+	_targeting_state.target = user_node
+	
+	# Set debug level to VERBOSE to see detailed logging
+	_container.get_debug_settings().set_debug_level(GBDebugSettings.LogLevel.VERBOSE)
+	
+	# Connect to building system signals for tracking placed positions
+	_container.get_states().building.success.connect(_on_build_success)
 	
 	_placed_positions = []
 
@@ -58,18 +68,15 @@ func after_test() -> void:
 	if placement_validator:
 		placement_validator.tear_down()
 	
-	# Cleanup test-created nodes that might not be auto_free'd
-	if user_node and is_instance_valid(user_node):
-		user_node.queue_free()
-	if _positioner and is_instance_valid(_positioner):
-		_positioner.queue_free()
-	if _map and is_instance_valid(_map):
-		_map.queue_free()
+	# Disconnect signals
+	if _container and _container.get_states().building.success.is_connected(_on_build_success):
+		_container.get_states().building.success.disconnect(_on_build_success)
 	
-	# Wait a frame for queue_free to process
+	# Note: user_node, _positioner, _map, logger, gb_owner are from environment 
+	# and will be cleaned up automatically by the environment factory
+	
+	# Wait a frame for any pending queue_free operations to process
 	await get_tree().process_frame
-	
-	# Cleanup is handled by auto_free in factory methods
 
 # Test basic placement validation with no rules
 @warning_ignore("unused_parameter")
@@ -117,11 +124,11 @@ func test_placement_validation_with_rules(
 	rule_type: String,
 	expected_valid: bool,
 	test_parameters := [
-		["collision_rule_pass", "collision", true],
-		["collision_rule_fail", "collision_blocking", true],  # No indicators = true by default
-		["template_rule_pass", "template", true],
-		["multiple_rules_pass", "multiple_valid", true],
-		["multiple_rules_fail", "multiple_invalid", true]  # No indicators = true by default
+		["collision_rule_pass", "collision", true],             # Should pass - no collision
+		["collision_rule_fail", "collision_blocking", false],   # Should FAIL - collision detected
+		["template_rule_pass", "template", true],               # Should pass - valid tile
+		["multiple_rules_pass", "multiple_valid", true],        # Should pass - both rules valid  
+		["multiple_rules_fail", "multiple_invalid", false]      # Should FAIL - at least one rule fails
 	]
 ) -> void:
 	assert_object(placement_validator).append_failure_message("PlacementValidator missing in test").is_not_null()
@@ -133,9 +140,23 @@ func test_placement_validation_with_rules(
 	if rule_type == "collision_blocking":
 		_setup_blocking_collision()
 	
+	# IMPORTANT: Set positioner to a position within map bounds before validation
+	_positioner.global_position = Vector2(64, 64)  # Center position within map
+	# Also update the targeting state target position to match
+	_targeting_state.target.global_position = Vector2(64, 64)
+	print("DEBUG positioner position set to: %s" % _positioner.global_position)
+	print("DEBUG targeting state target position: %s" % _targeting_state.target.global_position)
+	
 	# Setup and validate placement through IndicatorManager so indicators are generated
 	var _report: PlacementReport = _indicator_manager.try_setup(test_rules, _targeting_state)
 	var result: ValidationResults = _indicator_manager.validate_placement()
+	
+	# Debug output
+	print("DEBUG validation for %s: result.is_successful()=%s" % [rule_scenario, result.is_successful()])
+	print("DEBUG validation issues: " + str(result.get_all_issues()))
+	print("DEBUG validation errors: " + str(result.get_errors()))
+	print("DEBUG validation message: " + result.message)
+	print("DEBUG failing rules: " + str(result.get_failing_rules().size()))
 	
 	assert_that(result.is_successful()).append_failure_message(
 		"Validation result for %s with rule type %s should be %s" % [rule_scenario, rule_type, expected_valid]
@@ -779,9 +800,32 @@ func test_preview_indicator_consistency() -> void:
 #endregion
 	
 
+# Helper method to add collision shapes to test object for collision rule testing
+func _setup_test_object_collision_shapes() -> void:
+	# Create a StaticBody2D child to hold collision shapes since user_node is just Node2D
+	var collision_body: StaticBody2D = StaticBody2D.new()
+	collision_body.name = "TestCollisionBody"
+	
+	# Add a CollisionShape2D with a RectangleShape2D to the collision body
+	var collision_shape: CollisionShape2D = CollisionShape2D.new()
+	var rectangle_shape: RectangleShape2D = RectangleShape2D.new()
+	rectangle_shape.size = Vector2(16, 16)  # Standard tile size
+	collision_shape.shape = rectangle_shape
+	collision_shape.name = "TestCollisionShape"
+	
+	# Set up the hierarchy: user_node -> StaticBody2D -> CollisionShape2D
+	collision_body.add_child(collision_shape)
+	user_node.add_child(collision_body)
+	
+	print("DEBUG: Added StaticBody2D with collision shape to user_node: ", user_node.name)
+	var child_names: Array[String] = []
+	for child in user_node.get_children():
+		child_names.append("%s:%s" % [child.get_class(), child.name])
+	print("DEBUG: user_node children after adding collision body: ", child_names)
+
 func _on_build_success(build_action_data: BuildActionData) -> void:
-	if build_action_data.placed:
-		_placed_positions.append(build_action_data.placed.global_position)
+	if build_action_data.report && build_action_data.report.placed:
+		_placed_positions.append(build_action_data.get_placed_position())
 
 func _create_placeable_with_no_rules() -> Placeable:
 	"""Create a simple placeable with no placement rules to test the issue"""
@@ -809,14 +853,20 @@ func test_drag_build_should_not_stack_multiple_objects_in_the_same_spot_before_t
 	var report : PlacementReport = _building_system.enter_build_mode(test_within_tilemap_bounds_placeable)
 	assert_bool(report.is_successful()).is_true()
 	
-	_targeting_system.move_to_tile(_positioner, Vector2(0,0))
+	# Calculate safe test position within map bounds using used_rect
+	var used_rect: Rect2i = _map.get_used_rect()
+	var safe_tile := Vector2i(8, 8)
+	# Ensure safe_tile is inside used_rect (add small margin)
+	safe_tile.x = clamp(safe_tile.x, int(used_rect.position.x) + 2, int(used_rect.position.x + used_rect.size.x) - 3)
+	safe_tile.y = clamp(safe_tile.y, int(used_rect.position.y) + 2, int(used_rect.position.y + used_rect.size.y) - 3)
+	_targeting_system.move_to_tile(_positioner, safe_tile)
 	
 	# Start drag building
 	_building_system.start_drag()
 	
-	# First placement: Simulate drag targeting to tile (0, 0)
-	var target_tile: Vector2i = Vector2i(0, 0)
-	var old_tile: Vector2i = Vector2i(-1, -1)  # Previous tile (different)
+	# First placement: Simulate drag targeting to safe tile position
+	var target_tile: Vector2i = safe_tile
+	var old_tile: Vector2i = Vector2i(4, 4)  # Previous tile (different)
 	var drag_data: Variant = DragPathData.new(_positioner, _targeting_state)
 	_building_system._on_drag_targeting_new_tile(drag_data, target_tile, old_tile)
 	
@@ -837,18 +887,18 @@ func test_drag_build_allows_placement_after_tile_switch() -> void:
 	_building_system.enter_build_mode(test_within_tilemap_bounds_placeable)
 	_building_system.start_drag()
 	
-	# First placement at tile (0, 0)
+	# First placement at safe tile position
 	var drag_data: Variant = DragPathData.new(_positioner, _targeting_state)
-	var first_tile: Vector2i = Vector2i(0, 0)
-	var old_tile: Vector2i = Vector2i(-1, -1)
+	var first_tile: Vector2i = Vector2i(5, 5)  # Safe position within bounds
+	var old_tile: Vector2i = Vector2i(4, 4)  # Previous tile (different)
 	_building_system._on_drag_targeting_new_tile(drag_data, first_tile, old_tile)
 	_positioner.global_position = _map.to_global(_map.map_to_local(first_tile))
 	
 	# Should have 1 placement
 	assert_int(_placed_positions.size()).is_equal(1)
 	
-	# Switch to different tile (1, 0) - this should allow another placement
-	var second_tile: Vector2i = Vector2i(1, 0)
+	# Switch to different tile - this should allow another placement
+	var second_tile: Vector2i = Vector2i(6, 5)  # Different safe position
 	_targeting_system.move_to_tile(_positioner, second_tile)
 	# _positioner.global_position = _map.to_global(_map.map_to_local(second_tile))
 	# _targeting_state._process(0.0)  # Force targeting update
@@ -861,7 +911,7 @@ func test_drag_build_allows_placement_after_tile_switch() -> void:
 	if _placed_positions.size() >= 2:
 		assert_that(_placed_positions[0]).is_not_equal(_placed_positions[1])
 	
-	# Move back to original tile (0, 0) - should allow placement again
+	# Move back to original tile - should allow placement again
 	_targeting_system.move_to_tile(_positioner, first_tile)
 	# _positioner.global_position = _map.to_global(_map.map_to_local(first_tile))
 	# _targeting_state._process(0.0)  # Force targeting update
@@ -911,7 +961,7 @@ func test_drag_building_single_placement_per_tile_switch() -> void:
 	# Now move to the same tile but trigger tile switch event manually
 	# This simulates the drag _building_system firing targeting_new_tile for the same tile
 	# (which can happen due to rounding or other precision issues)
-	_building_system._on_drag_targeting_new_tile(drag_data, Vector2i(0, 0), Vector2i(0, 0))
+	_building_system._on_drag_targeting_new_tile(drag_data, start_tile, start_tile)
 	
 	# This should NOT create another placement at the same tile
 	# But currently it will because there's no check to prevent multiple placements per tile
@@ -922,7 +972,8 @@ func test_drag_building_single_placement_per_tile_switch() -> void:
 	drag_data.update(0.016) # Update drag data
 	
 	# Trigger tile switch to new tile
-	_building_system._on_drag_targeting_new_tile(drag_data, Vector2i(1, 0), Vector2i(0, 0))
+	var second_tile := start_tile + Vector2i(1, 0)
+	_building_system._on_drag_targeting_new_tile(drag_data, second_tile, start_tile)
 	
 	# Validate before attempting the second placement
 	var second_validation: ValidationResults = _indicator_manager.validate_placement()
@@ -935,7 +986,7 @@ func test_drag_building_single_placement_per_tile_switch() -> void:
 	drag_data.update(0.016)
 	
 	# Trigger same tile event again (simulating multiple events on same tile)
-	_building_system._on_drag_targeting_new_tile(drag_data, Vector2i(1, 0), Vector2i(1, 0))
+	_building_system._on_drag_targeting_new_tile(drag_data, second_tile, second_tile)
 	
 	# Should still only be 2 placements total
 	assert_int(_placed_positions.size()).append_failure_message("").is_equal(2) # WILL FAIL - this is the regression
@@ -945,7 +996,8 @@ func test_drag_building_single_placement_per_tile_switch() -> void:
 	drag_data.update(0.016)
 	
 	# Trigger tile switch to third tile
-	_building_system._on_drag_targeting_new_tile(drag_data, Vector2i(0, 1), Vector2i(1, 0))
+	var third_tile := start_tile + Vector2i(0, 1)
+	_building_system._on_drag_targeting_new_tile(drag_data, third_tile, second_tile)
 	
 	# Should now be 3 placements total
 	assert_int(_placed_positions.size()).is_equal(3)
@@ -984,7 +1036,7 @@ func test_tile_tracking_prevents_duplicate_placements() -> void:
 	
 	# Multiple rapid tile switch events to same tile should only place once
 	for i in range(5):
-		_building_system._on_drag_targeting_new_tile(drag_data, Vector2i(0, 0), Vector2i(-1, -1))
+		_building_system._on_drag_targeting_new_tile(drag_data, start_tile, start_tile + Vector2i(-1, -1))
 	
 	# Should only have one placement despite multiple events
 	assert_int(_placed_positions.size()).is_equal(1)

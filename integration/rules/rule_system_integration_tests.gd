@@ -65,10 +65,11 @@ func test_tile_check_rule_basic_validation() -> void:
 	var rule: TileCheckRule = TileCheckRule.new()
 	auto_free(rule)
 	
-	var _logger: GBLogger = GBLogger.new()
-	var owner_context: GBOwnerContext = UnifiedTestFactory.create_owner_context(self)
-	var targeting_state: GridTargetingState = GridTargetingState.new(owner_context)
-	auto_free(targeting_state)
+	# Get dependencies from environment container instead of creating them manually
+	var container: GBCompositionContainer = env.get_container()
+	var logger: GBLogger = container.get_logger()
+	var targeting_state: GridTargetingState = container.get_states().targeting
+	var gb_owner: GBOwner = env.gb_owner
 	
 	# Create basic tile map setup
 	var tile_map: TileMapLayer = GodotTestFactory.create_tile_map_layer(self, DEFAULT_TILE_MAP_SIZE)
@@ -83,6 +84,10 @@ func test_tile_check_rule_basic_validation() -> void:
 	# Test rule check - basic functionality
 	# Note: Simplified test - full implementation would require more setup
 	assert_that(rule).is_not_null()
+	assert_that(logger).is_not_null()
+	assert_that(container).is_not_null()
+	assert_that(gb_owner).is_not_null()
+	assert_that(targeting_state).is_not_null()
 
 #endregion
 
@@ -93,7 +98,8 @@ func test_collisions_check_rule_creation() -> void:
 	assert_rule_valid(rule)
 
 func test_collisions_check_rule_with_indicator() -> void:
-	var _container: GBCompositionContainer = UnifiedTestFactory.create_test_composition_container(self)
+	# Use environment container instead of creating one manually
+	var container: GBCompositionContainer = env.get_container()
 	var rule: CollisionsCheckRule = CollisionsCheckRule.new()
 	auto_free(rule)
 	
@@ -107,6 +113,7 @@ func test_collisions_check_rule_with_indicator() -> void:
 		# Test rule with indicator
 		assert_that(rule).is_not_null()
 		assert_that(indicator).is_not_null()
+		assert_that(container).is_not_null()
 
 func test_collisions_check_rule_validation_results() -> void:
 	var rule: CollisionsCheckRule = CollisionsCheckRule.new()

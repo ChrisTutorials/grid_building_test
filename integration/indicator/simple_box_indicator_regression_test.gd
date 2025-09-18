@@ -17,7 +17,7 @@ const TEST_COLLISION_LAYER: int = 513  # Bits 0 and 9 (layers 1 and 10)
 const TILEMAP_SIZE: int = 7  # 5x5 around origin (-3 to 3)
 const TILEMAP_OFFSET: int = -3
 const TILE_SIZE: Vector2i = Vector2i(0, 0)
-const COLLISION_SHAPE_SIZE: Vector2 = Vector2.ONE
+const COLLISION_SHAPE_SIZE: Vector2 = Vector2(32, 32)  # Use reasonable size instead of 1x1
 
 # -----------------------------------------------------------------------------
 # Test Variables

@@ -224,13 +224,16 @@ static func create_complete_building_test_setup(_test_instance: Node) -> Diction
 
 ## Delegate: Create manipulation system
 ## @deprecated: Use specific factory methods for manipulation system creation
-static func create_manipulation_system(test_instance: Node) -> Object:
-	# TODO: Implement manipulation system creation
-	# For now, return a basic object
-	var manipulation_system: Object = Object.new()
+static func create_manipulation_system(test_instance: Node) -> ManipulationSystem:
+	# Create a proper ManipulationSystem node
+	var manipulation_system: ManipulationSystem = ManipulationSystem.new()
 	test_instance.add_child(manipulation_system)
 	if test_instance.has_method("auto_free"):
 		test_instance.auto_free(manipulation_system)
+	
+	# Important: Set process to false to prevent _process errors when dependencies aren't resolved
+	manipulation_system.set_process(false)
+	
 	return manipulation_system
 
 #region UTILITY DELEGATE METHODS
@@ -239,13 +242,14 @@ static func create_manipulation_system(test_instance: Node) -> Object:
 ## @deprecated: Use GridPositioner2D.new() directly
 static func create_grid_positioner(_test: GdUnitTestSuite) -> GridPositioner2D:
 	var positioner: GridPositioner2D = GridPositioner2D.new()
-	_test.add_child(positioner)
-	_test.auto_free(positioner)
 	
-	# Assign default shape to prevent "Invalid shape" errors
+	# Assign default shape BEFORE adding to scene tree to prevent "Invalid shape" errors in _ready()
 	var default_shape: RectangleShape2D = RectangleShape2D.new()
 	default_shape.size = Vector2(16, 16)  # Default tile size
 	positioner.shape = default_shape
+	
+	_test.add_child(positioner)
+	_test.auto_free(positioner)
 	
 	return positioner
 

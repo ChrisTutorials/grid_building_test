@@ -174,7 +174,10 @@ func test_indicator_rule_assignment_during_creation() -> void:
 
 	# Create indicator using DRY pattern with proper collision shape
 	var indicator: RuleCheckIndicator = RuleCheckIndicator.new()
-	indicator.shape = RectangleShape2D.new()
+	var _rect_shape2 := RectangleShape2D.new()
+	_rect_shape2.size = TILE_SIZE
+	indicator.shape = _rect_shape2
+	indicator.collision_mask = 1
 	add_child(indicator)
 	auto_free(indicator)
 
@@ -208,7 +211,12 @@ func test_indicator_rule_validation() -> void:
 
 	# Create indicator with the rule using DRY pattern with proper collision shape
 	var indicator: RuleCheckIndicator = RuleCheckIndicator.new()
-	indicator.shape = RectangleShape2D.new()
+	# Assign a rectangle shape sized to one tile so collisions are detected correctly
+	var _rect_shape := RectangleShape2D.new()
+	_rect_shape.size = TILE_SIZE
+	indicator.shape = _rect_shape
+	# Ensure indicator queries the default collision layer used by test objects
+	indicator.collision_mask = 1
 	add_child(indicator)
 	auto_free(indicator)
 
@@ -288,7 +296,7 @@ func test_polygon_test_object_center_tile_filtering() -> void:
 
 		# The indicator should be valid since the polygon doesn't cover center
 		# (This is the regression - indicators might not be evaluating rules properly)
-		center_indicator.update_validation_now()
+		center_indicator.force_validity_evaluation()
 
 		# Log for debugging
 		var logger: GBLogger = _container.get_logger()

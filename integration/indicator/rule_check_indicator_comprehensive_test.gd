@@ -122,17 +122,6 @@ func test_indicator_collision_layers(indicator_mask: int, body_layer: int, shoul
 		]
 	).is_equal(expected_validity)
 
-# Parameterized test data for collision layers
-func test_indicator_collision_layers_parameters() -> Array:
-	return [
-		[1, 1, true],   # Same layer - should detect
-		[1, 2, false],  # Different layers - should not detect
-		[3, 1, true],   # Mask includes layer - should detect
-		[3, 2, true],   # Mask includes layer - should detect
-		[3, 4, false],  # Mask excludes layer - should not detect
-		[7, 4, true],   # Complex mask includes layer - should detect
-	]
-
 # Test indicator visual state updates
 func test_indicator_visual_state_updates() -> void:
 	var indicator: RuleCheckIndicator = _create_test_indicator("rectangle", {"size": Vector2(16, 16)})

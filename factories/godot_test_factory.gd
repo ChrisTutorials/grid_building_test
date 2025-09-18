@@ -361,18 +361,6 @@ static func create_manipulatable(
 	return manipulatable
 
 
-## Creates a RuleCheckIndicator with rectangular shape
-## Note: This method creates a grid-building specific object. Consider moving to UnifiedTestFactory.
-static func create_rule_check_indicator(
-	test: GdUnitTestSuite, parent: Node, tile_size: int = 16
-) -> RuleCheckIndicator:
-	# Caller decides parent; we only ensure auto_free assignment for memory safety
-	var indicator: RuleCheckIndicator = test.auto_free(RuleCheckIndicator.new([]))
-	var rect_shape := RectangleShape2D.new()
-	rect_shape.size = Vector2(tile_size, tile_size)
-	indicator.shape = rect_shape
-	if parent:
-		parent.add_child(indicator)
-		# Note: Dependency injection should be handled by the caller since this factory 
-		# should remain plugin-agnostic. Use UnifiedTestFactory for grid-building setup.
-	return indicator
+## (Removed) RuleCheckIndicator factory relocated
+## This factory only handles Godot base class objects. Grid-building specific
+## factories such as RuleCheckIndicator are provided by UnifiedTestFactory.

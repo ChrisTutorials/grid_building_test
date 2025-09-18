@@ -42,9 +42,12 @@ func before_test() -> void:
 	_preview = CollisionObjectTestFactory.create_polygon_test_object(self)
 	_targeting.positioner.add_child(_preview)
 
+	# Critical: make the preview the active target so IndicatorManager maps indicators for it
+	_targeting.target = _preview
+
 	# Reduce debug verbosity to avoid unrelated formatting/log noise during this focused geometry test
 	var dbg: GBDebugSettings = _container.get_debug_settings()
-	dbg.set_debug_level(GBDebugSettings.Level.ERROR)
+	dbg.set_debug_level(GBDebugSettings.LogLevel.ERROR)
 	# Use canonical collisions rule from test constants to match injection expectations
 	# Create a fresh collisions rule with proper script class
 	var rule: CollisionsCheckRule = PlacementRuleTestFactory.create_default_collision_rule()

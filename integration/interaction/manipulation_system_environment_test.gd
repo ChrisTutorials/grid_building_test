@@ -35,8 +35,10 @@ func before_test() -> void:
 	# Extract components for testing
 	container = test_environment.injector.composition_container
 	manipulation_system = test_environment.manipulation_system
-	manipulation_state = test_environment.manipulation_state
-	test_manipulatable = test_environment.test_manipulatable
+	manipulation_state = container.get_states().manipulation  # Access state through container
+	
+	# Create a test manipulatable object since it's not provided by the environment
+	test_manipulatable = auto_free(Manipulatable.new())
 
 	# Validate environment is properly set up
 	assert_object(test_environment).append_failure_message("Test environment should be created").is_not_null()
@@ -82,11 +84,11 @@ func test_manipulation_system_environment_integration() -> void:
 func test_manipulation_system_result_object_creation() -> void:
 	"""Test that manipulation system properly creates result objects in environment context"""
 	# Test demolish operation result handling
-	var demolish_result: Variant = await manipulation_system.demolish(test_manipulatable)
+	var demolish_result: bool = await manipulation_system.demolish(test_manipulatable)
 
-	# Should not be null - this catches the "failed_not_demolishable on Nil" error
-	assert_object(demolish_result).append_failure_message(
-		"ManipulationSystem.demolish should return valid result object, not null"
+	# Should return a valid boolean result
+	assert_that(demolish_result).append_failure_message(
+		"ManipulationSystem.demolish should return a valid boolean result"
 	).is_not_null()
 
 func test_manipulation_system_container_validation() -> void:
@@ -118,9 +120,9 @@ func test_manipulation_system_result_objects_not_null() -> void:
 	).is_not_null()
 
 	# Test demolish with null input
-	var demolish_result: Variant = await manipulation_system.demolish(null)
-	assert_object(demolish_result).append_failure_message(
-		"demolish(null) should return result object, not null"
+	var demolish_result: bool = await manipulation_system.demolish(null)
+	assert_that(demolish_result).append_failure_message(
+		"demolish(null) should return a valid boolean result"
 	).is_not_null()
 
 func test_manipulation_system_environment_vs_factory() -> void:

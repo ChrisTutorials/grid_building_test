@@ -69,3 +69,32 @@ func test_indicator_manager_try_setup_generates_indicators() -> void:
 	# When this test passes, it means the collision mapping/indicator generation system is working correctly
 	# Currently fails with: validation passes but 0 indicators generated (catches collision mapping issues)
 	assert_that(indicators.size() > 0).append_failure_message("Expected indicators to be generated for preview with collision shapes. Report issues: " + str(all_issues)).is_true()
+
+
+
+# Helper to create a stub GBOwnerContext
+func _create_gb_owner_context() -> Object:
+	var ctx := Object.new()
+	ctx.set("get_owner_root", func() -> Node: return null)
+	return ctx
+
+func test_build_failed_report_returns_expected_issues() -> void:
+	# Arrange
+	var manager: Object = preload("res://addons/grid_building/placement/manager/indicator_manager.gd").new()
+	manager._owner_context = _create_gb_owner_context()
+	var dummy_target: Node2D = Node2D.new()
+	auto_free(dummy_target)
+	var issues: Dictionary = {
+		"RuleA": ["A failed"],
+		"RuleB": ["B failed", "B extra"]
+	}
+
+	# Act
+	var report = manager._build_failed_report(issues, dummy_target)
+
+	# Assert
+	assert_object(report).is_not_null()
+	assert_array(report.issues).is_not_empty()
+	assert_that(report.issues[0]).contains("A failed")
+	assert_that(report.issues[1]).contains("Placement validation setup failed")
+	assert_that(report.issues[2]).contains("Rule ")

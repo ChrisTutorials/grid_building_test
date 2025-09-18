@@ -57,6 +57,7 @@ func _create_rectangular_collision_object(object_name: String, size: Vector2) ->
 ## Tests to make sure that calling adjust_rect_to_testing_size
 ## returns rects with the correct size 
 ## Expected adjusted size to be original rect + TileSize * 1
+@warning_ignore("unused_parameter")
 func test_adjust_rect_to_testing_size(p_setups : Array[CollisionTestSetup2D], test_parameters := [
 	[create_test_setups(eclipse_obj)],
 	[create_test_setups(rect_8_tiles_obj)],

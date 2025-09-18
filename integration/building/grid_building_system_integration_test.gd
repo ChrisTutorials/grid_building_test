@@ -77,7 +77,7 @@ func _validate_required_dependencies() -> void:
 		).is_not_null()
 	
 	# Assert TileMap availability instead of creating
-	var target_map: TileMap = _gts.get_target_map()
+	var target_map: TileMapLayer = _gts.target_map
 	assert_object(target_map).append_failure_message(
 		"Environment should provide a configured TileMap for testing"
 	).is_not_null()
@@ -226,7 +226,7 @@ func test_multi_rule_indicator_attachment() -> void:
 	_gts.target = test_target
 	
 	# Assert environment provides TileMap rather than creating it
-	assert_object(_gts.get_target_map()).append_failure_message(
+	assert_object(_gts.target_map).append_failure_message(
 		"Environment should provide a configured TileMap for multi-rule testing"
 	).is_not_null()
 	
@@ -259,7 +259,7 @@ func test_rule_indicator_state_synchronization() -> void:
 
 func test_indicators_are_parented_and_inside_tree() -> void:
 	# Assert environment provides required targeting setup
-	assert_object(_gts.get_target_map()).append_failure_message(
+	assert_object(_gts.target_map).append_failure_message(
 		"Environment should provide a configured TileMap for indicator testing"
 	).is_not_null()
 	assert_object(_container.get_states().manipulation.parent).append_failure_message(
