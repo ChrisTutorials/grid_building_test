@@ -402,3 +402,56 @@ func _create_tile_check_rules() -> Array[TileCheckRule]:
 	var rule := TileCheckRule.new()
 	rules.append(rule)
 	return rules
+
+## Test collision rule creation and configuration - isolates integration test failures
+func test_collision_rule_validation_setup() -> void:
+	# This test isolates the rule setup logic issues seen in integration tests
+	var test_object := Node2D.new()
+	auto_free(test_object)
+	add_child(test_object)
+	
+	# Create a collision rule with specific configuration
+	var collision_rule := CollisionsCheckRule.new()
+	collision_rule.pass_on_collision = false  # Should fail when collision detected
+	collision_rule.apply_to_objects_mask = 1  # Layer 1
+	
+	# Test rule properties are set correctly
+	assert_bool(collision_rule.pass_on_collision).append_failure_message("Expected pass_on_collision to be false").is_false()
+	assert_int(collision_rule.apply_to_objects_mask).append_failure_message("Expected collision mask to be 1").is_equal(1)
+	
+	var rules: Array[TileCheckRule] = [collision_rule]
+	var mock_collision_mapper := mock(CollisionMapper) as CollisionMapper
+	
+	# Basic setup validation should pass
+	var result := IndicatorSetupUtils.validate_setup_preconditions(test_object, rules, mock_collision_mapper)
+	assert_that(result).append_failure_message("Expected no validation issues with properly configured collision rule").is_empty()
+	
+	print("Collision rule validation test - rule configured properly, setup validation passed")
+
+## Test rule validation with multiple rules - isolates multi-rule scenarios
+func test_multiple_rule_validation_setup() -> void:
+	var test_object := Node2D.new()
+	auto_free(test_object)
+	add_child(test_object)
+	
+	# Create multiple rules as seen in failing tests
+	var collision_rule := CollisionsCheckRule.new()
+	collision_rule.pass_on_collision = true  # Pass on collision
+	collision_rule.apply_to_objects_mask = 1
+	
+	var tile_rule := TileCheckRule.new()
+	tile_rule.apply_to_objects_mask = 2
+	
+	var rules: Array[TileCheckRule] = [collision_rule, tile_rule]
+	var mock_collision_mapper := mock(CollisionMapper) as CollisionMapper
+	
+	# Test that multiple rules can be set up without issues
+	var result := IndicatorSetupUtils.validate_setup_preconditions(test_object, rules, mock_collision_mapper)
+	assert_that(result).append_failure_message("Expected no validation issues with multiple rules").is_empty()
+	
+	# Verify rule count and types
+	assert_int(rules.size()).append_failure_message("Expected 2 rules").is_equal(2)
+	assert_bool(rules[0] is CollisionsCheckRule).append_failure_message("Expected first rule to be CollisionsCheckRule").is_true()
+	assert_bool(rules[1] is TileCheckRule).append_failure_message("Expected second rule to be TileCheckRule").is_true()
+	
+	print("Multiple rule validation test - %d rules configured, setup validation passed" % rules.size())

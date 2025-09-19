@@ -497,3 +497,49 @@ func test_polygon_tile_overlap_area_complex() -> void:
 	])
 	var area: float = PolygonTileMapper.get_polygon_tile_overlap_area(complex_polygon, rect)
 	assert_float(area).is_equal(128.0)  # L-shaped polygon: 12x12 - 4x4 cutout = 144 - 16 = 128
+
+## Test concave polygon tile distribution - isolates issue from integration test
+func test_concave_polygon_tile_distribution() -> void:
+	var test_map: TileMapLayer = _create_test_tile_map()
+	var static_body: StaticBody2D = _create_static_body()
+	
+	# Create the same concave polygon from the failing integration test
+	# This creates a shape that should have a "hole" in the middle
+	var concave_points: PackedVector2Array = PackedVector2Array([
+		Vector2(-32, -16),  # Top-left
+		Vector2(32, -16),   # Top-right  
+		Vector2(32, 0),     # Right-middle
+		Vector2(8, 0),      # Inner-right
+		Vector2(8, 8),      # Inner-bottom-right
+		Vector2(-8, 8),     # Inner-bottom-left
+		Vector2(-8, 0),     # Inner-left
+		Vector2(-32, 0),    # Left-middle
+	])
+	
+	var polygon: CollisionPolygon2D = _create_collision_polygon(concave_points, static_body)
+	
+	var result: PolygonTileMapper.ProcessingResult = PolygonTileMapper.process_polygon_with_diagnostics(polygon, test_map)
+	
+	# Verify this is correctly detected as concave
+	assert_that(result.was_convex).append_failure_message("Expected U-shaped polygon to be detected as concave").is_false()
+	
+	# The key test: concave polygon should NOT fill the complete bounding rectangle
+	# Convert offsets to tile coordinates for analysis
+	var tile_positions: Array[Vector2i] = []
+	for offset: Vector2i in result.offsets:
+		tile_positions.append(offset)
+	
+	# This concave shape should NOT include the center tiles that fall in the "indent"
+	var center_tiles_that_should_be_empty: Array[Vector2i] = [
+		Vector2i(0, 0),  # Center tile should be empty due to concave indent
+		Vector2i(-1, 0), # Left-center should be empty
+		Vector2i(1, 0),  # Right-center should be empty
+	]
+	
+	for empty_tile: Vector2i in center_tiles_that_should_be_empty:
+		assert_bool(tile_positions.has(empty_tile)).append_failure_message(
+			"Concave polygon incorrectly filled center tile %s. Actual tiles: %s" % [empty_tile, str(tile_positions)]
+		).is_false()
+	
+	# Debug output to see what tiles are actually filled
+	print("Concave polygon test - filled tiles: %s" % str(tile_positions))

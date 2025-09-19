@@ -37,6 +37,11 @@ static func create_polygon_test_placeable(test_instance: Node) -> Placeable:
 	var polygon_obj := CollisionObjectTestFactory.create_polygon_test_object(test_instance, test_instance)
 	assert(polygon_obj != null, "create_polygon_test_object returned null")
 	
+	# Set proper ownership before packing - crucial for PackedScene inclusion
+	polygon_obj.owner = null  # Root node should have null owner
+	for child in polygon_obj.get_children():
+		child.owner = polygon_obj  # Children should be owned by the root
+	
 	var pack_result := scene.pack(polygon_obj)
 	assert(pack_result == OK, "Failed to pack polygon object into scene: " + str(pack_result))
 	

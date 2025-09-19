@@ -10,8 +10,21 @@ var env: CollisionTestEnvironment
 func before_test() -> void:
 	env = UnifiedTestFactory.instance_collision_test_env(self, COLLISION_TEST_ENV_UID)
 	
+	# Set up targeting state with default target for indicator tests
+	_setup_targeting_state_for_tests()
+	
 	# Wait for environment initialization to complete
 	await await_idle_frame()
+
+## Sets up the GridTargetingState with a default target for indicator tests
+func _setup_targeting_state_for_tests() -> void:
+	# Create a default target for the targeting state if none exists
+	if env.targeting_state.target == null:
+		var default_target: Node2D = auto_free(Node2D.new())
+		default_target.position = Vector2(64, 64)
+		default_target.name = "DefaultTarget"
+		add_child(default_target)
+		env.targeting_state.target = default_target
 
 # ===== COLLISION MAPPER SHAPE POSITIONING TESTS =====
 

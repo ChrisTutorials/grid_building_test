@@ -7,6 +7,21 @@ var env: AllSystemsTestEnvironment
 func before_test() -> void:
 	# Use the all systems test environment
 	env = EnvironmentTestFactory.create_all_systems_env(self, GBTestConstants.ALL_SYSTEMS_ENV_UID)
+	
+	# Set up targeting state with default target for indicator tests
+	_setup_targeting_state_for_tests()
+
+## Sets up the GridTargetingState with a default target for indicator tests
+func _setup_targeting_state_for_tests() -> void:
+	var targeting_state: GridTargetingState = env.get_container().get_targeting_state()
+	
+	# Create a default target for the targeting state if none exists
+	if targeting_state.target == null:
+		var default_target: Node2D = auto_free(Node2D.new())
+		default_target.position = Vector2(64, 64)
+		default_target.name = "DefaultTarget"
+		add_child(default_target)
+		targeting_state.target = default_target
 
 func test_indicator_manager_creation() -> void:
 	var indicator_manager: IndicatorManager = env.indicator_manager
@@ -101,6 +116,15 @@ func _setup_test_area(area: Area2D) -> void:
 
 func _count_indicators(parent: Node) -> int:
 	var count: int = 0
+	var child_names: Array[String] = []
 	for child in parent.get_children():
-		count += 1
+		# Only count actual RuleCheckIndicator nodes, not the IndicatorManager itself
+		if child.has_method("get_tile_position") and not child.has_method("setup_indicators"):
+			count += 1
+			child_names.append(child.name + "(" + child.get_class() + ")")
+	
+	# Debug output to understand what's being counted
+	if count > 0:
+		print("_count_indicators found %d indicators: %s" % [count, str(child_names)])
+	
 	return count

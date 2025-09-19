@@ -16,11 +16,12 @@ func after_test() -> void:
 	_container = null
 
 func test_indicator_context_reports_missing_manager_initially() -> void:
-	# Get the indicator context from container
-	var indicator_context: IndicatorContext = _container.get_indicator_context()
+	# Create a fresh IndicatorContext without pre-assigned manager
+	var fresh_indicator_context: IndicatorContext = IndicatorContext.new()
+	auto_free(fresh_indicator_context)
 	
-	# Initially, context should report that IndicatorManager is not assigned
-	var initial_issues : Array[String] = indicator_context.get_editor_issues()
+	# Initially, fresh context should report that IndicatorManager is not assigned
+	var initial_issues : Array[String] = fresh_indicator_context.get_editor_issues()
 	assert_array(initial_issues).append_failure_message(
 		"IndicatorContext should return an array of issues"
 	).is_not_empty()
@@ -36,7 +37,7 @@ func test_indicator_context_reports_missing_manager_initially() -> void:
 	).is_true()
 	
 	# Should not have a manager initially
-	assert_bool(indicator_context.has_manager()).append_failure_message(
+	assert_bool(fresh_indicator_context.has_manager()).append_failure_message(
 		"IndicatorContext should not have a manager initially"
 	).is_false()
 
@@ -85,8 +86,13 @@ func test_indicator_context_manager_changed_signal() -> void:
 	).is_true()
 
 func test_composition_container_validation_with_manager() -> void:
-	# Before manager assignment, container should have editor issues
-	var initial_issues : Array[String] = _container.get_editor_issues()
+	# Create a fresh composition container without pre-assigned manager
+	var fresh_container: GBCompositionContainer = GBCompositionContainer.new()
+	fresh_container.config = _container.config  # Copy the config
+	auto_free(fresh_container)
+	
+	# Before manager assignment, fresh container should have editor issues
+	var initial_issues : Array[String] = fresh_container.get_editor_issues()
 	var has_indicator_manager_issue : bool = false
 	for issue in initial_issues:
 		if "IndicatorManager is not assigned in IndicatorContext" in issue:
@@ -97,13 +103,13 @@ func test_composition_container_validation_with_manager() -> void:
 		"Composition container should report IndicatorManager not assigned issue initially. Issues found: %s" % str(initial_issues)
 	).is_true()
 	
-	# Assign IndicatorManager to context
-	var indicator_context: IndicatorContext = _container.get_indicator_context()
+	# Assign IndicatorManager to fresh context
+	var indicator_context: IndicatorContext = fresh_container.get_indicator_context()
 	var indicator_manager: IndicatorManager = env.indicator_manager
 	indicator_context.set_manager(indicator_manager)
 	
 	# After assignment, the specific issue should be resolved
-	var post_assignment_issues : Array[String] = _container.get_editor_issues()
+	var post_assignment_issues : Array[String] = fresh_container.get_editor_issues()
 	var still_has_indicator_manager_issue : bool = false
 	for issue : String in post_assignment_issues:
 		if "IndicatorManager is not assigned in IndicatorContext" in issue:

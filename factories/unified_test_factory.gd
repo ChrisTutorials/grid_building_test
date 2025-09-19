@@ -132,14 +132,16 @@ static func create_test_injector(test: GdUnitTestSuite, container: GBComposition
 		if container and container.has_method("get_logger"):
 			var _log: GBLogger = container.get_logger()
 			if _log:
-				_log.log_debug(null, "[UnifiedTestFactory] Assigning container path=%s placement_rules_count=%s" % [str(path_info), str(prc)])
+				_log.log_debug(null, "[UnifiedTestFactory] Setting up injector with container path=%s placement_rules_count=%s" % [str(path_info), str(prc)])
 			else:
-				print("[DIAG][UnifiedTestFactory] Assigning container path=%s placement_rules_count=%s" % [str(path_info), str(prc)])
+				print("[DIAG][UnifiedTestFactory] Setting up injector with container path=%s placement_rules_count=%s" % [str(path_info), str(prc)])
 		else:
-			print("[DIAG][UnifiedTestFactory] Assigning container path=%s placement_rules_count=%s" % [str(path_info), str(prc)])
+			print("[DIAG][UnifiedTestFactory] Setting up injector with container path=%s placement_rules_count=%s" % [str(path_info), str(prc)])
 	else:
-		print("[DIAG][UnifiedTestFactory] Assigning NULL container to injector")
-	container.injector = injector
+		print("[DIAG][UnifiedTestFactory] Setting up injector with NULL container")
+	
+	# Set the composition container on the injector instead of the other way around
+	injector.composition_container = container
 	test.add_child(injector)
 	test.auto_free(injector)
 	return injector

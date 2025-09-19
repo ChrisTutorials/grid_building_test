@@ -25,6 +25,19 @@ func before_test() -> void:
 	manipulation_parent = test_env.objects_parent
 	_injector = test_env.injector
 	indicator_manager = test_env.indicator_manager
+	
+	# Set up targeting state with default target for indicator tests
+	_setup_targeting_state_for_tests()
+
+## Sets up the GridTargetingState with a default target for indicator tests
+func _setup_targeting_state_for_tests() -> void:
+	# Create a default target for the targeting state if none exists
+	if targeting_state.target == null:
+		var default_target: Node2D = auto_free(Node2D.new())
+		default_target.position = Vector2(64, 64)
+		default_target.name = "DefaultTarget"
+		add_child(default_target)
+		targeting_state.target = default_target
 
 # region Helper functions
 func _create_preview_with_collision() -> Node2D:
@@ -61,4 +74,23 @@ func test_indicators_are_parented_and_inside_tree() -> void:
 	for ind: RuleCheckIndicator in indicators:
 		assert_bool(ind.is_inside_tree()).append_failure_message("Indicator not inside tree: %s" % ind.name).is_true()
 		assert_object(ind.get_parent()).append_failure_message("Indicator has no parent: %s" % ind.name).is_not_null()
-		assert_object(ind.get_parent()).append_failure_message("Unexpected parent for indicator: %s" % ind.name).is_equal(_container.get_states().manipulation.parent)
+		
+		# Debug information for parent mismatch
+		var expected_parent: Node = _container.get_states().manipulation.parent
+		var actual_parent: Node = ind.get_parent()
+		
+		var expected_name: String = "null"
+		var expected_class: String = "null"
+		if expected_parent != null:
+			expected_name = expected_parent.name
+			expected_class = expected_parent.get_class()
+		
+		var actual_name: String = "null"
+		var actual_class: String = "null"
+		if actual_parent != null:
+			actual_name = actual_parent.name
+			actual_class = actual_parent.get_class()
+		
+		print("Tree integration debug - Expected parent: %s (%s), Actual parent: %s (%s)" % [expected_name, expected_class, actual_name, actual_class])
+		
+		assert_object(ind.get_parent()).append_failure_message("Unexpected parent for indicator: %s. Expected: %s, Got: %s" % [ind.name, expected_name, actual_name]).is_equal(expected_parent)

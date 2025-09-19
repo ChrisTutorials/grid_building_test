@@ -458,6 +458,10 @@ static func create_polygon_test_object(test_suite: GdUnitTestSuite, parent: Node
 	polygon.polygon = points
 	body.add_child(polygon)
 	
+	# Set collision properties on the body, not the shape
+	body.collision_layer = 1  # Set collision layer for detection
+	body.collision_mask = 1   # Set collision mask for detection
+	
 	# Debug: print children of the created object for test diagnostics
 	var child_list := []
 	for child : Node in body.get_children():

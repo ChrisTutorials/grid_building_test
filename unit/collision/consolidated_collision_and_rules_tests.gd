@@ -107,7 +107,7 @@ func test_polygon_overlaps_rect_no_overlap() -> void:
 	var polygon: PackedVector2Array = PackedVector2Array([Vector2(32, 32), Vector2(48, 32), Vector2(48, 48), Vector2(32, 48)])
 	var rect: Rect2 = Rect2(0, 0, 16, 16)
 	
-	var overlap: bool = CollisionGeometryCalculator._polygon_overlaps_rect(polygon, rect, 0.01, 0.05)
+	var overlap: bool = CollisionGeometryCalculator.polygon_overlaps_rect(polygon, rect, 0.01, 0.05)
 	
 	assert_bool(overlap).append_failure_message(
 		"Separated polygon and rect should not overlap"
@@ -117,7 +117,7 @@ func test_polygon_overlaps_rect_with_overlap() -> void:
 	var polygon: PackedVector2Array = PackedVector2Array([Vector2(8, 8), Vector2(24, 8), Vector2(24, 24), Vector2(8, 24)])
 	var rect: Rect2 = Rect2(0, 0, 16, 16)
 	
-	var overlap: bool = CollisionGeometryCalculator._polygon_overlaps_rect(polygon, rect, 0.01, 0.05)
+	var overlap: bool = CollisionGeometryCalculator.polygon_overlaps_rect(polygon, rect, 0.01, 0.05)
 	
 	assert_bool(overlap).append_failure_message(
 		"Overlapping polygon and rect should overlap"
@@ -129,7 +129,7 @@ func test_point_in_polygon_inside() -> void:
 	var polygon: PackedVector2Array = PackedVector2Array([Vector2(0, 0), Vector2(10, 0), Vector2(10, 10), Vector2(0, 10)])
 	var point: Vector2 = Vector2(5, 5)
 	
-	var inside: bool = CollisionGeometryCalculator._point_in_polygon(point, polygon)
+	var inside: bool = CollisionGeometryCalculator.point_in_polygon(point, polygon)
 	
 	assert_bool(inside).append_failure_message(
 		"Point (5,5) should be inside rectangle (0,0)-(10,10)"
@@ -138,8 +138,8 @@ func test_point_in_polygon_inside() -> void:
 func test_point_in_polygon_outside() -> void:
 	var polygon: PackedVector2Array = PackedVector2Array([Vector2(0, 0), Vector2(10, 0), Vector2(10, 10), Vector2(0, 10)])
 	var point: Vector2 = Vector2(15, 15)
-
-	var inside: bool = CollisionGeometryCalculator._point_in_polygon(point, polygon)
+	
+	var inside: bool = CollisionGeometryCalculator.point_in_polygon(point, polygon)
 	
 	assert_bool(inside).append_failure_message(
 		"Point (15,15) should be outside rectangle (0,0)-(10,10)"
