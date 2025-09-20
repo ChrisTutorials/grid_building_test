@@ -70,11 +70,17 @@ static var eclipse_scene : PackedScene = preload("uid://j5837ml5dduu")
 #endregion
 #region Placeables
 
-## Test smithy placeable
+## Test smithy placeable (7x5 tiles - large)
 const PLACEABLE_SMITHY: Placeable = preload("uid://dirh6mcrgdm3w")
 
 ## Good placeable test for polygon
 const PLACEABLE_TRAPEZOID : Placeable = preload("uid://c8i072rgno71t")
+
+## Small 2D test placeable (single tile) - IMPORTANT: has no CollisionObject2D so will not collide with anything.
+const PLACEABLE_NO_COL_TEST_2D: Placeable = preload("uid://jgmywi04ib7c")
+
+## Small rectangular test placeable (4x2 tiles - 64x32 px)
+const PLACEABLE_RECT_4X2: Placeable = preload("uid://cqknt0ejxvq4m")
 
 #endregion
 #region Object Scene Paths
@@ -143,7 +149,7 @@ const OFF_GRID: Vector2 = Vector2(50, 50)  # Not aligned to tile boundaries
 #region Test Tile Maps and Sets
 
 ## Buildable tile map layer for testing
-static var TEST_TILE_MAP_LAYER_BUILDABLE : PackedScene = preload("uid://3shi30ob8pna")
+static var TEST_TILE_MAP_LAYER_BUILDABLE : PackedScene = preload("res://test/grid_building_test/scenes/tile_map/TEST_buildable_31x31_tile_map.tscn")
 
 ## Tileset with "type", "color", "height" custom data properties for tiles
 static var TEST_CUSTOM_DATA_TILE_SET : TileSet = preload("uid://b0shp63l248fm")

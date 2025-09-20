@@ -939,7 +939,7 @@ func test_drag_build_allows_placement_after_tile_switch() -> void:
 	_positioner.global_position = _map.to_global(_map.map_to_local(first_tile))
 	
 	# Should have 1 placement
-	assert_int(_placed_positions.size()).is_equal(1)
+	assert_int(_placed_positions.size()).append_failure_message("The first placement should have succeeded and the location added to _placed_positions. Actual count: %s" % _placed_positions.size()).is_equal(1)
 	
 	# Switch to different tile - this should allow another placement
 	var second_tile: Vector2i = Vector2i(6, 5)  # Different safe position
@@ -953,7 +953,7 @@ func test_drag_build_allows_placement_after_tile_switch() -> void:
 	
 	# Should have 2 placements at different positions
 	if _placed_positions.size() >= 2:
-		assert_that(_placed_positions[0]).is_not_equal(_placed_positions[1])
+		assert_that(_placed_positions[0]).append_failure_message("The position that the first object was placed %s should not match the 2nd object at %s" % [_placed_positions[0], _placed_positions[1]]).is_not_equal(_placed_positions[1])
 	
 	# Move back to original tile - should allow placement again
 	_targeting_system.move_to_tile(_positioner, first_tile)

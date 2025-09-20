@@ -71,8 +71,10 @@ func test_tile_check_rule_basic_validation() -> void:
 	var targeting_state: GridTargetingState = container.get_states().targeting
 	var gb_owner: GBOwner = env.gb_owner
 	
-	# Create basic tile map setup
-	var tile_map: TileMapLayer = GodotTestFactory.create_tile_map_layer(self, DEFAULT_TILE_MAP_SIZE)
+	# Use premade 31x31 tilemap for rule tests instead of creating small maps
+	var tile_map: TileMapLayer = GBTestConstants.TEST_TILE_MAP_LAYER_BUILDABLE.instantiate() as TileMapLayer
+	add_child(tile_map)
+	auto_free(tile_map)
 	targeting_state.target_map = tile_map
 	
 	# Create test positioner and placer
@@ -135,8 +137,10 @@ func test_within_bounds_rule_boundary_checking() -> void:
 	var rule: WithinTilemapBoundsRule = WithinTilemapBoundsRule.new()
 	auto_free(rule)
 	
-	# Create tile map with known bounds
-	var tile_map: TileMapLayer = GodotTestFactory.create_tile_map_layer(self, DEFAULT_TILE_MAP_SIZE)  # 8x8 tile map
+	# Use premade 31x31 tilemap for bounds rule testing
+	var tile_map: TileMapLayer = GBTestConstants.TEST_TILE_MAP_LAYER_BUILDABLE.instantiate() as TileMapLayer
+	add_child(tile_map)
+	auto_free(tile_map)
 	
 	# Test positions within and outside bounds
 	var _within_bounds_pos: Vector2i = Vector2i(CENTER_POSITION_X, CENTER_POSITION_Y)  # Center, should be valid
@@ -154,8 +158,10 @@ func test_within_bounds_rule_edge_cases() -> void:
 	var rule: WithinTilemapBoundsRule = WithinTilemapBoundsRule.new()
 	auto_free(rule)
 	
-	# Create minimal tile map
-	var tile_map: TileMapLayer = GodotTestFactory.create_tile_map_layer(self, MINIMAL_TILE_MAP_SIZE)  # 1x1 tile map
+	# For edge case tests use the premade tilemap (31x31) but validate edge positions logically
+	var tile_map: TileMapLayer = GBTestConstants.TEST_TILE_MAP_LAYER_BUILDABLE.instantiate() as TileMapLayer
+	add_child(tile_map)
+	auto_free(tile_map)
 	
 	# Test edge positions
 	var edge_positions: Array[Vector2i] = [

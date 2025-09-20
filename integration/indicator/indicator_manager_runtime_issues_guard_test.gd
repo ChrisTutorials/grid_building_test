@@ -38,4 +38,4 @@ func test_setup_indicators_aborts_when_targeting_has_runtime_issues() -> void:
 	assert_array(report.indicators).is_empty()
 	# The manager should detect runtime issues (null target_map) naturally
 	var runtime_issues : Array[String] = targeting_state.get_runtime_issues()
-	assert_array(runtime_issues).append_failure_message("Issues Found: " + str(runtime_issues)).is_empty()
+	assert_array(runtime_issues).append_failure_message("Expected runtime issues when target_map is null, but got: " + str(runtime_issues)).is_not_empty()

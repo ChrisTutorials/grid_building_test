@@ -80,17 +80,28 @@ func test_trapezoid_collision_detection_integration() -> void:
 		var shapes: Array = owner_shapes[shape_owner]
 		print("[TRAPEZOID_TRACE] Owner '%s' has %d shapes" % [shape_owner.name, shapes.size()])
 		for i in range(shapes.size()):
-			var shape_info: Dictionary = shapes[i]
+			var shape_info: Variant = shapes[i]  # Use Variant to handle any type returned
 			print("[TRAPEZOID_TRACE] Shape[%d]: type=%s, polygon_size=%s" % [
 				i, 
-				shape_info.get("type", "unknown"),
-				shape_info.get("polygon", PackedVector2Array()).size()
+				shape_info.get("type", "unknown") if shape_info is Dictionary else "object_type",
+				shape_info.get("polygon", PackedVector2Array()).size() if shape_info is Dictionary else "N/A"
 			])
 	
 	# 5) Test CollisionGeometryUtils directly with the trapezoid polygon
 	var tile_size: Vector2 = Vector2(16, 16)
+	# Convert position to center tile coordinate
+	var center_tile: Vector2i = Vector2i(
+		int(TRAPEZOID_POSITION.x / tile_size.x),
+		int(TRAPEZOID_POSITION.y / tile_size.y)
+	)
+	
+	# IMPORTANT: Convert polygon to world space before collision calculation
+	var world_polygon: PackedVector2Array = PackedVector2Array()
+	for point in trapezoid_polygon:
+		world_polygon.append(point + TRAPEZOID_POSITION)
+	
 	var tile_offsets: Array[Vector2i] = CollisionGeometryUtils.compute_polygon_tile_offsets(
-		trapezoid_polygon, TRAPEZOID_POSITION, tile_size
+		world_polygon, tile_size, center_tile
 	)
 	print("[TRAPEZOID_TRACE] Direct collision calculation tile offsets: %s" % str(tile_offsets))
 	
@@ -145,7 +156,7 @@ func test_collision_mapper_integration() -> void:
 	
 	# Get collision shapes
 	var owner_shapes: Dictionary = GBGeometryUtils.get_all_collision_shapes_by_owner(test_object)
-	assert_int(owner_shapes.size()).is_greater_than(0)
+	assert_int(owner_shapes.size()).is_greater(0)
 	
 	# Create collision test rules
 	var collision_rule: CollisionsCheckRule = UnifiedTestFactory.create_test_collisions_check_rule()
@@ -153,8 +164,15 @@ func test_collision_mapper_integration() -> void:
 	
 	# Test the collision mapper directly
 	print("[MAPPER_TRACE] Testing collision_mapper.map_collision_positions_to_rules")
+	
+	# Convert owner_shapes.keys() to properly typed Array[Node2D]
+	var col_objects: Array[Node2D] = []
+	for shape_owner: Node in owner_shapes.keys():
+		if shape_owner is Node2D:
+			col_objects.append(shape_owner as Node2D)
+	
 	var position_rules_map: Dictionary = _collision_mapper.map_collision_positions_to_rules(
-		owner_shapes.keys(), tile_check_rules
+		col_objects, tile_check_rules
 	)
 	
 	print("[MAPPER_TRACE] Position rules map size: %d" % position_rules_map.size())
@@ -216,11 +234,18 @@ func test_full_indicator_generation_integration() -> void:
 	var indicators: Array[RuleCheckIndicator] = report.indicators_report.indicators
 	print("[INTEGRATION_TRACE] Generated indicators count: %d" % indicators.size())
 	
-	# Extract indicator positions
+	# Extract indicator positions from their names (format: "RuleCheckIndicator-Offset(X,Y)")
 	var indicator_positions: Array[Vector2i] = []
 	for indicator: RuleCheckIndicator in indicators:
-		var offset: Vector2i = indicator.get_tile_offset()
-		indicator_positions.append(offset)
+		var name_parts: PackedStringArray = indicator.name.split("-Offset(")
+		if name_parts.size() >= 2:
+			var offset_str: String = name_parts[1].split(")")[0]
+			var offset_parts: PackedStringArray = offset_str.split(",")
+			if offset_parts.size() >= 2:
+				var offset_x: int = int(offset_parts[0])
+				var offset_y: int = int(offset_parts[1])
+				var offset: Vector2i = Vector2i(offset_x, offset_y)
+				indicator_positions.append(offset)
 	
 	indicator_positions.sort()  # Sort for consistent output
 	print("[INTEGRATION_TRACE] Indicator positions: %s" % str(indicator_positions))

@@ -12,6 +12,7 @@ collision_mask = 2561
 polygon = PackedVector2Array(-32, 12, -16, -12, 17, -12, 32, 12)
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
+visible = false
 texture = ExtResource("1_12akl")
 
 [node name="Manipulatable" type="Node" parent="." node_paths=PackedStringArray("root")]

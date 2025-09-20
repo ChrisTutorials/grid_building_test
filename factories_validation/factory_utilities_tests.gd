@@ -145,7 +145,13 @@ func _create_test_container_with_tracking() -> GBCompositionContainer:
 
 func _create_test_tilemap_with_tracking() -> TileMapLayer:
 	"""Create a test tilemap with automatic tracking"""
-	return _track_object(GodotTestFactory.create_tile_map_layer(self))
+	# Use the premade 31x31 test tilemap scene to ensure consistent bounds
+	var layer: TileMapLayer = GBTestConstants.TEST_TILE_MAP_LAYER_BUILDABLE.instantiate() as TileMapLayer
+	# Ensure the node is added to the test scene and will be cleaned up
+	add_child(layer)
+	auto_free(layer)
+	_track_object(layer)
+	return layer
 
 func _create_indicator_test_environment_with_tracking() -> CollisionTestEnvironment:
 	"""Create indicator test environment with automatic component tracking"""

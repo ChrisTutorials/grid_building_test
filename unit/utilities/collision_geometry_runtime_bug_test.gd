@@ -15,14 +15,21 @@ func test_runtime_trapezoid_collision_calculation_bug() -> void:
 	var runtime_position: Vector2 = Vector2(440, 552)
 	var tile_size: Vector2 = Vector2(16, 16)
 	
+	# Convert runtime position to center tile coordinate
+	var center_tile: Vector2i = Vector2i(
+		int(runtime_position.x / tile_size.x),
+		int(runtime_position.y / tile_size.y)
+	)
+	
 	print("[BUG_REPRODUCTION] === RUNTIME TRAPEZOID CALCULATION BUG ===")
 	print("[BUG_REPRODUCTION] Trapezoid polygon: %s" % str(runtime_trapezoid))
 	print("[BUG_REPRODUCTION] Position: %s" % str(runtime_position))
 	print("[BUG_REPRODUCTION] Tile size: %s" % str(tile_size))
+	print("[BUG_REPRODUCTION] Center tile: %s" % str(center_tile))
 	
-	# This is the call that's failing in the runtime integration
+	# This is the call that's failing in the runtime integration - FIXED parameter order
 	var tile_offsets: Array[Vector2i] = CollisionGeometryUtils.compute_polygon_tile_offsets(
-		runtime_trapezoid, runtime_position, tile_size
+		runtime_trapezoid, tile_size, center_tile
 	)
 	
 	print("[BUG_REPRODUCTION] Calculated tile offsets: %s" % str(tile_offsets))
@@ -42,7 +49,7 @@ func test_runtime_trapezoid_collision_calculation_bug() -> void:
 	# Let's also test with position at origin to see if it's a position offset issue
 	print("[BUG_REPRODUCTION] Testing with origin position...")
 	var origin_offsets: Array[Vector2i] = CollisionGeometryUtils.compute_polygon_tile_offsets(
-		runtime_trapezoid, Vector2.ZERO, tile_size
+		runtime_trapezoid, tile_size, Vector2i.ZERO
 	)
 	print("[BUG_REPRODUCTION] Origin position offsets: %s" % str(origin_offsets))
 	print("[BUG_REPRODUCTION] Origin position count: %d" % origin_offsets.size())
@@ -57,7 +64,7 @@ func test_runtime_trapezoid_collision_calculation_bug() -> void:
 	
 	for test_tile_size in different_tile_sizes:
 		var size_test_offsets: Array[Vector2i] = CollisionGeometryUtils.compute_polygon_tile_offsets(
-			runtime_trapezoid, Vector2.ZERO, test_tile_size
+			runtime_trapezoid, test_tile_size, Vector2i.ZERO
 		)
 		print("[BUG_REPRODUCTION] Tile size %s: %d offsets" % [str(test_tile_size), size_test_offsets.size()])
 	
@@ -88,8 +95,12 @@ func test_coordinate_system_analysis() -> void:
 	]
 	
 	for pos in test_positions:
+		# Convert position to center tile
+		var test_center_tile: Vector2i = Vector2i(
+			int(pos.x / 16), int(pos.y / 16)
+		)
 		var offsets: Array[Vector2i] = CollisionGeometryUtils.compute_polygon_tile_offsets(
-			runtime_trapezoid, pos, Vector2(16, 16)
+			runtime_trapezoid, Vector2(16, 16), test_center_tile
 		)
 		print("[COORD_ANALYSIS] Position %s: %d tiles" % [str(pos), offsets.size()])
 		
@@ -144,7 +155,7 @@ func test_polygon_validity_analysis() -> void:
 	
 	print("[POLYGON_ANALYSIS] Testing reversed winding: %s" % str(reversed_trapezoid))
 	var reversed_offsets: Array[Vector2i] = CollisionGeometryUtils.compute_polygon_tile_offsets(
-		reversed_trapezoid, Vector2.ZERO, Vector2(16, 16)
+		reversed_trapezoid, Vector2(16, 16), Vector2i.ZERO
 	)
 	print("[POLYGON_ANALYSIS] Reversed polygon offsets: %d tiles" % reversed_offsets.size())
 	

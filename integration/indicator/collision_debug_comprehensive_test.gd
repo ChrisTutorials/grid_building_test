@@ -238,12 +238,12 @@ func test_polygon_collision_edge_cases() -> void:
 		print("Polygon bounds: %s" % bounds)
 		
 		# Test if polygon is considered valid (using points.size() >= 3)
-		var is_valid: bool = points.size() >= 3 and CollisionGeometryCalculator._polygon_area(points) > 0.001
+		var is_valid: bool = points.size() >= 3 and CollisionGeometryCalculator.polygon_area(points) > 0.001
 		print("Is valid polygon: %s" % is_valid)
 		
 		# Test area calculation if valid
 		if is_valid:
-			var area: float = CollisionGeometryCalculator._polygon_area(points)
+			var area: float = CollisionGeometryCalculator.polygon_area(points)
 			print("Polygon area: %f" % area)
 		
 		assert_bool(is_valid).append_failure_message(

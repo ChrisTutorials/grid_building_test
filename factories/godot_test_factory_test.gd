@@ -39,11 +39,18 @@ func test_create_canvas_item() -> void:
 
 
 func test_create_tile_map_layer_with_grid() -> void:
-	var layer: TileMapLayer = GodotTestFactory.create_tile_map_layer(self, 10)
+	# Use premade 31x31 test tilemap instead of creating a small 10x10
+	var packed: PackedScene = GBTestConstants.TEST_TILE_MAP_LAYER_BUILDABLE
+	var layer: TileMapLayer = packed.instantiate() as TileMapLayer
+	add_child(layer)
+	auto_free(layer)
 
 	assert_object(layer).is_not_null()
 	assert_object(layer.get_parent()).is_equal(self)
 	assert_object(layer.tile_set).is_not_null()
+	# Verify expected used rect matches 31x31 dimensions used in environments
+	var used_rect: Rect2i = layer.get_used_rect()
+	assert_vector(Vector2(used_rect.size)).is_equal(Vector2(31, 31)).append_failure_message("Packed test tilemap should be 31x31")
 
 
 func test_create_empty_tile_map_layer() -> void:

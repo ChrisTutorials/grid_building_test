@@ -74,23 +74,23 @@ func test_indicators_are_parented_and_inside_tree() -> void:
 	for ind: RuleCheckIndicator in indicators:
 		assert_bool(ind.is_inside_tree()).append_failure_message("Indicator not inside tree: %s" % ind.name).is_true()
 		assert_object(ind.get_parent()).append_failure_message("Indicator has no parent: %s" % ind.name).is_not_null()
-		
-		# Debug information for parent mismatch
-		var expected_parent: Node = _container.get_states().manipulation.parent
+		# Debug information for parent node
+		# Current architecture: indicators are parented under the IndicatorManager itself
+		var expected_parent: Node = indicator_manager
 		var actual_parent: Node = ind.get_parent()
-		
+
 		var expected_name: String = "null"
 		var expected_class: String = "null"
 		if expected_parent != null:
 			expected_name = expected_parent.name
 			expected_class = expected_parent.get_class()
-		
+
 		var actual_name: String = "null"
 		var actual_class: String = "null"
 		if actual_parent != null:
 			actual_name = actual_parent.name
 			actual_class = actual_parent.get_class()
-		
+
 		print("Tree integration debug - Expected parent: %s (%s), Actual parent: %s (%s)" % [expected_name, expected_class, actual_name, actual_class])
-		
-		assert_object(ind.get_parent()).append_failure_message("Unexpected parent for indicator: %s. Expected: %s, Got: %s" % [ind.name, expected_name, actual_name]).is_equal(expected_parent)
+
+		assert_object(ind.get_parent()).append_failure_message("Unexpected parent for indicator: %s. Expected parent node: %s, Got: %s" % [ind.name, expected_name, actual_name]).is_equal(expected_parent)

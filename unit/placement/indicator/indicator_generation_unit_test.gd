@@ -100,10 +100,10 @@ func test_indicators_are_freed_on_reset() -> void:
 	var col_checking_rules: Array[TileCheckRule] = [GBTestConstants.COLLISIONS_CHECK_RULE]
 	_manager.setup_indicators(shape_scene, col_checking_rules)
 	
-	assert_array(_manager.get_active_indicators())\
+	assert_array(_manager.get_indicators())\
 		.append_failure_message("No indicators generated before reset (unit test)")\
 		.is_not_empty()
 
 	# Reset the indicator manager and verify indicators are freed
-	_manager.reset()
-	assert_that(_manager.get_active_indicators()).is_empty()
+	_manager.clear()
+	assert_array(_manager.get_indicators()).is_empty()

@@ -432,3 +432,119 @@ func test_position_rules_mapping_produces_results() -> void:
 	]
 
 	assert_that(position_rules_map.size()).append_failure_message(failure_msg).is_greater(0)
+
+# FOCUSED DEBUG TEST: Trapezoid CollisionMapper Setup Issues
+# Testing the exact trapezoid shape from simple_trapezoid.tscn to debug why only 11 of 13 indicators generate
+# Coordinates: PackedVector2Array(-32, 12, -16, -12, 17, -12, 32, 12)
+func test_trapezoid_collision_mapper_setup_debug() -> void:
+	# Arrange: Create trapezoid shape matching simple_trapezoid.tscn
+	var body: StaticBody2D = StaticBody2D.new()
+	auto_free(body)
+	add_child(body)
+	body.collision_layer = 1
+	
+	var collision_shape: CollisionShape2D = CollisionShape2D.new()
+	body.add_child(collision_shape)
+	
+	# Exact trapezoid coordinates from simple_trapezoid.tscn
+	var trapezoid_points: PackedVector2Array = PackedVector2Array([
+		Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)
+	])
+	var convex_polygon: ConvexPolygonShape2D = ConvexPolygonShape2D.new()
+	convex_polygon.points = trapezoid_points
+	collision_shape.shape = convex_polygon
+	
+	# Position body at origin (matching integration test setup)
+	body.global_position = Vector2.ZERO
+	
+	# Create targeting state and indicator
+	var targeting_state: GridTargetingState = _create_minimal_targeting_state()
+	var test_indicator: RuleCheckIndicator = indicator_template.instantiate()
+	auto_free(test_indicator)
+	add_child(test_indicator)
+	
+	# Create collision mapper
+	var mapper: CollisionMapper = CollisionMapper.new(targeting_state, _logger)
+	
+	# Act: Set up mapper with proper API
+	var test_setups: Array[CollisionTestSetup2D] = [CollisionTestSetup2D.new(body, Vector2(64, 24))]
+	auto_free(test_setups[0])  # Clean up the test setup
+	
+	# Set up collision mapper with correct API
+	mapper.setup(test_indicator, test_setups)
+	
+	# Debug: Check mapper setup state
+	var setup_diagnostics: String = _generate_mapper_setup_diagnostics(mapper, body)
+	
+	# Assert 1: Mapper should have non-null test indicator
+	assert_that(mapper.test_indicator).append_failure_message(
+		"CollisionMapper should have non-null test_indicator after setup. Diagnostics:\n%s" % setup_diagnostics
+	).is_not_null()
+	
+	# Assert 2: Mapper should have non-empty test setups
+	assert_that(mapper.test_setups).append_failure_message(
+		"CollisionMapper should have non-null test_setups. Diagnostics:\n%s" % setup_diagnostics
+	).is_not_null()
+	
+	assert_that(mapper.test_setups.is_empty()).append_failure_message(
+		"CollisionMapper test_setups should not be empty. Diagnostics:\n%s" % setup_diagnostics
+	).is_false()
+	
+	# Assert 3: Should have specific setup for our trapezoid body
+	var body_setup: CollisionTestSetup2D = _get_test_setup_for_body(mapper, body)
+	assert_that(body_setup).append_failure_message(
+		"Should have CollisionTestSetup2D for trapezoid body. Available setups: %d. Diagnostics:\n%s" % [
+			mapper.test_setups.size(), setup_diagnostics
+		]
+	).is_not_null()
+	
+	# Debug: Test collision detection with mask 1
+	var tile_check_rule: TileCheckRule = TileCheckRule.new()
+	tile_check_rule.apply_to_objects_mask = 1
+	
+	var bodies: Array[Node2D] = [body]  # Create bodies array for collision detection
+	var collision_positions: Dictionary = mapper.get_collision_tile_positions_with_mask(bodies, 1)
+	
+	# Print debug info to console (appears in test output)
+	print("=== TRAPEZOID COLLISION MAPPER DEBUG ===")
+	print("Trapezoid points: %s" % str(trapezoid_points))
+	print("Body position: %s" % str(body.global_position))
+	print("Body collision layer: %d" % body.collision_layer)
+	print("Setup diagnostics:")
+	print("- Test indicator valid: %s" % str(mapper.test_indicator != null))
+	print("- Test setups count: %d" % mapper.test_setups.size())
+	print("Collision detection results:")
+	print("- Rule mask: %d" % tile_check_rule.apply_to_objects_mask)
+	print("- Body collision layer: %d" % body.collision_layer)
+	print("- Collision positions found: %d" % collision_positions.size())
+	
+	if collision_positions.size() > 0:
+		for pos: Vector2i in collision_positions.keys():
+			print("  Position: %s" % str(pos))
+	
+	# COMPARE: Test CollisionGeometryUtils directly for comparison
+	print("=== COLLISION GEOMETRY UTILS COMPARISON ===")
+	var target_map: TileMapLayer = targeting_state.target_map
+	var tile_size: Vector2 = Vector2(target_map.tile_set.tile_size)
+	var center_tile: Vector2i = CollisionGeometryUtils.center_tile_for_shape_object(target_map, body)
+	var expected_positions: Array[Vector2i] = CollisionGeometryUtils.compute_polygon_tile_offsets(
+		trapezoid_points, tile_size, center_tile, TileSet.TILE_SHAPE_SQUARE, target_map
+	)
+	print("Center tile: %s" % str(center_tile))  
+	print("CollisionGeometryUtils positions found: %d" % expected_positions.size())
+	if expected_positions.size() > 0:
+		for pos: Vector2i in expected_positions:
+			print("  Expected Position: %s" % str(pos))
+	
+	print("=== END COLLISION GEOMETRY UTILS COMPARISON ===")
+	print("=== END TRAPEZOID COLLISION MAPPER DEBUG ===")
+	
+	# Assert 4: Should find collision positions for trapezoid
+	assert_that(collision_positions.size()).append_failure_message(
+		"Expected collision positions for trapezoid shape with mask 1. Body layer: %d, Mask: %d. Diagnostics:\n%s" % [
+			body.collision_layer, tile_check_rule.apply_to_objects_mask, setup_diagnostics
+		]
+	).is_greater(0)
+	
+	# Final Debug: If we reach here but integration tests fail, the issue is likely in the 
+	# indicator generation pipeline after CollisionMapper, not in CollisionMapper setup itself

@@ -6,7 +6,7 @@
 [ext_resource type="Script" uid="uid://dil41nh8d4c3k" path="res://addons/grid_building/systems/injection/gb_injector_system.gd" id="5_vp3to"]
 [ext_resource type="Script" uid="uid://dasmm18l8fxdo" path="res://addons/grid_building/user/gb_owner.gd" id="6_i48kh"]
 [ext_resource type="Resource" uid="uid://dy6e5p5d6ax6n" path="res://test/grid_building_test/resources/composition_containers/test_composition_container.tres" id="6_vp3to"]
-[ext_resource type="PackedScene" uid="uid://3shi30ob8pna" path="res://test/grid_building_test/scenes/tile_map/TEST_buildable_10x10_tile_map.tscn" id="6_wdpwq"]
+[ext_resource type="PackedScene" uid="uid://dsaumst3yyp21" path="res://test/grid_building_test/scenes/tile_map/TEST_buildable_31x31_tile_map.tscn" id="6_wdpwq"]
 [ext_resource type="PackedScene" uid="uid://teejt4ev3xir" path="res://test/grid_building_test/scenes/positioning/test_positioner_stack.tscn" id="7_xucoj"]
 [ext_resource type="Script" uid="uid://ow5wabt5g4dc" path="res://addons/grid_building/placement/manager/indicator_manager.gd" id="8_indicator"]
 
@@ -19,7 +19,7 @@ positioner = NodePath("World/Level/TestPositionerStack")
 world = NodePath("World")
 level = NodePath("World/Level")
 level_context = NodePath("World/Level/GBLevelContext")
-tile_map_layer = NodePath("World/Level/TESTBuildable10x10TileMap")
+tile_map_layer = NodePath("World/Level/TileMapLayer_31x31_Buildable")
 objects_parent = NodePath("World/Level/PlacedObjectsParent")
 placer = NodePath("World/Level/Placer")
 
@@ -39,8 +39,8 @@ metadata/_custom_type_script = "uid://dnl6gv8yc3how"
 
 [node name="GBLevelContext" type="Node" parent="World/Level" node_paths=PackedStringArray("target_map", "maps", "objects_parent")]
 script = ExtResource("2_bi4n4")
-target_map = NodePath("../TESTBuildable10x10TileMap")
-maps = [NodePath("../TESTBuildable10x10TileMap")]
+target_map = NodePath("../TileMapLayer_31x31_Buildable")
+maps = [NodePath("../TileMapLayer_31x31_Buildable")]
 objects_parent = NodePath("../PlacedObjectsParent")
 metadata/_custom_type_script = "uid://ckwhivepsvl0n"
 
@@ -53,7 +53,7 @@ script = ExtResource("6_i48kh")
 owner_root = NodePath("..")
 metadata/_custom_type_script = "uid://dasmm18l8fxdo"
 
-[node name="TESTBuildable10x10TileMap" parent="World/Level" instance=ExtResource("6_wdpwq")]
+[node name="TileMapLayer_31x31_Buildable" parent="World/Level" instance=ExtResource("6_wdpwq")]
 
 [node name="IndicatorManager" type="Node2D" parent="World/Level"]
 script = ExtResource("8_indicator")

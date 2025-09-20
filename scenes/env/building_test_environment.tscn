@@ -6,7 +6,7 @@
 [ext_resource type="Script" uid="uid://dnl6gv8yc3how" path="res://addons/grid_building/systems/grid_targeting/grid_targeting_system.gd" id="4_e0sbe"]
 [ext_resource type="Script" uid="uid://4mfr58yhmove" path="res://addons/grid_building/systems/building/building_system.gd" id="5_wc2ye"]
 [ext_resource type="Script" uid="uid://ckwhivepsvl0n" path="res://addons/grid_building/components/gb_level_context.gd" id="6_qtcwv"]
-[ext_resource type="PackedScene" uid="uid://3shi30ob8pna" path="res://test/grid_building_test/scenes/tile_map/TEST_buildable_10x10_tile_map.tscn" id="7_ontcs"]
+[ext_resource type="PackedScene" uid="uid://dsaumst3yyp21" path="res://test/grid_building_test/scenes/tile_map/TEST_buildable_31x31_tile_map.tscn" id="7_ontcs"]
 [ext_resource type="Script" uid="uid://dasmm18l8fxdo" path="res://addons/grid_building/user/gb_owner.gd" id="8_aowhm"]
 [ext_resource type="PackedScene" uid="uid://dm3722ecrh3e4" path="res://templates/grid_building_templates/grid_positioner_stack.tscn" id="9_ontcs"]
 
@@ -22,7 +22,7 @@ positioner = NodePath("World/GridPositioner2D")
 world = NodePath("World")
 level = NodePath("World/Level")
 level_context = NodePath("World/Level/GBLevelContext")
-tile_map_layer = NodePath("World/Level/TESTBuildable10x10TileMap")
+tile_map_layer = NodePath("World/Level/TileMapLayer_31x31_Buildable")
 objects_parent = NodePath("World/Level/PlacedObjectsParent")
 placer = NodePath("World/Level/Placer")
 
@@ -46,14 +46,14 @@ metadata/_custom_type_script = "uid://4mfr58yhmove"
 
 [node name="GBLevelContext" type="Node" parent="World/Level" node_paths=PackedStringArray("target_map", "maps", "objects_parent")]
 script = ExtResource("6_qtcwv")
-target_map = NodePath("../TESTBuildable10x10TileMap")
-maps = [NodePath("../TESTBuildable10x10TileMap")]
+target_map = NodePath("../TileMapLayer_31x31_Buildable")
+maps = [NodePath("../TileMapLayer_31x31_Buildable")]
 objects_parent = NodePath("../PlacedObjectsParent")
 metadata/_custom_type_script = "uid://ckwhivepsvl0n"
 
 [node name="PlacedObjectsParent" type="Node2D" parent="World/Level"]
 
-[node name="TESTBuildable10x10TileMap" parent="World/Level" instance=ExtResource("7_ontcs")]
+[node name="TileMapLayer_31x31_Buildable" parent="World/Level" instance=ExtResource("7_ontcs")]
 
 [node name="Placer" type="Node2D" parent="World/Level"]
 

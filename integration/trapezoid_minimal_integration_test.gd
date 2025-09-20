@@ -101,11 +101,18 @@ func test_trapezoid_full_pipeline_integration() -> void:
 	var indicators: Array[RuleCheckIndicator] = report.indicators_report.indicators
 	print("[TRAPEZOID] Generated indicators count: %d" % indicators.size())
 	
-	# Extract indicator positions
+	# Extract indicator positions from their names (format: "RuleCheckIndicator-Offset(X,Y)")
 	var indicator_positions: Array[Vector2i] = []
 	for indicator: RuleCheckIndicator in indicators:
-		var offset: Vector2i = indicator.get_tile_offset()
-		indicator_positions.append(offset)
+		var name_parts: PackedStringArray = indicator.name.split("-Offset(")
+		if name_parts.size() >= 2:
+			var offset_str: String = name_parts[1].split(")")[0]
+			var offset_parts: PackedStringArray = offset_str.split(",")
+			if offset_parts.size() >= 2:
+				var offset_x: int = int(offset_parts[0])
+				var offset_y: int = int(offset_parts[1])
+				var offset: Vector2i = Vector2i(offset_x, offset_y)
+				indicator_positions.append(offset)
 	
 	indicator_positions.sort()  # Sort for consistent output
 	print("[TRAPEZOID] Generated indicator positions:")

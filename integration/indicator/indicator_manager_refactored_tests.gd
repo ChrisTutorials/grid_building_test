@@ -107,7 +107,8 @@ func _create_test_area() -> Area2D:
 	return area
 
 func _create_test_rules() -> Array[TileCheckRule]:
-	return [TileCheckRule.new()]
+	var rules : Array[TileCheckRule] = [TileCheckRule.new()]
+	return rules
 
 func _setup_test_area(area: Area2D) -> void:
 	var manipulation_parent: Node2D = env.manipulation_parent
