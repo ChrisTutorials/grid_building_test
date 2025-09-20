@@ -221,8 +221,9 @@ static func create_manipulation_system(test_instance: Node) -> ManipulationSyste
 #region UTILITY DELEGATE METHODS
 
 ## Delegate: Create grid positioner
-## @deprecated: Use GridPositioner2D.new() directly
+## @deprecated: Use GridPositioner2D.new() directly with proper shape assignment
 static func create_grid_positioner(_test: GdUnitTestSuite) -> GridPositioner2D:
+	# DIRECT: Simple custom component - create directly
 	var positioner: GridPositioner2D = GridPositioner2D.new()
 	
 	# Assign default shape BEFORE adding to scene tree to prevent "Invalid shape" errors in _ready()
@@ -244,18 +245,8 @@ static func create_grid_positioner(_test: GdUnitTestSuite) -> GridPositioner2D:
 ## consistent bounds and data across all tests. It preserves the old API for
 ## backward compatibility but will be removed in a future refactor.
 static func create_tile_map_layer(test: GdUnitTestSuite, _p_parent : Node = null) -> TileMapLayer:
-	# Return the canonical premade 31x31 test tilemap to ensure consistent bounds
-	# and data across all tests. This preserves legacy API while preventing tests
-	# from programmatically constructing ad-hoc small maps that caused flakiness.
-	var tile_map: TileMapLayer = GBTestConstants.TEST_TILE_MAP_LAYER_BUILDABLE.instantiate() as TileMapLayer
-	if _p_parent != null:
-		_p_parent.add_child(tile_map)
-	else:
-		test.add_child(tile_map)
-	# Ensure the test tears down the node automatically (preserve previous behavior)
-	if test.has_method("auto_free"):
-		test.auto_free(tile_map)
-	return tile_map
+	# REDIRECT: Use GodotTestFactory for basic Godot objects
+	return GodotTestFactory.create_tile_map_layer(test)
 
 #endregion
 

@@ -12,6 +12,7 @@ var targeting_state : GridTargetingState
 var container : GBCompositionContainer
 
 func _ready() -> void:
+	super()
 	# Initialize container reference for convenience
 	container = get_container()
 	
@@ -63,6 +64,9 @@ func get_issues() -> Array[String]:
 	
 	if indicator_manager == null:
 		issues.append("Missing IndicatorManager")
+		
+	if positioner.global_position != Vector2.ZERO:
+		issues.append("Global positioner is at unexpected location for test setup. Actual: %s Expected: %s" % [Vector2.ZERO, positioner.global_position])
 	
 	return issues
 

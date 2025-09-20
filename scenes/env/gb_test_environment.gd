@@ -1,3 +1,5 @@
+## Testubg environment for grid building tests
+## Disables the positioner mouse movement by default to prevent unexpected movement during tests.
 class_name GBTestEnvironment
 extends Node
 
@@ -10,6 +12,10 @@ extends Node
 @export var tile_map_layer : TileMapLayer
 @export var objects_parent : Node2D
 @export var placer : Node2D
+
+func _ready() -> void:
+	## Prevent positioner movement unless explicitly invoked in tests
+	positioner.process_mode = Node.PROCESS_MODE_DISABLED
 
 func get_issues() -> Array[String]:
 	var issues : Array[String] = []
@@ -58,3 +64,9 @@ func get_container() -> GBCompositionContainer:
 func get_logger() -> GBLogger:
 	var container : GBCompositionContainer = get_container()
 	return container.get_logger() if container else null
+
+## Returns the number of tiles that actually exist on the tile map layer.
+func get_tile_count() -> int:
+	if tile_map_layer == null:
+		return 0
+	return tile_map_layer.get_used_cells().size()

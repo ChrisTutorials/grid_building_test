@@ -17,7 +17,6 @@ const TEST_POSITIONS: Array[Vector2i] = [
 
 # Test environment components
 var _tile_map: TileMapLayer
-var _tile_set: TileSet
 var _targeting_state: GridTargetingState
 var _positioner: Node2D
 var _parent_node: Node2D
@@ -25,17 +24,11 @@ var _indicator_template: PackedScene
 var _test_object: Node2D
 
 func before_test() -> void:
-	# Create minimal tile map setup
-	_tile_set = TileSet.new()
-	_tile_set.tile_size = TILE_SIZE
+	# Create tile map using existing factory
+	_tile_map = UnifiedTestFactory.create_tile_map_layer(self)
 	
-	_tile_map = auto_free(TileMapLayer.new())
-	add_child(_tile_map)
-	_tile_map.tile_set = _tile_set
-	
-	# Create positioner at specific location for predictable testing
-	_positioner = auto_free(Node2D.new())
-	add_child(_positioner)
+	# Create positioner using existing factory
+	_positioner = UnifiedTestFactory.create_grid_positioner(self)
 	_positioner.global_position = Vector2(64, 48)  # Position at tile (4, 3) for non-zero baseline
 	
 	# Create targeting state - requires GBOwnerContext for constructor
@@ -93,7 +86,7 @@ func test_coordinate_transformation_pipeline() -> void:
 
 func test_generate_indicators_positions_correctly() -> void:
 	# Create position rules map with multiple positions
-	var position_rules_map: Dictionary[Vector2i, Array] = {}
+	var position_rules_map: Dictionary = {}
 	for pos in TEST_POSITIONS:
 		position_rules_map[pos] = []  # Empty rules array for positioning test
 	

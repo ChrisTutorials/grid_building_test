@@ -33,8 +33,8 @@ func _create_empty_body() -> StaticBody2D:
 	add_child(body)
 	return body
 
-# Helper: Create and validate test setup
-func _create_and_validate_test_setup(body: StaticBody2D, tile_size: Vector2 = TEST_TILE_SIZE) -> CollisionTestSetup2D:
+# Helper: Create a minimal test setup and validate it
+func _create_minimal_test_setup(body: StaticBody2D, tile_size: Vector2 = TEST_TILE_SIZE) -> CollisionTestSetup2D:
 	var test_setup: CollisionTestSetup2D = CollisionTestSetup2D.new(body, tile_size)
 	test_setup.validate_setup()
 	return test_setup
@@ -48,21 +48,21 @@ func test_indicator_collision_test_setup_creation() -> void:
 	await get_tree().process_frame
 
 	# Create test setup
-	var test_setup := _create_and_validate_test_setup(body)
+	var test_setup := _create_minimal_test_setup(body)
 
 	# This should pass if the setup is working correctly
-	assert_that(test_setup.validate_setup()).is_true().append_failure_message("CollisionTestSetup2D should validate successfully with proper collision shapes")
-	assert_that(test_setup.rect_collision_test_setups.size()).is_greater(0).append_failure_message("Expected at least one rect collision test setup")
+	assert_that(test_setup.validate_setup()).append_failure_message("CollisionTestSetup2D should validate successfully with proper collision shapes").is_true()
+	assert_that(test_setup.rect_collision_test_setups.size()).append_failure_message("Expected at least one rect collision test setup").is_not_equal(0)
 
 # Test: CollisionTestSetup2D with no shapes (should fail gracefully)
 func test_indicator_collision_test_setup_empty_body() -> void:
 	var body := _create_empty_body()
 
-	var test_setup := _create_and_validate_test_setup(body)
+	var test_setup := _create_minimal_test_setup(body)
 
 	var is_valid: bool = test_setup.validate_setup()
-	assert_that(is_valid).is_false().append_failure_message("Empty body should fail validation")
-	assert_that(test_setup.issues.size()).is_greater(0).append_failure_message("Validation should produce issues for empty body")
+	assert_that(is_valid).append_failure_message("Empty body should fail validation").is_false()
+	assert_that(test_setup.issues.size()).append_failure_message("Validation should produce issues for empty body").is_not_equal(0)
 
 # Test: create_test_setups_for_collision_owners with valid collision object
 func test_create_test_setups_for_collision_owners_with_valid_object() -> void:

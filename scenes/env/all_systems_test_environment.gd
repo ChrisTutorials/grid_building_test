@@ -5,6 +5,9 @@ extends BuildingTestEnvironment
 @export var manipulation_system : ManipulationSystem
 @export var target_highlighter : TargetHighlighter
 
+func _ready() -> void:
+	super()
+
 func get_issues() -> Array[String]:
 	var issues : Array[String] = []
 	

@@ -38,6 +38,7 @@ func get_issues() -> Array[String]:
 	return issues
 
 func _ready() -> void:
+	super()
 	# Ensure indicator_manager references the injected manager from context
 	if get_container():
 		var indicator_context: IndicatorContext = get_container().get_indicator_context()

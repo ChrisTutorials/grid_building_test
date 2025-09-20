@@ -122,6 +122,9 @@ const TEST_TIMEOUT_MS: int = 5000
 ## Maximum number of indicators to generate in performance tests
 const MAX_PERFORMANCE_INDICATORS: int = 1000
 
+## Expected tile count for 31x31 buildable tile map (31 * 31 = 961)
+const EXPECTED_31X31_TILE_COUNT: int = 31 * 31
+
 ## Default collision layer for test objects
 const TEST_COLLISION_LAYER: int = 1
 
@@ -144,6 +147,9 @@ const TOP_RIGHT: Vector2 = Vector2(288, 32)
 const BOTTOM_LEFT: Vector2 = Vector2(32, 288)
 const BOTTOM_RIGHT: Vector2 = Vector2(288, 288)
 const OFF_GRID: Vector2 = Vector2(50, 50)  # Not aligned to tile boundaries
+
+## Default center tile for positioner initialization - should be within map bounds for all test environments
+const DEFAULT_CENTER_TILE: Vector2i = Vector2i(0, 0)
 
 #endregion
 #region Test Tile Maps and Sets
@@ -207,3 +213,16 @@ static func get_placeables() -> Array[Placeable]:
 static func validate_test_object_scene(object_uid: String) -> bool:
 	var scene := load(object_uid)
 	return scene != null
+
+## Assert that the tile map in the given environment has the expected number of tiles
+## test_suite: The GdUnitTestSuite instance for making assertions
+## environment: The test environment containing the tile map
+## expected_width: Expected width of the tile grid
+## expected_height: Expected height of the tile grid
+static func assert_tile_map_size(test_suite: GdUnitTestSuite, environment: GBTestEnvironment, expected_width: int, expected_height: int) -> void:
+	var expected_count: int = expected_width * expected_height
+	
+	test_suite.assert_object(environment.tile_map_layer).append_failure_message("Tile map layer should be available").is_not_null()
+	test_suite.assert_int(environment.get_tile_count()).append_failure_message(
+		"Tile map should have expected number of tiles for %dx%d grid (%d tiles)" % [expected_width, expected_height, expected_count]
+	).is_equal(expected_count)
