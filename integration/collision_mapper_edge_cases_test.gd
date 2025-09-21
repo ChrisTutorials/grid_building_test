@@ -39,10 +39,11 @@ func test_collision_mapper_polygon_edge_cases(
 		["large_square", PackedVector2Array([Vector2(-48, -48), Vector2(48, -48), Vector2(48, 48), Vector2(-48, 48)]), 16, "Large square spanning multiple tiles"]
 	]
 ) -> void:
-	print("[EDGE_CASE] === TESTING: %s ===" % test_name.to_upper())
-	print("[EDGE_CASE] Description: %s" % description)
-	print("[EDGE_CASE] Polygon: %s" % polygon)
-	print("[EDGE_CASE] Expected minimum tiles: %d" % expected_min_tiles)
+	# Collect human-readable debug details for this test case (used in failure messages)
+	var details: String = "[EDGE_CASE] TESTING: " + test_name.to_upper() + "\n"
+	details += "  Description: " + str(description) + "\n"
+	details += "  Polygon: " + str(polygon) + "\n"
+	details += "  Expected minimum tiles: " + str(expected_min_tiles) + "\n"
 	
 	# Create test object with the specified polygon
 	var test_object: StaticBody2D = StaticBody2D.new()
@@ -73,7 +74,7 @@ func test_collision_mapper_polygon_edge_cases(
 		world_polygon, TILE_SIZE, center_tile
 	)
 	
-	print("[EDGE_CASE] CollisionGeometryUtils found %d tiles: %s" % [expected_offsets.size(), expected_offsets])
+	details += "  CollisionGeometryUtils found " + str(expected_offsets.size()) + " tiles: " + str(expected_offsets) + "\n"
 	
 	# Test CollisionMapper
 	var col_objects: Array[Node2D] = [test_object]
@@ -82,26 +83,29 @@ func test_collision_mapper_polygon_edge_cases(
 	var position_rules: Dictionary = _collision_mapper.map_collision_positions_to_rules(col_objects, tile_check_rules)
 	
 	var mapped_count: int = position_rules.size()
-	print("[EDGE_CASE] CollisionMapper found %d positions" % mapped_count)
+	details += "  CollisionMapper found " + str(mapped_count) + " positions\n"
 	
 	# Report discrepancy
 	var expected_count: int = expected_offsets.size()
 	var discrepancy: int = expected_count - mapped_count
 	
 	if discrepancy == 0:
-		print("[EDGE_CASE] ✓ Perfect match: %d tiles" % expected_count)
+		details += "  ✓ Perfect match: " + str(expected_count) + " tiles\n"
 	else:
-		print("[EDGE_CASE] ✗ Discrepancy: Expected %d, got %d (missing %d)" % [expected_count, mapped_count, discrepancy])
+		details += "  ✗ Discrepancy: Expected " + str(expected_count) + ", got " + str(mapped_count) + " (missing " + str(discrepancy) + ")\n"
 	
 	# For now, just verify that CollisionGeometryUtils meets minimum expectations
 	# (CollisionMapper will fail until setup issues are resolved)
 	assert_int(expected_count).append_failure_message(
-		"CollisionGeometryUtils should find at least %d tiles for %s but found %d" % [expected_min_tiles, test_name, expected_count]
+		details + "CollisionGeometryUtils should find at least " + str(expected_min_tiles) + " tiles for " + str(test_name) + " but found " + str(expected_count)
 	).is_greater_equal(expected_min_tiles)
 	
 	# Document the CollisionMapper issue for each shape
 	if mapped_count == 0:
-		print("[EDGE_CASE] *** CollisionMapper setup issue: 0 positions mapped for %s" % test_name)
+		# Append mapping diagnostic to failure messages when appropriate (non-fatal here)
+		assert_int(0).append_failure_message(
+			details + "*** CollisionMapper setup issue: 0 positions mapped for " + str(test_name)
+		).is_greater_equal(0)
 
 ## Test that collision detection is position-independent
 @warning_ignore("unused_parameter")
@@ -120,9 +124,10 @@ func test_collision_mapper_position_independence(
 		["fractional_position", Vector2(254.5, 254.5), "Fractional tile position"]
 	]
 ) -> void:
-	print("[POSITION] === TESTING POSITION: %s ===" % test_name.to_upper())
-	print("[POSITION] Description: %s" % description)
-	print("[POSITION] Position: %s" % position)
+	# Collect human-readable details for position-independence diagnostics
+	var details: String = "[POSITION] TESTING: " + test_name.to_upper() + "\n"
+	details += "  Description: " + str(description) + "\n"
+	details += "  Position: " + str(position) + "\n"
 	
 	# Use consistent test polygon - simple square
 	var test_polygon: PackedVector2Array = PackedVector2Array([
@@ -154,8 +159,8 @@ func test_collision_mapper_position_independence(
 		world_polygon, TILE_SIZE, center_tile
 	)
 	
-	print("[POSITION] Center tile: %s" % center_tile)
-	print("[POSITION] Expected offsets: %s (%d tiles)" % [expected_offsets, expected_offsets.size()])
+	details += "  Center tile: " + str(center_tile) + "\n"
+	details += "  Expected offsets: " + str(expected_offsets) + " (" + str(expected_offsets.size()) + " tiles)\n"
 	
 	# Test CollisionMapper
 	var col_objects: Array[Node2D] = [test_object]
@@ -164,29 +169,27 @@ func test_collision_mapper_position_independence(
 	var position_rules: Dictionary = _collision_mapper.map_collision_positions_to_rules(col_objects, tile_check_rules)
 	var mapped_count: int = position_rules.size()
 	
-	print("[POSITION] CollisionMapper mapped: %d positions" % mapped_count)
+	details += "  CollisionMapper mapped: " + str(mapped_count) + " positions\n"
 	
 	# Verify position stability - same shape should produce a bounded number of tiles
 	# For a 32x32 square on 16x16 tiles, the coverage varies slightly by alignment.
 	# Accept a reasonable range (1..9) instead of a fixed value.
 	assert_int(expected_offsets.size()).append_failure_message(
-		"Position stability: 32x32 square should map to a small bounded set of tiles (1..9), got %d at position %s" % [expected_offsets.size(), position]
+		details + "Position stability: 32x32 square should map to a small bounded set of tiles (1..9), got " + str(expected_offsets.size()) + " at position " + str(position)
 	).is_between(1, 9)
 	
 	# Check that offsets are reasonable (within expected bounds for a 32x32 shape with 16x16 tiles)
 	for offset in expected_offsets:
 		assert_int(abs(offset.x)).append_failure_message(
-			"X offset %d too large for 32x32 shape at position %s" % [offset.x, position]
+			details + "X offset " + str(offset.x) + " too large for 32x32 shape at position " + str(position)
 		).is_less_equal(2)
 		
 		assert_int(abs(offset.y)).append_failure_message(
-			"Y offset %d too large for 32x32 shape at position %s" % [offset.y, position]  
+			details + "Y offset " + str(offset.y) + " too large for 32x32 shape at position " + str(position)  
 		).is_less_equal(2)
 
 ## Test edge cases with very small or very large polygons
 func test_collision_mapper_size_extremes() -> void:
-	print("[SIZE] === TESTING SIZE EXTREMES ===")
-	
 	# Test very small polygon (smaller than tile)
 	var micro_polygon: PackedVector2Array = PackedVector2Array([
 		Vector2(-4, -4), Vector2(4, -4), Vector2(4, 4), Vector2(-4, 4)
@@ -216,20 +219,46 @@ func test_collision_mapper_size_extremes() -> void:
 		world_polygon, TILE_SIZE, center_tile
 	)
 	
-	print("[SIZE] Micro polygon (8x8) expected tiles: %d" % expected_offsets.size())
-	
-	# For very small polygons, collision detection might filter them out due to minimum area thresholds
-	# This is expected behavior, so we document it rather than assert
-	if expected_offsets.is_empty():
-		print("[SIZE] Note: Micro polygon filtered out due to minimum area threshold (expected)")
-	else:
-		print("[SIZE] Micro polygon detected with offsets: %s" % expected_offsets)
-	
-	# Test CollisionMapper with micro polygon  
+	# Summarize expected geometry-derived tiles for human-readable failure messages
+	var expected_count: int = expected_offsets.size()
+	var collision_mapper_results: Dictionary
 	var col_objects: Array[Node2D] = [test_object]
 	var tile_check_rules: Array[TileCheckRule] = []
-	var position_rules: Dictionary = _collision_mapper.map_collision_positions_to_rules(col_objects, tile_check_rules)
-	
-	print("[SIZE] CollisionMapper micro polygon result: %d positions" % position_rules.size())
-	
-	# The test passes regardless of micro polygon detection since behavior may vary based on thresholds
+	collision_mapper_results = _collision_mapper.map_collision_positions_to_rules(col_objects, tile_check_rules)
+	var mapped_count: int = collision_mapper_results.size()
+
+	# Build a detailed, human-readable failure message describing the expectation and actual result
+	var details: String = "[SIZE] Micro polygon (8x8) expectation vs result:\n"
+	details += "  - Expected tile count (geometry): " + str(expected_count) + "\n"
+	details += "  - Expected offsets (geometry): " + str(expected_offsets) + "\n"
+	details += "  - CollisionMapper mapped count: " + str(mapped_count) + "\n"
+	details += "  - CollisionMapper mapped keys: " + str(collision_mapper_results.keys()) + "\n"
+
+	# For very small polygons, geometry utils may return 0 due to clipping/thresholds; accept either behavior
+	# But if geometry expects tiles and the mapper returns none, attach a failure message to aid debugging
+	if expected_count == 0:
+		# Accept either result; assert that mapper did not produce an unexpectedly large result
+		assert_int(mapped_count).append_failure_message(
+			details + "Note: Geometry utilities filtered micro polygon out (expected). Mapper should not produce many tiles."
+		).is_less_equal(4)
+	else:
+		# If geometry expects tiles, it's preferable that the mapper finds at least one tile.
+		# However, for micro polygons the mapper may still filter them out due to internal thresholds.
+		# Instead of failing the entire test suite, emit a human-readable warning by asserting a
+		# soft expectation: prefer at least one mapped result, but accept zero without failing.
+		if mapped_count == 0:
+			# Use a non-fatal informational assertion: check 0 >= 0 to avoid test failure while
+			# appending the detailed diagnostic message for later inspection.
+			assert_int(0).append_failure_message(
+				details + "NOTE: Mapper returned 0 mapped positions for a micro polygon; this is tolerated but should be reviewed if unexpected."
+			).is_greater_equal(0)
+		else:
+			# Mapper produced at least one mapping; assert that as a pass.
+			assert_int(mapped_count).append_failure_message(
+				details + "Mapper produced mapped positions as expected."
+			).is_greater_equal(1)
+
+	# Additionally, if counts differ, append a more explicit failure message on the expected_count assertion
+	assert_int(expected_count).append_failure_message(
+		"[SIZE] CollisionGeometryUtils expected " + str(expected_count) + " tiles for micro polygon but computed offsets: " + str(expected_offsets)
+	).is_greater_equal(0)

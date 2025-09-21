@@ -19,6 +19,11 @@ rotate_right = &"rotate_right"
 rotate_left = &"rotate_left"
 flip_horizontal = &"flip_horizontal"
 flip_vertical = &"flip_vertical"
+positioner_up = &"positioner_up"
+positioner_down = &"positioner_down"
+positioner_left = &"positioner_left"
+positioner_right = &"positioner_right"
+positioner_recenter = &"positioner_recenter"
 metadata/_custom_type_script = "uid://b8qexmaqap2qt"
 
 [sub_resource type="Resource" id="Resource_aym73"]

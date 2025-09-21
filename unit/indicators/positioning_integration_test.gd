@@ -12,7 +12,7 @@ func before_test() -> void:
 		test_env = env_scene.instantiate()
 		add_child(test_env)
 		auto_free(test_env)
-		collision_mapper = test_env.building_system.get_collision_mapper()
+		collision_mapper = test_env.get_collision_mapper()
 		# Set positioner to runtime position
 		test_env.positioner.global_position = Vector2(456.0, 552.0)
 

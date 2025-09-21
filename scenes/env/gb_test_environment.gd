@@ -1,5 +1,4 @@
-## Testubg environment for grid building tests
-## Disables the positioner mouse movement by default to prevent unexpected movement during tests.
+## Test environment for grid building tests
 class_name GBTestEnvironment
 extends Node
 
@@ -12,10 +11,6 @@ extends Node
 @export var tile_map_layer : TileMapLayer
 @export var objects_parent : Node2D
 @export var placer : Node2D
-
-func _ready() -> void:
-	## Prevent positioner movement unless explicitly invoked in tests
-	positioner.process_mode = Node.PROCESS_MODE_DISABLED
 
 func get_issues() -> Array[String]:
 	var issues : Array[String] = []

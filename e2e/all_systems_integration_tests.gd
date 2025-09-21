@@ -853,7 +853,7 @@ func test_system_performance_integration() -> void:
 		assert_that(test_object).is_not_null()
 	
 	var elapsed: int = Time.get_ticks_usec() - start_time
-	_container.get_logger().log_info(self, "Systems integration performance test completed in " + str(elapsed) + " microseconds")
+	_container.get_logger().log_info( "Systems integration performance test completed in " + str(elapsed) + " microseconds")
 	assert_that(elapsed).is_less(1000000)  # Should complete in under 1 second
 
 #endregion

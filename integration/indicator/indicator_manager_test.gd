@@ -221,7 +221,7 @@ func test_indicator_generation_distance(shape_scene: Node2D, expected_distance: 
 	if shape_scene == null:
 		shape_scene = CollisionObjectTestFactory.create_polygon_test_object(self, self)
 		expected_distance = INDICATOR_SPACING
-	shape_scene.global_position = global_snap_postest_collision_mapper_size_extremes
+	shape_scene.global_position = global_snap_pos
 	var report : IndicatorSetupReport = setup_scene_with_indicators(shape_scene)
 	var data: Dictionary = get_indicators_and_summary(report)
 	var indicators: Array[RuleCheckIndicator] = data.indicators

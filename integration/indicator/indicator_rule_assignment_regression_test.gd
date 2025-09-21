@@ -95,7 +95,7 @@ func test_polygon_test_object_indicator_collision_filtering() -> void:
 	# Diagnostic: log rule types and counts before setup
 	var logger: GBLogger = _container.get_logger()
 	if logger != null:
-		logger.log_debug(self, "indicator_rule_assignment: rules count=%d" % [rules.size()])
+		logger.log_debug( "indicator_rule_assignment: rules count=%d" % [rules.size()])
 	else:
 		print("indicator_rule_assignment: rules count=%d" % [rules.size()])
 
@@ -105,7 +105,7 @@ func test_polygon_test_object_indicator_collision_filtering() -> void:
 	# Setup the collision rules (ensure each rule has its targeting context initialized)
 	for rule: PlacementRule in rules:
 		if logger != null:
-			logger.log_debug(self, "  rule: %s" % [rule.get_class()])
+			logger.log_debug( "  rule: %s" % [rule.get_class()])
 		if rule is CollisionsCheckRule:
 			var setup_issues: Array[String] = rule.setup(targeting_state)
 			assert_array(setup_issues).append_failure_message("Rule.setup failed for %s" % [rule.get_class()]).is_empty()
@@ -115,7 +115,7 @@ func test_polygon_test_object_indicator_collision_filtering() -> void:
 	for i in range(rules.size()):
 		var r: PlacementRule = rules[i]
 		if logger != null:
-			logger.log_debug(self, "  rule[%d] class=%s, is_Collisions=%s, is_TileCheck=%s, is_valid=%s" % [i, r.get_class(), str(r is CollisionsCheckRule), str(r is TileCheckRule), str(is_instance_valid(r))])
+			logger.log_debug( "  rule[%d] class=%s, is_Collisions=%s, is_TileCheck=%s, is_valid=%s" % [i, r.get_class(), str(r is CollisionsCheckRule), str(r is TileCheckRule), str(is_instance_valid(r))])
 		else:
 			print("rule[%d] class=%s, is_Collisions=%s, is_TileCheck=%s, is_valid=%s" % [i, r.get_class(), str(r is CollisionsCheckRule), str(r is TileCheckRule), str(is_instance_valid(r))])
 
@@ -125,7 +125,7 @@ func test_polygon_test_object_indicator_collision_filtering() -> void:
 	if setup_report != null:
 		var diag_logger: GBLogger = _container.get_logger()
 		if diag_logger != null:
-			diag_logger.log_debug(self, "setup_report success=%s, indicators=%d" % [str(setup_report.is_successful()), setup_report.indicators_report.indicators.size() if setup_report.indicators_report != null else 0])
+			diag_logger.log_debug( "setup_report success=%s, indicators=%d" % [str(setup_report.is_successful()), setup_report.indicators_report.indicators.size() if setup_report.indicators_report != null else 0])
 		else:
 			print("setup_report success=%s, indicators=%d" % [str(setup_report.is_successful()), setup_report.indicators_report.indicators.size() if setup_report.indicators_report != null else 0])
 	assert_object(setup_report).append_failure_message("IndicatorManager.try_setup returned null").is_not_null()
@@ -302,7 +302,7 @@ func test_polygon_test_object_center_tile_filtering() -> void:
 
 		# Log for debugging
 		var logger: GBLogger = _container.get_logger()
-		logger.log_debug(self, "Center indicator valid: %s, rules count: %d" % [center_indicator.valid, rules.size()])
+		logger.log_debug( "Center indicator valid: %s, rules count: %d" % [center_indicator.valid, rules.size()])
 
 		# This assertion might fail due to the regression
 		assert_bool(center_indicator.valid).append_failure_message(

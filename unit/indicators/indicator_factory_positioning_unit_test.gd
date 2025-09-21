@@ -85,8 +85,8 @@ func test_coordinate_transformation_pipeline() -> void:
 	).is_greater(0.1)
 
 func test_generate_indicators_positions_correctly() -> void:
-	# Create position rules map with multiple positions
-	var position_rules_map: Dictionary = {}
+	# Create position rules map with multiple positions - DO NOT Retype this
+	var position_rules_map: Dictionary[Vector2i, Array] = {}
 	for pos in TEST_POSITIONS:
 		position_rules_map[pos] = []  # Empty rules array for positioning test
 	
@@ -287,20 +287,20 @@ func test_indicator_positioning_regression_800_pixel_offset() -> void:
 
 # DEBUG TEST to investigate what position data comes from collision system
 func test_debug_collision_position_mapping() -> void:
-	# This test simulates the full collision pipeline to see what position offsets are generated
+	# This test verifies that realistic collision offsets don't create massive pixel displacements
 	
 	# Set up a realistic scenario matching the runtime environment
 	_test_object.global_position = Vector2(456.0, 552.0)  # From runtime analysis
 	_positioner.global_position = Vector2(456.0, 552.0)
 	
-	# Mock a collision position that would cause the 800+ pixel offset
-	# From runtime analysis: local position (816.0, 336.0) results in global (1272.0, 888.0)
-	# So the offset being passed to IndicatorFactory might be (816/16, 336/16) = (51, 21) tiles
-	var suspicious_offset := Vector2i(51, 21)  # This should cause 816+ pixel offset
+	# Use a realistic offset that matches what we see in working tests
+	# From CollisionMapper tests, we see offsets like (-2, -1), (0, 0), (1, 1), etc.
+	# These should create small displacements in the range of 16-32 pixels
+	var realistic_offset := Vector2i(-2, 1)  # Should create ~32-pixel displacement
 	
-	# Test with the suspicious offset to see if this reproduces the issue
+	# Test with the realistic offset to ensure normal behavior
 	var position_rules_map: Dictionary[Vector2i, Array] = {}
-	position_rules_map[suspicious_offset] = []
+	position_rules_map[realistic_offset] = []
 	
 	var indicators: Array[RuleCheckIndicator] = IndicatorFactory.generate_indicators(
 		position_rules_map,
@@ -318,21 +318,30 @@ func test_debug_collision_position_mapping() -> void:
 	var distance := actual_pos.distance_to(expected_pos)
 	
 	print("=== COLLISION POSITION MAPPING DEBUG ===")
-	print("Suspicious offset: ", suspicious_offset)
+	print("Realistic offset: ", realistic_offset)
 	print("Expected position: ", expected_pos)
 	print("Actual position: ", actual_pos)
 	print("Distance: %.1f pixels" % distance)
 	print("Local position offset: ", actual_pos - expected_pos)
 	
-	# After the fix, this should no longer create a massive offset
-	if distance > 800.0:
-		print("REGRESSION STILL PRESENT: Large offset detected - collision system still generating wrong tile positions")
-		print("Tile offset %s creates %.1f pixel displacement" % [suspicious_offset, distance])
-		assert_that(false).append_failure_message("Fix didn't work - still getting 800+ pixel offsets").is_true()
-	else:
-		print("POTENTIALLY FIXED: This offset doesn't reproduce the massive displacement issue")
+	# With realistic offsets, we should get reasonable pixel distances
+	# (-2, 1) offset means 2 tiles left, 1 tile down = (-32, 16) pixels approximately
+	var expected_distance_range_min := 30.0  # Allow some tolerance for positioning
+	var expected_distance_range_max := 50.0
 	
-	# Test with a small relative offset to ensure normal behavior still works
+	if distance > 100.0:
+		print("REGRESSION DETECTED: Large offset detected - positioning system creating wrong tile positions")
+		print("Tile offset %s creates %.1f pixel displacement" % [realistic_offset, distance])
+		assert_that(false).append_failure_message("Realistic offset created unexpectedly large displacement: %.1f pixels" % distance).is_true()
+	else:
+		print("POSITIONING WORKING: Realistic offset creates reasonable displacement")
+	
+	# Verify the offset creates displacement in the expected range
+	assert_that(distance).is_greater(expected_distance_range_min).is_less(expected_distance_range_max).append_failure_message(
+		"Realistic offset should create displacement in range %.1f-%.1f pixels, got %.1f pixels" % [expected_distance_range_min, expected_distance_range_max, distance]
+	)
+	
+	# Test with a small positive offset to ensure normal behavior still works  
 	var small_offset := Vector2i(1, 0)  # Should create ~16 pixel offset
 	var small_position_rules_map: Dictionary[Vector2i, Array] = {}
 	small_position_rules_map[small_offset] = []

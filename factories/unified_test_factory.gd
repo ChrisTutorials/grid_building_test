@@ -132,7 +132,7 @@ static func create_test_injector(test: GdUnitTestSuite, container: GBComposition
 		if container and container.has_method("get_logger"):
 			var _log: GBLogger = container.get_logger()
 			if _log:
-				_log.log_debug(null, "[UnifiedTestFactory] Setting up injector with container path=%s placement_rules_count=%s" % [str(path_info), str(prc)])
+				_log.log_debug("[UnifiedTestFactory] Setting up injector with container path=%s placement_rules_count=%s" % [str(path_info), str(prc)])
 			else:
 				print("[DIAG][UnifiedTestFactory] Setting up injector with container path=%s placement_rules_count=%s" % [str(path_info), str(prc)])
 		else:

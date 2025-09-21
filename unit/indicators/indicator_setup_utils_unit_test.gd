@@ -1,6 +1,5 @@
 ## IndicatorSetupUtils Unit Tests
 ##
-## Tests for the IndicatorSetupUtils runtime utilities class.
 ## These tests verify collision shape gathering, test setup building,
 ## position mapping, validation functionality, indicator generation,
 ## and positioning accuracy using parameterized tests with various test objects.
@@ -14,6 +13,21 @@
 ## - validate_setup_preconditions: Input validation checks
 class_name IndicatorSetupUtilsUnitTest
 extends GdUnitTestSuite
+
+## Test constants for magic number elimination
+const DEFAULT_TILE_SIZE := Vector2i(16, 16)
+const TEST_POSITION_CENTER := Vector2(64, 64)
+const TEST_RECT_SIZE_SMALL := Vector2(32, 32)
+const TEST_RECT_SIZE_LARGE := Vector2(64, 64)
+const COLLISION_LAYER_DEFAULT := 1
+const COLLISION_MASK_SINGLE := 1
+const COLLISION_MASK_MIXED := 2560 | 513
+
+## Test position constants for indicator validation
+const TILE_POS_ORIGIN := Vector2i(0, 0)
+const TILE_POS_RIGHT := Vector2i(1, 0)
+const TILE_POS_DOWN := Vector2i(0, 1)
+const TILE_POS_WRONG := Vector2i(5, 5)
 
 ## Test data for parameterized tests
 const TEST_SCENE_DATA = [
@@ -98,6 +112,174 @@ func test_gather_collision_shapes_parameterized() -> void:
 		
 		test_object.queue_free()
 
+#region FAILURE ISOLATION TESTS - Mirror Integration Test Failures
+
+# FAILING TEST: Mirror integration test failure - execute_indicator_setup produces 0 indicators despite collision shapes
+# Expected failure: setup should create indicators but returns empty array despite finding collision shapes
+func test_execute_indicator_setup_produces_zero_indicators_despite_collision_shapes() -> void:
+	# Load smithy to match integration test pattern
+	var smithy_scene: PackedScene = load(GBTestConstants.SMITHY_PATH)
+	assert_object(smithy_scene).append_failure_message("Failed to load Smithy scene").is_not_null()
+	
+	var smithy_obj: Node2D = smithy_scene.instantiate()
+	add_child(smithy_obj)
+	auto_free(smithy_obj)
+	smithy_obj.global_position = TEST_POSITION_CENTER
+	
+	# Create rule matching integration test - mask for both Area2D and StaticBody2D layers
+	var rule := TileCheckRule.new()
+	rule.apply_to_objects_mask = COLLISION_MASK_MIXED
+	var rules: Array[TileCheckRule] = [rule]
+	
+	# Test collision shape gathering (this should work)
+	var collision_shapes: Dictionary = IndicatorSetupUtils.gather_collision_shapes(smithy_obj)
+	var collision_shapes_count := collision_shapes.size()
+	assert_that(collision_shapes_count).append_failure_message(
+		"Smithy should have collision shapes"
+	).is_greater(0)
+	
+	# Test collision test setups building with correct parameters
+	var test_setups: Dictionary = IndicatorSetupUtils.build_collision_test_setups(collision_shapes, DEFAULT_TILE_SIZE)
+	assert_that(test_setups.size()).append_failure_message(
+		"Should build collision test setups from smithy shapes"
+	).is_greater(0)
+	
+	# Get collision mapper from environment (direct property access)
+	var collision_mapper: CollisionMapper = env.collision_mapper
+	assert_object(collision_mapper).append_failure_message("CollisionMapper should be available in test environment").is_not_null()
+	
+	# CRITICAL: This should create indicators but returns empty result
+	# Create a proper Node2D parent for indicators
+	var indicator_parent := _create_indicator_parent()
+	
+	var setup_result: IndicatorSetupUtils.SetupResult = IndicatorSetupUtils.execute_indicator_setup(
+		smithy_obj,
+		rules,
+		collision_mapper,
+		_indicator_template,
+		indicator_parent,  # Use Node2D parent instead of test suite
+		_targeting_state
+	)
+	
+	# Calculate expected collision tiles for diagnostic
+	var collision_results: Dictionary = collision_mapper.get_collision_tile_positions_with_mask([smithy_obj] as Array[Node2D], COLLISION_MASK_MIXED)
+	var expected_collision_tiles: int = collision_results.size()
+	
+	# Check if setup_result is valid before accessing properties
+	if setup_result == null:
+		assert_that(false).append_failure_message(
+			"IndicatorSetupUtils.execute_indicator_setup returned null. DBG: collision_shapes=%d, test_setups=%d, expected_collision_tiles=%d, smithy_pos=%s" % [
+				collision_shapes_count, test_setups.size(), expected_collision_tiles, smithy_obj.global_position
+			]
+		).is_true()
+		return
+	
+	# This assertion should FAIL - mirrors integration test smithy failure  
+	assert_that(setup_result.indicators.size()).append_failure_message(
+		"Expected IndicatorSetupUtils.execute_indicator_setup to create indicators but got 0. DBG: collision_shapes=%d, test_setups=%d, expected_collision_tiles=%d, setup_issues=%s, smithy_pos=%s" % [
+			collision_shapes_count, test_setups.size(), expected_collision_tiles, str(setup_result.issues), smithy_obj.global_position
+		]
+	).is_greater(0)
+
+# FAILING TEST: Mirror integration test - collision mapping finds tiles but indicator generation fails
+# Expected failure: collision system works but indicator creation pipeline breaks down
+func test_collision_mapping_works_but_indicator_creation_fails() -> void:
+	# Create simple test object with known collision shape
+	var test_object := _create_simple_collision_object(TEST_POSITION_CENTER, TEST_RECT_SIZE_SMALL)
+	
+	# Create rule
+	var rule := _create_collision_rule(COLLISION_MASK_SINGLE)
+	var rules: Array[TileCheckRule] = [rule]
+	
+	# Test collision mapping directly (this should work)
+	var collision_mapper: CollisionMapper = env.collision_mapper
+	assert_object(collision_mapper).is_not_null().append_failure_message("CollisionMapper should be available")
+	
+	# CRITICAL FIX: Set up CollisionMapper with CollisionTestSetup2D for the test object
+	var test_setups: Array[CollisionTestSetup2D] = CollisionTestSetup2D.create_test_setups_from_test_node(test_object, _targeting_state)
+	assert_that(test_setups.size()).is_greater(0).append_failure_message("Should create at least one CollisionTestSetup2D for the test object")
+	
+	# Create test indicator for collision mapper setup
+	var test_indicator_scene: PackedScene = preload("uid://dhox8mb8kuaxa")
+	var test_indicator: RuleCheckIndicator = test_indicator_scene.instantiate()
+	add_child(test_indicator)
+	auto_free(test_indicator)
+	
+	# Set up collision mapper with the test object
+	collision_mapper.setup(test_indicator, test_setups)
+	
+	# Add debug info about the test setup before collision mapping
+	var collision_shapes_in_object := 0
+	for child in test_object.get_children():
+		if child is CollisionShape2D:
+			collision_shapes_in_object += 1
+	
+	var collision_results: Dictionary = collision_mapper.get_collision_tile_positions_with_mask([test_object] as Array[Node2D], COLLISION_MASK_SINGLE)
+	var collision_tiles_found: int = collision_results.size()
+	
+	# Verify collision mapping works
+	assert_that(collision_tiles_found).append_failure_message(
+		"Collision mapping should find tiles. DBG: test_object_type=%s, position=%s, collision_layer=%d, collision_mask=%d, collision_shapes_count=%d, tilemap_size=%s, targeting_state_valid=%s" % [
+			test_object.get_class(),
+			str(test_object.global_position),
+			test_object.collision_layer,
+			COLLISION_MASK_SINGLE,
+			collision_shapes_in_object,
+			str(_targeting_state.target_map.get_used_rect()) if _targeting_state.target_map else "null_tilemap",
+			str(_targeting_state != null)
+		]
+	).is_greater(0)
+	
+	# Test full indicator setup workflow  
+	# Create a proper Node2D parent for indicators
+	var indicator_parent := _create_indicator_parent()
+	
+	var setup_result: IndicatorSetupUtils.SetupResult = IndicatorSetupUtils.execute_indicator_setup(
+		test_object,
+		rules,
+		collision_mapper,
+		_indicator_template,
+		indicator_parent,  # Use Node2D parent instead of test suite
+		_targeting_state
+	)
+	
+	# Check if setup_result is valid before accessing properties
+	if setup_result == null:
+		assert_that(false).append_failure_message(
+			"IndicatorSetupUtils.execute_indicator_setup returned null when collision mapping finds %d tiles. DBG: collision_tiles=%d, test_object_pos=%s" % [
+				collision_tiles_found, collision_tiles_found, test_object.global_position
+			]
+		).is_true()
+		return
+	
+	# This assertion should FAIL - collision mapping works but indicator creation fails
+	assert_that(setup_result.indicators.size()).is_greater(0).append_failure_message(
+		"Expected indicator creation to succeed when collision mapping finds %d tiles. DBG: collision_tiles=%d, setup_issues=%s, test_object_pos=%s" % [
+			collision_tiles_found, collision_tiles_found, str(setup_result.issues), test_object.global_position
+		]
+	)
+	
+	# Verify collision system is working (this should pass)  
+	var collision_shape_info := ""
+	for child in test_object.get_children():
+		if child is CollisionShape2D:
+			var shape_details := "no_shape"
+			if child.shape:
+				shape_details = child.shape.get_class() + ":" + str(child.shape.size if child.shape.has_method("get_size") else "no_size")
+			collision_shape_info += shape_details + " "
+	
+	assert_int(collision_tiles_found).append_failure_message(
+		"Collision system should find at least 1 tile for 2x2 object. DBG: collision_results_size=%d, test_object_children_count=%d, collision_shape_info='%s', collision_mapper_valid=%s, test_object_collision_layer=%d" % [
+			collision_results.size(),
+			test_object.get_children().size(),
+			collision_shape_info.strip_edges(),
+			str(collision_mapper != null),
+			test_object.collision_layer
+		]
+	).is_greater_equal(1)
+
+#endregion
+
 ## Test gather_collision_shapes with valid collision object
 func test_gather_collision_shapes_with_collision_object() -> void:
 	var test_object := Node2D.new()
@@ -142,8 +324,7 @@ func test_execute_indicator_setup_basic_success() -> void:
 	var test_object: Node2D = _create_test_object_with_shapes()
 	var tile_check_rules: Array[TileCheckRule] = _create_tile_check_rules()
 	var collision_mapper: CollisionMapper = CollisionMapper.new(_targeting_state, env.get_logger())
-	var indicators_parent: Node2D = Node2D.new()
-	add_child(indicators_parent)
+	var indicators_parent: Node2D = _create_indicator_parent()
 	
 	# Act
 	var result: IndicatorSetupUtils.SetupResult = IndicatorSetupUtils.execute_indicator_setup(
@@ -160,10 +341,6 @@ func test_execute_indicator_setup_basic_success() -> void:
 	assert_that(result.has_issues()).append_failure_message("Should have no issues").is_false()
 	assert_that(result.indicators).append_failure_message("Should have indicators").is_not_empty()
 	assert_that(result.owner_shapes).append_failure_message("Should have owner shapes").is_not_empty()
-	
-	# Clean up
-	test_object.queue_free()
-	indicators_parent.queue_free()
 
 ## Test calculate_indicator_count with various test objects
 func test_calculate_indicator_count_parameterized() -> void:
@@ -201,11 +378,13 @@ func test_calculate_indicator_count_parameterized() -> void:
 func test_validate_indicator_positions_correct_positioning() -> void:
 	# Create test indicators at known positions
 	var indicators: Array[RuleCheckIndicator] = []
-	var expected_positions: Array[Vector2i] = [Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, 1)]
+	var expected_positions: Array[Vector2i] = [TILE_POS_ORIGIN, TILE_POS_RIGHT, TILE_POS_DOWN]
 	
 	# Create indicators at the expected tile positions
 	for pos: Vector2i in expected_positions:
 		var indicator: RuleCheckIndicator = _indicator_template.instantiate() as RuleCheckIndicator
+		add_child(indicator)
+		auto_free(indicator)
 		
 		var world_pos: Vector2 = _targeting_state.target_map.map_to_local(pos)
 		indicator.global_position = world_pos
@@ -220,19 +399,16 @@ func test_validate_indicator_positions_correct_positioning() -> void:
 	assert_that(result.is_valid).append_failure_message("Expected validation to be successful").is_true()
 	assert_that(result.size_mismatch).append_failure_message("Expected no size mismatch").is_false()
 	assert_that(result.position_mismatches).append_failure_message("Expected no position mismatches").is_empty()
-	
-	# Cleanup
-	for indicator in indicators:
-		indicator.queue_free()
 
 ## Test validate_indicator_positions with size mismatch
 func test_validate_indicator_positions_size_mismatch() -> void:
 	var indicators: Array[RuleCheckIndicator] = []
-	var expected_positions: Array[Vector2i] = [Vector2i(0, 0), Vector2i(1, 0)]
+	var expected_positions: Array[Vector2i] = [TILE_POS_ORIGIN, TILE_POS_RIGHT]
 	
 	# Create only one indicator (size mismatch)
 	var indicator: RuleCheckIndicator = _indicator_template.instantiate() as RuleCheckIndicator
 	add_child(indicator)
+	auto_free(indicator)
 	indicators.append(indicator)
 	
 	var result: IndicatorSetupUtils.PositionValidationResult = IndicatorSetupUtils.validate_indicator_positions(
@@ -245,19 +421,17 @@ func test_validate_indicator_positions_size_mismatch() -> void:
 	assert_that(result.size_mismatch).append_failure_message("Expected size mismatch to be detected").is_true()
 	assert_that(result.expected_count).append_failure_message("Expected count should be 2").is_equal(2)
 	assert_that(result.actual_count).append_failure_message("Actual count should be 1").is_equal(1)
-	
-	# Cleanup
-	indicator.queue_free()
 
 ## Test validate_indicator_positions with position mismatch
 func test_validate_indicator_positions_position_mismatch() -> void:
 	var indicators: Array[RuleCheckIndicator] = []
-	var expected_positions: Array[Vector2i] = [Vector2i(0, 0)]
+	var expected_positions: Array[Vector2i] = [TILE_POS_ORIGIN]
 	
 	# Create indicator at wrong position
 	var indicator: RuleCheckIndicator = _indicator_template.instantiate() as RuleCheckIndicator
 	add_child(indicator)
-	var wrong_world_pos: Vector2 = _targeting_state.target_map.map_to_local(Vector2i(5, 5))  # Wrong position
+	auto_free(indicator)
+	var wrong_world_pos: Vector2 = _targeting_state.target_map.map_to_local(TILE_POS_WRONG)  # Wrong position
 	indicator.global_position = wrong_world_pos
 	indicators.append(indicator)
 	
@@ -270,11 +444,8 @@ func test_validate_indicator_positions_position_mismatch() -> void:
 	assert_that(result.is_valid).append_failure_message("Expected validation to fail due to position mismatch").is_false()
 	assert_that(result.size_mismatch).append_failure_message("Expected no size mismatch").is_false()
 	assert_that(result.position_mismatches).append_failure_message("Expected position mismatches to be detected").is_not_empty()
-	assert_that(result.position_mismatches[0]["expected"]).append_failure_message("Expected position should be Vector2i(0, 0)").is_equal(Vector2i(0, 0))
-	assert_that(result.position_mismatches[0]["actual"]).append_failure_message("Actual position should be Vector2i(5, 5)").is_equal(Vector2i(5, 5))
-	
-	# Cleanup
-	indicator.queue_free()
+	assert_that(result.position_mismatches[0]["expected"]).append_failure_message("Expected position should be TILE_POS_ORIGIN").is_equal(TILE_POS_ORIGIN)
+	assert_that(result.position_mismatches[0]["actual"]).append_failure_message("Actual position should be TILE_POS_WRONG").is_equal(TILE_POS_WRONG)
 
 ## Test build_collision_test_setups with empty input
 func test_build_collision_test_setups_empty_input() -> void:
@@ -402,6 +573,87 @@ func _create_tile_check_rules() -> Array[TileCheckRule]:
 	var rule := TileCheckRule.new()
 	rules.append(rule)
 	return rules
+
+## Helper method to create a Node2D parent for indicators with proper setup
+func _create_indicator_parent(p_name: String = "IndicatorParent") -> Node2D:
+	return GodotTestFactory.create_node2d(self, p_name)
+
+## Helper method to create a simple test object with rectangular collision shape
+func _create_simple_collision_object(position: Vector2 = TEST_POSITION_CENTER, size: Vector2 = TEST_RECT_SIZE_SMALL) -> StaticBody2D:
+	var body := StaticBody2D.new()
+	add_child(body)
+	auto_free(body)
+	body.global_position = position
+	
+	# Add collision shape
+	var collision_shape := CollisionShape2D.new()
+	var rect_shape := RectangleShape2D.new()
+	rect_shape.size = size
+	collision_shape.shape = rect_shape
+	body.collision_layer = COLLISION_LAYER_DEFAULT
+	body.add_child(collision_shape)
+	
+	return body
+
+## Helper method to create a basic tile check rule with specified mask
+func _create_collision_rule(mask: int = COLLISION_MASK_SINGLE) -> TileCheckRule:
+	var rule := TileCheckRule.new()
+	rule.apply_to_objects_mask = mask
+	return rule
+
+## Helper method to create collision rules matching integration test patterns
+func _create_mixed_collision_rules() -> Array[TileCheckRule]:
+	var rule := TileCheckRule.new()
+	rule.apply_to_objects_mask = COLLISION_MASK_MIXED
+	return [rule]
+
+## Helper method to load and instantiate a test scene
+func _load_test_scene(scene_path: String, position: Vector2 = TEST_POSITION_CENTER) -> Node2D:
+	var scene: PackedScene = load(scene_path) as PackedScene
+	assert_object(scene).is_not_null().append_failure_message("Failed to load scene: " + scene_path)
+	
+	var instance: Node2D = scene.instantiate()
+	add_child(instance)
+	auto_free(instance)
+	instance.global_position = position
+	
+	return instance
+
+## Helper method to validate collision mapping works for test objects
+func _validate_collision_mapping(test_objects: Array[Node2D], mask: int = COLLISION_MASK_SINGLE) -> int:
+	var collision_mapper: CollisionMapper = env.collision_mapper
+	assert_object(collision_mapper).is_not_null().append_failure_message("CollisionMapper should be available")
+	
+	var collision_results: Dictionary = collision_mapper.get_collision_tile_positions_with_mask(test_objects, mask)
+	var tiles_found: int = collision_results.size()
+	
+	assert_that(tiles_found).is_greater(0).append_failure_message(
+		"Collision mapping should find tiles for mask %d" % mask
+	)
+	
+	return tiles_found
+
+## Helper method to run indicator setup and validate basic success
+func _run_indicator_setup(test_object: Node2D, rules: Array[TileCheckRule], expected_success: bool = true) -> IndicatorSetupUtils.SetupResult:
+	var collision_mapper: CollisionMapper = env.collision_mapper
+	var indicator_parent := _create_indicator_parent()
+	
+	var setup_result: IndicatorSetupUtils.SetupResult = IndicatorSetupUtils.execute_indicator_setup(
+		test_object,
+		rules,
+		collision_mapper,
+		_indicator_template,
+		indicator_parent,
+		_targeting_state
+	)
+	
+	if expected_success:
+		assert_object(setup_result).is_not_null().append_failure_message("Setup result should not be null")
+		assert_that(setup_result.indicators.size()).is_greater(0).append_failure_message(
+			"Expected indicators to be created. Issues: %s" % str(setup_result.issues)
+		)
+	
+	return setup_result
 
 ## Test collision rule creation and configuration - isolates integration test failures
 func test_collision_rule_validation_setup() -> void:

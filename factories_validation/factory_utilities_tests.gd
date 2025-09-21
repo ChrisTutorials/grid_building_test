@@ -237,7 +237,7 @@ func test_composition_container_factory_robustness() -> void:
 
 	# Logger functionality validation
 	var log_test_message: String = "Test log message %d" % randi()
-	logger.log_verbose(self, log_test_message)  # Should not crash
+	logger.log_verbose( log_test_message)  # Should not crash
 
 	# Container state validation
 	var contexts: Object = container.get_contexts()

@@ -51,7 +51,7 @@ static func _validate_test_environment(env: GBTestEnvironment) -> bool:
 	var issues: Array[String] = env.get_issues()
 	if not issues.is_empty():
 		var logger : GBLogger = env.get_container().get_logger()
-		logger.log_error(env, "Environment has setup issues: %s" % str(issues))
+		logger.log_error("Environment has setup issues: %s" % str(issues))
 
 	return issues.is_empty()
 

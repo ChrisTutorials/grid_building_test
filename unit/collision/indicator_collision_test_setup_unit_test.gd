@@ -70,7 +70,8 @@ func test_create_test_setups_for_collision_owners_with_valid_object() -> void:
 	var targeting_state := GridTargetingState.new(GBOwnerContext.new())
 	
 	# Set up the targeting state with the premade 31x31 test tilemap
-	var test_map := GBTestConstants.TEST_TILE_MAP_LAYER_BUILDABLE.instantiate() as TileMapLayer
+	var test_map_scene: PackedScene = GBTestConstants.TEST_TILE_MAP_LAYER_BUILDABLE
+	var test_map := test_map_scene.instantiate() as TileMapLayer
 	add_child(test_map)
 	auto_free(test_map)
 	targeting_state.target_map = test_map
@@ -96,7 +97,8 @@ func test_create_test_setups_for_collision_owners_empty() -> void:
 	var targeting_state := GridTargetingState.new(GBOwnerContext.new())
 	
 	# Set up the targeting state with the premade 31x31 test tilemap
-	var test_map := GBTestConstants.TEST_TILE_MAP_LAYER_BUILDABLE.instantiate() as TileMapLayer
+	var test_map_scene: PackedScene = GBTestConstants.TEST_TILE_MAP_LAYER_BUILDABLE
+	var test_map := test_map_scene.instantiate() as TileMapLayer
 	add_child(test_map)
 	auto_free(test_map)
 	targeting_state.target_map = test_map
@@ -114,7 +116,8 @@ func test_create_test_setups_from_test_node_with_valid_object() -> void:
 	var targeting_state := GridTargetingState.new(GBOwnerContext.new())
 	
 	# Set up the targeting state with the premade 31x31 test tilemap
-	var test_map := GBTestConstants.TEST_TILE_MAP_LAYER_BUILDABLE.instantiate() as TileMapLayer
+	var test_map_scene: PackedScene = GBTestConstants.TEST_TILE_MAP_LAYER_BUILDABLE
+	var test_map := test_map_scene.instantiate() as TileMapLayer
 	add_child(test_map)
 	auto_free(test_map)
 	targeting_state.target_map = test_map
@@ -137,7 +140,8 @@ func test_create_test_setups_from_test_node_empty_body() -> void:
 	var targeting_state := GridTargetingState.new(GBOwnerContext.new())
 	
 	# Set up the targeting state with the premade 31x31 test tilemap
-	var test_map := GBTestConstants.TEST_TILE_MAP_LAYER_BUILDABLE.instantiate() as TileMapLayer
+	var test_map_scene: PackedScene = GBTestConstants.TEST_TILE_MAP_LAYER_BUILDABLE
+	var test_map := test_map_scene.instantiate() as TileMapLayer
 	add_child(test_map)
 	auto_free(test_map)
 	targeting_state.target_map = test_map
@@ -154,7 +158,8 @@ func test_create_test_setups_from_test_node_null_input() -> void:
 	
 	# Set up the targeting state with a tile map
 	# Set up the targeting state with the canonical premade 31x31 test tilemap
-	var test_map := GBTestConstants.TEST_TILE_MAP_LAYER_BUILDABLE.instantiate() as TileMapLayer
+	var test_map_scene: PackedScene = GBTestConstants.TEST_TILE_MAP_LAYER_BUILDABLE
+	var test_map := test_map_scene.instantiate() as TileMapLayer
 	add_child(test_map)
 	auto_free(test_map)
 	targeting_state.target_map = test_map

@@ -12,7 +12,6 @@ var targeting_state : GridTargetingState
 var container : GBCompositionContainer
 
 func _ready() -> void:
-	super()
 	# Initialize container reference for convenience
 	container = get_container()
 	

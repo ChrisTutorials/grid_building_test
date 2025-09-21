@@ -4,7 +4,9 @@ var container: GBCompositionContainer
 
 func before_test() -> void:
 	container = UnifiedTestFactory.create_test_composition_container(self)
+	assert_object(container).is_not_null().append_failure_message("Container should not be null")
 	container.config = GBConfig.new()
+	assert_object(container.config).is_not_null().append_failure_message("Config should not be null")
 
 func test_validate_configuration_with_complete_config() -> void:
 	# Set up a complete configuration

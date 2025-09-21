@@ -39,7 +39,8 @@ func test_tile_to_global_position_logic() -> void:
 
 	# The offset from the collision system that causes the bug
 	var suspicious_offset := Vector2i(51, 21)
-	var position_rules_map: Dictionary = { suspicious_offset: [] }
+	## NOTE: Keep the nested dictionary static typing
+	var position_rules_map: Dictionary[Vector2i, Array] = { suspicious_offset: [] }
 
 	# Act
 	var indicators: Array = IndicatorFactory.generate_indicators(

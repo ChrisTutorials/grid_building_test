@@ -220,9 +220,9 @@ func test_script_name_scenarios(
 	expected_empty: bool,
 	expected_contains: String,
 	test_parameters := [
-		[0, false, TEST_NODE_1_NAME],  # Has script
-		[2, true, ""],            # No script
-		[-1, true, ""]            # Invalid index
+		[0, false, TEST_NODE_1_NAME],	 # Has script
+		[2, true, ""],                   # No script
+		[-1, true, ""]                   # Invalid index
 	]
 ) -> void:
 	var node: Node = test_nodes[node_index] if node_index >= 0 and node_index < test_nodes.size() else null

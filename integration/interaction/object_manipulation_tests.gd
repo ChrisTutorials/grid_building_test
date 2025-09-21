@@ -316,7 +316,7 @@ func test_performance_placement_components() -> void:
 		assert_that(indicator).is_not_null()
 	
 	var elapsed: int = Time.get_ticks_usec() - start_time
-	test_env.logger.log_info(self, "Placement components performance test completed in " + str(elapsed) + " microseconds")
+	test_env.logger.log_info( "Placement components performance test completed in " + str(elapsed) + " microseconds")
 	assert_that(elapsed).is_less(500000)  # Should complete in under 0.5 seconds
 
 #endregion
