@@ -16,7 +16,6 @@ extends GdUnitTestSuite
 const TEST_COLLISION_LAYER: int = 513  # Bits 0 and 9 (layers 1 and 10)
 const TILEMAP_SIZE: int = 7  # 5x5 around origin (-3 to 3)
 const TILEMAP_OFFSET: int = -3
-const TILE_SIZE: Vector2i = Vector2i(0, 0)
 const COLLISION_SHAPE_SIZE: Vector2 = Vector2(32, 32)  # Use reasonable size instead of 1x1
 
 # -----------------------------------------------------------------------------
@@ -45,11 +44,11 @@ func before_test() -> void:
 	_gts = env.grid_targeting_system.get_state()
 
 	# Create 5x5 tile map around origin
-	tile_map_layer = auto_free(TileMapLayer.new())
-	tile_map_layer.tile_set = load("uid://d11t2vm1pby6y")
-	for x in range(TILEMAP_OFFSET, TILEMAP_OFFSET + TILEMAP_SIZE):
-		for y in range(TILEMAP_OFFSET, TILEMAP_OFFSET + TILEMAP_SIZE):
-			tile_map_layer.set_cell(Vector2i(x, y), 0, TILE_SIZE)
+	# Use pre-validated test tilemap from GBTestConstants to avoid missing atlas issues
+	var packed_tilemap: PackedScene = GBTestConstants.TEST_TILE_MAP_LAYER_BUILDABLE
+	assert_object(packed_tilemap).append_failure_message("GBTestConstants.TEST_TILE_MAP_LAYER_BUILDABLE must be defined and preloadable").is_not_null()
+	tile_map_layer = auto_free(packed_tilemap.instantiate() as TileMapLayer)
+	# Ensure tilemap is parented for scene tree operations
 	add_child(tile_map_layer)
 	
 	# Positioner

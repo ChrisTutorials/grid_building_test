@@ -16,7 +16,7 @@ var indicator: RuleCheckIndicator
 var test_layers: int = 1  # Bitmask
 
 ## Logo offset away from the center for testing - using Godot icon as test texture
-var offset_logo: PackedScene = load("res://test/grid_building_test/offset_logo.tscn")
+var offset_logo: PackedScene = GBTestConstants.SCENE_RECT_15_TILES
 
 ## Environment and container for tests
 var _env: AllSystemsTestEnvironment
@@ -54,14 +54,23 @@ func before_test() -> void:
 	indicator.shape = RectangleShape2D.new()
 	indicator.shape.size = Vector2.ONE
 
-	# Visual resources
-	var valid_sprite_tex: Texture2D = load("uid://2odn6on7s512")
-	var invalid_settings_res: IndicatorVisualSettings = load("uid://h8lvjoarxq4k")
+	# Visual resources - create small in-test textures to avoid uid loading
+	var img_valid: Image = Image.create(1, 1, false, Image.FORMAT_RGBA8)
+	img_valid.fill(Color(0, 1, 0))
+	var tex_valid: ImageTexture = ImageTexture.create_from_image(img_valid)
+
+	var img_invalid: Image = Image.create(1, 1, false, Image.FORMAT_RGBA8)
+	img_invalid.fill(Color(1, 0, 0))
+	var tex_invalid: ImageTexture = ImageTexture.create_from_image(img_invalid)
 
 	# Valid settings instance
 	var valid_settings_res: IndicatorVisualSettings = auto_free(IndicatorVisualSettings.new())
-	valid_settings_res.texture = valid_sprite_tex
+	valid_settings_res.texture = tex_valid
 	valid_settings_res.modulate = Color.GREEN
+
+	var invalid_settings_res: IndicatorVisualSettings = auto_free(IndicatorVisualSettings.new())
+	invalid_settings_res.texture = tex_invalid
+	invalid_settings_res.modulate = Color.RED
 
 	indicator.valid_settings = valid_settings_res
 	indicator.invalid_settings = invalid_settings_res
@@ -144,14 +153,9 @@ func test_validity_sprite_texture_switches_on_validity_change() -> void:
 	var indicator2: RuleCheckIndicator = UnifiedTestFactory.create_test_rule_check_indicator(self)
 	indicator2.shape = RectangleShape2D.new(); indicator2.shape.size = Vector2.ONE
 	indicator2.collision_mask = test_layers
-	# Setup visual resources mirroring before_test
-	var valid_sprite_tex2: Texture2D = load("uid://2odn6on7s512")
-	var invalid_settings_res2: IndicatorVisualSettings = load("uid://h8lvjoarxq4k")
-	var valid_settings_res2: IndicatorVisualSettings = auto_free(IndicatorVisualSettings.new())
-	valid_settings_res2.texture = valid_sprite_tex2
-	valid_settings_res2.modulate = Color.GREEN
-	indicator2.valid_settings = valid_settings_res2
-	indicator2.invalid_settings = invalid_settings_res2
+	# Setup visual resources mirroring before_test - reuse the test fixture settings
+	indicator2.valid_settings = indicator.valid_settings
+	indicator2.invalid_settings = indicator.invalid_settings
 	indicator2.validity_sprite = auto_free(Sprite2D.new())
 	indicator2.add_child(indicator2.validity_sprite)
 	indicator2.resolve_gb_dependencies(_container)
@@ -480,25 +484,31 @@ func test_indicator_collide_and_get_contacts(
 func test_instance_collisions(
 	p_test_scene: PackedScene, p_expected_collisions: int, test_parameters := [[offset_logo, 1]]
 ) -> void:
-	var instance: PhysicsBody2D = auto_free(p_test_scene.instantiate())
-	add_child(instance)
-	indicator.collision_mask = instance.collision_layer
+	var root_instance: Node = auto_free(p_test_scene.instantiate())
+	add_child(root_instance)
+
+	# Find a PhysicsBody2D to use for collision tests (scene root may be Node2D)
+	var phys_body: PhysicsBody2D = _find_first_physics_body(root_instance)
+	assert_object(phys_body).append_failure_message("Test scene does not contain a PhysicsBody2D root or descendant: %s" % [str(p_test_scene)]).is_not_null()
+
+	indicator.collision_mask = phys_body.collision_layer
 	indicator.force_shapecast_update()
 	var collision_count: int = indicator.get_collision_count()
 	assert_int(collision_count).is_equal(p_expected_collisions)
 
 
 @warning_ignore("unused_parameter")
-func test__update_visuals(
-	p_settings: IndicatorVisualSettings, test_parameters := [[load("uid://dpph3i22e5qev")]]
-) -> void:
-	var updated_sprite: Sprite2D = indicator._update_visuals(p_settings)
-	assert_that(updated_sprite.modulate).is_equal(p_settings.modulate)
+func test__update_visuals() -> void:
+	# Create a small test settings instance instead of loading uid
+	var local_settings: IndicatorVisualSettings = IndicatorVisualSettings.new()
+	local_settings.modulate = Color(0.5, 0.5, 0.5)
+	var updated_sprite: Sprite2D = indicator._update_visuals(local_settings)
+	assert_that(updated_sprite.modulate).is_equal(local_settings.modulate)
 
 
 ## Test the default return of get_tile_positon
 func test_get_tile_position_default() -> void:
-	var test_tile_map: TileMapLayer = auto_free(load("uid://3shi30ob8pna").instantiate())
+	var test_tile_map: TileMapLayer = auto_free(GBTestConstants.TEST_TILE_MAP_LAYER_BUILDABLE.instantiate())
 	add_child(test_tile_map)
 	var position: Vector2i = indicator.get_tile_position(test_tile_map)
 	assert_vector(position).is_equal(Vector2i.ZERO)
@@ -532,3 +542,16 @@ func _create_test_body() -> StaticBody2D:
 	collision_shape.shape.size = Vector2.ONE  # Match the indicator size
 	
 	return collision_body
+
+
+## Helper: find the first PhysicsBody2D inside a scene root (or root itself)
+func _find_first_physics_body(root: Node) -> PhysicsBody2D:
+	if root is PhysicsBody2D:
+		return root
+	for child in root.get_children():
+		if child is PhysicsBody2D:
+			return child
+		var found := _find_first_physics_body(child)
+		if found:
+			return found
+	return null

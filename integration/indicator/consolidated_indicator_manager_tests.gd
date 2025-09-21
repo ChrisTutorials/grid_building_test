@@ -6,6 +6,7 @@ const CollisionObjectTestFactoryGd = preload("res://test/grid_building_test/fact
 const COLLISION_TEST_ENV_UID : String = "uid://cdrtd538vrmun"
 
 var env: CollisionTestEnvironment
+var _test_tile_map_layer: TileMapLayer = null
 
 func before_test() -> void:
 	env = UnifiedTestFactory.instance_collision_test_env(self, COLLISION_TEST_ENV_UID)
@@ -15,6 +16,9 @@ func before_test() -> void:
 	
 	# Wait for environment initialization to complete
 	await await_idle_frame()
+
+	if _test_tile_map_layer == null:
+		_test_tile_map_layer = GodotTestFactory.create_empty_tile_map_layer(self)
 
 ## Sets up the GridTargetingState with a default target for indicator tests
 func _setup_targeting_state_for_tests() -> void:
@@ -82,7 +86,7 @@ func test_trapezoid_bottom_row_regression() -> void:
 	# Test trapezoid tile coverage using CollisionGeometryCalculator
 	var tile_size: Vector2 = Vector2(16, 16)
 	var overlapped_tiles: Array[Vector2i] = CollisionGeometryCalculator.calculate_tile_overlap(
-		trapezoid_points, tile_size, TileSet.TILE_SHAPE_SQUARE
+		trapezoid_points, tile_size, TileSet.TILE_SHAPE_SQUARE, _test_tile_map_layer
 	)
 	
 	assert_array(overlapped_tiles).append_failure_message(
@@ -128,7 +132,7 @@ func test_polygon_tile_mapper_basic() -> void:
 	
 	var tile_size: Vector2 = Vector2(16, 16)
 	var mapped_tiles: Array[Vector2i] = CollisionGeometryCalculator.calculate_tile_overlap(
-		simple_polygon, tile_size, TileSet.TILE_SHAPE_SQUARE
+		simple_polygon, tile_size, TileSet.TILE_SHAPE_SQUARE, _test_tile_map_layer
 	)
 	
 	assert_int(mapped_tiles.size()).append_failure_message(
@@ -145,7 +149,7 @@ func test_polygon_tile_mapper_isometric() -> void:
 	
 	# For isometric calculations, we need a TileMapLayer - use square tiles as fallback
 	var square_tiles: Array[Vector2i] = CollisionGeometryCalculator.calculate_tile_overlap(
-		diamond_polygon, tile_size, TileSet.TILE_SHAPE_SQUARE
+		diamond_polygon, tile_size, TileSet.TILE_SHAPE_SQUARE, _test_tile_map_layer
 	)
 	
 	assert_array(square_tiles).append_failure_message(
@@ -162,7 +166,7 @@ func test_polygon_tile_shape_propagation() -> void:
 	
 	# Test with square tiles (isometric requires TileMapLayer)
 	var square_tiles: Array[Vector2i] = CollisionGeometryCalculator.calculate_tile_overlap(
-		test_polygon, tile_size, TileSet.TILE_SHAPE_SQUARE
+		test_polygon, tile_size, TileSet.TILE_SHAPE_SQUARE, _test_tile_map_layer
 	)
 	
 	# Should produce results
@@ -267,7 +271,7 @@ func test_polygon_origin_indicator_regression() -> void:
 		
 		var tile_size: Vector2 = Vector2(16, 16)
 		var mapped_tiles: Array[Vector2i] = CollisionGeometryCalculator.calculate_tile_overlap(
-			offset_polygon, tile_size, TileSet.TILE_SHAPE_SQUARE
+			offset_polygon, tile_size, TileSet.TILE_SHAPE_SQUARE, _test_tile_map_layer
 		)
 		
 		assert_array(mapped_tiles).append_failure_message(
@@ -315,7 +319,7 @@ func test_isometric_collision_mapping() -> void:
 	var tile_size: Vector2 = Vector2(16, 16)
 	# Use square tiles for testing since TileMapLayer is required for isometric calculations
 	var square_tiles: Array[Vector2i] = CollisionGeometryCalculator.calculate_tile_overlap(
-		isometric_diamond, tile_size, TileSet.TILE_SHAPE_SQUARE
+		isometric_diamond, tile_size, TileSet.TILE_SHAPE_SQUARE, _test_tile_map_layer
 	)
 	
 	assert_array(square_tiles).append_failure_message(
@@ -327,7 +331,7 @@ func test_isometric_collision_mapping() -> void:
 		Vector2(0, -10), Vector2(10, 0), Vector2(0, 10), Vector2(-10, 0)
 	])
 	var different_tiles: Array[Vector2i] = CollisionGeometryCalculator.calculate_tile_overlap(
-		different_diamond, tile_size, TileSet.TILE_SHAPE_SQUARE
+		different_diamond, tile_size, TileSet.TILE_SHAPE_SQUARE, _test_tile_map_layer
 	)
 	
 	# Results should be different for different polygons
@@ -342,7 +346,7 @@ func test_isometric_precision() -> void:
 	var tile_size: Vector2 = Vector2(16, 16)
 	# Use square tiles for testing since TileMapLayer is required for isometric calculations
 	var precise_tiles: Array[Vector2i] = CollisionGeometryCalculator.calculate_tile_overlap(
-		precise_diamond, tile_size, TileSet.TILE_SHAPE_SQUARE
+		precise_diamond, tile_size, TileSet.TILE_SHAPE_SQUARE, _test_tile_map_layer
 	)
 	
 	assert_array(precise_tiles).append_failure_message(
@@ -351,7 +355,7 @@ func test_isometric_precision() -> void:
 	
 	# Test with different precision parameters
 	var high_precision_tiles: Array[Vector2i] = CollisionGeometryCalculator.calculate_tile_overlap(
-		precise_diamond, tile_size, TileSet.TILE_SHAPE_SQUARE, 0.01, 0.05
+		precise_diamond, tile_size, TileSet.TILE_SHAPE_SQUARE, _test_tile_map_layer, 0.01, 0.05
 	)
 	
 	assert_array(high_precision_tiles).append_failure_message(

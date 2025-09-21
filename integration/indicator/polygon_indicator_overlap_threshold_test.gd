@@ -81,7 +81,7 @@ func test_polygon_preview_indicators_respect_min_overlap_ratio() -> void:
 	# Compute absolute tiles meeting the min overlap using calculator (area-based)
 	var allowed_abs: Dictionary = {}
 	var allowed_abs_tiles: Array[Vector2i] = CollisionGeometryCalculator.calculate_tile_overlap(
-		world_points, tile_size, TileSet.TILE_SHAPE_SQUARE, 0.01, MIN_OVERLAP_RATIO
+		world_points, tile_size, TileSet.TILE_SHAPE_SQUARE, _map, 0.01, MIN_OVERLAP_RATIO
 	)
 	for abs_tile: Vector2i in allowed_abs_tiles:
 		allowed_abs[str(abs_tile)] = true

@@ -1,6 +1,10 @@
 ## Test suite validating RuleCheckIndicator generation for a concave CollisionPolygon2D based placeable.
 extends GdUnitTestSuite
 
+const DEFAULT_TILE_SIZE: Vector2 = Vector2(16, 16)
+const BBOX_INIT_HIGH: int = 9999
+const BBOX_INIT_LOW: int = -9999
+
 var _container : GBCompositionContainer
 var _validator : PlacementValidator
 var _targeting : GridTargetingState
@@ -69,6 +73,56 @@ func after_test() -> void:
 func _collect_indicators() -> Array[RuleCheckIndicator]:
 	return _manager.get_indicators() if _manager else []
 
+
+## Diagnostic helpers to keep tests concise and consistent
+func _format_indicator_debug(indicators: Array) -> Array[String]:
+	var ind_dbg: Array[String] = []
+	for i in range(indicators.size()):
+		var ind: RuleCheckIndicator = indicators[i]
+		ind_dbg.append("%d:(pos=%s,tile=%s,valid=%s,colliding=%s)" % [i, str(ind.global_position), str(_map.local_to_map(_map.to_local(ind.global_position))), str(ind.valid), str(ind.is_colliding())])
+	return ind_dbg
+
+func _build_concave_failure_message(tiles: Array, indicators: Array[RuleCheckIndicator]) -> String:
+	var failure_msg_parts: Array[String] = []
+	failure_msg_parts.append("Concavity not reflected; full rectangle filled.")
+	failure_msg_parts.append("tiles=%s" % [tiles])
+
+	# Compute bbox for human-readable context
+	var min_x: int = BBOX_INIT_HIGH
+	var max_x: int = BBOX_INIT_LOW
+	var min_y: int = BBOX_INIT_HIGH
+	var max_y: int = BBOX_INIT_LOW
+	for t:Vector2i in tiles:
+		min_x = min(min_x,t.x)
+		max_x = max(max_x,t.x)
+		min_y = min(min_y,t.y)
+		max_y = max(max_y,t.y)
+	var bbox_cells: int = (max_x-min_x+1)*(max_y-min_y+1)
+	failure_msg_parts.append("bbox_min=(%d,%d) bbox_max=(%d,%d) bbox_cells=%d" % [min_x, min_y, max_x, max_y, bbox_cells])
+
+	# Include polygon debug info if available on preview
+	if _preview and _preview is CollisionObject2D:
+		var poly_nodes := []
+		for c in _preview.get_children():
+			if c is CollisionPolygon2D:
+				poly_nodes.append(str((c as CollisionPolygon2D).polygon))
+		if poly_nodes.size() > 0:
+			failure_msg_parts.append("collision_polygons=%s" % [poly_nodes])
+
+	# Map diagnostics
+	if _map:
+		failure_msg_parts.append("map_used_rect=%s" % [_map.get_used_rect()])
+		var tile_size: Vector2 = DEFAULT_TILE_SIZE
+		if _map.tile_set:
+			tile_size = _map.tile_set.tile_size
+		failure_msg_parts.append("tile_size=%s" % [tile_size])
+
+	# Indicator diagnostics
+	var ind_dbg: Array[String] = _format_indicator_debug(indicators)
+	failure_msg_parts.append("indicators=[%s]" % [ind_dbg])
+
+	return "\n".join(failure_msg_parts)
+
 ## Expect multiple indicators but not a full bounding box fill (which would indicate concavity not handled)
 func test_concave_polygon_generates_expected_indicator_distribution() -> void:
 	var indicators: Array[RuleCheckIndicator] = _collect_indicators()
@@ -80,17 +134,20 @@ func test_concave_polygon_generates_expected_indicator_distribution() -> void:
 		var tile := _map.local_to_map(_map.to_local(ind.global_position))
 		if tile not in tiles:
 			tiles.append(tile)
-	var min_x: int = 9999
-	var max_x: int = -9999
-	var min_y: int = 9999
-	var max_y: int = -9999
+	var failure_msg: String = _build_concave_failure_message(tiles, indicators)
+	var is_size_less_than_bbox_cells: bool = false
+	# compute bbox cells again to determine relation between tiles and bbox
+	if tiles.size() > 0:
+		var min_x: int = BBOX_INIT_HIGH
+		var max_x: int = BBOX_INIT_LOW
+		var min_y: int = BBOX_INIT_HIGH
+		var max_y: int = BBOX_INIT_LOW
+		for t:Vector2i in tiles:
+			min_x = min(min_x,t.x)
+			max_x = max(max_x,t.x)
+			min_y = min(min_y,t.y)
+			max_y = max(max_y,t.y)
+		var bbox_cells: int = (max_x-min_x+1)*(max_y-min_y+1)
+		is_size_less_than_bbox_cells = tiles.size() < bbox_cells
 
-	for t in tiles:
-		min_x = min(min_x,t.x) 
-		max_x = max(max_x,t.x) 
-		min_y = min(min_y,t.y) 
-		max_y = max(max_y,t.y)
-
-	var bbox_cells: int = (max_x-min_x+1)*(max_y-min_y+1)
-	var is_size_less_than_bbox_cells: bool = tiles.size() < bbox_cells
-	assert_bool(is_size_less_than_bbox_cells).append_failure_message("Concavity not reflected; full rectangle filled. tiles=%s" % [tiles]).is_true()
+	assert_bool(is_size_less_than_bbox_cells).append_failure_message(failure_msg).is_true()

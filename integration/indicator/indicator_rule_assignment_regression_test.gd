@@ -238,9 +238,15 @@ func test_indicator_rule_validation() -> void:
 	var valid := indicator.force_validity_evaluation()
 
 	# Should now be invalid (collision detected)
-	assert_bool(valid).append_failure_message(
-		"Indicator should be invalid after collision object added"
-	).is_false()
+	var fail_parts: Array[String] = []
+	fail_parts.append("Indicator should be invalid after collision object added")
+	fail_parts.append("indicator_pos=%s" % [str(indicator.global_position)])
+	fail_parts.append("indicator_tile=%s" % [str(indicator.get_tile_position(map_layer))])
+	fail_parts.append("indicator_collision_mask=%s" % [str(indicator.collision_mask)])
+	fail_parts.append("collision_object_pos=%s" % [str(_collision_object.global_position)])
+	fail_parts.append("collision_object_layer=%s" % [str(_collision_object.collision_layer)])
+	fail_parts.append("indicator_get_collision_count=%s" % [str(indicator.get_collision_count())])
+	assert_bool(valid).append_failure_message("\n".join(fail_parts)).is_false()
 
 ## Test the specific polygon_test_object scenario
 func test_polygon_test_object_center_tile_filtering() -> void:
@@ -305,6 +311,14 @@ func test_polygon_test_object_center_tile_filtering() -> void:
 		logger.log_debug( "Center indicator valid: %s, rules count: %d" % [center_indicator.valid, rules.size()])
 
 		# This assertion might fail due to the regression
-		assert_bool(center_indicator.valid).append_failure_message(
-			"Center indicator should be valid - polygon doesn't cover center tile"
-		).is_true()
+		var dbg_parts: Array[String] = []
+		dbg_parts.append("Center indicator should be valid - polygon doesn't cover center tile")
+		dbg_parts.append("indicator_pos=%s" % [str(center_indicator.global_position)])
+		dbg_parts.append("indicator_tile=%s" % [str(center_indicator.get_tile_position(map_layer))])
+		dbg_parts.append("indicator_collision_mask=%s" % [str(center_indicator.collision_mask)])
+		dbg_parts.append("indicator_valid=%s" % [str(center_indicator.valid)])
+		# Include polygon points if available
+		for c in test_instance.get_children():
+			if c is CollisionPolygon2D:
+				dbg_parts.append("polygon_points=%s" % [(c as CollisionPolygon2D).polygon])
+		assert_bool(center_indicator.valid).append_failure_message("\n".join(dbg_parts)).is_true()

@@ -13,8 +13,10 @@ func test_collision_calculator_tile_overlap_empty() -> void:
 	var empty_polygon: PackedVector2Array = PackedVector2Array()
 	var tile_size: Vector2 = Vector2(16, 16)
 
+	# Use shared test tile map layer to ensure consistent map-aware calculations
+	var _test_tile_map_layer: TileMapLayer = GodotTestFactory.create_empty_tile_map_layer(self)
 	var overlapped_tiles: Array[Vector2i] = CollisionGeometryCalculator.calculate_tile_overlap(
-		empty_polygon, tile_size, TileSet.TILE_SHAPE_SQUARE
+		empty_polygon, tile_size, TileSet.TILE_SHAPE_SQUARE, _test_tile_map_layer
 	)
 	
 	assert_array(overlapped_tiles).append_failure_message(
@@ -25,8 +27,9 @@ func test_collision_calculator_single_point() -> void:
 	var single_point: PackedVector2Array = PackedVector2Array([Vector2(8, 8)])
 	var tile_size: Vector2 = Vector2(16, 16)
 
+	var _test_tile_map_layer: TileMapLayer = GodotTestFactory.create_empty_tile_map_layer(self)
 	var overlapped_tiles: Array[Vector2i] = CollisionGeometryCalculator.calculate_tile_overlap(
-		single_point, tile_size, TileSet.TILE_SHAPE_SQUARE
+		single_point, tile_size, TileSet.TILE_SHAPE_SQUARE, _test_tile_map_layer
 	)
 	
 	assert_int(overlapped_tiles.size()).append_failure_message(
@@ -39,8 +42,9 @@ func test_collision_calculator_rectangle_overlap() -> void:
 	])
 	var tile_size: Vector2 = Vector2(16, 16)
 
+	var _test_tile_map_layer: TileMapLayer = GodotTestFactory.create_empty_tile_map_layer(self)
 	var overlapped_tiles: Array[Vector2i] = CollisionGeometryCalculator.calculate_tile_overlap(
-		rectangle, tile_size, TileSet.TILE_SHAPE_SQUARE
+		rectangle, tile_size, TileSet.TILE_SHAPE_SQUARE, _test_tile_map_layer
 	)
 	
 	assert_int(overlapped_tiles.size()).append_failure_message(

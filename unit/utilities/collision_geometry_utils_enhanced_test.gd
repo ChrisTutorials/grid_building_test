@@ -416,7 +416,7 @@ func test_collision_geometry_calculator_concave_tile_overlap() -> void:
 	
 	# Call the CollisionGeometryCalculator directly to test concave polygon handling
 	var overlapped_tiles: Array[Vector2i] = CollisionGeometryCalculator.calculate_tile_overlap(
-		concave_u_shape, tile_size, tile_type, 0.01, min_overlap_ratio
+		concave_u_shape, tile_size, tile_type, GodotTestFactory.create_empty_tile_map_layer(self), 0.01, min_overlap_ratio
 	)
 	
 	print("CollisionGeometryCalculator test - overlapped tiles: %s" % str(overlapped_tiles))

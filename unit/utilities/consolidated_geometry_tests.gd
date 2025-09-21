@@ -11,6 +11,13 @@
 class_name ConsolidatedGeometryTestSuite
 extends GdUnitTestSuite
 
+# Shared test TileMapLayer for tile-overlap tests
+var _test_tile_map_layer: TileMapLayer = null
+
+func before_test() -> void:
+	if _test_tile_map_layer == null:
+		_test_tile_map_layer = GodotTestFactory.create_empty_tile_map_layer(self)
+
 # -----------------------------------------------------------------------------
 # Constants
 # -----------------------------------------------------------------------------
@@ -134,7 +141,7 @@ func test_polygon_below_threshold_excluded() -> void:
 	# 16x16 tile => area 256. 5% threshold => 12.8. Use 2x2 square (area=4)
 	var poly: PackedVector2Array = PackedVector2Array([Vector2(0,0), Vector2(2,0), Vector2(2,2), Vector2(0,2)])
 	var tiles: Array[Vector2i] = CollisionGeometryCalculator.calculate_tile_overlap(
-		poly, TILE_SIZE, TileSet.TILE_SHAPE_SQUARE, OVERLAP_THRESHOLD, AREA_THRESHOLD
+		poly, TILE_SIZE, TileSet.TILE_SHAPE_SQUARE, _test_tile_map_layer, OVERLAP_THRESHOLD, AREA_THRESHOLD
 	)
 	var tile_count: int = tiles.size()
 	assert_int(tile_count).append_failure_message(
@@ -145,7 +152,7 @@ func test_polygon_above_threshold_included() -> void:
 	# 4x4 square (area=16) > 12.8 threshold
 	var poly: PackedVector2Array = PackedVector2Array([Vector2(0,0), Vector2(4,0), Vector2(4,4), Vector2(0,4)])
 	var tiles: Array[Vector2i] = CollisionGeometryCalculator.calculate_tile_overlap(
-		poly, TILE_SIZE, TileSet.TILE_SHAPE_SQUARE, OVERLAP_THRESHOLD, AREA_THRESHOLD
+		poly, TILE_SIZE, TileSet.TILE_SHAPE_SQUARE, _test_tile_map_layer, OVERLAP_THRESHOLD, AREA_THRESHOLD
 	)
 	var tile_count: int = tiles.size()
 	assert_int(tile_count).append_failure_message(
@@ -158,7 +165,7 @@ func test_concave_polygon_void_handling() -> void:
 		Vector2(4,12), Vector2(12,12), Vector2(12,16), Vector2(0,16)
 	])
 	var tiles: Array[Vector2i] = CollisionGeometryCalculator.calculate_tile_overlap(
-		poly, TILE_SIZE, TileSet.TILE_SHAPE_SQUARE, OVERLAP_THRESHOLD, AREA_THRESHOLD
+		poly, TILE_SIZE, TileSet.TILE_SHAPE_SQUARE, _test_tile_map_layer, OVERLAP_THRESHOLD, AREA_THRESHOLD
 	)
 	# Ensure void isn't filled with phantom tiles
 	assert_int(tiles.size()).is_less_equal(1)
@@ -261,7 +268,7 @@ func test_indicator_polygon_heuristics() -> void:
 		var polygon_name: String = polygon_data["name"] as String
 		
 		var tiles: Array[Vector2i] = CollisionGeometryCalculator.calculate_tile_overlap(
-			points, TILE_SIZE, TileSet.TILE_SHAPE_SQUARE, OVERLAP_THRESHOLD, OVERLAP_THRESHOLD
+			points, TILE_SIZE, TileSet.TILE_SHAPE_SQUARE, _test_tile_map_layer, OVERLAP_THRESHOLD, OVERLAP_THRESHOLD
 		)
 		
 		assert_int(tiles.size()).append_failure_message(
@@ -315,7 +322,7 @@ func test_tile_overlap_comprehensive() -> void:
 		var expected: int = test_case["expected_count"] as int
 		
 		var tiles: Array[Vector2i] = CollisionGeometryCalculator.calculate_tile_overlap(
-			polygon, TILE_SIZE, TileSet.TILE_SHAPE_SQUARE, OVERLAP_THRESHOLD, OVERLAP_THRESHOLD
+			polygon, TILE_SIZE, TileSet.TILE_SHAPE_SQUARE, _test_tile_map_layer, OVERLAP_THRESHOLD, OVERLAP_THRESHOLD
 		)
 		
 		assert_int(tiles.size()).append_failure_message(

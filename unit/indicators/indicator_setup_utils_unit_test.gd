@@ -146,7 +146,7 @@ func test_execute_indicator_setup_produces_zero_indicators_despite_collision_sha
 	
 	# Get collision mapper from environment (direct property access)
 	var collision_mapper: CollisionMapper = env.collision_mapper
-	assert_object(collision_mapper).append_failure_message("CollisionMapper should be available in test environment").is_not_null()
+	assert_object(collision_mapper).is_not_null().append_failure_message("CollisionMapper should be available in test environment")
 	
 	# CRITICAL: This should create indicators but returns empty result
 	# Create a proper Node2D parent for indicators

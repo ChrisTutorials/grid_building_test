@@ -68,8 +68,10 @@ func test_debug_polygon_bounds() -> void:
 	print("Number of tiles: ", tiles_checked.size())
 
 	# Test actual collision detection
+	# Create a temporary tile map layer for map-aware calculations
+	var _test_tile_map_layer: TileMapLayer = GodotTestFactory.create_empty_tile_map_layer(self)
 	var tiles: Array[Vector2i] = CollisionGeometryCalculator.calculate_tile_overlap(
-		polygon, tile_size, TileSet.TILE_SHAPE_SQUARE, COLLISION_TOLERANCE, COLLISION_TOLERANCE
+		polygon, tile_size, TileSet.TILE_SHAPE_SQUARE, _test_tile_map_layer, COLLISION_TOLERANCE, COLLISION_TOLERANCE
 	)
 	print("Actually overlapping tiles: ", tiles)
 #endregion

@@ -80,13 +80,13 @@ func _create_preview_with_collision_shapes() -> StaticBody2D:
 	return preview
 
 func _create_valid_tile_check_rules() -> Array[TileCheckRule]:
-	# Create a valid tile check rule for testing instead of empty array
-	# This ensures validation passes and indicators can be generated
+	"""Helper to create a properly configured TileCheckRule for collision detection"""
 	var rules: Array[TileCheckRule] = []
-	var rule := TileCheckRule.new()
-	rule.apply_to_objects_mask = 1  # Set collision mask for collision detection
-	rule.pass_on_collision = true   # Configure to pass when collision is detected
+	
+	var rule: TileCheckRule = TileCheckRule.new()
+	rule.apply_to_objects_mask = 1  # Use the correct property name from TileCheckRule
 	rules.append(rule)
+	
 	return rules
 #endregion
 
@@ -236,7 +236,6 @@ func test_setup_indicators_creates_indicators_when_collision_shapes_detected() -
 	# Create collision rule matching integration test
 	var rule := TileCheckRule.new()
 	rule.apply_to_objects_mask = 1
-	rule.pass_on_collision = true
 	var rules: Array[TileCheckRule] = [rule]
 	
 	# This should create indicators successfully
@@ -289,7 +288,6 @@ func test_smithy_object_produces_indicators_from_collision_area() -> void:
 	var mask := 2560 | 513
 	var rule := TileCheckRule.new()
 	rule.apply_to_objects_mask = mask
-	rule.pass_on_collision = true
 	var rules: Array[TileCheckRule] = [rule]
 	
 	# This should create indicators successfully
@@ -343,7 +341,6 @@ func test_placement_validation_fails_due_to_incomplete_rule_implementation() -> 
 	# Create collision rule that should pass but has incomplete implementation
 	var rule := TileCheckRule.new()
 	rule.apply_to_objects_mask = 1
-	rule.pass_on_collision = true
 	var rules: Array[TileCheckRule] = [rule]
 	
 	# Setup indicators (this should create indicators successfully)
@@ -512,6 +509,170 @@ func test_testing_indicator_reusable_across_setups() -> void:
 	assert_that(second_indicators_count).append_failure_message(
 		"Expected consistent indicator generation across setups. First: %d, Second: %d" % [first_indicators_count, second_indicators_count]
 	).is_equal(first_indicators_count)
+
+#endregion
+
+#region RuleCheckIndicator Validity Timing Tests
+
+# UNIT TEST: Verify RuleCheckIndicator properly evaluates validity at correct timing
+# This reproduces potential timing issues in the tilemap bounds rule unit test failures
+func test_rule_check_indicator_validity_timing_with_no_rules() -> void:
+	# Create indicator with no rules - should default to valid
+	var indicator: RuleCheckIndicator = RuleCheckIndicator.new()
+	indicator.shape = RectangleShape2D.new()
+	(indicator.shape as RectangleShape2D).size = Vector2.ONE
+	
+	add_child(indicator)
+	auto_free(indicator)
+	
+	# Before any processing - should default to true since no rules exist
+	assert_bool(indicator.valid).append_failure_message(
+		"RuleCheckIndicator with no rules should default to valid=true before processing"
+	).is_true()
+	
+	# After tree entry and frame processing
+	await get_tree().process_frame
+	await get_tree().physics_frame
+	
+	# Should still be valid after processing since no rules to evaluate
+	assert_bool(indicator.valid).append_failure_message(
+		"RuleCheckIndicator with no rules should remain valid=true after physics processing"
+	).is_true()
+
+# UNIT TEST: Verify RuleCheckIndicator evaluates validity when rules are added
+func test_rule_check_indicator_validity_timing_with_rules() -> void:
+	# Create indicator first
+	var indicator: RuleCheckIndicator = RuleCheckIndicator.new()
+	indicator.shape = RectangleShape2D.new()
+	(indicator.shape as RectangleShape2D).size = Vector2.ONE
+	
+	add_child(indicator)
+	auto_free(indicator)
+	
+	# Create a bounds rule that should pass (using environment tilemap)
+	var bounds_rule: WithinTilemapBoundsRule = WithinTilemapBoundsRule.new()
+	bounds_rule.setup(_test_env.grid_targeting_system.get_state())
+	auto_free(bounds_rule)
+	
+	# Position indicator at a valid location (center of test environment)
+	indicator.global_position = Vector2(0, 0)
+	
+	await get_tree().process_frame
+	
+	# Add rule to indicator
+	indicator.add_rule(bounds_rule)
+	
+	# Force evaluation since add_rule should trigger validation when inside tree
+	await get_tree().physics_frame
+	
+	var diagnostics: String = _generate_indicator_validity_diagnostics(indicator, bounds_rule)
+	
+	# Indicator should evaluate rules and update validity appropriately
+	# This test verifies the timing issue we suspect in the tilemap bounds rule failures
+	assert_bool(indicator.valid).append_failure_message(
+		"RULE CHECK INDICATOR VALIDITY TIMING TEST:\n%s\nIndicator should properly evaluate validity when rules are added while in scene tree" % diagnostics
+	).is_true()
+
+# UNIT TEST: Verify force_validity_evaluation works correctly for immediate updates
+func test_rule_check_indicator_force_validity_evaluation() -> void:
+	# Create indicator with a rule that will initially fail
+	var indicator: RuleCheckIndicator = RuleCheckIndicator.new()
+	indicator.shape = RectangleShape2D.new()
+	(indicator.shape as RectangleShape2D).size = Vector2.ONE
+	
+	add_child(indicator)
+	auto_free(indicator)
+	
+	# Create bounds rule
+	var bounds_rule: WithinTilemapBoundsRule = WithinTilemapBoundsRule.new()
+	bounds_rule.setup(_test_env.grid_targeting_system.get_state())
+	auto_free(bounds_rule)
+	
+	# Position indicator at invalid location first (way outside bounds)
+	indicator.global_position = Vector2(1000, 1000)
+	indicator.add_rule(bounds_rule)
+	
+	await get_tree().process_frame
+	
+	# Force evaluation - should be invalid
+	indicator.force_validity_evaluation()
+	
+	assert_bool(indicator.valid).append_failure_message(
+		"Indicator at position (1000, 1000) should be invalid when forced evaluation is called"
+	).is_false()
+	
+	# Move to valid position
+	indicator.global_position = Vector2(0, 0)
+	
+	# Force evaluation again - should now be valid
+	var is_valid_after_move: bool = indicator.force_validity_evaluation()
+	
+	var diagnostics: String = _generate_indicator_validity_diagnostics(indicator, bounds_rule)
+	
+	assert_bool(is_valid_after_move).append_failure_message(
+		"FORCE VALIDITY EVALUATION TEST:\n%s\nIndicator should immediately update validity when moved to valid position and force_validity_evaluation() is called" % diagnostics
+	).is_true()
+	
+	assert_bool(indicator.valid).append_failure_message(
+		"Indicator.valid property should match return value of force_validity_evaluation()"
+	).is_true()
+
+# UNIT TEST: Test the exact scenario from our failing tilemap bounds rule unit tests
+func test_rule_check_indicator_reproduces_bounds_rule_failure() -> void:
+	# Reproduce the exact setup from our failing unit test to isolate the timing issue
+	var indicator: RuleCheckIndicator = RuleCheckIndicator.new()
+	indicator.shape = RectangleShape2D.new()
+	(indicator.shape as RectangleShape2D).size = Vector2.ONE
+	
+	add_child(indicator)
+	auto_free(indicator)
+	
+	# Position at the same coordinates that are failing in the tilemap bounds rule test
+	indicator.global_position = Vector2(8.0, 8.0)  # Matches integration test
+	
+	# Create bounds rule with same setup
+	var bounds_rule: WithinTilemapBoundsRule = WithinTilemapBoundsRule.new()
+	bounds_rule.setup(_test_env.grid_targeting_system.get_state())
+	auto_free(bounds_rule)
+	
+	await get_tree().process_frame
+	
+	# Add rule after positioning (like our unit test does)
+	indicator.add_rule(bounds_rule)
+	
+	# Allow physics processing like our failing test
+	await get_tree().physics_frame
+	
+	# Force evaluation to ensure timing isn't the issue
+	indicator.force_validity_evaluation()
+	
+	var diagnostics: String = _generate_indicator_validity_diagnostics(indicator, bounds_rule)
+	
+	# This should help us understand if the issue is in RuleCheckIndicator timing
+	# or in the WithinTilemapBoundsRule logic itself
+	assert_bool(indicator.valid).append_failure_message(
+		"BOUNDS RULE FAILURE REPRODUCTION TEST:\n%s\nThis reproduces the exact scenario from our failing tilemap bounds rule unit test. If this passes, the issue is in the rule logic, not timing." % diagnostics
+	).is_true()
+
+# Helper to generate diagnostics for RuleCheckIndicator validity testing
+func _generate_indicator_validity_diagnostics(indicator: RuleCheckIndicator, rule: TileCheckRule) -> String:
+	var diagnostics: String = "RuleCheckIndicator Validity Diagnostics:\n"
+	diagnostics += "- Indicator valid: %s\n" % str(indicator.valid)
+	diagnostics += "- Indicator position: %s\n" % str(indicator.global_position)
+	diagnostics += "- Rule ready: %s\n" % str(rule._ready)
+	diagnostics += "- Rules count: %d\n" % indicator.get_rules().size()
+	diagnostics += "- Is inside tree: %s\n" % str(indicator.is_inside_tree())
+	
+	# Test rule directly
+	var failing_indicators: Array[RuleCheckIndicator] = rule.get_failing_indicators([indicator])
+	diagnostics += "- Rule failing indicators count: %d\n" % failing_indicators.size()
+	diagnostics += "- Rule evaluation result: %s\n" % ("pass" if failing_indicators.size() == 0 else "fail")
+	
+	# Check physics state
+	diagnostics += "- ShapeCast collision_result count: %d\n" % indicator.collision_result.size()
+	diagnostics += "- Is colliding: %s\n" % str(indicator.is_colliding())
+	
+	return diagnostics
 
 #endregion
 
