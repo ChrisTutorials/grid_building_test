@@ -1,7 +1,4 @@
----
-title: Test Runner Guide (Demo Project)
-description: How to run the gdUnit4 test suite for the Grid Building demo and plugin.
----
+Test Runner Guide
 
 This guide explains how contributors and demo users can run the plugin test-suite using the gdUnit4 GUI test runner. It follows the official gdUnit4 "first steps" and "getting started" guidance and documents the tested versions used for the demo project.
 
@@ -63,5 +60,3 @@ Further reading
 
 - gdUnit4 first steps: https://mikeschulze.github.io/gdUnit4/first_steps/getting-started/
 - gdUnit4 settings and headless/CI options: https://mikeschulze.github.io/gdUnit4/first_steps/settings/
-
-If you'd like, I can also add a short troubleshooting checklist that lists common failing tests and how to rewire `res://` paths for the demo layout.
