@@ -200,6 +200,9 @@ func test_indicator_rule_assignment_during_creation() -> void:
 func test_indicator_rule_validation() -> void:
 	# Create a collision rule using DRY pattern
 	var collision_rule: CollisionsCheckRule = PlacementRuleTestFactory.create_default_collision_rule()
+	# For this test we expect the indicator to become invalid when a collision is present
+	# Ensure the rule is configured to fail on collision
+	collision_rule.pass_on_collision = false
 
 	# Set up rule parameters
 	var targeting_state: GridTargetingState = _container.get_states().targeting
@@ -290,10 +293,8 @@ func test_polygon_test_object_center_tile_filtering() -> void:
 	# Find center indicator (offset 0,0) using DRY pattern
 	var center_indicator: RuleCheckIndicator = find_center_indicator(indicators)
 
-	# Based on the polygon shape in polygon_test_object.tscn, the center tile should NOT
-	# be covered by the collision polygon, so either:
-	# 1. No indicator should be generated for (0,0), OR
-	# 2. If generated, it should be valid (no collision with the shape)
+	# Based on current polygon_test_object.tscn, the concave shape does overlap the center tile.
+	# Therefore an indicator at (0,0) must be invalid due to collision, or filtered out entirely.
 
 	if center_indicator != null:
 		# If indicator exists at center, verify it has rules and is properly evaluated
@@ -302,8 +303,7 @@ func test_polygon_test_object_center_tile_filtering() -> void:
 			"Center indicator should have rules assigned"
 		).is_not_empty()
 
-		# The indicator should be valid since the polygon doesn't cover center
-		# (This is the regression - indicators might not be evaluating rules properly)
+		# The indicator should be invalid since the polygon overlaps the center tile
 		center_indicator.force_validity_evaluation()
 
 		# Log for debugging
@@ -312,7 +312,7 @@ func test_polygon_test_object_center_tile_filtering() -> void:
 
 		# This assertion might fail due to the regression
 		var dbg_parts: Array[String] = []
-		dbg_parts.append("Center indicator should be valid - polygon doesn't cover center tile")
+		dbg_parts.append("Center indicator should be invalid - polygon overlaps center tile")
 		dbg_parts.append("indicator_pos=%s" % [str(center_indicator.global_position)])
 		dbg_parts.append("indicator_tile=%s" % [str(center_indicator.get_tile_position(map_layer))])
 		dbg_parts.append("indicator_collision_mask=%s" % [str(center_indicator.collision_mask)])
@@ -321,4 +321,4 @@ func test_polygon_test_object_center_tile_filtering() -> void:
 		for c in test_instance.get_children():
 			if c is CollisionPolygon2D:
 				dbg_parts.append("polygon_points=%s" % [(c as CollisionPolygon2D).polygon])
-		assert_bool(center_indicator.valid).append_failure_message("\n".join(dbg_parts)).is_true()
+		assert_bool(center_indicator.valid).append_failure_message("\n".join(dbg_parts)).is_false()

@@ -10,7 +10,7 @@
 [ext_resource type="Script" uid="uid://ckwhivepsvl0n" path="res://addons/grid_building/components/gb_level_context.gd" id="7_tnep3"]
 [ext_resource type="PackedScene" uid="uid://dsaumst3yyp21" path="res://test/grid_building_test/scenes/tile_map/TEST_buildable_31x31_tile_map.tscn" id="8_8ccnd"]
 [ext_resource type="Script" uid="uid://dasmm18l8fxdo" path="res://addons/grid_building/user/gb_owner.gd" id="9_s5uet"]
-[ext_resource type="PackedScene" uid="uid://dm3722ecrh3e4" path="res://templates/grid_building_templates/grid_positioner_stack.tscn" id="10_6yyi1"]
+[ext_resource type="PackedScene" uid="uid://dm3722ecrh3e4" path="res://templates/grid_building_templates/grid_positioner/grid_positioner_stack.tscn" id="10_6yyi1"]
 
 [node name="AllSystemsTestEnvironment" type="Node" node_paths=PackedStringArray("manipulation_system", "target_highlighter", "building_system", "gb_owner", "manipulation_parent", "indicator_manager", "injector", "grid_targeting_system", "positioner", "world", "level", "level_context", "tile_map_layer", "objects_parent", "placer")]
 script = ExtResource("1_6tut5")

@@ -8,7 +8,7 @@
 [ext_resource type="Script" uid="uid://ckwhivepsvl0n" path="res://addons/grid_building/components/gb_level_context.gd" id="6_qtcwv"]
 [ext_resource type="PackedScene" uid="uid://dsaumst3yyp21" path="res://test/grid_building_test/scenes/tile_map/TEST_buildable_31x31_tile_map.tscn" id="7_ontcs"]
 [ext_resource type="Script" uid="uid://dasmm18l8fxdo" path="res://addons/grid_building/user/gb_owner.gd" id="8_aowhm"]
-[ext_resource type="PackedScene" uid="uid://dm3722ecrh3e4" path="res://templates/grid_building_templates/grid_positioner_stack.tscn" id="9_ontcs"]
+[ext_resource type="PackedScene" uid="uid://dm3722ecrh3e4" path="res://templates/grid_building_templates/grid_positioner/grid_positioner_stack.tscn" id="9_ontcs"]
 
 [node name="BuildingTestEnvironment" type="Node" node_paths=PackedStringArray("building_system", "gb_owner", "manipulation_parent", "indicator_manager", "injector", "grid_targeting_system", "positioner", "world", "level", "level_context", "tile_map_layer", "objects_parent", "placer")]
 script = ExtResource("1_5qoju")

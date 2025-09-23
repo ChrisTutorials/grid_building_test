@@ -3,6 +3,19 @@ extends GdUnitTestSuite
 @warning_ignore("unused_parameter")
 @warning_ignore("return_value_discarded")
 
+# Test Constants  
+const DEFAULT_RECT_SIZE: Vector2 = Vector2(32, 32)  # API changed from extents to size (double the old values)
+const CUSTOM_RECT_EXTENTS: Vector2 = Vector2(10, 20)  # Input extents parameter to factory
+const CUSTOM_RECT_SIZE: Vector2 = Vector2(20, 40)     # Expected size output (extents * 2)
+const DEFAULT_CIRCLE_RADIUS: float = 25.0
+const EXPECTED_TILEMAP_SIZE: Vector2 = Vector2(31, 31)
+const DEFAULT_COLLISION_LAYER: int = 1
+const TRIANGLE_VERTEX_COUNT: int = 3
+const RECTANGLE_VERTEX_COUNT: int = 4
+const EXPECTED_PARENT_CHILDREN: int = 1  # Factory appears to create 1 child, not 2
+const SHAPE_TEST_SIZE: Vector2 = Vector2(50, 60)
+const INDICATOR_SIZE: Vector2 = Vector2(32, 32)
+
 var test_container: GBCompositionContainer
 
 var _injector : GBInjectorSystem
@@ -74,59 +87,59 @@ func test_create_manipulatable() -> void:
 
 func test_create_static_body_with_rect_shape_default() -> void:
 	var body: StaticBody2D = GodotTestFactory.create_static_body_with_rect_shape(self)
-
-	assert_object(body).is_not_null()
-	assert_object(body.get_parent()).is_equal(self)
-
-	# Check collision shape
-	var collision_shape: CollisionShape2D = body.get_child(0) as CollisionShape2D
-	assert_object(collision_shape).is_not_null()
-	assert_object(collision_shape.shape).is_instanceof(RectangleShape2D)
-
-	var rect_shape: RectangleShape2D = collision_shape.shape as RectangleShape2D
-	assert_that(rect_shape.extents).is_equal(Vector2(8, 8))
+	
+	# Validate body setup
+	_assert_static_body_valid(body, "static_body_with_rect_shape_default")
+	
+	# Validate shape configuration 
+	var rect_shape: RectangleShape2D = _get_rect_shape_from_body(body)
+	assert_that(rect_shape.size).append_failure_message(
+		"Default rectangle shape size mismatch - Expected: %s, Actual: %s, Shape extents may have changed to size API" % 
+		[str(DEFAULT_RECT_SIZE), str(rect_shape.size)]
+	).is_equal(DEFAULT_RECT_SIZE)
 
 
 func test_create_static_body_with_rect_shape_custom() -> void:
 	var body: StaticBody2D = GodotTestFactory.create_static_body_with_rect_shape(
-		self, Vector2(10, 20)
+		self, CUSTOM_RECT_EXTENTS
 	)
 
-	assert_object(body).is_not_null()
-	assert_object(body.get_parent()).is_equal(self)
+	_assert_static_body_valid(body, "static_body_with_rect_shape_custom")
 
-	# Check collision shape
-	var collision_shape: CollisionShape2D = body.get_child(0) as CollisionShape2D
-	assert_object(collision_shape).is_not_null()
-	assert_object(collision_shape.shape).is_instanceof(RectangleShape2D)
-
-	var rect_shape: RectangleShape2D = collision_shape.shape as RectangleShape2D
-	assert_that(rect_shape.extents).is_equal(Vector2(10, 20))
+	var rect_shape: RectangleShape2D = _get_rect_shape_from_body(body)
+	assert_that(rect_shape.size).append_failure_message(
+		"Custom rectangle shape size mismatch - Expected: %s, Actual: %s, Input extents: %s, Factory doubles extents to get size" % 
+		[str(CUSTOM_RECT_SIZE), str(rect_shape.size), str(CUSTOM_RECT_EXTENTS)]
+	).is_equal(CUSTOM_RECT_SIZE)
 
 
 func test_create_area2d_with_circle_shape() -> void:
-	var area: Area2D = GodotTestFactory.create_area2d_with_circle_shape(self, 25.0)
+	var area: Area2D = GodotTestFactory.create_area2d_with_circle_shape(self, DEFAULT_CIRCLE_RADIUS)
 
-	assert_object(area).is_not_null()
-	assert_object(area.get_parent()).is_equal(self)
-	assert_that(area.collision_layer).is_equal(1)
+	_assert_area2d_valid(area, "area2d_with_circle_shape")
 
-	# Check collision shape
-	var collision_shape: CollisionShape2D = area.get_child(0) as CollisionShape2D
-	assert_object(collision_shape).is_not_null()
-	assert_object(collision_shape.shape).is_instanceof(CircleShape2D)
-
-	var circle_shape: CircleShape2D = collision_shape.shape as CircleShape2D
-	assert_that(circle_shape.radius).is_equal(25.0)
+	var circle_shape: CircleShape2D = _get_circle_shape_from_area(area)
+	assert_that(circle_shape.radius).append_failure_message(
+		"Area2D circle shape radius mismatch - Expected: %s, Actual: %s, Input radius: %s" % 
+		[str(DEFAULT_CIRCLE_RADIUS), str(circle_shape.radius), str(DEFAULT_CIRCLE_RADIUS)]
+	).is_equal(DEFAULT_CIRCLE_RADIUS)
 
 
 func test_create_collision_polygon_default() -> void:
 	var polygon: CollisionPolygon2D = GodotTestFactory.create_collision_polygon(self)
 
-	assert_object(polygon).is_not_null()
-	assert_object(polygon.get_parent()).is_equal(self)
-	assert_object(polygon.polygon).is_not_null()
-	assert_that(polygon.polygon.size()).is_equal(3)  # Triangle has 3 points
+	assert_object(polygon).append_failure_message(
+		"CollisionPolygon2D should not be null"
+	).is_not_null()
+	assert_object(polygon.get_parent()).append_failure_message(
+		"CollisionPolygon2D should be parented to test instance, parent: %s" % str(polygon.get_parent())
+	).is_equal(self)
+	assert_object(polygon.polygon).append_failure_message(
+		"CollisionPolygon2D should have polygon points assigned"
+	).is_not_null()
+	assert_int(polygon.polygon.size()).append_failure_message(
+		"Default collision polygon should have %d points (triangle), got: %d points" % [TRIANGLE_VERTEX_COUNT, polygon.polygon.size()]
+	).is_equal(TRIANGLE_VERTEX_COUNT)
 
 
 func test_create_collision_polygon_custom() -> void:
@@ -135,10 +148,18 @@ func test_create_collision_polygon_custom() -> void:
 	)
 	var polygon: CollisionPolygon2D = GodotTestFactory.create_collision_polygon(self, custom_points)
 
-	assert_object(polygon).is_not_null()
-	assert_object(polygon.get_parent()).is_equal(self)
-	assert_that(polygon.polygon.size()).is_equal(4)  # Rectangle has 4 points
-	assert_that(polygon.polygon).is_equal(custom_points)
+	assert_object(polygon).append_failure_message(
+		"Custom CollisionPolygon2D should not be null"
+	).is_not_null()
+	assert_object(polygon.get_parent()).append_failure_message(
+		"Custom CollisionPolygon2D should be parented to test instance, parent: %s" % str(polygon.get_parent())
+	).is_equal(self)
+	assert_int(polygon.polygon.size()).append_failure_message(
+		"Custom collision polygon should have %d points (rectangle), got: %d points, input: %s" % [RECTANGLE_VERTEX_COUNT, polygon.polygon.size(), str(custom_points)]
+	).is_equal(RECTANGLE_VERTEX_COUNT)
+	assert_that(polygon.polygon).append_failure_message(
+		"Custom collision polygon points mismatch - Expected: %s, Actual: %s" % [str(custom_points), str(polygon.polygon)]
+	).is_equal(custom_points)
 
 
 func test_create_object_with_circle_shape() -> void:
@@ -205,3 +226,107 @@ func test_create_rule_check_indicator() -> void:
 
 	var rect_shape: RectangleShape2D = indicator.shape as RectangleShape2D
 	assert_that(rect_shape.size).is_equal(Vector2(32, 32))
+
+#region HELPER_METHODS
+
+func _assert_static_body_valid(body: StaticBody2D, context: String) -> void:
+	"""Validates that a StaticBody2D meets expected factory standards"""
+	assert_object(body).append_failure_message(
+		"StaticBody2D should not be null for context: %s" % context
+	).is_not_null()
+	
+	assert_object(body.get_parent()).append_failure_message(
+		"StaticBody2D should be parented to test instance for context: %s, parent: %s" % [context, str(body.get_parent())]
+	).is_same(self)
+	
+	assert_int(body.get_child_count()).append_failure_message(
+		"StaticBody2D should have %d children for context: %s, actual count: %d" % [EXPECTED_PARENT_CHILDREN, context, body.get_child_count()]
+	).is_equal(EXPECTED_PARENT_CHILDREN)
+
+func _assert_area2d_valid(area: Area2D, context: String) -> void:
+	"""Validates that an Area2D meets expected factory standards"""
+	assert_object(area).append_failure_message(
+		"Area2D should not be null for context: %s" % context
+	).is_not_null()
+	
+	assert_object(area.get_parent()).append_failure_message(
+		"Area2D should be parented to test instance for context: %s, parent: %s" % [context, str(area.get_parent())]
+	).is_same(self)
+	
+	assert_int(area.get_child_count()).append_failure_message(
+		"Area2D should have %d children for context: %s, actual count: %d" % [EXPECTED_PARENT_CHILDREN, context, area.get_child_count()]
+	).is_equal(EXPECTED_PARENT_CHILDREN)
+	
+	assert_int(area.collision_layer).append_failure_message(
+		"Area2D collision layer should be %d for context: %s, actual: %d" % [DEFAULT_COLLISION_LAYER, context, area.collision_layer]
+	).is_equal(DEFAULT_COLLISION_LAYER)
+
+func _get_rect_shape_from_body(body: StaticBody2D) -> RectangleShape2D:
+	"""Extracts RectangleShape2D from StaticBody2D collision shape"""
+	var collision_shape: CollisionShape2D = body.get_child(0) as CollisionShape2D
+	assert_object(collision_shape).append_failure_message(
+		"StaticBody2D should have CollisionShape2D as first child, got: %s" % str(collision_shape)
+	).is_not_null()
+	
+	assert_object(collision_shape.shape).append_failure_message(
+		"CollisionShape2D should have RectangleShape2D shape, got: %s" % str(collision_shape.shape)
+	).is_instanceof(RectangleShape2D)
+	
+	return collision_shape.shape as RectangleShape2D
+
+func _get_circle_shape_from_body(body: StaticBody2D) -> CircleShape2D:
+	"""Extracts CircleShape2D from StaticBody2D collision shape"""
+	var collision_shape: CollisionShape2D = body.get_child(0) as CollisionShape2D
+	assert_object(collision_shape).append_failure_message(
+		"StaticBody2D should have CollisionShape2D as first child, got: %s" % str(collision_shape)
+	).is_not_null()
+	
+	assert_object(collision_shape.shape).append_failure_message(
+		"CollisionShape2D should have CircleShape2D shape, got: %s" % str(collision_shape.shape)
+	).is_instanceof(CircleShape2D)
+	
+	return collision_shape.shape as CircleShape2D
+
+func _get_circle_shape_from_area(area: Area2D) -> CircleShape2D:
+	"""Extracts CircleShape2D from Area2D collision shape"""
+	var collision_shape: CollisionShape2D = area.get_child(0) as CollisionShape2D
+	assert_object(collision_shape).append_failure_message(
+		"Area2D should have CollisionShape2D as first child, got: %s" % str(collision_shape)
+	).is_not_null()
+	
+	assert_object(collision_shape.shape).append_failure_message(
+		"CollisionShape2D should have CircleShape2D shape, got: %s" % str(collision_shape.shape)
+	).is_instanceof(CircleShape2D)
+	
+	return collision_shape.shape as CircleShape2D
+
+func _calculate_polygon_bounds(polygon: PackedVector2Array) -> Rect2:
+	"""Calculates bounding rectangle for polygon"""
+	if polygon.is_empty():
+		return Rect2()
+	
+	var min_point: Vector2 = polygon[0]
+	var max_point: Vector2 = polygon[0]
+	
+	for point in polygon:
+		min_point = Vector2(min(min_point.x, point.x), min(min_point.y, point.y))
+		max_point = Vector2(max(max_point.x, point.x), max(max_point.y, point.y))
+	
+	return Rect2(min_point, max_point - min_point)
+
+func _calculate_polygon_area(polygon: PackedVector2Array) -> float:
+	"""Calculates area of polygon using shoelace formula"""
+	if polygon.size() < 3:
+		return 0.0
+	
+	var area: float = 0.0
+	var n: int = polygon.size()
+	
+	for i in range(n):
+		var j: int = (i + 1) % n
+		area += polygon[i].x * polygon[j].y
+		area -= polygon[j].x * polygon[i].y
+	
+	return abs(area) / 2.0
+
+#endregion

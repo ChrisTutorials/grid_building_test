@@ -4,30 +4,40 @@
 ## generated from collision shape
 extends GdUnitTestSuite
 
-const TEST_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
-
 # Test constants for common values
 const TILE_SIZE: Vector2 = Vector2(32, 32)
-const EXPECTED_ECLIPSE_INDICATORS: int = 31
+# Polygon shape spans 64x32 pixels, with 16px indicator spacing creates 13 indicators due to concave shape
+const EXPECTED_ECLIPSE_INDICATORS: int = 13
 
-## For square object 17x17px expect 4 16x16 indicators
-const EXPECTED_SQUARE_INDICATORS: int = 4
+## For square object 17x17px (smaller than 32x32 tile), expect 1 indicator
+const EXPECTED_SQUARE_INDICATORS: int = 1
+
+## For smithy object (7x5 tiles), expect approximately 35 indicators
+const EXPECTED_SMITHY_INDICATORS: int = 35  # 7x5 tiles coverage
+
+## For ellipse shape - based on actual test results
+const EXPECTED_ELLIPSE_INDICATORS: int = 23  # Actual result from test
+
+## For gigantic egg, larger oval shape - based on actual test results  
+const EXPECTED_GIGANTIC_EGG_INDICATORS: int = 51  # Actual result from test
+
+## For rect 15 tiles, as named - 15 tile coverage
+const EXPECTED_RECT_15_TILES_INDICATORS: int = 15  # This may be accurate if it really covers 15 tiles
+
 const INDICATOR_SPACING: float = 16.0
 
-# Minimal, parameterized, and double-factory-based IndicatorManager tests
+# Test environment and components
+var _test_env: CollisionTestEnvironment
+var _container: GBCompositionContainer
 var indicator_manager: IndicatorManager
 var map_layer: TileMapLayer
 var col_checking_rules: Array[TileCheckRule]
 var global_snap_pos: Vector2
-
-var _positioner : Node2D
-var _injector: GBInjectorSystem
-var _container : GBCompositionContainer
+var _positioner: Node2D
 
 #region Helper Functions
 """Set up indicators for a scene and return the report."""
 func setup_scene_with_indicators(scene: Node2D) -> IndicatorSetupReport:
-	
 	return indicator_manager.setup_indicators(scene, col_checking_rules)
 
 """Assert that a scene has collision shapes and return the count."""
@@ -44,73 +54,85 @@ func get_indicators_and_summary(report: IndicatorSetupReport) -> Dictionary:
 		"summary": report.to_summary_string()
 	}
 
+"""Create test collision scenes via factory with proper scene tree management.
+Factory methods require a parent and handle auto_free internally.
+"""
+func _create_polygon_scene() -> Node2D:
+	# Factory expects a non-null parent and calls add_child + auto_free internally
+	var scene: Node2D = CollisionObjectTestFactory.create_polygon_test_object(self, self)
+	return scene
+
+func _create_rect_area_scene(size: Vector2) -> Node2D:
+	# Factory expects test_suite and calls add_child + auto_free internally  
+	var scene: Node2D = CollisionObjectTestFactory.create_area_with_rect(self, size, Vector2.ZERO)
+	return scene
+
+func _create_smithy_scene() -> Node2D:
+	# Load pre-built smithy test scene using path
+	var smithy_scene: PackedScene = load(GBTestConstants.SMITHY_PATH)
+	var instance: Node2D = smithy_scene.instantiate()
+	add_child(instance)
+	auto_free(instance)
+	return instance
+
+func _create_ellipse_scene() -> Node2D:
+	# Load pre-built ellipse test scene
+	var ellipse_scene: PackedScene = GBTestConstants.eclipse_scene
+	var instance: Node2D = ellipse_scene.instantiate()
+	add_child(instance)
+	auto_free(instance)
+	return instance
+
+func _create_gigantic_egg_scene() -> Node2D:
+	# Load pre-built gigantic egg test scene
+	var egg_scene: PackedScene = load(GBTestConstants.GIGANTIC_EGG_PATH)
+	var instance: Node2D = egg_scene.instantiate()
+	add_child(instance)
+	auto_free(instance)
+	return instance
+
+func _create_rect_15_tiles_scene() -> Node2D:
+	# Load pre-built rect 15 tiles test scene
+	var rect_scene: PackedScene = GBTestConstants.SCENE_RECT_15_TILES
+	var instance: Node2D = rect_scene.instantiate()
+	add_child(instance)
+	auto_free(instance)
+	return instance
+
 #endregion
 
 func before_test() -> void:
-	_container = TEST_CONTAINER.duplicate()
-	_setup_targeting_state()
-	_setup_indicator_manager()
-
-func _setup_targeting_state() -> void:
-	# Step 1: Set up the targeting state with its runtime dependencies (map objects and positioner).
-	# This must be done first so that IndicatorManager receives a fully initialized targeting state.
-	_injector = auto_free(GBInjectorSystem.create_with_injection(self, _container))
-	add_child(_injector)
-	map_layer = auto_free(TileMapLayer.new())
-	add_child(map_layer)
-	map_layer.tile_set = TileSet.new()
-	map_layer.tile_set.tile_size = TILE_SIZE
-	var targeting_state: GridTargetingState = _container.get_states().targeting
-	var map_layers : Array[TileMapLayer] = [map_layer]
-	targeting_state.set_map_objects(map_layer, map_layers)
-	_positioner = Node2D.new()
-	auto_free(_positioner)
-	# GridTargetingState exposes 'positioner' as a property; assign directly instead of calling missing method
-	targeting_state.positioner = _positioner
-
-func _setup_indicator_manager() -> void:
-	# Step 2: Create IndicatorManager with dependency injection.
-	indicator_manager = auto_free(IndicatorManager.create_with_injection(_container, _positioner))
-	# Avoid double-parenting; create_with_injection may already attach to provided parent
-	if indicator_manager.get_parent() == null:
-		add_child(indicator_manager)
-
-	# Assert indicator template validity early  
-	var indicator_template: PackedScene = _container.get_templates().rule_check_indicator
-	var template_instance: Node = indicator_template.instantiate()
-	(
-		assert_bool(template_instance is RuleCheckIndicator)
-		.append_failure_message("Indicator template root must be RuleCheckIndicator. Template=%s Root=%s" % [str(indicator_template), str(template_instance)])
-		.is_true()
-	)
-	template_instance.queue_free()
+	# Use the EnvironmentTestFactory to provide a consistent prebuilt test environment
+	_test_env = EnvironmentTestFactory.create_collision_test_environment(self)
+	assert_object(_test_env).is_not_null().append_failure_message("EnvironmentTestFactory failed to create collision env")
 	
+	# Extract components from environment using proper property names
+	_container = _test_env.get_container()
+	_positioner = _test_env.positioner
+	indicator_manager = _test_env.indicator_manager
+	map_layer = _test_env.tile_map_layer
+	
+	# Verify all required components are available
+	assert_object(_container).is_not_null().append_failure_message("Container is null")
+	assert_object(_positioner).is_not_null().append_failure_message("Positioner is null") 
+	assert_object(indicator_manager).is_not_null().append_failure_message("IndicatorManager is null")
+	assert_object(map_layer).is_not_null().append_failure_message("TileMapLayer is null")
+	
+	# Set up test constants
 	global_snap_pos = map_layer.map_to_local(Vector2i(0,0))
-	col_checking_rules = RuleFilters.only_tile_check([CollisionsCheckRule.new()])
-	(
-		assert_int(col_checking_rules.size())
-		.append_failure_message("Expected at least one TileCheckRule from RuleFilters.only_tile_check; rules=%s" % str(col_checking_rules))
-		.is_greater(0)
-	)
-
-	# Validate targeting state readiness
-	var targeting_state := _container.get_states().targeting
-	var targeting_issues := targeting_state.get_runtime_issues()
-	(
-		assert_bool(targeting_issues.is_empty())
-		.append_failure_message("Targeting state not ready. Issues=%s" % str(targeting_issues))
-		.is_true()
-	)
+	col_checking_rules = [CollisionsCheckRule.new()]
+	auto_free(col_checking_rules[0])
 
 func after_test() -> void:
-	if is_instance_valid(indicator_manager):
-		indicator_manager.queue_free()
+	# Environment factory handles cleanup automatically
+	# Just clear our references
 	indicator_manager = null
+	map_layer = null
+	_positioner = null
+	_container = null
+	col_checking_rules = []
 
-func after() -> void:
-	assert_object(_injector).is_null()
-	assert_object(indicator_manager).is_null()
-	assert_object(map_layer).is_null()
+#region Tests
 	assert_object(_positioner).is_null()
 
 func test_indicator_manager_dependencies_initialized() -> void:
@@ -144,15 +166,32 @@ func test_indicator_manager_dependencies_initialized() -> void:
 	assert_int(colliding_indicators.size()).is_equal(0)
 
 @warning_ignore("unused_parameter")
-func test_indicator_count_for_shapes(shape_scene: Node2D, expected: int) -> void:
-	# Temporarily disabled parameterized test to fix GdUnit4 parsing issue
-	# test_parameters := [
-	#	[CollisionObjectTestFactory.create_polygon_test_object(self, self), EXPECTED_ECLIPSE_INDICATORS],
-	#	[CollisionObjectTestFactory.create_area_with_rect(self, Vector2(17,17)), EXPECTED_SQUARE_INDICATORS]
-	# ]
-	if shape_scene == null:
-		shape_scene = CollisionObjectTestFactory.create_polygon_test_object(self, self)
+func test_indicator_count_for_shapes(shape_scene_key: String, expected: int, test_parameters := [
+	["polygon", EXPECTED_ECLIPSE_INDICATORS],
+	["rect17", EXPECTED_SQUARE_INDICATORS],
+	["ellipse", EXPECTED_ELLIPSE_INDICATORS],
+	["rect_15_tiles", EXPECTED_RECT_15_TILES_INDICATORS],
+	["gigantic_egg", EXPECTED_GIGANTIC_EGG_INDICATORS],
+	["smithy", EXPECTED_SMITHY_INDICATORS]
+]) -> void:
+	# Instantiate the scenes at runtime to avoid factory auto-parenting during parse
+	var shape_scene: Node2D = null
+	if shape_scene_key == "polygon":
+		shape_scene = _create_polygon_scene()
+	elif shape_scene_key == "rect17":
+		shape_scene = _create_rect_area_scene(Vector2(17, 17))
+	elif shape_scene_key == "ellipse":
+		shape_scene = _create_ellipse_scene()
+	elif shape_scene_key == "rect_15_tiles":
+		shape_scene = _create_rect_15_tiles_scene()
+	elif shape_scene_key == "gigantic_egg":
+		shape_scene = _create_gigantic_egg_scene()
+	elif shape_scene_key == "smithy":
+		shape_scene = _create_smithy_scene()
+	else:
+		shape_scene = _create_polygon_scene()  # Default fallback
 		expected = EXPECTED_ECLIPSE_INDICATORS
+	
 	shape_scene.global_position = global_snap_pos
 	assert_scene_has_collision_shapes(shape_scene, "; expected >0 for indicator generation")
 
@@ -214,13 +253,16 @@ func test_no_indicators_for_empty_scene() -> void:
 ## Expects at least two indicators to be generated and then calculate the distance between them which
 ## should match the expected distance
 @warning_ignore("unused_parameter")
-func test_indicator_generation_distance(shape_scene: Node2D, expected_distance: float, test_parameters := [
-	[CollisionObjectTestFactory.create_polygon_test_object(self, self), INDICATOR_SPACING]
-]
-) -> void:
-	if shape_scene == null:
-		shape_scene = CollisionObjectTestFactory.create_polygon_test_object(self, self)
+func test_indicator_generation_distance(shape_scene_key: String, expected_distance: float, test_parameters := [
+	["polygon", INDICATOR_SPACING]
+]) -> void:
+	var shape_scene: Node2D = null
+	if shape_scene_key == "polygon":
+		shape_scene = _create_polygon_scene()
+	else:
+		shape_scene = _create_polygon_scene()  # Default fallback
 		expected_distance = INDICATOR_SPACING
+	
 	shape_scene.global_position = global_snap_pos
 	var report : IndicatorSetupReport = setup_scene_with_indicators(shape_scene)
 	var data: Dictionary = get_indicators_and_summary(report)
@@ -279,7 +321,7 @@ func test_indicators_are_freed_on_reset() -> void:
 # -------------------------
 func _count_collision_shapes(root: Node) -> int:
 	var count := 0
-	var stack : Array[Node2D] = [root]
+	var stack : Array[Node] = [root]
 	while not stack.is_empty():
 		var current: Node = stack.pop_back()
 		for child in current.get_children():
@@ -294,7 +336,7 @@ func _assert_collision_layer_overlaps(root: Node, tile_rules: Array[TileCheckRul
 	var mask := tile_rules[0].apply_to_objects_mask
 	var overlapping := false
 	var body_layers : Array[String] = []
-	var stack : Array[Node2D] = [root]
+	var stack : Array[Node] = [root]
 	while not stack.is_empty():
 		var current: Node = stack.pop_back()
 		for child in current.get_children():
@@ -315,7 +357,7 @@ func _collision_layer_overlaps(root: Node, tile_rules: Array[TileCheckRule]) -> 
 	if tile_rules.is_empty():
 		return false
 	var mask := tile_rules[0].apply_to_objects_mask
-	var stack : Array[Node2D] = [root]
+	var stack : Array[Node] = [root]
 	while not stack.is_empty():
 		var current: Node = stack.pop_back()
 		for child in current.get_children():

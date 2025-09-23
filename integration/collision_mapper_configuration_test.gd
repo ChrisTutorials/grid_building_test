@@ -132,12 +132,14 @@ func test_collision_mapper_minimal_setup() -> void:
 ## Test collision mapper configuration requirements
 func test_collision_mapper_configuration_requirements() -> void:
 	# Arrange
-	var required_properties: Array[String] = ["test_indicator", "test_setups"]
-	
-	for prop: String in required_properties:
-		assert_object(_collision_mapper.get(prop)).append_failure_message(
-			"CollisionMapper is missing required property: %s" % prop
-		).is_not_null()
+	# Before setup, required properties should be null
+	assert_object(_collision_mapper.get("test_indicator")).append_failure_message(
+		"Expected test_indicator to be null before setup"
+	).is_null()
+	var pre_setups: Array = _collision_mapper.get("test_setups")
+	assert_array(pre_setups).append_failure_message(
+		"Expected test_setups to be empty before setup, got: %s" % str(pre_setups)
+	).is_empty()
 
 	# Act & Assert
 	var mock_indicator: RuleCheckIndicator = _create_mock_indicator("MockTestIndicator", COLLISION_LAYER_DEFAULT)
@@ -163,7 +165,12 @@ func test_proper_collision_mapper_setup() -> void:
 		"CollisionGeometryUtils should compute at least one tile offset for the trapezoid."
 	).is_not_equal(0)
 	
-	# Act
+	# Act: proper setup of collision mapper before mapping
+	var setups: Array[CollisionTestSetup2D] = CollisionTestSetup2D.create_test_setups_from_test_node(test_object, _targeting_state)
+	assert_int(setups.size()).append_failure_message("Expected at least one test setup for trapezoid owner").is_greater(0)
+	var mock_indicator: RuleCheckIndicator = _create_mock_indicator("TrapezoidMockIndicator", COLLISION_LAYER_DEFAULT)
+	_collision_mapper.setup(mock_indicator, setups)
+
 	var col_objects: Array[Node2D] = [test_object]
 	var tile_check_rules: Array[TileCheckRule] = []
 	var position_rules: Dictionary = _collision_mapper.map_collision_positions_to_rules(col_objects, tile_check_rules)

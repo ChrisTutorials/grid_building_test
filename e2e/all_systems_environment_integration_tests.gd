@@ -124,7 +124,7 @@ func test_locations_close_to_zero_are_within_tile_map_bounds() -> void:
 			
 			# All positions within the test range should be valid
 			assert_bool(validation_result.is_successful()).is_true() \
-				.append_failure_message("Position %s should be within tilemap bounds. Issues: %s" % [test_position, validation_result.get_issues()])
+				.append_failure_message("Position %s should be within tilemap bounds. Issues: %s" % [test_position, str(validation_result.get_issues())])
 	
 	# Clean up the rule
 	map_bounds_rule.tear_down()
@@ -143,7 +143,7 @@ func test_simple_indicator_creation() -> void:
 	auto_free(indicator)
 	
 	assert_that(indicator).is_not_null()
-	assert_that(indicator).is_instance_of(RuleCheckIndicator)
+	assert_that(indicator).is_instanceof(RuleCheckIndicator)
 
 func test_rule_setup_with_grid_targeting_state() -> void:
 	# Test 3: Rule setup process
@@ -216,6 +216,6 @@ func test_single_position_validation() -> void:
 	
 	# This should pass since origin is within a reasonable tilemap
 	assert_bool(validation_result.is_successful()).is_true() \
-		.append_failure_message("Origin position should be valid. Issues: %s" % validation_result.get_issues())
+		.append_failure_message("Origin position should be valid. Issues: %s" % str(validation_result.get_issues()))
 	
 	rule.tear_down()

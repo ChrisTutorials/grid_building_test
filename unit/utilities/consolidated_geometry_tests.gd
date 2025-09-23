@@ -134,6 +134,20 @@ func _tile_shape_name(tile_shape: TileSet.TileShape) -> String:
 		_:
 			return "unknown"
 
+
+# Helper: pretty-print polygon points for diagnostics
+func _format_polygon(polygon: PackedVector2Array) -> String:
+	var parts: Array = []
+	for p in polygon:
+		# Use explicit str() to avoid format tokens which may be unsupported
+		parts.append("(" + str(p.x) + ", " + str(p.y) + ")")
+	var s := ""
+	for j in range(parts.size()):
+		s += parts[j]
+		if j < parts.size() - 1:
+			s += ", "
+	return "[" + s + "]"
+
 #endregion
 #region Polygon Tile Overlap Threshold Tests
 
@@ -322,12 +336,19 @@ func test_tile_overlap_comprehensive() -> void:
 		var expected: int = test_case["expected_count"] as int
 		
 		var tiles: Array[Vector2i] = CollisionGeometryCalculator.calculate_tile_overlap(
-			polygon, TILE_SIZE, TileSet.TILE_SHAPE_SQUARE, _test_tile_map_layer, OVERLAP_THRESHOLD, OVERLAP_THRESHOLD
+			polygon, TILE_SIZE, TileSet.TILE_SHAPE_SQUARE, _test_tile_map_layer, OVERLAP_THRESHOLD, AREA_THRESHOLD
 		)
 		
-		assert_int(tiles.size()).append_failure_message(
-			"Test case %d: expected %d tiles but got %d for polygon %s" % [i, expected, tiles.size(), polygon]
-		).is_equal(expected)
+		# Enhanced diagnostics on failure: polygon points, expected vs actual, overlapped tiles,
+		# polygon bounds, and a hint for enabling verbose clipping debug in the calculator.
+		var poly_str: String = _format_polygon(polygon)
+		var poly_bounds: Rect2 = GBGeometryMath.get_polygon_bounds(polygon)
+		var failure_msg: String = "Test case " + str(i) + ": expected " + str(expected) + " tiles but got " + str(tiles.size()) + "\n"
+		failure_msg += "Polygon points: " + poly_str + "\n"
+		failure_msg += "Overlapped tiles: " + str(tiles) + "\n"
+		failure_msg += "Polygon bounds: pos=" + str(poly_bounds.position) + " size=" + str(poly_bounds.size) + "\n"
+		failure_msg += "Note: enable CollisionGeometryCalculator.debug_polygon_overlap = true for per-tile clipping logs\n"
+		assert_int(tiles.size()).append_failure_message(failure_msg).is_equal(expected)
 
 #endregion
 #region Comprehensive Geometry Math Tests

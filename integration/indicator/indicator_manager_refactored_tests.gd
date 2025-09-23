@@ -55,7 +55,10 @@ func test_indicator_cleanup() -> void:
 	
 	# Count remaining indicators (should only have test objects, not indicators)
 	var indicator_count: int = _count_indicators(manipulation_parent)
-	assert_int(indicator_count).is_equal(0)
+	var indicator_names: Array[String] = _get_indicator_names()
+	assert_int(indicator_count).append_failure_message(
+		"Indicator cleanup failed - expected 0 indicators, found %d. Remaining: %s" % [indicator_count, str(indicator_names)]
+	).is_equal(0)
 
 func test_indicator_positioning() -> void:
 	var indicator_manager: IndicatorManager = env.indicator_manager
@@ -89,14 +92,22 @@ func test_multiple_setup_calls() -> void:
 	
 	# First setup
 	indicator_manager.setup_indicators(area, rules)
+	await get_tree().process_frame
 	var first_count: int = _count_indicators(manipulation_parent)
+	var first_names: Array[String] = _get_indicator_names()
 	
 	# Second setup should replace, not duplicate
 	indicator_manager.setup_indicators(area, rules)
+	await get_tree().process_frame
 	var second_count: int = _count_indicators(manipulation_parent)
+	var second_names: Array[String] = _get_indicator_names()
 	
-	assert_int(first_count).is_greater(0)
-	assert_int(second_count).is_equal(first_count)
+	assert_int(first_count).append_failure_message(
+		"First setup produced no indicators. Names: %s" % [str(first_names)]
+	).is_greater(0)
+	assert_int(second_count).append_failure_message(
+		"Second setup should replace, not duplicate - expected %d, got %d. First: %s | Second: %s" % [first_count, second_count, str(first_names), str(second_names)]
+	).is_equal(first_count)
 
 func _create_test_area() -> Area2D:
 	var area: Area2D = Area2D.new()
@@ -107,7 +118,15 @@ func _create_test_area() -> Area2D:
 	return area
 
 func _create_test_rules() -> Array[TileCheckRule]:
-	var rules : Array[TileCheckRule] = [TileCheckRule.new()]
+	var rules : Array[TileCheckRule] = []
+	# Base tile check to keep pipeline consistent
+	rules.append(TileCheckRule.new())
+	# Add a collisions rule to ensure indicators are generated for the test area
+	var collisions_rule := CollisionsCheckRule.new()
+	# Set up with the environment's targeting state to avoid null context
+	var setup_issues: Array[String] = collisions_rule.setup(env.get_container().get_targeting_state())
+	assert_array(setup_issues).append_failure_message("CollisionsCheckRule.setup returned issues: %s" % [str(setup_issues)]).is_empty()
+	rules.append(collisions_rule)
 	return rules
 
 func _setup_test_area(area: Area2D) -> void:
@@ -116,16 +135,44 @@ func _setup_test_area(area: Area2D) -> void:
 	auto_free(area)
 
 func _count_indicators(parent: Node) -> int:
+	var manager: IndicatorManager = env.indicator_manager
+	if manager != null and is_instance_valid(manager):
+		# Prefer public API: returns Array[RuleCheckIndicator]
+		var indicators: Array[RuleCheckIndicator] = manager.get_indicators()
+		if indicators != null:
+			if indicators.size() > 0:
+				# Optional debug
+				var names: Array[String] = []
+				for ind: RuleCheckIndicator in indicators:
+					names.append(ind.name)
+				print("_count_indicators via API found %d indicators: %s" % [indicators.size(), str(names)])
+			return indicators.size()
+
+	# Fallback: name-based scan if API unavailable
 	var count: int = 0
 	var child_names: Array[String] = []
 	for child in parent.get_children():
-		# Only count actual RuleCheckIndicator nodes, not the IndicatorManager itself
-		if child.has_method("get_tile_position") and not child.has_method("setup_indicators"):
+		if typeof(child.name) == TYPE_STRING and String(child.name).begins_with("RuleCheckIndicator"):
 			count += 1
 			child_names.append(child.name + "(" + child.get_class() + ")")
-	
-	# Debug output to understand what's being counted
 	if count > 0:
-		print("_count_indicators found %d indicators: %s" % [count, str(child_names)])
-	
+		print("_count_indicators via fallback found %d indicators: %s" % [count, str(child_names)])
 	return count
+
+## Returns the names of the currently managed indicators for diagnostics
+func _get_indicator_names() -> Array[String]:
+	var names: Array[String] = []
+	var manager: IndicatorManager = env.indicator_manager
+	if manager != null and is_instance_valid(manager):
+		var indicators: Array[RuleCheckIndicator] = manager.get_indicators()
+		if indicators != null:
+			for ind: RuleCheckIndicator in indicators:
+				if typeof(ind.name) == TYPE_STRING:
+					names.append(String(ind.name))
+			return names
+		# Fallback to child scan if API not available
+		for child in manager.get_children():
+			if typeof(child.name) == TYPE_STRING and String(child.name).begins_with("RuleCheckIndicator"):
+				names.append(String(child.name))
+		return names
+	return names

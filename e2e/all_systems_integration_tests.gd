@@ -340,7 +340,11 @@ func test_rule_indicator_state_synchronization() -> void:
 	# Setup with initial state
 	test_object.global_position = TEST_POSITION_1
 
-	var setup_result: PlacementReport = indicator_manager.try_setup([rule], _gts.get_state())
+	# Ensure targeting state has a valid target for indicator setup
+	var targeting_state_sync: GridTargetingState = _gts.get_state()
+	targeting_state_sync.target = test_object
+
+	var setup_result: PlacementReport = indicator_manager.try_setup([rule], targeting_state_sync)
 	assert_bool(setup_result.is_successful()).append_failure_message(
 		"Setup result should be successful"
 	).is_true()
@@ -396,7 +400,10 @@ func test_smithy_indicator_generation() -> void:
 	# Generate indicators using proper parameters
 	var smithy_node: Node = test_smithy_placeable.packed_scene.instantiate()
 	add_child(smithy_node)
-	var setup_result: PlacementReport = indicator_manager.try_setup(test_rules, _gts.get_state())
+	# Set the targeting state's target to the smithy node before setup
+	var targeting_state_smithy: GridTargetingState = _gts.get_state()
+	targeting_state_smithy.target = smithy_node
+	var setup_result: PlacementReport = indicator_manager.try_setup(test_rules, targeting_state_smithy)
 	assert_bool(setup_result.is_successful()).append_failure_message(
 		"Setup result should be successful"
 	).is_true()
@@ -529,7 +536,10 @@ func test_polygon_test_object_indicator_generation() -> void:
 	# Generate indicators for polygon object using proper parameters
 	var polygon_node: Node = polygon_test_object.packed_scene.instantiate()
 	add_child(polygon_node)
-	var setup_result: PlacementReport = indicator_manager.try_setup(test_rules, _gts.get_state())
+	# Set target to polygon node before indicator setup
+	var targeting_state_polygon: GridTargetingState = _gts.get_state()
+	targeting_state_polygon.target = polygon_node
+	var setup_result: PlacementReport = indicator_manager.try_setup(test_rules, targeting_state_polygon)
 	assert_bool(setup_result.is_successful()).append_failure_message(
 		"Setup result should be successful"
 	).is_true()
@@ -650,9 +660,12 @@ func test_full_system_integration_workflow() -> void:
 	var smithy_node: Node = test_placeable.packed_scene.instantiate()
 	auto_free(smithy_node)
 	add_child(smithy_node)
+	# Ensure targeting has the correct node set before indicator setup
+	var targeting_state_full: GridTargetingState = _gts.get_state()
+	targeting_state_full.target = smithy_node
 
 	var smithy_rules: Array[PlacementRule] = test_placeable.placement_rules
-	var indicator_result: PlacementReport = indicator_manager.try_setup(smithy_rules, _gts.get_state())
+	var indicator_result: PlacementReport = indicator_manager.try_setup(smithy_rules, targeting_state_full)
 	assert_bool(indicator_result.is_successful()).append_failure_message(
 		"Indicator result should be successful"
 	).is_true()

@@ -134,6 +134,19 @@ func _tile_shape_name(tile_shape: TileSet.TileShape) -> String:
 		_:
 			return "unknown"
 
+func _format_polygon(polygon: PackedVector2Array) -> String:
+	# Return a readable string representation like "[(x1, y1), (x2, y2), ...]"
+	var parts: Array = []
+	for p in polygon:
+		parts.append("(" + str(p.x) + ", " + str(p.y) + ")")
+	var out: String = "["
+	for idx in range(parts.size()):
+		out += parts[idx]
+		if idx < parts.size() - 1:
+			out += ", "
+	out += "]"
+	return out
+
 #endregion
 #region Polygon Tile Overlap Threshold Tests
 
@@ -322,12 +335,29 @@ func test_tile_overlap_comprehensive() -> void:
 		var expected: int = test_case["expected_count"] as int
 		
 		var tiles: Array[Vector2i] = CollisionGeometryCalculator.calculate_tile_overlap(
-			polygon, TILE_SIZE, TileSet.TILE_SHAPE_SQUARE, _test_tile_map_layer, OVERLAP_THRESHOLD, OVERLAP_THRESHOLD
+			polygon, TILE_SIZE, TileSet.TILE_SHAPE_SQUARE, _test_tile_map_layer, OVERLAP_THRESHOLD, AREA_THRESHOLD
 		)
-		
-		assert_int(tiles.size()).append_failure_message(
-			"Test case %d: expected %d tiles but got %d for polygon %s" % [i, expected, tiles.size(), polygon]
-		).is_equal(expected)
+
+		# Build a rich, safe failure message that avoids Godot percent-format pitfalls
+		var actual_count: int = tiles.size()
+		var polygon_str: String = _format_polygon(polygon)
+		var tiles_str: String = "["
+		for t_index in tiles.size():
+			var tv: Vector2i = tiles[t_index]
+			tiles_str += "(%d, %d)" % [tv.x, tv.y]
+			if t_index < tiles.size() - 1:
+				tiles_str += ", "
+		tiles_str += "]"
+
+		var polygon_bounds: Rect2 = GBGeometryMath.get_polygon_bounds(polygon)
+
+		var failure_msg: String = "Test case %d: expected %d tiles but got %d" % [i, expected, actual_count]
+		failure_msg += "\nPolygon points: %s" % polygon_str
+		failure_msg += "\nOverlapped tiles: %s" % tiles_str
+		failure_msg += "\nPolygon bounds: pos=%s size=%s" % [str(polygon_bounds.position), str(polygon_bounds.size)]
+		failure_msg += "\nHint: enable CollisionGeometryCalculator.debug_polygon_overlap = true to get per-tile clipping logs"
+
+		assert_int(actual_count).append_failure_message(failure_msg).is_equal(expected)
 
 #endregion
 #region Comprehensive Geometry Math Tests
