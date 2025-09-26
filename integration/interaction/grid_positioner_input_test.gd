@@ -274,16 +274,9 @@ func _assert_at_tile(tile_map: TileMapLayer, positioner: Node2D, expected_tile: 
 	assert_vector(actual_global).append_failure_message(diag).is_equal_approx(expected_global, Vector2.ONE)
 
 ## Helper: robust screen->world projection that tolerates Camera2D API variants
-func _screen_to_world_safe(vp: Viewport, cam: Camera2D, screen_pos: Vector2) -> Vector2:
-	# Use centralized camera utils to abstract API differences
-	var dict := GBCameraUtils.project_screen_to_world(cam, vp, screen_pos)
-	if dict.has("world"):
-		return dict.world
-	# Fallback: as a last resort, use viewport canvas transform inverse
-	if vp != null:
-		var ct := vp.get_canvas_transform()
-		return ct.affine_inverse() * screen_pos
-	return screen_pos
+func _screen_to_world_safe(vp: Viewport, _cam: Camera2D, screen_pos: Vector2) -> Vector2:
+	# Use GBPositioning2DUtils centralized conversion logic
+	return GBPositioning2DUtils.convert_screen_to_world_position(screen_pos, vp)
 
 func test_positioner_moves_on_mouse_motion_scene_runner() -> void:
 	# Arrange
@@ -408,7 +401,7 @@ func test_keyboard_moves_and_recenter() -> void:
 	_ensure_action_key(actions.positioner_down, KEY_DOWN)
 	_ensure_action_key(actions.positioner_left, KEY_LEFT)
 	_ensure_action_key(actions.positioner_right, KEY_RIGHT)
-	_ensure_action_key(actions.positioner_recenter, KEY_CENTER)
+	_ensure_action_key(actions.positioner_center, KEY_CENTER)
 
 	# Act + Assert: Up (y - 1)
 	var up_expected: Vector2i = start_tile + Vector2i(0, -1)
@@ -444,10 +437,10 @@ func test_keyboard_moves_and_recenter() -> void:
 	var cursor_global: Vector2 = tile_map.to_global(tile_map.map_to_local(cursor_tile))
 
 	# Recenter via key bound to the recenter action (should snap to cursor tile)
-	await _press_action_with_key(actions.positioner_recenter, KEY_CENTER)
-	await _release_action_with_key(actions.positioner_recenter, KEY_CENTER)
+	await _press_action_with_key(actions.positioner_center, KEY_CENTER)
+	await _release_action_with_key(actions.positioner_center, KEY_CENTER)
 
-	var pressed_recenter := Input.is_action_pressed(actions.positioner_recenter) if actions else false
+	var pressed_recenter := Input.is_action_pressed(actions.positioner_center) if actions else false
 	var kdiag := "Recenter diagnostics:\n" \
 		+ "  process_mode=%d\n" % [env.positioner.process_mode] \
 		+ "  recenter_screen=%s cursor_world=%s cursor_tile=%s\n" % [str(recenter_screen), str(cursor_world), str(cursor_tile)] \
