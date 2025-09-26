@@ -1,6 +1,7 @@
-[gd_scene load_steps=6 format=3 uid="uid://teejt4ev3xir"]
+[gd_scene load_steps=7 format=3 uid="uid://teejt4ev3xir"]
 
 [ext_resource type="Script" uid="uid://c1x0jot6xnpfk" path="res://addons/grid_building/systems/grid_targeting/grid_positioner/grid_positioner_2d.gd" id="1_0ga2y"]
+[ext_resource type="Script" uid="uid://no4ocrpmo8xe" path="res://addons/grid_building/systems/grid_targeting/grid_positioner/targeting_shape_cast_2d.gd" id="2_0cdad"]
 [ext_resource type="Script" uid="uid://mry85q5wjk7x" path="res://addons/grid_building/systems/manipulation/manipulation_parent.gd" id="2_c0nev"]
 [ext_resource type="PackedScene" uid="uid://jsw2j5uwqm2b" path="res://test/grid_building_test/scenes/positioning/test_grid_targeter.tscn" id="2_k20ps"]
 [ext_resource type="Script" uid="uid://ow5wabt5g4dc" path="res://addons/grid_building/placement/manager/indicator_manager.gd" id="3_k20ps"]
@@ -8,16 +9,19 @@
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_0cdad"]
 size = Vector2(16, 16)
 
-[node name="TestPositionerStack" type="ShapeCast2D"]
+[node name="GridPositioner2D" type="Node2D"]
+script = ExtResource("1_0ga2y")
+
+[node name="TargetingShapeCast2D" type="ShapeCast2D" parent="."]
 shape = SubResource("RectangleShape2D_0cdad")
 target_position = Vector2(0, 0)
-script = ExtResource("1_0ga2y")
-metadata/_custom_type_script = "uid://c1x0jot6xnpfk"
+script = ExtResource("2_0cdad")
+metadata/_custom_type_script = "uid://no4ocrpmo8xe"
 
-[node name="GridTargeter" parent="." instance=ExtResource("2_k20ps")]
+[node name="GridTargeter" parent="TargetingShapeCast2D" instance=ExtResource("2_k20ps")]
 
-[node name="ManipulationParent" type="Node2D" parent="."]
+[node name="ManipulationParent" type="Node2D" parent="TargetingShapeCast2D"]
 script = ExtResource("2_c0nev")
 
-[node name="IndicatorManager" type="Node2D" parent="ManipulationParent"]
+[node name="IndicatorManager" type="Node2D" parent="TargetingShapeCast2D/ManipulationParent"]
 script = ExtResource("3_k20ps")

@@ -1,0 +1,6 @@
+[gd_resource type="Resource" load_steps=2 format=2]
+
+[ext_resource path="res://godot/test/grid_building_test/resources/rules/within_tilemap_bounds_rule.tres" type="Resource" id=1]
+
+[resource]
+placement_rules = Array[Resource, 1](ExtResource( 1 ))

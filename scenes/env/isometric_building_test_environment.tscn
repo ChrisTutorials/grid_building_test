@@ -10,15 +10,16 @@
 [ext_resource type="Script" uid="uid://dasmm18l8fxdo" path="res://addons/grid_building/user/gb_owner.gd" id="8_6bysi"]
 [ext_resource type="PackedScene" uid="uid://bgm5fn16wwkrc" path="res://test/grid_building_test/scenes/positioning/test_positioner_stack_isometric.tscn" id="9_rj0e4"]
 
-[node name="BuildingTestEnvironment" type="Node" node_paths=PackedStringArray("building_system", "gb_owner", "manipulation_parent", "indicator_manager", "injector", "grid_targeting_system", "positioner", "world", "level", "level_context", "tile_map_layer", "objects_parent", "placer")]
+[node name="BuildingTestEnvironment" type="Node" node_paths=PackedStringArray("building_system", "gb_owner", "manipulation_parent", "indicator_manager", "injector", "grid_targeting_system", "positioner", "targeter", "world", "level", "level_context", "tile_map_layer", "objects_parent", "placer")]
 script = ExtResource("1_rj0e4")
 building_system = NodePath("BuildingSystem")
 gb_owner = NodePath("World/Level/Placer/GBOwner")
-manipulation_parent = NodePath("World/TestPositionerStack/ManipulationParent")
-indicator_manager = NodePath("World/TestPositionerStack/ManipulationParent/IndicatorManager")
+manipulation_parent = NodePath("World/TestPositionerStack/TargetingShapeCast2D/ManipulationParent")
+indicator_manager = NodePath("World/TestPositionerStack/TargetingShapeCast2D/ManipulationParent/IndicatorManager")
 injector = NodePath("GBInjectorSystem")
 grid_targeting_system = NodePath("GridTargetingSystem")
 positioner = NodePath("World/TestPositionerStack")
+targeter = NodePath("World/TestPositionerStack/TargetingShapeCast2D")
 world = NodePath("World")
 level = NodePath("World/Level")
 level_context = NodePath("World/Level/GBLevelContext")

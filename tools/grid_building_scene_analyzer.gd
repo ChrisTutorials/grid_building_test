@@ -5,11 +5,11 @@ extends SceneTree
 ## Specialized analyzer for debugging grid building demo scenes with custom classes
 ## Usage: godot --headless --script grid_building_scene_analyzer.gd -- <scene_path>
 
-func _initialize() -> void:
+func _initialize():
 	print("=== GRID BUILDING DEMO SCENE ANALYZER ===")
 	
-	var args: PackedStringArray = OS.get_cmdline_user_args()
-	var scene_path : String = ""
+	var args = OS.get_cmdline_user_args()
+	var scene_path = ""
 	
 	if args.size() > 0:
 		scene_path = args[0]
@@ -23,25 +23,25 @@ func _initialize() -> void:
 	print("Analyzing grid building demo scene: " + scene_path)
 	
 	# Convert to resource path if needed
-	var resource_path: String = scene_path
+	var resource_path = scene_path
 	if not resource_path.begins_with("res://"):
 		resource_path = "res://" + resource_path
 	
 	# Load and analyze the scene
-	var scene_resource: PackedScene = load(resource_path)
+	var scene_resource = load(resource_path)
 	if not scene_resource:
 		print("ERROR: Could not load scene: " + resource_path)
 		quit(1)
 		return
 	
-	var scene_instance: Node = scene_resource.instantiate()
+	var scene_instance = scene_resource.instantiate()
 	if not scene_instance:
 		print("ERROR: Could not instantiate scene")
 		quit(1)
 		return
 	
 	# Generate grid building specific analysis
-	var analysis: String = _generate_grid_building_analysis(scene_instance)
+	var analysis = _generate_grid_building_analysis(scene_instance)
 	print(analysis)
 	
 	# Clean up
@@ -50,7 +50,7 @@ func _initialize() -> void:
 
 func _generate_grid_building_analysis(scene_root: Node) -> String:
 	"""Generate comprehensive grid building scene analysis."""
-	var output: String = ""
+	var output = ""
 	
 	output += "=== GRID BUILDING SCENE ANALYSIS ===\n"
 	output += "Scene: %s\n" % scene_root.name
@@ -78,14 +78,14 @@ func _generate_grid_building_analysis(scene_root: Node) -> String:
 
 func _analyze_grid_building_components(scene_root: Node) -> String:
 	"""Analyze core grid building components using direct class detection."""
-	var output: String = "=== GRID BUILDING COMPONENTS ANALYSIS ===\n"
+	var output = "=== GRID BUILDING COMPONENTS ANALYSIS ===\n"
 	
 	# Find components using direct class detection
-	var components: Dictionary = {}
+	var components = {}
 	_find_grid_building_nodes(scene_root, components)
 	
 	# Expected counts for typical grid building demo
-	var expected_counts: Dictionary = {
+	var expected_counts = {
 		"RuleCheckIndicator": "X (variable)", 
 		"IndicatorManager": "1",
 		"GridPositioner": "1", 
@@ -96,12 +96,12 @@ func _analyze_grid_building_components(scene_root: Node) -> String:
 	}
 	
 	# Report findings
-	for target_class: String in expected_counts:
-		var expected: String = expected_counts[target_class]
+	for target_class in expected_counts:
+		var expected = expected_counts[target_class]
 		if target_class in components:
-			var nodes: Array[Node] = components[target_class]
+			var nodes = components[target_class]
 			output += "✓ %s: %d found (Expected: %s)\n" % [target_class, nodes.size(), expected]
-			for node: Node in nodes:
+			for node in nodes:
 				output += "  - %s at %s\n" % [node.name, node.get_path()]
 		else:
 			output += "✗ %s: 0 found (Expected: %s)\n" % [target_class, expected]
@@ -111,19 +111,19 @@ func _analyze_grid_building_components(scene_root: Node) -> String:
 
 func _analyze_placement_indicators(scene_root: Node) -> String:
 	"""Analyze placement indicators in detail."""
-	var output: String = "=== PLACEMENT INDICATORS ANALYSIS ===\n"
+	var output = "=== PLACEMENT INDICATORS ANALYSIS ===\n"
 	
-	var all_shapecasts: Array[Node] = _find_all_shapecasts(scene_root)
+	var all_shapecasts = _find_all_shapecasts(scene_root)
 	output += "Total ShapeCast2D nodes: %d\n\n" % all_shapecasts.size()
 	
 	if all_shapecasts.size() > 0:
 		for i in range(all_shapecasts.size()):
-			var shapecast: Node = all_shapecasts[i]
+			var shapecast = all_shapecasts[i]
 			output += "[%d] %s\n" % [i+1, shapecast.name]
 			output += "  Class: %s\n" % shapecast.get_class()
 			output += "  Position: %s (global: %s)\n" % [shapecast.position, shapecast.global_position]
 			output += "  Rotation: %.2f° | Scale: %s\n" % [shapecast.rotation_degrees, shapecast.scale]
-			output += "  Visible: %s | Enabled: %s\n" % [shapecast.visible, shapecast.enabled if shapecast is ShapeCast2D else "N/A"]
+			output += "  Visible: %s | Enabled: %s\n" % [shapecast.visible, shapecast.enabled if shapecast.has_method("set_enabled") else "N/A"]
 			
 			# Parent information
 			if shapecast.get_parent():
@@ -142,9 +142,9 @@ func _analyze_placement_indicators(scene_root: Node) -> String:
 				output += "  Shape: None\n"
 			
 			# Grid building pattern recognition and rule type analysis
-			var name_lower: String = shapecast.name.to_lower()
-			var patterns: Array[String] = []
-			var rule_types: Array[String] = []
+			var name_lower = shapecast.name.to_lower()
+			var patterns = []
+			var rule_types = []
 			
 			if "indicator" in name_lower:
 				patterns.append("Indicator")
@@ -177,9 +177,9 @@ func _analyze_placement_indicators(scene_root: Node) -> String:
 				
 				# Check if node has script and analyze for rule type
 				if shapecast.get_script():
-					var script: Script = shapecast.get_script()
+					var script = shapecast.get_script()
 					if script.resource_path:
-						var script_name: String = script.resource_path.get_file().to_lower()
+						var script_name = script.resource_path.get_file().to_lower()
 						if "overlap" in script_name:
 							rule_types.append("Script: Overlap Rule")
 						elif "distance" in script_name:
@@ -194,13 +194,15 @@ func _analyze_placement_indicators(scene_root: Node) -> String:
 							rule_types.append("Script: Custom Rule")
 				
 				# Check for custom properties that might indicate rule type
-				var rule_type: String = shapecast.get_rule_type()
-				if rule_type:
-					rule_types.append("Property: %s" % rule_type)
+				if shapecast.has_method("get_rule_type"):
+					var rule_type = shapecast.get_rule_type()
+					if rule_type:
+						rule_types.append("Property: %s" % rule_type)
 				
-				var validation_type: String = shapecast.get_validation_type()
-				if validation_type:
-					rule_types.append("Validation: %s" % validation_type)
+				if shapecast.has_method("get_validation_type"):
+					var validation_type = shapecast.get_validation_type()
+					if validation_type:
+						rule_types.append("Validation: %s" % validation_type)
 			
 			if patterns.size() > 0:
 				output += "  Grid Patterns: %s\n" % ", ".join(patterns)
@@ -211,10 +213,10 @@ func _analyze_placement_indicators(scene_root: Node) -> String:
 				output += "  Rule Types: Generic/Unknown\n"
 			
 			# Visual children analysis
-			var visual_children: Array[String] = []
+			var visual_children = []
 			for child in shapecast.get_children():
 				if child is Sprite2D:
-					var info: String = "Sprite2D"
+					var info = "Sprite2D"
 					if child.texture:
 						info += " (texture: %s)" % child.texture.resource_path.get_file()
 					if child.modulate != Color.WHITE:
@@ -223,7 +225,7 @@ func _analyze_placement_indicators(scene_root: Node) -> String:
 						info += " (scale: %s)" % child.scale
 					visual_children.append(info)
 				elif child is AnimatedSprite2D:
-					var info: String = "AnimatedSprite2D"
+					var info = "AnimatedSprite2D"
 					if child.sprite_frames:
 						info += " (%s)" % child.animation
 					visual_children.append(info)
@@ -237,14 +239,14 @@ func _analyze_placement_indicators(scene_root: Node) -> String:
 
 func _analyze_building_objects(scene_root: Node) -> String:
 	"""Analyze building objects and structures."""
-	var output: String = "=== BUILDING OBJECTS ANALYSIS ===\n"
+	var output = "=== BUILDING OBJECTS ANALYSIS ===\n"
 	
 	# Find StaticBody2D nodes (likely buildings)
-	var static_bodies: Array[Node] = _find_all_nodes_of_type(scene_root, "StaticBody2D")
+	var static_bodies = _find_all_nodes_of_type(scene_root, "StaticBody2D")
 	output += "Building objects (StaticBody2D): %d found\n\n" % static_bodies.size()
 	
 	for i in range(static_bodies.size()):
-		var building: Node = static_bodies[i]
+		var building = static_bodies[i]
 		output += "[%d] %s\n" % [i+1, building.name]
 		output += "  Class: %s\n" % building.get_class()
 		output += "  Position: %s (global: %s)\n" % [building.position, building.global_position]
@@ -252,14 +254,14 @@ func _analyze_building_objects(scene_root: Node) -> String:
 		output += "  Collision Layer: %d | Mask: %d\n" % [building.collision_layer, building.collision_mask]
 		
 		# Analyze collision shapes
-		var collision_shapes: Array[String] = []
-		var collision_polygons: Array[String] = []
-		var areas: Array[String] = []
-		var sprites: Array[String] = []
+		var collision_shapes = []
+		var collision_polygons = []
+		var areas = []
+		var sprites = []
 		
 		for child in building.get_children():
 			if child is CollisionShape2D:
-				var shape_info: String = child.shape.get_class() if child.shape else "None"
+				var shape_info = child.shape.get_class() if child.shape else "None"
 				if child.shape is RectangleShape2D:
 					shape_info += " (size: %s)" % child.shape.size
 				elif child.shape is CircleShape2D:
@@ -270,7 +272,7 @@ func _analyze_building_objects(scene_root: Node) -> String:
 			elif child is Area2D:
 				areas.append("%s (%s)" % [child.name, child.get_class()])
 			elif child is Sprite2D:
-				var sprite_info: String = "Sprite2D"
+				var sprite_info = "Sprite2D"
 				if child.texture:
 					sprite_info += " (%s)" % child.texture.resource_path.get_file()
 				sprites.append(sprite_info)
@@ -285,9 +287,9 @@ func _analyze_building_objects(scene_root: Node) -> String:
 			output += "  Sprites: %s\n" % ", ".join(sprites)
 		
 		# Check for grid building specific components
-		var gb_components: Array[String] = []
+		var gb_components = []
 		for child in building.get_children():
-			var child_class: String = child.get_class()
+			var child_class = child.get_class()
 			if "GB" in child_class or "Grid" in child_class or "Building" in child_class:
 				gb_components.append("%s (%s)" % [child.name, child_class])
 		
@@ -300,19 +302,19 @@ func _analyze_building_objects(scene_root: Node) -> String:
 
 func _analyze_tilemaps(scene_root: Node) -> String:
 	"""Analyze TileMapLayer nodes for grid configuration."""
-	var output: String = "=== TILEMAP ANALYSIS ===\n"
+	var output = "=== TILEMAP ANALYSIS ===\n"
 	
-	var tilemaps: Array[Node] = _find_all_nodes_of_type(scene_root, "TileMapLayer")
+	var tilemaps = _find_all_nodes_of_type(scene_root, "TileMapLayer")
 	output += "TileMapLayer nodes: %d found\n\n" % tilemaps.size()
 	
 	for i in range(tilemaps.size()):
-		var tilemap: Node = tilemaps[i]
+		var tilemap = tilemaps[i]
 		output += "[%d] %s\n" % [i+1, tilemap.name]
 		output += "  Position: %s (global: %s)\n" % [tilemap.position, tilemap.global_position]
 		output += "  Enabled: %s | Modulate: %s\n" % [tilemap.enabled, tilemap.modulate]
 		
 		if tilemap.tile_set:
-			var tileset: TileSet = tilemap.tile_set
+			var tileset = tilemap.tile_set
 			output += "  TileSet: %s\n" % tileset.resource_path.get_file()
 			output += "  Tile Shape: %d (%s)\n" % [tileset.tile_shape, _get_tile_shape_name(tileset.tile_shape)]
 			output += "  Tile Layout: %d (%s)\n" % [tileset.tile_layout, _get_tile_layout_name(tileset.tile_layout)]
@@ -320,13 +322,13 @@ func _analyze_tilemaps(scene_root: Node) -> String:
 			output += "  Tile Offset Axis: %d (%s)\n" % [tileset.tile_offset_axis, _get_tile_offset_axis_name(tileset.tile_offset_axis)]
 			
 			# Count used tiles
-			var used_cells: Array[Vector2i] = tilemap.get_used_cells()
+			var used_cells = tilemap.get_used_cells()
 			output += "  Used Cells: %d\n" % used_cells.size()
 			
 			if used_cells.size() > 0:
-				var bounds_min: Vector2i = used_cells[0]
-				var bounds_max: Vector2i = used_cells[0]
-				for cell: Vector2i in used_cells:
+				var bounds_min = used_cells[0]
+				var bounds_max = used_cells[0]
+				for cell in used_cells:
 					bounds_min.x = min(bounds_min.x, cell.x)
 					bounds_min.y = min(bounds_min.y, cell.y)
 					bounds_max.x = max(bounds_max.x, cell.x)
@@ -342,10 +344,10 @@ func _analyze_tilemaps(scene_root: Node) -> String:
 
 func _analyze_system_components(scene_root: Node) -> String:
 	"""Analyze grid building system components."""
-	var output: String = "=== SYSTEM COMPONENTS ANALYSIS ===\n"
+	var output = "=== SYSTEM COMPONENTS ANALYSIS ===\n"
 	
 	# Find system nodes
-	var systems_node: Node = _find_node_by_name(scene_root, "Systems")
+	var systems_node = _find_node_by_name(scene_root, "Systems")
 	if systems_node:
 		output += "✓ Systems node found: %s (%s)\n" % [systems_node.name, systems_node.get_class()]
 		output += "  Child Count: %d\n" % systems_node.get_child_count()
@@ -374,15 +376,15 @@ func _analyze_system_components(scene_root: Node) -> String:
 
 func _analyze_all_node_types(scene_root: Node) -> String:
 	"""Analyze all node types for completeness."""
-	var output: String = "=== ALL NODE TYPES DISTRIBUTION ===\n"
+	var output = "=== ALL NODE TYPES DISTRIBUTION ===\n"
 	
-	var node_counts: Dictionary = {}
+	var node_counts = {}
 	_collect_all_node_types(scene_root, node_counts)
 	
-	var sorted_types: Array = node_counts.keys()
+	var sorted_types = node_counts.keys()
 	sorted_types.sort()
 	
-	for node_type: String in sorted_types:
+	for node_type in sorted_types:
 		output += "  %s: %d\n" % [node_type, node_counts[node_type]]
 	
 	output += "\nTotal nodes: %d\n" % _count_total_nodes(scene_root)
@@ -401,14 +403,14 @@ func _find_all_shapecasts(node: Node) -> Array[Node]:
 
 func _find_grid_building_nodes(node: Node, components: Dictionary) -> void:
 	"""Recursively find grid building nodes by direct class name matching."""
-	var node_class: String = node.get_class()
+	var node_class = node.get_class()
 	
 	# Check for exact grid building class matches
-	var target_classes: Array[String] = ["RuleCheckIndicator", "IndicatorManager", "GridPositioner", 
+	var target_classes = ["RuleCheckIndicator", "IndicatorManager", "GridPositioner", 
 						  "GBInjectorSystem", "BuildingSystem", "GridTargetingSystem", 
 						  "ManipulationSystem"]
 	
-	for target_class: String in target_classes:
+	for target_class in target_classes:
 		if node_class == target_class or node.is_class(target_class):
 			if not target_class in components:
 				components[target_class] = []
@@ -430,13 +432,13 @@ func _find_node_by_name(search_root: Node, target_name: String) -> Node:
 	if search_root.name == target_name:
 		return search_root
 	for child in search_root.get_children():
-		var result: Node = _find_node_by_name(child, target_name)
+		var result = _find_node_by_name(child, target_name)
 		if result:
 			return result
 	return null
 
-func _collect_all_node_types(node: Node, counts: Dictionary) -> void:
-	var node_type: String = node.get_class()
+func _collect_all_node_types(node: Node, counts: Dictionary):
+	var node_type = node.get_class()
 	if node_type in counts:
 		counts[node_type] += 1
 	else:
@@ -445,7 +447,7 @@ func _collect_all_node_types(node: Node, counts: Dictionary) -> void:
 		_collect_all_node_types(child, counts)
 
 func _count_total_nodes(node: Node) -> int:
-	var count: int = 1
+	var count = 1
 	for child in node.get_children():
 		count += _count_total_nodes(child)
 	return count

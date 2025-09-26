@@ -1,0 +1,45 @@
+extends GdUnitTestSuite
+
+func _make_settings(active_when_off:=true, hide_on_handled:=true, mouse_enabled:=true) -> GridTargetingSettings:
+	var s := GridTargetingSettings.new()
+	s.positioner_active_when_off = active_when_off
+	s.hide_on_handled = hide_on_handled
+	s.enable_mouse_input = mouse_enabled
+	return s
+
+func test_off_mode_active_should_be_visible() -> void:
+	var s := _make_settings(true, true, true)
+	var last := GBMouseInputStatus.new(); last.set_from_values(false, GBEnums.MouseGateReason.OK, "OK", Vector2.ZERO, 0, "", Vector2.ZERO)
+	assert_bool(GridPositionerLogic.should_be_visible(GBEnums.Mode.OFF, s, last, false)).is_true()
+	assert_bool(GridPositionerLogic.should_be_visible_for_mode(GBEnums.Mode.OFF, s)).is_true()
+
+func test_off_mode_inactive_should_be_hidden() -> void:
+	var s := _make_settings(false, true, true)
+	var last := GBMouseInputStatus.new(); last.set_from_values(false, GBEnums.MouseGateReason.OK, "OK", Vector2.ZERO, 0, "", Vector2.ZERO)
+	assert_bool(GridPositionerLogic.should_be_visible(GBEnums.Mode.OFF, s, last, false)).is_false()
+	assert_bool(GridPositionerLogic.should_be_visible_for_mode(GBEnums.Mode.OFF, s)).is_false()
+
+func test_mouse_event_gate_allowed_off_active_shows() -> void:
+	var s := _make_settings(true, true, true)
+	var gate := GridPositionerLogic.mouse_input_gate(GBEnums.Mode.OFF, s, true)
+	assert_bool(gate.allowed).is_true()
+	var res: Variant = GridPositionerLogic.visibility_on_mouse_event(GBEnums.Mode.OFF, s, gate)
+	assert_bool(res.apply).is_true()
+	assert_bool(res.visible).is_true()
+	assert_str(res.reason).contains("mouse_event")
+
+func test_mouse_event_gate_blocked_off_inactive_hides() -> void:
+	var s := _make_settings(false, true, true)
+	var gate := GridPositionerLogic.mouse_input_gate(GBEnums.Mode.OFF, s, true)
+	assert_bool(gate.allowed).is_false()
+	assert_int(gate.reason).is_equal(GBEnums.MouseGateReason.MODE_OFF_INACTIVE)
+	var res: Variant = GridPositionerLogic.visibility_on_mouse_event(GBEnums.Mode.OFF, s, gate)
+	assert_bool(res.apply).is_true()
+	assert_bool(res.visible).is_false()
+	assert_str(res.reason).contains("mode_off_inactive")
+
+func test_mouse_event_noop_when_hide_on_handled_false() -> void:
+	var s := _make_settings(true, false, true)
+	var gate := GridPositionerLogic.mouse_input_gate(GBEnums.Mode.MOVE, s, true)
+	var res: Variant = GridPositionerLogic.visibility_on_mouse_event(GBEnums.Mode.MOVE, s, gate)
+	assert_bool(res.apply).is_false()

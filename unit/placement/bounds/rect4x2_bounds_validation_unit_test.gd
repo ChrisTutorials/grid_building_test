@@ -2,6 +2,7 @@
 ## Purpose: Reproduce "Tried placing outside of valid map area" seen in integration
 ## Strategy: Use IndicatorManager + PlacementValidator directly, compute safe tiles from used_rect,
 ## and assert pre-validation succeeds at start tile, with rich diagnostics.
+## TODO: Refractor diagnostics into helpers or GBTestDiagnostics class
 extends GdUnitTestSuite
 
 # Test constants to eliminate magic numbers
@@ -32,6 +33,31 @@ func before_test() -> void:
 	if _targeting_state.target_map == null:
 		_targeting_state.target_map = _map
 	_targeting_state.target = env.placer
+
+	# Ensure test-friendly targeting settings (no auto snapping/restriction side-effects)
+	if _container and _container.config and _container.config.settings and _container.config.settings.targeting:
+		_container.config.settings.targeting.restrict_to_map_area = false
+		_container.config.settings.targeting.limit_to_adjacent = false
+
+	# Ensure any existing placement rules are configured with the test targeting state
+	# Prefer configuring the rule provided by the composition container (single source-of-truth)
+	# instead of creating a duplicate. Call `setup()` so the rules receive the GridTargetingState
+	# and are bound to the correct `TileMapLayer` used by the test environment.
+	var placement_rules: Array[PlacementRule] = _container.get_placement_rules()
+	
+	## Collisions Check Rule + Within Tilemaps Bound Rule
+	assert_int(placement_rules.size()).append_failure_message("[TEST_DEBUG] before_test: placement_rules.size()=%d" % placement_rules.size()).is_equal(2)
+
+	# Diagnostic: assert that all setup rules reference the same map instance as the test _map
+	for i in range(placement_rules.size()):
+		var r2: PlacementRule = placement_rules[i]
+		if r2 == null or not (r2 is PlacementRule):
+			continue
+		if r2.has_method("get_target_map"):
+			var rule_map: TileMapLayer = r2.call("get_target_map") as TileMapLayer
+			print("[TEST_DEBUG] rule[%d] target_map = %s" % [i, str(rule_map)])
+			# If rule exposes the target_map, assert it's the same TileMapLayer instance used by the test
+			assert_bool(rule_map == _map).append_failure_message("PlacementRule at index %d is not bound to the test tilemap (_map)." % i).is_true()
 
 	## Ensure tile map layer meets expectations
 	GBTestConstants.assert_tile_map_size(self, env, 31, 31)
@@ -136,10 +162,17 @@ func test_pre_validation_is_successful_for_rect4x2_start_tile() -> void:
 		"targeting_system.get_state().positioner.global_position=%s" % str(targeting_system.get_state().positioner.global_position)).is_not_null()
 	
 	var _setup_report: PlacementReport = _enter_build_mode_for_placeable(placeable)
-	
+
+	# Guard: Some runtime flows may recenter/snap the positioner on entering build mode (e.g., via input).
+	# For this unit test we explicitly restore the positioner to the intended start tile before validating.
+	_move_positioner_to_tile(start_tile)
+
 	# DEBUG: Check positioner position after build mode
 	var positioner_tile_after: Vector2i = _map.local_to_map(_map.to_local(_positioner.global_position))
 	print("DEBUG after build mode: positioner_tile=%s global_pos=%s" % [positioner_tile_after, _positioner.global_position])
+	assert_bool(positioner_tile_after == start_tile).append_failure_message(
+		"Positioner must be on start_tile after setup; positioner_tile_after=%s start_tile=%s" % [str(positioner_tile_after), str(start_tile)]
+	).is_true()
 	
 	# Act
 	var result: ValidationResults = _validate_placement()
@@ -161,15 +194,42 @@ func test_pre_validation_out_of_bounds_outside_used_rect() -> void:
 	_positioner.global_position = Vector2(0, 0)
 	
 	var ur: Rect2i = _map.get_used_rect()
+	# Compute an outside tile clearly to the left of used rect
 	var outside_tile: Vector2i = Vector2i(ur.position.x - OUTSIDE_OFFSET, ur.position.y)
+
+	# Guard: ensure outside_tile is actually outside used_rect - if not, fail with diagnostic details
+	var is_outside: bool = not ur.has_point(outside_tile)
+	assert_bool(is_outside).append_failure_message(
+		"Computed outside_tile is not outside used_rect - outside_tile=" + str(outside_tile)
+		+ " used_rect=" + str(ur) + ". Adjust OUTSIDE_OFFSET or inspect map setup."
+	).is_true()
+
+	# Move the positioner and capture tiles for diagnostics
+	var positioner_tile_before: Vector2i = _map.local_to_map(_map.to_local(_positioner.global_position))
 	_move_positioner_to_tile(outside_tile)
+	var positioner_tile_after: Vector2i = _map.local_to_map(_map.to_local(_positioner.global_position))
+	print("DEBUG OOB Test: outside_tile=", outside_tile, " used_rect=", ur, " pos_before=", positioner_tile_before, " pos_after=", positioner_tile_after)
 	var placeable: Placeable = PLACEABLE_RECT_4X2
 	var _setup_report: PlacementReport = _enter_build_mode_for_placeable(placeable)
 
 	# Act
 	var result: ValidationResults = _validate_placement()
 
+	# Collect indicator tile positions for additional diagnostics
+	var indicator_positions: Array[String] = _get_indicator_tile_positions_as_strings()
+
 	# Assert: Must fail when obviously outside
-	assert_bool(result.is_successful()).append_failure_message(
-		"Validation should fail when outside used_rect. outside_tile=" + str(outside_tile) + " used_rect=" + str(ur) + " issues=" + str(result.get_issues())
-	).is_false()
+	# Build a human-friendly, multi-line failure message
+	var failure_message_lines: Array[String] = []
+	failure_message_lines.append("Pre-validation failed: expected failure when placement is outside used_rect.")
+	failure_message_lines.append("  outside_tile: " + str(outside_tile))
+	failure_message_lines.append("  used_rect:    " + str(ur) + " (covers tiles from " + str(ur.position) + " to " + str(ur.position + ur.size - Vector2i.ONE) + ")")
+	failure_message_lines.append("  positioner_after_tile: " + str(positioner_tile_after))
+	failure_message_lines.append("  validator_issues: " + str(result.get_issues()))
+	failure_message_lines.append("  indicator_tiles:")
+	for pos_str in indicator_positions:
+		failure_message_lines.append("    - " + pos_str)
+
+	var failure_message: String = "\n" + "\n".join(failure_message_lines) + "\n"
+
+	assert_bool(result.is_successful()).append_failure_message(failure_message).is_false()

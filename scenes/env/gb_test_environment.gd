@@ -5,6 +5,7 @@ extends Node
 @export var injector : GBInjectorSystem
 @export var grid_targeting_system : GridTargetingSystem
 @export var positioner : GridPositioner2D
+@export var targeter : TargetingShapeCast2D
 @export var world : Node2D
 @export var level : Node2D
 @export var level_context : GBLevelContext
@@ -20,7 +21,12 @@ func get_issues() -> Array[String]:
 		issues.append_array(injector.get_runtime_issues())
 
 	if positioner == null:
-		issues.append("Missing Positioner")	
+		issues.append("Missing Positioner")
+		
+	if targeter == null:
+		issues.append("TargeterShapeCast2D missing")
+	elif targeter.shape == null:
+		issues.append("TargeterShapecast2D has no shape attached. This will error and be unable to target anything.")
 
 	if grid_targeting_system == null:
 		issues.append("Missing GridTargetingSystem")

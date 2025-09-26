@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="WithinTilemapBoundsRule" load_steps=2 format=3 uid="uid://dhibadkuuraxd"]
+
+[ext_resource type="Script" uid="uid://s0vakpw0uegl" path="res://addons/grid_building/placement/placement_rules/template_rules/within_tilemap_bounds_rule.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+success_message = "Placement is within map bounds"
+failed_message = "Tried placing outside of valid map area"
+no_indicators_message = "No tile collision indicators to check for within tilemap bounds."
+enable_debug_diagnostics = false
+apply_to_objects_mask = 1
+visual_priority = 0

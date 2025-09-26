@@ -9,9 +9,13 @@
 ## Notes:
 ## - We validate injection by checking the injector meta on the positioner and its runtime issues before sending input.
 ## - Mouse tests only enable mouse input; keyboard tests enable keyboard input and assert discrete tile movements.
+## MIGRATION NOTE: Shapecast logic is covered by dedicated unit tests for TargetingShapeCast2D.
+## Integration tests MUST NOT exercise shapecast internals directly; remove calls to `force_shapecast_update()`
+## or other shapecast APIs from these tests. Use environment-level configuration and input events to drive behavior.
 extends GdUnitTestSuite
 
 var env: CollisionTestEnvironment
+var runner: GdUnitSceneRunner
 
 # Project InputMap bindings used by GridPositioner2D
 const KEY_UP: int = KEY_I
@@ -21,10 +25,16 @@ const KEY_RIGHT: int = KEY_L
 const KEY_CENTER: int = KEY_C
 
 func before_test() -> void:
-	env = UnifiedTestFactory.instance_collision_test_env(self, GBTestConstants.COLLISION_TEST_ENV_UID)
+	# Use a SceneRunner to exercise the real InputMap pipeline
+	# Pass a resource path/UID so the SceneRunner loads the scene internally
+	runner = scene_runner(GBTestConstants.COLLISION_TEST_ENV_UID)
+	# Allow scene to enter tree and _ready to run
+	await runner.simulate_frames(1)
+	env = runner.scene() as CollisionTestEnvironment
 
 func after_test() -> void:
 	env = null
+	runner = null
 
 ## Verify the injector injected the GridPositioner2D and dependencies are resolved
 func test_injector_injects_positioner_and_settings() -> void:
@@ -55,6 +65,26 @@ func test_injector_injects_positioner_and_settings() -> void:
 	var issues: Array[String] = positioner.get_runtime_issues()
 	assert_array(issues).append_failure_message("GridPositioner2D runtime issues must be empty post-injection. Issues: %s" % [str(issues)]).is_empty()
 
+
+## New test: GridPositioner2D should be visible in the scene after injection
+func test_positioner_is_visible_after_injection() -> void:
+	assert_object(env).append_failure_message("Environment should be instantiated").is_not_null()
+	var positioner: GridPositioner2D = env.positioner
+	assert_object(positioner).append_failure_message("GridPositioner2D should exist in the environment").is_not_null()
+
+	# Allow one frame for injection and visibility updates
+	await get_tree().process_frame
+
+	# Check visibility flags and tree visibility
+	var visible_flag: bool = false
+	if "visible" in positioner:
+		visible_flag = positioner.visible
+
+	var visible_in_tree: bool = positioner.is_visible_in_tree()
+
+	assert_bool(visible_flag).append_failure_message("GridPositioner2D.visible flag should be true after injection, got=%s" % [str(visible_flag)]).is_true()
+	assert_bool(visible_in_tree).append_failure_message("GridPositioner2D must be visible in the scene tree after injection").is_true()
+
 ## Ensure prerequisites: target_map assigned, positioner processing, camera current
 func _ensure_target_map_and_processing() -> void:
 	var container: GBCompositionContainer = env.get_container()
@@ -76,11 +106,18 @@ func _ensure_target_map_and_processing() -> void:
 	env.positioner.process_mode = Node.PROCESS_MODE_INHERIT
 	env.positioner.set_process_input(true)
 	env.positioner.set_process_unhandled_input(true)
-	env.positioner.enabled = true
-	# Ensure input processing gate is enabled for tests (some test envs bypass injector lifecycle)
-	if env.positioner.has_method("set_input_processing_enabled"):
-		env.positioner.set_input_processing_enabled(true)
-	env.positioner.force_shapecast_update()
+	# Enable input processing gate explicitly (fail-fast if API missing)
+	env.positioner.set_input_processing_enabled(true)
+	# NOTE: Shapecast behavior is now owned by TargetingShapeCast2D (component).
+	# Per migration policy, integration tests must NOT call shapecast methods directly on
+	# the environment or positioner. Those assertions belong in `TargetingShapeCast2D` unit tests.
+	# Therefore we do not attempt to call `force_shapecast_update()` here.
+
+	# Hard assert: dependencies resolved on the positioner
+	var pos_issues: Array[String] = env.positioner.get_runtime_issues()
+	assert_array(pos_issues).append_failure_message(
+		"Positioner must have no runtime issues before input; dependencies unresolved. Issues: %s" % [str(pos_issues)]
+	).is_empty()
 
 	# Validate positioner runtime dependencies
 	var issues: Array[String] = env.positioner.get_runtime_issues()
@@ -97,6 +134,10 @@ func _ensure_target_map_and_processing() -> void:
 	assert_int(pm).append_failure_message(
 		"GridPositioner2D.process_mode must be active. Got=%d (0=INHERIT, 1=PAUSABLE, 2=WHEN_PAUSED, 3=ALWAYS, 4=DISABLED)" % pm
 	).is_not_equal(Node.PROCESS_MODE_DISABLED)
+
+	# Assert input processing flag is enabled
+	var input_gate_enabled: bool = env.positioner.input_processing_enabled if "input_processing_enabled" in env.positioner else false
+	assert_bool(input_gate_enabled).append_failure_message("GridPositioner2D.input_processing_enabled must be true before sending inputs").is_true()
 
 	# Make sure there is a current camera for screen_to_world projections
 	var vp := env.get_viewport()
@@ -126,43 +167,64 @@ func _ensure_target_map_and_processing() -> void:
 
 	await get_tree().process_frame
 
+## DRY helper: common setup used by many tests (positioner registration, camera ensure)
+func _setup_positioner_and_camera() -> void:
+	# Ensure target map is assigned and positioner processing enabled
+	_ensure_target_map_and_processing()
+	# Ensure a Camera2D is current and viewport projections work
+	var tile_map: TileMapLayer = env.tile_map_layer
+	var vp := tile_map.get_viewport()
+	var cam := vp.get_camera_2d()
+	if cam == null or not cam.is_current():
+		# Synthesize a camera if none exists or not current
+		var cam_node: Camera2D = auto_free(Camera2D.new())
+		cam_node.position = tile_map.global_position
+		tile_map.add_child(cam_node)
+		cam_node.make_current()
+	await get_tree().process_frame
+
 ## Low-level input helpers (avoids SceneRunner parenting focus issues)
-func _emit_mouse_motion(screen_pos: Vector2) -> void:
+func _emit_mouse_motion(screen_pos: Vector2, event_position_override: Variant = null) -> void:
+	# Simulate mouse move via SceneRunner and wait until processed deterministically
+	runner.simulate_mouse_move(screen_pos)
+	# Wait until SceneRunner confirms input was processed; avoids timing races
+	await runner.await_input_processed()
+	# Also send a low-level InputEventMouseMotion to the tile map viewport with a
+	# correctly projected global_position so GridPositioner2D can use event.global_position
+	# (this reproduces the previous direct-node seeding in a viewport-safe way).
+	# Build a mouse motion event with a projected global_position and deliver it
+	# directly to the positioner to seed its cached event world (safe in tests).
+	var map_vp := env.tile_map_layer.get_viewport()
+	var cam := map_vp.get_camera_2d() if map_vp != null else null
 	var ev := InputEventMouseMotion.new()
-	ev.position = screen_pos
-	# Provide global_position for fallback paths
-	ev.global_position = screen_pos
-	# Dispatch globally; rely on normal input flow
-	Input.parse_input_event(ev)
-	await get_tree().physics_frame
+	if event_position_override is Vector2:
+		ev.position = event_position_override
+	else:
+		ev.position = screen_pos
+	ev.global_position = _screen_to_world_safe(map_vp, cam, screen_pos)
+	if is_instance_valid(env) and is_instance_valid(env.positioner):
+		env.positioner._input(ev)
+	# Allow one idle frame for any deferred calls (visibility, recenter) to run
+	await get_tree().process_frame
 
 func _press_and_release_key(keycode: int) -> void:
-	var press := InputEventKey.new()
-	press.pressed = true
-	press.keycode = keycode as Key
-	press.physical_keycode = keycode as Key
-	Input.parse_input_event(press)
-	await get_tree().physics_frame
+	await runner.simulate_key_pressed(keycode)
+	await runner.await_input_processed()
 
 ## Press a mapped action and emit a matching key event in the same frame
-func _press_action_with_key(action: StringName, keycode: int) -> void:
-	Input.action_press(action)
-	var press := InputEventKey.new()
-	press.pressed = true
-	press.keycode = keycode as Key
-	press.physical_keycode = keycode as Key
-	Input.parse_input_event(press)
-	await get_tree().physics_frame
+func _press_action_with_key(_action: StringName, keycode: int) -> void:
+	# Ensure the action is mapped to this key beforehand via _ensure_action_key
+	# IMPORTANT: Use only the SceneRunner to avoid double-processing the same input
+	# which would result in two tile moves per press.
+	runner.simulate_key_press(keycode)
+	await runner.await_input_processed()
+	await get_tree().process_frame
 
 ## Release an action and emit key release event
-func _release_action_with_key(action: StringName, keycode: int) -> void:
-	var key_release := InputEventKey.new()
-	key_release.pressed = false
-	key_release.keycode = keycode as Key
-	key_release.physical_keycode = keycode as Key
-	Input.parse_input_event(key_release)
-	Input.action_release(action)
-	await get_tree().physics_frame
+func _release_action_with_key(_action: StringName, keycode: int) -> void:
+	runner.simulate_key_release(keycode)
+	await runner.await_input_processed()
+	await get_tree().process_frame
 
 ## Ensure an InputMap action exists and is mapped to the given keycode
 func _ensure_action_key(action_name: StringName, keycode: int) -> void:
@@ -186,26 +248,21 @@ func _assert_at_tile(tile_map: TileMapLayer, positioner: Node2D, expected_tile: 
 	if tile_map != null:
 		actual_tile = tile_map.local_to_map(tile_map.to_local(actual_global))
 
-	# Gather runtime diagnostics (best-effort)
+	# Gather runtime diagnostics (fail-fast on missing APIs)
 	var pos_enabled: bool = false
-	var input_enabled: bool = false
-	var pmode: int = -1
-	var runtime_issues: Array = []
-	if is_instance_valid(positioner):
-		if "enabled" in positioner:
-			pos_enabled = positioner.enabled
-		if "input_processing_enabled" in positioner:
-			input_enabled = positioner.input_processing_enabled
-		if "process_mode" in positioner:
-			pmode = positioner.process_mode
-		if positioner.has_method("get_runtime_issues"):
-			runtime_issues = positioner.get_runtime_issues()
+	if positioner.has_method("is_input_processing_enabled"):
+		pos_enabled = positioner.is_input_processing_enabled()
+	elif "enabled" in positioner:
+		pos_enabled = positioner.enabled
+	var input_enabled: bool = positioner.input_processing_enabled if "input_processing_enabled" in positioner else pos_enabled
+	var pmode: int = positioner.process_mode
+	var runtime_issues: Array = positioner.get_runtime_issues()
 
 	var vp: Viewport = null
 	var cam: Camera2D = null
 	if tile_map != null:
 		vp = tile_map.get_viewport()
-		if vp != null and vp.has_method("get_camera_2d"):
+		if vp != null:
 			cam = vp.get_camera_2d()
 
 	var msg := "%s → Expected global=%s (tile=%s), got global=%s (tile=%s)\n" % [label, str(expected_global), str(expected_tile), str(actual_global), str(actual_tile)]
@@ -213,21 +270,17 @@ func _assert_at_tile(tile_map: TileMapLayer, positioner: Node2D, expected_tile: 
 	msg += "  runtime_issues=%s\n" % [str(runtime_issues)]
 	msg += "  viewport=%s camera=%s\n" % [str(vp), str(cam)]
 
-	assert_vector(actual_global).append_failure_message(msg).is_equal_approx(expected_global, Vector2.ONE)
+	var diag := GBDiagnostics.format_debug(msg, "GridPositionerInput", get_script().resource_path)
+	assert_vector(actual_global).append_failure_message(diag).is_equal_approx(expected_global, Vector2.ONE)
 
 ## Helper: robust screen->world projection that tolerates Camera2D API variants
 func _screen_to_world_safe(vp: Viewport, cam: Camera2D, screen_pos: Vector2) -> Vector2:
-	if cam != null:
-		if cam.has_method("screen_to_world"):
-			return cam.screen_to_world(screen_pos)
-		if cam.has_method("unproject_position"):
-			return cam.unproject_position(screen_pos)
-		# Fallback: try camera global transform inverse
-		if cam is Camera2D:
-			var xform := cam.get_global_transform().affine_inverse()
-			return xform * screen_pos
-	# As final fallback, use the viewport canvas transform inverse
-	if vp != null and vp.has_method("get_canvas_transform"):
+	# Use centralized camera utils to abstract API differences
+	var dict := GBCameraUtils.project_screen_to_world(cam, vp, screen_pos)
+	if dict.has("world"):
+		return dict.world
+	# Fallback: as a last resort, use viewport canvas transform inverse
+	if vp != null:
 		var ct := vp.get_canvas_transform()
 		return ct.affine_inverse() * screen_pos
 	return screen_pos
@@ -239,11 +292,14 @@ func test_positioner_moves_on_mouse_motion_scene_runner() -> void:
 	assert_that(positioner).is_not_null()
 	assert_that(tile_map).is_not_null()
 
-	await _ensure_target_map_and_processing()
+	await _setup_positioner_and_camera()
 
 	# Ensure mouse input enabled in settings
 	var container: GBCompositionContainer = env.get_container()
 	container.config.settings.targeting.enable_mouse_input = true
+	# Allow free movement to the hovered tile for this test
+	container.config.settings.targeting.restrict_to_map_area = false
+	container.config.settings.targeting.limit_to_adjacent = false
 	positioner.global_position = Vector2.ZERO
 	await get_tree().process_frame
 
@@ -252,7 +308,14 @@ func test_positioner_moves_on_mouse_motion_scene_runner() -> void:
 	await _emit_mouse_motion(screen_target)
 
 	# Compute expected by projecting screen->world via camera, then to map and back
-	var cam := tile_map.get_viewport().get_camera_2d()
+	var map_vp := tile_map.get_viewport()
+	var cam := map_vp.get_camera_2d()
+	var map_vp_mouse: Variant = null
+	if map_vp != null:
+		map_vp_mouse = map_vp.get_mouse_position()
+	var map_global_mouse: Variant = null
+	if tile_map != null:
+		map_global_mouse = tile_map.get_global_mouse_position()
 	var world_point: Vector2 = _screen_to_world_safe(tile_map.get_viewport(), cam, screen_target)
 	var expected_tile: Vector2i = tile_map.local_to_map(tile_map.to_local(world_point))
 	var expected_global: Vector2 = tile_map.to_global(tile_map.map_to_local(expected_tile))
@@ -268,23 +331,70 @@ func test_positioner_moves_on_mouse_motion_scene_runner() -> void:
 		+ "  process_mode=%d\n" % [env.positioner.process_mode] \
 		+ "  target_map=%s\n" % [str(gts.target_map)] \
 		+ "  event_screen=%s world=%s -> expected_tile=%s expected_global=%s\n" % [str(screen_target), str(world_point), str(expected_tile), str(expected_global)] \
+		+ "  viewport_mouse=%s map_global_mouse=%s\n" % [str(map_vp_mouse), str(map_global_mouse)] \
 		+ "  actual_global=%s actual_tile=%s\n" % [str(positioner.global_position), str(tile_map.local_to_map(tile_map.to_local(positioner.global_position)))] \
 		+ "  actions_pressed: up=%s down=%s left=%s right=%s\n" % [str(is_up), str(is_down), str(is_left), str(is_right)]
+	var mdiag := GBDiagnostics.format_debug("GridPositioner2D did not update on mouse move.\n" + diag, "GridPositionerInput", get_script().resource_path)
+	assert_vector(positioner.global_position).append_failure_message(mdiag).is_equal_approx(expected_global, Vector2.ONE)
 
-	assert_vector(positioner.global_position).append_failure_message(
-		"GridPositioner2D did not update on mouse move.\n" + diag
-	).is_equal_approx(expected_global, Vector2.ONE)
+func test_mouse_motion_prefers_viewport_position_when_event_differs() -> void:
+	# Arrange
+	var positioner: GridPositioner2D = env.positioner
+	var tile_map: TileMapLayer = env.tile_map_layer
+	assert_that(positioner).is_not_null()
+	assert_that(tile_map).is_not_null()
+
+	await _setup_positioner_and_camera()
+
+	var container: GBCompositionContainer = env.get_container()
+	container.config.settings.targeting.enable_mouse_input = true
+	container.config.settings.targeting.restrict_to_map_area = false
+	container.config.settings.targeting.limit_to_adjacent = false
+
+	positioner.global_position = Vector2.ZERO
+	await get_tree().process_frame
+
+	# Act: deliver mouse motion where event.position differs from viewport mouse
+	var screen_target := Vector2(208, 176)
+	var faulty_event_screen := Vector2.ZERO
+	await _emit_mouse_motion(screen_target, faulty_event_screen)
+
+	# Expected world from the actual viewport mouse position
+	var vp := tile_map.get_viewport()
+	var cam := vp.get_camera_2d()
+	var vp_mouse: Variant = null
+	if vp != null:
+		vp_mouse = vp.get_mouse_position()
+	var map_mouse_world: Variant = null
+	if tile_map != null:
+		map_mouse_world = tile_map.get_global_mouse_position()
+	var world_point: Vector2 = _screen_to_world_safe(vp, cam, screen_target)
+	var expected_tile: Vector2i = tile_map.local_to_map(tile_map.to_local(world_point))
+	var expected_global: Vector2 = tile_map.to_global(tile_map.map_to_local(expected_tile))
+
+	var diag := "Viewport projection should win when InputEventMouseMotion.position is stale.\n" \
+		+ "  viewport_mouse=%s\n" % [str(screen_target)] \
+		+ "  viewport_state_mouse=%s map_global_mouse=%s\n" % [str(vp_mouse), str(map_mouse_world)] \
+		+ "  event_override=%s\n" % [str(faulty_event_screen)] \
+		+ "  expected_tile=%s expected_global=%s\n" % [str(expected_tile), str(expected_global)] \
+		+ "  actual_global=%s actual_tile=%s\n" % [str(positioner.global_position), str(tile_map.local_to_map(tile_map.to_local(positioner.global_position)))]
+	var formatted := GBDiagnostics.format_debug(diag, "GridPositionerInput", get_script().resource_path)
+	assert_vector(positioner.global_position).append_failure_message(formatted).is_equal_approx(expected_global, Vector2.ONE)
 
 func test_keyboard_moves_and_recenter() -> void:
 	# Arrange: enable keyboard input and move to a known tile
 	var container: GBCompositionContainer = env.get_container()
 	var actions: GBActions = container.get_actions()
 	container.config.settings.targeting.enable_keyboard_input = true
+	container.config.settings.targeting.enable_mouse_input = true
+	# Allow discrete movement independent of region restrictions in this test
+	container.config.settings.targeting.restrict_to_map_area = false
+	container.config.settings.targeting.limit_to_adjacent = false
 
 	var positioner: GridPositioner2D = env.positioner
 	var tile_map: TileMapLayer = env.tile_map_layer
 
-	await _ensure_target_map_and_processing()
+	await _setup_positioner_and_camera()
 
 
 	# Start at a known tile index
@@ -324,24 +434,249 @@ func test_keyboard_moves_and_recenter() -> void:
 	await _release_action_with_key(actions.positioner_right, KEY_RIGHT)
 	_assert_at_tile(tile_map, positioner, right_expected, "Keyboard right")
 
-	# Act + Assert: Recenter to camera/viewport center tile
+	# Act + Assert: Recenter to the current cursor tile (seed mouse first)
 	var vp := tile_map.get_viewport()
 	var cam := vp.get_camera_2d()
-	var screen_center: Vector2 = vp.get_visible_rect().size / 2.0
-	var world_center: Vector2 = _screen_to_world_safe(vp, cam, screen_center)
-	var center_tile: Vector2i = tile_map.local_to_map(tile_map.to_local(world_center))
-	var center_global: Vector2 = tile_map.to_global(tile_map.map_to_local(center_tile))
+	var recenter_screen := Vector2(224, 176)
+	await _emit_mouse_motion(recenter_screen)
+	var cursor_world: Vector2 = _screen_to_world_safe(vp, cam, recenter_screen)
+	var cursor_tile: Vector2i = tile_map.local_to_map(tile_map.to_local(cursor_world))
+	var cursor_global: Vector2 = tile_map.to_global(tile_map.map_to_local(cursor_tile))
 
-	# Recenter via key bound to the recenter action
+	# Recenter via key bound to the recenter action (should snap to cursor tile)
 	await _press_action_with_key(actions.positioner_recenter, KEY_CENTER)
 	await _release_action_with_key(actions.positioner_recenter, KEY_CENTER)
 
 	var pressed_recenter := Input.is_action_pressed(actions.positioner_recenter) if actions else false
 	var kdiag := "Recenter diagnostics:\n" \
 		+ "  process_mode=%d\n" % [env.positioner.process_mode] \
-		+ "  screen_center=%s world_center=%s center_tile=%s\n" % [str(screen_center), str(world_center), str(center_tile)] \
-		+ "  expected_global=%s actual_global=%s\n" % [str(center_global), str(positioner.global_position)] \
+		+ "  recenter_screen=%s cursor_world=%s cursor_tile=%s\n" % [str(recenter_screen), str(cursor_world), str(cursor_tile)] \
+		+ "  expected_global=%s actual_global=%s\n" % [str(cursor_global), str(positioner.global_position)] \
 		+ "  recenter_action_pressed=%s\n" % [str(pressed_recenter)]
-	assert_vector(positioner.global_position).append_failure_message(
-		"Keyboard recenter failed.\n" + kdiag
-	).is_equal_approx(center_global, Vector2.ONE)
+	var rdiag := GBDiagnostics.format_debug("Keyboard recenter failed.\n" + kdiag, "GridPositionerInput", get_script().resource_path)
+	assert_vector(positioner.global_position).append_failure_message(rdiag).is_equal_approx(cursor_global, Vector2.ONE)
+
+## New: When movement is enabled again, recenter to mouse position if mouse enabled
+func test_recenter_on_enable_prefers_mouse_when_enabled() -> void:
+	var positioner: GridPositioner2D = env.positioner
+	var tile_map: TileMapLayer = env.tile_map_layer
+	await _setup_positioner_and_camera()
+
+	var container: GBCompositionContainer = env.get_container()
+	var settings := container.config.settings.targeting
+	settings.enable_mouse_input = true
+	settings.enable_keyboard_input = false
+	settings.position_on_enable_policy = GridTargetingSettings.RecenterOnEnablePolicy.MOUSE_CURSOR
+
+	# Move the mouse to a known screen position and deliver event to cache world
+	var screen_target := Vector2(128, 128)
+	await _emit_mouse_motion(screen_target)
+
+	# Disable and then re-enable input processing to trigger recenter
+	positioner.set_input_processing_enabled(false)
+	await get_tree().process_frame
+	positioner.set_input_processing_enabled(true)
+	await get_tree().process_frame
+
+	# Expected: snapped to the tile under the screen_target projection
+	var cam := tile_map.get_viewport().get_camera_2d()
+	var world_point: Vector2 = _screen_to_world_safe(tile_map.get_viewport(), cam, screen_target)
+	var expected_tile: Vector2i = tile_map.local_to_map(tile_map.to_local(world_point))
+	_assert_at_tile(tile_map, positioner, expected_tile, "Recenter on enable (mouse)")
+
+## New: When only keyboard is enabled, recenter to screen center on enable
+func test_recenter_on_enable_keyboard_only_to_view_center() -> void:
+	var positioner: GridPositioner2D = env.positioner
+	var tile_map: TileMapLayer = env.tile_map_layer
+	await _ensure_target_map_and_processing()
+
+	var container: GBCompositionContainer = env.get_container()
+	var settings := container.config.settings.targeting
+	settings.enable_mouse_input = false
+	settings.enable_keyboard_input = true
+	settings.position_on_enable_policy = GridTargetingSettings.RecenterOnEnablePolicy.VIEW_CENTER
+
+	# Place positioner away from center
+	positioner.global_position = tile_map.to_global(tile_map.map_to_local(Vector2i(1,1)))
+	await get_tree().process_frame
+
+	positioner.set_input_processing_enabled(false)
+	await get_tree().process_frame
+	positioner.set_input_processing_enabled(true)
+	await get_tree().process_frame
+
+	var vp := tile_map.get_viewport()
+	var cam := vp.get_camera_2d()
+	var screen_center: Vector2 = vp.get_visible_rect().size / 2.0
+	var world_center: Vector2 = _screen_to_world_safe(vp, cam, screen_center)
+	var expected_tile: Vector2i = tile_map.local_to_map(tile_map.to_local(world_center))
+	_assert_at_tile(tile_map, positioner, expected_tile, "Recenter on enable (keyboard center)")
+
+## New: When use_cached_location_on_enable is true, prefer last cached location
+func test_recenter_on_enable_prefers_cached_when_option_true() -> void:
+	var positioner: GridPositioner2D = env.positioner
+	var tile_map: TileMapLayer = env.tile_map_layer
+	await _ensure_target_map_and_processing()
+
+	var container: GBCompositionContainer = env.get_container()
+	var settings := container.config.settings.targeting
+	# We'll temporarily enable mouse to seed the cached world position, then disable it
+	settings.enable_mouse_input = true
+	settings.enable_keyboard_input = true
+	settings.position_on_enable_policy = GridTargetingSettings.RecenterOnEnablePolicy.LAST_SHOWN
+
+	# Seed a cached location by sending a mouse motion event once
+	var seed_screen := Vector2(96, 96)
+	await _emit_mouse_motion(seed_screen)
+	# Now disable mouse input to verify cached preference is used even without mouse
+	settings.enable_mouse_input = false
+
+	# Move the positioner somewhere else
+	positioner.global_position = tile_map.to_global(tile_map.map_to_local(Vector2i(0,0)))
+	await get_tree().process_frame
+
+	# Disable and re-enable to trigger recenter; should snap back to cached location tile
+	positioner.set_input_processing_enabled(false)
+	await get_tree().process_frame
+	positioner.set_input_processing_enabled(true)
+	await get_tree().process_frame
+
+	var cam := tile_map.get_viewport().get_camera_2d()
+	var cached_world: Vector2 = _screen_to_world_safe(tile_map.get_viewport(), cam, seed_screen)
+	var expected_tile: Vector2i = tile_map.local_to_map(tile_map.to_local(cached_world))
+	_assert_at_tile(tile_map, positioner, expected_tile, "Recenter on enable (cached)")
+
+## Combined input: when both mouse and keyboard are enabled, and no mouse cache exists yet,
+## a keyboard press should move relative to the current tile; once a mouse motion occurs,
+## the positioner should snap to the mouse tile as normal (all movements are tile-snapped).
+func test_combined_keyboard_then_mouse_moves() -> void:
+	# Arrange
+	var positioner: GridPositioner2D = env.positioner
+	var tile_map: TileMapLayer = env.tile_map_layer
+	assert_that(positioner).is_not_null()
+	assert_that(tile_map).is_not_null()
+
+	await _ensure_target_map_and_processing()
+
+	var container: GBCompositionContainer = env.get_container()
+	var actions: GBActions = container.get_actions()
+	container.config.settings.targeting.enable_mouse_input = true
+	container.config.settings.targeting.enable_keyboard_input = true
+	container.config.settings.targeting.restrict_to_map_area = false
+	container.config.settings.targeting.limit_to_adjacent = false
+	# Ensure continuous mouse follow even if mode is OFF in this test environment
+	container.config.settings.targeting.positioner_active_when_off = true
+
+	# Start from a known tile; avoid seeding mouse cache so keyboard move is observable
+	var start_tile: Vector2i = Vector2i(3, 3)
+	positioner.global_position = tile_map.to_global(tile_map.map_to_local(start_tile))
+	await get_tree().process_frame
+
+	# Ensure key bindings
+	_ensure_action_key(actions.positioner_right, KEY_RIGHT)
+
+	# Act 1: keyboard move right by one tile (no mouse cache yet)
+	var expected_after_keyboard: Vector2i = start_tile + Vector2i(1, 0)
+	await _press_action_with_key(actions.positioner_right, KEY_RIGHT)
+	await _release_action_with_key(actions.positioner_right, KEY_RIGHT)
+	_assert_at_tile(tile_map, positioner, expected_after_keyboard, "Combined input: keyboard step")
+
+	# Act 2: now move mouse to screen position; positioner should snap to that tile
+	var screen_target := Vector2(200, 140)
+	await _emit_mouse_motion(screen_target)
+	var cam := tile_map.get_viewport().get_camera_2d()
+	var world_point: Vector2 = _screen_to_world_safe(tile_map.get_viewport(), cam, screen_target)
+	var expected_mouse_tile: Vector2i = tile_map.local_to_map(tile_map.to_local(world_point))
+	_assert_at_tile(tile_map, positioner, expected_mouse_tile, "Combined input: mouse snap")
+
+## Combined input precedence: when both are enabled and a mouse world cache exists,
+## a keyboard press should not persistently override the mouse-follow position; after a subsequent
+## mouse motion event, the positioner remains snapped to the last mouse tile (event-driven model).
+func test_combined_mouse_cached_then_keyboard_does_not_override_follow() -> void:
+	# Arrange
+	var positioner: GridPositioner2D = env.positioner
+	var tile_map: TileMapLayer = env.tile_map_layer
+	await _ensure_target_map_and_processing()
+
+	var container: GBCompositionContainer = env.get_container()
+	var actions: GBActions = container.get_actions()
+	container.config.settings.targeting.enable_mouse_input = true
+	container.config.settings.targeting.enable_keyboard_input = true
+	container.config.settings.targeting.restrict_to_map_area = false
+	container.config.settings.targeting.limit_to_adjacent = false
+	# Ensure continuous mouse follow even if mode is OFF in this test environment
+	container.config.settings.targeting.positioner_active_when_off = true
+
+	# Seed mouse cache and place positioner by emitting a mouse motion
+	var seed_screen := Vector2(180, 180)
+	await _emit_mouse_motion(seed_screen)
+	var cam := tile_map.get_viewport().get_camera_2d()
+	var seed_world: Vector2 = _screen_to_world_safe(tile_map.get_viewport(), cam, seed_screen)
+	var mouse_tile: Vector2i = tile_map.local_to_map(tile_map.to_local(seed_world))
+	_assert_at_tile(tile_map, positioner, mouse_tile, "Combined input: initial mouse placement")
+
+	# Ensure key binding and press a keyboard move; with event-driven follow, we must emit
+	# a subsequent mouse motion to reassert the mouse tile after the keyboard step.
+	_ensure_action_key(actions.positioner_up, KEY_UP)
+	await _press_action_with_key(actions.positioner_up, KEY_UP)
+	await _release_action_with_key(actions.positioner_up, KEY_UP)
+	# Re-emit the same mouse position to reassert follow under event-driven input
+	await _emit_mouse_motion(seed_screen)
+	_assert_at_tile(tile_map, positioner, mouse_tile, "Combined input: mouse follow wins after keyboard")
+
+## Comprehensive movement debug: verify event-driven movement, visual visibility, and last mouse input status
+## This test intentionally relies only on InputEventMouseMotion delivery and never on physics-process follow.
+func test_movement_debug_event_driven_and_visual_visible() -> void:
+	# Arrange
+	var positioner: GridPositioner2D = env.positioner
+	var tile_map: TileMapLayer = env.tile_map_layer
+	assert_that(positioner).is_not_null()
+	assert_that(tile_map).is_not_null()
+
+	await _ensure_target_map_and_processing()
+
+	var container: GBCompositionContainer = env.get_container()
+	var settings := container.config.settings.targeting
+	settings.enable_mouse_input = true
+	settings.enable_keyboard_input = false
+	settings.restrict_to_map_area = false
+	settings.limit_to_adjacent = false
+
+	# Ensure any visual under the positioner is visible (scene template should attach one)
+	# This is a best-effort check using the runtime helper API
+	var visual_node := positioner.get_visual_node() if positioner.has_method("get_visual_node") else null
+
+	# Act: move to three different screen points, asserting each settles by event
+	var points := [Vector2(120, 120), Vector2(200, 160), Vector2(260, 220)]
+	for screen_pt: Vector2 in points:
+		await _emit_mouse_motion(screen_pt)
+		var vp := tile_map.get_viewport()
+		var cam := vp.get_camera_2d()
+		var w := _screen_to_world_safe(vp, cam, screen_pt)
+		var tile := tile_map.local_to_map(tile_map.to_local(w))
+		var expected_global := tile_map.to_global(tile_map.map_to_local(tile))
+
+		# Assert the positioner moved by handling the input event (not physics)
+		var move_diag := "Movement Debug\n" \
+			+ "  screen=\"%s\" world=\"%s\" tile=\"%s\" expected_global=\"%s\"\n" % [str(screen_pt), str(w), str(tile), str(expected_global)] \
+			+ "  actual_global=\"%s\"\n" % [str(positioner.global_position)]
+		var formatted := GBDiagnostics.format_debug(move_diag, "GridPositionerInput", get_script().resource_path)
+		assert_vector(positioner.global_position).append_failure_message(formatted).is_equal_approx(expected_global, Vector2.ONE)
+
+		# Assert we recorded a last mouse input status indicating the event was handled (best-effort)
+		var status: Dictionary = {}
+		if "get_last_mouse_input_status" in positioner:
+			status = positioner.get_last_mouse_input_status()
+		if status.size() > 0:
+			var status_diag := "Last mouse status: %s" % [str(status)]
+			var sformatted := GBDiagnostics.format_debug(status_diag, "GridPositionerInput", get_script().resource_path)
+			assert_bool(status.get("allowed", false)).append_failure_message(sformatted).is_true()
+			# If provided, ensure method and screen match expectations best-effort
+			if status.has("screen"):
+				assert_vector(status.screen).append_failure_message("last status screen mismatch").is_equal_approx(screen_pt, Vector2.ONE)
+
+		# Visual node should be visible when mouse_handled toggles allow visibility (best-effort)
+		if visual_node != null:
+			var vis_diag := "Visual node visibility: %s (%s)" % [str(visual_node.visible), visual_node.get_class()]
+			var vformatted := GBDiagnostics.format_debug(vis_diag, "GridPositionerInput", get_script().resource_path)
+			assert_bool(visual_node.visible).append_failure_message(vformatted).is_true()

@@ -223,17 +223,9 @@ static func create_manipulation_system(test_instance: Node) -> ManipulationSyste
 ## Delegate: Create grid positioner
 ## @deprecated: Use GridPositioner2D.new() directly with proper shape assignment
 static func create_grid_positioner(_test: GdUnitTestSuite) -> GridPositioner2D:
-	# DIRECT: Simple custom component - create directly
 	var positioner: GridPositioner2D = GridPositioner2D.new()
-	
-	# Assign default shape BEFORE adding to scene tree to prevent "Invalid shape" errors in _ready()
-	var default_shape: RectangleShape2D = RectangleShape2D.new()
-	default_shape.size = Vector2(16, 16)  # Default tile size
-	positioner.shape = default_shape
-	
 	_test.add_child(positioner)
 	_test.auto_free(positioner)
-	
 	return positioner
 
 ## Delegate: Create tile map layer parented to p_parent

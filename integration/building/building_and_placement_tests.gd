@@ -58,6 +58,21 @@ const BLOCKING_BODY_MASK: int = 0   # Don't detect anything itself
 
 const TEST_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
 
+#region DIAGNOSTICS HELPERS
+
+const DIAG_SUITE: String = "BuildingAndPlacementTests"
+
+func _format_debug(msg: String) -> String:
+	# Wrap a single-line message with standardized diagnostics format
+	return GBDiagnostics.format_debug(msg, DIAG_SUITE, get_script().resource_path)
+
+func _format_debug_lines(title: String, lines: Array[String]) -> String:
+	# Build a multi-line message then wrap it via diagnostics helper
+	var body := (title + "\n  • " + "\n  • ".join(lines)) if not lines.is_empty() else title
+	return GBDiagnostics.format_debug(body, DIAG_SUITE, get_script().resource_path)
+
+#endregion
+
 var placement_validator: PlacementValidator
 var logger: GBLogger
 var gb_owner: GBOwner
@@ -170,19 +185,157 @@ func _enter_build_mode_for_rect_4x2_and_start_drag() -> Dictionary:
 	return result
 
 func _assert_build_attempted(context: String = "") -> void:
-	assert_int(_build_success_count + _build_failed_count).append_failure_message(
-		"Expected at least one build attempt " + context + ". success=" + str(_build_success_count) + " failed=" + str(_build_failed_count)
-	).is_greater(0)
+	var msg := "Expected at least one build attempt %s. success=%d failed=%d" % [context, _build_success_count, _build_failed_count]
+	assert_int(_build_success_count + _build_failed_count).append_failure_message(_format_debug(msg)).is_greater(0)
 
 func _expect_placements(expected: int, context: String = "") -> void:
 	var ctx: String = (" (" + context + ")" if context != "" else "")
 	var issues_str: String = str(_last_build_report.get_issues()) if _last_build_report != null else "[]"
-	var msg: String = "Expected " + str(expected) + " placements" + ctx + "; got " + str(_placed_positions.size()) + ". success=" + str(_build_success_count) + " failed=" + str(_build_failed_count) + " issues=" + issues_str + " positions=" + str(_placed_positions)
-	assert_int(_placed_positions.size()).append_failure_message(msg).is_equal(expected)
+	var msg: String = "Expected %d placements%s; got %d. success=%d failed=%d issues=%s positions=%s" % [
+		expected, ctx, _placed_positions.size(), _build_success_count, _build_failed_count, issues_str, str(_placed_positions)
+	]
+	assert_int(_placed_positions.size()).append_failure_message(_format_debug(msg)).is_equal(expected)
 
 func _doc_tile_coverage(tile: Vector2i) -> String:
 	# For RECT_4X2: approx covers [x-2..x+1] x [y-1..y]
 	return "tile " + str(tile) + " covers approx (" + str(tile.x-2) + "," + str(tile.y-1) + ") to (" + str(tile.x+1) + "," + str(tile.y) + ")"
+
+## Finds a safe tile inside the map whose 4x2 coverage (x-2..x+1, y-1..y) has TileData.
+## Scans from map center outward to avoid edges and sparse areas.
+func _find_safe_center_tile_for_rect_4x2() -> Vector2i:
+	assert_object(_map).append_failure_message("TileMapLayer missing for safe-tile search").is_not_null()
+
+	var ur: Rect2i = _map.get_used_rect()
+	var map_min_x: int = ur.position.x
+	var map_min_y: int = ur.position.y
+	var map_max_x: int = ur.position.x + ur.size.x - 1
+	var map_max_y: int = ur.position.y + ur.size.y - 1
+
+	# Candidate ranges which guarantee coverage stays within overall map bounds
+	# For x-coverage [x-2 .. x+1], ensure x in [min+2 .. max-1]
+	var min_x: int = map_min_x + 2
+	var max_x: int = map_max_x - 1
+	# For y-coverage [y-1 .. y], ensure y in [min+1 .. max]
+	var min_y: int = map_min_y + 1
+	var max_y: int = map_max_y
+
+	# Fallback if bounds are too tight (tiny maps)
+	if min_x > max_x:
+		min_x = map_min_x
+		max_x = map_max_x
+	if min_y > max_y:
+		min_y = map_min_y
+		max_y = map_max_y
+
+	# Build center-out sequences for x and y
+	var cx: int = int(floor((map_min_x + map_max_x) / 2.0))
+	var cy: int = int(floor((map_min_y + map_max_y) / 2.0))
+
+	var x_candidates: Array[int] = []
+	var y_candidates: Array[int] = []
+	# Generate symmetrical offsets
+	var max_span_x: int = max(abs(max_x - cx), abs(cx - min_x))
+	var max_span_y: int = max(abs(max_y - cy), abs(cy - min_y))
+	for dx in range(0, max_span_x + 1):
+		var right_x: int = cx + dx
+		var left_x: int = cx - dx
+		if right_x >= min_x and right_x <= max_x:
+			x_candidates.append(right_x)
+		if dx != 0 and left_x >= min_x and left_x <= max_x:
+			x_candidates.append(left_x)
+	for dy in range(0, max_span_y + 1):
+		var down_y: int = cy + dy
+		var up_y: int = cy - dy
+		if down_y >= min_y and down_y <= max_y:
+			y_candidates.append(down_y)
+		if dy != 0 and up_y >= min_y and up_y <= max_y:
+			y_candidates.append(up_y)
+
+	# Helper to test 4x2 coverage tile data
+	var _coverage_has_data := func(x: int, y: int) -> bool:
+		var all_ok: bool = true
+		for ox in range(-2, 2): # -2, -1, 0, 1
+			var cell: Vector2i = Vector2i(x + ox, y)
+			var td: TileData = _map.get_cell_tile_data(cell)
+			if td == null:
+				all_ok = false
+				break
+		if not all_ok:
+			return false
+		# second row (y-1)
+		for ox in range(-2, 2):
+			var cell2: Vector2i = Vector2i(x + ox, y - 1)
+			var td2: TileData = _map.get_cell_tile_data(cell2)
+			if td2 == null:
+				return false
+		return true
+
+	# Scan center-out for a fully covered candidate
+	for y in y_candidates:
+		for x in x_candidates:
+			if _coverage_has_data.call(x, y):
+				return Vector2i(x, y)
+
+	# Fallback: return a clamped center tile (may still fail but stays in-bounds)
+	var fx: int = clamp(cx, min_x, max_x)
+	var fy: int = clamp(cy, min_y, max_y)
+	return Vector2i(fx, fy)
+
+## After drag has started and indicators are configured, find a start tile that passes validate_placement().
+## Scans center-out across safe bounds and returns the first passing tile; falls back to current position if none.
+func _find_prevalidated_start_tile_for_rect_4x2() -> Vector2i:
+	assert_object(_indicator_manager).append_failure_message("IndicatorManager missing for prevalidated search").is_not_null()
+	var ur: Rect2i = _map.get_used_rect()
+	var map_min_x: int = ur.position.x
+	var map_min_y: int = ur.position.y
+	var map_max_x: int = ur.position.x + ur.size.x - 1
+	var map_max_y: int = ur.position.y + ur.size.y - 1
+
+	# Maintain bounds that keep 4x2 coverage in-range
+	var min_x: int = map_min_x + 2
+	var max_x: int = map_max_x - 1
+	var min_y: int = map_min_y + 1
+	var max_y: int = map_max_y
+	if min_x > max_x:
+		min_x = map_min_x
+		max_x = map_max_x
+	if min_y > max_y:
+		min_y = map_min_y
+		max_y = map_max_y
+
+	var cx: int = int(floor((map_min_x + map_max_x) / 2.0))
+	var cy: int = int(floor((map_min_y + map_max_y) / 2.0))
+
+	var x_candidates: Array[int] = []
+	var y_candidates: Array[int] = []
+	var max_span_x: int = max(abs(max_x - cx), abs(cx - min_x))
+	var max_span_y: int = max(abs(max_y - cy), abs(cy - min_y))
+	for dx in range(0, max_span_x + 1):
+		var rx: int = cx + dx
+		var lx: int = cx - dx
+		if rx >= min_x and rx <= max_x:
+			x_candidates.append(rx)
+		if dx != 0 and lx >= min_x and lx <= max_x:
+			x_candidates.append(lx)
+	for dy in range(0, max_span_y + 1):
+		var dy1: int = cy + dy
+		var dy2: int = cy - dy
+		if dy1 >= min_y and dy1 <= max_y:
+			y_candidates.append(dy1)
+		if dy != 0 and dy2 >= min_y and dy2 <= max_y:
+			y_candidates.append(dy2)
+
+	# Try candidates and return the first that validates
+	for y in y_candidates:
+		for x in x_candidates:
+			var t := Vector2i(x, y)
+			_move_positioner_to_tile(t)
+			var vr: ValidationResults = _indicator_manager.validate_placement()
+			if vr.is_successful():
+				return t
+
+	# Fallback: return the positioner's current tile
+	return _map.local_to_map(_map.to_local(_positioner.global_position))
 
 #endregion
 
@@ -1328,20 +1481,24 @@ func _create_placeable_with_no_rules() -> Placeable:
 ## No collision pass required to place, but we expect only one placement per tiled
 func test_drag_build_should_not_stack_multiple_objects_in_the_same_spot_before_targeting_new_tile() -> void:
 	# Arrange
-	# Compute safe tiles dynamically
+	# Choose a start tile whose entire 4x2 coverage definitely lies on mapped tiles
 	var ur0: Rect2i = _map.get_used_rect()
-	var safe_min_x0: int = ur0.position.x + 2
-	var safe_max_x0: int = ur0.position.x + ur0.size.x - 2
-	var safe_min_y0: int = ur0.position.y + 1
-	var _safe_max_y0: int = ur0.position.y + ur0.size.y - 1
-	var start_tile0: Vector2i = Vector2i(safe_min_x0, safe_min_y0)
+	var start_tile0: Vector2i = _find_safe_center_tile_for_rect_4x2()
 	_move_positioner_to_tile(start_tile0)
-	var env_info: String = "used_rect=%s" % ur0
+	var diag_msg: String = "used_rect=%s start_tile0=%s coverage=%s" % [ur0, start_tile0, _doc_tile_coverage(start_tile0)]
+	var env_info: String = diag_msg
+
 
 	# Act: enter build mode + start drag
 	var drag_ctx := _enter_build_mode_for_rect_4x2_and_start_drag()
 	var _drag_manager: Variant = drag_ctx["drag_manager"]
 	var drag_data: Variant = drag_ctx["drag_data"]
+
+	# Now that indicators are set up, find a start tile that passes validation
+	start_tile0 = _find_prevalidated_start_tile_for_rect_4x2()
+	_move_positioner_to_tile(start_tile0)
+	diag_msg += " prevalidated_start=%s" % [start_tile0]
+	env_info = diag_msg
 
 	# Guard state
 	assert_bool(_building_system.is_in_build_mode()).append_failure_message("Must be in build mode").is_true()
@@ -1361,6 +1518,12 @@ func test_drag_build_should_not_stack_multiple_objects_in_the_same_spot_before_t
 	).is_true()
 
 	# Act: First tile switch should attempt build exactly once for this tile
+	# Compute a second tile to the right with adequate separation, staying within map bounds
+	var map_min_x: int = ur0.position.x
+	var map_max_x: int = ur0.position.x + ur0.size.x - 1
+	# Maintain x range that keeps 4x2 coverage inside bounds: x in [min+2 .. max-1]
+	var safe_min_x0: int = map_min_x + 2
+	var safe_max_x0: int = map_max_x - 1
 	var second_tile0_x: int = clamp(start_tile0.x + 7, safe_min_x0, safe_max_x0)
 	var second_tile0: Vector2i = Vector2i(second_tile0_x, start_tile0.y)
 	_building_system._on_drag_targeting_new_tile(drag_data, start_tile0, second_tile0)

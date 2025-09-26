@@ -1,8 +1,8 @@
 [gd_scene load_steps=8 format=3 uid="uid://cbxiokuf0mpl5"]
 
-[ext_resource type="Shape2D" uid="uid://tw62qymynt5l" path="res://addons/grid_building/placement/rule_check_indicator/tci_default_rectangle_shape_for_16_by_16.tres" id="1_hn0fq"]
-[ext_resource type="Script" path="res://addons/grid_building/placement/rule_check_indicator/rule_check_indicator.gd" id="2_etvrc"]
-[ext_resource type="Script" path="res://addons/grid_building/placement/rule_check_indicator/indicator_visual_settings.gd" id="3_kakrv"]
+[ext_resource type="Shape2D" uid="uid://tw62qymynt5l" path="res://templates/grid_building_templates/indicator/tci_default_rectangle_shape_for_16_by_16.tres" id="1_hn0fq"]
+[ext_resource type="Script" uid="uid://b38wjwn4xpwa3" path="res://addons/grid_building/placement/rule_check_indicator/rule_check_indicator.gd" id="2_etvrc"]
+[ext_resource type="Script" uid="uid://c57eqttydbunb" path="res://addons/grid_building/placement/rule_check_indicator/indicator_visual_settings.gd" id="3_kakrv"]
 [ext_resource type="Texture2D" uid="uid://bx0crgad57usj" path="res://addons/grid_building/placement/rule_check_indicator/tile_textures/green_tile_overlay_16x16_100_opacity_with_build_b.png" id="4_j3ogd"]
 [ext_resource type="Texture2D" uid="uid://da3dy6wxkc4e3" path="res://addons/grid_building/placement/rule_check_indicator/tile_textures/red_collision_tile_overlay_16x16_100_opacity_with_build_b.png" id="5_tm4ds"]
 

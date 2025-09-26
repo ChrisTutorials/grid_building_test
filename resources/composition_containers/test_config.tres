@@ -1,15 +1,39 @@
-[gd_resource type="Resource" script_class="GBConfig" load_steps=6 format=3 uid="uid://c61e3vpaj7ym2"]
+[gd_resource type="Resource" script_class="GBConfig" load_steps=8 format=3 uid="uid://c61e3vpaj7ym2"]
 
-[ext_resource type="Resource" uid="uid://bnxwufjpc73wk" path="res://demos/shared/settings/demo_action_names.tres" id="1_5jcve"]
-[ext_resource type="Resource" uid="uid://vjpoofl2x3xi" path="res://demos/shared/settings/demo_name_displayer.tres" id="2_mewtm"]
+[ext_resource type="Script" uid="uid://b8qexmaqap2qt" path="res://addons/grid_building/resources/actions/gb_actions.gd" id="1_5jcve"]
+[ext_resource type="Resource" uid="uid://pckoaiplt1df" path="res://test/resources/td_settings.tres" id="3_5jcve"]
 [ext_resource type="Script" uid="uid://candxhdqm5c6q" path="res://addons/grid_building/resources/gb_config.gd" id="3_lexmi"]
-[ext_resource type="Resource" uid="uid://btx4aumxk22fj" path="res://demos/top_down/config/settings/td_settings.tres" id="4_hl3vc"]
-[ext_resource type="Resource" uid="uid://d0xrs05orngyc" path="res://demos/top_down/config/td_demo_templates.tres" id="5_rpevv"]
+[ext_resource type="PackedScene" uid="uid://dhox8mb8kuaxa" path="res://test/grid_building_test/scenes/indicators/test_indicator.tscn" id="4_mewtm"]
+[ext_resource type="Script" uid="uid://bvictehrnbjh3" path="res://addons/grid_building/resources/templates/gb_templates.gd" id="5_lexmi"]
+
+[sub_resource type="Resource" id="Resource_la2m2"]
+script = ExtResource("1_5jcve")
+off_mode = &"off_mode"
+info_mode = &"info_mode"
+build_mode = &"build_mode"
+moving_mode = &"moving_mode"
+demolish_mode = &"demolish_mode"
+confirm_build = &"confirm"
+confirm_manipulation = &"confirm"
+rotate_right = &"rotate_right"
+rotate_left = &"rotate_left"
+flip_horizontal = &"flip_horizontal"
+flip_vertical = &"flip_vertical"
+positioner_up = &"positioner_up"
+positioner_down = &"positioner_down"
+positioner_left = &"positioner_left"
+positioner_right = &"positioner_right"
+positioner_recenter = &"positioner_recenter"
+metadata/_custom_type_script = "uid://b8qexmaqap2qt"
+
+[sub_resource type="Resource" id="Resource_dt71d"]
+script = ExtResource("5_lexmi")
+rule_check_indicator = ExtResource("4_mewtm")
+metadata/_custom_type_script = "uid://bvictehrnbjh3"
 
 [resource]
 script = ExtResource("3_lexmi")
-settings = ExtResource("4_hl3vc")
-templates = ExtResource("5_rpevv")
-actions = ExtResource("1_5jcve")
-name_displayer = ExtResource("2_mewtm")
+settings = ExtResource("3_5jcve")
+templates = SubResource("Resource_dt71d")
+actions = SubResource("Resource_la2m2")
 metadata/_custom_type_script = "uid://candxhdqm5c6q"

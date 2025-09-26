@@ -233,10 +233,6 @@ func test_grid_alignment_basic() -> void:
 	var positioner: GridPositioner2D = test_env.injector.get_node("TestPositioner") if test_env.injector.has_node("TestPositioner") else GridPositioner2D.new()
 	if not test_env.injector.has_node("TestPositioner"):
 		positioner.name = "TestPositioner"
-		# Set up collision shape for ShapeCast2D
-		var shape := RectangleShape2D.new()
-		shape.size = GBTestConstants.DEFAULT_TILE_SIZE
-		positioner.shape = shape
 		auto_free(positioner)
 		test_env.injector.add_child(positioner)
 	

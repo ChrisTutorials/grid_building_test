@@ -6,6 +6,6 @@
 script = ExtResource("1_nnuqo")
 limit_to_adjacent = false
 max_tile_distance = 3
-diaganol_mode = 0
+diagonal_mode = 0
 hide_on_handled = true
 show_debug = false

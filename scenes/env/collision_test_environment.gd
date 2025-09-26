@@ -64,8 +64,13 @@ func get_issues() -> Array[String]:
 	if indicator_manager == null:
 		issues.append("Missing IndicatorManager")
 		
-	if positioner.global_position != Vector2.ZERO:
-		issues.append("Global positioner is at unexpected location for test setup. Actual: %s Expected: %s" % [Vector2.ZERO, positioner.global_position])
+	var expects_zero_position := true
+	if container and container.config and container.config.settings and container.config.settings.targeting:
+		expects_zero_position = container.config.settings.targeting.position_on_enable_policy == GridTargetingSettings.RecenterOnEnablePolicy.NONE
+
+	if expects_zero_position:
+		if not positioner.global_position.is_equal_approx(Vector2.ZERO):
+			issues.append("Global positioner is at unexpected location for test setup. Actual: %s Expected: %s" % [Vector2.ZERO, positioner.global_position])
 	
 	return issues
 

@@ -142,7 +142,7 @@ func test_indicator_rules() -> void:
 	for indicator in indicators:
 		var rules: Array[TileCheckRule] = indicator.get_rules()
 		for rule: TileCheckRule in rules:
-			if rule.collision_mask == TEST_COLLISION_LAYER:
+			if rule is CollisionsCheckRule && rule.collision_mask == TEST_COLLISION_LAYER:
 				found_correct_mask = true
 				break
 		if found_correct_mask:

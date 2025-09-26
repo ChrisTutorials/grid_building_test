@@ -1,6 +1,6 @@
 [gd_scene load_steps=8 format=3 uid="uid://bs3xba0ifer7b"]
 
-[ext_resource type="Shape2D" uid="uid://cctb06egwxho6" path="res://addons/grid_building/placement/rule_check_indicator/indicator_isometric_shape.tres" id="1_4hkg8"]
+[ext_resource type="Shape2D" uid="uid://cctb06egwxho6" path="res://templates/grid_building_templates/indicator/indicator_isometric_shape.tres" id="1_4hkg8"]
 [ext_resource type="Script" uid="uid://b38wjwn4xpwa3" path="res://addons/grid_building/placement/rule_check_indicator/rule_check_indicator.gd" id="2_6il6d"]
 [ext_resource type="Script" uid="uid://c57eqttydbunb" path="res://addons/grid_building/placement/rule_check_indicator/indicator_visual_settings.gd" id="3_vnqhy"]
 [ext_resource type="Texture2D" uid="uid://2odn6on7s512" path="res://addons/grid_building/placement/rule_check_indicator/tile_textures/green_tile_overlay_16x16_100_opacity.png" id="4_57t53"]

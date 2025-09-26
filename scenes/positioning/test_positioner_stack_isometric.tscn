@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=3 uid="uid://bgm5fn16wwkrc"]
 
-[ext_resource type="PackedScene" uid="uid://teejt4ev3xir" path="res://test/grid_building_test/scenes/positioning/test_positioner_stack.tscn" id="1_hw0ib"]
+[ext_resource type="PackedScene" uid="uid://teejt4ev3xir" path="res://test/grid_building_test/scenes/positioning/grid_positioner_stack_2d.tscn" id="1_hw0ib"]
 
 [sub_resource type="ConvexPolygonShape2D" id="ConvexPolygonShape2D_48grb"]
 resource_name = "Indicator Shape for 50px Tile Isometric"
