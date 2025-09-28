@@ -2,7 +2,7 @@ extends GdUnitTestSuite
 
 func _settings(active_when_off:=false, mouse_enabled:=true) -> GridTargetingSettings:
     var s := GridTargetingSettings.new()
-    s.positioner_active_when_off = active_when_off
+    s.remain_active_in_off_mode = active_when_off
     s.enable_mouse_input = mouse_enabled
     return s
 

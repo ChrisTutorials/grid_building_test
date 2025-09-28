@@ -5,7 +5,7 @@ func _settings(hide_on_handled:=true, mouse_enabled:=true, active_when_off:=fals
 	var s := GridTargetingSettings.new()
 	s.hide_on_handled = hide_on_handled
 	s.enable_mouse_input = mouse_enabled
-	s.positioner_active_when_off = active_when_off
+	s.remain_active_in_off_mode = active_when_off
 	return s
 
 func test_process_tick_retain_after_allowed_mouse() -> void:

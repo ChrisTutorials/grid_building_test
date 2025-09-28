@@ -558,7 +558,7 @@ func test_combined_keyboard_then_mouse_moves() -> void:
 	container.config.settings.targeting.restrict_to_map_area = false
 	container.config.settings.targeting.limit_to_adjacent = false
 	# Ensure continuous mouse follow even if mode is OFF in this test environment
-	container.config.settings.targeting.positioner_active_when_off = true
+	container.config.settings.targeting.remain_active_in_off_mode = true
 
 	# Start from a known tile; avoid seeding mouse cache so keyboard move is observable
 	var start_tile: Vector2i = Vector2i(3, 3)
@@ -598,7 +598,7 @@ func test_combined_mouse_cached_then_keyboard_does_not_override_follow() -> void
 	container.config.settings.targeting.restrict_to_map_area = false
 	container.config.settings.targeting.limit_to_adjacent = false
 	# Ensure continuous mouse follow even if mode is OFF in this test environment
-	container.config.settings.targeting.positioner_active_when_off = true
+	container.config.settings.targeting.remain_active_in_off_mode = true
 
 	# Seed mouse cache and place positioner by emitting a mouse motion
 	var seed_screen := Vector2(180, 180)

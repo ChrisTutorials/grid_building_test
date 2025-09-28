@@ -6,7 +6,7 @@ extends GdUnitTestSuite
 
 func test_should_be_visible_off_mode_active_when_off() -> void:
 	var settings := GridTargetingSettings.new()
-	settings.positioner_active_when_off = true
+	settings.remain_active_in_off_mode = true
 	var last_mouse: GBMouseInputStatus = GBMouseInputStatus.new()
 	var has_mouse := false
 	
@@ -15,7 +15,7 @@ func test_should_be_visible_off_mode_active_when_off() -> void:
 
 func test_should_be_visible_off_mode_not_active_when_off() -> void:
 	var settings := GridTargetingSettings.new()
-	settings.positioner_active_when_off = false
+	settings.remain_active_in_off_mode = false
 	var last_mouse: GBMouseInputStatus = GBMouseInputStatus.new()
 	var has_mouse := false
 	
@@ -66,14 +66,14 @@ func test_should_be_visible_active_mode_default() -> void:
 
 func test_should_be_visible_for_mode_off_active() -> void:
 	var settings := GridTargetingSettings.new()
-	settings.positioner_active_when_off = true
+	settings.remain_active_in_off_mode = true
 	
 	var result := GridPositionerLogic.should_be_visible_for_mode(GBEnums.Mode.OFF, settings)
 	assert_bool(result).is_true()
 
 func test_should_be_visible_for_mode_off_not_active() -> void:
 	var settings := GridTargetingSettings.new()
-	settings.positioner_active_when_off = false
+	settings.remain_active_in_off_mode = false
 	
 	var result := GridPositionerLogic.should_be_visible_for_mode(GBEnums.Mode.OFF, settings)
 	assert_bool(result).is_false()
