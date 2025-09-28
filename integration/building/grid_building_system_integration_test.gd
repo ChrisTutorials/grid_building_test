@@ -458,3 +458,63 @@ func test_system_error_recovery() -> void:
 	_building_system.exit_build_mode()
 
 #endregion
+
+#region SUCCESS/FAILURE REPORTING TESTS
+
+## Test: BuildingSystem reports success only when PlacementReport.is_successful() is true
+## Setup: BuildingSystem with valid placeable, check PlacementReport consistency
+## Act: Perform builds with different success/failure scenarios  
+## Assert: PlacementReport.is_successful() matches expected success/failure state
+func test_building_system_reports_success_failure_correctly() -> void:
+	var smithy_placeable: Placeable = GBTestConstants.PLACEABLE_SMITHY
+	var enter_result: PlacementReport = _building_system.enter_build_mode(smithy_placeable)
+	assert_bool(enter_result.is_successful()).append_failure_message(
+		"Failed to enter build mode with smithy: %s" % str(enter_result.get_issues())
+	).is_true()
+	
+	# Test Case 1: Valid build position should have successful PlacementReport
+	var valid_result: PlacementReport = _building_system.try_build_at_position(VALID_BUILD_POS)
+	assert_object(valid_result).append_failure_message(
+		"try_build_at_position should return PlacementReport"
+	).is_not_null()
+	
+	# The critical assertion: PlacementReport success state should match actual success
+	if valid_result.get_issues().is_empty():
+		assert_bool(valid_result.is_successful()).append_failure_message(
+			"PlacementReport with no issues should be successful. Issues: %s" % str(valid_result.get_issues())
+		).is_true()
+	else:
+		assert_bool(valid_result.is_successful()).append_failure_message(
+			"PlacementReport with issues should not be successful. Issues: %s" % str(valid_result.get_issues())
+		).is_false()
+	
+	# Test Case 2: Position with collision should have failed PlacementReport with issues
+	# Create collision body at target position
+	var collision_body: StaticBody2D = StaticBody2D.new()
+	var collision_shape: CollisionShape2D = CollisionShape2D.new()
+	var rect_shape: RectangleShape2D = RectangleShape2D.new()
+	rect_shape.size = COLLISION_SHAPE_SIZE
+	collision_shape.shape = rect_shape
+	collision_body.add_child(collision_shape)
+	collision_body.collision_layer = DEFAULT_COLLISION_LAYER
+	collision_body.global_position = TARGET_POS
+	add_child(collision_body)
+	auto_free(collision_body)
+	
+	var collision_result: PlacementReport = _building_system.try_build_at_position(TARGET_POS)
+	assert_object(collision_result).append_failure_message(
+		"try_build_at_position should return PlacementReport even for collision"
+	).is_not_null()
+	
+	# This should fail due to collision and have issues
+	assert_bool(collision_result.get_issues().is_empty()).append_failure_message(
+		"PlacementReport at collision position should have issues. Position: %s" % str(TARGET_POS)
+	).is_false()
+	
+	assert_bool(collision_result.is_successful()).append_failure_message(
+		"PlacementReport with collision should not be successful. Issues: %s" % str(collision_result.get_issues())
+	).is_false()
+	
+	_building_system.exit_build_mode()
+
+#endregion

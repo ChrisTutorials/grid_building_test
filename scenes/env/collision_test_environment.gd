@@ -15,6 +15,13 @@ func _ready() -> void:
 	# Initialize container reference for convenience
 	container = get_container()
 	
+	# Configure runtime checks for collision test environment (no building/manipulation systems)
+	if container and container.config and container.config.settings and container.config.settings.runtime_checks:
+		var runtime_checks: GBRuntimeChecks = container.config.settings.runtime_checks
+		runtime_checks.building_system = false
+		runtime_checks.manipulation_system = false
+		runtime_checks.targeting_system = true
+	
 	# Initialize logger from container
 	if container:
 		logger = container.get_logger()

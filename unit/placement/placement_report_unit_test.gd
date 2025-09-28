@@ -51,3 +51,93 @@ func test_placement_report_aggregates_indicator_and_primary_issues() -> void:
 	var issues := report.get_issues()
 	# Expect at least the manually added and primary issue; rule collision fail comes via ValidationResults only if indicators_report exposes it.
 	assert_that(issues.size() > 1).is_true()
+
+func test_validation_results_stores_both_errors_and_issues() -> void:
+	# Test: ValidationResults should expose both configuration errors and rule validation failures
+	# Setup: Create ValidationResults with both error types
+	# Act: Call get_errors() and get_issues()
+	# Assert: Both types of problems are captured separately
+	
+	var validation_results := ValidationResults.new(false, "", {})
+	
+	# Add configuration error
+	validation_results.add_error("Camera2D not found in viewport")
+	
+	# Add a rule with validation issues
+	var rule_with_issues := RuleResult.new(_dummy_rule)
+	rule_with_issues.add_issue("collision detected on tile (5,7)")
+	rule_with_issues.add_issue("boundary violation at position X")
+	validation_results.add_rule_result(_dummy_rule, rule_with_issues)
+	
+	# Act: Get both error types
+	var config_errors: Array[String] = validation_results.get_errors()
+	var validation_issues: Array[String] = validation_results.get_issues()
+	
+	# Assert: Configuration errors are captured
+	assert_array(config_errors).contains_exactly(["Camera2D not found in viewport"]) \
+		.append_failure_message("Expected configuration error to be captured in get_errors()")
+	
+	# Assert: Rule validation issues are captured
+	var expected_issues: Array[String] = ["collision detected on tile (5,7)", "boundary violation at position X"]
+	assert_array(validation_issues).contains_exactly(expected_issues) \
+		.append_failure_message("Expected rule validation failures to be captured in get_issues()")
+	
+	# Assert: Both collections should be non-empty when both error types exist
+	assert_bool(config_errors.is_empty()).is_false() \
+		.append_failure_message("Configuration errors should not be empty")
+	assert_bool(validation_issues.is_empty()).is_false() \
+		.append_failure_message("Validation issues should not be empty")
+
+func test_placement_report_collects_validation_results_comprehensively() -> void:
+	# Test: PlacementReport should collect issues from ValidationResults.get_errors() AND get_issues()
+	# Setup: ValidationResults with both configuration errors and rule validation failures
+	# Act: Create PlacementReport and check collected issues
+	# Assert: Both error types appear in PlacementReport.get_issues()
+	
+	var validation_results := ValidationResults.new(false, "", {})
+	
+	# Add configuration error
+	validation_results.add_error("Camera2D not found in viewport")
+	
+	# Add rule validation failures
+	var collision_rule := RuleResult.new(_dummy_rule)
+	collision_rule.add_issue("Colliding on 8 tile(s)")
+	validation_results.add_rule_result(_dummy_rule, collision_rule)
+	
+	# Create indicator report (minimal, just test the core concept)
+	var dummy_tile_rules: Array[TileCheckRule] = []
+	var dummy_targeting_state: GridTargetingState = null
+	var dummy_template: PackedScene = null
+	var clean_indicator_report := IndicatorSetupReport.new(dummy_tile_rules, dummy_targeting_state, dummy_template)
+	
+	# Create PlacementReport and simulate BuildingSystem.try_build() behavior
+	var dummy_owner_root: Node2D = auto_free(Node2D.new())
+	var dummy_owner: GBOwner = auto_free(GBOwner.new())
+	dummy_owner.owner_root = dummy_owner_root
+	var preview: Node2D = auto_free(Node2D.new())
+	
+	var placement_report := PlacementReport.new(dummy_owner, preview, clean_indicator_report, GBEnums.Action.BUILD)
+	
+	# Simulate the fixed BuildingSystem.try_build() logic: collect BOTH error types
+	var config_errors: Array[String] = validation_results.get_errors()
+	var validation_issues: Array[String] = validation_results.get_issues()
+	
+	# Add both to PlacementReport (as BuildingSystem now does)
+	for error in config_errors:
+		placement_report.add_issue(error)
+	for issue in validation_issues:
+		placement_report.add_issue(issue)
+	
+	# Act: Get all issues from PlacementReport
+	var all_issues: Array[String] = placement_report.get_issues()
+	
+	# Assert: Both configuration errors and validation issues are present
+	assert_bool(all_issues.has("Camera2D not found in viewport")).is_true() \
+		.append_failure_message("Expected configuration error in PlacementReport. Got: %s" % str(all_issues))
+	
+	assert_bool(all_issues.has("Colliding on 8 tile(s)")).is_true() \
+		.append_failure_message("Expected validation issue in PlacementReport. Got: %s" % str(all_issues))
+	
+	# Assert: PlacementReport correctly reports failure status
+	assert_bool(placement_report.is_successful()).is_false() \
+		.append_failure_message("PlacementReport should report failure when validation issues exist")

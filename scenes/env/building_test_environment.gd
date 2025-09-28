@@ -44,6 +44,11 @@ func _ready() -> void:
 		if indicator_context and indicator_context.has_manager():
 			# Use the injected manager from the context instead of any scene export
 			indicator_manager = indicator_context.get_manager()
+		
+		# Configure runtime checks - BuildingTestEnvironment intentionally has no manipulation system
+		var runtime_checks: GBRuntimeChecks = get_container().get_runtime_checks()
+		if runtime_checks:
+			runtime_checks.manipulation_system = false
 
 func get_container() -> GBCompositionContainer:
 	return injector.composition_container

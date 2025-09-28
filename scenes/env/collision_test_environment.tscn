@@ -60,6 +60,8 @@ metadata/_custom_type_script = "uid://dasmm18l8fxdo"
 script = ExtResource("8_indicator")
 metadata/_custom_type_script = "uid://ow5wabt5g4dc"
 
+[node name="Camera2D" type="Camera2D" parent="."]
+
 [node name="GridPositioner2D" parent="." instance=ExtResource("9_i48kh")]
 
 [editable path="GridPositioner2D"]

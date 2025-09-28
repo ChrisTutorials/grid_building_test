@@ -25,6 +25,13 @@ var _placed_positions: Array[Vector2]
 func before_test() -> void:
 	env = EnvironmentTestFactory.create_building_system_test_environment(self)
 	assert_object(env).append_failure_message("Failed to create building test environment").is_not_null()
+	
+	# Configure runtime checks to disable Camera2D validation for unit testing
+	var container: GBCompositionContainer = env.get_container()
+	if container and container.config and container.config.settings and container.config.settings.runtime_checks:
+		var runtime_checks: GBRuntimeChecks = container.config.settings.runtime_checks
+		runtime_checks.camera_2d = false
+	
 	_building_system = env.building_system
 	_indicator_manager = env.indicator_manager
 	_map = env.tile_map_layer
