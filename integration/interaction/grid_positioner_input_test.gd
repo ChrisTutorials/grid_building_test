@@ -31,6 +31,12 @@ func before_test() -> void:
 	# Allow scene to enter tree and _ready to run
 	await runner.simulate_frames(1)
 	env = runner.scene() as CollisionTestEnvironment
+	
+	# Set logger level to trace to see detailed debug output for GridPositioner2D
+	var container: GBCompositionContainer = env.get_container()
+	var logger: GBLogger = container.get_logger()
+	var debug_settings: GBDebugSettings = logger.get_debug_settings()
+	debug_settings.level = GBDebugSettings.LogLevel.TRACE
 
 func after_test() -> void:
 	env = null
@@ -190,18 +196,16 @@ func _emit_mouse_motion(screen_pos: Vector2, event_position_override: Variant = 
 	# Wait until SceneRunner confirms input was processed; avoids timing races
 	await runner.await_input_processed()
 	# Also send a low-level InputEventMouseMotion to the tile map viewport with a
-	# correctly projected global_position so GridPositioner2D can use event.global_position
+	# correctly set global_position as screen coordinates (GridPositioner2D will convert to world)
 	# (this reproduces the previous direct-node seeding in a viewport-safe way).
-	# Build a mouse motion event with a projected global_position and deliver it
+	# Build a mouse motion event with screen coordinates and deliver it
 	# directly to the positioner to seed its cached event world (safe in tests).
-	var map_vp := env.tile_map_layer.get_viewport()
-	var cam := map_vp.get_camera_2d() if map_vp != null else null
 	var ev := InputEventMouseMotion.new()
 	if event_position_override is Vector2:
 		ev.position = event_position_override
 	else:
 		ev.position = screen_pos
-	ev.global_position = _screen_to_world_safe(map_vp, cam, screen_pos)
+	ev.global_position = screen_pos  # Keep as screen coordinates - GridPositioner2D will convert to world
 	if is_instance_valid(env) and is_instance_valid(env.positioner):
 		env.positioner._input(ev)
 	# Allow one idle frame for any deferred calls (visibility, recenter) to run
@@ -380,6 +384,8 @@ func test_keyboard_moves_and_recenter() -> void:
 	var actions: GBActions = container.get_actions()
 	container.config.settings.targeting.enable_keyboard_input = true
 	container.config.settings.targeting.enable_mouse_input = true
+	# Configure recenter to use mouse position instead of screen center
+	container.config.settings.targeting.manual_recenter_mode = GBEnums.CenteringMode.CENTER_ON_MOUSE
 	# Allow discrete movement independent of region restrictions in this test
 	container.config.settings.targeting.restrict_to_map_area = false
 	container.config.settings.targeting.limit_to_adjacent = false
@@ -439,7 +445,6 @@ func test_keyboard_moves_and_recenter() -> void:
 	# Recenter via key bound to the recenter action (should snap to cursor tile)
 	await _press_action_with_key(actions.positioner_center, KEY_CENTER)
 	await _release_action_with_key(actions.positioner_center, KEY_CENTER)
-
 	var pressed_recenter := Input.is_action_pressed(actions.positioner_center) if actions else false
 	var kdiag := "Recenter diagnostics:\n" \
 		+ "  process_mode=%d\n" % [env.positioner.process_mode] \
@@ -460,6 +465,8 @@ func test_recenter_on_enable_prefers_mouse_when_enabled() -> void:
 	settings.enable_mouse_input = true
 	settings.enable_keyboard_input = false
 	settings.position_on_enable_policy = GridTargetingSettings.RecenterOnEnablePolicy.MOUSE_CURSOR
+	# Configure manual recenter to use mouse position
+	settings.manual_recenter_mode = GBEnums.CenteringMode.CENTER_ON_MOUSE
 
 	# Move the mouse to a known screen position and deliver event to cache world
 	var screen_target := Vector2(128, 128)
@@ -517,6 +524,8 @@ func test_recenter_on_enable_prefers_cached_when_option_true() -> void:
 	settings.enable_mouse_input = true
 	settings.enable_keyboard_input = true
 	settings.position_on_enable_policy = GridTargetingSettings.RecenterOnEnablePolicy.LAST_SHOWN
+	# Configure manual recenter to use mouse position
+	settings.manual_recenter_mode = GBEnums.CenteringMode.CENTER_ON_MOUSE
 
 	# Seed a cached location by sending a mouse motion event once
 	var seed_screen := Vector2(96, 96)
@@ -673,3 +682,62 @@ func test_movement_debug_event_driven_and_visual_visible() -> void:
 			var vis_diag := "Visual node visibility: %s (%s)" % [str(visual_node.visible), visual_node.get_class()]
 			var vformatted := GBDiagnostics.format_debug(vis_diag, "GridPositionerInput", get_script().resource_path)
 			assert_bool(visual_node.visible).append_failure_message(vformatted).is_true()
+
+## Test: Manual recenter with "Center on Mouse" mode should move positioner to mouse position
+func test_manual_recenter_center_on_mouse_moves_to_cursor() -> void:
+	# Arrange: Set up environment with manual recenter mode set to CENTER_ON_MOUSE
+	var container: GBCompositionContainer = env.get_container()
+	var actions: GBActions = container.get_actions()
+	var positioner: GridPositioner2D = env.positioner
+	var tile_map: TileMapLayer = env.tile_map_layer
+	
+	await _setup_positioner_and_camera()
+	
+	# Configure settings for manual recenter test
+	container.config.settings.targeting.enable_keyboard_input = true
+	container.config.settings.targeting.enable_mouse_input = true
+	container.config.settings.targeting.manual_recenter_mode = GBEnums.CenteringMode.CENTER_ON_MOUSE
+	# Allow free movement for this test
+	container.config.settings.targeting.restrict_to_map_area = false
+	container.config.settings.targeting.limit_to_adjacent = false
+
+	# Ensure action binding exists
+	_ensure_action_key(actions.positioner_center, KEY_CENTER)
+
+	# Position positioner at a known starting location
+	var start_tile: Vector2i = Vector2i(2, 2)
+	var start_global: Vector2 = tile_map.to_global(tile_map.map_to_local(start_tile))
+	positioner.global_position = start_global
+	await get_tree().process_frame
+
+	# Move mouse to a different location and ensure positioner has mouse data
+	var mouse_screen_pos: Vector2 = Vector2(200, 150)
+	await _emit_mouse_motion(mouse_screen_pos)
+	await get_tree().process_frame
+
+	# Calculate expected position after recenter
+	var vp := tile_map.get_viewport()
+	var cam := vp.get_camera_2d()
+	var mouse_world: Vector2 = _screen_to_world_safe(vp, cam, mouse_screen_pos)
+	var expected_tile: Vector2i = tile_map.local_to_map(tile_map.to_local(mouse_world))
+	var expected_global: Vector2 = tile_map.to_global(tile_map.map_to_local(expected_tile))
+
+	# Act: Trigger manual recenter via C key
+	await _press_action_with_key(actions.positioner_center, KEY_CENTER)
+	await _release_action_with_key(actions.positioner_center, KEY_CENTER)
+	await get_tree().process_frame
+
+	# Assert: Positioner should have moved to the mouse cursor tile
+	var actual_global: Vector2 = positioner.global_position
+	var actual_tile: Vector2i = tile_map.local_to_map(tile_map.to_local(actual_global))
+	
+	var diagnostics := "Manual recenter with CENTER_ON_MOUSE failed:\n"
+	diagnostics += "  start_tile=%s start_global=%s\n" % [str(start_tile), str(start_global)]
+	diagnostics += "  mouse_screen_pos=%s mouse_world=%s\n" % [str(mouse_screen_pos), str(mouse_world)]
+	diagnostics += "  expected_tile=%s expected_global=%s\n" % [str(expected_tile), str(expected_global)]
+	diagnostics += "  actual_tile=%s actual_global=%s\n" % [str(actual_tile), str(actual_global)]
+	diagnostics += "  manual_recenter_mode=%d (CENTER_ON_MOUSE=%d)\n" % [container.config.settings.targeting.manual_recenter_mode, GBEnums.CenteringMode.CENTER_ON_MOUSE]
+	diagnostics += "  enable_keyboard_input=%s enable_mouse_input=%s\n" % [str(container.config.settings.targeting.enable_keyboard_input), str(container.config.settings.targeting.enable_mouse_input)]
+	
+	var formatted_diag := GBDiagnostics.format_debug(diagnostics, "GridPositionerInput", get_script().resource_path)
+	assert_vector(actual_global).append_failure_message(formatted_diag).is_equal_approx(expected_global, Vector2.ONE)

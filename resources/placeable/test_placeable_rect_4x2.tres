@@ -1,10 +1,14 @@
-[gd_resource type="Resource" script_class="Placeable" load_steps=3 format=3 uid="uid://dm1h5yol6fny8"]
+[gd_resource type="Resource" script_class="Placeable" load_steps=5 format=3 uid="uid://dm1h5yol6fny8"]
 
 [ext_resource type="PackedScene" uid="uid://bje7qv5vgr0vt" path="res://test/grid_building_test/scenes/objects/test_rect_4x2_tiles.tscn" id="1_rect4x2"]
+[ext_resource type="Script" uid="uid://ceem2vqcha7ki" path="res://addons/grid_building/placement/placement_rules/placement_rule.gd" id="2_1e5wb"]
 [ext_resource type="Script" uid="uid://b01uvfnfuldd6" path="res://addons/grid_building/placement/placeable/placeable.gd" id="2_placeable"]
+[ext_resource type="Script" uid="uid://b064bdpoigkqi" path="res://addons/grid_building/placement/placeable/categorical_tag.gd" id="4_nl7k6"]
 
 [resource]
 script = ExtResource("2_placeable")
 display_name = &"4x2 Rect"
 packed_scene = ExtResource("1_rect4x2")
-tags = Array[Resource]([])
+tags = Array[ExtResource("4_nl7k6")]([])
+placement_rules = Array[ExtResource("2_1e5wb")]([])
+ignore_base_rules = false

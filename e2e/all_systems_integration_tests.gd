@@ -184,6 +184,7 @@ var env: AllSystemsTestEnvironment
 var _container: GBCompositionContainer
 var _gts: GridTargetingSystem
 var test_smithy_placeable: Placeable = load("uid://dirh6mcrgdm3w")
+var test_rect_4x2_placeable: Placeable = load("res://test/grid_building_test/resources/placeable/test_placeable_rect_4x2.tres")
 #endregion
 
 #region Setup and Teardown
@@ -286,9 +287,8 @@ func _create_preview_with_collision() -> Node2D:
 	return root
 
 func _create_test_placeable_with_rules() -> Placeable:
-	# Create a copy of the smithy placeable and add placement rules
-	var placeable: Placeable = Placeable.new()
-	placeable.packed_scene = test_smithy_placeable.packed_scene
+	# Use the 4x2 rectangle test placeable instead of smithy for consistent testing
+	var placeable: Placeable = test_rect_4x2_placeable.duplicate()
 	
 	# Create properly configured collision rule
 	var collision_rule: CollisionsCheckRule = CollisionsCheckRule.new()
@@ -586,28 +586,32 @@ func test_build_and_move_multi_system_integration() -> void:
 		var manipulatable: Manipulatable = built_node.find_child("Manipulatable")
 		if manipulatable == null:
 			_log_conditional_message("Built node does not have a Manipulatable component (may be expected in some configurations)")
-			return	assert_bool(manipulatable.is_movable()).append_failure_message("Placed object is expected to be movable as defined on it's Manipulatable component.").is_true()
+			return
+		
+		assert_bool(manipulatable.is_movable()).append_failure_message("Placed object is expected to be movable as defined on it's Manipulatable component.").is_true()
 
 	# Phase 3: Post-build manipulation - move the built object
 	var move_result: Variant = _manipulation_system.try_move(built_node)
 	var manipulation_state := _container.get_states().manipulation
 	assert_object(building_system._states.manipulation).append_failure_message("Make sure we are dealing with the same state.").is_equal(manipulation_state)
 	
-		# Check if try_move was successful before validating state
-		if move_result == null or not manipulation_state.validate_setup():
-			_log_conditional_message("Manipulation system did not successfully initialize move operation (may be expected in some configurations)")
-			return
-		
-		# Only test manipulation state if it was properly set up
-		if manipulation_state.active_target_node != null:
-			assert_object(manipulation_state.active_target_node).append_failure_message(
-				"When moving, the target node should be the built object - Expected: %s, Actual: %s" % [built_node, manipulation_state.active_target_node]
-			).is_equal(built_node)
-			assert_bool(manipulation_state.is_targeted_movable()).append_failure_message(
-				"Expected that the built %s is movable - State: %s" % [built_node, manipulation_state.get_debug_info() if manipulation_state.has_method("get_debug_info") else "no debug info"]
-			).is_true()
-		else:
-			_log_conditional_message("Manipulation state did not capture target node (may be expected behavior)")func test_enter_build_mode_state_consistency() -> void:
+	# Check if try_move was successful before validating state
+	if move_result == null or not manipulation_state.validate_setup():
+		_log_conditional_message("Manipulation system did not successfully initialize move operation (may be expected in some configurations)")
+		return
+	
+	# Only test manipulation state if it was properly set up
+	if manipulation_state.active_target_node != null:
+		assert_object(manipulation_state.active_target_node).append_failure_message(
+			"When moving, the target node should be the built object - Expected: %s, Actual: %s" % [built_node, manipulation_state.active_target_node]
+		).is_equal(built_node)
+		assert_bool(manipulation_state.is_targeted_movable()).append_failure_message(
+			"Expected that the built %s is movable - State: %s" % [built_node, manipulation_state.get_debug_info() if manipulation_state.has_method("get_debug_info") else "no debug info"]
+		).is_true()
+	else:
+		_log_conditional_message("Manipulation state did not capture target node (may be expected behavior)")
+
+func test_enter_build_mode_state_consistency() -> void:
 	var building_system: Object = env.building_system
 	var targeting_system: GridTargetingSystem = env.grid_targeting_system
 	var _indicator_manager: IndicatorManager = env.indicator_manager
@@ -650,8 +654,10 @@ func test_polygon_test_object_indicator_generation() -> void:
 	# Set target to polygon node before indicator setup
 	var targeting_state_polygon: GridTargetingState = _gts.get_state()
 	targeting_state_polygon.target = polygon_node
-		var setup_result: PlacementReport = indicator_manager.try_setup(test_rules, targeting_state_polygon)
-		_assert_placement_report_successful(setup_result, "Polygon indicator generation setup")func test_polygon_collision_integration() -> void:
+	var setup_result: PlacementReport = indicator_manager.try_setup(test_rules, targeting_state_polygon)
+	_assert_placement_report_successful(setup_result, "Polygon indicator generation setup")
+
+func test_polygon_collision_integration() -> void:
 	var polygon_test_object: Placeable = PlaceableTestFactory.create_polygon_test_placeable(self)
 	var collision_mapper: CollisionMapper = env.indicator_manager.get_collision_mapper()
 
@@ -660,10 +666,12 @@ func test_polygon_test_object_indicator_generation() -> void:
 	add_child(polygon_runtime)
 	var collision_tiles: Dictionary = collision_mapper.get_collision_tile_positions_with_mask([polygon_runtime] as Array[Node2D], COLLISION_LAYER_1)
 	
-		# Check if collision tiles exist - if not, log and continue
-		if collision_tiles.is_empty():
-			_log_conditional_message(LOG_MESSAGES.collision_no_results % "Polygon")
-			return	# Verify collision tiles form reasonable polygon pattern
+	# Check if collision tiles exist - if not, log and continue
+	if collision_tiles.is_empty():
+		_log_conditional_message(LOG_MESSAGES.collision_no_results % "Polygon")
+		return
+	
+	# Verify collision tiles form reasonable polygon pattern
 	var unique_x_coords: Dictionary = {}
 	var unique_y_coords: Dictionary = {}
 
@@ -1339,5 +1347,127 @@ func _format_collision_debug(collision_object: StaticBody2D) -> String:
 func _log_test_message(message: String, category: String = "INFO") -> void:
 	"""Centralized test logging with consistent formatting"""
 	print("[TestDiagnostic-%s] %s" % [category, message])
+
+## Unit test: collision detection diagnostics and spacing requirements
+## Setup: Test collision detection behavior with diagnostic logging
+## Act: Attempt placements at various distances
+## Assert: Collision detection behaves as expected with detailed diagnostics
+func test_collision_detection_diagnostics() -> void:
+	_log_test_message("Starting collision detection diagnostics test", "UNIT")
+	
+	var building_system: BuildingSystem = env.building_system
+	var test_placeable: Placeable = _create_test_placeable_with_rules()
+	_enter_build_mode_successfully(building_system, test_placeable, "collision diagnostics test")
+	
+	# Get collision system for diagnostics
+	var indicator_manager: IndicatorManager = env.indicator_manager
+	var collision_mapper: CollisionMapper = indicator_manager.get_collision_mapper()
+	
+	# Place first object and capture diagnostics
+	var first_position: Vector2 = Vector2(0, 0)
+	var first_result: PlacementReport = building_system.try_build_at_position(first_position)
+	_assert_placement_report_successful(first_result, "first object placement")
+	
+	# Log placement diagnostics
+	if first_result.placed:
+		var bounds: Rect2 = first_result.placed.get_node("CollisionShape2D").shape.get_rect()
+		_log_test_message("First object bounds: %s at position %s" % [bounds, first_position], "DIAGNOSTIC")
+	
+	# Test collision detection at various distances
+	var test_positions: Array[Vector2] = [
+		Vector2(1, 0),   # Very close - should collide
+		Vector2(2, 0),   # Close - might collide for 4x2 objects
+		Vector2(3, 0),   # Medium distance
+		Vector2(4, 0),   # Should be safe for most objects
+		Vector2(5, 0),   # Definitely safe
+	]
+	
+	for i in range(test_positions.size()):
+		var test_pos: Vector2 = test_positions[i]
+		_log_test_message("Testing placement at distance %d tiles: %s" % [test_pos.x, test_pos], "DIAGNOSTIC")
+		
+		# Check what collision system reports for this position
+		var collision_check: Dictionary = collision_mapper.get_collision_tile_positions_with_mask([first_result.placed], 1)
+		_log_test_message("Collision tiles for position %s: %d tiles" % [test_pos, collision_check.size()], "DIAGNOSTIC")
+		
+		# Attempt placement
+		var result: PlacementReport = building_system.try_build_at_position(test_pos)
+		var success: bool = result != null and result.is_successful()
+		
+		_log_test_message("Placement at %s: %s. %s" % [
+			test_pos, 
+			"SUCCESS" if success else "FAILED",
+			_format_placement_report_debug(result) if result else "null result"
+		], "DIAGNOSTIC")
+		
+		# For the first few positions, expect failure due to collision
+		if i < 2:  # Positions (1,0) and (2,0) should fail for 4x2 objects
+			assert_bool(success).is_false() \
+				.append_failure_message("Expected collision at close distance %s" % test_pos)
+		else:  # Positions (3,0), (4,0), (5,0) should succeed
+			assert_bool(success).is_true() \
+				.append_failure_message("Expected successful placement at safe distance %s" % test_pos)
+			break  # Only test one successful placement to avoid multiple objects
+	
+	_log_test_message("Collision detection diagnostics test completed", "UNIT")
+
+## Unit test: collision shape bounds calculation
+## Setup: Create test objects with known collision shapes
+## Act: Calculate collision bounds and overlaps
+## Assert: Bounds calculations are correct for collision detection
+func test_collision_shape_bounds_calculation() -> void:
+	_log_test_message("Starting collision shape bounds calculation test", "UNIT")
+	
+	# Create a test placeable with known collision shape
+	var test_placeable: Placeable = _create_test_placeable_with_rules()
+	
+	# Check the collision shape dimensions
+	if test_placeable.packed_scene:
+		var scene_instance: Node = test_placeable.packed_scene.instantiate()
+		auto_free(scene_instance)
+		
+		var collision_shape: CollisionShape2D = scene_instance.get_node_or_null("StaticBody2D/CollisionShape2D")
+		if collision_shape and collision_shape.shape:
+			var shape: Shape2D = collision_shape.shape
+			var bounds: Rect2 = shape.get_rect()
+			
+			_log_test_message("Collision shape type: %s" % shape.get_class(), "DIAGNOSTIC")
+			_log_test_message("Collision shape bounds: %s" % bounds, "DIAGNOSTIC")
+			_log_test_message("Shape size: %s, center: %s" % [bounds.size, bounds.get_center()], "DIAGNOSTIC")
+			
+			# For the RECT_4X2 placeable, expect 64x32 size (4x2 tiles at 16 pixels per tile)
+			assert_vector(bounds.size).is_equal(Vector2(64, 32)) \
+				.append_failure_message("Expected 4x2 tile collision shape (64x32 pixels), got %s" % bounds.size)
+			
+			# Test overlap calculation for various positions
+			var positions_to_test: Array[Vector2] = [
+				Vector2(0, 0),    # Same position - should overlap
+				Vector2(16, 0),   # 1 tile right - should overlap for 4-tile width
+				Vector2(32, 0),   # 2 tiles right - should overlap for 4-tile width
+				Vector2(48, 0),   # 3 tiles right - should overlap for 4-tile width
+				Vector2(64, 0),   # 4 tiles right - should NOT overlap
+				Vector2(80, 0),   # 5 tiles right - should NOT overlap
+			]
+			
+			for i in range(positions_to_test.size()):
+				var test_pos: Vector2 = positions_to_test[i]
+				var bounds_at_origin: Rect2 = bounds
+				var bounds_at_test: Rect2 = Rect2(test_pos + bounds.position, bounds.size)
+				
+				var overlaps: bool = bounds_at_origin.intersects(bounds_at_test)
+				_log_test_message("Position %s: bounds %s, overlaps: %s" % [
+					test_pos, bounds_at_test, overlaps
+				], "DIAGNOSTIC")
+				
+				# For 64-pixel wide shape, expect overlap until 64-pixel separation
+				var expected_overlap: bool = test_pos.x < 64
+				assert_bool(overlaps).is_equal(expected_overlap) \
+					.append_failure_message("Overlap calculation wrong at position %s" % test_pos)
+		else:
+			_log_test_message("No collision shape found in test placeable", "WARNING")
+	else:
+		_log_test_message("No packed scene found in test placeable", "WARNING")
+	
+	_log_test_message("Collision shape bounds calculation test completed", "UNIT")
 
 #endregion
