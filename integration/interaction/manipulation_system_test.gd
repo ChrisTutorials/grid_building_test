@@ -1,3 +1,4 @@
+
 ## Test Suite: Manipulation System Integration Tests
 ##
 ## Validates the ManipulationSystem's core functionality for grid building operations
@@ -59,6 +60,10 @@ func before_test() -> void:
 	
 	# Fix: Set up targeting state with a default target
 	_setup_targeting_state()
+	
+	# Fix: Set up manipulation state with the test manipulatable
+	if all_manipulatable != null:
+		manipulation_state.active_manipulatable = all_manipulatable
 
 ## Sets up the GridTargetingState with a default target for manipulation system tests
 func _setup_targeting_state() -> void:
@@ -78,6 +83,8 @@ func _instance_manipulatable_hierarchy() -> Dictionary[String, Node]:
 	add_child(root)
 	var manipulatable : Manipulatable = auto_free(Manipulatable.new())
 	manipulatable.root = root  # Fix: Set the root property
+	# Fix: Set manipulatable settings to prevent validation errors
+	manipulatable.settings = manipulatable_settings_all_allowed
 	root.add_child(manipulatable)
 
 	return {
@@ -276,12 +283,15 @@ func test_try_placement(
 func test_flip_horizontal() -> void:
 	_validate_manipulatable_for_transform(all_manipulatable, "flip_horizontal")
 	var target: Node2D = all_manipulatable.root
-	var original_scale: Vector2 = target.scale
+	# Test uses ManipulationParent architecture - transforms are applied to manipulation parent
+	var manipulation_parent: ManipulationParent = manipulation_state.parent
+	var original_scale: Vector2 = manipulation_parent.scale
 	
 	system.flip_horizontal(target)
 	
-	assert_float(target.scale.x).append_failure_message("Horizontal flip should invert X scale").is_equal_approx(original_scale.x * -1, SCALE_PRECISION)
-	assert_float(target.scale.y).append_failure_message("Horizontal flip should preserve Y scale").is_equal_approx(original_scale.y, SCALE_PRECISION)
+	# Test ManipulationParent scale instead of target scale (correct architecture)
+	assert_float(manipulation_parent.scale.x).append_failure_message("Horizontal flip should invert ManipulationParent X scale").is_equal_approx(original_scale.x * -1, SCALE_PRECISION)
+	assert_float(manipulation_parent.scale.y).append_failure_message("Horizontal flip should preserve ManipulationParent Y scale").is_equal_approx(original_scale.y, SCALE_PRECISION)
 
 @warning_ignore("unused_parameter")
 func test_flip_vertical(
@@ -290,12 +300,15 @@ func test_flip_vertical(
 ) -> void:
 	_validate_manipulatable_for_transform(p_manipulatable, "flip_vertical")
 	var target: Node2D = p_manipulatable.root
-	var original_scale: Vector2 = target.scale
+	# Test uses ManipulationParent architecture - transforms are applied to manipulation parent
+	var manipulation_parent: ManipulationParent = manipulation_state.parent
+	var original_scale: Vector2 = manipulation_parent.scale
 	
 	system.flip_vertical(target)
 	
-	assert_float(target.scale.x).append_failure_message("Vertical flip should preserve X scale").is_equal_approx(original_scale.x, SCALE_PRECISION)
-	assert_float(target.scale.y).append_failure_message("Vertical flip should invert Y scale").is_equal_approx(original_scale.y * -1, SCALE_PRECISION)
+	# Test ManipulationParent scale instead of target scale (correct architecture)
+	assert_float(manipulation_parent.scale.x).append_failure_message("Vertical flip should preserve ManipulationParent X scale").is_equal_approx(original_scale.x, SCALE_PRECISION)
+	assert_float(manipulation_parent.scale.y).append_failure_message("Vertical flip should invert ManipulationParent Y scale").is_equal_approx(original_scale.y * -1, SCALE_PRECISION)
 
 @warning_ignore("unused_parameter")
 func test_rotate_node2d_target_rotates_correctly(
@@ -304,7 +317,9 @@ func test_rotate_node2d_target_rotates_correctly(
 ) -> void:
 	_validate_manipulatable_for_transform(p_manipulatable, "rotate")
 	var target: Node2D = p_manipulatable.root
-	var expected_rotation_degrees: float = 0.0
+	# Test uses ManipulationParent architecture - rotation is applied to manipulation parent
+	var manipulation_parent: ManipulationParent = manipulation_state.parent
+	var expected_rotation_degrees: float = manipulation_parent.global_rotation_degrees
 
 	for i in range(ROTATION_ITERATIONS):
 		var success: bool = system.rotate(target, ROTATION_INCREMENT)
@@ -312,9 +327,10 @@ func test_rotate_node2d_target_rotates_correctly(
 
 		expected_rotation_degrees += ROTATION_INCREMENT
 		var normalized_expected: float = _normalize_rotation(expected_rotation_degrees)
-		var actual_target_rotation: float = _normalize_rotation(target.global_rotation_degrees)
+		# Test ManipulationParent rotation instead of target rotation (correct architecture)
+		var actual_rotation: float = _normalize_rotation(manipulation_parent.global_rotation_degrees)
 
-		assert_float(actual_target_rotation).append_failure_message("Rotation should match expected degrees on iteration %d (expected: %f, actual: %f)" % [i, normalized_expected, actual_target_rotation]).is_equal_approx(normalized_expected, ROTATION_PRECISION)
+		assert_float(actual_rotation).append_failure_message("Rotation should match expected degrees on iteration %d (expected: %f, actual: %f)" % [i, normalized_expected, actual_rotation]).is_equal_approx(normalized_expected, ROTATION_PRECISION)
 
 @warning_ignore("unused_parameter")
 func test_rotate_negative(

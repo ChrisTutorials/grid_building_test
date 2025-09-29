@@ -21,7 +21,7 @@ func test_indicator_context_reports_missing_manager_initially() -> void:
 	auto_free(fresh_indicator_context)
 	
 	# Initially, fresh context should report that IndicatorManager is not assigned
-	var initial_issues : Array[String] = fresh_indicator_context.get_editor_issues()
+	var initial_issues : Array[String] = fresh_indicator_context.get_runtime_issues()
 	assert_array(initial_issues).append_failure_message(
 		"IndicatorContext should return an array of issues"
 	).is_not_empty()
@@ -49,10 +49,10 @@ func test_indicator_context_after_manager_assignment() -> void:
 	var indicator_manager: IndicatorManager = env.indicator_manager
 	indicator_context.set_manager(indicator_manager)
 	
-	# After assignment, should have no editor issues
-	var post_assignment_issues : Array[String] = indicator_context.get_editor_issues()
+	# After assignment, should have no runtime issues
+	var post_assignment_issues : Array[String] = indicator_context.get_runtime_issues()
 	assert_array(post_assignment_issues).append_failure_message(
-		"IndicatorContext should have no editor issues after IndicatorManager assignment, but found: %s" % str(post_assignment_issues)
+		"IndicatorContext should have no runtime issues after IndicatorManager assignment, but found: %s" % str(post_assignment_issues)
 	).is_empty()
 	
 	# Should have a manager
@@ -91,8 +91,8 @@ func test_composition_container_validation_with_manager() -> void:
 	fresh_container.config = _container.config  # Copy the config
 	auto_free(fresh_container)
 	
-	# Before manager assignment, fresh container should have editor issues
-	var initial_issues : Array[String] = fresh_container.get_editor_issues()
+	# Before manager assignment, fresh container should have runtime issues
+	var initial_issues : Array[String] = fresh_container.get_runtime_issues()
 	var has_indicator_manager_issue : bool = false
 	for issue in initial_issues:
 		if "IndicatorManager is not assigned in IndicatorContext" in issue:
@@ -109,7 +109,7 @@ func test_composition_container_validation_with_manager() -> void:
 	indicator_context.set_manager(indicator_manager)
 	
 	# After assignment, the specific issue should be resolved
-	var post_assignment_issues : Array[String] = fresh_container.get_editor_issues()
+	var post_assignment_issues : Array[String] = fresh_container.get_runtime_issues()
 	var still_has_indicator_manager_issue : bool = false
 	for issue : String in post_assignment_issues:
 		if "IndicatorManager is not assigned in IndicatorContext" in issue:

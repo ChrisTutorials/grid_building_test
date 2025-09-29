@@ -26,12 +26,29 @@ func before_test() -> void:
 	add_child(_map)
 	_targeting.target_map = _map
 	_targeting.maps = [_map]
+	
+	# Create proper GridPositioner2D with TargetingShapeCast2D child (matching template scene configuration)
 	if _targeting.positioner == null:
-		_targeting.positioner = auto_free(Node2D.new())
-		add_child(_targeting.positioner)
+		var grid_positioner: GridPositioner2D = auto_free(GridPositioner2D.new())
+		add_child(grid_positioner)
+		
+		# Add TargetingShapeCast2D child with proper RectangleShape2D (matching grid_positioner_stack_2d.tscn)
+		var targeting_shapecast: TargetingShapeCast2D = auto_free(TargetingShapeCast2D.new())
+		var rect_shape: RectangleShape2D = RectangleShape2D.new()
+		rect_shape.size = Vector2(16, 16)  # Match template scene configuration
+		targeting_shapecast.shape = rect_shape
+		targeting_shapecast.collision_mask = 4294967295  # Match template scene configuration 
+		grid_positioner.add_child(targeting_shapecast)
+		
+		# Resolve dependencies
+		targeting_shapecast.resolve_gb_dependencies(_container)
+		
+		_targeting.positioner = grid_positioner
 
 	# Set up manipulation parent - required for IndicatorManager to have a parent node
-	_container.get_states().manipulation.parent = _targeting.positioner
+	var manipulation_parent: ManipulationParent = auto_free(ManipulationParent.new())
+	_targeting.positioner.add_child(manipulation_parent)
+	_container.get_states().manipulation.parent = manipulation_parent
 	
 	# Basic placer/owner context (building state not needed for indicator setup)
 	_placer = auto_free(Node2D.new())
@@ -71,7 +88,10 @@ func after_test() -> void:
 		_manager.tear_down()
 
 func _collect_indicators() -> Array[RuleCheckIndicator]:
-	return _manager.get_indicators() if _manager else []
+	var indicators: Array[RuleCheckIndicator] = []
+	if _manager:
+		indicators = _manager.get_indicators()
+	return indicators
 
 
 ## Diagnostic helpers to keep tests concise and consistent

@@ -31,6 +31,8 @@ tile_map_layer = NodePath("World/Level/TileMapLayer_31x31_Buildable")
 objects_parent = NodePath("World/Level/PlacedObjectsParent")
 placer = NodePath("World/Level/Placer")
 
+[node name="Camera2D" type="Camera2D" parent="."]
+
 [node name="ManipulationSystem" type="Node" parent="."]
 script = ExtResource("2_8ccnd")
 metadata/_custom_type_script = "uid://c2tafmcbbiujk"

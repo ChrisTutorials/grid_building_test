@@ -60,8 +60,7 @@ func before_test() -> void:
 	targeting_state.set_map_objects(tile_map_layer, [tile_map_layer])
 	targeting_state.positioner = positioner
 	
-	# Set up manipulation parent
-	_container.get_states().manipulation.parent = positioner
+	# Note: AllSystemsTestEnvironment already provides ManipulationParent setup via injection
 	
 	# Set up owner context
 	var owner_context: GBOwnerContext = _container.get_contexts().owner
@@ -77,10 +76,11 @@ func before_test() -> void:
 	_container.get_states().building.placed_parent = placed_parent
 	add_child(placed_parent)
 	
-	# Create building system
-	building_system = auto_free(BuildingSystem.new())
-	add_child(building_system)
-	building_system.resolve_gb_dependencies(_container)
+	# Use building system from AllSystemsTestEnvironment
+	building_system = env.building_system
+	assert_object(building_system).append_failure_message(
+		"AllSystemsTestEnvironment should provide BuildingSystem"
+	).is_not_null()
 	
 	# Ensure placement manager exists
 	if _container.get_contexts().indicator.get_manager() == null:
@@ -125,6 +125,11 @@ func test_rigid_body_with_collision_layer_513_generates_indicators() -> void:
 	scene.pack(test_box)
 	var placeable: Placeable = Placeable.new(scene, [unoccupied_space])
 	placeable.display_name = &"Simple Box"
+
+	# Guard assertion - ensure building system is properly initialized
+	assert_object(building_system).append_failure_message(
+		"BuildingSystem should be initialized in before_test()"
+	).is_not_null()
 
 	# Enter build mode
 	building_system.selected_placeable = placeable

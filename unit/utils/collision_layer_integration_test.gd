@@ -2,7 +2,7 @@ class_name CollisionLayerIntegrationTest
 extends GdUnitTestSuite
 ## Tests collision layer matching integration to isolate specific layer mask 2561 vs collision layer 513 failures
 
-const PhysicsUtils = preload("res://addons/grid_building/utilities/physics_matching_utils_2d.gd")
+const PhysicsUtils = preload("res://addons/grid_building/utils/physics_matching_utils_2d.gd")
 
 func test_layer_mask_2561_matches_collision_layer_513() -> void:
 	# Test the specific layer combination from the failing integration tests

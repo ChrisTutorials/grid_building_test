@@ -262,21 +262,17 @@ func test_viewport_center_to_world_position_with_camera() -> void:
 	)
 
 func test_viewport_center_to_world_position_without_camera() -> void:
-	# Test: Viewport center conversion without Camera2D (should issue warning)
+	# Test: Viewport center conversion without Camera2D (should push_error)
 	# Setup: Viewport without camera
-	# Act: Convert viewport center
-	# Assert: Fallback behavior used and warning issued
+	# Act & Assert: Should push_error and return Vector2.ZERO
 	var viewport_no_camera: SubViewport = auto_free(SubViewport.new())
 	add_child(viewport_no_camera)
 	viewport_no_camera.size = Vector2i(400, 300)
 	
-	# This should trigger the warning about missing Camera2D
-	var world_position: Vector2 = GBPositioning2DUtils.viewport_center_to_world_position(viewport_no_camera)
-	
-	assert_object(world_position).is_not_null().append_failure_message(
-		"Should return fallback world position even without camera"
-	)
-	# Note: We can't easily test the warning was issued without additional infrastructure
+	# Assert that function pushes error when Camera2D is missing
+	await assert_error(func() -> void:
+		GBPositioning2DUtils.viewport_center_to_world_position(viewport_no_camera)
+	).is_push_error("GBPositioning2DUtils: Camera2D not found in viewport. This utilities class requires Camera2D for proper coordinate conversion.")
 
 func test_move_node_to_tile_at_viewport_center() -> void:
 	# Test: Move node to viewport center snapped to grid

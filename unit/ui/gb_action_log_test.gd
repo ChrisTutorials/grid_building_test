@@ -26,26 +26,26 @@ var test_settings: ActionLogSettings
 var test_container: GBCompositionContainer
 
 func before_test() -> void:
-	# Create test components
-	action_log = GBActionLog.new()
-	message_label = RichTextLabel.new()
+	# Create test components with auto_free to prevent orphan nodes
+	action_log = auto_free(GBActionLog.new())
+	message_label = auto_free(RichTextLabel.new())
 	action_log.message_log = message_label
 	
 	# Create test settings with failed reasons enabled
-	test_settings = ActionLogSettings.new()
+	test_settings = auto_free(ActionLogSettings.new())
 	test_settings.print_failed_reasons = true
 	test_settings.print_on_drag_build = false
 	test_settings.show_validation_message = true
 	
 	# Create test container with proper config structure
-	test_container = GBCompositionContainer.new()
-	var test_config: GBConfig = GBConfig.new()
-	var gb_settings: GBSettings = GBSettings.new()
+	test_container = auto_free(GBCompositionContainer.new())
+	var test_config: GBConfig = auto_free(GBConfig.new())
+	var gb_settings: GBSettings = auto_free(GBSettings.new())
 	test_config.settings = gb_settings
 	test_container.config = test_config
 	
 	# Create mock actions
-	var mock_actions: GBActions = GBActions.new()
+	var mock_actions: GBActions = auto_free(GBActions.new())
 	
 	# Resolve states from container instead of creating manually
 	var resolved_states: GBStates = test_container.get_states()
@@ -59,10 +59,9 @@ func before_test() -> void:
 	action_log._manipulation_state = manipulation_state
 
 func after_test() -> void:
-	if action_log:
-		action_log.queue_free()
-	if message_label:
-		message_label.queue_free()
+	# Cleanup handled automatically by auto_free() in before_test()
+	# No manual queue_free() needed to prevent double-free issues
+	pass
 
 #region DRY Helper Methods
 
@@ -117,8 +116,8 @@ func _create_build_action_data(building_name: String, placement_report: Placemen
 	var test_placeable: Placeable = Placeable.new()
 	test_placeable.display_name = building_name
 	
-	# Create a preview instance for proper display name
-	var preview_instance: Node2D = Node2D.new()
+	# Create a preview instance for proper display name - use auto_free to prevent orphan nodes
+	var preview_instance: Node2D = auto_free(Node2D.new())
 	preview_instance.name = building_name.replace(" ", "") + "Preview"  # Convert "Test Smithy Building" -> "TestSmithyBuildingPreview"
 	placement_report.preview_instance = preview_instance
 	

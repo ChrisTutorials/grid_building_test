@@ -346,7 +346,7 @@ func test_factory_performance_and_cleanup() -> void:
 	var start_time: int = Time.get_ticks_msec()
 
 	# Create multiple factory objects rapidly
-	var created_objects: Array = []
+	var created_objects: Array[CollisionTestEnvironment] = []
 	for i in range(STRESS_TEST_ITERATIONS):
 		var env: CollisionTestEnvironment = _create_indicator_test_environment_with_tracking()
 		created_objects.append(env)

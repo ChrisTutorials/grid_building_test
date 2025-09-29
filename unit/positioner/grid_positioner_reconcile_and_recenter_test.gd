@@ -18,9 +18,12 @@ func test_visibility_reconcile_applies_when_differs() -> void:
 func test_visibility_reconcile_noop_when_same() -> void:
     var s := _settings()
     var last := GBMouseInputStatus.new()
-    last.allowed = false
+    last.allowed = true  # Set to true so should_be_visible returns true
     var res: Variant = GridPositionerLogic.visibility_reconcile(GBEnums.Mode.MOVE, s, true, last, false)
-    assert_bool(res.apply).is_false()
+    assert_bool(res.apply).append_failure_message(
+        "Visibility reconcile should return apply=false when current visibility matches expected - Mode: %s, CurrentVisible: %s, MouseAllowed: %s, ShouldBeVisible: should match CurrentVisible" % 
+        [GBEnums.Mode.MOVE, true, last.allowed]
+    ).is_false()
 
 func test_recenter_decision_none() -> void:
     var d := GridPositionerLogic.recenter_on_enable_decision(GridTargetingSettings.RecenterOnEnablePolicy.NONE, false, true, true)

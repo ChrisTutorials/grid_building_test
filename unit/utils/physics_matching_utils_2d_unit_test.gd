@@ -1,7 +1,7 @@
 class_name PhysicsMatchingUtils2DUnitTest
 extends GdUnitTestSuite
 
-const PhysicsUtils = preload("res://addons/grid_building/utilities/physics_matching_utils_2d.gd")
+const PhysicsUtils = preload("res://addons/grid_building/utils/physics_matching_utils_2d.gd")
 
 func test_get_layers_from_bitmask_single_bit() -> void:
 	# Test single bit masks for each layer 0-31

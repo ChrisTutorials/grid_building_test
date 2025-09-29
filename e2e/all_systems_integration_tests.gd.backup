@@ -1291,7 +1291,7 @@ func test_performance_regression_prevention() -> void:
 #region Diagnostic Helper Functions
 
 func _format_placement_report_debug(report: PlacementReport) -> String:
-	"""Enhanced placement report diagnostic with comprehensive details"""
+	"""Helper function to format detailed placement report diagnostic information."""
 	if report == null:
 		return "PlacementReport is null"
 	
@@ -1299,7 +1299,6 @@ func _format_placement_report_debug(report: PlacementReport) -> String:
 	debug_parts.append("Action: %s" % str(report.action_type))
 	debug_parts.append("Preview: %s" % (str(report.preview_instance) if report.preview_instance else "null"))
 	debug_parts.append("Placer: %s" % (str(report.placer) if report.placer else "null"))
-	debug_parts.append("Success: %s" % report.is_successful())
 	
 	# Include indicator report summary if available
 	if report.indicators_report:
@@ -1311,33 +1310,10 @@ func _format_placement_report_debug(report: PlacementReport) -> String:
 	else:
 		debug_parts.append("Indicators Report: null")
 	
-	# Include notes and issues
+	# Include notes if available
 	if not report.notes.is_empty():
 		debug_parts.append("Notes: %s" % str(report.notes))
-	if not report.is_successful() and report.get_issues():
-		debug_parts.append("Issues: %s" % str(report.get_issues()))
 	
-	return "[PlacementReport: %s]" % " | ".join(debug_parts)
-
-func _format_collision_debug(collision_object: StaticBody2D) -> String:
-	"""Format collision object diagnostic information"""
-	var parts: Array[String] = []
-	parts.append("Name: %s" % collision_object.name)
-	parts.append("Position: %s" % collision_object.global_position)
-	parts.append("Layer: %d" % collision_object.collision_layer)
-	parts.append("Mask: %d" % collision_object.collision_mask)
-	
-	var shape_info: String = "NoShape"
-	if collision_object.get_child_count() > 0:
-		var shape_node: CollisionShape2D = collision_object.get_child(0) as CollisionShape2D
-		if shape_node and shape_node.shape and shape_node.shape is RectangleShape2D:
-			shape_info = "Rect:%s" % (shape_node.shape as RectangleShape2D).size
-	parts.append("Shape: %s" % shape_info)
-	
-	return "[CollisionObject: %s]" % " | ".join(parts)
-
-func _log_test_message(message: String, category: String = "INFO") -> void:
-	"""Centralized test logging with consistent formatting"""
-	print("[TestDiagnostic-%s] %s" % [category, message])
+	return " | ".join(debug_parts)
 
 #endregion

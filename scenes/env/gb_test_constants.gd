@@ -80,7 +80,7 @@ const PLACEABLE_TRAPEZOID : Placeable = preload("uid://c8i072rgno71t")
 const PLACEABLE_NO_COL_TEST_2D: Placeable = preload("uid://jgmywi04ib7c")
 
 ## Small rectangular test placeable (4x2 tiles - 64x32 px)
-const PLACEABLE_RECT_4X2: Placeable = preload("uid://cqknt0ejxvq4m")
+const PLACEABLE_RECT_4X2: Placeable = preload("res://test/grid_building_test/resources/placeable/test_placeable_rect_4x2.tres")
 
 #endregion
 #region Object Scene Paths
