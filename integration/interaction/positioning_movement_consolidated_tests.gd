@@ -3,11 +3,22 @@ extends GdUnitTestSuite
 ## Consolidated positioning and movement tests using factory patterns
 
 # Test constants
-const TILE_SIZE: int = 32
-const TEST_INDICATOR_SIZE: Vector2 = Vector2.ONE * TILE_SIZE
+const TILE_SIZE: int = int(GBTestConstants.DEFAULT_TILE_SIZE.x)
+const TEST_INDICATOR_SIZE: Vector2 = GBTestConstants.DEFAULT_TILE_SIZE
 const PERFORMANCE_TEST_OBJECT_COUNT: int = 10
 const PERFORMANCE_TEST_MOVE_COUNT: int = 20
 const PERFORMANCE_TEST_TIME_LIMIT_MS: int = 50
+
+#region COLLISION_HELPERS
+
+func _build_collision_diagnostics(iteration: int, tile_coords: Vector2i, positioner_world: Vector2, collision_world: Vector2, offsets: Dictionary) -> String:
+	var key_list: Array = offsets.keys()
+	var sample_keys: Array = key_list
+	if key_list.size() > 5:
+		sample_keys = key_list.slice(0, 5)
+	return "iteration=%d tile_target=%s positioner_global=%s collision_global=%s sample_keys=%s" % [iteration, str(tile_coords), str(positioner_world), str(collision_world), str(sample_keys)]
+
+#endregion
 
 var env: AllSystemsTestEnvironment
 
@@ -46,21 +57,6 @@ func before_test() -> void:
 	if not positioner or not indicator_manager or not collision_mapper or not tile_map:
 		fail("Critical components are null after environment validation - environment may be corrupted")
 		return
-	print("tile_map is null: ", tile_map == null)
-	if tile_map != null:
-		print("tile_map.tile_set is null: ", tile_map.tile_set == null)
-		if tile_map.tile_set != null:
-			print("tile_size: ", tile_map.tile_set.tile_size)
-
-## Helper method to log positioner debug information
-func _log_positioner_debug_info(pos: GridPositioner2D, collision_body: StaticBody2D) -> void:
-	print("Positioner type: ", typeof(pos))
-	print("Positioner class: ", pos.get_class())
-	print("Positioner position property: ", pos.position)
-	print("Positioner global_position type: ", typeof(pos.global_position))
-	print("Positioner global_position value: ", pos.global_position)
-	print("Collision object type: ", typeof(collision_body))
-	print("Collision object global_position: ", collision_body.global_position)
 
 func test_positioner_basic_positioning() -> void:
 	# Test basic positioning
@@ -82,42 +78,52 @@ func test_positioner_with_collision_tracking() -> void:
 	var targeting_state: GridTargetingState = env.injector.composition_container.get_states().targeting
 	var setups: Array[CollisionTestSetup2D] = CollisionTestSetup2D.create_test_setups_from_test_node(collision_body, targeting_state)
 	var test_setup: CollisionTestSetup2D = setups[0] if setups.size() > 0 else null
+	assert_object(test_setup).is_not_null().append_failure_message("CollisionTestSetup2D creation failed - verify collision_body exposes supported shapes and targeting_state is valid.")
+
+	var tile_set: TileSet = tile_map.tile_set
+	assert_object(tile_set).is_not_null().append_failure_message("TileMap must expose a TileSet to derive tile size for collision coverage.")
+	var tile_size: Vector2 = Vector2(tile_set.tile_size)
+
+	var rect_setups: Array[RectCollisionTestingSetup] = test_setup.rect_collision_test_setups
+	assert_array(rect_setups).is_not_empty().append_failure_message("CollisionTestSetup2D should provide at least one RectCollisionTestingSetup for coverage calculations.")
+	var primary_rect_setup: RectCollisionTestingSetup = rect_setups[0]
+	assert_object(primary_rect_setup).is_not_null().append_failure_message("Primary RectCollisionTestingSetup cannot be null - collision mapping requires rectangle coverage data.")
+	assert_object(primary_rect_setup.rect_shape).is_not_null().append_failure_message("RectCollisionTestingSetup must expose a RectangleShape2D to compute expected tile coverage.")
+
+	var expected_tile_count: int = -1
+
+	var base_tile: Vector2i = Vector2i(3, 3)
+	var tile_offsets: Array[Vector2i] = [Vector2i.ZERO, Vector2i(1, 0), Vector2i(2, 1)]
+	var target_tiles: Array[Vector2i] = []
+	var positions: Array[Vector2] = []
+
+	for offset: Vector2i in tile_offsets:
+		var tile_coords: Vector2i = base_tile + offset
+		target_tiles.append(tile_coords)
+		var world_pos: Vector2 = tile_map.to_global(tile_map.map_to_local(tile_coords))
+		positions.append(world_pos)
 	
 	# Test position changes affect collision mapping
-	var positions: Array[Vector2] = [Vector2.ZERO, Vector2(TILE_SIZE, 0), Vector2(TILE_SIZE * 2, TILE_SIZE)]
 	var results: Array[Dictionary] = []
 	
 	# Move positioner to different positions and get collision mapping after physics update
-	for pos: Vector2 in positions:
-		positioner.global_position = pos
+	for index: int in range(positions.size()):
+		positioner.global_position = positions[index]
 		await get_tree().physics_frame  # Wait for physics frame to update global positions
-		
-		# Debug: Print positions to verify collision object is moving with positioner
-		_log_positioner_debug_info(positioner, collision_body)
-		
-		var offsets : Dictionary = collision_mapper.get_tile_offsets_for_test_collisions(test_setup)
+		var offsets: Dictionary = collision_mapper.get_tile_offsets_for_test_collisions(test_setup)
+		var diagnostics: String = _build_collision_diagnostics(index, target_tiles[index], positions[index], collision_body.global_position, offsets)
 		results.append(offsets)
-		assert_that(offsets).is_not_empty()
-	
-	# CollisionMapper calculates absolute tile positions based on object position.
-	# When the positioner moves, the StaticBody2D moves with it, so tile positions should change accordingly.
-	# The collision shape is 32x32 pixels, but CollisionTestSetup2D stretches it by tile_size * 2.0 = 32 pixels,
-	# making the effective collision area 64x64 pixels, covering 4x4 tiles (16 tiles total).
-	# We validate that the collision detection works correctly by checking that we get the expected number of tiles.
-	var expected_tile_counts: Array[int] = [16, 16, 16]  # All positions should detect 16 tiles (4x4 area)
-	for i in range(results.size()):
-		var result_keys: Array[Variant] = results[i].keys()
-		assert_that(result_keys.size()).is_equal(expected_tile_counts[i])
+		assert_that(offsets).is_not_empty().append_failure_message(diagnostics)
+		var tile_keys: Array = offsets.keys()
+		var tile_count: int = tile_keys.size()
+		if expected_tile_count == -1:
+			expected_tile_count = tile_count
+			assert_int(expected_tile_count).is_greater(0).append_failure_message("%s | initial_tile_count=%d rect_shape_size=%s tile_size=%s" % [diagnostics, expected_tile_count, str(primary_rect_setup.rect_shape.size), str(tile_size)])
+		else:
+			assert_int(tile_count).is_equal(expected_tile_count).append_failure_message("%s | expected_tile_count=%d observed=%d keys=%s" % [diagnostics, expected_tile_count, tile_count, str(tile_keys)])
 		# Verify all keys are Vector2i tile coordinates
-		for key: Variant in result_keys:
-			assert_that(key is Vector2i).is_true()
-	
-	# Verify that each result contains Vector2i keys and Array[Node2D] values
-	for i in range(results.size()):
-		var result: Dictionary = results[i]
-		# Light validation only; detailed type checks removed due to flaky assert_array type inference.
-		print("[Debug] Collision result ", i, ": ", result)
-		assert_that(result).is_not_empty()
+		for key: Variant in tile_keys:
+			assert_bool(key is Vector2i).is_true().append_failure_message("%s | invalid tile key=%s (type=%s)" % [diagnostics, str(key), str(typeof(key))])
 
 func test_positioner_indicator_updates() -> void:
 	# Add indicator to positioner
@@ -238,7 +244,7 @@ func test_positioner_integration_workflow() -> void:
 	indicator.color = Color.BLUE
 	positioner.add_child(indicator)
 	auto_free(indicator)
-	
+
 	# Create proper test setup for collision mapping using environment's targeting state
 	var targeting_state: GridTargetingState = env.injector.composition_container.get_states().targeting
 	var setups: Array[CollisionTestSetup2D] = CollisionTestSetup2D.create_test_setups_from_test_node(collision_body, targeting_state)

@@ -109,18 +109,23 @@ func test_collision_mapper_trapezoid_regression() -> void:
 	
 	# Test trapezoid collision mapping
 	trapezoid_object.global_position = Vector2(0, 0)
+	
+	# Position the positioner near the test object to get reasonable tile coordinates
+	env.positioner.global_position = Vector2(0, 0)
+	
 	var collision_tiles: Dictionary = CollisionObjectTestFactory.get_collision_tiles_for_objects(collision_mapper, [trapezoid_object])
 	
 	assert_int(collision_tiles.size()).append_failure_message(
 		"Trapezoid collision mapping should produce tiles"
 	).is_greater(0)
 	
-	# Verify tile positions are reasonable for trapezoid shape
+	# Verify tile offsets are reasonable for trapezoid shape
+	# Note: These are offset coordinates relative to the positioner position
 	for tile_pos: Variant in collision_tiles.keys():
 		var tile_coord: Vector2i = tile_pos as Vector2i
 		assert_int(abs(tile_coord.x)).append_failure_message(
-			"Trapezoid tile x coordinate should be reasonable: %d" % tile_coord.x
-		).is_less(50) # Within reasonable bounds
+			"Trapezoid tile offset should be reasonable: %d" % tile_coord.x
+		).is_less(10) # Offsets should be within reasonable range from center
 
 # ===== POLYGON TILE MAPPER TESTS =====
 

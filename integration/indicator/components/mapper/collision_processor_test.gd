@@ -9,7 +9,9 @@ var _test_env: Dictionary
 
 func before_test() -> void:
 	# Setup minimal dependencies
-	_processor = CollisionProcessor.new()
+	var container: GBCompositionContainer = GBCompositionContainer.new()
+	var logger: GBLogger = container.get_logger()
+	_processor = CollisionProcessor.new(logger)
 	_test_env = _create_base_test_environment()
 
 func after_test() -> void:

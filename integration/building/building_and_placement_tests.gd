@@ -130,6 +130,11 @@ func before_test() -> void:
 	# Set the targeting state target to the user_node/placer for tests
 	_targeting_state.target = user_node
 	
+	# DISABLE mouse input processing to prevent interference during tests
+	# Fail-fast: call method directly - if it doesn't exist, test should fail immediately
+	_positioner.set_input_processing_enabled(false)
+	logger.log_debug("Disabled mouse input processing on GridPositioner2D for test isolation")
+	
 	# Set debug level to VERBOSE to see detailed logging
 	_container.get_debug_settings().set_debug_level(GBDebugSettings.LogLevel.VERBOSE)
 	
@@ -1136,15 +1141,26 @@ func _disabled_test_building_mode_enter_exit() -> void:
 	).is_false()
 
 func test_building_placement_attempt() -> void:
-	# Enter build mode and attempt placement
-	_building_system.enter_build_mode(GBTestConstants.PLACEABLE_SMITHY)
+	_prepare_target_for_successful_build()
+
+	var enter_report: PlacementReport = _building_system.enter_build_mode(GBTestConstants.PLACEABLE_SMITHY)
+	assert_bool(enter_report.is_successful()).append_failure_message(
+		_format_debug("Enter build mode failed: issues=%s" % [str(enter_report.get_issues())])
+	).is_true()
+
+	await get_tree().process_frame
+
 	var placement_result: PlacementReport = _building_system.try_build()
-	
-	# Verify placement attempt returns a result (success/failure handled by validation)
-	assert_object(placement_result.placed).append_failure_message(
-		"Build attempt should return a result object"
+	assert_object(placement_result).append_failure_message(
+		_format_debug("BuildingSystem.try_build() returned null report")
 	).is_not_null()
-	
+	assert_bool(placement_result.is_successful()).append_failure_message(
+		_format_debug("Build attempt should succeed; issues=%s" % [str(placement_result.get_issues())])
+	).is_true()
+	assert_object(placement_result.placed).append_failure_message(
+		_format_debug("Build attempt should return a result object; success=%d failed=%d" % [_build_success_count, _build_failed_count])
+	).is_not_null()
+
 	_building_system.exit_build_mode()
 
 #endregion
@@ -1228,25 +1244,31 @@ func test_drag_build_functionality() -> void:
 #region SINGLE PLACEMENT PER TILE
 
 func test_single_placement_per_tile_constraint() -> void:
-	_building_system.enter_build_mode(GBTestConstants.PLACEABLE_SMITHY)
-	
-	_building_system.enter_build_mode(GBTestConstants.PLACEABLE_SMITHY)
-	
-	var _target_position: Vector2 = Vector2(0, 0)
+	_prepare_target_for_successful_build()
 
-	# First placement attempt - this should succeed because no objects are blocking placement
+	var enter_report: PlacementReport = _building_system.enter_build_mode(GBTestConstants.PLACEABLE_SMITHY)
+	assert_bool(enter_report.is_successful()).append_failure_message(
+		_format_debug("Enter build mode failed before duplicate placement test: issues=%s" % [str(enter_report.get_issues())])
+	).is_true()
+
+	await get_tree().process_frame
+
+	# First placement attempt - this should succeed because indicators are valid
 	var first_report: PlacementReport = _building_system.try_build()
 	assert_object(first_report).append_failure_message(
-		"First placement attempt should return a PlacementReport"
+		_format_debug("First placement attempt returned null report")
 	).is_not_null()
+	assert_bool(first_report.is_successful()).append_failure_message(
+		_format_debug("First placement attempt should succeed; issues=%s" % [str(first_report.get_issues())])
+	).is_true()
 	assert_object(first_report.placed).append_failure_message(
-		"First placement attempt should succeed and return a valid placed object"
+		_format_debug("First placement attempt should return a valid placed object")
 	).is_not_null()
 
 	# This will test the system's ability to prevent multiple placements in the same tile
 	var second_report: PlacementReport = _building_system.try_build()
 	assert_object(second_report).append_failure_message(
-		"System should handle duplicate placement attempts gracefully"
+		_format_debug("Duplicate placement attempt should still return a PlacementReport")
 	).is_not_null()
 	
 	_building_system.exit_build_mode()
@@ -1304,27 +1326,30 @@ func test_preview_rotation_consistency() -> void:
 #region COMPREHENSIVE BUILDING WORKFLOW
 
 func test_complete_building_workflow() -> void:
-	_targeting_state.target = UnifiedTestFactory.create_test_node2d(self)
-	_targeting_state.target.position = Vector2(0, 0)
-	
-	# Phase 2: Enter build mode
-	_building_system.enter_build_mode(GBTestConstants.PLACEABLE_SMITHY)
+	_prepare_target_for_successful_build()
+
+	var enter_report: PlacementReport = _building_system.enter_build_mode(GBTestConstants.PLACEABLE_SMITHY)
+	assert_bool(enter_report.is_successful()).append_failure_message(
+		_format_debug("Enter build mode failed during complete workflow test: issues=%s" % [str(enter_report.get_issues())])
+	).is_true()
 	assert_bool(_building_system.is_in_build_mode()).append_failure_message(
 		"Should be in build mode after entering"
 	).is_true()
-	
+
+	await get_tree().process_frame
+
 	# Phase 3: Attempt building
 	var build_report: PlacementReport = _building_system.try_build()
 	assert_object(build_report).append_failure_message(
-		"Build attempt should return a placement report"
+		_format_debug("Build attempt should return a placement report")
 	).is_not_null()
 	assert_bool(build_report.is_successful()).append_failure_message(
-		"Build attempt should be successful"
+		_format_debug("Build attempt should be successful; issues=%s" % [str(build_report.get_issues())])
 	).is_true()
 	assert_object(build_report.placed).append_failure_message(
-		"Build report should contain a valid placed object"
+		_format_debug("Build report should contain a valid placed object; success=%d failed=%d" % [_build_success_count, _build_failed_count])
 	).is_not_null()
-	
+
 	# Phase 4: Cleanup
 	_building_system.exit_build_mode()
 	assert_bool(_building_system.is_in_build_mode()).append_failure_message(
@@ -1422,28 +1447,128 @@ func test_preview_indicator_consistency() -> void:
 	
 
 # Helper method to add collision shapes to test object for collision rule testing
+func _prepare_target_for_successful_build(_tile: Vector2i = SAFE_LEFT_TILE) -> void:
+	# FIXED: Always find a valid tile within the actual map bounds
+	var resolved_tile: Vector2i = _find_valid_tile_within_map_bounds()
+	_setup_test_object_collision_shapes()
+	_move_positioner_to_tile(resolved_tile)
+	if is_instance_valid(user_node):
+		user_node.global_position = _positioner.global_position
+	if _targeting_state != null:
+		_targeting_state.target = user_node
+		_targeting_state.target.global_position = _positioner.global_position
+	
+	# Debug logging to verify the positioning is correct
+	var map_bounds: Rect2i = _map.get_used_rect()
+	logger.log_debug("Positioned at tile %s (world: %s) within map bounds %s" % [
+		str(resolved_tile), str(_positioner.global_position), str(map_bounds)
+	])
+
 func _setup_test_object_collision_shapes() -> void:
+	if not is_instance_valid(user_node):
+		return
+
+	var existing_body: StaticBody2D = user_node.get_node_or_null("TestCollisionBody") as StaticBody2D
+	if existing_body != null:
+		return
+
 	# Create a StaticBody2D child to hold collision shapes since user_node is just Node2D
 	var collision_body: StaticBody2D = StaticBody2D.new()
 	collision_body.name = "TestCollisionBody"
-	
+	collision_body.collision_layer = TEST_COLLISION_LAYER
+	collision_body.collision_mask = BLOCKING_BODY_MASK
+
 	# Add a CollisionShape2D with a RectangleShape2D to the collision body
 	var collision_shape: CollisionShape2D = CollisionShape2D.new()
 	var rectangle_shape: RectangleShape2D = RectangleShape2D.new()
-	rectangle_shape.size = Vector2(16, 16)  # Standard tile size
+	rectangle_shape.size = TILE_SIZE_PX
 	collision_shape.shape = rectangle_shape
 	collision_shape.name = "TestCollisionShape"
-	
+
 	# Set up the hierarchy: user_node -> StaticBody2D -> CollisionShape2D
 	collision_body.add_child(collision_shape)
 	user_node.add_child(collision_body)
-	
+
 	# Use logger instead of print to reduce test output noise
-	logger.log_verbose( "Added StaticBody2D with collision shape to user_node: " + user_node.name)
+	logger.log_verbose("Added StaticBody2D with collision shape to user_node: %s" % user_node.name)
 	var child_names: Array[String] = []
 	for child in user_node.get_children():
-		child_names.append(child.get_class() + ":" + child.name)
-	logger.log_verbose( "user_node children after adding collision body: " + str(child_names))
+		child_names.append("%s:%s" % [child.get_class(), child.name])
+	logger.log_verbose("user_node children after adding collision body: %s" % str(child_names))
+
+func _resolve_tile_for_build(preferred_tile: Vector2i) -> Vector2i:
+	assert_object(_map).append_failure_message("TileMapLayer missing when resolving build tile").is_not_null()
+
+	if _tile_has_data(preferred_tile):
+		return preferred_tile
+
+	var safe_tile: Vector2i = _find_safe_center_tile_for_rect_4x2()
+	if _tile_has_data(safe_tile):
+		return safe_tile
+
+	if is_instance_valid(_positioner):
+		var fallback_tile: Vector2i = _map.local_to_map(_map.to_local(_positioner.global_position))
+		if _tile_has_data(fallback_tile):
+			return fallback_tile
+
+	var used_rect: Rect2i = _map.get_used_rect()
+	for y in range(used_rect.position.y, used_rect.position.y + used_rect.size.y):
+		for x in range(used_rect.position.x, used_rect.position.x + used_rect.size.x):
+			var cell: Vector2i = Vector2i(x, y)
+			if _map.get_cell_tile_data(cell) != null:
+				return cell
+
+	return preferred_tile
+
+## Find a valid tile within the actual map bounds that has tile data
+func _find_valid_tile_within_map_bounds() -> Vector2i:
+	assert_object(_map).append_failure_message("TileMapLayer missing when finding valid tile").is_not_null()
+	
+	var used_rect: Rect2i = _map.get_used_rect()
+	
+	# Start from the center of the map and work outward to find a valid tile
+	@warning_ignore("integer_division")
+	var center_x: int = used_rect.position.x + used_rect.size.x / 2
+	@warning_ignore("integer_division")
+	var center_y: int = used_rect.position.y + used_rect.size.y / 2
+	var center_tile: Vector2i = Vector2i(center_x, center_y)
+	
+	# Try center first
+	if _tile_has_data(center_tile):
+		return center_tile
+	
+	# Search in expanding squares around the center
+	for radius in range(1, max(used_rect.size.x, used_rect.size.y) / 2 + 1):
+		for dx in range(-radius, radius + 1):
+			for dy in range(-radius, radius + 1):
+				# Only check the perimeter of the current radius
+				if abs(dx) != radius and abs(dy) != radius:
+					continue
+				
+				var test_tile: Vector2i = Vector2i(center_x + dx, center_y + dy)
+				if _tile_has_data(test_tile):
+					return test_tile
+	
+	# Fallback: return the first tile with data in the used rect
+	for y in range(used_rect.position.y, used_rect.position.y + used_rect.size.y):
+		for x in range(used_rect.position.x, used_rect.position.x + used_rect.size.x):
+			var test_tile: Vector2i = Vector2i(x, y)
+			if _tile_has_data(test_tile):
+				return test_tile
+	
+	# Last resort: return center tile even if it has no data
+	logger.log_warning("No valid tiles found in map bounds %s, using center tile %s" % [str(used_rect), str(center_tile)])
+	return center_tile
+
+func _tile_has_data(tile: Vector2i) -> bool:
+	if _map == null:
+		return false
+
+	var used_rect: Rect2i = _map.get_used_rect()
+	if not used_rect.has_point(tile):
+		return false
+
+	return _map.get_cell_tile_data(tile) != null
 
 func _on_build_success(build_action_data: BuildActionData) -> void:
 	_build_success_count += 1
@@ -1551,6 +1676,8 @@ func test_drag_build_should_not_stack_multiple_objects_in_the_same_spot_before_t
 
 	# Act: Switch to a second tile to the right with adequate separation for 4x2
 	var second_tile := second_tile0
+	# Mimic runtime drag behavior: move the positioner (and preview) before notifying the building system.
+	_move_positioner_to_tile(second_tile)
 	_building_system._on_drag_targeting_new_tile(drag_data, second_tile, start_tile0)
 	_expect_placements(2, "second tile %s" % _doc_tile_coverage(second_tile))
 	# Extra guard for debug: if expected 2 placements not observed, provide context
