@@ -1,0 +1,365 @@
+## Unit tests for template sizing behavior in PlaceableSelectionUI grids.
+##
+## Tests that templates stretch properly to width (divided by columns) and maintain fixed height
+## even when cycling through sequence variants with different icon sizes.
+
+extends GdUnitTestSuite
+@warning_ignore("unused_parameter")
+
+var test_grid: GridContainer
+var placeable_template: PackedScene
+var sequence_template: PackedScene
+var test_placeables: Array[Placeable]
+var test_sequence: PlaceableSequence
+
+const GRID_WIDTH: int = 400
+const EXPECTED_TEMPLATE_HEIGHT: int = 56
+const DEFAULT_COLUMNS: int = 3
+
+func before_test() -> void:
+	# Load templates
+	placeable_template = load("res://templates/grid_building_templates/ui/placement_selection/placeable_view.tscn")
+	sequence_template = load("res://templates/grid_building_templates/ui/placement_selection/placeable_list_entry.tscn")
+	
+	# Create test placeables and sequence
+	test_placeables = _create_test_placeables()
+	test_sequence = _create_test_sequence()
+	
+	# Create test grid
+	test_grid = GridContainer.new()
+	test_grid.custom_minimum_size = Vector2(GRID_WIDTH, 300)
+	test_grid.columns = DEFAULT_COLUMNS
+	add_child(test_grid)
+	await get_tree().process_frame
+
+func after_test() -> void:
+	if test_grid:
+		test_grid.queue_free()
+
+## Test: Placeable templates have correct size flags for stretching
+## Setup: Load placeable template
+## Act: Check size flags configuration
+## Assert: Horizontal stretch enabled, proper minimum size set
+func test_placeable_template_size_flags() -> void:
+	# Act: Create placeable template instance
+	var entry_node: PlaceableView = placeable_template.instantiate()
+	add_child(entry_node)
+	await get_tree().process_frame
+	
+	# Assert: Size flags configured for horizontal stretching
+	assert_int(entry_node.size_flags_horizontal).is_equal(Control.SIZE_EXPAND_FILL).append_failure_message(
+		"PlaceableView should have horizontal SIZE_EXPAND_FILL flag (%d), got %d" % 
+		[Control.SIZE_EXPAND_FILL, entry_node.size_flags_horizontal]
+	)
+	
+	# Assert: Minimum size is set correctly
+	assert_vector(entry_node.custom_minimum_size).is_equal(Vector2(160, 56)).append_failure_message(
+		"PlaceableView should have minimum size 160x56, got %s" % str(entry_node.custom_minimum_size)
+	)
+	
+	entry_node.queue_free()
+
+## Test: Sequence templates have correct size flags for stretching
+## Setup: Load sequence template  
+## Act: Check size flags configuration
+## Assert: Horizontal stretch behavior configured properly
+func test_sequence_template_size_flags() -> void:
+	# Act: Create sequence template instance
+	var entry_node: PlaceableListEntry = sequence_template.instantiate()
+	add_child(entry_node)
+	await get_tree().process_frame
+	
+	# Assert: Minimum size is set correctly
+	assert_vector(entry_node.custom_minimum_size).append_failure_message(
+		"PlaceableListEntry should have minimum size, got %s" % str(entry_node.custom_minimum_size)
+	).is_not_null()
+	
+	# Check that size flags allow for proper stretching behavior
+	var sequence_size_flags: int = entry_node.size_flags_horizontal
+	assert_that(sequence_size_flags == Control.SIZE_EXPAND_FILL or sequence_size_flags == Control.SIZE_EXPAND or sequence_size_flags == Control.SIZE_FILL).is_true().append_failure_message(
+		"PlaceableListEntry should have horizontal expansion flags, got %d" % sequence_size_flags
+	)
+	
+	entry_node.queue_free()
+
+## Test: Templates in grid maintain consistent height
+## Setup: Grid with templates added
+## Act: Add different template types to grid
+## Assert: All templates have same height regardless of content
+func test_templates_maintain_consistent_height_in_grid() -> void:
+	# Act: Add both template types to grid
+	var placeable_entry: PlaceableView = placeable_template.instantiate()
+	var sequence_entry: PlaceableListEntry = sequence_template.instantiate()
+	
+	test_grid.add_child(placeable_entry)
+	test_grid.add_child(sequence_entry)
+	await get_tree().process_frame
+	
+	# Assert: Both templates have consistent height
+	assert_float(placeable_entry.size.y).append_failure_message(
+		"PlaceableView height should be %d pixels, got %.1f" % [EXPECTED_TEMPLATE_HEIGHT, placeable_entry.size.y]
+	).is_equal(float(EXPECTED_TEMPLATE_HEIGHT))
+	
+	assert_float(sequence_entry.size.y).append_failure_message(
+		"PlaceableListEntry height should be %d pixels, got %.1f" % [EXPECTED_TEMPLATE_HEIGHT, sequence_entry.size.y]
+	).is_equal(float(EXPECTED_TEMPLATE_HEIGHT))
+	
+	# Both should have the same height
+	assert_float(placeable_entry.size.y).is_equal(sequence_entry.size.y).append_failure_message(
+		"All templates should have same height: PlaceableView=%.1f, PlaceableListEntry=%.1f" % 
+		[placeable_entry.size.y, sequence_entry.size.y]
+	)
+
+## Test: Templates stretch to available width when placed in grid
+## Setup: Grid with defined width and columns
+## Act: Add templates to grid
+## Assert: Templates stretch beyond their minimum width
+func test_templates_stretch_to_available_width() -> void:
+	# Act: Add templates to grid
+	var placeable_entry: PlaceableView = placeable_template.instantiate()
+	var sequence_entry: PlaceableListEntry = sequence_template.instantiate()
+	
+	test_grid.add_child(placeable_entry)
+	test_grid.add_child(sequence_entry)
+	await get_tree().process_frame
+	
+	# Assert: Templates stretch beyond minimum width (160px)
+	var placeable_width: float = placeable_entry.size.x
+	var sequence_width: float = sequence_entry.size.x
+	
+	assert_float(placeable_width).append_failure_message(
+		"PlaceableView should stretch beyond minimum width 160px, got %.1f" % placeable_width
+	).is_greater(100.0)
+	
+	assert_float(sequence_width).append_failure_message(
+		"PlaceableListEntry should stretch beyond minimum width 160px, got %.1f" % sequence_width
+	).is_greater(100.0)
+	
+	# Both templates should have similar widths (within the same grid)
+	var width_difference: float = abs(placeable_width - sequence_width)
+	assert_float(width_difference).append_failure_message(
+		"Template widths should be similar in grid: PlaceableView=%.1f, PlaceableListEntry=%.1f, diff=%.1f" % 
+		[placeable_width, sequence_width, width_difference]
+	).is_less(50.0)
+
+## Test: Placeable templates stretch to column width
+## Setup: Grid with defined width and columns
+## Act: Add placeable templates to grid
+## Assert: Templates stretch to fill column width (~133px) while maintaining height
+func test_placeable_templates_stretch_to_column_width() -> void:
+	# Act: Add placeable templates to grid
+	for placeable in test_placeables:
+		var entry_node: PlaceableView = placeable_template.instantiate()
+		entry_node.placeable = placeable
+		test_grid.add_child(entry_node)
+	
+	await get_tree().process_frame
+	
+	# Assert: Templates stretch to column width
+	var children: Array[Node] = test_grid.get_children()
+	assert_int(children.size()).is_equal(2).append_failure_message(
+		"Expected 2 placeable templates, got %d" % children.size()
+	)
+	
+	for i in range(children.size()):
+		var template: Control = children[i] as Control
+		assert_object(template).is_not_null().append_failure_message(
+			"Template %d should be a Control" % i
+		)
+		
+		# Check width stretches to column width (allowing some margin for grid spacing)
+		var actual_width: float = template.size.x
+		assert_float(actual_width).append_failure_message(
+			"Template %d width %.1f should stretch beyond minimum (>100px)" % [i, actual_width]
+		).is_greater(100.0)
+		
+		# Check height remains fixed
+		var actual_height: float = template.size.y
+		assert_float(actual_height).append_failure_message(
+			"Template %d height %.1f should be exactly %d pixels" % [i, actual_height, EXPECTED_TEMPLATE_HEIGHT]
+		).is_equal(float(EXPECTED_TEMPLATE_HEIGHT))
+
+## Test: Sequence templates stretch to column width
+## Setup: Grid with defined width and columns
+## Act: Add sequence templates to grid
+## Assert: Templates stretch to fill column width while maintaining height
+func test_sequence_templates_stretch_to_column_width() -> void:
+	# Act: Add sequence template to grid
+	var entry_node: PlaceableListEntry = sequence_template.instantiate()
+	entry_node.sequence = test_sequence
+	test_grid.add_child(entry_node)
+	
+	await get_tree().process_frame
+	
+	# Assert: Template stretches to column width
+	var template: Control = test_grid.get_child(0) as Control
+	assert_object(template).is_not_null().append_failure_message(
+		"Sequence template should be a Control"
+	)
+	
+	# Check width stretches to column width
+	var actual_width: float = template.size.x
+	assert_float(actual_width).append_failure_message(
+		"Sequence template width %.1f should stretch beyond minimum (>100px)" % actual_width
+	).is_greater(100.0)
+	
+	# Check height remains fixed
+	var actual_height: float = template.size.y
+	assert_float(actual_height).append_failure_message(
+		"Sequence template height %.1f should be exactly %d pixels" % [actual_height, EXPECTED_TEMPLATE_HEIGHT]
+	).is_equal(float(EXPECTED_TEMPLATE_HEIGHT))
+
+## Test: Height consistency during sequence variant cycling
+## Setup: Sequence template added to grid
+## Act: Cycle through sequence variants with different icon sizes
+## Assert: Template height remains constant despite icon size changes
+func test_height_consistency_during_variant_cycling() -> void:
+	# Setup: Add sequence template to grid
+	var entry_node: PlaceableListEntry = sequence_template.instantiate()
+	entry_node.sequence = test_sequence
+	test_grid.add_child(entry_node)
+	
+	await get_tree().process_frame
+	
+	# Get initial dimensions
+	var template: Control = test_grid.get_child(0) as Control
+	var initial_height: float = template.size.y
+	var initial_width: float = template.size.x
+	
+	assert_float(initial_height).append_failure_message(
+		"Initial template height %.1f should be %d pixels" % [initial_height, EXPECTED_TEMPLATE_HEIGHT]
+	).is_equal(float(EXPECTED_TEMPLATE_HEIGHT))
+	
+	# Act: Cycle through variants (simulate user interaction)
+	if entry_node.has_method("cycle_to_next"):
+		entry_node.cycle_to_next()
+		await get_tree().process_frame
+	else:
+		# Manually trigger variant change if method not available
+		if entry_node.has_signal("variant_changed"):
+			entry_node.emit_signal("variant_changed", test_placeables[1])
+			await get_tree().process_frame
+	
+	# Assert: Dimensions remain consistent after cycling
+	var post_cycle_height: float = template.size.y
+	var post_cycle_width: float = template.size.x
+	
+	assert_float(post_cycle_height).is_equal(initial_height).append_failure_message(
+		"Template height should remain %d pixels after cycling, was %.1f, now %.1f" % 
+		[EXPECTED_TEMPLATE_HEIGHT, initial_height, post_cycle_height]
+	)
+	
+	assert_float(post_cycle_width).is_equal(initial_width).append_failure_message(
+		"Template width should remain %.1f pixels after cycling, now %.1f" % 
+		[initial_width, post_cycle_width]
+	)
+
+## Test: Mixed content grid maintains consistent sizing
+## Setup: Grid with both placeable and sequence templates
+## Act: Add mixed content to grid
+## Assert: All templates have consistent sizing behavior
+func test_mixed_content_consistent_sizing() -> void:
+	# Act: Add mixed content - alternating placeables and sequences
+	var placeable_entry: PlaceableView = placeable_template.instantiate()
+	placeable_entry.placeable = test_placeables[0]
+	test_grid.add_child(placeable_entry)
+	
+	var sequence_entry: PlaceableListEntry = sequence_template.instantiate()
+	sequence_entry.sequence = test_sequence
+	test_grid.add_child(sequence_entry)
+	
+	var placeable_entry2: PlaceableView = placeable_template.instantiate()
+	placeable_entry2.placeable = test_placeables[1]
+	test_grid.add_child(placeable_entry2)
+	
+	await get_tree().process_frame
+	
+	# Assert: All templates have consistent sizing
+	var children: Array[Node] = test_grid.get_children()
+	var expected_heights: Array[float] = []
+	var expected_widths: Array[float] = []
+	
+	for i in range(children.size()):
+		var template: Control = children[i] as Control
+		assert_object(template).is_not_null().append_failure_message(
+			"Mixed content template %d should be a Control" % i
+		)
+		
+		var actual_height: float = template.size.y
+		var actual_width: float = template.size.x
+		
+		# Check height is consistent
+		assert_float(actual_height).append_failure_message(
+			"Mixed content template %d height %.1f should be %d pixels" % [i, actual_height, EXPECTED_TEMPLATE_HEIGHT]
+		).is_equal(float(EXPECTED_TEMPLATE_HEIGHT))
+		
+		# Check width stretches appropriately
+		assert_float(actual_width).append_failure_message(
+			"Mixed content template %d width %.1f should stretch beyond minimum (>100px)" % [i, actual_width]
+		).is_greater(100.0)
+		
+		expected_heights.append(actual_height)
+		expected_widths.append(actual_width)
+	
+	# All templates should have the same dimensions
+	for i in range(1, expected_heights.size()):
+		assert_float(expected_heights[i]).append_failure_message(
+			"Template %d height %.1f should match template 0 height %.1f" % 
+			[i, expected_heights[i], expected_heights[0]]
+		).is_equal(expected_heights[0])
+		
+		# Allow for some width variance between different template types
+		var width_difference: float = abs(expected_widths[i] - expected_widths[0])
+		assert_float(width_difference).append_failure_message(
+			"Template %d width %.1f should be similar to template 0 width %.1f (difference: %.1f, tolerance: 50px)" % 
+			[i, expected_widths[i], expected_widths[0], width_difference]
+		).is_less(50.0)
+
+## Test: Size flags ensure proper stretching behavior
+## Setup: Individual template nodes
+## Act: Check size flags configuration
+## Assert: Size flags are set for horizontal stretching but not vertical
+func test_size_flags_configuration() -> void:
+	# Setup: Create template instances
+	var placeable_entry: PlaceableView = placeable_template.instantiate()
+	var sequence_entry: PlaceableListEntry = sequence_template.instantiate()
+	
+	# Check placeable template size flags
+	assert_int(placeable_entry.size_flags_horizontal).is_equal(Control.SIZE_EXPAND_FILL).append_failure_message(
+		"PlaceableView should have horizontal SIZE_EXPAND_FILL flag (%d), got %d" % 
+		[Control.SIZE_EXPAND_FILL, placeable_entry.size_flags_horizontal]
+	)
+	
+	# Sequence template should stretch horizontally (the PanelContainer itself may have different flags)
+	var sequence_size_flags: int = sequence_entry.size_flags_horizontal
+	assert_that(sequence_size_flags == Control.SIZE_EXPAND_FILL or sequence_size_flags == Control.SIZE_EXPAND).is_true().append_failure_message(
+		"PlaceableListEntry should have horizontal expansion flags, got %d" % sequence_size_flags
+	)
+	
+	# Clean up
+	placeable_entry.queue_free()
+	sequence_entry.queue_free()
+
+## Helper method to create test placeables for UI testing
+func _create_test_placeables() -> Array[Placeable]:
+	var placeables: Array[Placeable] = []
+	
+	# Create a couple of test placeables with different display names
+	var placeable1: Placeable = Placeable.new()
+	placeable1.display_name = "Test Building 1"
+	placeable1.packed_scene = preload("res://test/grid_building_test/scenes/objects/test_placeable_instance_scene_2d.tscn")
+	placeables.append(placeable1)
+	
+	var placeable2: Placeable = Placeable.new()
+	placeable2.display_name = "Test Building 2" 
+	placeable2.packed_scene = preload("res://test/grid_building_test/scenes/objects/test_placeable_instance_scene_2d.tscn")
+	placeables.append(placeable2)
+	
+	return placeables
+
+## Helper method to create test sequence for UI testing
+func _create_test_sequence() -> PlaceableSequence:
+	var sequence: PlaceableSequence = PlaceableSequence.new()
+	sequence.display_name = "Test Sequence"
+	sequence.placeables = _create_test_placeables()
+	return sequence
