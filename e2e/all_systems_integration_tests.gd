@@ -45,6 +45,10 @@ const PERFORMANCE_THRESHOLD_MS: int = 100
 const MEMORY_LEAK_THRESHOLD_BYTES: int = 1024 * 1024  # 1MB
 const MAX_VALIDATION_ATTEMPTS: int = 3
 
+# Additional position test constants
+const TEST_POSITION_64: Vector2 = Vector2(64, 64)
+const TEST_POSITION_128: Vector2 = Vector2(128, 128)
+
 # Diagnostic and messaging constants
 const DIAGNOSTIC_CONTEXTS: Dictionary = {
 	"build_mode_entry": "build mode entry",
@@ -68,6 +72,7 @@ const LOG_MESSAGES: Dictionary = {
 }
 
 # Test collision and shape constants
+const TILE_SIZE: int = 16  # Standard tile size in pixels
 const DEFAULT_COLLISION_SHAPE_SIZE: Vector2 = Vector2(32, 32)
 const TILE_ALIGNED_OFFSET: Vector2 = Vector2(8, 8)  # Offset from tile corner to center
 const DEFAULT_COLLISION_LAYER: int = COLLISION_LAYER_1
@@ -172,8 +177,8 @@ func _create_tile_aligned_collision_at_test_position(test_position: Vector2) -> 
 	"""Create collision obstacle aligned with tile grid for reliable collision detection"""
 	# Convert test position to tile-aligned position for accurate collision detection
 	var tile_aligned_position: Vector2 = Vector2(
-		int(test_position.x / 16) * 16 + TILE_ALIGNED_OFFSET.x,
-		int(test_position.y / 16) * 16 + TILE_ALIGNED_OFFSET.y
+		int(test_position.x / TILE_SIZE) * TILE_SIZE + TILE_ALIGNED_OFFSET.x,
+		int(test_position.y / TILE_SIZE) * TILE_SIZE + TILE_ALIGNED_OFFSET.y
 	)
 	return _create_collision_obstacle_at_position(tile_aligned_position, "_TileAligned")
 
@@ -287,7 +292,7 @@ func _create_preview_with_collision() -> Node2D:
 	area.collision_mask = COLLISION_LAYER_1
 	var shape := CollisionShape2D.new()
 	var rect := RectangleShape2D.new()
-	rect.size = Vector2(32, 32)  # Use size instead of extents for Godot 4
+	rect.size = DEFAULT_COLLISION_SHAPE_SIZE  # Use size instead of extents for Godot 4
 	shape.shape = rect
 	area.add_child(shape)
 	root.add_child(area)
@@ -999,7 +1004,7 @@ func test_building_system_placement() -> void:
 	var positioner: Node2D = env.positioner
 	
 	# Position for placement
-	positioner.position = Vector2(100, 100)
+	positioner.position = TEST_POSITION_1
 	
 	# Create a simple placeable object
 	var placeable: Node2D = Node2D.new()
@@ -1020,10 +1025,10 @@ func test_building_system_with_manipulation() -> void:
 	assert_that(manipulation_system).is_not_null()
 	
 	# Position the positioner
-	positioner.position = Vector2(64, 64)
+	positioner.position = TEST_POSITION_64
 	
 	# Verify both systems can work together
-	assert_that(positioner.position).is_equal(Vector2(64, 64))
+	assert_that(positioner.position).is_equal(TEST_POSITION_64)
 
 #endregion
 
@@ -1063,11 +1068,11 @@ func test_targeting_system_position_updates() -> void:
 	
 	# Test position updates
 	var _initial_pos: Vector2 = positioner.position
-	positioner.position = Vector2(128, 128)
+	positioner.position = TEST_POSITION_128
 	
 	# Verify targeting system can track position changes
 	var targeting_state: GridTargetingState = _container.get_states().targeting
-	assert_that(targeting_state.positioner.position).is_equal(Vector2(128, 128))
+	assert_that(targeting_state.positioner.position).is_equal(TEST_POSITION_128)
 
 #endregion
 

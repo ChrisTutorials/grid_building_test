@@ -39,7 +39,6 @@ func before_test() -> void:
 	# Set up manipulation settings
 	manipulation_settings = auto_free(ManipulationSettings.new())
 	manipulation_settings.enable_rotate = true
-	manipulation_settings.use_grid_aware_rotation = true  # Use grid-aware rotation
 	settings.manipulation = manipulation_settings
 	
 	# Set up actions
@@ -81,12 +80,13 @@ func test_grid_aware_rotation_input_handling() -> void:
 	manipulation_parent.rotation = 0.0
 	
 	# Apply grid-aware clockwise rotation directly (the method we're actually testing)
-	var _new_direction: int = manipulation_parent.apply_grid_rotation_clockwise(test_map)
+	var _new_degrees: float = manipulation_parent.apply_grid_rotation_clockwise(test_map)
 	
 	# Verify rotation was applied using grid-aware rotation (should be 90 degrees = East)
 	var expected_rotation := deg_to_rad(90.0)
-	assert_float(manipulation_parent.rotation).is_equal_approx(expected_rotation, 0.1) \
-		.append_failure_message("ManipulationParent should be rotated to 90 degrees (East direction), got %.6f" % manipulation_parent.rotation)
+	assert_float(manipulation_parent.rotation) \
+		.append_failure_message("ManipulationParent should be rotated to 90 degrees (East direction), got %.6f" % manipulation_parent.rotation) \
+		.is_equal_approx(expected_rotation, 0.1)
 
 ## Test counter-clockwise grid-aware rotation
 func test_grid_aware_rotation_counter_clockwise() -> void:
@@ -94,17 +94,17 @@ func test_grid_aware_rotation_counter_clockwise() -> void:
 	manipulation_parent.rotation = 0.0
 	
 	# Apply grid-aware counter-clockwise rotation directly
-	var _new_direction: int = manipulation_parent.apply_grid_rotation_counter_clockwise(test_map)
+	var _new_degrees: float = manipulation_parent.apply_grid_rotation_counter_clockwise(test_map)
 	
 	# Verify rotation was applied (should be 270 degrees = West)
 	var expected_rotation := deg_to_rad(270.0)
-	assert_float(manipulation_parent.rotation).is_equal_approx(expected_rotation, 0.1) \
-		.append_failure_message("ManipulationParent should be rotated to 270 degrees (West direction), got %.6f" % manipulation_parent.rotation)
+	assert_float(manipulation_parent.rotation) \
+		.append_failure_message("ManipulationParent should be rotated to 270 degrees (West direction), got %.6f" % manipulation_parent.rotation) \
+		.is_equal_approx(expected_rotation, 0.1)
 
-## Test that simple degree-based rotation works when grid-aware rotation is disabled
-func test_simple_degree_rotation_when_grid_aware_disabled() -> void:
-	# Disable grid-aware rotation
-	manipulation_settings.use_grid_aware_rotation = false
+## Test that simple degree-based rotation works as fallback when no TileMapLayer is available
+func test_simple_degree_rotation_fallback() -> void:
+	# Test simple degree rotation directly (without TileMapLayer)
 	manipulation_settings.rotate_increment_degrees = 45.0  # Use 45-degree increments
 	
 	# Set initial rotation
@@ -115,8 +115,9 @@ func test_simple_degree_rotation_when_grid_aware_disabled() -> void:
 	
 	# Verify simple degree rotation was applied (45 degrees)
 	var expected_rotation := deg_to_rad(-45.0)  # Negative because right rotation is negative in Godot
-	assert_float(manipulation_parent.rotation).is_equal_approx(expected_rotation, 0.1) \
-		.append_failure_message("ManipulationParent should use simple degree rotation when grid-aware is disabled, got %.6f" % manipulation_parent.rotation)
+	assert_float(manipulation_parent.rotation) \
+		.append_failure_message("ManipulationParent should use simple degree rotation as fallback, got %.6f" % manipulation_parent.rotation) \
+		.is_equal_approx(expected_rotation, 0.1)
 
 ## Test that rotation is disabled when settings are disabled
 func test_rotation_disabled_when_settings_disabled() -> void:
@@ -142,16 +143,18 @@ func test_rotation_disabled_when_settings_disabled() -> void:
 ## Test grid-aware rotation methods directly
 func test_direct_grid_aware_rotation_methods() -> void:
 	# Test clockwise rotation
-	manipulation_parent.rotation = 0.0  # Start at North
-	var new_direction := manipulation_parent.apply_grid_rotation_clockwise(test_map)
-	assert_int(new_direction).is_equal(GBGridRotationUtils.CardinalDirection.EAST) \
-		.append_failure_message("Clockwise rotation from North should result in East")
+	manipulation_parent.rotation = 0.0  # Start at North (0 degrees)
+	var new_degrees: float = manipulation_parent.apply_grid_rotation_clockwise(test_map)
+	assert_float(new_degrees) \
+		.append_failure_message("Clockwise rotation from North (0°) should result in 90° (East), got %.2f°" % new_degrees) \
+		.is_equal_approx(90.0, 0.1)
 	
 	# Test counter-clockwise rotation
-	manipulation_parent.rotation = 0.0  # Reset to North
-	new_direction = manipulation_parent.apply_grid_rotation_counter_clockwise(test_map)
-	assert_int(new_direction).is_equal(GBGridRotationUtils.CardinalDirection.WEST) \
-		.append_failure_message("Counter-clockwise rotation from North should result in West")
+	manipulation_parent.rotation = 0.0  # Reset to North (0 degrees)
+	new_degrees = manipulation_parent.apply_grid_rotation_counter_clockwise(test_map)
+	assert_float(new_degrees) \
+		.append_failure_message("Counter-clockwise rotation from North (0°) should result in 270° (West), got %.2f°" % new_degrees) \
+		.is_equal_approx(270.0, 0.1)
 
 ## Test that children of ManipulationParent are rotated along with the parent
 func test_children_inherit_rotation() -> void:
@@ -170,8 +173,9 @@ func test_children_inherit_rotation() -> void:
 	# Verify the child inherits the rotation through transform inheritance
 	var child_global_rotation := test_object.global_rotation
 	var expected_rotation := deg_to_rad(90.0)
-	assert_float(child_global_rotation).is_equal_approx(expected_rotation, 0.1) \
-		.append_failure_message("Child objects should inherit rotation from ManipulationParent")
+	assert_float(child_global_rotation) \
+		.append_failure_message("Child objects should inherit rotation from ManipulationParent") \
+		.is_equal_approx(expected_rotation, 0.1)
 
 ## Test complete rotation sequence maintains cardinal directions
 func test_rotation_sequence_maintains_cardinal_directions() -> void:
@@ -179,20 +183,33 @@ func test_rotation_sequence_maintains_cardinal_directions() -> void:
 	manipulation_parent.rotation = 0.0
 	
 	# Rotate clockwise: North -> East -> South -> West -> North
-	var expected_directions := [
-		GBGridRotationUtils.CardinalDirection.EAST,   # 90°
-		GBGridRotationUtils.CardinalDirection.SOUTH,  # 180°
-		GBGridRotationUtils.CardinalDirection.WEST,   # 270°
-		GBGridRotationUtils.CardinalDirection.NORTH   # 360° = 0°
-	]
+	# Expected degrees for each step
+	var expected_degrees_sequence := [90.0, 180.0, 270.0, 0.0]  # East, South, West, North
+	var direction_names := ["East", "South", "West", "North"]
 	
 	for i in range(4):
 		# Apply clockwise rotation
-		var new_direction := manipulation_parent.apply_grid_rotation_clockwise(test_map)
-		assert_int(new_direction).is_equal(expected_directions[i]) \
-			.append_failure_message("Rotation sequence step %d should result in direction %s" % [i + 1, GBGridRotationUtils.direction_to_string(expected_directions[i])])
+		var new_degrees: float = manipulation_parent.apply_grid_rotation_clockwise(test_map)
+		var expected_degrees: float = expected_degrees_sequence[i]
 		
-		# Verify rotation matches expected degrees
-		var expected_degrees := GBGridRotationUtils.cardinal_to_degrees(expected_directions[i])
-		assert_float(rad_to_deg(manipulation_parent.rotation)).is_equal_approx(expected_degrees, 0.1) \
-			.append_failure_message("Rotation should be %d degrees for direction %s" % [expected_degrees, GBGridRotationUtils.direction_to_string(expected_directions[i])])
+		# Normalize to 0-360 range for comparison
+		var normalized_degrees := fmod(new_degrees, 360.0)
+		if normalized_degrees < 0:
+			normalized_degrees += 360.0
+		elif normalized_degrees > 359.9:  # Within 0.1 of 360 - treat as 0
+			normalized_degrees = 0.0
+		
+		assert_float(normalized_degrees) \
+			.append_failure_message("Step %d: Expected %.1f° (%s), got %.2f° (normalized from %.2f°)" % [i + 1, expected_degrees, direction_names[i], normalized_degrees, new_degrees]) \
+			.is_equal_approx(expected_degrees, 0.1)
+		
+		# Verify node rotation matches expected degrees (in radians)
+		var node_degrees := fmod(rad_to_deg(manipulation_parent.rotation), 360.0)
+		if node_degrees < 0:
+			node_degrees += 360.0
+		# Handle near-360 values (floating point imprecision) - treat as 0 degrees
+		elif node_degrees > 359.9:  # Within 0.1 of 360
+			node_degrees = 0.0
+		assert_float(node_degrees) \
+			.append_failure_message("Step %d: Node rotation should be %.1f° (%s), got %.2f°" % [i + 1, expected_degrees, direction_names[i], node_degrees]) \
+			.is_equal_approx(expected_degrees, 0.1)

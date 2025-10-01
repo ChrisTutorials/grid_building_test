@@ -147,5 +147,9 @@ func test_trapezoid_full_pipeline_integration() -> void:
 	
 	# This test helps us identify exactly where in the pipeline the issue occurs
 	assert_array(indicators).append_failure_message(
-		"No indicators generated for trapezoid shape"
+		"No indicators generated for trapezoid shape. Direct collision tiles: %d, Generated indicators: %d, Pipeline match: %s" % [
+			tile_offsets.size(), 
+			indicators.size(), 
+			"YES" if tile_offsets.size() == indicators.size() else "NO - Lost in pipeline"
+		]
 	).is_not_empty()

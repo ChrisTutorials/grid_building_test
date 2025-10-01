@@ -52,23 +52,15 @@ func test_center_on_mouse_vs_center_on_screen_policies() -> void:
 	await get_tree().process_frame
 	
 	# Test both positioning policies
-	print("=== TESTING CENTER_ON_MOUSE POLICY ===")
 	var positioner_mouse := await _create_positioner_with_policy(container, GBEnums.CenteringMode.CENTER_ON_MOUSE)
 	var mouse_position := positioner_mouse.global_position
-	print("CENTER_ON_MOUSE result: ", mouse_position)
 	
-	print("=== TESTING CENTER_ON_SCREEN POLICY ===")
 	var positioner_screen := await _create_positioner_with_policy(container, GBEnums.CenteringMode.CENTER_ON_SCREEN)
 	var screen_position := positioner_screen.global_position
-	print("CENTER_ON_SCREEN result: ", screen_position)
 	
 	# Calculate position difference
 	var position_distance := mouse_position.distance_to(screen_position)
 	var positions_are_similar := position_distance <= POSITION_TOLERANCE
-	
-	print("Position distance: ", position_distance)
-	print("Mouse policy diagnostics: ", _get_position_diagnostics(positioner_mouse, "CENTER_ON_MOUSE"))
-	print("Screen policy diagnostics: ", _get_position_diagnostics(positioner_screen, "CENTER_ON_SCREEN"))
 	
 	# Core validation: Both positioners should be functional and positioned
 	# Note: In this test scenario, both policies may produce similar results
@@ -76,24 +68,24 @@ func test_center_on_mouse_vs_center_on_screen_policies() -> void:
 	
 	# Assert that both positioners are visible and functional
 	assert_bool(positioner_mouse.visible).append_failure_message(
-		"Mouse policy positioner should be visible. %s" % 
+		"Mouse policy positioner should be visible. Diagnostics: %s" % 
 		_get_position_diagnostics(positioner_mouse, "CENTER_ON_MOUSE")
 	).is_true()
 	
 	assert_bool(positioner_screen.visible).append_failure_message(
-		"Screen policy positioner should be visible. %s" % 
+		"Screen policy positioner should be visible. Diagnostics: %s" % 
 		_get_position_diagnostics(positioner_screen, "CENTER_ON_SCREEN")
 	).is_true()
 	
 	# Assert that neither is at the default uninitialized position
 	assert_bool(mouse_position != DEFAULT_POSITION).append_failure_message(
-		"Mouse policy should position away from (0,0). Current: %s, Expected: not %s" % 
-		[str(mouse_position), str(DEFAULT_POSITION)]
+		"Mouse policy should position away from (0,0). Current: %s, Expected: not %s. Distance: %.2f. Mouse diagnostics: %s" % 
+		[str(mouse_position), str(DEFAULT_POSITION), position_distance, _get_position_diagnostics(positioner_mouse, "CENTER_ON_MOUSE")]
 	).is_true()
 	
 	assert_bool(screen_position != DEFAULT_POSITION).append_failure_message(
-		"Screen policy should position away from (0,0). Current: %s, Expected: not %s" % 
-		[str(screen_position), str(DEFAULT_POSITION)]
+		"Screen policy should position away from (0,0). Current: %s, Expected: not %s. Distance: %.2f. Screen diagnostics: %s" % 
+		[str(screen_position), str(DEFAULT_POSITION), position_distance, _get_position_diagnostics(positioner_screen, "CENTER_ON_SCREEN")]
 	).is_true()
 	
 	# Assert positioning is consistent (both policies should produce valid positioning)

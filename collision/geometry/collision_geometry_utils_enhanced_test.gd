@@ -683,3 +683,54 @@ func test_isometric_transformations(
 	# Reset debug flag to default to avoid leaking verbose output to unrelated tests
 	var _CalcScriptReset := preload("res://addons/grid_building/placement/manager/components/collision_geometry_calculator.gd")
 	_CalcScriptReset.debug_polygon_overlap = false
+
+## Unit test to isolate isometric diamond collision issue
+## Problem: Blacksmith Blue (single-tile isometric building) generates 4 indicators instead of 1
+## Root cause: Isometric tile overlap padding creates false positives for diamond-shaped polygons
+func test_isometric_diamond_single_tile_collision() -> void:
+	# Create a TileMapLayer with isometric tiles matching the demo scene configuration
+	var tile_map: TileMapLayer = TileMapLayer.new()
+	add_child(tile_map)
+	auto_free(tile_map)
+	
+	var tile_set: TileSet = TileSet.new()
+	tile_set.tile_shape = TileSet.TILE_SHAPE_ISOMETRIC
+	tile_set.tile_size = Vector2i(90, 50)  # Isometric demo tile size
+	tile_map.tile_set = tile_set
+	
+	# Blacksmith Blue collision polygon (from diagnostic output)
+	# This is a diamond shape centered at origin that should occupy ONE tile
+	var diamond_polygon: PackedVector2Array = PackedVector2Array([
+		Vector2(-42.0, 0.0),   # Left point
+		Vector2(0.0, -24.0),   # Top point
+		Vector2(42.0, 0.0),    # Right point
+		Vector2(0.0, 24.0)     # Bottom point
+	])
+	
+	# Transform polygon to world space at position (90, 50) to match test scenario
+	var building_position: Vector2 = Vector2(90.0, 50.0)
+	var world_polygon: PackedVector2Array = PackedVector2Array()
+	for point in diamond_polygon:
+		world_polygon.append(point + building_position)
+	
+	# Calculate tile overlap using the actual collision geometry calculator
+	var overlapped_tiles: Array[Vector2i] = CollisionGeometryCalculator.calculate_tile_overlap(
+		world_polygon,
+		Vector2(tile_set.tile_size),
+		tile_set.tile_shape,
+		tile_map,
+		0.01,   # epsilon
+		0.05    # min_overlap_ratio (5%)
+	)
+	
+	# The diamond should only overlap ONE tile (the center tile at 1,0 based on the global position)
+	assert_int(overlapped_tiles.size()).append_failure_message(
+		"Isometric diamond (single-tile building) should generate 1 tile overlap, got %d tiles: %s\nDiamond polygon: %s\nWorld polygon: %s\nBuilding position: %s\nTile size: %s" % [
+			overlapped_tiles.size(),
+			str(overlapped_tiles),
+			str(diamond_polygon),
+			str(world_polygon),
+			str(building_position),
+			str(tile_set.tile_size)
+		]
+	).is_equal(1)

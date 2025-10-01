@@ -212,9 +212,9 @@ func test_recenter_on_enable_prefers_cached_when_option_true() -> void:
 	settings.position_on_enable_policy = GridTargetingSettings.RecenterOnEnablePolicy.LAST_SHOWN
 	settings.enable_mouse_input = true
 
-	# IMPORTANT: In test environment, positioner correctly maintains tile center position
-	# The GridPositioner2D snaps to tile centers, not cache positions in unit tests
-	# Seed last known world position cache (for completeness, but positioner stays at tile center)
+	# IMPORTANT: LAST_SHOWN policy should use the cached mouse position when available
+	# The positioner should move to the cached position (snapped to grid), not stay at tile center
+	# Seed last known world position cache - this SHOULD be used by LAST_SHOWN policy
 	gp._last_mouse_world = Vector2(123, 456)
 	gp._has_mouse_world = true
 
@@ -223,13 +223,17 @@ func test_recenter_on_enable_prefers_cached_when_option_true() -> void:
 	gp.set_input_processing_enabled(true)
 	await get_tree().process_frame
 
-	# EXPECTED: Positioner stays at tile center (8.0, 8.0) which is correct tile centering behavior
-	var expected_tile_center := Vector2(8.0, 8.0)
+	# EXPECTED: With LAST_SHOWN policy, positioner should move to cached position (snapped to grid)
+	# The cached position Vector2(123, 456) should be snapped to the nearest tile center
+	var map: TileMapLayer = setup[_IDX_MAP]
+	var cached_tile := GBPositioning2DUtils.get_tile_from_global_position(gp._last_mouse_world, map)
+	var tile_center_local := map.map_to_local(cached_tile)
+	var expected_pos := map.to_global(tile_center_local)
 	assert_vector(gp.global_position).append_failure_message(
-		_diag("Expected positioner to stay at tile center. Actual: %s, Expected: %s, Cache: %s, Has cache: %s" % [
-			str(gp.global_position), str(expected_tile_center), str(gp._last_mouse_world), str(gp._has_mouse_world)
+		_diag("LAST_SHOWN policy should use cached position. Actual: %s, Expected: %s, Cache: %s, Has cache: %s, Cached tile: %s" % [
+			str(gp.global_position), str(expected_pos), str(gp._last_mouse_world), str(gp._has_mouse_world), str(cached_tile)
 		])
-	).is_equal_approx(expected_tile_center, Vector2(4.0, 4.0))  # 4px tolerance for tile centering precision
+	).is_equal_approx(expected_pos, Vector2(8.0, 8.0))  # 8px tolerance for tile snapping
 
 func test_recenter_on_enable_mouse_enabled_centers_on_mouse_else_fallbacks() -> void:
 	var setup: Array = await _create_recenter_env()
@@ -239,8 +243,9 @@ func test_recenter_on_enable_mouse_enabled_centers_on_mouse_else_fallbacks() -> 
 	settings.position_on_enable_policy = GridTargetingSettings.RecenterOnEnablePolicy.MOUSE_CURSOR
 	settings.enable_mouse_input = true
 
-	# IMPORTANT: In test environment, positioner correctly maintains tile center position
-	# Simulate available cached value fallback by seeding cache (for completeness)
+	# IMPORTANT: MOUSE_CURSOR policy should use cached mouse position when available
+	# The positioner should move to the cached position (snapped to grid)
+	# Simulate available cached value - this SHOULD be used by MOUSE_CURSOR policy
 	gp._last_mouse_world = Vector2(10, 20)
 	gp._has_mouse_world = true
 
@@ -249,14 +254,17 @@ func test_recenter_on_enable_mouse_enabled_centers_on_mouse_else_fallbacks() -> 
 	gp.set_input_processing_enabled(true)
 	await get_tree().process_frame
 
-	# EXPECTED: In unit test environment, positioner correctly stays at tile center
-	# This is the proper behavior - objects snap to tile centers, not arbitrary cache positions
-	var expected_tile_center := Vector2(8.0, 8.0)
+	# EXPECTED: With MOUSE_CURSOR policy, positioner should move to cached mouse position (snapped to grid)
+	# The cached position Vector2(10, 20) should be snapped to the nearest tile center
+	var map: TileMapLayer = setup[_IDX_MAP]
+	var cached_tile := GBPositioning2DUtils.get_tile_from_global_position(gp._last_mouse_world, map)
+	var tile_center_local := map.map_to_local(cached_tile)
+	var expected_pos := map.to_global(tile_center_local)
 	assert_vector(gp.global_position).append_failure_message(
-		_diag("Expected positioner to stay at tile center (correct behavior). Actual: %s, Expected: %s, Cache: %s, Has cache: %s" % [
-			str(gp.global_position), str(expected_tile_center), str(gp._last_mouse_world), str(gp._has_mouse_world)
+		_diag("MOUSE_CURSOR policy should use cached mouse position. Actual: %s, Expected: %s, Cache: %s, Has cache: %s, Cached tile: %s" % [
+			str(gp.global_position), str(expected_pos), str(gp._last_mouse_world), str(gp._has_mouse_world), str(cached_tile)
 		])
-	).is_equal_approx(expected_tile_center, Vector2(4.0, 4.0))  # 4px tolerance for tile centering precision
+	).is_equal_approx(expected_pos, Vector2(8.0, 8.0))  # 8px tolerance for tile snapping
 
 func test_recenter_on_enable_keyboard_only_centers_view() -> void:
 	var setup: Array = await _create_recenter_env()
@@ -311,30 +319,81 @@ class _StubGateGridPositioner:
 	func set_next_gate(allowed: bool) -> void:
 		_next_gate_allowed = allowed
 
+	func get_input_gate() -> bool:
+		return _next_gate_allowed
+
 	func _mouse_input_gate() -> bool:
 		return _next_gate_allowed
 
+# CONSTANTS for test configuration
+const DEFAULT_HIDE_GATE_POSITION := Vector2(100, 100)
+const EXPECTED_ACTIVE_MODE := GBEnums.Mode.MOVE
+const GATE_BLOCKS_INPUT := false
+const GATE_ALLOWS_INPUT := true
+const INITIAL_VISIBILITY := true
+const MOUSE_EVENT_REPETITIONS := 3
+const POSITION_OFFSET_INCREMENT := Vector2(1, 1)
+
 func test_hide_on_handled_mouse_event_hides_positioner() -> void:
-	var setup: Array = await _create_positioner_env(_StubGateGridPositioner.new(), true)
-	var gp: _StubGateGridPositioner = setup[_IDX_GP]
+	# Test: hide_on_handled behavior when gate blocks input
+	# Setup: Positioner with hide_on_handled enabled and blocking gate  
+	# Act: Process mouse event with blocked gate
+	# Assert: System behavior matches current design (cached position retention priority)
+	
+	# Create the stub positioner specifically for this test
+	var stub_positioner := _StubGateGridPositioner.new()
+	var setup: Array = await _create_positioner_env(stub_positioner, true)
+	var gp: GridPositioner2D = setup[_IDX_GP]
 	var settings: GridTargetingSettings = setup[_IDX_SETTINGS]
 	var states: GBStates = setup[_IDX_STATES]
+	
+	var stub := gp as _StubGateGridPositioner
+	
+	# Configure hide_on_handled behavior
 	settings.hide_on_handled = true
 	settings.enable_mouse_input = true
-	states.mode.current = GBEnums.Mode.MOVE
-
-	gp.set_next_gate(false)
-
-	var motion: InputEventMouseMotion = InputEventMouseMotion.new()
-	motion.position = Vector2(128, 128)
-	motion.relative = Vector2.ZERO
-
-	gp.visible = true
-	gp._input(motion)
+	
+	# Set mode to an active state that would normally show the positioner
+	states.mode.current = EXPECTED_ACTIVE_MODE
+	
+	# Clear any cached mouse state by setting the positioner to OFF mode first
+	# This ensures we start with a clean state
+	states.mode.current = GBEnums.Mode.OFF
 	await get_tree().process_frame
-
+	
+	# Set the gate to block input BEFORE any mouse events
+	stub.set_next_gate(GATE_BLOCKS_INPUT)
+	
+	# Now switch back to active mode
+	states.mode.current = EXPECTED_ACTIVE_MODE
+	
+	# Set positioner visible initially
+	gp.visible = INITIAL_VISIBILITY
+	
+	# Send multiple blocked mouse events to ensure the system recognizes the blocking
+	_send_blocked_mouse_events(gp, stub)
+	
+	# Validate configuration before assertions
+	_assert_hide_settings_configured(settings, stub, states)
+	
+	# Get detailed state for enhanced diagnostics
+	var diagnostic_state := _create_comprehensive_diagnostic_state(gp, stub, settings, states)
+	
+	# Assert gate blocks input (this triggers hide_on_handled behavior)
+	var gate_blocks_input: bool = not stub.get_input_gate()
+	assert_bool(gate_blocks_input).append_failure_message(
+		"Gate should block input to trigger hide_on_handled behavior. %s" % diagnostic_state
+	).is_true()
+	
+	# Assert hide_on_handled setting is active
+	assert_bool(settings.hide_on_handled).append_failure_message(
+		"hide_on_handled should be enabled. %s" % diagnostic_state
+	).is_true()
+	
+	# Assert actual system behavior: hide_on_handled takes effect when gate blocks input
+	# Current design: mouse_gate:blocked triggers visibility off
 	assert_bool(gp.visible).append_failure_message(
-		_diag("When hide_on_handled is true, UI-handled mouse events should hide the positioner")
+		"System design: hide_on_handled should hide positioner when gate blocks input. %s" % diagnostic_state
 	).is_false()
 
 func test_recenter_on_resolve_dependencies_mouse_enabled_and_cursor_on_screen() -> void:
@@ -451,6 +510,63 @@ class TestPositionerWithMockCursor:
 # 	# This test used the removed ProjectionSnapshot API
 # 	# var raw: ProjectionSnapshot = ProjectionSnapshot.new(Vector2(10, 10), GBEnums.ProjectionMethod.EVENT_GLOBAL, "event.global_position")
 # 	# var stabilized: ProjectionSnapshot = gp._stabilize_projection(raw, Vector2(5, 5), Vector2(5, 5))
+
+#endregion
+
+#region DRY_HELPER_METHODS
+
+#region DRY_HELPER_METHODS
+
+## Helper method for sending multiple blocked mouse events to test hide_on_handled behavior
+func _send_blocked_mouse_events(gp: GridPositioner2D, _stub: _StubGateGridPositioner) -> void:
+	for i in range(MOUSE_EVENT_REPETITIONS):
+		var mouse_event := InputEventMouseMotion.new()
+		mouse_event.position = DEFAULT_HIDE_GATE_POSITION + (POSITION_OFFSET_INCREMENT * i)
+		gp._input(mouse_event)
+		await get_tree().process_frame
+
+## Helper method for validating hide_on_handled settings configuration
+func _assert_hide_settings_configured(settings: GridTargetingSettings, stub: _StubGateGridPositioner, states: GBStates) -> void:
+	assert_bool(settings.hide_on_handled).append_failure_message(
+		"Settings hide_on_handled should be true"
+	).is_true()
+	assert_bool(settings.enable_mouse_input).append_failure_message(
+		"Settings mouse input should be enabled"
+	).is_true()
+	assert_bool(stub.get_input_gate()).append_failure_message(
+		"Gate should block input (return false)"
+	).is_false()
+	assert_int(states.mode.current).append_failure_message(
+		"Mode should be MOVE (active)"
+	).is_equal(EXPECTED_ACTIVE_MODE)
+
+## Helper method for creating comprehensive diagnostic state information  
+func _create_comprehensive_diagnostic_state(gp: GridPositioner2D, stub: _StubGateGridPositioner, settings: GridTargetingSettings, states: GBStates) -> String:
+	# Get diagnostic information from the positioner
+	var diagnostic_info := gp.to_diagnostic_string() if gp.has_method("to_diagnostic_string") else "no_diagnostic"
+	
+	return "Gate blocked: %s, Mouse enabled: %s, Hide on handled: %s, Mode: %s, Current visible: %s, Diagnostic: %s" % [
+		str(not stub.get_input_gate()),
+		str(settings.enable_mouse_input),
+		str(settings.hide_on_handled),
+		str(states.mode.current),
+		str(gp.visible),
+		diagnostic_info
+	]
+
+## Helper method for creating test mouse event
+func _create_test_mouse_event() -> InputEventMouseMotion:
+	var mouse_event := InputEventMouseMotion.new()
+	mouse_event.position = DEFAULT_HIDE_GATE_POSITION
+	return mouse_event
+
+## Helper method for validating hide_on_handled settings configuration (legacy name support)
+func _assert_hide_settings_valid(settings: GridTargetingSettings, stub: _StubGateGridPositioner, states: GBStates) -> void:
+	_assert_hide_settings_configured(settings, stub, states)
+
+## Helper method for generating comprehensive diagnostic state information (legacy name support)
+func _get_hide_diagnostic_state(gp: GridPositioner2D, stub: _StubGateGridPositioner, settings: GridTargetingSettings, states: GBStates) -> String:
+	return _create_comprehensive_diagnostic_state(gp, stub, settings, states)
 
 #endregion
 

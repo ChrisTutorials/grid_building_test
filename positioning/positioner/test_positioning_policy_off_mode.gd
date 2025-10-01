@@ -1,6 +1,16 @@
 ## Test to verify positioning policy with remain_active_in_off_mode
 extends GdUnitTestSuite
 
+#region CONSTANTS
+
+# Test mouse positions
+const TEST_MOUSE_SCREEN_POS: Vector2 = Vector2(100, 100)
+
+# Default positioning values
+const DEFAULT_TILE_CENTER: Vector2 = Vector2(8, 8)  # Default tile center position
+
+#endregion
+
 func test_positioning_policy_with_remain_active_in_off_mode() -> void:
 	# Create positioner and camera
 	var positioner := GridPositioner2D.new()
@@ -18,44 +28,68 @@ func test_positioning_policy_with_remain_active_in_off_mode() -> void:
 	states.mode.current = GBEnums.Mode.OFF
 	var targeting_settings: GridTargetingSettings = config.settings.targeting
 	targeting_settings.remain_active_in_off_mode = true
+	# CRITICAL: Enable mouse input for CENTER_ON_MOUSE positioning policy test
 	targeting_settings.enable_mouse_input = true
-	targeting_settings.manual_recenter_mode = GBEnums.CenteringMode.CENTER_ON_MOUSE
+	# CRITICAL: Set position_on_enable_policy (not manual_recenter_mode) for dependency injection
+	targeting_settings.position_on_enable_policy = GridTargetingSettings.RecenterOnEnablePolicy.MOUSE_CURSOR
 	
 	# Simulate mouse cursor being on screen at specific position
-	var mouse_screen_pos := Vector2(100, 100)
+	var mouse_screen_pos := TEST_MOUSE_SCREEN_POS
 	get_viewport().warp_mouse(mouse_screen_pos)
 	await get_tree().process_frame  # Wait for mouse position update
 	
-	print("=== BEFORE DEPENDENCY INJECTION ===")
-	print("Mode: ", states.mode.current)
-	print("remain_active_in_off_mode: ", targeting_settings.remain_active_in_off_mode)
-	print("enable_mouse_input: ", targeting_settings.enable_mouse_input)
-	print("manual_recenter_mode: ", targeting_settings.manual_recenter_mode)
-	print("mouse_screen_pos: ", mouse_screen_pos)
-	print("viewport.get_mouse_position(): ", get_viewport().get_mouse_position())
-	print("positioner.global_position: ", positioner.global_position)
+	# Capture initial state for diagnostics
+	var initial_mode: GBEnums.Mode = states.mode.current
+	var _initial_remain_active: bool = targeting_settings.remain_active_in_off_mode
+	var _initial_enable_mouse: bool = targeting_settings.enable_mouse_input
+	var _initial_policy: GridTargetingSettings.RecenterOnEnablePolicy = targeting_settings.position_on_enable_policy
+	var initial_mouse_pos := get_viewport().get_mouse_position()
+	var initial_positioner_pos := positioner.global_position
 	
 	# Do dependency injection
 	positioner.resolve_gb_dependencies(container)
 	await get_tree().process_frame
 	
-	print("=== AFTER DEPENDENCY INJECTION ===")
-	print("viewport.get_mouse_position(): ", get_viewport().get_mouse_position())
-	print("positioner.global_position: ", positioner.global_position)
-	print("positioner.visible: ", positioner.visible)
-	print("positioner._targeting_settings.remain_active_in_off_mode: ", positioner._targeting_settings.remain_active_in_off_mode)
-	print("positioner._targeting_settings.manual_recenter_mode: ", positioner._targeting_settings.manual_recenter_mode)
+	# CRITICAL: Wait for the deferred positioning sequence to complete
+	# The positioning is done via call_deferred() so we need to wait for it
+	await get_tree().process_frame  # Wait for deferred positioning
+	await get_tree().process_frame  # Extra frame for good measure
+	
+	# Capture final state for diagnostics
+	var final_mouse_pos: Vector2 = get_viewport().get_mouse_position()
+	var _final_positioner_pos: Vector2 = positioner.global_position
+	var final_visible := positioner.visible
+	var final_remain_active := positioner._targeting_settings.remain_active_in_off_mode
+	var final_policy := positioner._targeting_settings.position_on_enable_policy
 	
 	# Test if positioner was positioned according to mouse cursor policy
+	var actual_pos := positioner.global_position
+	var distance_from_default := actual_pos.distance_to(DEFAULT_TILE_CENTER)  # Default tile center
+	
+	assert_bool(actual_pos != DEFAULT_TILE_CENTER).append_failure_message(
+		"CENTER_ON_MOUSE positioning policy failed - Expected position != (8, 8), got (%s). Mouse enabled: %s, Remain active in OFF: %s, Position policy: %s, Current mode: %s, Viewport mouse: %s, Distance from default: %.2f. State before: mode=%s, mouse=%s, pos=%s. State after: visible=%s, remain=%s, policy=%s" % [
+			str(actual_pos), 
+			str(targeting_settings.enable_mouse_input),
+			str(targeting_settings.remain_active_in_off_mode),
+			str(targeting_settings.position_on_enable_policy),
+			str(states.mode.current),
+			str(final_mouse_pos),
+			distance_from_default,
+			str(initial_mode),
+			str(initial_mouse_pos),
+			str(initial_positioner_pos),
+			str(final_visible),
+			str(final_remain_active),
+			str(final_policy)
+		]
+	).is_true()
 	var current_mouse_pos: Vector2 = get_viewport().get_mouse_position()
 	var viewport_size: Vector2 = Vector2(get_viewport().size)
 	var expected_world_pos: Vector2 = camera.to_global(current_mouse_pos - viewport_size / 2.0)
-	print("expected_world_pos (approximated): ", expected_world_pos)
 	
 	# Check if the positioner is reasonably close to the mouse world position
 	var position_delta: Vector2 = positioner.global_position - expected_world_pos
 	var distance: float = position_delta.length()
-	print("distance from expected mouse world pos: ", distance)
 	
 	# Test that positioner is visible (we already confirmed this works)
 	assert_bool(positioner.visible).is_true().append_failure_message(
@@ -79,13 +113,29 @@ func test_positioning_policy_with_remain_active_in_off_mode() -> void:
 	var expected_default_position := Vector2(8.0, 8.0)  # Default tile center
 	var actual_position := positioner.global_position
 	
-	print("Expected NOT to be at default: ", expected_default_position)
-	print("Actual position: ", actual_position)
-	
 	# The position should be different from the default tile center since mouse policy was applied
 	var position_was_applied: bool = actual_position != expected_default_position
-	assert_bool(position_was_applied).is_true().append_failure_message(
-		"Position should be different from default tile center (8, 8) since CENTER_ON_MOUSE policy was applied"
-	)
 	
-	print("Position policy applied: ", position_was_applied)
+	# Get comprehensive diagnostic information
+	var mouse_enabled: bool = targeting_settings.enable_mouse_input
+	var remain_active: bool = targeting_settings.remain_active_in_off_mode
+	var position_policy: GridTargetingSettings.RecenterOnEnablePolicy = targeting_settings.position_on_enable_policy
+	var current_mode: GBEnums.Mode = states.mode.current
+	var viewport_mouse_pos: Vector2 = get_viewport().get_mouse_position()
+	
+	assert_bool(position_was_applied).append_failure_message(
+		"CENTER_ON_MOUSE positioning policy failed - Expected position != (8, 8), got %s. Mouse enabled: %s, Remain active in OFF: %s, Position policy: %s, Current mode: %s, Viewport mouse: %s, Distance from default: %.2f, Expected world pos: %s, Position delta: %s, Distance to mouse: %.2f" % [
+			str(actual_position), 
+			str(mouse_enabled), 
+			str(remain_active), 
+			str(position_policy), 
+			str(current_mode), 
+			str(viewport_mouse_pos), 
+			actual_position.distance_to(expected_default_position),
+			str(expected_world_pos),
+			str(position_delta),
+			distance
+		]
+	).is_true()
+	
+

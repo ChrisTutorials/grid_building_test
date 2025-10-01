@@ -425,6 +425,79 @@ static func _generate_cumulative_test_parameters() -> Array:
 	
 	return parameters
 
+## Test: Grid-aware rotation fix for isometric contexts
+## Setup: Isometric parent hierarchy with rotation, skew, and scale transforms  
+## Act: Apply cardinal direction rotation using GBGridRotationUtils
+## Assert: Preview object achieves correct global rotation regardless of parent transforms
+@warning_ignore("unused_parameter")
+func test_grid_aware_rotation_fix_in_isometric_context(
+	scenario_name: String,
+	base_rotation_deg: float,
+	base_skew_deg: float,
+	base_scale: Vector2,
+	test_parameters := _generate_isolation_test_parameters()
+) -> void:
+	
+	# Setup: Find the scenario configuration
+	var scenario: Dictionary = {}
+	for test_scenario in TEST_SCENARIOS:
+		if test_scenario.name == scenario_name:
+			scenario = test_scenario
+			break
+	
+	assert_bool(not scenario.is_empty()).append_failure_message(
+		"Test scenario '%s' not found in TEST_SCENARIOS" % scenario_name
+	).is_true()
+	
+	# Setup: Apply base isometric transforms to create problematic hierarchy
+	_setup_isometric_base_transform(scenario)
+	
+	# Setup: Create a TileMapLayer for grid rotation utilities
+	var tile_map: TileMapLayer = auto_free(TileMapLayer.new())
+	add_child(tile_map)
+	
+	# Allow scene tree to update transforms
+	await get_tree().process_frame
+	
+	# Test all cardinal directions with the FIXED grid rotation utilities
+	var cardinal_directions: Array[float] = [0.0, 90.0, 180.0, 270.0]
+	var direction_names: Array[String] = ["North", "East", "South", "West"]
+	var cardinal_enums: Array[GBGridRotationUtils.CardinalDirection] = [
+		GBGridRotationUtils.CardinalDirection.NORTH,
+		GBGridRotationUtils.CardinalDirection.EAST,
+		GBGridRotationUtils.CardinalDirection.SOUTH,
+		GBGridRotationUtils.CardinalDirection.WEST
+	]
+	
+	for i in range(4):
+		var target_direction: GBGridRotationUtils.CardinalDirection = cardinal_enums[i]
+		var expected_global_rotation: float = cardinal_directions[i]
+		var direction_name: String = direction_names[i]
+		
+		# Act: Apply grid-aware rotation using the FIXED utility function
+		GBGridRotationUtils.set_node_direction(_manipulation_parent, target_direction, tile_map, false)
+		
+		# Allow scene tree to update transforms
+		await get_tree().process_frame
+		
+		# Assert: Preview object should have the correct global rotation
+		var actual_global_rotation: float = _test_object.global_rotation_degrees
+		var normalized_actual: float = _normalize_angle(actual_global_rotation)
+		var normalized_expected: float = _normalize_angle(expected_global_rotation)
+		
+		assert_bool(_angles_equivalent(normalized_actual, normalized_expected, ROTATION_TOLERANCE)).append_failure_message(
+			"Grid-aware rotation FAILED for %s direction in %s scenario - Expected global rotation: %.2f°, Got: %.2f°, Error: %.2f°, Parent hierarchy: (rot=%.1f°, skew=%.1f°, scale=%s)" % [
+				direction_name,
+				scenario_name,
+				normalized_expected,
+				normalized_actual,
+				abs(normalized_expected - normalized_actual),
+				scenario.base_rotation_deg,
+				scenario.base_skew_deg,
+				str(scenario.base_scale)
+			]
+		).is_true()
+
 static func _generate_isolation_test_parameters() -> Array:
 	"""Generate parameterized test data for transform isolation scenarios"""
 	var parameters: Array = []

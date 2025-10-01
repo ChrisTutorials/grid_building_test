@@ -6,8 +6,8 @@
 ## - Re-sending the same tile does NOT create a new placement or attempt
 extends GdUnitTestSuite
 
-const SAFE_LEFT_TILE: Vector2i = Vector2i(-4, 0)
-const SAFE_RIGHT_TILE: Vector2i = Vector2i(4, 0)
+const SAFE_LEFT_TILE: Vector2i = Vector2i(-2, 0)
+const SAFE_RIGHT_TILE: Vector2i = Vector2i(2, 0)
 
 var env: BuildingTestEnvironment
 var _container: GBCompositionContainer
@@ -69,10 +69,15 @@ func _on_build_failed(_data: BuildActionData) -> void:
 
 func _move_positioner_to_tile(tile: Vector2i) -> void:
 	assert_object(_map).append_failure_message("TileMapLayer missing in _move_positioner_to_tile").is_not_null()
-	_positioner.global_position = _map.to_global(_map.map_to_local(tile))
-	# No manual _process on targeting state (it's a Resource). Direct position update is sufficient.
+	var tile_local_pos: Vector2 = _map.map_to_local(tile)
+	var tile_world_pos: Vector2 = _map.to_global(tile_local_pos)
+	_positioner.global_position = tile_world_pos
+	# Allow position update to propagate through the system
+	await get_tree().process_frame
 
 func _enter_rect_4x2_drag() -> Variant:
+	# Allow positioning to fully settle before entering build mode
+	await get_tree().process_frame
 	var report: PlacementReport = _building_system.enter_build_mode(GBTestConstants.PLACEABLE_RECT_4X2)
 	assert_bool(report.is_successful()).append_failure_message("enter_build_mode failed: %s" % [report.get_issues()]).is_true()
 	_container.get_settings().building.drag_multi_build = true
@@ -83,8 +88,8 @@ func _enter_rect_4x2_drag() -> Variant:
 	return drag_manager
 
 func test_last_attempted_updates_on_tile_switch() -> void:
-	_move_positioner_to_tile(SAFE_LEFT_TILE)
-	var drag_manager: Variant = _enter_rect_4x2_drag()
+	await _move_positioner_to_tile(SAFE_LEFT_TILE)
+	var drag_manager: Variant = await _enter_rect_4x2_drag()
 	var drag_data: Variant = drag_manager.drag_data
 	assert_object(drag_data).append_failure_message("drag_data missing after start_drag").is_not_null()
 	assert_bool(_container.get_states().building.success.is_connected(_on_build_success)).append_failure_message("BuildingState.success must be connected").is_true()
@@ -98,8 +103,8 @@ func test_last_attempted_updates_on_tile_switch() -> void:
 	assert_int(_placed_positions.size()).append_failure_message("Expected one placement after first switch").is_equal(1)
 
 func test_no_duplicate_on_same_tile() -> void:
-	_move_positioner_to_tile(SAFE_LEFT_TILE)
-	var drag_manager: Variant = _enter_rect_4x2_drag()
+	await _move_positioner_to_tile(SAFE_LEFT_TILE)
+	var drag_manager: Variant = await _enter_rect_4x2_drag()
 	var drag_data: Variant = drag_manager.drag_data
 	assert_object(drag_data).append_failure_message("drag_data missing after start_drag").is_not_null()
 

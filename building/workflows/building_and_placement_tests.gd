@@ -34,9 +34,9 @@ const TILE_SIZE_PX: Vector2 = Vector2(16, 16)
 const TILE_CENTER_OFFSET: Vector2 = TILE_SIZE_PX / 2.0  # (8.0, 8.0) - offset from tile corner to center
 const H_SEP_TILES: int = 4
 const V_SEP_TILES: int = 2
-const SAFE_LEFT_TILE: Vector2i = Vector2i(-3, 0)
-const SAFE_RIGHT_TILE: Vector2i = Vector2i(4, 0)
-const SAFE_CENTER_UP_TILE: Vector2i = Vector2i(0, 4)
+const SAFE_LEFT_TILE: Vector2i = Vector2i(-2, 0)
+const SAFE_RIGHT_TILE: Vector2i = Vector2i(2, 0)
+const SAFE_CENTER_UP_TILE: Vector2i = Vector2i(0, 2)
 
 # Constants for rectangle coverage tests
 const RECT_WIDTH_PX: float = 48.0        # Test rectangle width in pixels
@@ -83,6 +83,7 @@ var _container : GBCompositionContainer
 var _targeting_system : GridTargetingSystem
 var _targeting_state: GridTargetingState
 var _positioner: Node2D
+var _isolation_state: Dictionary  # Test isolation state for cleanup
 var _placed_positions : Array[Vector2]
 var _building_system : BuildingSystem
 var _map : TileMapLayer
@@ -130,10 +131,16 @@ func before_test() -> void:
 	# Set the targeting state target to the user_node/placer for tests
 	_targeting_state.target = user_node
 	
-	# DISABLE mouse input processing to prevent interference during tests
-	# Fail-fast: call method directly - if it doesn't exist, test should fail immediately
-	_positioner.set_input_processing_enabled(false)
-	logger.log_debug("Disabled mouse input processing on GridPositioner2D for test isolation")
+	# Apply test isolation to prevent mouse interference and positioning issues
+	_isolation_state = GBTestIsolation.setup_building_test_isolation(
+		_positioner as GridPositioner2D, env.tile_map_layer, logger
+	)
+	
+	# CRITICAL: Immediately set positioner to a safe position after isolation
+	# to override any mouse-based position that may have been set before isolation
+	var safe_tile: Vector2i = Vector2i(0, 0)  # Center of map
+	var safe_world_pos: Vector2 = _map.to_global(_map.map_to_local(safe_tile))
+	_positioner.global_position = safe_world_pos
 	
 	# Set debug level to VERBOSE to see detailed logging
 	_container.get_debug_settings().set_debug_level(GBDebugSettings.LogLevel.VERBOSE)
@@ -153,6 +160,9 @@ func before_test() -> void:
 	await get_tree().process_frame
 
 func after_test() -> void:
+	# Cleanup test isolation first
+	GBTestIsolation.cleanup_building_test_isolation(_isolation_state, _targeting_state)
+	
 	# Explicit cleanup to prevent orphan nodes
 	if placement_validator:
 		placement_validator.tear_down()
@@ -173,7 +183,10 @@ func after_test() -> void:
 
 func _move_positioner_to_tile(tile: Vector2i) -> void:
 	assert_object(_map).append_failure_message("TileMapLayer missing").is_not_null()
-	_positioner.global_position = _map.to_global(_map.map_to_local(tile))
+	# Position to the center of the tile for more reliable placement
+	var tile_local_pos: Vector2 = _map.map_to_local(tile)
+	var tile_world_pos: Vector2 = _map.to_global(tile_local_pos)
+	_positioner.global_position = tile_world_pos
 	# GridTargetingState is a Resource; no manual _process call needed.
 
 func _enter_build_mode_for_rect_4x2_and_start_drag() -> Dictionary:
@@ -409,9 +422,10 @@ func test_placement_validation_with_rules(
 	# Create test rules based on scenario
 	var test_rules: Array[PlacementRule] = _create_test_rules(rule_type)
 
-	# CRITICAL: Ensure there is at least one collision shape under the target for ALL scenarios
-	# Several rules treat empty indicators as failure; we attach a minimal shape to generate indicators.
-	_setup_test_object_collision_shapes()
+	# VALIDATION TESTS NEED COLLISION SHAPES: Add minimal collision shape to target for indicator generation
+	# These validation tests don't use the preview system, so we need collision shapes under the target
+	# for rules to generate indicators. Without indicators, rules that check collision fail by default.
+	_setup_target_collision_shape_for_validation()
 	
 	# IMPORTANT: Set positioner to TILE CENTER position within map bounds before validation
 	# Map bounds are approximately (-15,-15) to (15,15) in tile coordinates  
@@ -1145,20 +1159,20 @@ func test_building_placement_attempt() -> void:
 
 	var enter_report: PlacementReport = _building_system.enter_build_mode(GBTestConstants.PLACEABLE_SMITHY)
 	assert_bool(enter_report.is_successful()).append_failure_message(
-		_format_debug("Enter build mode failed: issues=%s" % [str(enter_report.get_issues())])
+		_format_debug("Enter build mode should succeed with preview collision shapes only (no dual collision issue): issues=%s, config=%s" % [str(enter_report.get_issues()), _get_container_config_debug()])
 	).is_true()
 
 	await get_tree().process_frame
 
 	var placement_result: PlacementReport = _building_system.try_build()
 	assert_object(placement_result).append_failure_message(
-		_format_debug("BuildingSystem.try_build() returned null report")
+		_format_debug("BuildingSystem.try_build() should return valid report (preview system manages collision objects)")
 	).is_not_null()
 	assert_bool(placement_result.is_successful()).append_failure_message(
-		_format_debug("Build attempt should succeed; issues=%s" % [str(placement_result.get_issues())])
+		_format_debug("Build attempt should succeed without collision shape interference - Position: %s, Target collision children: %d, Issues: %s" % [str(_positioner.global_position), user_node.get_child_count(), str(placement_result.get_issues())])
 	).is_true()
 	assert_object(placement_result.placed).append_failure_message(
-		_format_debug("Build attempt should return a result object; success=%d failed=%d" % [_build_success_count, _build_failed_count])
+		_format_debug("Build attempt should return valid placed object - Success count: %d, Failed count: %d" % [_build_success_count, _build_failed_count])
 	).is_not_null()
 
 	_building_system.exit_build_mode()
@@ -1248,7 +1262,7 @@ func test_single_placement_per_tile_constraint() -> void:
 
 	var enter_report: PlacementReport = _building_system.enter_build_mode(GBTestConstants.PLACEABLE_SMITHY)
 	assert_bool(enter_report.is_successful()).append_failure_message(
-		_format_debug("Enter build mode failed before duplicate placement test: issues=%s" % [str(enter_report.get_issues())])
+		_format_debug("Enter build mode should succeed without collision shape conflicts: issues=%s, target_children=%d" % [str(enter_report.get_issues()), user_node.get_child_count()])
 	).is_true()
 
 	await get_tree().process_frame
@@ -1256,13 +1270,13 @@ func test_single_placement_per_tile_constraint() -> void:
 	# First placement attempt - this should succeed because indicators are valid
 	var first_report: PlacementReport = _building_system.try_build()
 	assert_object(first_report).append_failure_message(
-		_format_debug("First placement attempt returned null report")
+		_format_debug("First placement attempt should return valid report (preview collision system working)")
 	).is_not_null()
 	assert_bool(first_report.is_successful()).append_failure_message(
-		_format_debug("First placement attempt should succeed; issues=%s" % [str(first_report.get_issues())])
+		_format_debug("First placement should succeed without dual collision interference - Position: %s, Issues: %s" % [str(_positioner.global_position), str(first_report.get_issues())])
 	).is_true()
 	assert_object(first_report.placed).append_failure_message(
-		_format_debug("First placement attempt should return a valid placed object")
+		_format_debug("First placement should return valid placed object - Target has no collision bodies to interfere")
 	).is_not_null()
 
 	# This will test the system's ability to prevent multiple placements in the same tile
@@ -1330,7 +1344,7 @@ func test_complete_building_workflow() -> void:
 
 	var enter_report: PlacementReport = _building_system.enter_build_mode(GBTestConstants.PLACEABLE_SMITHY)
 	assert_bool(enter_report.is_successful()).append_failure_message(
-		_format_debug("Enter build mode failed during complete workflow test: issues=%s" % [str(enter_report.get_issues())])
+		_format_debug("Enter build mode should succeed in complete workflow (no collision shape setup on target): issues=%s, config=%s" % [str(enter_report.get_issues()), _get_container_config_debug()])
 	).is_true()
 	assert_bool(_building_system.is_in_build_mode()).append_failure_message(
 		"Should be in build mode after entering"
@@ -1341,13 +1355,13 @@ func test_complete_building_workflow() -> void:
 	# Phase 3: Attempt building
 	var build_report: PlacementReport = _building_system.try_build()
 	assert_object(build_report).append_failure_message(
-		_format_debug("Build attempt should return a placement report")
+		_format_debug("Build attempt should return valid placement report (preview system handles collision objects)")
 	).is_not_null()
 	assert_bool(build_report.is_successful()).append_failure_message(
-		_format_debug("Build attempt should be successful; issues=%s" % [str(build_report.get_issues())])
+		_format_debug("Build should succeed without collision conflicts - Position: %s, Target children: %d, Preview collision managed separately, Issues: %s" % [str(_positioner.global_position), user_node.get_child_count(), str(build_report.get_issues())])
 	).is_true()
 	assert_object(build_report.placed).append_failure_message(
-		_format_debug("Build report should contain a valid placed object; success=%d failed=%d" % [_build_success_count, _build_failed_count])
+		_format_debug("Build report should contain valid placed object - Success: %d, Failed: %d, No dual collision setup" % [_build_success_count, _build_failed_count])
 	).is_not_null()
 
 	# Phase 4: Cleanup
@@ -1450,7 +1464,8 @@ func test_preview_indicator_consistency() -> void:
 func _prepare_target_for_successful_build(_tile: Vector2i = SAFE_LEFT_TILE) -> void:
 	# FIXED: Always find a valid tile within the actual map bounds
 	var resolved_tile: Vector2i = _find_valid_tile_within_map_bounds()
-	_setup_test_object_collision_shapes()
+	# COLLISION FIX: Don't add collision shapes to target - let preview system create collision objects
+	# _setup_test_object_collision_shapes()  # DISABLED: Causes dual collision body issue
 	_move_positioner_to_tile(resolved_tile)
 	if is_instance_valid(user_node):
 		user_node.global_position = _positioner.global_position
@@ -1458,9 +1473,12 @@ func _prepare_target_for_successful_build(_tile: Vector2i = SAFE_LEFT_TILE) -> v
 		_targeting_state.target = user_node
 		_targeting_state.target.global_position = _positioner.global_position
 	
+	# Allow a frame for any positioning changes to take effect
+	await get_tree().process_frame
+	
 	# Debug logging to verify the positioning is correct
 	var map_bounds: Rect2i = _map.get_used_rect()
-	logger.log_debug("Positioned at tile %s (world: %s) within map bounds %s" % [
+	logger.log_debug("Positioned at tile %s (world: %s) within map bounds %s (no collision shapes added to target)" % [
 		str(resolved_tile), str(_positioner.global_position), str(map_bounds)
 	])
 
@@ -1495,6 +1513,42 @@ func _setup_test_object_collision_shapes() -> void:
 	for child in user_node.get_children():
 		child_names.append("%s:%s" % [child.get_class(), child.name])
 	logger.log_verbose("user_node children after adding collision body: %s" % str(child_names))
+
+## Setup minimal collision shape under target for validation tests
+## This is needed because rules generate indicators from collision shapes under the target.
+## Without collision shapes, rules that check collision/bounds treat zero indicators as failure.
+## This method adds a lightweight collision shape specifically for validation (not building).
+func _setup_target_collision_shape_for_validation() -> void:
+	if not is_instance_valid(_targeting_state.target):
+		logger.log_warning("Cannot setup collision shape - target is invalid")
+		return
+	
+	# Check if collision body already exists
+	var existing_body: StaticBody2D = _targeting_state.target.get_node_or_null("ValidationCollisionBody") as StaticBody2D
+	if existing_body != null:
+		return  # Already set up
+	
+	# Create StaticBody2D for collision detection (CollisionShape2D requires CollisionObject2D parent)
+	var collision_body: StaticBody2D = StaticBody2D.new()
+	collision_body.name = "ValidationCollisionBody"
+	collision_body.collision_layer = 1  # Default layer for collision detection
+	collision_body.collision_mask = 0   # Don't detect others, just be detected
+	
+	# Create CollisionShape2D as child of StaticBody2D
+	var collision_shape: CollisionShape2D = CollisionShape2D.new()
+	collision_shape.name = "ValidationCollisionShape"
+	
+	# Use a simple rectangle shape matching tile size
+	var rectangle_shape: RectangleShape2D = RectangleShape2D.new()
+	rectangle_shape.size = TILE_SIZE_PX  # Standard 16x16 tile
+	collision_shape.shape = rectangle_shape
+	
+	# Proper hierarchy: StaticBody2D -> CollisionShape2D
+	collision_body.add_child(collision_shape)
+	_targeting_state.target.add_child(collision_body)
+	auto_free(collision_body)  # Ensure cleanup (child will be freed automatically)
+	
+	logger.log_verbose("Added validation collision body with shape to target: %s" % _targeting_state.target.name)
 
 func _resolve_tile_for_build(preferred_tile: Vector2i) -> Vector2i:
 	assert_object(_map).append_failure_message("TileMapLayer missing when resolving build tile").is_not_null()
@@ -1532,6 +1586,20 @@ func _find_valid_tile_within_map_bounds() -> Vector2i:
 	@warning_ignore("integer_division")
 	var center_y: int = used_rect.position.y + used_rect.size.y / 2
 	var center_tile: Vector2i = Vector2i(center_x, center_y)
+	
+	# For the building test environment which uses -5 to +5, ensure we use the actual center (0, 0)
+	if used_rect.has_point(Vector2i(0, 0)) and _tile_has_data(Vector2i(0, 0)):
+		return Vector2i(0, 0)
+	
+	# Try a few safe tiles near the center that should work for most placements
+	var safe_candidates: Array[Vector2i] = [
+		Vector2i(0, 0), Vector2i(-1, 0), Vector2i(1, 0), Vector2i(0, -1), Vector2i(0, 1),
+		Vector2i(-2, 0), Vector2i(2, 0), Vector2i(0, -2), Vector2i(0, 2)
+	]
+	
+	for candidate: Vector2i in safe_candidates:
+		if used_rect.has_point(candidate) and _tile_has_data(candidate):
+			return candidate
 	
 	# Try center first
 	if _tile_has_data(center_tile):
@@ -1965,3 +2033,37 @@ func test_tile_tracking_prevents_duplicate_placements() -> void:
 	assert_int(_placed_positions.size()).append_failure_message(
 		"Multiple tile switch events to the same tile should place only once"
 	).is_equal(1)
+
+#endregion
+
+#region DIAGNOSTIC HELPERS
+
+## Helper method for debugging container configuration
+func _get_container_config_debug() -> String:
+	if not _container:
+		return "container=null"
+	
+	var config_info: Array[String] = []
+	
+	# Check core systems availability using get() method
+	if _container.get("collision_mapper"):
+		config_info.append("collision_mapper=available")
+	else:
+		config_info.append("collision_mapper=missing")
+		
+	if _container.get("placement_validator"):
+		config_info.append("placement_validator=available")
+	else:
+		config_info.append("placement_validator=missing")
+		
+	if _container.get("building_settings"):
+		config_info.append("building_settings=available")
+	else:
+		config_info.append("building_settings=missing")
+	
+	# Include environment type
+	config_info.append("environment=BuildingTestEnvironment")
+	
+	return str(config_info)
+
+#endregion

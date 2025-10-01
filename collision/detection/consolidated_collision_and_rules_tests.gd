@@ -7,11 +7,34 @@ extends GdUnitTestSuite
 ## MARK FOR REMOVAL - collision_geometry_calculator_test.gd, collision_geometry_calculator_debug_test.gd,
 ## test_collisions_check_rule.gd, tile_check_rule_test.gd
 
+# Test Constants
+const STANDARD_TILE_SIZE: Vector2 = Vector2(16, 16)
+const SINGLE_POINT_POS: Vector2 = Vector2(8, 8)
+const LARGE_RECTANGLE_SIZE: Vector2 = Vector2(32, 32)
+const TEST_ORIGIN: Vector2 = Vector2(0, 0)
+const TEST_ORIGIN_TILE: Vector2i = Vector2i(0, 0)
+const TILE_1_0: Vector2i = Vector2i(1, 0)
+const TILE_0_1: Vector2i = Vector2i(0, 1)
+const TILE_1_1: Vector2i = Vector2i(1, 1)
+const EXPECTED_2X2_TILE_COUNT: int = 4
+const EDGE_CASE_SIZE: float = 0.1
+const EDGE_CASE_TOLERANCE: float = 0.01
+const LINE_SEGMENT_LENGTH: float = 10.0
+const BOUNDARY_POINT_POS: Vector2 = Vector2(15.9, 15.9)
+const BOUNDARY_TOLERANCE: Vector2 = Vector2(0.01, 0.01)
+# 16x16 tile shape coordinates - defined as static helper functions
+static func get_tile_shape_16x16() -> PackedVector2Array:
+	return PackedVector2Array([Vector2(0, 0), Vector2(16, 0), Vector2(16, 16), Vector2(0, 16)])
+static func get_separated_shape_16x16() -> PackedVector2Array:
+	return PackedVector2Array([Vector2(32, 32), Vector2(48, 32), Vector2(48, 48), Vector2(32, 48)])
+static func get_overlapping_shape_16x16() -> PackedVector2Array:
+	return PackedVector2Array([Vector2(8, 8), Vector2(24, 8), Vector2(24, 24), Vector2(8, 24)])
+
 # ===== COLLISION GEOMETRY CALCULATOR TESTS =====
 
 func test_collision_calculator_tile_overlap_empty() -> void:
 	var empty_polygon: PackedVector2Array = PackedVector2Array()
-	var tile_size: Vector2 = Vector2(16, 16)
+	var tile_size: Vector2 = STANDARD_TILE_SIZE
 
 	# Use shared test tile map layer to ensure consistent map-aware calculations
 	var _test_tile_map_layer: TileMapLayer = GodotTestFactory.create_empty_tile_map_layer(self)
@@ -24,8 +47,8 @@ func test_collision_calculator_tile_overlap_empty() -> void:
 	).is_empty()
 
 func test_collision_calculator_single_point() -> void:
-	var single_point: PackedVector2Array = PackedVector2Array([Vector2(8, 8)])
-	var tile_size: Vector2 = Vector2(16, 16)
+	var single_point: PackedVector2Array = PackedVector2Array([SINGLE_POINT_POS])
+	var tile_size: Vector2 = STANDARD_TILE_SIZE
 
 	var _test_tile_map_layer: TileMapLayer = GodotTestFactory.create_empty_tile_map_layer(self)
 	var overlapped_tiles: Array[Vector2i] = CollisionGeometryCalculator.calculate_tile_overlap(
@@ -38,9 +61,9 @@ func test_collision_calculator_single_point() -> void:
 
 func test_collision_calculator_rectangle_overlap() -> void:
 	var rectangle: PackedVector2Array = PackedVector2Array([
-		Vector2(0, 0), Vector2(32, 0), Vector2(32, 32), Vector2(0, 32)
+		TEST_ORIGIN, Vector2(LARGE_RECTANGLE_SIZE.x, 0), LARGE_RECTANGLE_SIZE, Vector2(0, LARGE_RECTANGLE_SIZE.y)
 	])
-	var tile_size: Vector2 = Vector2(16, 16)
+	var tile_size: Vector2 = STANDARD_TILE_SIZE
 
 	var _test_tile_map_layer: TileMapLayer = GodotTestFactory.create_empty_tile_map_layer(self)
 	var overlapped_tiles: Array[Vector2i] = CollisionGeometryCalculator.calculate_tile_overlap(
@@ -52,14 +75,14 @@ func test_collision_calculator_rectangle_overlap() -> void:
 	).is_equal(4)
 	
 	# Verify specific tile positions
-	assert_bool(overlapped_tiles.has(Vector2i(0, 0))).is_true()
-	assert_bool(overlapped_tiles.has(Vector2i(1, 0))).is_true()
-	assert_bool(overlapped_tiles.has(Vector2i(0, 1))).is_true()
-	assert_bool(overlapped_tiles.has(Vector2i(1, 1))).is_true()
+	assert_bool(overlapped_tiles.has(TEST_ORIGIN_TILE)).is_true()
+	assert_bool(overlapped_tiles.has(TILE_1_0)).is_true()
+	assert_bool(overlapped_tiles.has(TILE_0_1)).is_true()
+	assert_bool(overlapped_tiles.has(TILE_1_1)).is_true()
 
 func test_collision_detection_no_collision() -> void:
-	var shape1: PackedVector2Array = PackedVector2Array([Vector2(0, 0), Vector2(16, 0), Vector2(16, 16), Vector2(0, 16)])
-	var shape2: PackedVector2Array = PackedVector2Array([Vector2(32, 32), Vector2(48, 32), Vector2(48, 48), Vector2(32, 48)])
+	var shape1: PackedVector2Array = get_tile_shape_16x16()
+	var shape2: PackedVector2Array = get_separated_shape_16x16()
 
 	var collision : bool = CollisionGeometryCalculator.detect_collisions(shape1, shape2)
 
@@ -68,8 +91,8 @@ func test_collision_detection_no_collision() -> void:
 	).is_false()
 
 func test_collision_detection_with_collision() -> void:
-	var shape1: PackedVector2Array = PackedVector2Array([Vector2(0, 0), Vector2(16, 0), Vector2(16, 16), Vector2(0, 16)])
-	var shape2: PackedVector2Array = PackedVector2Array([Vector2(8, 8), Vector2(24, 8), Vector2(24, 24), Vector2(8, 24)])
+	var shape1: PackedVector2Array = get_tile_shape_16x16()
+	var shape2: PackedVector2Array = get_overlapping_shape_16x16()
 	
 	var collision : bool = CollisionGeometryCalculator.detect_collisions(shape1, shape2)
 	
@@ -200,29 +223,29 @@ func test_polygons_intersect_separate() -> void:
 # ===== DEBUG EDGE CASE TESTS =====
 
 func test_debug_edge_case_tiny_polygon() -> void:
-	var tiny_polygon: PackedVector2Array = PackedVector2Array([Vector2(0, 0), Vector2(0.1, 0), Vector2(0.1, 0.1), Vector2(0, 0.1)])
+	var tiny_polygon: PackedVector2Array = PackedVector2Array([TEST_ORIGIN, Vector2(EDGE_CASE_SIZE, 0), Vector2(EDGE_CASE_SIZE, EDGE_CASE_SIZE), Vector2(0, EDGE_CASE_SIZE)])
 	var bounds: Rect2 = CollisionGeometryCalculator._get_polygon_bounds(tiny_polygon)
 	
 	assert_float(bounds.size.x).append_failure_message(
 		"Tiny polygon should have measurable width"
-	).is_equal_approx(0.1, 0.01)
+	).is_equal_approx(EDGE_CASE_SIZE, EDGE_CASE_TOLERANCE)
 	assert_float(bounds.size.y).append_failure_message(
 		"Tiny polygon should have measurable height"
-	).is_equal_approx(0.1, 0.01)
+	).is_equal_approx(EDGE_CASE_SIZE, EDGE_CASE_TOLERANCE)
 
 func test_debug_edge_case_degenerate_shapes() -> void:
 	# Test line segment (degenerate polygon)
-	var line_segment: PackedVector2Array = PackedVector2Array([Vector2(0, 0), Vector2(10, 0)])
+	var line_segment: PackedVector2Array = PackedVector2Array([TEST_ORIGIN, Vector2(LINE_SEGMENT_LENGTH, 0)])
 	var line_bounds: Rect2 = CollisionGeometryCalculator._get_polygon_bounds(line_segment)
 	
-	assert_float(line_bounds.size.x).is_equal(10.0)
+	assert_float(line_bounds.size.x).is_equal(LINE_SEGMENT_LENGTH)
 	assert_float(line_bounds.size.y).is_equal(0.0)
 	
 	# Test single point boundary
-	var boundary_point: PackedVector2Array = PackedVector2Array([Vector2(15.9, 15.9)])
+	var boundary_point: PackedVector2Array = PackedVector2Array([BOUNDARY_POINT_POS])
 	var point_bounds: Rect2 = CollisionGeometryCalculator._get_polygon_bounds(boundary_point)
 	
-	assert_vector(point_bounds.position).is_equal_approx(Vector2(15.9, 15.9), Vector2(0.01, 0.01))
+	assert_vector(point_bounds.position).is_equal_approx(BOUNDARY_POINT_POS, BOUNDARY_TOLERANCE)
 
 # ===== COLLISION RULES TESTS =====
 

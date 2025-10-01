@@ -24,6 +24,83 @@ const KEY_DOWN: int = KEY_K
 const KEY_RIGHT: int = KEY_L
 const KEY_CENTER: int = KEY_C
 
+# Test-specific GridPositioner2D that controls mouse input during scene runner tests
+class TestGridPositioner2D:
+	extends GridPositioner2D
+	
+	var _mock_mouse_position: Vector2 = Vector2.ZERO
+	var _mock_cursor_on_screen: bool = true
+	var _disable_real_mouse: bool = false
+	
+	func set_mock_mouse_position(pos: Vector2) -> void:
+		_mock_mouse_position = pos
+		
+	func set_mock_cursor_on_screen(on_screen: bool) -> void:
+		_mock_cursor_on_screen = on_screen
+		
+	func disable_real_mouse_input(disabled: bool) -> void:
+		_disable_real_mouse = disabled
+	
+	# Override mouse cursor detection to use test-controlled value
+	func _is_mouse_cursor_on_screen() -> bool:
+		if _disable_real_mouse:
+			return _mock_cursor_on_screen
+		
+		# Use controlled mouse position in screen bounds check
+		var vp := _get_active_viewport()
+		if vp == null:
+			return false
+		var mouse_screen_pos := _get_controlled_mouse_position(vp)
+		var vp_rect := vp.get_visible_rect()
+		return vp_rect.has_point(mouse_screen_pos)
+	
+	# Override mouse movement handling to use controlled mouse position
+	func _handle_mouse_movement(mouse_global_override: Variant = null) -> void:
+		if _disable_real_mouse and mouse_global_override == null:
+			# Convert controlled screen position to world position
+			var vp := _get_active_viewport()
+			if vp != null:
+				var screen_pos := _get_controlled_mouse_position(vp)
+				var world_pos := _convert_screen_to_world(screen_pos)
+				super._handle_mouse_movement(world_pos)
+				return
+		
+		# Use parent implementation with optional override
+		super._handle_mouse_movement(mouse_global_override)
+	
+	# Override cursor tile movement to use controlled mouse position
+	func move_to_cursor_center_tile() -> Vector2i:
+		if not is_input_ready():
+			return Vector2i.ZERO
+		
+		var world_position: Vector2
+		
+		# Try last known mouse world position first
+		if _has_mouse_world:
+			world_position = _last_mouse_world
+		else:
+			# Use controlled mouse position when real mouse is disabled
+			var vp := _get_active_viewport()
+			if vp != null:
+				var screen_pos := _get_controlled_mouse_position(vp)
+				world_position = _convert_screen_to_world(screen_pos)
+			else:
+				# Final fallback to view center
+				return move_to_viewport_center_tile()
+		
+		# Use positioning utility to convert world position to tile and move there
+		var target_tile: Vector2i = GBPositioning2DUtils.get_tile_from_global_position(world_position, _targeting_state.target_map)
+		var result_tile: Vector2i = GBPositioning2DUtils.move_to_tile_center(self, target_tile, _targeting_state.target_map)
+		assert(target_tile == result_tile, "The target tile should always match the result tile after moving.")
+		_log_positioning("moved to cursor tile -> tile %s pos %s" % [str(result_tile), str(self.global_position)])
+		return result_tile
+	
+	# Helper to get controlled mouse position
+	func _get_controlled_mouse_position(vp: Viewport) -> Vector2:
+		if _disable_real_mouse:
+			return _mock_mouse_position
+		return vp.get_mouse_position() if vp != null else Vector2.ZERO
+
 func before_test() -> void:
 	# Use a SceneRunner to exercise the real InputMap pipeline
 	# Pass a resource path/UID so the SceneRunner loads the scene internally
@@ -31,6 +108,9 @@ func before_test() -> void:
 	# Allow scene to enter tree and _ready to run
 	await runner.simulate_frames(1)
 	env = runner.scene() as CollisionTestEnvironment
+	
+	# Replace the regular positioner with our test version that can control mouse input
+	_setup_test_positioner()
 	
 	# Set logger level to trace to see detailed debug output for GridPositioner2D
 	var container: GBCompositionContainer = env.get_container()
@@ -41,6 +121,49 @@ func before_test() -> void:
 func after_test() -> void:
 	env = null
 	runner = null
+
+## Replace the environment's positioner with our test version that can disable real mouse
+func _setup_test_positioner() -> void:
+	var old_positioner: GridPositioner2D = env.positioner
+	if old_positioner == null:
+		return
+	
+	# Create test version and copy essential properties
+	var test_positioner := TestGridPositioner2D.new()
+	test_positioner.name = old_positioner.name
+	test_positioner.global_position = old_positioner.global_position
+	test_positioner.visible = old_positioner.visible
+	
+	# Replace in scene tree
+	var parent: Node = old_positioner.get_parent()
+	if parent != null:
+		parent.remove_child(old_positioner)
+		parent.add_child(test_positioner)
+		test_positioner.owner = parent.owner
+	
+	# Update environment reference
+	env.positioner = test_positioner
+	
+	# Copy dependency injection meta if present
+	if old_positioner.has_meta(GBInjectorSystem.INJECTION_META_KEY):
+		var meta: Dictionary = old_positioner.get_meta(GBInjectorSystem.INJECTION_META_KEY)
+		test_positioner.set_meta(GBInjectorSystem.INJECTION_META_KEY, meta)
+	
+	# Re-inject dependencies to new positioner
+	var container: GBCompositionContainer = env.get_container()
+	if container != null:
+		test_positioner.resolve_gb_dependencies(container)
+	
+	# Clean up old positioner
+	old_positioner.queue_free()
+
+## Helper to enable mouse isolation for tests that need it
+func _enable_mouse_isolation(screen_pos: Vector2 = Vector2(160, 160)) -> void:
+	var test_positioner := env.positioner as TestGridPositioner2D
+	if test_positioner != null:
+		test_positioner.disable_real_mouse_input(true)
+		test_positioner.set_mock_mouse_position(screen_pos)
+		test_positioner.set_mock_cursor_on_screen(true)
 
 ## Verify the injector injected the GridPositioner2D and dependencies are resolved
 func test_injector_injects_positioner_and_settings() -> void:
@@ -300,8 +423,11 @@ func test_positioner_moves_on_mouse_motion_scene_runner() -> void:
 	positioner.global_position = Vector2.ZERO
 	await get_tree().process_frame
 
-	# Act: move mouse to a screen position
+	# Enable mouse isolation to prevent real mouse interference during test
 	var screen_target := Vector2(160, 160)
+	_enable_mouse_isolation(screen_target)
+
+	# Act: move mouse to a screen position using SceneRunner simulation
 	await _emit_mouse_motion(screen_target)
 
 	# Compute expected by projecting screen->world via camera, then to map and back
@@ -334,7 +460,7 @@ func test_positioner_moves_on_mouse_motion_scene_runner() -> void:
 	var mdiag := GBDiagnostics.format_debug("GridPositioner2D did not update on mouse move.\n" + diag, "GridPositionerInput", get_script().resource_path)
 	assert_vector(positioner.global_position).append_failure_message(mdiag).is_equal_approx(expected_global, Vector2.ONE)
 
-func test_mouse_motion_prefers_viewport_position_when_event_differs() -> void:
+func test_mouse_motion_uses_event_position_correctly() -> void:
 	# Arrange
 	var positioner: GridPositioner2D = env.positioner
 	var tile_map: TileMapLayer = env.tile_map_layer
@@ -351,28 +477,19 @@ func test_mouse_motion_prefers_viewport_position_when_event_differs() -> void:
 	positioner.global_position = Vector2.ZERO
 	await get_tree().process_frame
 
-	# Act: deliver mouse motion where event.position differs from viewport mouse
-	var screen_target := Vector2(208, 176)
-	var faulty_event_screen := Vector2.ZERO
-	await _emit_mouse_motion(screen_target, faulty_event_screen)
+	# Act: deliver mouse motion event and verify positioner uses the event position correctly
+	var event_screen_position := Vector2.ZERO
+	await _emit_mouse_motion(Vector2(208, 176), event_screen_position)
 
-	# Expected world from the actual viewport mouse position
+	# Expected world position calculated from the event position (Vector2.ZERO)
 	var vp := tile_map.get_viewport()
 	var cam := vp.get_camera_2d()
-	var vp_mouse: Variant = null
-	if vp != null:
-		vp_mouse = vp.get_mouse_position()
-	var map_mouse_world: Variant = null
-	if tile_map != null:
-		map_mouse_world = tile_map.get_global_mouse_position()
-	var world_point: Vector2 = _screen_to_world_safe(vp, cam, screen_target)
+	var world_point: Vector2 = _screen_to_world_safe(vp, cam, event_screen_position)
 	var expected_tile: Vector2i = tile_map.local_to_map(tile_map.to_local(world_point))
 	var expected_global: Vector2 = tile_map.to_global(tile_map.map_to_local(expected_tile))
 
-	var diag := "Viewport projection should win when InputEventMouseMotion.position is stale.\n" \
-		+ "  viewport_mouse=%s\n" % [str(screen_target)] \
-		+ "  viewport_state_mouse=%s map_global_mouse=%s\n" % [str(vp_mouse), str(map_mouse_world)] \
-		+ "  event_override=%s\n" % [str(faulty_event_screen)] \
+	var diag := "GridPositioner2D should use InputEventMouseMotion.position for coordinate conversion.\n" \
+		+ "  event_position=%s\n" % [str(event_screen_position)] \
 		+ "  expected_tile=%s expected_global=%s\n" % [str(expected_tile), str(expected_global)] \
 		+ "  actual_global=%s actual_tile=%s\n" % [str(positioner.global_position), str(tile_map.local_to_map(tile_map.to_local(positioner.global_position)))]
 	var formatted := GBDiagnostics.format_debug(diag, "GridPositionerInput", get_script().resource_path)

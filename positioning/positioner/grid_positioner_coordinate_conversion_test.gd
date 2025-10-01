@@ -44,6 +44,12 @@ func before_test() -> void:
 	positioner = collision_env.positioner as GridPositioner2D
 	tile_map = collision_env.tile_map_layer as TileMapLayer
 	
+	# CRITICAL: Enable mouse input for coordinate conversion tests
+	# These tests specifically test mouse motion event handling and positioning
+	var container: GBCompositionContainer = collision_env.get_container()
+	var targeting_settings: GridTargetingSettings = container.config.settings.targeting
+	targeting_settings.enable_mouse_input = true
+	
 	# Ensure positioner has proper dependencies for coordinate conversion
 	assert_object(positioner).is_not_null()
 	assert_object(tile_map).is_not_null()

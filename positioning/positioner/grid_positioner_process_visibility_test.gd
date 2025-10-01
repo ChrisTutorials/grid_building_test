@@ -20,9 +20,9 @@ func test_process_tick_retain_from_cached_mouse() -> void:
 	var s := _settings(true, true)
 	var last := GBMouseInputStatus.new(); last.set_from_values(false, Vector2.ZERO, 0, "", Vector2.ZERO)
 	var res: Variant = GridPositionerLogic.visibility_on_process_tick(GBEnums.Mode.MOVE, s, true, last, true)
-	assert_bool(res.apply).is_true()
-	assert_bool(res.visible).is_true()
-	assert_str(res.reason).is_equal("retain_from_cached_mouse_world")
+	assert_bool(res.apply).append_failure_message("Expected process tick to apply visibility for cached mouse. Settings: hide_on_handled=%s, mouse_enabled=%s, has_mouse_world=true, last_mouse_allowed=%s" % [str(s.hide_on_handled), str(s.enable_mouse_input), str(last.allowed)]).is_true()
+	assert_bool(res.visible).append_failure_message("Expected process tick to show positioner for cached mouse. Result: apply=%s, reason=%s" % [str(res.apply), str(res.reason)]).is_true()
+	assert_str(res.reason).append_failure_message("Expected 'retain_from_cached_mouse_world' reason, got '%s'. Result: apply=%s, visible=%s" % [str(res.reason), str(res.apply), str(res.visible)]).is_equal("retain_from_cached_mouse_world")
 
 func test_process_tick_noop_when_hide_on_handled_false() -> void:
 	var s := _settings(false, true)

@@ -9,6 +9,16 @@ const PERFORMANCE_TEST_OBJECT_COUNT: int = 10
 const PERFORMANCE_TEST_MOVE_COUNT: int = 20
 const PERFORMANCE_TEST_TIME_LIMIT_MS: int = 50
 
+# Test positions
+const TEST_BASE_TILE: Vector2i = Vector2i(3, 3)
+const TEST_ORIGIN: Vector2 = Vector2(0, 0)
+const TEST_POSITION_NEW: Vector2 = Vector2(100, 100)
+const TEST_GRID_UNALIGNED_POS: Vector2 = Vector2(15, 25)
+const TEST_POSITIONER_OFFSET: Vector2 = Vector2(50, 50)
+
+# Test object positioning offsets
+const RELATIVE_POSITION_OFFSETS: Array[Vector2] = [Vector2.ZERO, Vector2(20, 0), Vector2(40, 20)]
+
 #region COLLISION_HELPERS
 
 func _build_collision_diagnostics(iteration: int, tile_coords: Vector2i, positioner_world: Vector2, collision_world: Vector2, offsets: Dictionary) -> String:
@@ -60,7 +70,7 @@ func before_test() -> void:
 
 func test_positioner_basic_positioning() -> void:
 	# Test basic positioning
-	var test_position: Vector2 = Vector2(0, 0)
+	var test_position: Vector2 = TEST_ORIGIN
 	positioner.position = test_position
 	
 	assert_vector(positioner.position).is_equal(test_position)
@@ -92,7 +102,7 @@ func test_positioner_with_collision_tracking() -> void:
 
 	var expected_tile_count: int = -1
 
-	var base_tile: Vector2i = Vector2i(3, 3)
+	var base_tile: Vector2i = TEST_BASE_TILE
 	var tile_offsets: Array[Vector2i] = [Vector2i.ZERO, Vector2i(1, 0), Vector2i(2, 1)]
 	var target_tiles: Array[Vector2i] = []
 	var positions: Array[Vector2] = []
@@ -134,7 +144,7 @@ func test_positioner_indicator_updates() -> void:
 	
 	# Test position changes trigger indicator updates
 	var initial_pos: Vector2 = Vector2.ZERO
-	var new_pos: Vector2 = Vector2(100, 100)
+	var new_pos: Vector2 = TEST_POSITION_NEW
 	
 	positioner.global_position = initial_pos
 	await get_tree().physics_frame
@@ -151,7 +161,7 @@ func test_movement_with_grid_alignment() -> void:
 	var tile_size: Vector2i = tile_map.tile_set.tile_size
 	
 	# Test grid-aligned movement
-	var unaligned_pos: Vector2 = Vector2(15, 25)
+	var unaligned_pos: Vector2 = TEST_GRID_UNALIGNED_POS
 	positioner.position = unaligned_pos
 	
 	# Simulate grid alignment
@@ -168,7 +178,7 @@ func test_movement_with_grid_alignment() -> void:
 func test_multi_object_positioning() -> void:
 	# Create multiple positioned objects
 	var objects: Array[Area2D] = []
-	var relative_positions: Array[Vector2] = [Vector2.ZERO, Vector2(20, 0), Vector2(40, 20)]
+	var relative_positions: Array[Vector2] = RELATIVE_POSITION_OFFSETS
 	
 	for i in range(3):
 		var obj: Area2D = Area2D.new()
@@ -178,7 +188,7 @@ func test_multi_object_positioning() -> void:
 		auto_free(obj)
 	
 	# Test positioner movement affects all children
-	var positioner_offset: Vector2 = Vector2(50, 50)
+	var positioner_offset: Vector2 = TEST_POSITIONER_OFFSET
 	positioner.position = positioner_offset
 	
 	for i in range(objects.size()):

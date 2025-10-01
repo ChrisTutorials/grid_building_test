@@ -50,12 +50,11 @@ func test_regression_collision_layer_513_mask_2561_debug() -> void:
 	
 	# Test direct layer matching
 	var direct_match: bool = PhysicsUtils.object_has_matching_layer(test_area, 2561)
-	assert_bool(direct_match).is_true().override_failure_message(
-		"Direct layer matching should work: collision layer 513 vs mask 2561"
-	)
 	
-	# Print debugging information
-	print("✓ Regression test passed: collision layer 513 properly matches mask 2561")
+	# Validate regression test success
+	assert_bool(direct_match).append_failure_message(
+		"Collision layer 513 should properly match mask 2561. Layer value: %d, Mask value: %d, Intersection: %d" % [513, 2561, 513 & 2561]
+	).is_true()
 
 func test_debug_layer_conversion_consistency() -> void:
 	# Test that our layer conversion is consistent with Godot's bit operations
@@ -103,10 +102,6 @@ func test_specific_integration_error_scenario() -> void:
 	)
 	
 	# Additional verification: check the binary representation
-	print("Collision layer 513 value: ", 513)
-	print("Layer mask 2561 value: ", 2561)
-	print("Intersection value (should be non-zero): ", 513 & 2561)
-	
-	assert_that(513 & 2561).is_greater(0).override_failure_message(
-		"Binary intersection of collision layer 513 and mask 2561 must be non-zero"
-	)
+	assert_that(513 & 2561).append_failure_message(
+		"Binary intersection of collision layer 513 and mask 2561 must be non-zero. Layer: %d, Mask: %d, Intersection: %d" % [513, 2561, 513 & 2561]
+	).is_greater(0)

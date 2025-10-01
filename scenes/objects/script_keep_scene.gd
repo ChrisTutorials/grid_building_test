@@ -1,2 +1,0 @@
-class_name ScriptKeepScene
-extends Node2D

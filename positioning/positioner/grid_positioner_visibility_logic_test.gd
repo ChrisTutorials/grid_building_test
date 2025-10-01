@@ -51,7 +51,7 @@ func test_should_be_visible_active_mode_with_mouse_world_and_enabled() -> void:
 	var has_mouse := true
 	
 	var result := GridPositionerLogic.should_be_visible(GBEnums.Mode.MOVE, settings, last_mouse, has_mouse)
-	assert_bool(result).is_true()
+	assert_bool(result).append_failure_message("Expected positioner to be visible with cached mouse world. Settings: mouse_enabled=%s, has_mouse_world=%s, last_mouse_allowed=%s, hide_on_handled=%s" % [str(settings.enable_mouse_input), str(has_mouse), str(last_mouse.allowed), str(settings.hide_on_handled)]).is_true()
 
 func test_should_be_visible_active_mode_default() -> void:
 	var settings := GridTargetingSettings.new()

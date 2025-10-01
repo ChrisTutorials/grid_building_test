@@ -1,4 +1,4 @@
- d## Unit tests for PlaceableSelectionUI - unified selection component supporting mixed content.
+## Unit tests for PlaceableSelectionUI - unified selection component supporting mixed content.
 ##
 ## Tests the GridContainer-based approach for displaying both individual placeables and sequences
 ## simultaneously in categorized tabs with configurable column layouts and proper dependency injection.
@@ -66,7 +66,7 @@ func before_test() -> void:
 	_create_test_content()
 	
 	# Configure UI templates (mock template scenes)
-	selection_ui.grid_template = _create_mock_grid_template()
+	selection_ui.grid_columns = 3
 	selection_ui.placeable_entry_template = _create_mock_placeable_entry_template()
 	selection_ui.sequence_entry_template = _create_mock_sequence_entry_template()
 
@@ -401,14 +401,6 @@ func _create_test_content() -> void:
 	_create_test_category_tags()
 	_create_test_placeables()
 	_create_test_sequences()
-
-## Creates a mock grid template for testing (simplified GridContainer)
-func _create_mock_grid_template() -> PackedScene:
-	var grid_scene: PackedScene = load("res://templates/grid_building_templates/ui/placement_selection/placeable_selection_grid.tscn") as PackedScene
-	assert_object(grid_scene).append_failure_message(
-		"Expected placeable_selection_grid.tscn to be available for grid template"
-	).is_not_null()
-	return grid_scene
 
 ## Creates a mock placeable entry template for testing (simplified PanelContainer that works as PlaceableView)
 func _create_mock_placeable_entry_template() -> PackedScene:
