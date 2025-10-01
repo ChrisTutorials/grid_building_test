@@ -1,15 +1,16 @@
-Test Runner Guide
+# Test Runner Guide
 
 Plugin Docs: https://gridbuilding.pages.dev/
 
 This guide explains how contributors and demo users can run the plugin test-suite using the gdUnit4 GUI test runner. It follows the official gdUnit4 "first steps" and "getting started" guidance and documents the tested versions used for the demo project.
 
-Versions
+## Versions
 
-gdUnit: 6.0.0
-Godot: 4.4.1 (stable)
-Grid Building plugin: 5.0.0
-Overview
+- GdUnit: `6.0.0` (for Godot 4.5)
+- Godot: `4.5` (stable) - test environment
+- Grid Building plugin: `5.0.0` (supports Godot 4.4.0, 4.4.1, 4.5 stable)
+
+## Overview
 
 The published demo project does not include custom shell scripts used on the author's workstation. Instead, use the Godot editor and the gdUnit4 GUI test interface to run tests in the demo.
 The test-suite lives in a separate repository: https://github.com/ChrisTutorials/grid_building_test
@@ -26,7 +27,7 @@ Install gdUnit4 (editor plugin)
 
 Follow the official gdUnit4 installation steps. Short summary:
 
-Open Godot Editor (4.4.1).
+Open Godot Editor (4.4.0, 4.4.1, or 4.5 stable).
 Open the Demo project or your local copy of the plugin project.
 Install gdUnit4 as an EditorPlugin. See the official instructions: https://mikeschulze.github.io/gdUnit4/first_steps/getting-started/
 Using the GUI Test Runner (recommended)
@@ -46,7 +47,7 @@ The demo project does not include the custom shell scripts used by the maintaine
 Troubleshooting
 
 Common issue: Tests can't find res:// resources. Fix by ensuring the test-suite and/or plugin are imported in the same project workspace so res:// paths match.
-Version mismatch: Always use the gdUnit release compatible with Godot 4.4.1 and the plugin version. The guide header lists the versions used for the demo.
+Version mismatch: Always use the gdUnit release compatible with your Godot version (6.0.0 for Godot 4.5) and the plugin version. The guide header lists the versions used for the demo.
 If a test fails due to engine differences, try running the failing test in isolation in the editor to see a full stack trace and scene state.
 Further reading
 
