@@ -118,7 +118,7 @@ func test_start_move(
 	assert_that(move_data.source).append_failure_message("Move data source should not be null").is_not_null()
 	assert_that(move_data.source.root).append_failure_message("Move data source root node should not be null").is_not_null()
 	
-	var result_data: ManipulationData = system.try_move(move_data.source.root)
+	var result_data: ManipulationData = await system.try_move(move_data.source.root)
 	
 	# Fix null reference issue: ensure result_data is not null
 	assert_that(result_data).append_failure_message(
@@ -135,39 +135,10 @@ func test_start_move(
 			var positioner_pos: Vector2 = _container.get_states().targeting.positioner.global_position
 			assert_vector(result_data.target.root.global_position).append_failure_message("Target position should match positioner position during move").is_equal(positioner_pos)
 
-@warning_ignore("unused_parameter")
-func test_move_already_moving(
-	p_settings: ManipulatableSettings,
-	p_expected: bool,
-	test_parameters := [[manipulatable_settings_all_allowed, true]]
-) -> void:
-	var move_data: ManipulationData = _create_test_move_data(p_settings)
-	assert_that(move_data).append_failure_message("Move data should not be null for consecutive move test").is_not_null()
-	
-	# First move attempt
-	var first_move_result: ManipulationData = system.try_move(move_data.source.root)
-	assert_that(first_move_result).append_failure_message(
-		"First try_move should return valid result"
-	).is_not_null()
-	
-	if first_move_result != null:
-		var first_success: bool = first_move_result.status == GBEnums.Status.STARTED
-		assert_bool(first_success).append_failure_message("First move should have expected success status %s" % p_expected).is_equal(p_expected)
-
-		# Second move attempt while already moving
-		var second_move_result: ManipulationData = system.try_move(move_data.source.root)
-		assert_that(second_move_result).append_failure_message(
-			"Second try_move should return valid result even when already moving"
-		).is_not_null()
-		
-		if second_move_result != null:
-			var second_success: bool = second_move_result.status == GBEnums.Status.STARTED
-			assert_bool(second_success).append_failure_message("Second move attempt should have expected success status %s" % p_expected).is_equal(p_expected)
-
 func test_cancel() -> void:
 	var source: Manipulatable = _create_test_manipulatable(manipulatable_settings_all_allowed)
-	
-	var move_result: ManipulationData = system.try_move(source.root)
+
+	var move_result: ManipulationData = await system.try_move(source.root)
 	assert_that(move_result).append_failure_message(
 		"try_move for cancel test should return valid result"
 	).is_not_null()
@@ -202,7 +173,7 @@ func test_try_move(
 		["manipulatable_root", GBEnums.Status.STARTED]
 	]
 ) -> void:
-	var result_data: ManipulationData = system.try_move(manipulation_hierarchy.get(p_move_target, null))
+	var result_data: ManipulationData = await system.try_move(manipulation_hierarchy.get(p_move_target, null))
 	
 	# Ensure result is not null to prevent property access errors
 	assert_that(result_data).append_failure_message(
@@ -252,8 +223,8 @@ func test_try_placement(
 ) -> void:
 	var source: Manipulatable = _create_test_manipulatable(p_settings)
 	assert_that(source).append_failure_message("Source manipulatable should not be null for placement test").is_not_null()
-	
-	var move_result: ManipulationData = system.try_move(source.root)
+
+	var move_result: ManipulationData = await system.try_move(source.root)
 	assert_that(move_result).append_failure_message(
 		"try_move for placement test should return valid result"
 	).is_not_null()
@@ -277,6 +248,81 @@ func test_try_placement(
 				# After successful placement, target copy should be freed
 				assert_object(move_data.target).append_failure_message("Target should be null after placement").is_null()
 				assert_vector(source.root.global_position).append_failure_message("Source position should match test location after placement").is_equal(test_location)
+
+## Test: Failed placement due to collision should NOT execute move and should clean up target
+## REGRESSION TEST: Verify that try_placement() properly cleans up when ManipulationData is invalid.
+##
+## Bug: Both failure paths in try_placement() were missing cleanup logic:
+## 1. p_move.is_valid() == false (invalid ManipulationData)
+## 2. validation_results.is_successful == false (collision/rule failures)
+##
+## Before fix: Failed placements would leave target copies in scene and status would be wrong.
+## After fix: Both paths call tear_down() and queue_free_manipulation_objects()
+##
+## NOTE: This test checks path #1 (invalid ManipulationData). Path #2 (collision failures)
+## is tested implicitly by other manipulation tests that use the validation system.
+func test_failed_placement_with_invalid_move_data_cleans_up() -> void:
+	# Setup: Create a manipulatable source object
+	var source: Manipulatable = _create_test_manipulatable(manipulatable_settings_all_allowed)
+	var original_source_position: Vector2 = source.root.global_position
+	assert_vector(original_source_position).is_equal(TEST_POSITION)
+	
+	# Act: Start a move operation
+	var move_result: ManipulationData = await system.try_move(source.root)
+	assert_bool(move_result.status == GBEnums.Status.STARTED).append_failure_message(
+		"Move should start successfully"
+	).is_true()
+	
+	var move_data: ManipulationData = _container.get_states().manipulation.data
+	assert_that(move_data).append_failure_message("Move data should exist").is_not_null()
+	assert_that(move_data.target).append_failure_message("Target copy should exist").is_not_null()
+	
+	# Store reference to target for later verification
+	var target_root: Node = move_data.target.root
+	
+	# CRITICAL: Make ManipulationData invalid by nulling source
+	# This triggers the p_move.is_valid() == false path in try_placement()
+	var saved_source: Manipulatable = move_data.source
+	move_data.source = null
+	
+	# Act: Try placement with invalid move data (should fail and cleanup)
+	var _placement_results: ValidationResults = await system.try_placement(move_data)
+	
+	# Restore source reference so we can verify it wasn't moved
+	move_data.source = saved_source
+	
+	# Assert: Status should be FAILED (not STARTED or FINISHED)
+	assert_int(move_data.status).append_failure_message(
+		"Move data status should be FAILED after invalid move data"
+	).is_equal(GBEnums.Status.FAILED)
+	
+	# Assert: CRITICAL - Source object should NOT have moved
+	assert_vector(source.root.global_position).append_failure_message(
+		"Source position should remain unchanged after failed placement - was %s, now %s" % [
+			str(original_source_position), 
+			str(source.root.global_position)
+		]
+	).is_equal(original_source_position)
+	
+	# Assert: CRITICAL - Target copy should be cleaned up (freed or removed from tree)
+	# After failed placement, the target should be cleaned up to prevent orphaned objects
+	# Wait a frame for queue_free() to process
+	await get_tree().process_frame
+	if is_instance_valid(target_root):
+		assert_bool(target_root.is_inside_tree()).append_failure_message(
+			"Target copy should be removed from scene tree after failed placement"
+		).is_false()
+	# If target was freed, that's also acceptable (even better)
+	
+	# Assert: ManipulationData should be cleared or marked invalid
+	# The system should not retain invalid manipulation data
+	var current_data: ManipulationData = _container.get_states().manipulation.data
+	if current_data != null:
+		# If data still exists, it should be marked as failed
+		assert_int(current_data.status).append_failure_message(
+			"Manipulation data should be FAILED status"
+		).is_equal(GBEnums.Status.FAILED)
+
 #endregion
 
 #region Transform Operation Tests

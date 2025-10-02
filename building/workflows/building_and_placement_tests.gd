@@ -115,9 +115,6 @@ func before_test() -> void:
 
 	# Get targeting state from grid targeting system - it should already be properly configured
 	_targeting_state = _targeting_system.get_state()
-	# Ensure target_map is set to the environment's tile map layer
-	if _targeting_state.target_map == null:
-		_targeting_state.target_map = _map
 	
 	# Get dependencies from environment instead of creating them manually
 	gb_owner = env.gb_owner
@@ -126,9 +123,14 @@ func before_test() -> void:
 	# Use placer from environment instead of creating new user_node
 	user_node = env.placer
 	
-	# Collision shapes are added only in tests that explicitly require them
+	# CRITICAL: Always set targeting state properties in before_test() because
+	# after_test() cleanup clears them (they're shared references across test runs)
+	# Ensure target_map is set to the environment's tile map layer
+	_targeting_state.target_map = _map
 	
-	# Set the targeting state target to the user_node/placer for tests
+	# CRITICAL: Always set target to user_node (even if not null) because
+	# GBTestIsolation.cleanup_building_test_isolation() sets it to null in after_test()
+	# This ensures each parameterized test run has a valid target
 	_targeting_state.target = user_node
 	
 	# Apply test isolation to prevent mouse interference and positioning issues
@@ -156,8 +158,12 @@ func before_test() -> void:
 	_last_build_report = null
 	_last_build_was_dragging = false
 
-	# Allow a frame for any environment _ready hooks and tile map initialization
-	await get_tree().process_frame
+	# CRITICAL: NO AWAIT - prevents targeting state from being cleared during process frame
+	# - Awaiting allows systems to process and potentially clear _targeting_state.target
+	# - Mouse input or system initialization during frame can override programmatic state
+	# - Following pattern from building_placement_collision_regression_test.gd
+	# - Environment _ready hooks and tile map initialization happen synchronously
+	# await get_tree().process_frame  # REMOVED - causes test isolation failure
 
 func after_test() -> void:
 	# Cleanup test isolation first
@@ -430,7 +436,33 @@ func test_placement_validation_with_rules(
 	# IMPORTANT: Set positioner to TILE CENTER position within map bounds before validation
 	# Map bounds are approximately (-15,-15) to (15,15) in tile coordinates  
 	# Use tile center position (8.0, 8.0) which is center of tile (0,0) - this matches system expectations
+	
+	# Enhanced diagnostic: Verify _positioner exists before using it
+	assert_object(_positioner).append_failure_message(
+		"CRITICAL: _positioner is null in test_placement_validation_with_rules. " +
+		"Rule scenario: " + str(rule_scenario) + ", Rule type: " + str(rule_type) + ". " +
+		"This indicates test environment setup failure in before_test()."
+	).is_not_null()
+	
 	_positioner.global_position = TEST_TILE_CENTER  # (8.0, 8.0) - center of tile (0,0)
+	
+	# Enhanced diagnostic: Verify _targeting_state and _targeting_state.target exist
+	assert_object(_targeting_state).append_failure_message(
+		"CRITICAL: _targeting_state is null in test_placement_validation_with_rules. " +
+		"Rule scenario: " + str(rule_scenario) + ", Rule type: " + str(rule_type) + ". " +
+		"This indicates GridTargetingSystem.get_state() failed or returned null."
+	).is_not_null()
+	
+	assert_object(_targeting_state.target).append_failure_message(
+		"CRITICAL: _targeting_state.target is null in test_placement_validation_with_rules. " +
+		"Rule scenario: " + str(rule_scenario) + ", Rule type: " + str(rule_type) + ". " +
+		"Test environment details: " +
+		"env.placer=" + (str(env.placer) if env else "env is null") + ", " +
+		"user_node=" + str(user_node) + ", " +
+		"_targeting_state.target was set in before_test() but is now null. " +
+		"This may indicate the target node was freed or not properly retained between tests."
+	).is_not_null()
+	
 	# Also update the targeting state target position to match (both should be at tile center)
 	_targeting_state.target.global_position = TEST_TILE_CENTER
 	
@@ -732,7 +764,9 @@ func _collect_placement_diagnostics(context: String = "") -> String:
 	var diag: Array[String] = []
 	diag.append("context=" + context)
 	diag.append("positioner=" + str(_positioner.global_position))
-	diag.append("target=" + str(_targeting_state.target.global_position))
+	# Safe access: target may be null during initialization or cleanup
+	var target_pos: String = "null" if _targeting_state.target == null else str(_targeting_state.target.global_position)
+	diag.append("target=" + target_pos)
 	diag.append("map_used_rect=" + str(_map.get_used_rect()))
 	diag.append("placed_count=" + str(_placed_positions.size()))
 	diag.append("build_success=" + str(_build_success_count))
@@ -769,7 +803,9 @@ func _format_validation_failure_details(scenario: String, rule_type: String, exp
 	# Position and environment context
 	details.append("ENVIRONMENT STATE:")
 	details.append("  • Positioner position: " + str(_positioner.global_position))
-	details.append("  • Target position: " + str(_targeting_state.target.global_position))
+	# Safe access: target may be null
+	var target_pos_str: String = "null" if _targeting_state.target == null else str(_targeting_state.target.global_position)
+	details.append("  • Target position: " + target_pos_str)
 	details.append("  • Map used rect: " + str(_map.get_used_rect()))
 	details.append("  • Position within bounds: " + str(_is_position_within_map_bounds(_positioner.global_position)))
 	
@@ -922,7 +958,33 @@ func _analyze_tile_count_problem(
 func test_large_rectangle_generates_full_grid_of_indicators() -> void:
 	# Position both the positioner and target to the TILE CENTER for consistent positioning
 	# This matches engine semantics where collision is evaluated from tile centers
+	
+	# Enhanced diagnostic: Verify _positioner exists before using it
+	assert_object(_positioner).append_failure_message(
+		"CRITICAL: _positioner is null in test_large_rectangle_generates_full_grid_of_indicators. " +
+		"This indicates test environment setup failure in before_test()."
+	).is_not_null()
+	
 	_positioner.global_position = TEST_TILE_CENTER  # (8.0, 8.0) - center of tile (0,0)
+	
+	# Enhanced diagnostic: Verify _targeting_state and _targeting_state.target exist
+	assert_object(_targeting_state).append_failure_message(
+		"CRITICAL: _targeting_state is null in test_large_rectangle_generates_full_grid_of_indicators. " +
+		"This indicates GridTargetingSystem.get_state() failed or returned null."
+	).is_not_null()
+	
+	assert_object(_targeting_state.target).append_failure_message(
+		"CRITICAL: _targeting_state.target is null in test_large_rectangle_generates_full_grid_of_indicators. " +
+		"Test environment details: " +
+		"env.placer=" + (str(env.placer) if env else "env is null") + ", " +
+		"user_node=" + str(user_node) + ", " +
+		"_targeting_state.target was set in before_test() but is now null. " +
+		"This may indicate: " +
+		"1) The target node was freed between tests (test isolation issue), " +
+		"2) env.placer was null when assigned in before_test(), or " +
+		"3) A previous test modified _targeting_state.target without cleanup."
+	).is_not_null()
+	
 	_targeting_state.target.global_position = TEST_TILE_CENTER
 	
 	# Create a factory-generated rectangular collision object with known dimensions
@@ -2033,6 +2095,105 @@ func test_tile_tracking_prevents_duplicate_placements() -> void:
 	assert_int(_placed_positions.size()).append_failure_message(
 		"Multiple tile switch events to the same tile should place only once"
 	).is_equal(1)
+
+## REGRESSION TEST: Drag multi-build must enforce collision rules after initial placement
+## BUG CONTEXT: Previously, after the first successful placement in a drag-build sequence,
+## subsequent placements would ignore collision and other placement rules, allowing
+## objects to be placed in invalid locations (e.g., overlapping existing objects).
+## 
+## Test Strategy:
+## 1. Create blocking collision bodies at specific positions
+## 2. Enter build mode with drag multi-build enabled
+## 3. Make first placement at a valid (non-colliding) position - should SUCCEED
+## 4. Attempt placement at a position with a blocking collision - should FAIL
+##
+## Expected: Collision rules must be enforced for ALL placements, not just the first one
+func test_drag_build_enforces_collision_rules_after_initial_placement() -> void:
+	# Setup: Create blocking collision bodies
+	# Body 1: At a far position that won't interfere with first placement
+	var blocking_body1: StaticBody2D = StaticBody2D.new()
+	auto_free(blocking_body1)
+	blocking_body1.name = "BlockingBody1"
+	blocking_body1.collision_layer = BLOCKING_BODY_LAYER
+	blocking_body1.collision_mask = BLOCKING_BODY_MASK
+	
+	var shape1: CollisionShape2D = CollisionShape2D.new()
+	var rect1: RectangleShape2D = RectangleShape2D.new()
+	rect1.size = BLOCKING_BODY_SIZE  # 32x32
+	shape1.shape = rect1
+	blocking_body1.add_child(shape1)
+	
+	# Position at tile (6, 0) - safe distance from first placement
+	var block_tile1: Vector2i = Vector2i(6, 0)
+	blocking_body1.global_position = _map.to_global(_map.map_to_local(block_tile1))
+	_map.get_parent().add_child(blocking_body1)
+	
+	await get_tree().physics_frame  # Let physics register collisions
+	await get_tree().physics_frame  # Let physics register collisions
+	
+	# Enter build mode with Smithy (4x4 tiles)
+	var report: PlacementReport = _building_system.enter_build_mode(GBTestConstants.PLACEABLE_SMITHY)
+	assert_bool(report.is_successful()).append_failure_message(
+		"Should enter build mode successfully. Issues: " + str(report.get_issues())
+	).is_true()
+	
+	# Enable drag multi-build
+	_container.get_settings().building.drag_multi_build = true
+	_building_system.start_drag()
+	
+	var drag_manager: Variant = _building_system.get_lazy_drag_manager()
+	var drag_data: Variant = drag_manager.drag_data
+	assert_object(drag_data).append_failure_message(
+		"Drag data should be created by start_drag()"
+	).is_not_null()
+	
+	var initial_count: int = _placed_positions.size()
+	
+	# STEP 1: First placement at safe position (0, 0)
+	var first_tile: Vector2i = Vector2i(0, 0)
+	_move_positioner_to_tile(first_tile)
+	drag_data.update(0.016)
+	await get_tree().process_frame
+	
+	_building_system._on_drag_targeting_new_tile(drag_data, first_tile, Vector2i(-1, -1))
+	await get_tree().process_frame
+	
+	# Verify first placement succeeded
+	var after_first: int = _placed_positions.size()
+	assert_int(after_first).append_failure_message(
+		"First placement should succeed. Initial: " + str(initial_count) + ", After: " + str(after_first)
+	).is_equal(initial_count + 1)
+	
+	# STEP 2: Attempt placement at colliding position (6, 0) - should FAIL
+	var colliding_tile: Vector2i = block_tile1
+	_move_positioner_to_tile(colliding_tile)
+	drag_data.update(0.016)
+	await get_tree().physics_frame
+	
+	var before_collision: int = _placed_positions.size()
+	_building_system._on_drag_targeting_new_tile(drag_data, colliding_tile, first_tile)
+	await get_tree().process_frame
+	
+	var after_collision: int = _placed_positions.size()
+	
+	# CRITICAL: Second placement should be REJECTED due to collision
+	assert_int(after_collision).append_failure_message(
+		"REGRESSION: Drag-build MUST enforce collision rules after first placement. " +
+		"Before: " + str(before_collision) + ", After: " + str(after_collision) + 
+		", Colliding tile: " + str(colliding_tile) + ". " +
+		"This test catches the bug where subsequent placements ignored collision rules!"
+	).is_equal(before_collision)  # Count should NOT increase
+	
+	# Final verification: Only 1 successful placement (the first one)
+	var final_count: int = _placed_positions.size()
+	assert_int(final_count).append_failure_message(
+		"Should have exactly 1 placement. Got: " + str(final_count) + 
+		", Positions: " + str(_placed_positions)
+	).is_equal(initial_count + 1)
+	
+	# Cleanup
+	drag_manager.stop_drag()
+	_building_system.exit_build_mode()
 
 #endregion
 

@@ -1,3 +1,0 @@
-# GdUnit Test Runner Failure
-
-...existing content from previous location...

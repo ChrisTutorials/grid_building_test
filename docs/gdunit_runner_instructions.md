@@ -1,3 +1,0 @@
-# GdUnit Runner Instructions
-
-...existing content from previous location...

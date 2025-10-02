@@ -107,14 +107,14 @@ func test_manipulation_system_container_validation() -> void:
 func test_manipulation_system_result_objects_not_null() -> void:
 	"""Test that manipulation system operations return valid result objects"""
 	# Test try_move with null input
-	var move_null_result: Variant = manipulation_system.try_move(null)
+	var move_null_result: Variant = await manipulation_system.try_move(null)
 	assert_object(move_null_result).append_failure_message(
 		"try_move(null) should return result object, not null"
 	).is_not_null()
 
 	# Test try_move with invalid node
 	var invalid_node: Node = auto_free(Node.new())
-	var move_invalid_result: Variant = manipulation_system.try_move(invalid_node)
+	var move_invalid_result: Variant = await manipulation_system.try_move(invalid_node)
 	assert_object(move_invalid_result).append_failure_message(
 		"try_move(invalid_node) should return result object, not null"
 	).is_not_null()
@@ -152,7 +152,7 @@ func test_manipulation_system_dependency_injection() -> void:
 	assert_object(test_environment.injector).is_not_null()
 
 	# Test that the system can perform basic operations without null reference errors
-	var test_result: Variant = manipulation_system.try_move(null)
+	var test_result: Variant = await manipulation_system.try_move(null)
 	assert_object(test_result).append_failure_message(
 		"System should handle operations without null reference crashes"
 	).is_not_null()

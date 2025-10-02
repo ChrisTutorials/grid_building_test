@@ -205,3 +205,282 @@ func test_targeting_precision_modes() -> void:
 	assert_vector(targeting_state.target.position).is_equal(test_pos).append_failure_message(
 		"Target position should remain consistent after precision mode operations"
 	)
+
+
+#region TARGET_INFORMER_INTEGRATION_TESTS
+
+## Test TargetInformer displays targeting info for hovered objects
+func test_target_informer_shows_targeting_info() -> void:
+	var targeting_state: GridTargetingState = env.grid_targeting_system.get_state()
+	
+	# Create TargetInformer and wire it up
+	var informer: TargetInformer = TargetInformer.new()
+	informer.info_parent = Control.new()
+	add_child(informer)
+	informer.info_parent.name = "InfoParent"
+	informer.add_child(informer.info_parent)
+	auto_free(informer)
+	
+	# Create a test target BEFORE resolve (to ensure we're testing signal-based update)
+	var test_target: Node2D = Node2D.new()
+	test_target.name = "HoveredObject"
+	test_target.global_position = Vector2(100, 200)
+	env.level.add_child(test_target)
+	auto_free(test_target)
+	
+	# Resolve dependencies to connect to targeting state
+	informer.resolve_gb_dependencies(env.container)
+	
+	# Wait for initialization to complete
+	await get_tree().process_frame
+	
+	# NOW trigger target change (simulates hovering over object)
+	# This should fire the signal that TargetInformer is now listening to
+	targeting_state.target = test_target
+	
+	# Wait for signal propagation
+	await get_tree().process_frame
+	await get_tree().process_frame
+	
+	# Assert: TargetInformer should display the targeted object
+	assert_object(informer.target).append_failure_message(
+		"TargetInformer should have target set from GridTargetingState.target_changed signal. " +
+		"Targeting state target: %s" % [str(targeting_state.target)]
+	).is_same(test_target)
+	
+	if informer.target != null:
+		assert_str(informer.target.name).append_failure_message(
+			"TargetInformer target name should match hovered object"
+		).is_equal("HoveredObject")
+
+
+## Test TargetInformer prioritizes manipulation over targeting
+func test_target_informer_manipulation_priority() -> void:
+	var targeting_state: GridTargetingState = env.grid_targeting_system.get_state()
+	var manipulation_state: ManipulationState = env.container.get_states().manipulation
+	
+	# Create TargetInformer
+	var informer: TargetInformer = TargetInformer.new()
+	informer.info_parent = Control.new()
+	add_child(informer)
+	informer.info_parent.name = "InfoParent"
+	informer.add_child(informer.info_parent)
+	auto_free(informer)
+	informer.resolve_gb_dependencies(env.container)
+	
+	# Wait for signal connections to be fully established
+	await get_tree().process_frame
+	
+	# Create two test objects: one for targeting, one for manipulation
+	var hovered_object: Node2D = Node2D.new()
+	hovered_object.name = "HoveredObject"
+	hovered_object.global_position = Vector2(100, 100)
+	env.level.add_child(hovered_object)
+	auto_free(hovered_object)
+	
+	var manipulated_object: Node2D = Node2D.new()
+	manipulated_object.name = "ManipulatedObject"
+	manipulated_object.global_position = Vector2(200, 200)
+	
+	# Add Manipulatable component to manipulated object
+	var manipulatable: Manipulatable = Manipulatable.new()
+	manipulatable.root = manipulated_object
+	manipulated_object.add_child(manipulatable)
+	env.level.add_child(manipulated_object)
+	auto_free(manipulated_object)
+	
+	# Step 1: Hover over first object (targeting only)
+	targeting_state.target = hovered_object
+	await get_tree().process_frame
+	await get_tree().process_frame
+	
+	assert_object(informer.target).append_failure_message(
+		"Step 1: TargetInformer should show hovered object when no manipulation active"
+	).is_same(hovered_object)
+	
+	# Step 2: Start manipulation (should override targeting)
+	manipulation_state.active_target_node = manipulatable
+	await get_tree().process_frame
+	await get_tree().process_frame
+	
+	assert_object(informer.target).append_failure_message(
+		"Step 2: TargetInformer should switch to manipulated object (higher priority)"
+	).is_same(manipulated_object)
+	
+	# Step 3: Change targeting while manipulation active (should NOT update display)
+	var another_hovered: Node2D = Node2D.new()
+	another_hovered.name = "AnotherHoveredObject"
+	another_hovered.global_position = Vector2(150, 150)
+	env.level.add_child(another_hovered)
+	auto_free(another_hovered)
+	
+	targeting_state.target = another_hovered
+	await get_tree().process_frame
+	await get_tree().process_frame
+	
+	assert_object(informer.target).append_failure_message(
+		"Step 3: TargetInformer should still show manipulated object, ignoring targeting changes"
+	).is_same(manipulated_object)
+	
+	# Step 4: End manipulation (should return to showing targeting)
+	manipulation_state.active_target_node = null
+	await get_tree().process_frame
+	await get_tree().process_frame
+	
+	# After manipulation ends, it should show the currently targeted object
+	assert_object(informer.target).append_failure_message(
+		"Step 4: TargetInformer should return to showing targeted object after manipulation ends"
+	).is_same(another_hovered)
+
+
+## Test TargetInformer handles null targets gracefully
+func test_target_informer_null_handling() -> void:
+	var targeting_state: GridTargetingState = env.grid_targeting_system.get_state()
+	
+	# Create TargetInformer
+	var informer: TargetInformer = TargetInformer.new()
+	informer.info_parent = Control.new()
+	add_child(informer)
+	informer.info_parent.name = "InfoParent"
+	informer.add_child(informer.info_parent)
+	auto_free(informer)
+	informer.resolve_gb_dependencies(env.container)
+	
+	# Wait for signal connections to be fully established
+	await get_tree().process_frame
+	
+	# Set a target first
+	var test_target: Node2D = Node2D.new()
+	test_target.name = "TestTarget"
+	env.level.add_child(test_target)
+	auto_free(test_target)
+	
+	targeting_state.target = test_target
+	await get_tree().process_frame
+	
+	assert_object(informer.target).append_failure_message(
+		"Should have target set initially"
+	).is_not_null()
+	
+	# Clear target (simulates mouse leaving all objects)
+	targeting_state.target = null
+	await get_tree().process_frame
+	
+	# TargetInformer should clear its display
+	assert_object(informer.target).append_failure_message(
+		"TargetInformer should clear target when GridTargetingState.target becomes null"
+	).is_null()
+
+
+## Test TargetInformer updates display when target moves
+func test_target_informer_tracks_target_position() -> void:
+	var targeting_state: GridTargetingState = env.grid_targeting_system.get_state()
+	
+	# Create TargetInformer
+	var informer: TargetInformer = TargetInformer.new()
+	informer.info_parent = Control.new()
+	add_child(informer)
+	informer.info_parent.name = "InfoParent"
+	informer.add_child(informer.info_parent)
+	auto_free(informer)
+	informer.resolve_gb_dependencies(env.container)
+	
+	# Wait for signal connections to be fully established
+	await get_tree().process_frame
+	
+	# Create moving target
+	var moving_target: Node2D = Node2D.new()
+	moving_target.name = "MovingTarget"
+	moving_target.global_position = Vector2(100, 100)
+	env.level.add_child(moving_target)
+	auto_free(moving_target)
+	
+	targeting_state.target = moving_target
+	await get_tree().process_frame
+	
+	# Initial position check
+	assert_object(informer.target).append_failure_message(
+		"TargetInformer should track the moving target"
+	).is_same(moving_target)
+	
+	# Move the target
+	moving_target.global_position = Vector2(200, 300)
+	await get_tree().process_frame
+	
+	# TargetInformer's _process should update the position display
+	# We verify it's still tracking the same target
+	assert_object(informer.target).append_failure_message(
+		"TargetInformer should maintain reference to target as it moves"
+	).is_same(moving_target)
+	
+	assert_vector(informer.target.global_position).append_failure_message(
+		"TargetInformer should reflect updated target position"
+	).is_equal(Vector2(200, 300))
+
+## Test TargetInformer prioritizes building preview over targeting
+func test_target_informer_building_preview_priority() -> void:
+	var targeting_state: GridTargetingState = env.grid_targeting_system.get_state()
+	var building_state: BuildingState = env.container.get_states().building
+	
+	# Create TargetInformer
+	var informer: TargetInformer = TargetInformer.new()
+	informer.info_parent = Control.new()
+	add_child(informer)
+	informer.info_parent.name = "InfoParent"
+	informer.add_child(informer.info_parent)
+	auto_free(informer)
+	informer.resolve_gb_dependencies(env.container)
+	
+	# Create a hovered object in the scene
+	var hovered_object: Node2D = auto_free(Node2D.new())
+	hovered_object.name = "HoveredObject"
+	add_child(hovered_object)
+	
+	# Create a building preview object with BuildingNode script
+	var preview_object: Node2D = auto_free(Node2D.new())
+	preview_object.name = "PreviewObject"
+	add_child(preview_object)
+	
+	# Add BuildingNode script to make it a preview object
+	var building_node: Node = auto_free(Node.new())
+	var building_node_script: Script = load("res://addons/grid_building/components/building_node.gd")
+	building_node.set_script(building_node_script)
+	preview_object.add_child(building_node)
+	
+	# Step 1: Target a regular object first
+	targeting_state.target = hovered_object
+	await get_tree().process_frame
+	
+	assert_object(informer.target).append_failure_message(
+		"Step 1: TargetInformer should show hovered object when no preview active"
+	).is_same(hovered_object)
+	
+	# Step 2: Activate building preview - should take precedence
+	building_state.preview = preview_object
+	await get_tree().process_frame
+	
+	assert_object(informer.target).append_failure_message(
+		"Step 2: TargetInformer should switch to building preview (higher priority)"
+	).is_same(preview_object)
+	
+	# Step 3: Try to hover over another object while preview is active
+	var another_object: Node2D = auto_free(Node2D.new())
+	another_object.name = "AnotherObject"
+	add_child(another_object)
+	
+	targeting_state.target = another_object
+	await get_tree().process_frame
+	
+	assert_object(informer.target).append_failure_message(
+		"Step 3: TargetInformer should still show building preview, ignoring targeting changes"
+	).is_same(preview_object)
+	
+	# Step 4: Clear building preview - should return to targeting
+	building_state.preview = null
+	await get_tree().process_frame
+	
+	assert_object(informer.target).append_failure_message(
+		"Step 4: TargetInformer should return to showing targeted object after preview clears"
+	).is_same(another_object)
+
+#endregion

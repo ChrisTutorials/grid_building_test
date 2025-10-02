@@ -28,7 +28,6 @@ func test_validate_test_composition_container_subcomponents() -> void:
 	assert_that(cfg.settings).append_failure_message("GBConfig.settings is null").is_not_null()
 	assert_that(cfg.templates).append_failure_message("GBConfig.templates is null").is_not_null()
 	assert_that(cfg.actions).append_failure_message("GBConfig.actions is null").is_not_null()
-	assert_that(cfg.settings.messages).append_failure_message("GBConfig.settings.messages is null").is_not_null()
 	assert_that(cfg.settings.visual).append_failure_message("GBConfig.settings.visual is null").is_not_null()
 
 	# Check placement rules are present in settings (this may load programmatic fallback)

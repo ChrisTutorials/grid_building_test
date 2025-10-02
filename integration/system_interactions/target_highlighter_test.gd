@@ -37,6 +37,19 @@ func create_default_manipulatable_settings() -> ManipulatableSettings:
 	manipulatable_settings.demolishable = true
 	return manipulatable_settings
 
+func create_test_preview_object() -> Node2D:
+	"""Create a test preview object with building_node script attached."""
+	var preview_object: Node2D = auto_free(Node2D.new())
+	add_child(preview_object)
+	
+	# Add building_node script to make it a preview object
+	var building_node: Node = auto_free(Node.new())
+	var building_node_script: Script = load("res://addons/grid_building/components/building_node.gd")
+	building_node.set_script(building_node_script)
+	preview_object.add_child(building_node)
+	
+	return preview_object
+
 func assert_color_equal(actual: Color, expected: Color, context: String = "") -> void:
 	"""Assert that two colors are equal with optional context."""
 	assert_that(actual).append_failure_message("Color assertion failed: %s" % context).is_equal(expected)
@@ -112,7 +125,7 @@ func test__on_target_changed(
 	p_expected_valid: Color,
 	test_parameters := [
 		[GBEnums.Mode.OFF, settings.reset_color, settings.reset_color],
-		[GBEnums.Mode.BUILD, settings.build_preview_color, settings.build_preview_color],
+		[GBEnums.Mode.BUILD, settings.reset_color, settings.reset_color],  # Regular objects don't get highlighted in BUILD mode (only preview objects do)
 		[GBEnums.Mode.MOVE, settings.move_invalid_color, settings.move_valid_color],
 		[GBEnums.Mode.DEMOLISH, settings.demolish_invalid_color, settings.demolish_valid_color]
 	]
@@ -224,3 +237,31 @@ func test_should_highlight(
 	assert_bool(highlighter.should_highlight(p_data, p_new_target)).append_failure_message("Expected: %s" % p_description).is_equal(p_expected)
 	if p_new_target:
 		p_new_target.free()
+
+func test_build_mode_preview_objects_still_highlighted() -> void:
+	"""Test that preview objects in BUILD mode still get highlighted correctly."""
+	# Setup BUILD mode
+	highlighter.mode_state.current = GBEnums.Mode.BUILD
+	
+	# Create a preview object (has BuildingNode script attached)
+	var preview_object: Node2D = create_test_preview_object()
+	
+	# Create a regular object (no BuildingNode script)
+	var regular_object: Node2D = auto_free(Node2D.new())
+	add_child(regular_object)
+	
+	# Test that preview object gets highlighted in BUILD mode
+	highlighter.set_actionable_colors(preview_object)
+	assert_color_equal(
+		preview_object.modulate, 
+		settings.build_preview_color,
+		"Preview object should get build_preview_color in BUILD mode"
+	)
+	
+	# Test that regular object does NOT get highlighted in BUILD mode
+	highlighter.set_actionable_colors(regular_object)
+	assert_color_equal(
+		regular_object.modulate,
+		settings.reset_color,
+		"Regular object should get reset_color in BUILD mode"
+	)

@@ -8,22 +8,6 @@
 
 [sub_resource type="Resource" id="Resource_la2m2"]
 script = ExtResource("1_5jcve")
-off_mode = &"off_mode"
-info_mode = &"info_mode"
-build_mode = &"build_mode"
-moving_mode = &"moving_mode"
-demolish_mode = &"demolish_mode"
-confirm_build = &"confirm"
-confirm_manipulation = &"confirm"
-rotate_right = &"rotate_right"
-rotate_left = &"rotate_left"
-flip_horizontal = &"flip_horizontal"
-flip_vertical = &"flip_vertical"
-positioner_up = &"positioner_up"
-positioner_down = &"positioner_down"
-positioner_left = &"positioner_left"
-positioner_right = &"positioner_right"
-positioner_center = &"positioner_center"
 metadata/_custom_type_script = "uid://b8qexmaqap2qt"
 
 [sub_resource type="Resource" id="Resource_dt71d"]
