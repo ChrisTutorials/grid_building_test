@@ -82,6 +82,30 @@ static func create_basic_test_placeable(base_placeable: Placeable, display_name:
 	
 	return placeable
 
+## Creates a minimal test placeable without scene reference (for throttling/gating tests)
+## Use when you only need a placeable to enter build mode but don't need actual geometry
+## @param display_name: Display name for the placeable
+## @param include_rules: Whether to include standard placement rules
+static func create_minimal_test_placeable(display_name: String = "Minimal Test Placeable", include_rules: bool = false) -> Placeable:
+	var placeable: Placeable = Placeable.new()
+	placeable.display_name = display_name
+	
+	# Create a minimal scene with just a Node2D (BuildingSystem requires packed_scene for preview)
+	var scene := PackedScene.new()
+	var root_node := Node2D.new()
+	root_node.name = "MinimalTestNode"
+	var pack_result := scene.pack(root_node)
+	if pack_result != OK:
+		push_error("Failed to pack minimal test node: " + str(pack_result))
+	placeable.packed_scene = scene
+	
+	if include_rules:
+		placeable.placement_rules = PlacementRuleTestFactory.create_standard_placement_rules(false)
+	else:
+		placeable.placement_rules = []
+	
+	return placeable
+
 ## Creates a smithy-based test placeable using loaded smithy resource
 ## @param smithy_placeable: The loaded smithy placeable resource
 ## @param include_tile_rule: Whether to include ValidPlacementTileRule

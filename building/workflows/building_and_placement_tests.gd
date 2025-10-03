@@ -78,6 +78,7 @@ var logger: GBLogger
 var gb_owner: GBOwner
 var user_node: Node2D
 var env : BuildingTestEnvironment
+var runner: GdUnitSceneRunner
 var _container : GBCompositionContainer
 
 var _targeting_system : GridTargetingSystem
@@ -100,6 +101,10 @@ func before_test() -> void:
 	if env == null:
 		fail("Failed to create building test environment - check EnvironmentTestFactory.create_building_system_test_environment()")
 		return
+	
+	# Initialize scene runner for deterministic frame simulation
+	# Must be initialized after env is in scene tree
+	runner = scene_runner(env)
 	
 	# Initialize required variables from environment
 	_building_system = env.building_system
@@ -194,6 +199,13 @@ func _move_positioner_to_tile(tile: Vector2i) -> void:
 	var tile_world_pos: Vector2 = _map.to_global(tile_local_pos)
 	_positioner.global_position = tile_world_pos
 	# GridTargetingState is a Resource; no manual _process call needed.
+
+## DRY Helper: Wait for DragManager to process tile change in physics frame
+## DragManager detects tile changes in _physics_process(), so we need to wait for physics frames
+## Uses scene_runner for deterministic frame simulation instead of actual physics timing
+func _wait_for_drag_physics_update() -> void:
+	# Simulate 3 physics frames: 1 for position update, 1 for DragManager detection, 1 for try_build
+	runner.simulate_frames(3, 60)
 
 func _enter_build_mode_for_rect_4x2_and_start_drag() -> Dictionary:
 	var result: Dictionary = {}
@@ -1795,7 +1807,8 @@ func test_drag_build_should_not_stack_multiple_objects_in_the_same_spot_before_t
 	var second_tile0_x: int = clamp(start_tile0.x + 7, safe_min_x0, safe_max_x0)
 	var second_tile0: Vector2i = Vector2i(second_tile0_x, start_tile0.y)
 	# Note: _on_drag_targeting_new_tile() method removed in decoupling - DragManager handles internally
-	# _building_system._on_drag_targeting_new_tile(drag_data, start_tile0, second_tile0)
+	# DragManager detects tile changes in _physics_process(), so use scene runner for simulation
+	_wait_for_drag_physics_update()
 	assert_that(drag_data.last_attempted_tile).append_failure_message("last_attempted should update to target").is_equal(start_tile0)
 	_assert_build_attempted("after first tile switch")
 
@@ -1824,7 +1837,8 @@ func test_drag_build_should_not_stack_multiple_objects_in_the_same_spot_before_t
 	# Mimic runtime drag behavior: move the positioner (and preview) before notifying the building system.
 	_move_positioner_to_tile(second_tile)
 	# Note: _on_drag_targeting_new_tile() method removed in decoupling
-	# _building_system._on_drag_targeting_new_tile(drag_data, second_tile, start_tile0)
+	# DragManager detects tile changes in _physics_process(), so wait for physics frames
+	_wait_for_drag_physics_update()
 	_expect_placements(2, "second tile %s" % _doc_tile_coverage(second_tile))
 	# Extra guard for debug: if expected 2 placements not observed, provide context
 	if _placed_positions.size() != 2:
@@ -1859,7 +1873,8 @@ func test_drag_build_allows_placement_after_tile_switch() -> void:
 	# Act 1: first placement at SAFE_LEFT_TILE
 	var _old_tile: Vector2i = Vector2i(start_tile1.x, start_tile1.y - 8)
 	# Note: _on_drag_targeting_new_tile() method removed in decoupling
-	# _building_system._on_drag_targeting_new_tile(drag_data, start_tile1, old_tile)
+	# DragManager detects tile changes in _physics_process(), so wait for physics frames
+	_wait_for_drag_physics_update()
 	assert_that(drag_data.last_attempted_tile).append_failure_message("last_attempted not updated after first tile").is_equal(start_tile1)
 	_assert_build_attempted("after first tile switch")
 	_expect_placements(1, "TEST:drag_sequence first placement %s" % _doc_tile_coverage(start_tile1))
@@ -1878,7 +1893,8 @@ func test_drag_build_allows_placement_after_tile_switch() -> void:
 	var second_validation: ValidationResults = _indicator_manager.validate_placement()
 	assert_bool(second_validation.is_successful()).append_failure_message("Second placement validation must pass. Issues: %s" % [second_validation.get_issues()]).is_true()
 	# Note: _on_drag_targeting_new_tile() method removed in decoupling
-	# _building_system._on_drag_targeting_new_tile(drag_data, right_tile1, start_tile1)
+	# DragManager detects tile changes in _physics_process(), so wait for physics frames
+	_wait_for_drag_physics_update()
 	_expect_placements(2, "TEST:drag_sequence second placement %s" % _doc_tile_coverage(right_tile1))
 	if _placed_positions.size() != 2:
 		assert_object(_last_build_report).append_failure_message(
@@ -1895,7 +1911,8 @@ func test_drag_build_allows_placement_after_tile_switch() -> void:
 	var third_validation: ValidationResults = _indicator_manager.validate_placement()
 	assert_bool(third_validation.is_successful()).append_failure_message("Third placement validation must pass. Issues: %s" % [third_validation.get_issues()]).is_true()
 	# Note: _on_drag_targeting_new_tile() method removed in decoupling
-	# _building_system._on_drag_targeting_new_tile(drag_data, up_tile1, right_tile1)
+	# DragManager detects tile changes in _physics_process(), so wait for physics frames
+	_wait_for_drag_physics_update()
 	_expect_placements(3, "TEST:drag_sequence third placement %s" % _doc_tile_coverage(up_tile1))
 	if _placed_positions.size() != 3:
 		assert_object(_last_build_report).append_failure_message(
@@ -2038,7 +2055,8 @@ func test_drag_building_single_placement_per_tile_switch() -> void:
 	
 	# Trigger tile switch to new tile with sufficient separation
 	# Note: _on_drag_targeting_new_tile() method removed in decoupling
-	# _building_system._on_drag_targeting_new_tile(drag_data, second_tile, start_tile)
+	# DragManager detects tile changes in _physics_process(), so wait for physics frames
+	_wait_for_drag_physics_update()
 	
 	# Validate before attempting the second placement  
 	var second_validation: ValidationResults = _indicator_manager.validate_placement()
@@ -2078,7 +2096,8 @@ func test_drag_building_single_placement_per_tile_switch() -> void:
 	
 	# Trigger tile switch to third tile
 	# Note: _on_drag_targeting_new_tile() method removed in decoupling
-	# _building_system._on_drag_targeting_new_tile(drag_data, third_tile, second_tile)
+	# DragManager detects tile changes in _physics_process(), so wait for physics frames
+	_wait_for_drag_physics_update()
 	
 	# With larger 30x30 map, should now support 3 placements with proper spacing
 	dbg.append("Final placements count=%d" % [_placed_positions.size()])
@@ -2124,7 +2143,8 @@ func test_tile_tracking_prevents_duplicate_placements() -> void:
 	for i in range(5):
 		_move_positioner_to_tile(target_tile)
 		drag_data2.update(0.016)  # Manually update drag state
-		await get_tree().physics_frame  # Process physics
+		# Wait for DragManager _physics_process to detect and process
+		_wait_for_drag_physics_update()
 
 	# Should only have one placement despite multiple moves to same tile
 	# DragManager's last_attempted_tile deduplication should prevent duplicates
@@ -2164,8 +2184,8 @@ func test_drag_build_enforces_collision_rules_after_initial_placement() -> void:
 	blocking_body1.global_position = _map.to_global(_map.map_to_local(block_tile1))
 	_map.get_parent().add_child(blocking_body1)
 	
-	await get_tree().physics_frame  # Let physics register collisions
-	await get_tree().physics_frame  # Let physics register collisions
+	# Let physics register collisions using scene runner
+	runner.simulate_frames(2, 60)
 	
 	# Enter build mode with Smithy (4x4 tiles)
 	var report: PlacementReport = _building_system.enter_build_mode(GBTestConstants.PLACEABLE_SMITHY)
@@ -2192,11 +2212,11 @@ func test_drag_build_enforces_collision_rules_after_initial_placement() -> void:
 	var first_tile: Vector2i = Vector2i(0, 0)
 	_move_positioner_to_tile(first_tile)
 	drag_data.update(0.016)
-	await get_tree().process_frame
+	runner.simulate_frames(1, 60)
 	
 	# Note: _on_drag_targeting_new_tile() method removed in decoupling
-	# _building_system._on_drag_targeting_new_tile(drag_data, first_tile, Vector2i(-1, -1))
-	await get_tree().process_frame
+	# DragManager detects tile changes in _physics_process(), so wait for physics frames
+	_wait_for_drag_physics_update()
 	
 	# Verify first placement succeeded
 	var after_first: int = _placed_positions.size()
@@ -2208,12 +2228,12 @@ func test_drag_build_enforces_collision_rules_after_initial_placement() -> void:
 	var colliding_tile: Vector2i = block_tile1
 	_move_positioner_to_tile(colliding_tile)
 	drag_data.update(0.016)
-	await get_tree().physics_frame
+	runner.simulate_frames(1, 60)
 	
 	var before_collision: int = _placed_positions.size()
 	# Note: _on_drag_targeting_new_tile() method removed in decoupling
-	# _building_system._on_drag_targeting_new_tile(drag_data, colliding_tile, first_tile)
-	await get_tree().process_frame
+	# DragManager detects tile changes in _physics_process(), so wait for physics frames
+	_wait_for_drag_physics_update()
 	
 	var after_collision: int = _placed_positions.size()
 	

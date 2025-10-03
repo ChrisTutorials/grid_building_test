@@ -569,9 +569,9 @@ func test_placed_object_becomes_targetable_after_manipulation() -> void:
 	
 	# Step 2: End manipulation (simulate placing the object)
 	# In real system, this would be done by ManipulationSystem._finish()
-	# which clears manipulation state and sets is_manipulation_active = false
+	# which clears manipulation state and sets is_manual_targeting_active = false
 	manipulation_state.active_target_node = null
-	targeting_state.is_manipulation_active = false
+	targeting_state.is_manual_targeting_active = false
 	targeting_state.clear_collision_exclusions()
 	runner.simulate_frames(1)
 	
@@ -580,8 +580,8 @@ func test_placed_object_becomes_targetable_after_manipulation() -> void:
 		"Step 2: Manipulation state should be cleared after placement"
 	).is_null()
 	
-	assert_bool(targeting_state.is_manipulation_active).append_failure_message(
-		"Step 2: is_manipulation_active should be false after placement"
+	assert_bool(targeting_state.is_manual_targeting_active).append_failure_message(
+		"Step 2: is_manual_targeting_active should be false after placement"
 	).is_false()
 	
 	# Step 3: Hover over the placed object (simulate mouse moving over it)
@@ -593,7 +593,7 @@ func test_placed_object_becomes_targetable_after_manipulation() -> void:
 	assert_object(targeting_state.target).append_failure_message(
 		"Step 3 REGRESSION: After manipulation ends, placed object should be targetable. " +
 		"manipulation_active=%s, manipulation_target=%s, targeting_target=%s" %
-		[str(targeting_state.is_manipulation_active),
+		[str(targeting_state.is_manual_targeting_active),
 		 str(manipulation_state.active_target_node),
 		 str(targeting_state.target)]
 	).is_same(manipulated_object)
@@ -637,7 +637,7 @@ func test_manipulation_state_doesnt_block_targeting_after_clear() -> void:
 	
 	# Step 2: End manipulation, clear states
 	manipulation_state.active_target_node = null
-	targeting_state.is_manipulation_active = false
+	targeting_state.is_manual_targeting_active = false
 	runner.simulate_frames(1)
 	
 	# Step 3: Hover over ObjectB (different object)
@@ -649,7 +649,7 @@ func test_manipulation_state_doesnt_block_targeting_after_clear() -> void:
 		"Step 3 REGRESSION: After manipulation cleared, TargetInformer should show new target. " +
 		"Expected=%s, Got=%s, manipulation_active=%s, manipulation_target=%s" %
 		[object_b.name, _node_name(informer.target),
-		 str(targeting_state.is_manipulation_active),
+		 str(targeting_state.is_manual_targeting_active),
 		 str(manipulation_state.active_target_node)]
 	).is_same(object_b)
 
@@ -690,7 +690,7 @@ func test_targeting_blocked_by_lingering_manipulation_target() -> void:
 	
 	# Step 1: Simulate manipulation of ObjectA
 	manipulation_state.active_target_node = manipulatable_a
-	targeting_state.is_manipulation_active = true
+	targeting_state.is_manual_targeting_active = true
 	await get_tree().process_frame
 	
 	# Verify: TargetInformer shows manipulated object
@@ -700,7 +700,7 @@ func test_targeting_blocked_by_lingering_manipulation_target() -> void:
 	
 	# Step 2: Manipulation ends and active_target_node IS cleared (simulates the fix)
 	# This simulates the ManipulationSystem._finish() fix where active_target_node is properly cleared
-	targeting_state.is_manipulation_active = false  # This gets cleared correctly
+	targeting_state.is_manual_targeting_active = false  # This gets cleared correctly
 	manipulation_state.active_target_node = null  # FIX: Clear the target properly
 	await get_tree().process_frame
 	
@@ -712,7 +712,7 @@ func test_targeting_blocked_by_lingering_manipulation_target() -> void:
 	assert_object(informer.target).append_failure_message(
 		"VERIFIED FIX: After manipulation ends with proper cleanup, new targeting should work. " +
 		"Expected ObjectB (" + str(object_b.name) + ") but got (" + _node_name(informer.target) + "). " +
-		"manipulation_active=" + str(targeting_state.is_manipulation_active) + 
+		"manipulation_active=" + str(targeting_state.is_manual_targeting_active) + 
 		", manipulation_target=" + _node_name(manipulation_state.active_target_node)
 	).is_same(object_b)
 

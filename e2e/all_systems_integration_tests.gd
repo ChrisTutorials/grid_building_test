@@ -303,20 +303,9 @@ func _create_test_placeable_with_rules() -> Placeable:
 	# Use the 4x2 rectangle test placeable instead of smithy for consistent testing
 	var placeable: Placeable = test_rect_4x2_placeable.duplicate()
 	
-	# Create properly configured collision rule
-	var collision_rule: CollisionsCheckRule = CollisionsCheckRule.new()
-	collision_rule.apply_to_objects_mask = COLLISION_LAYER_1
-	collision_rule.collision_mask = COLLISION_LAYER_1
-	collision_rule.pass_on_collision = false  # Standard collision behavior - prevent placement when colliding
-	# Initialize messages to prevent setup issues
-	if collision_rule.messages == null:
-		collision_rule.messages = CollisionRuleSettings.new()
+	# Use PlaceableTestFactory for rule creation
+	placeable.placement_rules = PlacementRuleTestFactory.create_standard_placement_rules(true)
 	
-	# Create tile rule with proper configuration
-	var tile_rule: ValidPlacementTileRule = ValidPlacementTileRule.new()
-	tile_rule.expected_tile_custom_data = {"buildable": true}
-	
-	placeable.placement_rules = [collision_rule, tile_rule]
 	return placeable
 
 func _enter_build_mode_successfully(building_system: Object, placeable: Placeable, context: String = DIAGNOSTIC_CONTEXTS.build_mode_entry) -> PlacementReport:
