@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3 uid="uid://cdrtd538vrmun"]
+[gd_scene load_steps=11 format=3 uid="uid://cdrtd538vrmun"]
 
 [ext_resource type="Script" uid="uid://dnl6gv8yc3how" path="res://addons/grid_building/systems/grid_targeting/grid_targeting_system.gd" id="1_1gfv7"]
 [ext_resource type="Script" uid="uid://b2lgu2pxu4x1d" path="res://test/grid_building_test/scenes/env/collision_test_environment.gd" id="1_bi4n4"]
@@ -9,10 +9,12 @@
 [ext_resource type="PackedScene" uid="uid://dsaumst3yyp21" path="res://test/grid_building_test/scenes/tile_map/TEST_buildable_31x31_tile_map.tscn" id="6_wdpwq"]
 [ext_resource type="Script" uid="uid://ow5wabt5g4dc" path="res://addons/grid_building/placement/manager/indicator_manager.gd" id="8_indicator"]
 [ext_resource type="PackedScene" uid="uid://teejt4ev3xir" path="res://test/grid_building_test/scenes/positioning/grid_positioner_stack_2d.tscn" id="9_i48kh"]
+[ext_resource type="Script" uid="uid://t7usxjx3kyoo" path="res://addons/grid_building/ui/target_informer/target_informer.gd" id="10_ckctr"]
 
-[node name="CollisionTestEnvironment" type="Node" node_paths=PackedStringArray("indicator_manager", "injector", "grid_targeting_system", "positioner", "targeter", "world", "level", "level_context", "tile_map_layer", "objects_parent", "placer")]
+[node name="CollisionTestEnvironment" type="Node" node_paths=PackedStringArray("indicator_manager", "target_informer", "injector", "grid_targeting_system", "positioner", "targeter", "world", "level", "level_context", "tile_map_layer", "objects_parent", "placer")]
 script = ExtResource("1_bi4n4")
 indicator_manager = NodePath("World/Level/IndicatorManager")
+target_informer = NodePath("TargetInformer")
 injector = NodePath("GBInjectorSystem")
 grid_targeting_system = NodePath("GridTargetingSystem")
 positioner = NodePath("GridPositioner2D")
@@ -63,5 +65,39 @@ metadata/_custom_type_script = "uid://ow5wabt5g4dc"
 [node name="Camera2D" type="Camera2D" parent="."]
 
 [node name="GridPositioner2D" parent="." instance=ExtResource("9_i48kh")]
+
+[node name="TargetInformer" type="Control" parent="." node_paths=PackedStringArray("info_parent")]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+script = ExtResource("10_ckctr")
+info_parent = NodePath("PanelContainer/MarginContainer/VBoxContainer/InfoContainer")
+metadata/_custom_type_script = "uid://t7usxjx3kyoo"
+
+[node name="PanelContainer" type="PanelContainer" parent="TargetInformer"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="TargetInformer/PanelContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_top = 5
+theme_override_constants/margin_right = 5
+theme_override_constants/margin_bottom = 5
+
+[node name="VBoxContainer" type="VBoxContainer" parent="TargetInformer/PanelContainer/MarginContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="TargetInformer/PanelContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "--- Object Info ---"
+
+[node name="InfoContainer" type="VBoxContainer" parent="TargetInformer/PanelContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
 
 [editable path="GridPositioner2D"]

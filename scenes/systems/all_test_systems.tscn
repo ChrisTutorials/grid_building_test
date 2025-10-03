@@ -1,7 +1,8 @@
-[gd_scene load_steps=5 format=3 uid="uid://8o4p831pms4u"]
+[gd_scene load_steps=6 format=3 uid="uid://8o4p831pms4u"]
 
 [ext_resource type="Script" uid="uid://dil41nh8d4c3k" path="res://addons/grid_building/systems/injection/gb_injector_system.gd" id="1_u6iuc"]
 [ext_resource type="Script" uid="uid://4mfr58yhmove" path="res://addons/grid_building/systems/building/building_system.gd" id="2_mhays"]
+[ext_resource type="Script" uid="uid://cuo3o387gcfuu" path="res://addons/grid_building/systems/building/components/drag_manager.gd" id="3_mhays"]
 [ext_resource type="Script" uid="uid://dnl6gv8yc3how" path="res://addons/grid_building/systems/grid_targeting/grid_targeting_system.gd" id="3_y6pqd"]
 [ext_resource type="Script" uid="uid://c2tafmcbbiujk" path="res://addons/grid_building/systems/manipulation/manipulation_system.gd" id="4_antsl"]
 
@@ -14,6 +15,10 @@ metadata/_custom_type_script = "uid://dil41nh8d4c3k"
 [node name="BuildingSystem" type="Node" parent="."]
 script = ExtResource("2_mhays")
 metadata/_custom_type_script = "uid://4mfr58yhmove"
+
+[node name="DragManager" type="Node" parent="BuildingSystem"]
+script = ExtResource("3_mhays")
+metadata/_custom_type_script = "uid://cuo3o387gcfuu"
 
 [node name="GridTargetingSystem" type="Node" parent="."]
 script = ExtResource("3_y6pqd")

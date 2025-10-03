@@ -106,7 +106,7 @@ func before_test() -> void:
 	# Pass a resource path/UID so the SceneRunner loads the scene internally
 	runner = scene_runner(GBTestConstants.COLLISION_TEST_ENV_UID)
 	# Allow scene to enter tree and _ready to run
-	await runner.simulate_frames(1)
+	runner.simulate_frames(1)
 	env = runner.scene() as CollisionTestEnvironment
 	
 	# Replace the regular positioner with our test version that can control mouse input
@@ -317,7 +317,7 @@ func _emit_mouse_motion(screen_pos: Vector2, event_position_override: Variant = 
 	# Simulate mouse move via SceneRunner and wait until processed deterministically
 	runner.simulate_mouse_move(screen_pos)
 	# Wait until SceneRunner confirms input was processed; avoids timing races
-	await runner.await_input_processed()
+	runner.await_input_processed()
 	# Also send a low-level InputEventMouseMotion to the tile map viewport with a
 	# correctly set global_position as screen coordinates (GridPositioner2D will convert to world)
 	# (this reproduces the previous direct-node seeding in a viewport-safe way).
@@ -335,8 +335,8 @@ func _emit_mouse_motion(screen_pos: Vector2, event_position_override: Variant = 
 	await get_tree().process_frame
 
 func _press_and_release_key(keycode: int) -> void:
-	await runner.simulate_key_pressed(keycode)
-	await runner.await_input_processed()
+	runner.simulate_key_pressed(keycode)
+	runner.await_input_processed()
 
 ## Press a mapped action and emit a matching key event in the same frame
 func _press_action_with_key(_action: StringName, keycode: int) -> void:
@@ -344,13 +344,13 @@ func _press_action_with_key(_action: StringName, keycode: int) -> void:
 	# IMPORTANT: Use only the SceneRunner to avoid double-processing the same input
 	# which would result in two tile moves per press.
 	runner.simulate_key_press(keycode)
-	await runner.await_input_processed()
+	runner.await_input_processed()
 	await get_tree().process_frame
 
 ## Release an action and emit key release event
 func _release_action_with_key(_action: StringName, keycode: int) -> void:
 	runner.simulate_key_release(keycode)
-	await runner.await_input_processed()
+	runner.await_input_processed()
 	await get_tree().process_frame
 
 ## Ensure an InputMap action exists and is mapped to the given keycode

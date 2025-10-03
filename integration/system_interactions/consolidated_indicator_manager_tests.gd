@@ -30,6 +30,15 @@ func _setup_targeting_state_for_tests() -> void:
 		add_child(default_target)
 		env.targeting_state.target = default_target
 
+## Ensures targeting state has a valid target (call right before try_setup)
+func _ensure_targeting_state_has_target() -> void:
+	if env.targeting_state.target == null:
+		var target: Node2D = auto_free(Node2D.new())
+		target.position = Vector2(64, 64)
+		target.name = "TestTarget"
+		add_child(target)
+		env.targeting_state.target = target
+
 # ===== COLLISION MAPPER SHAPE POSITIONING TESTS =====
 
 func test_collision_mapper_shape_positioning() -> void:
@@ -187,6 +196,9 @@ func test_indicator_manager_runtime_issues_guard() -> void:
 	# Test that indicator manager handles runtime issues gracefully
 	var _invalid_params: Dictionary = env.rule_validation_parameters
 	
+	# Ensure targeting state has a valid target
+	_ensure_targeting_state_has_target()
+	
 	# Test with an empty/invalid setup - don't modify the original params
 	# Create a minimal setup that should trigger error handling
 	var result: PlacementReport = indicator_manager.try_setup([], env.targeting_state) # Empty rules array
@@ -210,6 +222,9 @@ func test_indicator_manager_tree_integration() -> void:
 	# Test basic functionality
 	var test_rule: CollisionsCheckRule = CollisionsCheckRule.new()
 	var _valid_params: Dictionary = env.rule_validation_parameters
+	
+	# Ensure targeting state has a valid target
+	_ensure_targeting_state_has_target()
 	
 	var setup_result: PlacementReport = indicator_manager.try_setup([test_rule], env.targeting_state)
 	assert_object(setup_result).is_not_null()
@@ -254,6 +269,9 @@ func test_polygon_indicator_runtime_parity() -> void:
 	var params: Dictionary = env.rule_validation_parameters
 	params.target = polygon_object
 	params.target.global_position = Vector2(0, 0)
+	
+	# Ensure targeting state has a valid target
+	_ensure_targeting_state_has_target()
 	
 	var indicator_result: PlacementReport = indicator_manager.try_setup([test_rule], env.targeting_state)
 	assert_bool(indicator_result.is_successful()).append_failure_message(
@@ -391,6 +409,9 @@ func test_component_integration_workflow() -> void:
 	params.target = complex_object
 	params.target.global_position = Vector2(0, 0)
 	
+	# Ensure targeting state has a valid target
+	_ensure_targeting_state_has_target()
+	
 	var _indicator_result: PlacementReport = indicator_manager.try_setup(test_rules, env.targeting_state)
 
 func test_placement_component_error_handling() -> void:
@@ -409,6 +430,9 @@ func test_placement_component_error_handling() -> void:
 	# Test indicator manager with invalid rule
 	var invalid_rule: Variant = null
 	var _params: Dictionary = env.rule_validation_parameters
+	
+	# Ensure targeting state has a valid target
+	_ensure_targeting_state_has_target()
 	
 	var invalid_result: PlacementReport = indicator_manager.try_setup([invalid_rule], env.targeting_state)
 	assert_object(invalid_result).append_failure_message(

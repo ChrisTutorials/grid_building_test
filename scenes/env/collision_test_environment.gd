@@ -4,6 +4,9 @@ extends GBTestEnvironment
 
 @export var indicator_manager : IndicatorManager
 
+## Diagnostics reporting for currently targeted object
+@export var target_informer : TargetInformer
+
 var collision_mapper : CollisionMapper
 var logger : GBLogger
 

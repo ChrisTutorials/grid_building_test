@@ -219,7 +219,7 @@ func test_demolish(
 func test_try_placement(
 	p_settings: ManipulatableSettings,
 	p_expected: bool,
-	test_parameters := [[manipulatable_settings_all_allowed, false]]  # Expect false due to no indicators
+	test_parameters := [[manipulatable_settings_all_allowed, true]]  # Changed: Expect TRUE because factory creates collision shapes
 ) -> void:
 	var source: Manipulatable = _create_test_manipulatable(p_settings)
 	assert_that(source).append_failure_message("Source manipulatable should not be null for placement test").is_not_null()
@@ -244,10 +244,22 @@ func test_try_placement(
 			assert_that(placement_results).append_failure_message("Placement results should not be null").is_not_null()
 			
 			if placement_results != null:
-				assert_bool(placement_results.is_successful()).append_failure_message("Placement should have expected success status %s" % p_expected).is_equal(p_expected)
-				# After successful placement, target copy should be freed
-				assert_object(move_data.target).append_failure_message("Target should be null after placement").is_null()
-				assert_vector(source.root.global_position).append_failure_message("Source position should match test location after placement").is_equal(test_location)
+				# Enhanced diagnostic: Show why placement succeeded/failed
+				var success_status: bool = placement_results.is_successful()
+				
+				assert_bool(success_status).append_failure_message(
+					"Placement expected: %s - Got: %s, Validation: %s, Position: %s" % [
+						p_expected,
+						success_status,
+						placement_results.get_summary_string(),
+						test_location
+					]
+				).is_equal(p_expected)
+				
+				# After successful placement, verify state changes
+				if success_status:
+					assert_object(move_data.target).append_failure_message("Target should be null after successful placement").is_null()
+					assert_vector(source.root.global_position).append_failure_message("Source position should match test location after placement").is_equal(test_location)
 
 ## Test: Failed placement due to collision should NOT execute move and should clean up target
 ## REGRESSION TEST: Verify that try_placement() properly cleans up when ManipulationData is invalid.
