@@ -55,10 +55,10 @@ func before_test() -> void:
 	# Note: DragManager no longer requires explicit connection to BuildingSystem
 	# It uses one-way dependency via try_build() calls
 	
-	# Enable drag building (note: no longer needed for basic drag, but kept for compatibility)
-	_container.get_settings().building.drag_multi_build = true
+	# DragManager is enabled by being in tree and processing
+	# No drag_multi_build setting needed anymore
 	
-	# Connect to build signals to track attempts
+	runner.simulate_frames(2)	# Connect to build signals to track attempts
 	_container.get_states().building.success.connect(_on_build_success)
 	_container.get_states().building.failed.connect(_on_build_failed)
 	
@@ -134,11 +134,11 @@ func _get_built_tiles(builds: Array[Dictionary]) -> Array[Vector2i]:
 func _format_system_state() -> String:
 	var mode_str: String = GBEnums.Mode.keys()[_container.get_states().mode.current] if _container and _container.get_states() else "N/A"
 	var preview_exists: bool = _building_system._states.building.preview != null if _building_system and _building_system._states else false
-	var drag_multi_str: String = str(_container.get_settings().building.drag_multi_build) if _container and _container.get_settings() else "N/A"
-	return "[System: mode=%s, preview=%s, drag_multi_build=%s]" % [
+	var drag_enabled: bool = _drag_manager.is_inside_tree() and not _drag_manager.is_queued_for_deletion() if _drag_manager else false
+	return "[System: mode=%s, preview=%s, drag_enabled=%s]" % [
 		mode_str,
 		preview_exists,
-		drag_multi_str
+		drag_enabled
 	]
 
 ## Format DragManager state for diagnostic messages (DRY helper)

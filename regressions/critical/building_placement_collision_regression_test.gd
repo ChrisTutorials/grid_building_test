@@ -16,6 +16,7 @@
 ## remains functional.
 extends GdUnitTestSuite
 
+var runner: GdUnitSceneRunner
 var env: AllSystemsTestEnvironment
 var building_system: BuildingSystem
 var targeting_state: GridTargetingState
@@ -26,16 +27,13 @@ var container: GBCompositionContainer
 var logger: GBLogger
 
 func before_test() -> void:
-	# Use the premade environment scene with validation
-	var all_systems_scene: PackedScene = GBTestConstants.get_environment_scene(GBTestConstants.EnvironmentType.ALL_SYSTEMS)
-	assert_that(all_systems_scene).is_not_null() \
-		.append_failure_message("All Systems environment scene must be available")
-
-	env = all_systems_scene.instantiate() as AllSystemsTestEnvironment
+	# Use scene_runner for reliable frame simulation
+	runner = scene_runner(GBTestConstants.ALL_SYSTEMS_ENV_UID)
+	runner.simulate_frames(2)  # Initial setup frames
+	
+	env = runner.scene() as AllSystemsTestEnvironment
 	assert_that(env).is_not_null() \
 		.append_failure_message("All Systems environment must instantiate successfully")
-
-	add_child(env)
 
 	# Validate environment setup
 	var issues: Array[String] = env.get_issues()
@@ -51,13 +49,12 @@ func before_test() -> void:
 	
 	# Create test collision target
 	user_node = auto_free(Node2D.new())
-	add_child(user_node)
-	
-	await get_tree().process_frame
+	env.add_child(user_node)  # Add to env, not test suite
 
 func after_test() -> void:
 	if building_system and building_system.is_in_build_mode():
 		building_system.exit_build_mode()
+	runner = null
 
 func test_smithy_placement_in_clear_area_should_not_report_collision() -> void:
 	# REGRESSION: Building placement was reporting "Colliding on 1 tile(s)" in clear areas
@@ -69,7 +66,7 @@ func test_smithy_placement_in_clear_area_should_not_report_collision() -> void:
 	# Note: Not adding collision shapes to target - preview will create its own collision objects
 	# This avoids the issue where old target collision bodies interfere with new preview collision detection
 	
-	await get_tree().process_frame
+	runner.simulate_frames(2)  # Let position settle and physics update
 	
 	# Act: Enter build mode with smithy (standard test placeable)
 	var enter_report: PlacementReport = building_system.enter_build_mode(GBTestConstants.PLACEABLE_SMITHY)
@@ -111,7 +108,7 @@ func test_collision_rule_configuration_validity() -> void:
 	_position_target_at_tile(clear_tile)
 	# Note: Not adding collision shapes to avoid interference
 	
-	await get_tree().process_frame
+	runner.simulate_frames(2)  # Let position settle and physics update
 	
 	# Validate that the container is available
 	assert_object(container).append_failure_message(

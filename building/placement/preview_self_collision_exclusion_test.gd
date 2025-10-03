@@ -48,6 +48,9 @@ func before_test() -> void:
 	var tile_world: Vector2 = env.tile_map_layer.map_to_local(safe_tile)
 	_positioner.global_position = tile_world
 	
+	# Clear collision_exclusions to prevent freed object issues from previous tests
+	_gts.collision_exclusions.clear()
+	
 	runner.simulate_frames(1)
 
 func after_test() -> void:

@@ -337,14 +337,13 @@ func test_targeting_after_external_target_clear_while_hovering() -> void:
 	# THE BUG: This assertion should pass but currently fails
 	# because update_target() sees old_target (null) != promoted_target (persistent_obj)
 	# Wait... that should actually work! Let me check the actual condition...
-	assert_object(targeting_state.target).append_failure_message(
-		"REGRESSION: After external clear, ShapeCast should re-detect object " +
-		"it's still hovering over. is_colliding=%s, collider=%s, old_target_was_null=true, " +
-		"current_target=%s" %
-		[str(sc.is_colliding()), 
-		 str(sc.get_collider(0)) if sc.is_colliding() else "none",
-		 str(targeting_state.target)]
-	).is_not_null()
+	var collider_str: String = "none"
+	if sc.is_colliding():
+		collider_str = str(sc.get_collider(0))
+	
+	var failure_msg: String = "REGRESSION: After external clear, ShapeCast should re-detect object it's still hovering over. is_colliding=%s, collider=%s, old_target_was_null=true, current_target=%s" % [str(sc.is_colliding()), collider_str, str(targeting_state.target)]
+	
+	assert_object(targeting_state.target).append_failure_message(failure_msg).is_not_null()
 	
 	assert_object(targeting_state.target).append_failure_message(
 		"Re-detected target should be the persistent object"

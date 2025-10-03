@@ -686,12 +686,12 @@ func test_targeting_blocked_by_lingering_manipulation_target() -> void:
 	env.level.add_child(object_b)
 	
 	# Wait for setup
-	await get_tree().process_frame
+	runner.simulate_frames(1)
 	
 	# Step 1: Simulate manipulation of ObjectA
 	manipulation_state.active_target_node = manipulatable_a
 	targeting_state.is_manual_targeting_active = true
-	await get_tree().process_frame
+	runner.simulate_frames(1)
 	
 	# Verify: TargetInformer shows manipulated object
 	assert_object(informer.target).append_failure_message(
@@ -702,11 +702,11 @@ func test_targeting_blocked_by_lingering_manipulation_target() -> void:
 	# This simulates the ManipulationSystem._finish() fix where active_target_node is properly cleared
 	targeting_state.is_manual_targeting_active = false  # This gets cleared correctly
 	manipulation_state.active_target_node = null  # FIX: Clear the target properly
-	await get_tree().process_frame
+	runner.simulate_frames(1)
 	
 	# Step 3: Try to target ObjectB (mouse moves over it)
 	targeting_state.target = object_b
-	await get_tree().process_frame
+	runner.simulate_frames(1)
 	
 	# EXPECTED: TargetInformer should show ObjectB because manipulation state is clear
 	assert_object(informer.target).append_failure_message(

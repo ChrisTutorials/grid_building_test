@@ -5,6 +5,7 @@ extends GBTestEnvironment
 @export var gb_owner : GBOwner
 @export var manipulation_parent : ManipulationParent
 @export var indicator_manager : IndicatorManager
+@export var drag_manager : DragManager
 
 func get_issues() -> Array[String]:
 	var issues : Array[String] = []
@@ -15,6 +16,9 @@ func get_issues() -> Array[String]:
 	
 	if building_system == null:
 		issues.append("Missing BuildingSystem")
+		
+	if drag_manager == null:
+		issues.append("No drag manager. Drag multi build functionality will not work.")
 
 	# Validate setup
 	issues.append_array(building_system.get_runtime_issues())

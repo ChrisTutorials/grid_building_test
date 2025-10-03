@@ -1,6 +1,16 @@
 ## DragManager request throttling and gating tests (isolated)
 ## Tests DragManager's core responsibility: ensuring only ONE build request per tile change per physics frame
 ## Does NOT depend on BuildingSystem - tests the gating logic in isolation
+##
+## TESTING PATTERN: Uses GdUnitSceneRunner directly with BuildingTestEnvironment scene
+## This pattern is PREFERRED over test factories because:
+## - runner.simulate_frames() only works with nodes in the scene tree
+## - Test environments already have all components wired and ready (like drag_manager)
+## - Factory-created nodes are NOT in scene tree, so physics processing doesn't work
+## - Scene runner provides deterministic frame simulation for timing-dependent tests
+##
+## DEPRECATION NOTE: Consider environment test factories deprecated in favor of scene_runner()
+## approach for tests that need frame simulation or physics processing.
 extends GdUnitTestSuite
 
 var runner: GdUnitSceneRunner
@@ -16,23 +26,53 @@ func before_test() -> void:
 	env = runner.scene() as BuildingTestEnvironment
 	_container = env.get_container()
 	
+	# Get drag_manager from environment
+	_drag_manager = env.drag_manager
+	print("[TEST SETUP] DragManager physics_processing enabled: %s, in_tree: %s" % [
+		_drag_manager.is_physics_processing(),
+		_drag_manager.is_inside_tree()
+	])
+	
 	# Disable camera checks for headless testing
 	if _container.config.settings.runtime_checks:
 		_container.config.settings.runtime_checks.camera_2d = false
 	
-	# Create and setup DragManager
-	_drag_manager = auto_free(DragManager.new())
-	env.add_child(_drag_manager)
-	_drag_manager.resolve_gb_dependencies(_container)
-	_drag_manager.set_test_mode(true)  # Disable input processing
+	# Enable trace logging for DragManager debugging
+	if _container.config.settings.debug:
+		_container.config.settings.debug.log_level = GBEnums.LogLevel.TRACE
 	
-	# Get references
+	# Set test mode to disable input processing
+	_drag_manager.set_test_mode(true)
+	
+	# Get references FIRST
 	_targeting_state = _container.get_states().targeting
 	_building_system = _container.get_systems_context().get_building_system()
 	
-	# Enter build mode with a simple test placeable
-	var test_placeable: Placeable = PlaceableTestFactory.create_minimal_test_placeable("DragThrottleTest")
-	_building_system.enter_build_mode(test_placeable)
+	# Disable mouse movement and processing on GridPositioner2D for manual control
+	_targeting_state.positioner.set_input_processing_enabled(false)  # Disable input
+	_targeting_state.positioner.set_process(false)  # Disable _process() loop
+	print("[TEST SETUP] GridPositioner2D input_processing=%s, process=%s, pos=%s" % [
+		_targeting_state.positioner.is_input_processing_enabled(),
+		_targeting_state.positioner.is_processing(),
+		_targeting_state.positioner.global_position
+	])
+	
+	# Enter build mode with smithy placeable (has collision shapes for proper indicator generation)
+	var test_placeable: Placeable = GBTestConstants.PLACEABLE_SMITHY
+	var enter_result: PlacementReport = _building_system.enter_build_mode(test_placeable)
+	assert_bool(enter_result.is_successful()).is_true().append_failure_message(
+		"Failed to enter build mode: %s" % str(enter_result.get_issues())
+	)
+	
+	# Verify BUILD mode is active and preview exists
+	var mode_state: ModeState = _building_system._states.mode
+	var building_state: BuildingState = _building_system._states.building
+	assert_that(mode_state.current).is_equal(GBEnums.Mode.BUILD).append_failure_message(
+		"Should be in BUILD mode, but mode is: %s" % str(mode_state.current)
+	)
+	assert_object(building_state.preview).is_not_null().append_failure_message(
+		"BuildingSystem should have active preview after entering build mode"
+	)
 	
 	runner.simulate_frames(1)
 
@@ -72,9 +112,9 @@ func test_single_request_on_tile_change() -> void:
 	var drag_data: DragPathData = _drag_manager.start_drag()
 	var initial_tile: Vector2i = drag_data.target_tile
 	
-	# Move to new tile by changing the positioner's position
-	_targeting_state.positioner.global_position = Vector2(32, 32)  # Different tile
-	_drag_manager.update_drag_state(0.016)
+	# Directly update drag_data target_tile (for throttling test, we don't need actual collision detection)
+	drag_data.target_tile = Vector2i(1, 0)  # Different tile
+	runner.simulate_frames(1)  # Let physics frame process the change
 	
 	# Should have made exactly ONE request
 	assert_int(drag_data.build_requests).append_failure_message(
@@ -117,14 +157,24 @@ func test_physics_frame_gate_blocks_multiple_requests_same_frame() -> void:
 func test_multiple_tile_changes_across_frames() -> void:
 	var drag_data: DragPathData = _drag_manager.start_drag()
 	
-	# Move across 3 different tiles over 3 physics frames
+	# Move across 3 different tiles, with physics frame advancing between each
 	for i in range(3):
+		# Move to new tile position
 		_targeting_state.positioner.global_position += Vector2(16, 0)  # Move 1 tile right
-		runner.simulate_frames(1)
+		runner.simulate_frames(2)  # Simulate 2 frames to ensure physics completes
 	
-	# Should have exactly 3 requests (one per tile change)
+	# Build diagnostic info
+	var manager_drag_data_requests: int = _drag_manager.drag_data.build_requests if _drag_manager.drag_data else -1
+	var local_drag_data_id: int = drag_data.get_instance_id()
+	var manager_drag_data_id: int = _drag_manager.drag_data.get_instance_id() if _drag_manager.drag_data else -1
+	var same_instance: bool = local_drag_data_id == manager_drag_data_id
+	var diagnostic: String = "Test drag_data.build_requests=%d, Manager.drag_data.build_requests=%d, Same instance=%s (test_id=%d, manager_id=%d)" % [
+		drag_data.build_requests, manager_drag_data_requests, same_instance, local_drag_data_id, manager_drag_data_id
+	]
+	
+	# Should have exactly 3 requests (one per tile change, each in different frame)
 	assert_int(drag_data.build_requests).append_failure_message(
-		"Should have 3 build requests for 3 tile changes across 3 frames"
+		"Should have 3 build requests for 3 tile changes across 3 frames. %s" % diagnostic
 	).is_equal(3)
 
 func test_last_attempted_tile_prevents_duplicate_requests() -> void:
@@ -134,13 +184,13 @@ func test_last_attempted_tile_prevents_duplicate_requests() -> void:
 	
 	# Move to new tile
 	_targeting_state.positioner.global_position += Vector2(32, 0)
-	runner.simulate_frames(1)
+	runner.simulate_frames(2)  # Simulate 2 frames to ensure physics completes
 	
 	var requests_after_move: int = drag_data.build_requests
 	assert_int(requests_after_move).is_greater(0)
 	
 	# Now advance a frame WITHOUT moving (stays on same tile)
-	runner.simulate_frames(1)
+	runner.simulate_frames(1)  # Triggers _physics_process → update_drag_state
 	
 	# Should NOT make another request for the same tile
 	assert_int(drag_data.build_requests).append_failure_message(
@@ -153,7 +203,7 @@ func test_drag_session_isolation() -> void:
 	# First drag session
 	var drag1: DragPathData = _drag_manager.start_drag()
 	_targeting_state.positioner.global_position += Vector2(32, 0)
-	runner.simulate_frames(1)
+	runner.simulate_frames(2)  # Simulate 2 frames to ensure physics completes
 	var drag1_requests: int = drag1.build_requests
 	assert_int(drag1_requests).is_greater(0)
 	
@@ -170,8 +220,9 @@ func test_drag_session_isolation() -> void:
 	).is_equal(0)
 	
 	# Make a tile change in second session
+	runner.simulate_frames(1)  # Advance frame first
 	_targeting_state.positioner.global_position += Vector2(32, 0)
-	runner.simulate_frames(1)
+	_drag_manager.update_drag_state(0.016)
 	
 	# Second session should track its own requests independently
 	assert_int(drag2.build_requests).append_failure_message(
@@ -191,7 +242,7 @@ func test_no_requests_when_not_in_build_mode() -> void:
 	
 	# Move to new tile
 	_targeting_state.positioner.global_position += Vector2(32, 0)
-	runner.simulate_frames(1)
+	runner.simulate_frames(2)  # Simulate 2 frames to ensure physics completes
 	
 	# Should NOT make request when not in BUILD mode
 	assert_int(drag_data.build_requests).append_failure_message(
@@ -207,7 +258,7 @@ func test_no_requests_when_no_preview() -> void:
 	
 	# Move to new tile
 	_targeting_state.positioner.global_position += Vector2(32, 0)
-	runner.simulate_frames(1)
+	runner.simulate_frames(2)  # Simulate 2 frames to ensure physics completes
 	
 	# Should NOT make request when no preview exists
 	assert_int(drag_data.build_requests).append_failure_message(
@@ -229,23 +280,37 @@ func test_build_requests_counts_only_successful_gate_passes() -> void:
 	var drag_data: DragPathData = _drag_manager.start_drag()
 	assert_int(drag_data.build_requests).is_equal(0)
 	
-	# Condition: All requirements met
-	_targeting_state.positioner.global_position += Vector2(16, 0)
-	runner.simulate_frames(1)
-	assert_int(drag_data.build_requests).append_failure_message("Should count when all conditions met").is_equal(1)
+	# Condition: All requirements met - change tile using next_tile
+	var start_tile: Vector2i = drag_data.target_tile
+	drag_data.next_tile = Vector2i(1, 0)  # Move to tile (1, 0)
+	print("[TEST] Tile change: %s -> %s" % [start_tile, drag_data.next_tile])
+	
+	# Manually call update_drag_state to apply tile change
+	_drag_manager.update_drag_state(0.016)
+	
+	var diagnostic_1: String = "After first move: test_drag_data=%d, manager_drag_data=%d, target_tile=%s" % [
+		drag_data.build_requests,
+		_drag_manager.drag_data.build_requests if _drag_manager.drag_data else -1,
+		drag_data.target_tile
+	]
+	assert_int(drag_data.build_requests).append_failure_message("Should count when all conditions met. %s" % diagnostic_1).is_equal(1)
 	
 	# Condition: Tile unchanged - should NOT count
-	runner.simulate_frames(1)
+	_drag_manager.update_drag_state(0.016)  # No tile change
 	assert_int(drag_data.build_requests).append_failure_message("Should NOT count when tile unchanged").is_equal(1)
 	
-	# Condition: Same tile again - should NOT count (duplicate prevention)
-	drag_data.target_tile = drag_data.last_attempted_tile
-	runner.simulate_frames(1)
+	# Condition: Same tile position again (no move) - should NOT count (duplicate prevention)
+	_drag_manager.update_drag_state(0.016)  # No tile change
 	assert_int(drag_data.build_requests).append_failure_message("Should NOT count duplicate tile").is_equal(1)
 	
 	# Condition: New tile, all good - should count
-	_targeting_state.positioner.global_position += Vector2(16, 0)
-	runner.simulate_frames(1)
-	assert_int(drag_data.build_requests).append_failure_message("Should count new tile with all conditions met").is_equal(2)
+	drag_data.next_tile = Vector2i(2, 0)  # Move to tile (2, 0)
+	_drag_manager.update_drag_state(0.016)
+	var diagnostic_2: String = "After second move: test_drag_data=%d, manager_drag_data=%d, same_instance=%s" % [
+		drag_data.build_requests,
+		_drag_manager.drag_data.build_requests if _drag_manager.drag_data else -1,
+		drag_data.get_instance_id() == (_drag_manager.drag_data.get_instance_id() if _drag_manager.drag_data else -1)
+	]
+	assert_int(drag_data.build_requests).append_failure_message("Should count new tile with all conditions met. %s" % diagnostic_2).is_equal(2)
 
 #endregion

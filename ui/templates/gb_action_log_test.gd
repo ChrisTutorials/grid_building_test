@@ -121,7 +121,7 @@ func _create_build_action_data(building_name: String, placement_report: Placemen
 	preview_instance.name = building_name.replace(" ", "") + "Preview"  # Convert "Test Smithy Building" -> "TestSmithyBuildingPreview"
 	placement_report.preview_instance = preview_instance
 	
-	return BuildActionData.new(test_placeable, placement_report, false)
+	return BuildActionData.new(test_placeable, placement_report, GBEnums.BuildType.SINGLE)
 
 ## Asserts that log contains expected failure messages with proper diagnostic context
 func _assert_failure_messages_present(log_text: String, building_name: String, expected_reasons: Array[String]) -> void:
@@ -256,7 +256,7 @@ func test_build_failure_should_show_detailed_rule_validation() -> void:
 	test_placeable.display_name = "TestBuilding"
 	
 	# Create build action data
-	var build_data: BuildActionData = BuildActionData.new(test_placeable, placement_report, false)
+	var build_data: BuildActionData = BuildActionData.new(test_placeable, placement_report, GBEnums.BuildType.SINGLE)
 	
 	# Act: Handle failed build result
 	action_log._handle_build_result(build_data, false)

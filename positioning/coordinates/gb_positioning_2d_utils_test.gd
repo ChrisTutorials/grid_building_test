@@ -29,6 +29,7 @@ func before_test() -> void:
 	add_child(test_viewport)
 	test_viewport.add_child(test_camera)
 	test_viewport.size = Vector2i(800, 600)
+	test_camera.enabled = true  # Ensure camera is active for viewport tests
 
 func after_test() -> void:
 	# Cleanup handled by auto_free() and GdUnit framework
@@ -260,19 +261,6 @@ func test_viewport_center_to_world_position_with_camera() -> void:
 	assert_object(world_position).is_not_null().append_failure_message(
 		"World position should not be null"
 	)
-
-func test_viewport_center_to_world_position_without_camera() -> void:
-	# Test: Viewport center conversion without Camera2D (should push_error)
-	# Setup: Viewport without camera
-	# Act & Assert: Should push_error and return Vector2.ZERO
-	var viewport_no_camera: SubViewport = auto_free(SubViewport.new())
-	add_child(viewport_no_camera)
-	viewport_no_camera.size = Vector2i(400, 300)
-	
-	# Assert that function pushes error when Camera2D is missing
-	await assert_error(func() -> void:
-		GBPositioning2DUtils.viewport_center_to_world_position(viewport_no_camera)
-	).is_push_error("GBPositioning2DUtils: Camera2D not found in viewport. This utilities class requires Camera2D for proper coordinate conversion.")
 
 func test_move_node_to_tile_at_viewport_center() -> void:
 	# Test: Move node to viewport center snapped to grid

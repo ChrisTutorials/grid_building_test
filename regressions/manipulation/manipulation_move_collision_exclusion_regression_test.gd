@@ -13,12 +13,18 @@
 ## 3. Move preview so grid positioner is OUTSIDE original bounds -> indicators RED ❌ BUG!
 extends GdUnitTestSuite
 
+var runner: GdUnitSceneRunner
 var _env: AllSystemsTestEnvironment
 var _manipulation_system: ManipulationSystem
 var _targeting_state: GridTargetingState
 
 func before_test() -> void:
-	_env = EnvironmentTestFactory.create_all_systems_env(self)
+	# Use scene_runner for reliable frame simulation
+	runner = scene_runner(GBTestConstants.ALL_SYSTEMS_ENV_UID)
+	runner.simulate_frames(2)  # Initial setup frames
+	
+	_env = runner.scene() as AllSystemsTestEnvironment
+	assert_that(_env).is_not_null()
 	
 	# Get systems
 	var container := _env.get_container()
@@ -26,6 +32,7 @@ func before_test() -> void:
 	_targeting_state = container.get_states().targeting
 
 func after_test() -> void:
+	runner = null
 	_env = null
 	_manipulation_system = null
 	_targeting_state = null
@@ -54,6 +61,10 @@ func _create_manipulatable_object(p_name: String, p_position: Vector2, p_size: V
 	var manipulatable := Manipulatable.new()
 	manipulatable.name = "Manipulatable"
 	manipulatable.root = root  # CRITICAL: Set root property so try_move() can find it
+	# CRITICAL: Create minimal settings to prevent validation errors
+	var man_settings := ManipulatableSettings.new()
+	man_settings.movable = true
+	manipulatable.settings = man_settings
 	root.add_child(manipulatable)
 	
 	# Add placement shape for targeting
@@ -74,17 +85,17 @@ func _create_manipulatable_object(p_name: String, p_position: Vector2, p_size: V
 func test_indicators_ignore_original_when_positioner_inside_bounds() -> void:
 	# GIVEN: A manipulatable object at (100, 100) with size 32x32
 	var original := _create_manipulatable_object("Original", Vector2(100, 100), Vector2(32, 32))
-	await get_tree().process_frame
+	runner.simulate_frames(2)  # Let object settle
 	
 	# GIVEN: Start manipulation move
 	var move_data := _manipulation_system.try_move(original)
 	assert_object(move_data).is_not_null()
-	await get_tree().process_frame
+	runner.simulate_frames(2)  # Let move initialize
 	
 	# GIVEN: Move the preview so positioner is INSIDE original bounds (e.g., 108, 100)
 	# This should be within the 32x32 area centered at (100, 100)
 	_env.positioner.position = Vector2(108, 100)
-	await get_tree().process_frame
+	runner.simulate_frames(2)  # Let position update and physics process
 	
 	# WHEN: Check indicator validity
 	var indicators := _get_active_indicators()
@@ -105,17 +116,17 @@ func test_indicators_ignore_original_when_positioner_inside_bounds() -> void:
 func test_indicators_ignore_original_when_positioner_outside_bounds() -> void:
 	# GIVEN: A manipulatable object at (100, 100) with size 32x32
 	var original := _create_manipulatable_object("Original", Vector2(100, 100), Vector2(32, 32))
-	await get_tree().process_frame
+	runner.simulate_frames(2)  # Let object settle
 	
 	# GIVEN: Start manipulation move
 	var move_data := _manipulation_system.try_move(original)
 	assert_object(move_data).is_not_null()
-	await get_tree().process_frame
+	runner.simulate_frames(2)  # Let move initialize
 	
 	# GIVEN: Move the preview so positioner is OUTSIDE original bounds (e.g., 150, 100)
 	# This is clearly outside the 32x32 area centered at (100, 100)
 	_env.positioner.position = Vector2(150, 100)
-	await get_tree().process_frame
+	runner.simulate_frames(2)  # Let position update and physics process
 	
 	# WHEN: Check indicator validity
 	var indicators := _get_active_indicators()
@@ -137,12 +148,12 @@ func test_indicators_ignore_original_when_positioner_outside_bounds() -> void:
 func test_indicators_remain_valid_across_position_transitions() -> void:
 	# GIVEN: A manipulatable object
 	var original := _create_manipulatable_object("Original", Vector2(100, 100), Vector2(32, 32))
-	await get_tree().process_frame
+	runner.simulate_frames(2)  # Let object settle
 	
 	# GIVEN: Start manipulation move
 	var move_data := _manipulation_system.try_move(original)
 	assert_object(move_data).is_not_null()
-	await get_tree().process_frame
+	runner.simulate_frames(2)  # Let move initialize
 	
 	# WHEN: Move from inside → outside → inside bounds
 	var test_positions := [
@@ -158,7 +169,7 @@ func test_indicators_remain_valid_across_position_transitions() -> void:
 	var exclusions_at_positions: Array[int] = []
 	for pos: Vector2 in test_positions:
 		_env.positioner.position = pos
-		await get_tree().process_frame
+		runner.simulate_frames(2)  # Let position update
 		
 		var indicators := _get_active_indicators()
 		var all_valid := _all_indicators_valid(indicators)
@@ -179,7 +190,7 @@ func test_indicators_remain_valid_across_position_transitions() -> void:
 func test_exclusion_list_contains_original_during_move() -> void:
 	# GIVEN: A manipulatable object
 	var original := _create_manipulatable_object("Original", Vector2(100, 100))
-	await get_tree().process_frame
+	runner.simulate_frames(2)  # Let object settle
 	
 	# WHEN: Start manipulation move
 	var move_data := _manipulation_system.try_move(original)
@@ -188,8 +199,8 @@ func test_exclusion_list_contains_original_during_move() -> void:
 	# Check exclusions IMMEDIATELY (before any frame waits that might clear them)
 	var exclusions_immediate := _targeting_state.collision_exclusions.duplicate()
 	
-	# Then wait for frame
-	await get_tree().process_frame
+	# Then simulate frames
+	runner.simulate_frames(2)
 	
 	# Check exclusions AFTER frame wait
 	var exclusions_after_frame := _targeting_state.collision_exclusions.duplicate()
@@ -225,19 +236,19 @@ func _status_to_string(status: int) -> String:
 func test_exclusion_list_persists_across_positioner_movement() -> void:
 	# GIVEN: Object being moved
 	var original := _create_manipulatable_object("Original", Vector2(100, 100))
-	await get_tree().process_frame
+	runner.simulate_frames(2)  # Let object settle
 	
 	var move_data := _manipulation_system.try_move(original)
 	assert_object(move_data).is_not_null()
-	await get_tree().process_frame
+	runner.simulate_frames(2)  # Let move initialize
 	
 	# WHEN: Move positioner to different positions
 	_env.positioner.position = Vector2(100, 100)
-	await get_tree().process_frame
+	runner.simulate_frames(2)  # Let position update
 	var exclusions_inside := _targeting_state.collision_exclusions.duplicate()
 	
 	_env.positioner.position = Vector2(150, 100)
-	await get_tree().process_frame
+	runner.simulate_frames(2)  # Let position update
 	var exclusions_outside := _targeting_state.collision_exclusions.duplicate()
 	
 	# Build diagnostic using DRY helpers

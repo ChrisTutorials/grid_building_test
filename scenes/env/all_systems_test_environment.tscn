@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://ioucajhfxc8b"]
+[gd_scene load_steps=13 format=3 uid="uid://ioucajhfxc8b"]
 
 [ext_resource type="Script" uid="uid://dm1i7ipyae8nx" path="res://test/grid_building_test/scenes/env/all_systems_test_environment.gd" id="1_6tut5"]
 [ext_resource type="Script" uid="uid://c2tafmcbbiujk" path="res://addons/grid_building/systems/manipulation/manipulation_system.gd" id="2_8ccnd"]
@@ -9,10 +9,11 @@
 [ext_resource type="Script" uid="uid://4mfr58yhmove" path="res://addons/grid_building/systems/building/building_system.gd" id="6_tepc3"]
 [ext_resource type="Script" uid="uid://ckwhivepsvl0n" path="res://addons/grid_building/components/gb_level_context.gd" id="7_tnep3"]
 [ext_resource type="PackedScene" uid="uid://dsaumst3yyp21" path="res://test/grid_building_test/scenes/tile_map/TEST_buildable_31x31_tile_map.tscn" id="8_8ccnd"]
+[ext_resource type="Script" uid="uid://cuo3o387gcfuu" path="res://addons/grid_building/systems/building/components/drag_manager.gd" id="8_v6kfp"]
 [ext_resource type="Script" uid="uid://dasmm18l8fxdo" path="res://addons/grid_building/user/gb_owner.gd" id="9_s5uet"]
 [ext_resource type="PackedScene" uid="uid://dm3722ecrh3e4" path="res://templates/grid_building_templates/grid_positioner/grid_positioner_stack.tscn" id="10_6yyi1"]
 
-[node name="AllSystemsTestEnvironment" type="Node" node_paths=PackedStringArray("manipulation_system", "target_highlighter", "building_system", "gb_owner", "manipulation_parent", "indicator_manager", "injector", "grid_targeting_system", "positioner", "targeter", "world", "level", "level_context", "tile_map_layer", "objects_parent", "placer")]
+[node name="AllSystemsTestEnvironment" type="Node" node_paths=PackedStringArray("manipulation_system", "target_highlighter", "building_system", "gb_owner", "manipulation_parent", "indicator_manager", "drag_manager", "injector", "grid_targeting_system", "positioner", "targeter", "world", "level", "level_context", "tile_map_layer", "objects_parent", "placer")]
 script = ExtResource("1_6tut5")
 manipulation_system = NodePath("ManipulationSystem")
 target_highlighter = NodePath("GridTargetingSystem/TargetHighlighter")
@@ -20,6 +21,7 @@ building_system = NodePath("BuildingSystem")
 gb_owner = NodePath("World/Level/Placer/GBOwner")
 manipulation_parent = NodePath("World/GridPositioner2D/ManipulationParent")
 indicator_manager = NodePath("World/GridPositioner2D/ManipulationParent/IndicatorManager")
+drag_manager = NodePath("BuildingSystem/DragManager")
 injector = NodePath("GBInjectorSystem")
 grid_targeting_system = NodePath("GridTargetingSystem")
 positioner = NodePath("World/GridPositioner2D")
@@ -54,6 +56,10 @@ metadata/_custom_type_script = "uid://b8uqw4y2hgns3"
 [node name="BuildingSystem" type="Node" parent="."]
 script = ExtResource("6_tepc3")
 metadata/_custom_type_script = "uid://4mfr58yhmove"
+
+[node name="DragManager" type="Node" parent="BuildingSystem"]
+script = ExtResource("8_v6kfp")
+metadata/_custom_type_script = "uid://cuo3o387gcfuu"
 
 [node name="World" type="Node2D" parent="."]
 

@@ -82,10 +82,11 @@ static func create_basic_test_placeable(base_placeable: Placeable, display_name:
 	
 	return placeable
 
-## Creates a minimal test placeable without scene reference (for throttling/gating tests)
-## Use when you only need a placeable to enter build mode but don't need actual geometry
+## @deprecated Use GBTestConstants.PLACEABLE_SMITHY or other preloaded placeables instead.
+## This function creates placeables without collision shapes which causes indicator generation to fail.
+## Creates a minimal test placeable for simple testing scenarios
 ## @param display_name: Display name for the placeable
-## @param include_rules: Whether to include standard placement rules
+## @param include_rules: Whether to include default placement rules
 static func create_minimal_test_placeable(display_name: String = "Minimal Test Placeable", include_rules: bool = false) -> Placeable:
 	var placeable: Placeable = Placeable.new()
 	placeable.display_name = display_name

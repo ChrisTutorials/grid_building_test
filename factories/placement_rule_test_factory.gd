@@ -9,10 +9,13 @@ extends RefCounted
 const DEFAULT_COLLISION_LAYER: int = 1
 const DEFAULT_COLLISION_MASK: int = 1
 
-## Creates a CollisionsCheckRule with standard test configuration
+## Creates a CollisionsCheckRule with standard test configuration.
+##
 ## @param apply_mask: Objects mask to apply rule to
 ## @param collision_mask: Collision mask for detection
-## @param pass_on_collision: Whether to allow placement on collision
+## @param pass_on_collision: Collision validation mode:
+##   - [code]false[/code]: Rule PASSES when clear (placement needs empty space)
+##   - [code]true[/code]: Rule PASSES when collision detected (placement needs overlap)
 static func create_collision_rule_with_settings(apply_mask: int, collision_mask: int, pass_on_collision: bool = true) -> CollisionsCheckRule:
 	var collision_rule: CollisionsCheckRule = CollisionsCheckRule.new()
 	collision_rule.apply_to_objects_mask = apply_mask
@@ -33,8 +36,9 @@ static func create_valid_tile_rule(apply_mask: int = DEFAULT_COLLISION_LAYER) ->
 	return tile_rule
 
 ## Creates a default collision rule with standard test settings
+## Default behavior: fail on collision (pass_on_collision = false)
 static func create_default_collision_rule() -> CollisionsCheckRule:
-	return create_collision_rule_with_settings(DEFAULT_COLLISION_LAYER, DEFAULT_COLLISION_MASK, true)
+	return create_collision_rule_with_settings(DEFAULT_COLLISION_LAYER, DEFAULT_COLLISION_MASK, false)
 
 ## Creates a set of standard placement rules for testing
 ## @param include_tile_rule: Whether to include ValidPlacementTileRule

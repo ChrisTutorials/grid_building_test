@@ -188,13 +188,17 @@ func _create_tile_aligned_collision_at_test_position(test_position: Vector2) -> 
 var env: AllSystemsTestEnvironment
 var _container: GBCompositionContainer
 var _gts: GridTargetingSystem
+var runner: GdUnitSceneRunner
 var test_smithy_placeable: Placeable = load("uid://dirh6mcrgdm3w")
 var test_rect_4x2_placeable: Placeable = load("res://test/grid_building_test/resources/placeable/test_placeable_rect_4x2.tres")
 #endregion
 
 #region Setup and Teardown
 func before_test() -> void:
-	env = EnvironmentTestFactory.create_all_systems_env(self, GBTestConstants.ALL_SYSTEMS_ENV_UID)
+	# Use scene_runner with UID - automatically instantiates and manages the scene
+	runner = scene_runner(GBTestConstants.ALL_SYSTEMS_ENV_UID)
+	# Get environment from runner instead of double instantiation
+	env = runner.scene() as AllSystemsTestEnvironment
 	_container = env.get_container()
 	_gts = env.grid_targeting_system
 	
@@ -217,8 +221,9 @@ func after_test() -> void:
 			remove_child(child)
 	
 	# Wait for cleanup to complete
-	await get_tree().process_frame
+	runner.simulate_frames(1)
 	
+	runner = null
 	env = null
 #endregion
 
@@ -227,6 +232,9 @@ func after_test() -> void:
 func test_basic_building_workflow() -> void:
 	var building_system: Object = env.building_system
 	var test_placeable: Placeable = _create_test_placeable_with_rules()
+
+	# Allow frames for initialization
+	runner.simulate_frames(2)
 
 	# Test basic building workflow using helper
 	var _setup_report: PlacementReport = _enter_build_mode_successfully(building_system, test_placeable, "basic workflow test")
@@ -255,7 +263,7 @@ func test_building_workflow_with_validation() -> void:
 	_log_conditional_message("Created collision obstacle: %s" % _format_collision_object_debug(collision_obstacle))
 	
 	# Wait for physics frame to ensure collision obstacle is registered
-	await get_tree().physics_frame
+	runner.simulate_frames(2)
 
 	# Use helper for validation workflow setup
 	var validation_setup: Dictionary = _setup_validation_workflow(
@@ -304,7 +312,8 @@ func _create_test_placeable_with_rules() -> Placeable:
 	var placeable: Placeable = test_rect_4x2_placeable.duplicate()
 	
 	# Use PlaceableTestFactory for rule creation
-	placeable.placement_rules = PlacementRuleTestFactory.create_standard_placement_rules(true)
+	# Use false to exclude ValidPlacementTileRule - tests don't have pre-placed tiles
+	placeable.placement_rules = PlacementRuleTestFactory.create_standard_placement_rules(false)
 	
 	return placeable
 
@@ -386,7 +395,7 @@ func _monitor_memory_usage(operation_callable: Callable, operation_name: String,
 	"""Monitor memory usage during an operation to detect leaks"""
 	var initial_child_count: int = get_child_count()
 	operation_callable.call()
-	await get_tree().process_frame  # Wait one frame for cleanup
+	runner.simulate_frames(1)  # Wait one frame for cleanup
 	
 	var final_child_count: int = get_child_count()
 	var child_diff: int = final_child_count - initial_child_count
@@ -714,7 +723,7 @@ func test_targeting_highligher_colors_current_target_integration_test() -> void:
 	target_highlighter.current_target = test_node
 	
 	# Give a frame for color changes to take effect
-	await get_tree().process_frame
+	runner.simulate_frames(1)
 	
 	# Check if color has changed from white (indicating highlighting is working)
 	var modulate_color: Color = test_node.modulate
