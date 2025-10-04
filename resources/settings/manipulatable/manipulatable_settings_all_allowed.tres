@@ -7,7 +7,7 @@
 script = ExtResource("2_a8bkb")
 move_rules = Array[ExtResource("1_4xdo3")]([])
 ignore_base_rules = false
-rotateable = true
+rotatable = true
 flip_horizontal = true
 flip_vertical = true
 movable = true

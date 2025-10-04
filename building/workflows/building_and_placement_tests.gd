@@ -83,7 +83,7 @@ var _container : GBCompositionContainer
 
 var _targeting_system : GridTargetingSystem
 var _targeting_state: GridTargetingState
-var _positioner: Node2D
+var _positioner: GridPositioner2D
 var _isolation_state: Dictionary  # Test isolation state for cleanup
 var _placed_positions : Array[Vector2]
 var _building_system : BuildingSystem
@@ -97,14 +97,13 @@ var _last_build_report: PlacementReport
 var _last_build_was_dragging: bool
 
 func before_test() -> void:
-	env = EnvironmentTestFactory.create_building_system_test_environment(self)
-	if env == null:
-		fail("Failed to create building test environment - check EnvironmentTestFactory.create_building_system_test_environment()")
-		return
+	# Use scene_runner to instantiate environment with input isolation
+	runner = scene_runner(GBTestConstants.BUILDING_TEST_ENV_UID)
+	runner.simulate_frames(2)  # Initial setup frames
 	
-	# Initialize scene runner for deterministic frame simulation
-	# Must be initialized after env is in scene tree
-	runner = scene_runner(env)
+	env = runner.scene() as BuildingTestEnvironment
+	assert_that(env).is_not_null() \
+		.append_failure_message("Building test environment must instantiate successfully")
 	
 	# Initialize required variables from environment
 	_building_system = env.building_system
@@ -138,6 +137,10 @@ func before_test() -> void:
 	# This ensures each parameterized test run has a valid target
 	_targeting_state.target = user_node
 	
+	# CRITICAL: Explicitly set position_on_enable_policy to NONE to prevent automatic recentering
+	# This ensures tests have full control over positioner positioning without interference
+	_container.config.settings.targeting.position_on_enable_policy = GridTargetingSettings.RecenterOnEnablePolicy.NONE
+	
 	# Apply test isolation to prevent mouse interference and positioning issues
 	_isolation_state = GBTestIsolation.setup_building_test_isolation(
 		_positioner as GridPositioner2D, env.tile_map_layer, logger
@@ -148,6 +151,7 @@ func before_test() -> void:
 	var safe_tile: Vector2i = Vector2i(0, 0)  # Center of map
 	var safe_world_pos: Vector2 = _map.to_global(_map.map_to_local(safe_tile))
 	_positioner.global_position = safe_world_pos
+	runner.simulate_frames(2)  # Let position update take effect
 	
 	# Set debug level to VERBOSE to see detailed logging
 	_container.get_debug_settings().set_debug_level(GBDebugSettings.LogLevel.VERBOSE)
@@ -163,16 +167,19 @@ func before_test() -> void:
 	_last_build_report = null
 	_last_build_was_dragging = false
 
-	# CRITICAL: NO AWAIT - prevents targeting state from being cleared during process frame
-	# - Awaiting allows systems to process and potentially clear _targeting_state.target
-	# - Mouse input or system initialization during frame can override programmatic state
-	# - Following pattern from building_placement_collision_regression_test.gd
-	# - Environment _ready hooks and tile map initialization happen synchronously
-	# await get_tree().process_frame  # REMOVED - causes test isolation failure
+	# Use runner.simulate_frames instead of await to prevent mouse interference
+	runner.simulate_frames(2)  # Let systems stabilize
 
 func after_test() -> void:
-	# Cleanup test isolation first
+	# Exit build mode if active
+	if _building_system and _building_system.is_in_build_mode():
+		_building_system.exit_build_mode()
+	
+	# Cleanup test isolation
 	GBTestIsolation.cleanup_building_test_isolation(_isolation_state, _targeting_state)
+	
+	# Clear runner reference
+	runner = null
 	
 	# Explicit cleanup to prevent orphan nodes
 	if placement_validator:
@@ -198,6 +205,7 @@ func _move_positioner_to_tile(tile: Vector2i) -> void:
 	var tile_local_pos: Vector2 = _map.map_to_local(tile)
 	var tile_world_pos: Vector2 = _map.to_global(tile_local_pos)
 	_positioner.global_position = tile_world_pos
+	runner.simulate_frames(2)  # Let position update take effect
 	# GridTargetingState is a Resource; no manual _process call needed.
 
 ## DRY Helper: Wait for DragManager to process tile change in physics frame
@@ -399,6 +407,7 @@ func test_placement_validation_basic(
 
 	# Set _positioner to test position
 	_positioner.global_position = target_position
+	runner.simulate_frames(2)  # Let position update take effect
 	
 	# Setup and validate with no rules 
 	# PlacementValidator actually returns false when no rules are active
@@ -464,6 +473,7 @@ func test_placement_validation_with_rules(
 	).is_not_null()
 	
 	_positioner.global_position = TEST_TILE_CENTER  # (8.0, 8.0) - center of tile (0,0)
+	runner.simulate_frames(2)  # Let position update take effect
 	
 	# Enhanced diagnostic: Verify _targeting_state and _targeting_state.target exist
 	assert_object(_targeting_state).append_failure_message(
@@ -493,7 +503,7 @@ func test_placement_validation_with_rules(
 	var _report: PlacementReport = _indicator_manager.try_setup(test_rules, _targeting_state)
 	
 	# Allow physics to update after adding indicators
-	await get_tree().physics_frame
+	runner.simulate_frames(3, 60)  # Replaced await get_tree().physics_frame
 	
 	var result: ValidationResults = _indicator_manager.validate_placement()
 	
@@ -565,6 +575,7 @@ func test_placement_validation_edge_cases(
 		"invalid_position":
 			# Set _positioner to invalid position
 			_positioner.global_position = Vector2(1000, 1000)  # Far out of bounds
+			runner.simulate_frames(2)  # Let position update take effect
 			
 			var empty_rules: Array[PlacementRule] = []
 			var _setup_issues: Dictionary = placement_validator.setup(empty_rules, _targeting_state)
@@ -688,7 +699,7 @@ func _setup_blocking_collision() -> void:
 	
 	# Force physics update to ensure collision detection sees the new body
 	get_tree().physics_frame.connect(func() -> void: pass, ConnectFlags.CONNECT_ONE_SHOT)
-	await get_tree().physics_frame
+	runner.simulate_frames(3, 60)  # Replaced await get_tree().physics_frame
 	
 	logger.log_verbose( "Created blocking collision body at position: %s" % blocking_body.global_position)
 	logger.log_verbose( "Positioner position: %s" % _positioner.global_position)
@@ -737,7 +748,7 @@ func _debug_collision_detection() -> void:
 			
 			# Force update and check again
 			indicator.force_shapecast_update()
-			await get_tree().physics_frame
+			runner.simulate_frames(3, 60)  # Replaced await get_tree().physics_frame
 			logger.log_verbose( "Indicator[" + str(i) + "] after force_update is_colliding: " + str(indicator.is_colliding()))
 
 func _collect_offsets(mapper: CollisionMapper, poly: CollisionPolygon2D, tile_map: TileMapLayer) -> Array[Vector2i]:
@@ -985,6 +996,7 @@ func test_large_rectangle_generates_full_grid_of_indicators() -> void:
 	).is_not_null()
 	
 	_positioner.global_position = TEST_TILE_CENTER  # (8.0, 8.0) - center of tile (0,0)
+	runner.simulate_frames(2)  # Let position update take effect
 	
 	# Enhanced diagnostic: Verify _targeting_state and _targeting_state.target exist
 	assert_object(_targeting_state).append_failure_message(
@@ -1021,8 +1033,7 @@ func test_large_rectangle_generates_full_grid_of_indicators() -> void:
 	test_building.position = TEST_WORLD_ORIGIN  # Local position relative to target
 	
 	# Force physics update to ensure collision shape is properly registered
-	await get_tree().physics_frame
-	await get_tree().physics_frame
+	runner.simulate_frames(3, 60)  # Replaced await get_tree().physics_frame
 	
 	# DEBUG: Log collision shape details for diagnostics
 	logger.log_info("Rectangular building collision setup:")
@@ -1144,10 +1155,10 @@ func test_isolated_rect_48x64_tile_offsets() -> void:
 	poly.position = Vector2.ZERO  # Relative to positioner - let positioner handle world positioning
 	# Ensure world centering matches engine semantics: positioner at tile center (0,0)
 	_positioner.global_position = TEST_TILE_CENTER
+	runner.simulate_frames(2)  # Let position update take effect
 
 	# Allow scene/physics to register the polygon
-	await get_tree().process_frame
-	await get_tree().process_frame
+	runner.simulate_frames(2)  # Replaced await get_tree().process_frame
 
 	# Collect offsets using the same helper used elsewhere in this suite
 	var offsets: Array[Vector2i] = _collect_offsets(mapper, poly, _map)
@@ -1243,7 +1254,7 @@ func test_building_placement_attempt() -> void:
 		_format_debug("Enter build mode should succeed with preview collision shapes only (no dual collision issue): issues=%s, config=%s" % [str(enter_report.get_issues()), _get_container_config_debug()])
 	).is_true()
 
-	await get_tree().process_frame
+	runner.simulate_frames(2)  # Replaced await get_tree().process_frame
 
 	var placement_result: PlacementReport = _building_system.try_build()
 	assert_object(placement_result).append_failure_message(
@@ -1351,7 +1362,7 @@ func test_single_placement_per_tile_constraint() -> void:
 		_format_debug("Enter build mode should succeed without collision shape conflicts: issues=%s, target_children=%d" % [str(enter_report.get_issues()), user_node.get_child_count()])
 	).is_true()
 
-	await get_tree().process_frame
+	runner.simulate_frames(2)  # Replaced await get_tree().process_frame
 
 	# First placement attempt - this should succeed because indicators are valid
 	var first_report: PlacementReport = _building_system.try_build()
@@ -1436,7 +1447,7 @@ func test_complete_building_workflow() -> void:
 		"Should be in build mode after entering"
 	).is_true()
 
-	await get_tree().process_frame
+	runner.simulate_frames(2)  # Replaced await get_tree().process_frame
 
 	# Phase 3: Attempt building
 	var build_report: PlacementReport = _building_system.try_build()
@@ -1564,7 +1575,7 @@ func _prepare_target_for_successful_build(_tile: Vector2i = SAFE_LEFT_TILE) -> v
 		_targeting_state.target.global_position = _positioner.global_position
 	
 	# Allow a frame for any positioning changes to take effect
-	await get_tree().process_frame
+	runner.simulate_frames(2)  # Replaced await get_tree().process_frame
 	
 	# Debug logging to verify the positioning is correct
 	var map_bounds: Rect2i = _map.get_used_rect()
@@ -1731,14 +1742,14 @@ func _tile_has_data(tile: Vector2i) -> bool:
 func _on_build_success(build_action_data: BuildActionData) -> void:
 	_build_success_count += 1
 	_last_build_report = build_action_data.report
-	_last_build_was_dragging = build_action_data.dragging
+	_last_build_was_dragging = (build_action_data.build_type == GBEnums.BuildType.DRAG)
 	if build_action_data.report && build_action_data.report.placed:
 		_placed_positions.append(build_action_data.get_placed_position())
 
 func _on_build_failed(build_action_data: BuildActionData) -> void:
 	_build_failed_count += 1
 	_last_build_report = build_action_data.report
-	_last_build_was_dragging = build_action_data.dragging
+	_last_build_was_dragging = (build_action_data.build_type == GBEnums.BuildType.DRAG)
 
 func _create_placeable_with_no_rules() -> Placeable:
 	"""Create a simple placeable with no placement rules to test the issue"""

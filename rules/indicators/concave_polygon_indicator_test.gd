@@ -60,8 +60,8 @@ func before_test() -> void:
 	_validator = PlacementValidator.create_with_injection(_container)
 
 	# Instantiate concave polygon test object and parent under positioner to mimic runtime placement preview hierarchy
-	_preview = CollisionObjectTestFactory.create_polygon_test_object(self, self)
-	_targeting.positioner.add_child(_preview)
+	# Note: create_polygon_test_object already adds to parent, so we don't call add_child again
+	_preview = CollisionObjectTestFactory.create_polygon_test_object(self, _targeting.positioner)
 
 	# Critical: make the preview the active target so IndicatorManager maps indicators for it
 	_targeting.target = _preview

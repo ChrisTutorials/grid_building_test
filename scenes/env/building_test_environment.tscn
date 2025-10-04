@@ -29,8 +29,6 @@ tile_map_layer = NodePath("World/Level/TileMapLayer_31x31_Buildable")
 objects_parent = NodePath("World/Level/PlacedObjectsParent")
 placer = NodePath("World/Level/Placer")
 
-[node name="Camera2D" type="Camera2D" parent="."]
-
 [node name="GBInjectorSystem" type="Node" parent="." node_paths=PackedStringArray("injection_roots")]
 script = ExtResource("2_aowhm")
 composition_container = ExtResource("3_ontcs")
@@ -72,5 +70,7 @@ owner_root = NodePath("..")
 metadata/_custom_type_script = "uid://dasmm18l8fxdo"
 
 [node name="GridPositioner2D" parent="World" instance=ExtResource("9_ontcs")]
+
+[node name="Camera2D" type="Camera2D" parent="World"]
 
 [editable path="World/GridPositioner2D"]

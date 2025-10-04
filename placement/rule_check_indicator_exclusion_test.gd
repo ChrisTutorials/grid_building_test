@@ -22,6 +22,9 @@ func before_test() -> void:
 	assert_array(setup_issues).is_empty()
 
 func after_test() -> void:
+	# Clear collision exclusions to prevent test isolation issues
+	if _env and _env.targeting_state:
+		_env.targeting_state.collision_exclusions = []
 	_rule = null
 	# Environment is auto-freed by EnvironmentTestFactory
 

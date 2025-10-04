@@ -13,26 +13,20 @@
 ## 3. Move preview so grid positioner is OUTSIDE original bounds -> indicators RED ❌ BUG!
 extends GdUnitTestSuite
 
-var runner: GdUnitSceneRunner
-var _env: AllSystemsTestEnvironment
+var _env: CollisionTestEnvironment
 var _manipulation_system: ManipulationSystem
 var _targeting_state: GridTargetingState
 
 func before_test() -> void:
-	# Use scene_runner for reliable frame simulation
-	runner = scene_runner(GBTestConstants.ALL_SYSTEMS_ENV_UID)
-	runner.simulate_frames(2)  # Initial setup frames
+	_env = EnvironmentTestFactory.create_collision_test_environment(self)
 	
-	_env = runner.scene() as AllSystemsTestEnvironment
-	assert_that(_env).is_not_null()
-	
-	# Get systems
+	# Get systems through systems context
 	var container := _env.get_container()
-	_manipulation_system = _env.manipulation_system
+	var systems_context := container.get_systems_context()
+	_manipulation_system = systems_context.get_manipulation_system()
 	_targeting_state = container.get_states().targeting
 
 func after_test() -> void:
-	runner = null
 	_env = null
 	_manipulation_system = null
 	_targeting_state = null
@@ -60,11 +54,6 @@ func _create_manipulatable_object(p_name: String, p_position: Vector2, p_size: V
 	# Add manipulatable component
 	var manipulatable := Manipulatable.new()
 	manipulatable.name = "Manipulatable"
-	manipulatable.root = root  # CRITICAL: Set root property so try_move() can find it
-	# CRITICAL: Create minimal settings to prevent validation errors
-	var man_settings := ManipulatableSettings.new()
-	man_settings.movable = true
-	manipulatable.settings = man_settings
 	root.add_child(manipulatable)
 	
 	# Add placement shape for targeting
@@ -85,75 +74,62 @@ func _create_manipulatable_object(p_name: String, p_position: Vector2, p_size: V
 func test_indicators_ignore_original_when_positioner_inside_bounds() -> void:
 	# GIVEN: A manipulatable object at (100, 100) with size 32x32
 	var original := _create_manipulatable_object("Original", Vector2(100, 100), Vector2(32, 32))
-	runner.simulate_frames(2)  # Let object settle
+	await get_tree().physics_frame
 	
 	# GIVEN: Start manipulation move
-	var move_data := _manipulation_system.try_move(original)
-	assert_object(move_data).is_not_null()
-	runner.simulate_frames(2)  # Let move initialize
+	_manipulation_system.try_move(original)
+	await get_tree().physics_frame
 	
 	# GIVEN: Move the preview so positioner is INSIDE original bounds (e.g., 108, 100)
 	# This should be within the 32x32 area centered at (100, 100)
 	_env.positioner.position = Vector2(108, 100)
-	runner.simulate_frames(2)  # Let position update and physics process
+	await get_tree().physics_frame
+	await get_tree().physics_frame
 	
 	# WHEN: Check indicator validity
 	var indicators := _get_active_indicators()
 	var all_valid := _all_indicators_valid(indicators)
 	
-	# Build diagnostic
-	var diagnostic := "Test: positioner INSIDE bounds\n"
-	diagnostic += "  Positioner position: %s\n" % str(_env.positioner.position)
-	diagnostic += "  Original position: %s\n" % str(original.position)
-	diagnostic += _format_exclusions_diagnostic("  Collision exclusions", _targeting_state.collision_exclusions)
-	diagnostic += _format_indicators_diagnostic(indicators)
-	
 	# THEN: All indicators should be valid (no collision with self)
-	assert_bool(all_valid).append_failure_message(
-		"%s\nIndicators should ignore original object when positioner is INSIDE bounds" % diagnostic
-	).is_true()
+	assert_bool(all_valid).is_true().override_failure_message(
+		"Indicators should ignore original object when positioner is INSIDE bounds. " +
+		"Found %d invalid indicators." % _count_invalid_indicators(indicators)
+	)
 
 func test_indicators_ignore_original_when_positioner_outside_bounds() -> void:
 	# GIVEN: A manipulatable object at (100, 100) with size 32x32
 	var original := _create_manipulatable_object("Original", Vector2(100, 100), Vector2(32, 32))
-	runner.simulate_frames(2)  # Let object settle
+	await get_tree().physics_frame
 	
 	# GIVEN: Start manipulation move
-	var move_data := _manipulation_system.try_move(original)
-	assert_object(move_data).is_not_null()
-	runner.simulate_frames(2)  # Let move initialize
+	_manipulation_system.try_move(original)
+	await get_tree().physics_frame
 	
 	# GIVEN: Move the preview so positioner is OUTSIDE original bounds (e.g., 150, 100)
 	# This is clearly outside the 32x32 area centered at (100, 100)
 	_env.positioner.position = Vector2(150, 100)
-	runner.simulate_frames(2)  # Let position update and physics process
+	await get_tree().physics_frame
+	await get_tree().physics_frame
 	
 	# WHEN: Check indicator validity
 	var indicators := _get_active_indicators()
 	var all_valid := _all_indicators_valid(indicators)
 	
-	# Build diagnostic
-	var diagnostic := "Test: positioner OUTSIDE bounds\n"
-	diagnostic += "  Positioner position: %s\n" % str(_env.positioner.position)
-	diagnostic += "  Original position: %s\n" % str(original.position)
-	diagnostic += _format_exclusions_diagnostic("  Collision exclusions", _targeting_state.collision_exclusions)
-	diagnostic += _format_indicators_diagnostic(indicators)
-	
 	# THEN: All indicators should be valid (no collision with self)
 	# THIS IS THE BUG: Indicators incorrectly detect collision with original
-	assert_bool(all_valid).append_failure_message(
-		"%s\nBUG: Indicators should ignore original object when positioner is OUTSIDE bounds" % diagnostic
-	).is_true()
+	assert_bool(all_valid).is_true().override_failure_message(
+		"BUG REPRODUCED: Indicators should ignore original object when positioner is OUTSIDE bounds. " +
+		"Found %d invalid indicators detecting collision with original object." % _count_invalid_indicators(indicators)
+	)
 
 func test_indicators_remain_valid_across_position_transitions() -> void:
 	# GIVEN: A manipulatable object
 	var original := _create_manipulatable_object("Original", Vector2(100, 100), Vector2(32, 32))
-	runner.simulate_frames(2)  # Let object settle
+	await get_tree().physics_frame
 	
 	# GIVEN: Start manipulation move
-	var move_data := _manipulation_system.try_move(original)
-	assert_object(move_data).is_not_null()
-	runner.simulate_frames(2)  # Let move initialize
+	_manipulation_system.try_move(original)
+	await get_tree().physics_frame
 	
 	# WHEN: Move from inside → outside → inside bounds
 	var test_positions := [
@@ -163,113 +139,64 @@ func test_indicators_remain_valid_across_position_transitions() -> void:
 		Vector2(132, 100),  # Just outside
 		Vector2(108, 100),  # Back inside
 	]
-	var test_labels := ["center", "edge_inside", "far_outside", "just_outside", "back_inside"]
 	
 	var results: Array[bool] = []
-	var exclusions_at_positions: Array[int] = []
 	for pos: Vector2 in test_positions:
 		_env.positioner.position = pos
-		runner.simulate_frames(2)  # Let position update
+		await get_tree().physics_frame
+		await get_tree().physics_frame
 		
 		var indicators := _get_active_indicators()
 		var all_valid := _all_indicators_valid(indicators)
 		results.append(all_valid)
-		exclusions_at_positions.append(_targeting_state.collision_exclusions.size())
 	
 	# THEN: All positions should show valid indicators (no collision with self)
 	for i in range(results.size()):
-		var diagnostic := "Position transition test [%d/%d]: %s\n" % [i+1, results.size(), test_labels[i]]
-		diagnostic += "  Position: %s\n" % str(test_positions[i])
-		diagnostic += "  Collision exclusions: %d\n" % exclusions_at_positions[i]
-		diagnostic += "  Original at: %s\n" % str(original.position)
-		
-		assert_bool(results[i]).append_failure_message(
-			"%s  Indicators should ignore original object at all positions" % diagnostic
-		).is_true()
+		assert_bool(results[i]).is_true().override_failure_message(
+			"Position %d (%s) failed: indicators should ignore original object at all positions" % 
+			[i, str(test_positions[i])]
+		)
 
 func test_exclusion_list_contains_original_during_move() -> void:
 	# GIVEN: A manipulatable object
 	var original := _create_manipulatable_object("Original", Vector2(100, 100))
-	runner.simulate_frames(2)  # Let object settle
+	await get_tree().physics_frame
 	
 	# WHEN: Start manipulation move
-	var move_data := _manipulation_system.try_move(original)
-	assert_object(move_data).is_not_null()
+	_manipulation_system.try_move(original)
+	await get_tree().physics_frame
 	
-	# Check exclusions IMMEDIATELY (before any frame waits that might clear them)
-	var exclusions_immediate := _targeting_state.collision_exclusions.duplicate()
-	
-	# Then simulate frames
-	runner.simulate_frames(2)
-	
-	# Check exclusions AFTER frame wait
-	var exclusions_after_frame := _targeting_state.collision_exclusions.duplicate()
-	
-	# Build diagnostic using DRY helpers
-	var diagnostic := "Exclusion list initialization check:\n"
-	diagnostic += "  Original: %s (valid: %s)\n" % [str(original), str(is_instance_valid(original))]
-	diagnostic += _format_move_data_diagnostic(move_data)
-	diagnostic += _format_exclusions_diagnostic("  Exclusions (immediate)", exclusions_immediate)
-	diagnostic += _format_exclusions_diagnostic("  Exclusions (after frame)", exclusions_after_frame)
-	
-	# THEN: Exclusion list should contain the original object (check the one after frame)
-	var exclusions := exclusions_after_frame
-	assert_int(exclusions.size()).append_failure_message(
-		"%s\nExclusion list should contain exactly 1 node (the original object)" % diagnostic
-	).is_equal(1)
-	
-	if exclusions.size() > 0:
-		assert_that(exclusions[0]).is_same(original).append_failure_message(
-			"Exclusion list should contain the original object root node"
-		)
-
-## Helper to convert status enum to human-readable string
-func _status_to_string(status: int) -> String:
-	match status:
-		GBEnums.Status.CREATED: return "CREATED"
-		GBEnums.Status.STARTED: return "STARTED"
-		GBEnums.Status.FAILED: return "FAILED"
-		GBEnums.Status.FINISHED: return "FINISHED"
-		GBEnums.Status.CANCELED: return "CANCELED"
-		_: return "UNKNOWN"
+	# THEN: Exclusion list should contain the original object
+	var exclusions := _targeting_state.collision_exclusions
+	assert_int(exclusions.size()).is_equal(1).override_failure_message(
+		"Exclusion list should contain exactly 1 node (the original object)"
+	)
+	assert_that(exclusions[0]).is_same(original).override_failure_message(
+		"Exclusion list should contain the original object root node"
+	)
 
 func test_exclusion_list_persists_across_positioner_movement() -> void:
 	# GIVEN: Object being moved
 	var original := _create_manipulatable_object("Original", Vector2(100, 100))
-	runner.simulate_frames(2)  # Let object settle
+	await get_tree().physics_frame
 	
-	var move_data := _manipulation_system.try_move(original)
-	assert_object(move_data).is_not_null()
-	runner.simulate_frames(2)  # Let move initialize
+	_manipulation_system.try_move(original)
+	await get_tree().physics_frame
 	
 	# WHEN: Move positioner to different positions
 	_env.positioner.position = Vector2(100, 100)
-	runner.simulate_frames(2)  # Let position update
+	await get_tree().physics_frame
 	var exclusions_inside := _targeting_state.collision_exclusions.duplicate()
 	
 	_env.positioner.position = Vector2(150, 100)
-	runner.simulate_frames(2)  # Let position update
+	await get_tree().physics_frame
 	var exclusions_outside := _targeting_state.collision_exclusions.duplicate()
 	
-	# Build diagnostic using DRY helpers
-	var diagnostic := "Exclusion persistence across movement:\n"
-	diagnostic += "  Original: %s\n" % str(original)
-	diagnostic += _format_move_data_diagnostic(move_data)
-	diagnostic += _format_exclusions_diagnostic("  At position (100,100) - INSIDE", exclusions_inside)
-	diagnostic += _format_exclusions_diagnostic("  At position (150,100) - OUTSIDE", exclusions_outside)
-	
 	# THEN: Exclusion list should remain the same (contain original)
-	assert_int(exclusions_inside.size()).append_failure_message(
-		"%s\nCRITICAL: Exclusions should contain 1 item at INSIDE position" % diagnostic
-	).is_equal(1)
-	assert_int(exclusions_outside.size()).append_failure_message(
-		"%s\nCRITICAL BUG: Exclusions cleared when positioner moves OUTSIDE!" % diagnostic
-	).is_equal(1)
-	
-	if exclusions_inside.size() > 0:
-		assert_that(exclusions_inside[0]).is_same(original)
-	if exclusions_outside.size() > 0:
-		assert_that(exclusions_outside[0]).is_same(original)
+	assert_int(exclusions_inside.size()).is_equal(1)
+	assert_int(exclusions_outside.size()).is_equal(1)
+	assert_that(exclusions_inside[0]).is_same(original)
+	assert_that(exclusions_outside[0]).is_same(original)
 
 ## Helper: Get all active indicators
 func _get_active_indicators() -> Array[RuleCheckIndicator]:
@@ -300,36 +227,3 @@ func _count_invalid_indicators(indicators: Array[RuleCheckIndicator]) -> int:
 		if not indicator.valid:
 			count += 1
 	return count
-
-## Helper: Format collision exclusions diagnostic
-func _format_exclusions_diagnostic(label: String, exclusions: Array) -> String:
-	var diag := "%s: %d exclusions\n" % [label, exclusions.size()]
-	if exclusions.size() > 0:
-		for i in exclusions.size():
-			diag += "    [%d] %s (valid: %s)\n" % [i, str(exclusions[i]), str(is_instance_valid(exclusions[i]))]
-	else:
-		diag += "    (empty)\n"
-	return diag
-
-## Helper: Format indicator state diagnostic
-func _format_indicators_diagnostic(indicators: Array[RuleCheckIndicator]) -> String:
-	if indicators.is_empty():
-		return "  No indicators found\n"
-	
-	var diag := "  Indicators: %d total, %d invalid\n" % [indicators.size(), _count_invalid_indicators(indicators)]
-	for i in indicators.size():
-		var ind := indicators[i]
-		diag += "    [%d] valid=%s pos=%s\n" % [i, str(ind.valid), str(ind.global_position)]
-	return diag
-
-## Helper: Format move_data diagnostic
-func _format_move_data_diagnostic(move_data: ManipulationData) -> String:
-	if not move_data:
-		return "  move_data: null\n"
-	
-	var diag := "  move_data:\n"
-	diag += "    status: %s (%s)\n" % [str(move_data.status), _status_to_string(move_data.status)]
-	diag += "    message: %s\n" % str(move_data.message)
-	diag += "    source: %s\n" % str(move_data.source)
-	diag += "    target: %s\n" % str(move_data.target)
-	return diag

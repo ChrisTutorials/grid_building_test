@@ -60,7 +60,8 @@ func test_smithy_placement_in_clear_area_should_not_report_collision() -> void:
 	# REGRESSION: Building placement was reporting "Colliding on 1 tile(s)" in clear areas
 	
 	# Setup: Position in a clear area within map bounds
-	var clear_tile: Vector2i = Vector2i(0, 0)  # Use map center as clear area
+	# Use tile (10, 10) which provides ample space for 7x5 smithy on 31x31 map
+	var clear_tile: Vector2i = Vector2i(10, 10)
 	_position_target_at_tile(clear_tile)
 	
 	# Note: Not adding collision shapes to target - preview will create its own collision objects
@@ -103,8 +104,8 @@ func test_smithy_placement_in_clear_area_should_not_report_collision() -> void:
 func test_collision_rule_configuration_validity() -> void:
 	# REGRESSION: Validate that collision rules are properly configured
 	
-	# Setup target in clear area
-	var clear_tile: Vector2i = Vector2i(1, 1)
+	# Setup target in clear area (use tile 10,10 with ample space for 7x5 smithy)
+	var clear_tile: Vector2i = Vector2i(10, 10)
 	_position_target_at_tile(clear_tile)
 	# Note: Not adding collision shapes to avoid interference
 	
