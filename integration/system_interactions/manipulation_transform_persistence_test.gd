@@ -5,7 +5,7 @@
 ##
 ## Coverage:
 ## - Horizontal flip persistence on placement
-## - Vertical flip persistence on placement  
+## - Vertical flip persistence on placement
 ## - Rotation persistence on placement
 ## - Combined transforms (rotation + flip) persistence
 ## - Scale persistence on placement
@@ -60,18 +60,22 @@ func after_test() -> void:
 	pass
 
 #region HORIZONTAL_FLIP_PERSISTENCE_TESTS
+const TransformPersistenceDiagnostics = preload("res://test/helpers/transform_persistence_diagnostics.gd")
 
 ## Test: Horizontal flip during move is preserved on placement
 func test_horizontal_flip_persists_on_placement() -> void:
-	# Setup: Place an object that can be moved
+	# Setup: Place an object that can be moved (place far from test area to avoid collision)
 	var placement_report: PlacementReport = _building_system.enter_build_mode(test_smithy_placeable)
 	var enter_successful: bool = placement_report.is_successful()
 	assert_bool(enter_successful).is_true()
 	
-	_targeting_state.positioner.global_position = GBTestConstants.CENTER
+	# Place initial object away from test area to avoid collision during move test
+	# Use positive offset to stay within 31x31 tilemap bounds (5 tiles = 160px from center)
+	var initial_position: Vector2 = GBTestConstants.CENTER + Vector2(160, 160)
+	_targeting_state.positioner.global_position = initial_position
 	_runner.simulate_frames(1)
 	
-	var place_report: PlacementReport = _building_system.try_build_at_position(GBTestConstants.CENTER)
+	var place_report: PlacementReport = _building_system.try_build_at_position(initial_position)
 	var place_successful: bool = place_report.is_successful()
 	assert_bool(place_successful).append_failure_message(
 		"Failed to place test object in build mode: %s" % str(place_report.get_issues())
@@ -80,7 +84,6 @@ func test_horizontal_flip_persists_on_placement() -> void:
 	# Get the placed object
 	var placed_object: Node = _targeting_state.target
 	assert_object(placed_object).is_not_null()
-	var original_scale: Vector2 = placed_object.scale
 	
 	# Act: Enter move mode
 	var move_data: ManipulationData = _manipulation_system.try_move(placed_object)
@@ -93,22 +96,34 @@ func test_horizontal_flip_persists_on_placement() -> void:
 	_manipulation_parent.apply_horizontal_flip()
 	_runner.simulate_frames(1)
 
-	var preview_transform: Transform2D = (move_data.target.root as Node2D).global_transform
-	
-	# Confirm placement
-	_targeting_state.positioner.global_position = GBTestConstants.CENTER + Vector2(64, 0)
+	# Move to test position (collision-free area)
+	var test_position: Vector2 = GBTestConstants.CENTER
+	_targeting_state.positioner.global_position = test_position
 	_runner.simulate_frames(1)
-	var validation_results: ValidationResults = await _manipulation_system.try_placement(move_data)
+	var preview_transform: Transform2D = TransformPersistenceDiagnostics.capture_preview_transform(move_data)
+
+	# Confirm placement (now collision-free since source moved from initial_position to test_position)
+	var validation_results: ValidationResults = _manipulation_system.try_placement(move_data)
 	var placement_valid: bool = validation_results.is_successful()
-	assert_bool(placement_valid).append_failure_message(
-		"Horizontal flip placement validation failed: %s" % str(validation_results.get_issues())
-	).is_true()
 	
-	_assert_transforms_match(
+	# Enhanced diagnostics for placement failures
+	if not placement_valid:
+		var diag_msg: String = TransformPersistenceDiagnostics.format_placement_failure(
+			"Horizontal flip",
+			placed_object,
+			_manipulation_parent,
+			validation_results)
+		assert_bool(placement_valid).append_failure_message(diag_msg).is_true()
+	else:
+		assert_bool(placement_valid).is_true()
+	
+	TransformPersistenceDiagnostics.assert_transforms_preserved(
 		preview_transform,
 		placed_object.global_transform,
-		"Horizontal flip should preserve preview transform"
-	)
+		"Horizontal flip should preserve preview transform",
+		POSITION_PRECISION,
+		SCALE_PRECISION,
+		Callable(self, "_assert_component"))
 
 #endregion
 
@@ -116,21 +131,21 @@ func test_horizontal_flip_persists_on_placement() -> void:
 
 ## Test: Vertical flip during move is preserved on placement
 func test_vertical_flip_persists_on_placement() -> void:
-	# Setup: Place an object
+	# Setup: Place an object far from test area to avoid collision
 	var placement_report: PlacementReport = _building_system.enter_build_mode(test_smithy_placeable)
 	assert_bool(placement_report.is_successful()).is_true()
 	
-	_targeting_state.positioner.global_position = GBTestConstants.CENTER
+	var initial_position: Vector2 = GBTestConstants.CENTER + Vector2(5 * 32, 5 * 32)  # 5 tiles away from center
+	_targeting_state.positioner.global_position = initial_position
 	_runner.simulate_frames(1)
 	
-	var place_report: PlacementReport = _building_system.try_build_at_position(GBTestConstants.CENTER)
+	var place_report: PlacementReport = _building_system.try_build_at_position(initial_position)
 	assert_bool(place_report.is_successful()).append_failure_message(
 		"Failed to place test object before vertical flip: %s" % str(place_report.get_issues())
 	).is_true()
 	
 	var placed_object: Node = _targeting_state.target
 	assert_object(placed_object).is_not_null()
-	var original_scale: Vector2 = placed_object.scale
 	
 	# Act: Enter move mode and flip vertically
 	var move_data: ManipulationData = _manipulation_system.try_move(placed_object)
@@ -140,22 +155,32 @@ func test_vertical_flip_persists_on_placement() -> void:
 	_manipulation_parent.apply_vertical_flip()
 	_runner.simulate_frames(1)
 
-	var preview_transform: Transform2D = (move_data.target.root as Node2D).global_transform
-	
-	# Confirm placement
-	_targeting_state.positioner.global_position = GBTestConstants.CENTER + Vector2(64, 0)
+	# Move to collision-free test position
+	var test_position: Vector2 = GBTestConstants.CENTER
+	_targeting_state.positioner.global_position = test_position
 	_runner.simulate_frames(1)
-	var validation_results: ValidationResults = await _manipulation_system.try_placement(move_data)
-	var placement_valid_v: bool = validation_results.is_successful()
-	assert_bool(placement_valid_v).append_failure_message(
-		"Vertical flip placement validation failed: %s" % str(validation_results.get_issues())
-	).is_true()
+	var preview_transform: Transform2D = TransformPersistenceDiagnostics.capture_preview_transform(move_data)
 
-	_assert_transforms_match(
+	# Confirm placement (collision-free since source moved away)
+	var validation_results: ValidationResults = _manipulation_system.try_placement(move_data)
+	var placement_valid_v: bool = validation_results.is_successful()
+	if not placement_valid_v:
+		var diag_msg_v: String = TransformPersistenceDiagnostics.format_placement_failure(
+			"Vertical flip",
+			placed_object,
+			_manipulation_parent,
+			validation_results)
+		assert_bool(placement_valid_v).append_failure_message(diag_msg_v).is_true()
+	else:
+		assert_bool(placement_valid_v).is_true()
+
+	TransformPersistenceDiagnostics.assert_transforms_preserved(
 		preview_transform,
 		placed_object.global_transform,
-		"Vertical flip should preserve preview transform"
-	)
+		"Vertical flip should preserve preview transform",
+		POSITION_PRECISION,
+		SCALE_PRECISION,
+		Callable(self, "_assert_component"))
 
 #endregion
 
@@ -163,21 +188,21 @@ func test_vertical_flip_persists_on_placement() -> void:
 
 ## Test: Rotation during move is preserved on placement
 func test_rotation_persists_on_placement() -> void:
-	# Setup: Place an object
+	# Setup: Place an object far from test area to avoid collision
 	var placement_report: PlacementReport = _building_system.enter_build_mode(test_smithy_placeable)
 	assert_bool(placement_report.is_successful()).is_true()
 	
-	_targeting_state.positioner.global_position = GBTestConstants.CENTER
+	var initial_position: Vector2 = GBTestConstants.CENTER + Vector2(5 * 32, 5 * 32)  # 5 tiles away from center
+	_targeting_state.positioner.global_position = initial_position
 	_runner.simulate_frames(1)
 	
-	var place_report: PlacementReport = _building_system.try_build_at_position(GBTestConstants.CENTER)
+	var place_report: PlacementReport = _building_system.try_build_at_position(initial_position)
 	assert_bool(place_report.is_successful()).append_failure_message(
 		"Failed to place test object before rotation: %s" % str(place_report.get_issues())
 	).is_true()
 	
 	var placed_object: Node = _targeting_state.target
 	assert_object(placed_object).is_not_null()
-	var original_rotation: float = placed_object.global_rotation_degrees
 	
 	# Act: Enter move mode and rotate
 	var move_data: ManipulationData = _manipulation_system.try_move(placed_object)
@@ -189,91 +214,107 @@ func test_rotation_persists_on_placement() -> void:
 	_manipulation_parent.apply_rotation(rotation_amount)
 	_runner.simulate_frames(1)
 
-	var preview_transform: Transform2D = (move_data.target.root as Node2D).global_transform
-	
-	# Confirm placement
-	_targeting_state.positioner.global_position = GBTestConstants.CENTER + Vector2(64, 0)
+	# Move to collision-free test position
+	var test_position_rot: Vector2 = GBTestConstants.CENTER
+	_targeting_state.positioner.global_position = test_position_rot
 	_runner.simulate_frames(1)
-	var validation_results: ValidationResults = await _manipulation_system.try_placement(move_data)
-	var placement_valid_r: bool = validation_results.is_successful()
-	assert_bool(placement_valid_r).append_failure_message(
-		"Rotation placement validation failed: %s" % str(validation_results.get_issues())
-	).is_true()
+	var preview_transform: Transform2D = TransformPersistenceDiagnostics.capture_preview_transform(move_data)
 
-	_assert_transforms_match(
+	# Confirm placement (collision-free since source moved away)
+	var validation_results: ValidationResults = _manipulation_system.try_placement(move_data)
+	var placement_valid_r: bool = validation_results.is_successful()
+	if not placement_valid_r:
+		var diag_msg_r: String = TransformPersistenceDiagnostics.format_placement_failure(
+			"Rotation",
+			placed_object,
+			_manipulation_parent,
+			validation_results)
+		assert_bool(placement_valid_r).append_failure_message(diag_msg_r).is_true()
+	else:
+		assert_bool(placement_valid_r).is_true()
+
+	TransformPersistenceDiagnostics.assert_transforms_preserved(
 		preview_transform,
 		placed_object.global_transform,
-		"Rotation should preserve preview transform"
-	)
+		"Rotation should preserve preview transform",
+		POSITION_PRECISION,
+		SCALE_PRECISION,
+		Callable(self, "_assert_component"))
 
 #endregion
 
 #region COMBINED_TRANSFORM_PERSISTENCE_TESTS
 
-## Test: Combined rotation and flip transforms persist on placement
+## Test: Combined rotation and flip during move is preserved on placement
 func test_combined_rotation_and_flip_persist_on_placement() -> void:
-	# Setup: Place an object
+	# Setup: Place an object far from test area to avoid collision
 	var placement_report: PlacementReport = _building_system.enter_build_mode(test_smithy_placeable)
 	assert_bool(placement_report.is_successful()).is_true()
 	
-	_targeting_state.positioner.global_position = GBTestConstants.CENTER
+	var initial_position: Vector2 = GBTestConstants.CENTER + Vector2(5 * 32, 5 * 32)  # 5 tiles away from center
+	_targeting_state.positioner.global_position = initial_position
 	_runner.simulate_frames(1)
 	
-	var place_report: PlacementReport = _building_system.try_build_at_position(GBTestConstants.CENTER)
+	var place_report: PlacementReport = _building_system.try_build_at_position(initial_position)
 	assert_bool(place_report.is_successful()).append_failure_message(
-		"Failed to place test object before combined transform: %s" % str(place_report.get_issues())
+		"Failed to place test object before combined transforms: %s" % str(place_report.get_issues())
 	).is_true()
 	
 	var placed_object: Node = _targeting_state.target
 	assert_object(placed_object).is_not_null()
-	var original_rotation: float = placed_object.global_rotation_degrees
-	var original_scale: Vector2 = placed_object.scale
 	
-	# Act: Enter move mode, rotate, and flip
+	# Act: Enter move mode
 	var move_data: ManipulationData = _manipulation_system.try_move(placed_object)
-	assert_object(move_data).append_failure_message("try_move() returned null ManipulationData for combined transform test").is_not_null()
+	assert_object(move_data).append_failure_message("try_move() returned null ManipulationData for combined transforms test").is_not_null()
 	_runner.simulate_frames(1)
 	
-	# Apply rotation
-	var rotation_amount: float = 45.0
-	_manipulation_parent.apply_rotation(rotation_amount)
-	_runner.simulate_frames(1)
-	
-	# Apply horizontal flip
-	_manipulation_parent.apply_horizontal_flip()
+	# Apply both rotation and vertical flip
+	_manipulation_parent.rotation += deg_to_rad(-135)
+	_manipulation_parent.apply_vertical_flip()
 	_runner.simulate_frames(1)
 
-	var preview_transform: Transform2D = (move_data.target.root as Node2D).global_transform
-	
-	# Confirm placement
-	_targeting_state.positioner.global_position = GBTestConstants.CENTER + Vector2(64, 0)
+	# Move to collision-free test position
+	var test_position: Vector2 = GBTestConstants.CENTER
+	_targeting_state.positioner.global_position = test_position
 	_runner.simulate_frames(1)
-	var validation_results: ValidationResults = await _manipulation_system.try_placement(move_data)
-	var placement_valid_c: bool = validation_results.is_successful()
-	assert_bool(placement_valid_c).append_failure_message(
-		"Combined transform placement validation failed: %s" % str(validation_results.get_issues())
-	).is_true()
+	var preview_transform: Transform2D = TransformPersistenceDiagnostics.capture_preview_transform(move_data)
 
-	_assert_transforms_match(
+	# Confirm placement (collision-free since source moved away)
+	var validation_results: ValidationResults = _manipulation_system.try_placement(move_data)
+	var placement_valid_combined: bool = validation_results.is_successful()
+	if not placement_valid_combined:
+		var diag_msg_combined: String = TransformPersistenceDiagnostics.format_placement_failure(
+			"Combined rotation+flip",
+			placed_object,
+			_manipulation_parent,
+			validation_results)
+		assert_bool(placement_valid_combined).append_failure_message(diag_msg_combined).is_true()
+	else:
+		assert_bool(placement_valid_combined).is_true()
+
+	TransformPersistenceDiagnostics.assert_transforms_preserved(
 		preview_transform,
 		placed_object.global_transform,
-		"Combined rotation + flip should preserve preview transform"
-	)
+		"Combined rotation+flip should preserve preview transform",
+		POSITION_PRECISION,
+		SCALE_PRECISION,
+		Callable(self, "_assert_component"))
 
 #endregion
 
 #region SCALE_PERSISTENCE_TESTS
 
-## Test: Custom scale applied during move is preserved on placement
+## Test: Custom scale during move is preserved on placement
 func test_custom_scale_persists_on_placement() -> void:
-	# Setup: Place an object
+	# Setup: Place an object far from test area to avoid collision
 	var placement_report: PlacementReport = _building_system.enter_build_mode(test_smithy_placeable)
 	assert_bool(placement_report.is_successful()).is_true()
 	
-	_targeting_state.positioner.global_position = GBTestConstants.CENTER
+	var initial_position: Vector2 = GBTestConstants.CENTER + Vector2(5 * 32, 5 * 32)  # 5 tiles away from center
+	_targeting_state.positioner.global_position = initial_position
 	_runner.simulate_frames(1)
 	
-	var place_report: PlacementReport = _building_system.try_build_at_position(GBTestConstants.CENTER)
+	var place_report: PlacementReport = _building_system.try_build_at_position(initial_position)
 	assert_bool(place_report.is_successful()).append_failure_message(
 		"Failed to place test object before custom scale: %s" % str(place_report.get_issues())
 	).is_true()
@@ -281,48 +322,49 @@ func test_custom_scale_persists_on_placement() -> void:
 	var placed_object: Node = _targeting_state.target
 	assert_object(placed_object).is_not_null()
 	
-	# Act: Enter move mode and apply custom scale
+	# Act: Enter move mode
 	var move_data: ManipulationData = _manipulation_system.try_move(placed_object)
 	assert_object(move_data).append_failure_message("try_move() returned null ManipulationData for custom scale test").is_not_null()
 	_runner.simulate_frames(1)
 	
-	# Apply custom scale via ManipulationParent
-	var custom_scale: Vector2 = Vector2(1.5, 1.5)
-	_manipulation_parent.scale = custom_scale
+	# Apply custom scale (1.5x)
+	_manipulation_parent.scale = Vector2(1.5, 1.5)
 	_runner.simulate_frames(1)
 
-	var preview_transform: Transform2D = (move_data.target.root as Node2D).global_transform
-	
-	# Confirm placement
-	_targeting_state.positioner.global_position = GBTestConstants.CENTER + Vector2(64, 0)
+	# Move to collision-free test position
+	var test_position_scale: Vector2 = GBTestConstants.CENTER
+	_targeting_state.positioner.global_position = test_position_scale
 	_runner.simulate_frames(1)
-	var validation_results: ValidationResults = await _manipulation_system.try_placement(move_data)
-	var placement_valid_s: bool = validation_results.is_successful()
-	assert_bool(placement_valid_s).append_failure_message(
-		"Placement validation failed: %s" % str(validation_results.get_issues())
-	).is_true()
-	
-	_assert_transforms_match(
-		preview_transform,
+	var preview_transform_scale: Transform2D = TransformPersistenceDiagnostics.capture_preview_transform(move_data)
+
+	# Confirm placement (collision-free since source moved away)
+	var validation_results: ValidationResults = _manipulation_system.try_placement(move_data)
+	var placement_valid_scale: bool = validation_results.is_successful()
+	if not placement_valid_scale:
+		var diag_msg_scale: String = TransformPersistenceDiagnostics.format_placement_failure(
+			"Custom scale",
+			placed_object,
+			_manipulation_parent,
+			validation_results)
+		assert_bool(placement_valid_scale).append_failure_message(diag_msg_scale).is_true()
+	else:
+		assert_bool(placement_valid_scale).is_true()
+
+	TransformPersistenceDiagnostics.assert_transforms_preserved(
+		preview_transform_scale,
 		placed_object.global_transform,
-		"Custom scale should preserve preview transform"
-	)
+		"Custom scale should preserve preview transform",
+		POSITION_PRECISION,
+		SCALE_PRECISION,
+		Callable(self, "_assert_component"))
 
 #endregion
 
+## Component-wise assertion adapter bridging generic diagnostics helper with GdUnit fluent assertions.
+func _assert_component(kind: String, actual: float, expected: float, tolerance: float, message: String) -> void:
+	assert_float(actual).is_equal_approx(expected, tolerance).append_failure_message(
+		"%s | %s delta=%.4f tol=%.4f" % [message, kind, abs(actual-expected), tolerance])
+
 #region HELPER METHODS
-
-func _assert_transforms_match(expected: Transform2D, actual: Transform2D, context: String) -> void:
-	_assert_vector_close(expected.origin, actual.origin, POSITION_PRECISION, "%s - position mismatch" % context)
-	_assert_vector_close(expected.x, actual.x, SCALE_PRECISION, "%s - basis.x mismatch" % context)
-	_assert_vector_close(expected.y, actual.y, SCALE_PRECISION, "%s - basis.y mismatch" % context)
-
-func _assert_vector_close(expected: Vector2, actual: Vector2, tolerance: float, context: String) -> void:
-	assert_float(actual.x).is_equal_approx(expected.x, tolerance).append_failure_message(
-		"%s (expected.x=%.4f, actual.x=%.4f)" % [context, expected.x, actual.x]
-	)
-	assert_float(actual.y).is_equal_approx(expected.y, tolerance).append_failure_message(
-		"%s (expected.y=%.4f, actual.y=%.4f)" % [context, expected.y, actual.y]
-	)
 
 #endregion

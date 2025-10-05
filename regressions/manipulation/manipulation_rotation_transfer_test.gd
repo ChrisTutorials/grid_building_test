@@ -57,12 +57,13 @@ func before_test() -> void:
 	_smithy.settings = manipulatable_settings
 	
 	# Add collision shape for indicator generation
+	# Use real Smithy dimensions: 112×80 pixels = 7×5 tiles = 35 indicators
 	var collision_body: StaticBody2D = auto_free(StaticBody2D.new())
 	_smithy.root.add_child(collision_body)
 	
 	var collision_shape: CollisionShape2D = auto_free(CollisionShape2D.new())
 	var rect_shape: RectangleShape2D = RectangleShape2D.new()
-	rect_shape.size = Vector2(64, 64)
+	rect_shape.size = Vector2(112, 80)  # Real Smithy size: 7×5 tiles
 	collision_shape.shape = rect_shape
 	collision_body.add_child(collision_shape)
 	
