@@ -230,13 +230,8 @@ func test_rotated_object_generates_same_indicator_count_as_unrotated() -> void:
 	var count_rotated := indicators_rotated.size()
 	
 	# Assert: Same indicator count regardless of rotation
-	assert_int(count_rotated).append_failure_message(
-		"INDICATOR COUNT BUG: Rotated object (90°) generated %d indicators, but unrotated generated %d. " +
-		"Rotation should NOT affect indicator count! %s vs %s" % 
-		[count_rotated, count_unrotated, 
-		 _format_indicators_debug(indicators_rotated, object_rotated.name),
-		 _format_indicators_debug(indicators_unrotated, object_unrotated.name)]
-	).is_equal(count_unrotated)
+	var rotation_msg := "INDICATOR COUNT BUG: Rotated object (90°) generated %d indicators, but unrotated generated %d. Rotation should NOT affect indicator count! %s vs %s" % [count_rotated, count_unrotated, _format_indicators_debug(indicators_rotated, object_rotated.name), _format_indicators_debug(indicators_unrotated, object_unrotated.name)]
+	assert_int(count_rotated).append_failure_message(rotation_msg).is_equal(count_unrotated)
 
 func test_rotated_object_at_various_angles_generates_consistent_indicator_count() -> void:
 	## Test: Objects rotated at different angles should all generate same indicator count
@@ -265,11 +260,8 @@ func test_rotated_object_at_various_angles_generates_consistent_indicator_count(
 		else:
 			# FAIL FAST: Check immediately instead of accumulating failures
 			if indicators.size() != baseline_count:
-				assert_int(indicators.size()).append_failure_message(
-					"INDICATOR COUNT BUG: Object at %.0f° generated %d indicators, but 0° generated %d. " +
-					"All rotations should generate SAME count! Stopping test to avoid spam." % 
-					[angle, indicators.size(), baseline_count]
-				).is_equal(baseline_count)
+				var angle_msg := "INDICATOR COUNT BUG: Object at %.0f° generated %d indicators, but 0° generated %d. All rotations should generate SAME count! Stopping test to avoid spam." % [angle, indicators.size(), baseline_count]
+				assert_int(indicators.size()).append_failure_message(angle_msg).is_equal(baseline_count)
 				return  # Stop test after first failure
 		
 		# Stop move for next iteration
@@ -340,15 +332,8 @@ func test_flipped_object_generates_same_indicator_count() -> void:
 	var count_flipped := indicators_flipped.size()
 	
 	# Assert: Same indicator count regardless of flip
-	assert_int(count_flipped).append_failure_message(
-		"INDICATOR COUNT BUG: Flipped object generated %d indicators, but normal generated %d. " +
-		"Flip should NOT affect indicator count! %s vs %s" % 
-		[count_flipped, count_normal,
-		 _format_indicators_debug(indicators_flipped, object_flipped.name),
-		 _format_indicators_debug(indicators_normal, object_normal.name)]
-	).is_equal(count_normal)
-
-func test_indicators_inherit_flip_from_moved_object() -> void:
+	var flip_msg := "INDICATOR COUNT BUG: Flipped object generated %d indicators, but normal generated %d. Flip should NOT affect indicator count! %s vs %s" % [count_flipped, count_normal, _format_indicators_debug(indicators_flipped, object_flipped.name), _format_indicators_debug(indicators_normal, object_normal.name)]
+	\t# Assert: Same indicator count regardless of flip\n\tvar flip_msg := \"INDICATOR COUNT BUG: Flipped object generated %d indicators, but normal generated %d. Flip should NOT affect indicator count! %s vs %s\" % [count_flipped, count_normal, _format_indicators_debug(indicators_flipped, object_flipped.name), _format_indicators_debug(indicators_normal, object_normal.name)]\n\tassert_int(count_flipped).append_failure_message(flip_msg).is_equal(count_normal)\n\nfunc test_indicators_inherit_flip_from_moved_object() -> void:
 	## Test: Indicators should inherit horizontal flip (scale.x = -1) from moved object
 	## Setup: Create object with horizontal flip
 	## Act: Start move operation
