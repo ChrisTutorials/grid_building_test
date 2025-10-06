@@ -34,6 +34,7 @@ var test_environment: AllSystemsTestEnvironment
 var _container: GBCompositionContainer
 var _manipulation_system: ManipulationSystem
 var _manipulation_state: ManipulationState
+var _indicator_manager : IndicatorManager
 
 func before_test() -> void:
 	# Use ALL_SYSTEMS test environment (matches working test patterns)
@@ -48,7 +49,8 @@ func before_test() -> void:
 	_container = test_environment.injector.composition_container
 	_manipulation_system = test_environment.manipulation_system
 	_manipulation_state = _container.get_manipulation_state()
-	
+	_indicator_manager = test_environment.indicator_manager
+
 	# Setup targeting state for manipulation
 	_setup_targeting_state()
 
@@ -67,6 +69,11 @@ func after_test() -> void:
 	# Cancel any active manipulation
 	if _manipulation_system:
 		_manipulation_system.cancel()
+	
+	# CRITICAL: Clear indicators to prevent orphaned indicator pollution
+	# Without this, indicators persist and contaminate subsequent tests in suite runs
+	if _indicator_manager:
+		_indicator_manager.clear()
 	
 	# Clean up any created nodes
 	for child in get_children():
@@ -116,9 +123,8 @@ func _start_manipulation(manipulatable: Manipulatable) -> bool:
 		return false
 	
 	var started: bool = move_data.status == GBEnums.Status.STARTED
-	
-	if started:
-		await get_tree().process_frame
+	_indicator_manager.force_indicators_validity_evaluation()
+		
 	
 	return started
 
@@ -130,9 +136,7 @@ func _rotate_manipulation(degrees: float) -> bool:
 		return false
 	
 	var success: bool = _manipulation_system.rotate(move_data.source.root, degrees)
-	
-	if success:
-		await get_tree().process_frame
+	_indicator_manager.force_indicators_validity_evaluation()
 	
 	return success
 
@@ -153,9 +157,7 @@ func _place_manipulated_object() -> bool:
 		return false
 	
 	var success: bool = placement_results.is_successful()
-	
-	if success:
-		await get_tree().process_frame
+	_indicator_manager.force_indicators_validity_evaluation()
 	
 	return success
 
@@ -175,21 +177,21 @@ func test_manipulation_workflow_succeeds_after_rotation() -> void:
 	var manipulatable: Manipulatable = _create_test_manipulatable()
 	
 	# STEP 2: Start manipulation (pickup)
-	var pickup_success: bool = await _start_manipulation(manipulatable)
+	var pickup_success: bool = _start_manipulation(manipulatable)
 	
 	assert_bool(pickup_success).append_failure_message(
 		"Initial pickup should succeed - indicates try_move works"
 	).is_true()
 	
 	# STEP 3: Rotate 90 degrees
-	var rotation_success: bool = await _rotate_manipulation(90.0)
+	var rotation_success: bool = _rotate_manipulation(90.0)
 	
 	assert_bool(rotation_success).append_failure_message(
 		"Rotation should succeed - indicates rotate system works"
 	).is_true()
 	
 	# STEP 4: Place the rotated object
-	var place_success: bool = await _place_manipulated_object()
+	var place_success: bool = _place_manipulated_object()
 	
 	assert_bool(place_success).append_failure_message(
 		"REGRESSION: Placement failed after rotation!\n" +
@@ -199,7 +201,7 @@ func test_manipulation_workflow_succeeds_after_rotation() -> void:
 	).is_true()
 	
 	# STEP 5: Verify we can pick up again (proves no state corruption)
-	var pickup_again_success: bool = await _start_manipulation(manipulatable)
+	var pickup_again_success: bool = _start_manipulation(manipulatable)
 	
 	assert_bool(pickup_again_success).append_failure_message(
 		"Second pickup should succeed - proves no state corruption from rotation"
@@ -220,21 +222,21 @@ func test_multiple_rotations_maintain_workflow() -> void:
 	
 	for angle in rotation_angles:
 		# Pickup
-		var pickup_success: bool = await _start_manipulation(manipulatable)
+		var pickup_success: bool = _start_manipulation(manipulatable)
 		
 		assert_bool(pickup_success).append_failure_message(
 			"Pickup should succeed before %d° rotation" % angle
 		).is_true()
 		
 		# Rotate
-		var rotation_success: bool = await _rotate_manipulation(90.0)
+		var rotation_success: bool = _rotate_manipulation(90.0)
 		
 		assert_bool(rotation_success).append_failure_message(
 			"Rotation to %d° should succeed" % angle
 		).is_true()
 		
 		# Place - this PROVES indicators work at this rotation angle
-		var place_success: bool = await _place_manipulated_object()
+		var place_success: bool = _place_manipulated_object()
 		
 		assert_bool(place_success).append_failure_message(
 			("REGRESSION at %d°: Placement failed!\n" +
@@ -249,19 +251,19 @@ func test_rotate_then_flip_workflow() -> void:
 	var manipulatable: Manipulatable = _create_test_manipulatable()
 	
 	# Pickup
-	var pickup_success: bool = await _start_manipulation(manipulatable)
+	var pickup_success: bool = _start_manipulation(manipulatable)
 	assert_bool(pickup_success).is_true()
 	
 	# Rotate 45 degrees
-	var rotation_success: bool = await _rotate_manipulation(45.0)
+	var rotation_success: bool = _rotate_manipulation(45.0)
 	assert_bool(rotation_success).is_true()
 	
 	# Flip horizontal
 	_manipulation_system.flip_horizontal(manipulatable.root)
-	await get_tree().process_frame
+	_indicator_manager.force_indicators_validity_evaluation()
 	
 	# Place - should succeed with combined transforms
-	var place_success: bool = await _place_manipulated_object()
+	var place_success: bool = _place_manipulated_object()
 	
 	assert_bool(place_success).append_failure_message(
 		"Placement should succeed after rotation + flip"

@@ -475,12 +475,23 @@ func test_recenter_on_resolve_dependencies_cursor_off_screen_moves_to_center() -
 	test_positioner._mock_cursor_on_screen = false
 	gp = _replace_positioner(setup[_IDX_ENV], test_positioner)
 	
+	# Wait for scene tree to stabilize after positioner replacement
+	await get_tree().process_frame
+	await get_tree().process_frame
+	
 	# Set positioner to a known position away from center and disable input processing
 	gp.global_position = Vector2(1, 1)
 	gp.set_input_processing_enabled(false)
 	
+	# Wait for state to propagate
+	await get_tree().process_frame
+	
 	# Trigger recenter logic by enabling input processing (simulates resolve dependencies)
 	gp.set_input_processing_enabled(true)
+	
+	# Wait for positioning logic to complete (multiple frames for full propagation)
+	await get_tree().process_frame
+	await get_tree().process_frame
 	await get_tree().process_frame
 	
 	# Should fail fast - positioning utilities now require Camera2D and return Vector2.ZERO on failure
