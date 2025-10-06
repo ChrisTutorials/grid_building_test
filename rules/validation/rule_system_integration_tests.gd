@@ -19,10 +19,13 @@ const CENTER_POSITION_Y: int = 4
 const OUTSIDE_BOUNDS_X: int = 10
 const OUTSIDE_BOUNDS_Y: int = 10
 
+var runner: GdUnitSceneRunner
 var env: AllSystemsTestEnvironment
 
 func before_test() -> void:
-	env = EnvironmentTestFactory.create_all_systems_env(self, GBTestConstants.ALL_SYSTEMS_ENV_UID)
+	# Use the premade AllSystemsTestEnvironment scene
+	runner = scene_runner(GBTestConstants.ALL_SYSTEMS_ENV_UID)
+	env = runner.scene() as AllSystemsTestEnvironment
 
 # Helper functions for DRY patterns
 

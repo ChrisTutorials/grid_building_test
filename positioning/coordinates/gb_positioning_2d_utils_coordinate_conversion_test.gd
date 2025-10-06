@@ -1,15 +1,24 @@
 ## GBPositioning2DUtils Coordinate Conversion Test
 ## Tests screen-to-world coordinate conversion accuracy for tile center positioning
+##
+## MIGRATION: Converted from EnvironmentTestFactory to scene_runner pattern
+## for better reliability and deterministic frame control.
 extends GdUnitTestSuite
 
+var runner: GdUnitSceneRunner
 var test_environment: CollisionTestEnvironment
 var viewport: Viewport
 var camera: Camera2D
 var tile_map: TileMapLayer
 
 func before_test() -> void:
-	# Create test environment using proper factory
-	test_environment = EnvironmentTestFactory.create_collision_test_environment(self)
+	# Create test environment using scene_runner
+	runner = scene_runner(GBTestConstants.COLLISION_TEST_ENV_UID)
+	test_environment = runner.scene() as CollisionTestEnvironment
+	
+	assert_object(test_environment).append_failure_message(
+		"Failed to load CollisionTestEnvironment scene"
+	).is_not_null()
 	
 	# Get viewport
 	viewport = get_viewport()

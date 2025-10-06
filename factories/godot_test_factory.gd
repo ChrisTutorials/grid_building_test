@@ -118,12 +118,8 @@ static func create_tile_map_layer_with_shape(
 	tile_set.add_source(atlas)
 	map_layer.tile_set = tile_set
 
-	var tile_id := 0
-	var atlas_coords := Vector2i(0,0)
-	for x in range(0, grid_size):
-		for y in range(0, grid_size):
-			var coords := Vector2i(x, y)
-			map_layer.set_cell(coords, tile_id, atlas_coords)
+	# Use the new helper to populate cells
+	populate_tilemap_cells(map_layer, Rect2i(0, 0, grid_size, grid_size), 0, Vector2i(0, 0))
 
 	# If fallback tileset was needed, repopulate all cells after assigning new tileset
 	if map_layer.get_cell_tile_data(Vector2i.ZERO) == null:
@@ -139,10 +135,8 @@ static func create_tile_map_layer_with_shape(
 		ts.add_source(atlas2)
 		map_layer.tile_set = ts
 		map_layer.clear()
-		for x in range(0, grid_size):
-			for y in range(0, grid_size):
-				var coords := Vector2i(x, y)
-				map_layer.set_cell(coords, 0, Vector2i(0,0))
+		# Use helper for fallback population too
+		populate_tilemap_cells(map_layer, Rect2i(0, 0, grid_size, grid_size), 0, Vector2i(0, 0))
 
 	var actual_populated_cells := map_layer.get_used_cells().size()
 	assert(actual_populated_cells == (grid_size * grid_size), "Expected: %s Actual: %s" % [grid_size * grid_size, actual_populated_cells])
@@ -182,6 +176,42 @@ static func create_empty_tile_map_layer(test: GdUnitTestSuite) -> TileMapLayer:
 	map_layer.tile_set = tile_set
 	test.add_child(map_layer)
 	return map_layer as TileMapLayer
+
+
+## Populates a TileMapLayer with cells in the specified rectangular region
+## @param tilemap: The TileMapLayer to populate
+## @param rect: The rectangular region to fill (position and size in tile coordinates)
+## @param tile_id: The tile source ID to use (default: 0)
+## @param atlas_coords: The atlas coordinates to use (default: Vector2i(0, 0))
+static func populate_tilemap_cells(
+	tilemap: TileMapLayer,
+	rect: Rect2i,
+	tile_id: int = 0,
+	atlas_coords: Vector2i = Vector2i(0, 0)
+) -> void:
+	assert(tilemap != null, "populate_tilemap_cells: tilemap cannot be null")
+	assert(tilemap.tile_set != null, "populate_tilemap_cells: tilemap must have a tile_set assigned")
+	
+	for x in range(rect.position.x, rect.position.x + rect.size.x):
+		for y in range(rect.position.y, rect.position.y + rect.size.y):
+			tilemap.set_cell(Vector2i(x, y), tile_id, atlas_coords)
+
+
+## Creates a TileMapLayer pre-populated with cells in the specified region
+## @param test: The test suite for auto_free management
+## @param rect: The rectangular region to fill (position and size in tile coordinates)
+## @param tile_id: The tile source ID to use (default: 0)
+## @param atlas_coords: The atlas coordinates to use (default: Vector2i(0, 0))
+## @return: A TileMapLayer with cells already populated
+static func create_populated_tile_map_layer(
+	test: GdUnitTestSuite,
+	rect: Rect2i = Rect2i(0, 0, 50, 50),
+	tile_id: int = 0,
+	atlas_coords: Vector2i = Vector2i(0, 0)
+) -> TileMapLayer:
+	var map_layer: TileMapLayer = create_empty_tile_map_layer(test)
+	populate_tilemap_cells(map_layer, rect, tile_id, atlas_coords)
+	return map_layer
 
 
 #endregion

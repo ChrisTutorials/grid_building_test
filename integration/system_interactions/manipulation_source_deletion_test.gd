@@ -2,7 +2,8 @@
 ## Validates that manipulation auto-cancels when the source object is deleted mid-operation
 extends GdUnitTestSuite
 
-var test_env: Dictionary
+var runner: GdUnitSceneRunner
+var test_env: Node
 var manipulation_system: ManipulationSystem
 var container: GBCompositionContainer
 var manipulation_state: ManipulationState
@@ -10,12 +11,27 @@ var test_object: Node2D
 var manipulatable: Manipulatable
 
 func before_test() -> void:
-	# Create test environment with manipulation system
-	test_env = UnifiedTestFactory.create_systems_integration_test_environment()
-	container = test_env.container
-	manipulation_system = test_env.manipulation_system
+	# Load test environment using scene_runner with ALL_SYSTEMS_ENV_UID
+	runner = scene_runner("uid://ioucajhfxc8b")
+	test_env = runner.scene()
+	
+	# Get systems from environment using AllSystemsTestEnvironment API
+	container = test_env.injector.composition_container
+	var systems_context := container.get_systems_context()
+	manipulation_system = systems_context.get_manipulation_system()
 	manipulation_state = container.get_states().manipulation
 	
+	# Create initial test object - tests will recreate as needed
+	_create_test_object()
+	
+	await get_tree().process_frame
+
+func after_test() -> void:
+	# Cleanup is handled by auto_free()
+	pass
+
+## Helper: Create a fresh test object with manipulatable component
+func _create_test_object() -> void:
 	# Create a test object with manipulatable component
 	test_object = auto_free(Node2D.new())
 	test_object.name = "TestObject"
@@ -30,12 +46,6 @@ func before_test() -> void:
 	
 	# Initialize manipulatable with container dependencies
 	manipulatable.resolve_gb_dependencies(container)
-	
-	await get_tree().process_frame
-
-func after_test() -> void:
-	# Cleanup is handled by auto_free()
-	pass
 
 ## Test: Manipulation auto-cancels when source object is deleted
 ## Setup: Start move manipulation on a test object
@@ -43,7 +53,7 @@ func after_test() -> void:
 ## Assert: Manipulation is automatically canceled
 func test_source_deletion_cancels_manipulation() -> void:
 	# Arrange: Start move manipulation
-	var move_data: ManipulationData = manipulation_system.try_move(manipulatable)
+	var move_data: ManipulationData = manipulation_system.try_move(test_object)
 	
 	# Verify manipulation started successfully
 	assert_object(move_data).is_not_null().append_failure_message(
@@ -67,8 +77,8 @@ func test_source_deletion_cancels_manipulation() -> void:
 		"Expected manipulation data to be cleared after source deletion"
 	)
 	
-	# Verify no manipulation is active
-	var is_manipulating: bool = manipulation_system.is_manipulating()
+	# Verify no manipulation is active - use manipulation_state.data instead of is_manipulating()
+	var is_manipulating: bool = manipulation_state.data != null
 	assert_bool(is_manipulating).is_false().append_failure_message(
 		"Expected manipulation system to report no active manipulation after source deletion"
 	)
@@ -78,8 +88,12 @@ func test_source_deletion_cancels_manipulation() -> void:
 ## Act: Delete source multiple times (defensive test)
 ## Assert: No crashes, manipulation canceled cleanly
 func test_multiple_source_deletions_handled_safely() -> void:
-	# Arrange: Start move manipulation
-	var move_data: ManipulationData = manipulation_system.try_move(manipulatable)
+	# Arrange: Create fresh test object
+	_create_test_object()
+	await get_tree().process_frame
+	
+	# Start move manipulation
+	var move_data: ManipulationData = manipulation_system.try_move(test_object)
 	
 	assert_int(move_data.status).is_equal(GBEnums.Status.STARTED).append_failure_message(
 		"Expected manipulation to start successfully"
@@ -109,7 +123,10 @@ func test_multiple_source_deletions_handled_safely() -> void:
 ## Assert: Always cancels cleanly without errors
 func test_source_deletion_at_various_manipulation_phases() -> void:
 	# Phase 1: Delete immediately after start
-	var move_data1: ManipulationData = manipulation_system.try_move(manipulatable)
+	_create_test_object()
+	await get_tree().process_frame
+	
+	var move_data1: ManipulationData = manipulation_system.try_move(test_object)
 	assert_int(move_data1.status).is_equal(GBEnums.Status.STARTED)
 	
 	test_object.queue_free()
@@ -134,7 +151,10 @@ func test_source_deletion_at_various_manipulation_phases() -> void:
 	await get_tree().process_frame
 	
 	# Phase 2: Delete after some processing time
-	var move_data2: ManipulationData = manipulation_system.try_move(manipulatable)
+	_create_test_object()  # Create fresh object for phase 2
+	await get_tree().process_frame
+	
+	var move_data2: ManipulationData = manipulation_system.try_move(test_object)
 	assert_int(move_data2.status).is_equal(GBEnums.Status.STARTED)
 	
 	# Let some frames pass

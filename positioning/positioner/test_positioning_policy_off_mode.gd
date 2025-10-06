@@ -18,8 +18,13 @@ func test_positioning_policy_with_remain_active_in_off_mode() -> void:
 	add_child(camera)
 	add_child(positioner)
 	
-	# Create test environment
-	var env: CollisionTestEnvironment = EnvironmentTestFactory.create_collision_test_environment(self)
+	# MIGRATION: Use scene_runner WITHOUT frame simulation
+	var runner: GdUnitSceneRunner = scene_runner(GBTestConstants.COLLISION_TEST_ENV_UID)
+	var env: CollisionTestEnvironment = runner.scene() as CollisionTestEnvironment
+	
+	assert_object(env).append_failure_message(
+		"Failed to load CollisionTestEnvironment scene"
+	).is_not_null()
 	var container: GBCompositionContainer = env.container
 	var config: GBConfig = container.config
 	var states: GBStates = container.get_states()

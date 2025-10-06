@@ -1,13 +1,15 @@
 ## Test Suite: Preview Name Consistency Tests
 ##
-## Validates that building system preview instances maintain consistent naming
-## when the same placeable is set multiple times, and that different placeables
-## receive their correct root scene names. Tests address issue #10 where preview
-## names were lost on repeated assignments of the same placeable.
+## MIGRATION: Converted from EnvironmentTestFactory to scene_runner pattern
+## for better reliability and deterministic frame control.
+##
+## Validates that preview object names remain consistent and identifiable
+## throughout the building workflow, ensuring proper tracking and debugging.
 
 extends GdUnitTestSuite
 
 #region Test Environment Variables
+var runner: GdUnitSceneRunner
 var env: AllSystemsTestEnvironment
 var system: BuildingSystem
 var targeting_state: GridTargetingState
@@ -23,7 +25,8 @@ func before_test() -> void:
 	assert_object(placeable_2d_test).is_not_null()
 
 	# Create complete all systems test environment
-	env = EnvironmentTestFactory.create_all_systems_env(self, GBTestConstants.ALL_SYSTEMS_ENV_UID)
+	runner = scene_runner(GBTestConstants.ALL_SYSTEMS_ENV_UID)
+	env = runner.scene() as AllSystemsTestEnvironment
 	_container = env.get_container()
 	system = env.building_system
 	

@@ -2,14 +2,18 @@
 ## Purpose: Reproduce "Tried placing outside of valid map area" seen in integration
 ## Strategy: Use IndicatorManager + PlacementValidator directly, compute safe tiles from used_rect,
 ## and assert pre-validation succeeds at start tile, with rich diagnostics.
-## TODO: Refractor diagnostics into helpers or GBTestDiagnostics class
+##
+## MIGRATION: Converted from EnvironmentTestFactory to scene_runner pattern
+## for better reliability and deterministic frame control.
 extends GdUnitTestSuite
 
 # Test constants to eliminate magic numbers
 const SAFE_START_TILE := GBTestConstants.DEFAULT_CENTER_TILE
 const OUTSIDE_OFFSET := 2
 const PLACEABLE_RECT_4X2 := GBTestConstants.PLACEABLE_RECT_4X2
+const TestIsolation = preload("res://test/helpers/gb_test_isolation.gd")
 
+var runner: GdUnitSceneRunner
 var env: BuildingTestEnvironment
 var _building_system : BuildingSystem
 var _container: GBCompositionContainer
@@ -18,10 +22,16 @@ var _placement_validator: PlacementValidator
 var _map: TileMapLayer
 var _targeting_state: GridTargetingState
 var _positioner: Node2D
+var _isolation_state: Dictionary
 
 func before_test() -> void:
-	env = EnvironmentTestFactory.create_building_system_test_environment(self)
-	assert_object(env).append_failure_message("Failed to create building test environment").is_not_null()
+	# MIGRATION: Use scene_runner WITHOUT frame simulation
+	runner = scene_runner(GBTestConstants.BUILDING_TEST_ENV_UID)
+	env = runner.scene() as BuildingTestEnvironment
+	
+	assert_object(env).append_failure_message("Failed to load BuildingTestEnvironment scene").is_not_null()
+	
+	# Direct property access - type-safe
 	_container = env.get_container()
 	_building_system = env.building_system
 	_indicator_manager = env.indicator_manager
@@ -30,6 +40,8 @@ func before_test() -> void:
 	_positioner = env.positioner
 	var targeting_system: GridTargetingSystem = env.grid_targeting_system
 	_targeting_state = targeting_system.get_state()
+	
+	# Set up targeting state
 	if _targeting_state.target_map == null:
 		_targeting_state.target_map = _map
 	_targeting_state.target = env.placer
@@ -62,10 +74,8 @@ func before_test() -> void:
 	## Ensure tile map layer meets expectations
 	GBTestConstants.assert_tile_map_size(self, env, 31, 31)
 	
-	# REFACTORING FIX: Disable input processing on positioner during tests
-	# This prevents GridPositioner2D mouse movement from interfering with test positioning
-	if _positioner.has_method("set_input_processing_enabled"):
-		_positioner.set_input_processing_enabled(false)
+	# Set up test isolation to prevent mouse interference
+	_isolation_state = TestIsolation.setup_building_test_isolation(_positioner, _map, _container.get_logger())
 
 # Helper method to move positioner to a specific tile
 func _move_positioner_to_tile(target_tile: Vector2i) -> void:

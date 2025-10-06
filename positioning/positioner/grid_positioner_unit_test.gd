@@ -1,5 +1,9 @@
 ## Unit tests for GridPositioner2D core behavior
 ## Focus: visibility toggling on mode changes and input gate toggling
+##
+## MIGRATION: Converted from EnvironmentTestFactory to scene_runner pattern
+## for better reliability and deterministic frame control.
+##
 ## IMPORTANT: GridPositioner2D snaps to tile centers - objects are placed in the MIDDLE of tiles
 ## In Godot 4.x, TileMapLayer.map_to_local() returns tile CENTER coordinates.
 ## Expected behavior: positioner positions at tile centers like (8.0, 8.0) for 16x16 tiles.
@@ -16,6 +20,8 @@ const _IDX_SETTINGS := 2
 const _IDX_STATES := 3
 const _IDX_TARGETING_STATE := 4
 const _IDX_MAP := 5
+
+var runner: GdUnitSceneRunner
 
 func _assert_visible(actual: bool, expected: bool, context: String) -> void:
 	if expected:
@@ -57,7 +63,13 @@ func _diag(message: String) -> String:
 	return GBDiagnostics.format_debug(message, SUITE_NAME, get_script().resource_path)
 
 func _create_collision_env() -> CollisionTestEnvironment:
-	var env: CollisionTestEnvironment = EnvironmentTestFactory.create_collision_test_environment(self)
+	runner = scene_runner(GBTestConstants.COLLISION_TEST_ENV_UID)
+	var env: CollisionTestEnvironment = runner.scene() as CollisionTestEnvironment
+	
+	assert_object(env).append_failure_message(
+		"Failed to load CollisionTestEnvironment scene"
+	).is_not_null()
+	
 	return env
 
 func _replace_positioner(env: CollisionTestEnvironment, replacement: GridPositioner2D) -> GridPositioner2D:

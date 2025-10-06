@@ -2,10 +2,13 @@ extends GdUnitTestSuite
 
 ## Consolidated composition container tests using factory patterns
 
+var runner: GdUnitSceneRunner
 var env: AllSystemsTestEnvironment
 
 func before_test() -> void:
-	env = EnvironmentTestFactory.create_all_systems_env(self, GBTestConstants.ALL_SYSTEMS_ENV_UID)
+	# Use the premade AllSystemsTestEnvironment scene
+	runner = scene_runner(GBTestConstants.ALL_SYSTEMS_ENV_UID)
+	env = runner.scene() as AllSystemsTestEnvironment
 
 func test_component_registration() -> void:
 	# Test that the injector system is properly initialized with container

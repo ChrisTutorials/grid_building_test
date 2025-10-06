@@ -1,5 +1,8 @@
 ## IndicatorSetupUtils Unit Tests
 ##
+## MIGRATION: Converted from EnvironmentTestFactory to scene_runner pattern
+## for better reliability and deterministic frame control.
+##
 ## These tests verify collision shape gathering, test setup building,
 ## position mapping, validation functionality, indicator generation,
 ## and positioning accuracy using parameterized tests with various test objects.
@@ -53,15 +56,22 @@ const TEST_SCENE_DATA = [
 	}
 ]
 
+var runner: GdUnitSceneRunner
 var _targeting_state: GridTargetingState
 var _indicator_template: PackedScene
 var _test_rule: TileCheckRule
 var env : CollisionTestEnvironment
 
 func before_test() -> void:
-	# Setup common test dependencies
-	env = EnvironmentTestFactory.create_collision_test_environment(self)
-	_targeting_state = env.get_container().get_targeting_state()
+	# Setup common test dependencies using scene_runner
+	runner = scene_runner(GBTestConstants.COLLISION_TEST_ENV_UID)
+	env = runner.scene() as CollisionTestEnvironment
+	
+	assert_object(env).append_failure_message(
+		"Failed to load CollisionTestEnvironment scene"
+	).is_not_null()
+	
+	_targeting_state = env.container.get_targeting_state()
 	_indicator_template = GBTestConstants.TEST_INDICATOR_TD_PLATFORMER
 	_test_rule = TileCheckRule.new()
 

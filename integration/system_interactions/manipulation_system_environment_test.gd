@@ -4,22 +4,25 @@
 ## Tests proper integration with manipulation state, targeting state, and validation systems
 ## Ensures manipulation operations work correctly in fully configured environments
 ##
+## MIGRATION: Converted from EnvironmentTestFactory to scene_runner pattern
+## for better reliability and deterministic frame control.
+##
 ## Coverage:
-## - Factory method validation with proper environment setup
 ## - System dependency validation in environment context
 ## - Result object creation and null safety
 ## - Environment-based testing patterns
+## - scene_runner migration pattern validation
 
 extends GdUnitTestSuite
 @warning_ignore("unused_parameter")
 @warning_ignore("return_value_discarded")
 
 #region Test Constants
-const ALL_SYSTEMS_ENV_UID: String = "uid://ioucajhfxc8b"
 const TEST_TIMEOUT_MS: int = 5000
 #endregion
 
 #region Test Environment Variables
+var runner: GdUnitSceneRunner
 var test_environment: AllSystemsTestEnvironment
 var manipulation_system: ManipulationSystem
 var manipulation_state: ManipulationState
@@ -29,10 +32,16 @@ var test_manipulatable: Manipulatable
 
 #region Setup and Teardown
 func before_test() -> void:
-	# Use the AllSystems test environment for proper integration testing
-	test_environment = EnvironmentTestFactory.create_all_systems_env(self, GBTestConstants.ALL_SYSTEMS_ENV_UID)
+	# MIGRATION: Use scene_runner WITHOUT frame simulation
+	# Scene is ready immediately - no async waits needed
+	runner = scene_runner(GBTestConstants.ALL_SYSTEMS_ENV_UID)
+	test_environment = runner.scene() as AllSystemsTestEnvironment
+	
+	assert_object(test_environment).append_failure_message(
+		"Failed to load AllSystemsTestEnvironment scene"
+	).is_not_null()
 
-	# Extract components for testing
+	# Extract components for testing - direct property access (type-safe)
 	container = test_environment.injector.composition_container
 	manipulation_system = test_environment.manipulation_system
 	manipulation_state = container.get_states().manipulation  # Access state through container
@@ -41,13 +50,12 @@ func before_test() -> void:
 	test_manipulatable = auto_free(Manipulatable.new())
 
 	# Validate environment is properly set up
-	assert_object(test_environment).append_failure_message("Test environment should be created").is_not_null()
 	assert_object(manipulation_system).append_failure_message("ManipulationSystem should be available").is_not_null()
 	assert_object(manipulation_state).append_failure_message("ManipulationState should be available").is_not_null()
 	assert_object(container).append_failure_message("Container should be available").is_not_null()
 
 func after_test() -> void:
-	# Cleanup is handled by GdUnit auto_free
+	# Cleanup is handled by GdUnit auto_free and scene_runner
 	pass
 #endregion
 
@@ -107,14 +115,14 @@ func test_manipulation_system_container_validation() -> void:
 func test_manipulation_system_result_objects_not_null() -> void:
 	"""Test that manipulation system operations return valid result objects"""
 	# Test try_move with null input
-	var move_null_result: Variant = await manipulation_system.try_move(null)
+	var move_null_result: Variant = manipulation_system.try_move(null)
 	assert_object(move_null_result).append_failure_message(
 		"try_move(null) should return result object, not null"
 	).is_not_null()
 
 	# Test try_move with invalid node
 	var invalid_node: Node = auto_free(Node.new())
-	var move_invalid_result: Variant = await manipulation_system.try_move(invalid_node)
+	var move_invalid_result: Variant = manipulation_system.try_move(invalid_node)
 	assert_object(move_invalid_result).append_failure_message(
 		"try_move(invalid_node) should return result object, not null"
 	).is_not_null()
@@ -125,23 +133,27 @@ func test_manipulation_system_result_objects_not_null() -> void:
 		"demolish(null) should return a valid boolean result"
 	).is_not_null()
 
-func test_manipulation_system_environment_vs_factory() -> void:
-	"""Test difference between environment-based and factory-based system creation"""
-	# Environment-based system (current approach)
-	var env_system: ManipulationSystem = manipulation_system
+func test_manipulation_system_scene_runner_pattern() -> void:
+	"""Test that scene_runner pattern provides properly configured system"""
+	# scene_runner-based system (current recommended approach)
+	var scene_system: ManipulationSystem = manipulation_system
 
-	# Factory-based system (legacy approach - should be removed)
-	var factory_system: ManipulationSystem = UnifiedTestFactory.create_manipulation_system(self)
-	auto_free(factory_system)
+	# System should exist and be properly integrated
+	assert_object(scene_system).append_failure_message("Scene runner system should exist").is_not_null()
 
-	# Both should exist
-	assert_object(env_system).append_failure_message("Environment system should exist").is_not_null()
-	assert_object(factory_system).append_failure_message("Factory system should exist").is_not_null()
-
-	# Environment system should be properly integrated
-	assert_bool(env_system.is_inside_tree()).append_failure_message(
-		"Environment system should be in scene tree"
+	# System should be in scene tree (passive initialization)
+	assert_bool(scene_system.is_inside_tree()).append_failure_message(
+		"Scene runner system should be in scene tree"
 	).is_true()
+	
+	# System should have access to all dependencies
+	assert_object(manipulation_state).append_failure_message(
+		"System should have access to manipulation state"
+	).is_not_null()
+	
+	assert_object(container).append_failure_message(
+		"System should have access to composition container"
+	).is_not_null()
 
 func test_manipulation_system_dependency_injection() -> void:
 	"""Test that manipulation system receives proper dependency injection"""
@@ -152,7 +164,7 @@ func test_manipulation_system_dependency_injection() -> void:
 	assert_object(test_environment.injector).is_not_null()
 
 	# Test that the system can perform basic operations without null reference errors
-	var test_result: Variant = await manipulation_system.try_move(null)
+	var test_result: Variant = manipulation_system.try_move(null)
 	assert_object(test_result).append_failure_message(
 		"System should handle operations without null reference crashes"
 	).is_not_null()

@@ -1,13 +1,26 @@
 ## Simple test to verify remain_active_in_off_mode visibility behavior
+##
+## MIGRATION: Converted from EnvironmentTestFactory to scene_runner pattern
+## for better reliability and deterministic frame control.
 extends GdUnitTestSuite
+
+var runner: GdUnitSceneRunner
+var env: CollisionTestEnvironment
+
+func before_test() -> void:
+	runner = scene_runner(GBTestConstants.COLLISION_TEST_ENV_UID)
+	env = runner.scene() as CollisionTestEnvironment
+	
+	assert_object(env).append_failure_message(
+		"Failed to load CollisionTestEnvironment scene"
+	).is_not_null()
 
 func test_visibility_with_remain_active_in_off_mode() -> void:
 	# Create minimal test setup
 	var positioner := GridPositioner2D.new()
 	add_child(positioner)
 	
-	# Create test environment
-	var env: CollisionTestEnvironment = EnvironmentTestFactory.create_collision_test_environment(self)
+	# Access environment directly
 	var container: GBCompositionContainer = env.container
 	var config: GBConfig = container.config
 	var states: GBStates = container.get_states()

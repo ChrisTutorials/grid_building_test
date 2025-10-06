@@ -1,5 +1,8 @@
 ## Regression test for manipulation move collision exclusion bug.
 ##
+## MIGRATION: Converted from EnvironmentTestFactory to scene_runner pattern
+## for better reliability and deterministic frame control.
+##
 ## BUG: When moving an object, collision exclusions work correctly ONLY when
 ## the grid positioner (targeting ShapeCast2D) is inside the original object's bounds.
 ## When the positioner moves outside the original object's bounds, the exclusion
@@ -9,11 +12,17 @@
 ## object should ALWAYS be excluded from collision detection during move operations.
 extends GdUnitTestSuite
 
+var runner: GdUnitSceneRunner
 var _env: CollisionTestEnvironment
 var _rule: CollisionsCheckRule
 
 func before_test() -> void:
-	_env = EnvironmentTestFactory.create_collision_test_environment(self)
+	runner = scene_runner(GBTestConstants.COLLISION_TEST_ENV_UID)
+	_env = runner.scene() as CollisionTestEnvironment
+	
+	assert_object(_env).append_failure_message(
+		"Failed to load CollisionTestEnvironment scene"
+	).is_not_null()
 	
 	_rule = CollisionsCheckRule.new()
 	_rule.pass_on_collision = false

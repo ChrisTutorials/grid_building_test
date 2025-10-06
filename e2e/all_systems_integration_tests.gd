@@ -602,11 +602,9 @@ func test_build_and_move_multi_system_integration() -> void:
 		assert_bool(manipulatable.is_movable()).append_failure_message("Placed object is expected to be movable as defined on it's Manipulatable component.").is_true()
 
 	# Phase 3: Post-build manipulation - move the built object
-	var move_result: Variant = await _manipulation_system.try_move(built_node)
+	var move_result: Variant = _manipulation_system.try_move(built_node)
 	var manipulation_state := _container.get_states().manipulation
-	assert_object(building_system._states.manipulation).append_failure_message("Make sure we are dealing with the same state.").is_equal(manipulation_state)
-	
-	# Check if try_move was successful before validating state
+	assert_object(building_system._states.manipulation).append_failure_message("Make sure we are dealing with the same state.").is_equal(manipulation_state)	# Check if try_move was successful before validating state
 	if move_result == null or not manipulation_state.validate_setup():
 		_log_conditional_message("Manipulation system did not successfully initialize move operation (may be expected in some configurations)")
 		return

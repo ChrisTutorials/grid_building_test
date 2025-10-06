@@ -22,8 +22,11 @@
 extends GdUnitTestSuite
 @warning_ignore("unused_parameter")
 
+const ManipulationHelpers := preload("res://test/grid_building_test/regressions/manipulation/manipulation_test_helpers.gd")
+
 #region Test Environment
-var test_hierarchy: AllSystemsTestEnvironment
+var runner: GdUnitSceneRunner
+var env: AllSystemsTestEnvironment
 var manipulation_system: ManipulationSystem
 var _container: GBCompositionContainer
 var collision_body: StaticBody2D
@@ -31,10 +34,16 @@ var collision_body: StaticBody2D
 
 #region Setup and Teardown
 func before_test() -> void:
-	# Create test environment with manipulation system
-	test_hierarchy = EnvironmentTestFactory.create_all_systems_env(self, GBTestConstants.ALL_SYSTEMS_ENV_UID)
-	_container = test_hierarchy.get_container()
-	manipulation_system = test_hierarchy.manipulation_system
+	# Use scene_runner for proper frame control
+	runner = scene_runner(GBTestConstants.ALL_SYSTEMS_ENV_UID)
+	env = runner.scene() as AllSystemsTestEnvironment
+	
+	# Get systems from test environment properties
+	manipulation_system = env.manipulation_system
+	_container = env.get_container()
+	
+	# Wait for systems to initialize
+	runner.simulate_frames(2)
 	
 	# Set up targeting state for manipulation tests
 	_setup_targeting_state()
@@ -45,33 +54,21 @@ func _setup_targeting_state() -> void:
 		var default_target: Node2D = auto_free(Node2D.new())
 		default_target.position = Vector2(64, 64)
 		default_target.name = "DefaultTarget"
-		add_child(default_target)
+		env.add_child(default_target)
 		targeting_state.target = default_target
 #endregion
 
 #region Helper Methods
 func _create_test_manipulatable_with_collision_rules() -> Manipulatable:
 	"""Create a manipulatable object with collision checking rules enabled."""
-	var root: Node2D = auto_free(Node2D.new())
-	add_child(root)
-	root.position = Vector2(32, 32)  # Initial position
-	
-	# Add collision shape to the root so indicators can be generated
-	var test_collision_body: StaticBody2D = auto_free(StaticBody2D.new())
-	var test_collision_shape: CollisionShape2D = auto_free(CollisionShape2D.new())
-	var test_rect_shape: RectangleShape2D = auto_free(RectangleShape2D.new())
-	test_rect_shape.size = Vector2(32, 32)
-	test_collision_shape.shape = test_rect_shape
-	test_collision_body.add_child(test_collision_shape)
-	root.add_child(test_collision_body)
-	
-	var manipulatable: Manipulatable = auto_free(Manipulatable.new())
-	
-	# Use settings with collision rules that will fail
-	var collision_settings: ManipulatableSettings = load("uid://5u2sgj1wk4or")  # 2 rules, 1 tile check
-	manipulatable.settings = collision_settings
-	manipulatable.root = root
-	root.add_child(manipulatable)
+	# Use ManipulationHelpers which properly sets up rules
+	var manipulatable: Manipulatable = ManipulationHelpers.create_test_manipulatable(
+		self,
+		"TestManipulatable",
+		Vector2(32, 32),
+		Vector2(32, 32),
+		true  # with_move_rules = true
+	)
 	
 	return manipulatable
 
@@ -104,12 +101,37 @@ func _create_collision_obstacle_at_position(position: Vector2) -> StaticBody2D:
 ## Expected: Object should remain at original position when validation fails.
 func test_validation_failure_prevents_object_movement() -> void:
 	# Setup: Create manipulatable with collision rules
-	var manipulatable: Manipulatable = _create_test_manipulatable_with_collision_rules()
+	var manipulatable: Manipulatable = ManipulationHelpers.create_test_manipulatable(
+		env,
+		"TestManipulatable",
+		Vector2(32, 32),
+		Vector2(32, 32),
+		true  # with_move_rules = true
+	)
 	var original_position: Vector2 = manipulatable.root.global_position
 	
 	# Setup: Create collision obstacle at target position to cause validation failure
 	var target_position: Vector2 = Vector2(96, 96)
-	collision_body = _create_collision_obstacle_at_position(target_position)
+	collision_body = ManipulationHelpers.create_collision_obstacle(
+		env,
+		target_position,
+		Vector2(32, 32),
+		1  # Same collision layer as manipulatable body
+	)
+	
+	# CRITICAL: Wait for physics to register the obstacle
+	runner.simulate_frames(2, 60)  # 2 physics frames
+	
+	# DEBUG: Verify obstacle is in scene tree and has proper setup
+	print("DEBUG: Obstacle in tree: ", collision_body.is_inside_tree())
+	print("DEBUG: Obstacle position: ", collision_body.global_position)
+	print("DEBUG: Obstacle collision_layer: ", collision_body.collision_layer)
+	print("DEBUG: Obstacle has CollisionShape2D child: ", collision_body.get_child_count() > 0)
+	if collision_body.get_child_count() > 0:
+		var shape_node: CollisionShape2D = collision_body.get_child(0) as CollisionShape2D
+		if shape_node:
+			print("DEBUG: CollisionShape2D exists, shape: ", shape_node.shape)
+			print("DEBUG: CollisionShape2D disabled: ", shape_node.disabled)
 	
 	# Act: Start move operation
 	var move_data: ManipulationData = manipulation_system.try_move(manipulatable.root)
@@ -118,14 +140,33 @@ func test_validation_failure_prevents_object_movement() -> void:
 	).is_not_null()
 	
 	assert_int(move_data.status).append_failure_message(
-		"Move should be in STARTED status"
+		"Move should be in STARTED status, got: %s" % ManipulationHelpers.format_status(move_data.status)
 	).is_equal(GBEnums.Status.STARTED)
 	
-	# Act: Move target to collision position and attempt placement
-	move_data.target.root.global_position = target_position
+	# Act: Move positioner to collision position (this moves preview AND indicators together)
+	# The manipulation system parents the target to ManipulationParent, and indicators
+	# are positioned relative to the target. Moving the positioner updates everything.
+	var targeting_state: GridTargetingState = _container.get_states().targeting
+	targeting_state.positioner.global_position = target_position
 	
-	# Act: Try placement - should fail due to collision
-	var validation_results: ValidationResults = await manipulation_system.try_placement(move_data)
+	# Force indicators to regenerate at new position with collision detection
+	var indicator_manager: IndicatorManager = env.indicator_manager
+	var move_rules: Array[PlacementRule] = []
+	move_rules.assign(move_data.source.get_move_rules())
+	var setup_report := indicator_manager.try_setup(move_rules, targeting_state)
+	
+	assert_bool(setup_report.is_successful()).append_failure_message(
+		"Indicator setup should succeed: %s" % str(setup_report.get_issues())
+	).is_true()
+	
+	# Force validity evaluation at new position
+	var updated_count := indicator_manager.force_indicators_validity_evaluation()
+	assert_int(updated_count).append_failure_message(
+		"Expected at least one indicator to be updated"
+	).is_greater(0)
+	
+	# Act: Try placement (should fail validation due to collision)
+	var validation_results: ValidationResults = manipulation_system.try_placement(move_data)
 	
 	# Assert: Validation should fail
 	assert_that(validation_results).append_failure_message(
@@ -137,10 +178,11 @@ func test_validation_failure_prevents_object_movement() -> void:
 		str(validation_results.get_issues())
 	).is_false()
 	
-	# Assert: Move status should be FAILED (not FINISHED)
+	# Assert: Move status should remain STARTED (to allow retry)
+	# System keeps manipulation active so user can try placing elsewhere
 	assert_int(move_data.status).append_failure_message(
-		"Move status should be FAILED after validation failure"
-	).is_equal(GBEnums.Status.FAILED)
+		"Move status should remain STARTED after validation failure to allow retry, got: %s" % ManipulationHelpers.format_status(move_data.status)
+	).is_equal(GBEnums.Status.STARTED)
 	
 	# CRITICAL ASSERTION: Source object should NOT have moved
 	assert_vector(manipulatable.root.global_position).append_failure_message(
@@ -156,33 +198,34 @@ func test_validation_failure_prevents_object_movement() -> void:
 ## Test: Successful validation allows object movement (control test)
 ##
 ## This test ensures that when validation succeeds, the object DOES move.
-## This serves as a control to verify the test setup is correct.
+## Uses NO collision rules to guarantee success.
 func test_validation_success_allows_object_movement() -> void:
-	# Setup: Create manipulatable with permissive rules
-	var root: Node2D = auto_free(Node2D.new())
-	add_child(root)
-	root.position = Vector2(32, 32)
-	
-	var manipulatable: Manipulatable = auto_free(Manipulatable.new())
-	var all_allowed_settings: ManipulatableSettings = load("uid://dn881lunp3lrm")  # All allowed
-	manipulatable.settings = all_allowed_settings
-	manipulatable.root = root
-	root.add_child(manipulatable)
+	# Setup: Create manipulatable WITHOUT collision rules
+	# No rules means no validation constraints, placement always succeeds
+	var manipulatable: Manipulatable = ManipulationHelpers.create_test_manipulatable(
+		env,
+		"TestManipulatable",
+		Vector2(32, 32),
+		Vector2(32, 32),
+		false  # with_move_rules = false - no validation rules
+	)
 	
 	var original_position: Vector2 = manipulatable.root.global_position
-	var target_position: Vector2 = Vector2(128, 128)  # Clear area
+	var target_position: Vector2 = Vector2(256, 256)
 	
 	# Act: Start move operation
 	var move_data: ManipulationData = manipulation_system.try_move(manipulatable.root)
-	assert_that(move_data).is_not_null()
+	assert_that(move_data).append_failure_message(
+		"Move should start successfully"
+	).is_not_null()
 	
-	# Act: Move to clear area and attempt placement
+	# Act: Move to target and attempt placement
 	move_data.target.root.global_position = target_position
-	var validation_results: ValidationResults = await manipulation_system.try_placement(move_data)
+	var validation_results: ValidationResults = manipulation_system.try_placement(move_data)
 	
-	# Assert: Validation should succeed
+	# Assert: Validation should succeed (no rules to fail)
 	assert_bool(validation_results.is_successful()).append_failure_message(
-		"Validation should succeed in clear area. Issues: %s" % 
+		"Validation should succeed with no rules. Issues: %s" % 
 		str(validation_results.get_issues())
 	).is_true()
 	

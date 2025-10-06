@@ -1,10 +1,15 @@
 ## Unit tests for GridPositioner2D coordinate conversion accuracy
+##
+## MIGRATION: Converted from EnvironmentTestFactory to scene_runner pattern
+## for better reliability and deterministic frame control.
+##
 ## IMPORTANT: Objects are expected to be placed in the MIDDLE of tiles.
 ## The GridPositioner2D snaps to tile centers, not edges/corners.
 ## Tests verify that moNo, no, no. No. Yes. No. That's very sketchy. No. use input correctly positions at tile centers.
 extends GdUnitTestSuite
 
-var test_env: Dictionary
+var runner: GdUnitSceneRunner
+var test_env: CollisionTestEnvironment
 var positioner: GridPositioner2D
 var tile_map: TileMapLayer
 
@@ -40,13 +45,19 @@ func _format_tile_mapping_debug(screen_pos: Vector2) -> String:
 
 func before_test() -> void:
 	# Create test environment with proper tilemap setup
-	var collision_env := EnvironmentTestFactory.create_collision_test_environment(self)
-	positioner = collision_env.positioner as GridPositioner2D
-	tile_map = collision_env.tile_map_layer as TileMapLayer
+	runner = scene_runner(GBTestConstants.COLLISION_TEST_ENV_UID)
+	test_env = runner.scene() as CollisionTestEnvironment
+	
+	assert_object(test_env).append_failure_message(
+		"Failed to load CollisionTestEnvironment scene"
+	).is_not_null()
+	
+	positioner = test_env.positioner as GridPositioner2D
+	tile_map = test_env.tile_map_layer as TileMapLayer
 	
 	# CRITICAL: Enable mouse input for coordinate conversion tests
 	# These tests specifically test mouse motion event handling and positioning
-	var container: GBCompositionContainer = collision_env.get_container()
+	var container: GBCompositionContainer = test_env.container
 	var targeting_settings: GridTargetingSettings = container.config.settings.targeting
 	targeting_settings.enable_mouse_input = true
 	
@@ -198,6 +209,5 @@ func test_coordinate_conversion_edge_cases() -> void:
 		)
 
 func after_test() -> void:
-	# Cleanup
-	if test_env.has("cleanup"):
-		test_env.cleanup.call()
+	# Cleanup handled automatically by scene_runner
+	pass

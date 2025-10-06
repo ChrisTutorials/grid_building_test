@@ -5,14 +5,23 @@
 ## - Valid state persists across multiple physics frames
 ## - Exclusions work during continuous validation
 ## - Indicator state updates correctly when exclusions change
+##
+## MIGRATION: Converted from EnvironmentTestFactory to scene_runner pattern
+## for better reliability and deterministic frame control.
 extends GdUnitTestSuite
 
+var runner: GdUnitSceneRunner
 var _env: CollisionTestEnvironment
 var _rule: CollisionsCheckRule
 
 func before_test() -> void:
-	# Create collision test environment with proper setup
-	_env = EnvironmentTestFactory.create_collision_test_environment(self)
+	# MIGRATION: Use scene_runner WITHOUT frame simulation
+	runner = scene_runner(GBTestConstants.COLLISION_TEST_ENV_UID)
+	_env = runner.scene() as CollisionTestEnvironment
+	
+	assert_object(_env).append_failure_message(
+		"Failed to load CollisionTestEnvironment scene"
+	).is_not_null()
 	
 	# Create collision rule
 	_rule = CollisionsCheckRule.new()
@@ -26,7 +35,6 @@ func after_test() -> void:
 	if _env and _env.targeting_state:
 		_env.targeting_state.collision_exclusions = []
 	_rule = null
-	# Environment is auto-freed by EnvironmentTestFactory
 
 ## Helper to create a collision body
 func _create_collision_body(p_name: String, p_position: Vector2, p_layer: int = 1) -> CharacterBody2D:

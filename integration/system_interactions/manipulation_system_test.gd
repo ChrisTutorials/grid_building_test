@@ -1,6 +1,9 @@
 
 ## Test Suite: Manipulation System Integration Tests
 ##
+## MIGRATION: Converted from EnvironmentTestFactory to scene_runner pattern
+## for better reliability and deterministic frame control.
+##
 ## Validates the ManipulationSystem's core functionality for grid building operations
 ## including move, cancel, demolish, flip, rotate, and placement operations.
 ## Tests integration with manipulation state, targeting state, and validation systems
@@ -38,6 +41,7 @@ var rules_2_rules_1_tile_check: ManipulatableSettings = load("uid://5u2sgj1wk4or
 #endregion
 
 #region Test Environment Variables
+var runner: GdUnitSceneRunner
 var test_hierarchy: AllSystemsTestEnvironment
 var system: ManipulationSystem
 var manipulation_state: ManipulationState
@@ -49,7 +53,12 @@ var _container: GBCompositionContainer
 #region Setup and Teardown
 func before_test() -> void:
 	# Use the premade AllSystemsTestEnvironment scene
-	test_hierarchy = EnvironmentTestFactory.create_all_systems_env(self, GBTestConstants.ALL_SYSTEMS_ENV_UID)
+	runner = scene_runner(GBTestConstants.ALL_SYSTEMS_ENV_UID)
+	test_hierarchy = runner.scene() as AllSystemsTestEnvironment
+	
+	assert_object(test_hierarchy).append_failure_message(
+		"Failed to load AllSystemsTestEnvironment scene"
+	).is_not_null()
 	
 	# Extract environment components for test access
 	_container = test_hierarchy.get_container()
@@ -118,7 +127,7 @@ func test_start_move(
 	assert_that(move_data.source).append_failure_message("Move data source should not be null").is_not_null()
 	assert_that(move_data.source.root).append_failure_message("Move data source root node should not be null").is_not_null()
 	
-	var result_data: ManipulationData = await system.try_move(move_data.source.root)
+	var result_data: ManipulationData = system.try_move(move_data.source.root)
 	
 	# Fix null reference issue: ensure result_data is not null
 	assert_that(result_data).append_failure_message(
@@ -138,7 +147,7 @@ func test_start_move(
 func test_cancel() -> void:
 	var source: Manipulatable = _create_test_manipulatable(manipulatable_settings_all_allowed)
 
-	var move_result: ManipulationData = await system.try_move(source.root)
+	var move_result: ManipulationData = system.try_move(source.root)
 	assert_that(move_result).append_failure_message(
 		"try_move for cancel test should return valid result"
 	).is_not_null()
@@ -173,7 +182,7 @@ func test_try_move(
 		["manipulatable_root", GBEnums.Status.STARTED]
 	]
 ) -> void:
-	var result_data: ManipulationData = await system.try_move(manipulation_hierarchy.get(p_move_target, null))
+	var result_data: ManipulationData = system.try_move(manipulation_hierarchy.get(p_move_target, null))
 	
 	# Ensure result is not null to prevent property access errors
 	assert_that(result_data).append_failure_message(
@@ -224,7 +233,7 @@ func test_try_placement(
 	var source: Manipulatable = _create_test_manipulatable(p_settings)
 	assert_that(source).append_failure_message("Source manipulatable should not be null for placement test").is_not_null()
 
-	var move_result: ManipulationData = await system.try_move(source.root)
+	var move_result: ManipulationData = system.try_move(source.root)
 	assert_that(move_result).append_failure_message(
 		"try_move for placement test should return valid result"
 	).is_not_null()
@@ -240,7 +249,7 @@ func test_try_placement(
 			var test_location: Vector2 = TEST_POSITION
 			move_data.target.root.global_position = test_location
 			
-			var placement_results: ValidationResults = await system.try_placement(move_data)
+			var placement_results: ValidationResults = system.try_placement(move_data)
 			assert_that(placement_results).append_failure_message("Placement results should not be null").is_not_null()
 			
 			if placement_results != null:
@@ -280,7 +289,7 @@ func test_failed_placement_with_invalid_move_data_cleans_up() -> void:
 	assert_vector(original_source_position).is_equal(TEST_POSITION)
 	
 	# Act: Start a move operation
-	var move_result: ManipulationData = await system.try_move(source.root)
+	var move_result: ManipulationData = system.try_move(source.root)
 	assert_bool(move_result.status == GBEnums.Status.STARTED).append_failure_message(
 		"Move should start successfully"
 	).is_true()
@@ -298,7 +307,7 @@ func test_failed_placement_with_invalid_move_data_cleans_up() -> void:
 	move_data.source = null
 	
 	# Act: Try placement with invalid move data (should fail and cleanup)
-	var _placement_results: ValidationResults = await system.try_placement(move_data)
+	var _placement_results: ValidationResults = system.try_placement(move_data)
 	
 	# Restore source reference so we can verify it wasn't moved
 	move_data.source = saved_source

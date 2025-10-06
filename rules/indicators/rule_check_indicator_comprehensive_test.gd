@@ -1,13 +1,25 @@
 extends GdUnitTestSuite
 
-# Comprehensive rule check indicator tests combining multiple scenarios
-# Tests indicator creation, validation, collision detection, and edge cases
+## Comprehensive rule check indicator tests combining multiple scenarios
+##
+## MIGRATION: Converted from EnvironmentTestFactory to scene_runner pattern
+## for better reliability and deterministic frame control.
+##
+## Tests indicator creation, validation, collision detection, and edge cases
 
+var runner: GdUnitSceneRunner
 var test_container: GBCompositionContainer
 var env : CollisionTestEnvironment
 
 func before_test() -> void:
-	env = EnvironmentTestFactory.create_collision_test_environment(self)
+	runner = scene_runner(GBTestConstants.COLLISION_TEST_ENV_UID)
+	env = runner.scene() as CollisionTestEnvironment
+	
+	assert_object(env).append_failure_message(
+		"Failed to load CollisionTestEnvironment scene"
+	).is_not_null()
+	
+	test_container = env.container
 
 func after_test() -> void:
 	# Cleanup handled by auto_free in factory methods
