@@ -21,7 +21,7 @@ This test suite provides all plugin core tests:
 
 - **GdUnit4:** `6.0.0` (for Godot 4.5)
 - **Godot:** `4.5` (stable) - test environment
-- **Grid Building Plugin:** `5.0.0` (supports Godot 4.4.0, 4.4.1, 4.5 stable)
+- **Grid Building Plugin:** `5.0.1` (supports Godot 4.4.0, 4.4.1, 4.5 stable)
 
 ## Running the Tests
 
