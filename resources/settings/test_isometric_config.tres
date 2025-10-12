@@ -2,8 +2,8 @@
 
 [ext_resource type="Script" uid="uid://b8qexmaqap2qt" path="res://addons/grid_building/resources/actions/gb_actions.gd" id="1_rh8gn"]
 [ext_resource type="Script" uid="uid://candxhdqm5c6q" path="res://addons/grid_building/resources/gb_config.gd" id="3_ojvtr"]
-[ext_resource type="Resource" uid="uid://dlybk11b6ids7" path="res://demos/isometric/settings/isometric_settings.tres" id="4_ffj7c"]
-[ext_resource type="Resource" uid="uid://4i3a25wdlke" path="res://demos/isometric/settings/isometric_templates.tres" id="5_oinst"]
+[ext_resource type="Resource" path="res://test/grid_building_test/resources/composition_containers/test_td_settings.tres" id="4_ffj7c"]
+[ext_resource type="Resource" path="res://test/grid_building_test/resources/composition_containers/test_td_settings.tres" id="5_oinst"]
 
 [sub_resource type="Resource" id="Resource_dgukk"]
 script = ExtResource("1_rh8gn")
