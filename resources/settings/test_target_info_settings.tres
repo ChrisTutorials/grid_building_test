@@ -1,0 +1,6 @@
+[gd_resource type="Resource" script_class="TargetInfoSettings" load_steps=2 format=3 uid="uid://test_target_info_settings"]
+
+[ext_resource type="Script" uid="uid://dj0n2xlkqnfv3" path="res://addons/grid_building/components/target_info_settings.gd" id="1_target"]
+
+[resource]
+script = ExtResource("1_target")

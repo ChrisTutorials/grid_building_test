@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="ManipulatableSettings" load_steps=2 format=3 uid="uid://test_manipulatable_settings"]
+
+[ext_resource type="Script" uid="uid://0u11g3ef6ucf" path="res://addons/grid_building/placement/manipulatable_settings.gd" id="1_settings"]
+
+[resource]
+script = ExtResource("1_settings")
+rotatable = true
+flip_horizontal = true
+flip_vertical = true

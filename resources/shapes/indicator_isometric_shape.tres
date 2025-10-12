@@ -1,0 +1,5 @@
+[gd_resource type="ConvexPolygonShape2D" format=3 uid="uid://test_isometric_shape"]
+
+[resource]
+resource_name = "Test Isometric Tile Indicator Shape"
+points = PackedVector2Array(0, -24, 42, 0, 0, 24, -42, 0)

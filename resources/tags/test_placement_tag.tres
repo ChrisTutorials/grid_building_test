@@ -1,0 +1,7 @@
+[gd_resource type="Resource" script_class="PlacementTag" load_steps=2 format=3 uid="uid://test_placement_tag"]
+
+[ext_resource type="Script" uid="uid://dd5t5olthbfqd" path="res://addons/grid_building/placement/placement_tag.gd" id="1_tag"]
+
+[resource]
+script = ExtResource("1_tag")
+tag_name = "test_tag"

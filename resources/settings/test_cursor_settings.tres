@@ -1,0 +1,6 @@
+[gd_resource type="Resource" script_class="CursorSettings" load_steps=2 format=3 uid="uid://test_cursor_settings"]
+
+[ext_resource type="Script" uid="uid://bx4yfcdkh6gy0" path="res://addons/grid_building/components/cursor_settings.gd" id="1_cursor"]
+
+[resource]
+script = ExtResource("1_cursor")

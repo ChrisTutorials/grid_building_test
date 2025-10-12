@@ -1,7 +1,0 @@
-[gd_resource type="Resource" script_class="ManipulationMessages" load_steps=2 format=3 uid="uid://bxl4q5mrvr6jg"]
-
-[ext_resource type="Script" uid="uid://bbs0ae8dfmykd" path="res://addons/grid_building/systems/manipulation/manipulation_messages.gd" id="1_8sfll"]
-
-[resource]
-resource_name = "Test Manipulation Messages"
-script = ExtResource("1_8sfll")
