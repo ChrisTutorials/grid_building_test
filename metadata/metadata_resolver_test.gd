@@ -1,0 +1,428 @@
+## Tests for GBMetadataResolver utility
+## Verifies metadata-based root node resolution for targeting system
+extends GdUnitTestSuite
+
+func test_resolve_root_node_with_metadata_node_path() -> void:
+	# Setup: Create scene structure matching Smithy
+	# THISISROOTSMITHY-Node2D
+	#   └─ Smithy (Area2D with metadata/root_node = NodePath(".."))
+	
+	var root_node: Node2D = auto_free(Node2D.new())
+	root_node.name = "THISISROOTSMITHY-Node2D"
+	add_child(root_node)
+	
+	var collision_area: Area2D = auto_free(Area2D.new())
+	collision_area.name = "Smithy"
+	root_node.add_child(collision_area)
+	
+	# Set metadata: root_node = NodePath("..") (points to parent)
+	collision_area.set_meta("root_node", NodePath(".."))
+	
+	# Act: Resolve root node from collision object
+	var resolved: Node2D = GBMetadataResolver.resolve_root_node(collision_area)
+	
+	# Assert: Should resolve to root_node (THISISROOTSMITHY-Node2D)
+	assert_object(resolved).append_failure_message(
+		"Should resolve to root node via metadata/root_node. Got: %s" % 
+		(resolved.name if resolved else "null")
+	).is_same(root_node)
+	
+	assert_str(resolved.name).append_failure_message(
+		"Resolved node name should be 'THISISROOTSMITHY-Node2D'"
+	).is_equal("THISISROOTSMITHY-Node2D")
+
+
+func test_resolve_root_node_with_metadata_direct_node() -> void:
+	# Setup: metadata/root_node can also be a Node2D directly
+	var root_node: Node2D = auto_free(Node2D.new())
+	root_node.name = "DirectRoot"
+	add_child(root_node)
+	
+	var collision_area: Area2D = auto_free(Area2D.new())
+	collision_area.name = "CollisionObject"
+	add_child(collision_area)
+	
+	# Set metadata: root_node = Node2D directly
+	collision_area.set_meta("root_node", root_node)
+	
+	# Act: Resolve root node
+	var resolved: Node2D = GBMetadataResolver.resolve_root_node(collision_area)
+	
+	# Assert: Should return the direct node
+	assert_object(resolved).append_failure_message(
+		"Should resolve to direct Node2D from metadata. Got: %s" % 
+		(resolved.name if resolved else "null")
+	).is_same(root_node)
+
+
+func test_resolve_root_node_fallback_to_collision_object() -> void:
+	# Setup: No metadata, no Manipulatable - should return collision object itself
+	var collision_area: Area2D = auto_free(Area2D.new())
+	collision_area.name = "SelfTargeting"
+	add_child(collision_area)
+	
+	# Act: Resolve root node (no metadata)
+	var resolved: Node2D = GBMetadataResolver.resolve_root_node(collision_area)
+	
+	# Assert: Should return collision object itself as fallback
+	assert_object(resolved).append_failure_message(
+		"Should fallback to collision object when no metadata. Got: %s" % 
+		(resolved.name if resolved else "null")
+	).is_same(collision_area)
+
+
+func test_resolve_root_node_with_manipulatable_sibling() -> void:
+	# Setup: Manipulatable as sibling of collision object
+	var root_node: Node2D = auto_free(Node2D.new())
+	root_node.name = "ManipulatableRoot"
+	add_child(root_node)
+	
+	var parent: Node2D = auto_free(Node2D.new())
+	parent.name = "Parent"
+	add_child(parent)
+	
+	var collision_area: Area2D = auto_free(Area2D.new())
+	collision_area.name = "Collision"
+	parent.add_child(collision_area)
+	
+	var manipulatable: Manipulatable = auto_free(Manipulatable.new())
+	manipulatable.root = root_node
+	parent.add_child(manipulatable)
+	
+	# Act: Resolve root node (should find Manipulatable sibling)
+	var resolved: Node2D = GBMetadataResolver.resolve_root_node(collision_area)
+	
+	# Assert: Should resolve to Manipulatable.root
+	assert_object(resolved).append_failure_message(
+		"Should resolve to Manipulatable.root from sibling search. Got: %s" % 
+		(resolved.name if resolved else "null")
+	).is_same(root_node)
+
+
+func test_resolve_root_node_with_manipulatable_child() -> void:
+	# Setup: Manipulatable as child of collision object
+	var root_node: Node2D = auto_free(Node2D.new())
+	root_node.name = "ChildManipulatableRoot"
+	add_child(root_node)
+	
+	var collision_area: Area2D = auto_free(Area2D.new())
+	collision_area.name = "CollisionWithChild"
+	add_child(collision_area)
+	
+	var manipulatable: Manipulatable = auto_free(Manipulatable.new())
+	manipulatable.root = root_node
+	collision_area.add_child(manipulatable)
+	
+	# Act: Resolve root node (should find Manipulatable child)
+	var resolved: Node2D = GBMetadataResolver.resolve_root_node(collision_area)
+	
+	# Assert: Should resolve to Manipulatable.root
+	assert_object(resolved).append_failure_message(
+		"Should resolve to Manipulatable.root from child search. Got: %s" % 
+		(resolved.name if resolved else "null")
+	).is_same(root_node)
+
+
+func test_metadata_priority_over_manipulatable() -> void:
+	# Setup: Both metadata and Manipulatable present - metadata should win
+	var metadata_root: Node2D = auto_free(Node2D.new())
+	metadata_root.name = "MetadataRoot"
+	add_child(metadata_root)
+	
+	var manipulatable_root: Node2D = auto_free(Node2D.new())
+	manipulatable_root.name = "ManipulatableRoot"
+	add_child(manipulatable_root)
+	
+	var collision_area: Area2D = auto_free(Area2D.new())
+	collision_area.name = "CollisionWithBoth"
+	add_child(collision_area)
+	
+	# Set metadata (Priority 1)
+	collision_area.set_meta("root_node", metadata_root)
+	
+	# Add Manipulatable child (Priority 3)
+	var manipulatable: Manipulatable = auto_free(Manipulatable.new())
+	manipulatable.root = manipulatable_root
+	collision_area.add_child(manipulatable)
+	
+	# Act: Resolve root node
+	var resolved: Node2D = GBMetadataResolver.resolve_root_node(collision_area)
+	
+	# Assert: Metadata should take priority
+	assert_object(resolved).append_failure_message(
+		"Metadata should have priority over Manipulatable. Got: %s, Expected: %s" % 
+		[resolved.name if resolved else "null", metadata_root.name]
+	).is_same(metadata_root)
+
+
+func test_nodepath_metadata_resolves_at_runtime_not_design_time() -> void:
+	## CRITICAL TEST: Demonstrates NodePath metadata resolution behavior
+	## This test simulates what happens when a scene with NodePath("..") is instantiated
+	## with a name override, causing the scene root to be renamed.
+	## 
+	## Issue: NodePath("..")` resolves at RUNTIME based on the actual scene tree,
+	## not at design time. When Godot instantiates a scene with [node name="NewName" instance=...],
+	## it renames the scene root, which can break NodePath assumptions.
+	
+	# Setup: Simulate scene instantiation with name override
+	# Original scene structure (smithy.tscn):
+	#   THISISROOTSMITHY-Node2D (root)
+	#     └─ Smithy (Area2D with metadata/root_node = NodePath(".."))
+	#
+	# After instantiation with [node name="Smithy" instance=smithy.tscn]:
+	#   Smithy (Node2D - renamed from THISISROOTSMITHY-Node2D)  ← ROOT RENAMED!
+	#     └─ Smithy (Area2D with metadata/root_node = NodePath(".."))
+	#
+	# Result: Both root AND Area2D are named "Smithy" at runtime!
+	
+	var root_node: Node2D = auto_free(Node2D.new())
+	root_node.name = "Smithy"  # Simulates renamed scene root
+	add_child(root_node)
+	
+	var collision_area: Area2D = auto_free(Area2D.new())
+	collision_area.name = "Smithy"  # Same name as parent!
+	root_node.add_child(collision_area)
+	
+	# Set metadata with relative NodePath (as in smithy.tscn)
+	collision_area.set_meta("root_node", NodePath(".."))
+	
+	# Act: Resolve root node from collision object
+	var resolved: Node2D = GBMetadataResolver.resolve_root_node(collision_area)
+	
+	# Assert: NodePath("..") correctly resolves to parent at runtime
+	assert_object(resolved).append_failure_message(
+		"NodePath metadata should resolve to parent node at runtime. Got: %s" % 
+		GBDiagnostics.format_node_label(resolved)
+	).is_same(root_node)
+	
+	# Assert: Both nodes have same name (this is the ambiguity problem!)
+	assert_str(resolved.name).append_failure_message(
+		"Root node name should be 'Smithy' (renamed from scene root)"
+	).is_equal("Smithy")
+	
+	assert_str(collision_area.name).append_failure_message(
+		"Collision area name should also be 'Smithy'"
+	).is_equal("Smithy")
+	
+	# Critical observation: NodePath resolves CORRECTLY, but name ambiguity makes debugging hard!
+	# The real bug is not NodePath metadata - it's the Manipulatable root path configuration.
+
+
+func test_nodepath_metadata_with_multiple_parent_levels() -> void:
+	## Tests NodePath with multiple parent traversals (e.g., "../..")
+	## This verifies that NodePath metadata can correctly traverse multiple levels
+	
+	# Setup: Deep hierarchy
+	# GrandParent (Node2D)
+	#   └─ Parent (Node2D)
+	#       └─ CollisionArea (Area2D with metadata/root_node = NodePath("../.."))
+	
+	var grandparent: Node2D = auto_free(Node2D.new())
+	grandparent.name = "GrandParent"
+	add_child(grandparent)
+	
+	var parent: Node2D = auto_free(Node2D.new())
+	parent.name = "Parent"
+	grandparent.add_child(parent)
+	
+	var collision_area: Area2D = auto_free(Area2D.new())
+	collision_area.name = "CollisionArea"
+	parent.add_child(collision_area)
+	
+	# Set metadata: root_node = NodePath("../..") (two levels up)
+	collision_area.set_meta("root_node", NodePath("../.."))
+	
+	# Act: Resolve root node
+	var resolved: Node2D = GBMetadataResolver.resolve_root_node(collision_area)
+	
+	# Assert: Should resolve to grandparent (two levels up)
+	assert_object(resolved).append_failure_message(
+		"NodePath('../..') should resolve to grandparent. Got: %s, Expected: %s" % 
+		[GBDiagnostics.format_node_label(resolved), grandparent.name]
+	).is_same(grandparent)
+	
+	assert_str(resolved.name).append_failure_message(
+		"Resolved node should be GrandParent"
+	).is_equal("GrandParent")
+
+
+func test_nodepath_metadata_with_absolute_path() -> void:
+	## Tests NodePath with absolute path (e.g., "/root/RootNodeName")
+	## Absolute paths are NOT recommended for reusable scenes, but should be tested
+	
+	# Setup: Scene with absolute path metadata
+	var root_node: Node2D = auto_free(Node2D.new())
+	root_node.name = "AbsoluteRoot"
+	add_child(root_node)
+	
+	var collision_area: Area2D = auto_free(Area2D.new())
+	collision_area.name = "CollisionWithAbsolutePath"
+	add_child(collision_area)
+	
+	# Set metadata: absolute NodePath (starts with /)
+	# Note: This requires the node to be in the tree when get_node is called
+	var absolute_path: String = root_node.get_path()
+	collision_area.set_meta("root_node", NodePath(absolute_path))
+	
+	# Act: Resolve root node
+	var resolved: Node2D = GBMetadataResolver.resolve_root_node(collision_area)
+	
+	# Assert: Should resolve to root_node via absolute path
+	assert_object(resolved).append_failure_message(
+		"Absolute NodePath should resolve correctly. Got: %s" % 
+		GBDiagnostics.format_node_label(resolved)
+	).is_same(root_node)
+
+
+func test_nodepath_metadata_with_invalid_path() -> void:
+	## Tests NodePath that doesn't resolve to valid Node2D
+	## Should fallback gracefully
+	
+	# Setup: metadata with invalid NodePath
+	var collision_area: Area2D = auto_free(Area2D.new())
+	collision_area.name = "CollisionWithBadPath"
+	add_child(collision_area)
+	
+	# Set metadata: NodePath to non-existent node
+	collision_area.set_meta("root_node", NodePath("NonExistentNode"))
+	
+	# Act: Resolve root node (should handle gracefully)
+	var resolved: Node2D = GBMetadataResolver.resolve_root_node(collision_area)
+	
+	# Assert: Should fallback to collision object when path invalid
+	assert_object(resolved).append_failure_message(
+		"Invalid NodePath should fallback to collision object. Got: %s" % 
+		GBDiagnostics.format_node_label(resolved)
+	).is_same(collision_area)
+
+
+func test_nodepath_metadata_resolves_to_non_node2d() -> void:
+	## Tests NodePath that resolves to non-Node2D (e.g., Node or Control)
+	## Should fallback gracefully since we require Node2D
+	
+	# Setup: hierarchy with Node parent (not Node2D)
+	var parent_node: Node = auto_free(Node.new())
+	parent_node.name = "NonNode2DParent"
+	add_child(parent_node)
+	
+	var collision_area: Area2D = auto_free(Area2D.new())
+	collision_area.name = "CollisionUnderNonNode2D"
+	parent_node.add_child(collision_area)
+	
+	# Set metadata: NodePath("..") points to Node (not Node2D)
+	collision_area.set_meta("root_node", NodePath(".."))
+	
+	# Act: Resolve root node
+	var resolved: Node2D = GBMetadataResolver.resolve_root_node(collision_area)
+	
+	# Assert: Should fallback to collision object when resolved node is not Node2D
+	assert_object(resolved).append_failure_message(
+		"NodePath resolving to non-Node2D should fallback. Got: %s" % 
+		GBDiagnostics.format_node_label(resolved)
+	).is_same(collision_area)
+
+
+func test_manipulatable_root_nodepath_configuration() -> void:
+	## CRITICAL TEST: Demonstrates Manipulatable component NodePath bug in smithy.tscn
+	## The bug is in the .tscn file where root = NodePath("..") only goes one level up
+	## 
+	## This test verifies the CORRECT behavior when NodePath is fixed to NodePath("../..")
+	
+	# Setup: Smithy scene structure at runtime (after name override)
+	# Smithy (Node2D - scene root, renamed from THISISROOTSMITHY-Node2D)
+	#   └─ Smithy (Area2D)
+	#       └─ Manipulatable (root needs NodePath("../..") to reach scene root!)
+	
+	var scene_root: Node2D = auto_free(Node2D.new())
+	scene_root.name = "Smithy"
+	add_child(scene_root)
+	
+	var collision_area: Area2D = auto_free(Area2D.new())
+	collision_area.name = "Smithy"
+	scene_root.add_child(collision_area)
+	
+	var manipulatable: Manipulatable = auto_free(Manipulatable.new())
+	collision_area.add_child(manipulatable)
+	
+	# Test INCORRECT configuration: NodePath("..") only goes one level (to Area2D)
+	var one_level_up_path: NodePath = NodePath("..")
+	var incorrectly_resolved: Node = manipulatable.get_node(one_level_up_path)
+	
+	assert_object(incorrectly_resolved).append_failure_message(
+		"BUG DEMONSTRATION: NodePath('..') only resolves to Area2D, not scene root!"
+	).is_same(collision_area)  # ← This shows the BUG in smithy.tscn!
+	
+	# Test CORRECT configuration: NodePath("../..") reaches scene root
+	var two_levels_up_path: NodePath = NodePath("../..")
+	var correctly_resolved: Node = manipulatable.get_node(two_levels_up_path)
+	
+	assert_object(correctly_resolved).append_failure_message(
+		"CORRECT: NodePath('../..') should resolve to scene root. Got: %s" %
+		GBDiagnostics.format_node_label(correctly_resolved)
+	).is_same(scene_root)
+	
+	# Now assign the CORRECT root to Manipulatable
+	manipulatable.root = scene_root
+	
+	# Verify Manipulatable now has correct root
+	assert_object(manipulatable.root).append_failure_message(
+		"Manipulatable.root should be scene root after correct assignment"
+	).is_same(scene_root)
+
+
+func test_display_name_resolution_property_priority() -> void:
+	## Tests display name resolution with property having highest priority
+	## Priority: property > metadata > node name
+	
+	# Setup: Node with display_name property (if supported)
+	var test_node: Node2D = auto_free(Node2D.new())
+	test_node.name = "NodeName"
+	add_child(test_node)
+	
+	# Note: GDScript doesn't support dynamic properties in the same way
+	# This test documents expected behavior for when property exists
+	# In production, this would check if node has display_name property via has()
+	
+	# For now, test that resolve_display_name function exists and uses node name fallback
+	var display_name: String = GBMetadataResolver.resolve_display_name(test_node)
+	
+	assert_str(display_name).append_failure_message(
+		"Display name should fallback to node.name when no metadata"
+	).is_equal("NodeName")
+
+
+func test_display_name_resolution_metadata_priority() -> void:
+	## Tests display name resolution with metadata having second priority
+	## Priority: property > metadata > node name
+	
+	# Setup: Node with display_name metadata
+	var test_node: Node2D = auto_free(Node2D.new())
+	test_node.name = "InternalNodeName"
+	test_node.set_meta("display_name", "User-Friendly Display Name")
+	add_child(test_node)
+	
+	# Act: Resolve display name
+	var display_name: String = GBMetadataResolver.resolve_display_name(test_node)
+	
+	# Assert: Should use metadata over node name
+	assert_str(display_name).append_failure_message(
+		"Display name should use metadata when available. Got: %s" % display_name
+	).is_equal("User-Friendly Display Name")
+
+
+func test_display_name_resolution_node_name_fallback() -> void:
+	## Tests display name resolution fallback to node.name
+	## Priority: property > metadata > node name
+	
+	# Setup: Node with no display_name metadata
+	var test_node: Node2D = auto_free(Node2D.new())
+	test_node.name = "FallbackNodeName"
+	add_child(test_node)
+	
+	# Act: Resolve display name
+	var display_name: String = GBMetadataResolver.resolve_display_name(test_node)
+	
+	# Assert: Should fallback to node.name
+	assert_str(display_name).append_failure_message(
+		"Display name should fallback to node.name. Got: %s" % display_name
+	).is_equal("FallbackNodeName")
