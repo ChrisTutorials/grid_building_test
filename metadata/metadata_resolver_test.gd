@@ -536,3 +536,176 @@ func get_display_name() -> String:
 	assert_str(resolved_name).append_failure_message(
 		"Empty strings should be skipped, should use node.name. Got: %s" % resolved_name
 	).is_equal("ActualNodeName")
+
+
+#region MANIPULATABLE HIERARCHY INDEPENDENCE TESTS
+
+func test_manipulatable_under_scene_root_with_collision_on_child() -> void:
+	## Tests that Manipulatable works when placed under scene root
+	## with collision object as a sibling (separate child of root)
+	## 
+	## Hierarchy:
+	##   SceneRoot (Node2D)
+	##     ├─ Manipulatable → root points to SceneRoot
+	##     └─ StaticBody2D (collision object)
+	##
+	## This reproduces the user's bug where Manipulatable under scene root doesn't work
+	
+	# Setup: Scene root
+	var scene_root: Node2D = auto_free(Node2D.new())
+	scene_root.name = "SceneRoot"
+	add_child(scene_root)
+	
+	# Add Manipulatable component under root
+	var manipulatable: Manipulatable = auto_free(Manipulatable.new())
+	manipulatable.name = "ManipulatableComponent"
+	manipulatable.root = scene_root  # Points to scene root
+	scene_root.add_child(manipulatable)
+	
+	# Add collision object as sibling
+	var collision_body: StaticBody2D = auto_free(StaticBody2D.new())
+	collision_body.name = "CollisionBody"
+	scene_root.add_child(collision_body)
+	
+	# Act: Resolve root node from collision object
+	var resolved: Node2D = GBMetadataResolver.resolve_root_node(collision_body)
+	
+	# Assert: Should find Manipulatable and return scene root
+	assert_object(resolved).append_failure_message(
+		"Should resolve to SceneRoot via Manipulatable sibling search. " +
+		"Got: %s, Expected: %s (SceneRoot)" % 
+		[GBDiagnostics.format_node_label(resolved), scene_root.name]
+	).is_same(scene_root)
+
+
+func test_manipulatable_under_area2d_with_collision_on_sibling() -> void:
+	## Tests that Manipulatable works when placed under Area2D
+	## with StaticBody2D as a sibling collision object
+	##
+	## Hierarchy:
+	##   SceneRoot (Node2D)
+	##     ├─ Area2D
+	##     │   └─ Manipulatable → root points to SceneRoot
+	##     └─ StaticBody2D (collision object, different layer)
+	##
+	## This reproduces the user's bug where Manipulatable under Area2D doesn't work
+	
+	# Setup: Scene root
+	var scene_root: Node2D = auto_free(Node2D.new())
+	scene_root.name = "SceneRoot"
+	add_child(scene_root)
+	
+	# Add Area2D container
+	var area_container: Area2D = auto_free(Area2D.new())
+	area_container.name = "AreaContainer"
+	area_container.collision_layer = 0b1100000000  # Layers 10, 12
+	area_container.collision_mask = 0
+	scene_root.add_child(area_container)
+	
+	# Add Manipulatable under Area2D
+	var manipulatable: Manipulatable = auto_free(Manipulatable.new())
+	manipulatable.name = "ManipulatableComponent"
+	manipulatable.root = scene_root  # Points to scene root
+	area_container.add_child(manipulatable)
+	
+	# Add StaticBody2D as sibling (on different layer)
+	var collision_body: StaticBody2D = auto_free(StaticBody2D.new())
+	collision_body.name = "CollisionBody"
+	collision_body.collision_layer = 0b1  # Layer 1
+	collision_body.collision_mask = 0
+	scene_root.add_child(collision_body)
+	
+	# Act: Resolve root node from collision object
+	var resolved: Node2D = GBMetadataResolver.resolve_root_node(collision_body)
+	
+	# Assert: Should find Manipulatable in scene tree and return scene root
+	assert_object(resolved).append_failure_message(
+		"Should resolve to SceneRoot via scene tree search for Manipulatable. " +
+		"Got: %s, Expected: %s (SceneRoot)" % 
+		[GBDiagnostics.format_node_label(resolved), scene_root.name]
+	).is_same(scene_root)
+
+
+func test_manipulatable_under_collision_object_still_works() -> void:
+	## Tests that existing behavior (Manipulatable under collision object) still works
+	## This is the current working case that should NOT break
+	##
+	## Hierarchy:
+	##   SceneRoot (Node2D)
+	##     └─ StaticBody2D (collision object)
+	##         └─ Manipulatable → root points to SceneRoot
+	
+	# Setup: Scene root
+	var scene_root: Node2D = auto_free(Node2D.new())
+	scene_root.name = "SceneRoot"
+	add_child(scene_root)
+	
+	# Add collision object
+	var collision_body: StaticBody2D = auto_free(StaticBody2D.new())
+	collision_body.name = "CollisionBody"
+	scene_root.add_child(collision_body)
+	
+	# Add Manipulatable as child of collision object (current working case)
+	var manipulatable: Manipulatable = auto_free(Manipulatable.new())
+	manipulatable.name = "ManipulatableComponent"
+	manipulatable.root = scene_root  # Points to scene root
+	collision_body.add_child(manipulatable)
+	
+	# Act: Resolve root node from collision object
+	var resolved: Node2D = GBMetadataResolver.resolve_root_node(collision_body)
+	
+	# Assert: Should find Manipulatable as child and return scene root
+	assert_object(resolved).append_failure_message(
+		"Should resolve to SceneRoot via child search (existing behavior). " +
+		"Got: %s, Expected: %s (SceneRoot)" % 
+		[GBDiagnostics.format_node_label(resolved), scene_root.name]
+	).is_same(scene_root)
+
+
+func test_manipulatable_deep_in_hierarchy_found_via_tree_search() -> void:
+	## Tests that Manipulatable can be found anywhere in the scene tree
+	## Even when deeply nested away from the collision object
+	##
+	## Hierarchy:
+	##   SceneRoot (Node2D)
+	##     ├─ DeepContainer (Node2D)
+	##     │   └─ AnotherContainer (Node2D)
+	##     │       └─ Manipulatable → root points to SceneRoot
+	##     └─ StaticBody2D (collision object)
+	
+	# Setup: Scene root
+	var scene_root: Node2D = auto_free(Node2D.new())
+	scene_root.name = "SceneRoot"
+	add_child(scene_root)
+	
+	# Add deep nested containers
+	var deep_container: Node2D = auto_free(Node2D.new())
+	deep_container.name = "DeepContainer"
+	scene_root.add_child(deep_container)
+	
+	var another_container: Node2D = auto_free(Node2D.new())
+	another_container.name = "AnotherContainer"
+	deep_container.add_child(another_container)
+	
+	# Add Manipulatable deep in hierarchy
+	var manipulatable: Manipulatable = auto_free(Manipulatable.new())
+	manipulatable.name = "ManipulatableComponent"
+	manipulatable.root = scene_root  # Points to scene root
+	another_container.add_child(manipulatable)
+	
+	# Add collision object as sibling at root level
+	var collision_body: StaticBody2D = auto_free(StaticBody2D.new())
+	collision_body.name = "CollisionBody"
+	scene_root.add_child(collision_body)
+	
+	# Act: Resolve root node from collision object
+	var resolved: Node2D = GBMetadataResolver.resolve_root_node(collision_body)
+	
+	# Assert: Should find Manipulatable anywhere in scene tree
+	assert_object(resolved).append_failure_message(
+		"Should find Manipulatable via scene tree search, even when deeply nested. " +
+		"Got: %s, Expected: %s (SceneRoot)" % 
+		[GBDiagnostics.format_node_label(resolved), scene_root.name]
+	).is_same(scene_root)
+
+#endregion
