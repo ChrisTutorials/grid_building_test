@@ -53,8 +53,7 @@ extends RefCounted
 static func create_all_systems_env(test: GdUnitTestSuite, scene_uid: String = GBTestConstants.ALL_SYSTEMS_ENV_UID) -> AllSystemsTestEnvironment:
 	push_warning("EnvironmentTestFactory.create_all_systems_env() is deprecated. Use scene_runner(GBTestConstants.ALL_SYSTEMS_ENV_UID) instead for deterministic frame control.")
 	var env: AllSystemsTestEnvironment = load(scene_uid).instantiate()
-	if not _prepare_test_environment(test, env):
-		return null
+	_prepare_test_environment_sync(test, env)
 	return env
 
 ## @deprecated Use scene_runner(GBTestConstants.BUILDING_TEST_ENV_UID) instead
@@ -65,8 +64,7 @@ static func create_building_system_test_environment(test: GdUnitTestSuite, scene
 	push_warning("EnvironmentTestFactory.create_building_system_test_environment() is deprecated. Use scene_runner(GBTestConstants.BUILDING_TEST_ENV_UID) instead for deterministic frame control.")
 	var env: BuildingTestEnvironment = load(scene_uid).instantiate()
 	# Pass the environment directly; it already extends GBTestEnvironment.
-	if not _prepare_test_environment(test, env):
-		return null
+	_prepare_test_environment_sync(test, env)
 	return env
 
 ## @deprecated Use scene_runner(GBTestConstants.COLLISION_TEST_ENV_UID) instead
@@ -76,14 +74,25 @@ static func create_building_system_test_environment(test: GdUnitTestSuite, scene
 static func create_collision_test_environment(test: GdUnitTestSuite, scene_uid: String = GBTestConstants.COLLISION_TEST_ENV_PATH) -> CollisionTestEnvironment:
 	push_warning("EnvironmentTestFactory.create_collision_test_environment() is deprecated. Use scene_runner(GBTestConstants.COLLISION_TEST_ENV_UID) instead for deterministic frame control.")
 	var env: CollisionTestEnvironment = load(scene_uid).instantiate()
-	_prepare_test_environment(test, env)
+	_prepare_test_environment_sync(test, env)
 	return env
+
+## Add shared test suite setup so it is parented and tears down after test properly.
+## Synchronous version - does not validate, just sets up the node hierarchy
+static func _prepare_test_environment_sync(test: GdUnitTestSuite, env: GBTestEnvironment) -> void:
+	test.add_child(env)
+	test.auto_free(env)
 
 ## Add shared test suite setup so it is parented and tears down after test properly.
 ## Validates environment setup and fails test if issues found.
 static func _prepare_test_environment(test: GdUnitTestSuite, env: GBTestEnvironment) -> bool:
 	test.add_child(env)
 	test.auto_free(env)
+	
+	# CRITICAL: Wait for the scene tree to process so _ready() is called on all nodes
+	# This ensures the injector and other systems have initialized before validation
+	await test.get_tree().process_frame
+	await test.get_tree().process_frame  # Extra frame for dependency injection to complete
 	
 	# Validate environment setup
 	var issues: Array[String] = env.get_issues()

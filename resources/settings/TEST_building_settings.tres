@@ -5,7 +5,6 @@
 [resource]
 script = ExtResource("1_02dqo")
 preview_kept_script_types = Array[String](["Manipulatable"])
-add_placeable_instance = true
 preview_instance_z_index = 100
 drag_multi_build = false
 show_debug = false

@@ -19,7 +19,8 @@ func before_test() -> void:
 	runner = scene_runner(GBTestConstants.COLLISION_TEST_ENV_UID)
 	
 	_env = runner.scene() as CollisionTestEnvironment
-	_env.container.config.settings.targeting.enable_mouse_input = false # Explictly disable mouse input to avoid interference
+	# Container is already duplicated by environment's _ready() for test isolation
+	_env.container.config.settings.targeting.enable_mouse_input = false # Explicitly disable mouse input to avoid interference
 	
 	# Create collision rule
 	_rule = CollisionsCheckRule.new()

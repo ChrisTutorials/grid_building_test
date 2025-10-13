@@ -370,59 +370,169 @@ func test_manipulatable_root_nodepath_configuration() -> void:
 	).is_same(scene_root)
 
 
-func test_display_name_resolution_property_priority() -> void:
-	## Tests display name resolution with property having highest priority
-	## Priority: property > metadata > node name
+func test_display_name_resolution_method_priority() -> void:
+	## Tests display name resolution with get_display_name() method having highest priority
+	## Priority: method > property > metadata > node name > fallback
 	
-	# Setup: Node with display_name property (if supported)
+	# Setup: Create a test class with get_display_name() method
+	var test_script: GDScript = GDScript.new()
+	test_script.source_code = """
+extends Node2D
+
+var display_name: String = "PropertyDisplayName"
+
+func get_display_name() -> String:
+	return "MethodDisplayName"
+"""
+	test_script.reload()
+	
 	var test_node: Node2D = auto_free(Node2D.new())
+	test_node.set_script(test_script)
 	test_node.name = "NodeName"
-	add_child(test_node)
-	
-	# Note: GDScript doesn't support dynamic properties in the same way
-	# This test documents expected behavior for when property exists
-	# In production, this would check if node has display_name property via has()
-	
-	# For now, test that resolve_display_name function exists and uses node name fallback
-	var display_name: String = GBMetadataResolver.resolve_display_name(test_node)
-	
-	assert_str(display_name).append_failure_message(
-		"Display name should fallback to node.name when no metadata"
-	).is_equal("NodeName")
-
-
-func test_display_name_resolution_metadata_priority() -> void:
-	## Tests display name resolution with metadata having second priority
-	## Priority: property > metadata > node name
-	
-	# Setup: Node with display_name metadata
-	var test_node: Node2D = auto_free(Node2D.new())
-	test_node.name = "InternalNodeName"
-	test_node.set_meta("display_name", "User-Friendly Display Name")
+	test_node.set_meta("display_name", "MetadataDisplayName")
 	add_child(test_node)
 	
 	# Act: Resolve display name
-	var display_name: String = GBMetadataResolver.resolve_display_name(test_node)
+	var resolved_name: String = GBMetadataResolver.resolve_display_name(test_node)
 	
-	# Assert: Should use metadata over node name
-	assert_str(display_name).append_failure_message(
-		"Display name should use metadata when available. Got: %s" % display_name
-	).is_equal("User-Friendly Display Name")
+	# Assert: Should use method (highest priority)
+	assert_str(resolved_name).append_failure_message(
+		"Display name should use get_display_name() method (priority 1). Got: %s" % resolved_name
+	).is_equal("MethodDisplayName")
+
+
+func test_display_name_resolution_property_priority() -> void:
+	## Tests display name resolution with property having second priority
+	## Priority: method > property > metadata > node name > fallback
+	
+	# Setup: Node with display_name property but NO method
+	var test_script: GDScript = GDScript.new()
+	test_script.source_code = """
+extends Node2D
+
+var display_name: String = "PropertyDisplayName"
+"""
+	test_script.reload()
+	
+	var test_node: Node2D = auto_free(Node2D.new())
+	test_node.set_script(test_script)
+	test_node.name = "NodeName"
+	test_node.set_meta("display_name", "MetadataDisplayName")
+	add_child(test_node)
+	
+	# Act: Resolve display name
+	var resolved_name: String = GBMetadataResolver.resolve_display_name(test_node)
+	
+	# Assert: Should use property (priority 2)
+	assert_str(resolved_name).append_failure_message(
+		"Display name should use display_name property (priority 2). Got: %s" % resolved_name
+	).is_equal("PropertyDisplayName")
+
+
+func test_display_name_resolution_metadata_priority() -> void:
+	## Tests display name resolution with metadata having third priority
+	## Priority: method > property > metadata > node name > fallback
+	
+	# Setup: Node with display_name metadata (no method or property)
+	var test_node: Node2D = auto_free(Node2D.new())
+	test_node.name = "NodeName"
+	test_node.set_meta("display_name", "MetadataDisplayName")
+	add_child(test_node)
+	
+	# Act: Resolve display name
+	var resolved_name: String = GBMetadataResolver.resolve_display_name(test_node)
+	
+	# Assert: Should use metadata (priority 3)
+	assert_str(resolved_name).append_failure_message(
+		"Display name should use metadata/display_name (priority 3). Got: %s" % resolved_name
+	).is_equal("MetadataDisplayName")
+
+
+func test_display_name_resolution_stringname_support() -> void:
+	## Tests that display name resolution accepts StringName in metadata
+	## StringName (&"text") should work the same as String
+	
+	# Setup: Node with StringName metadata
+	var test_node: Node2D = auto_free(Node2D.new())
+	test_node.name = "NodeName"
+	test_node.set_meta("display_name", &"StringNameDisplayName")  # StringName literal
+	add_child(test_node)
+	
+	# Act: Resolve display name
+	var resolved_name: String = GBMetadataResolver.resolve_display_name(test_node)
+	
+	# Assert: Should convert StringName to String and use it
+	assert_str(resolved_name).append_failure_message(
+		"Display name should accept StringName metadata. Got: %s" % resolved_name
+	).is_equal("StringNameDisplayName")
 
 
 func test_display_name_resolution_node_name_fallback() -> void:
 	## Tests display name resolution fallback to node.name
-	## Priority: property > metadata > node name
+	## Priority: method > property > metadata > node name > fallback
 	
-	# Setup: Node with no display_name metadata
+	# Setup: Node with no display_name method, property, or metadata
 	var test_node: Node2D = auto_free(Node2D.new())
 	test_node.name = "FallbackNodeName"
 	add_child(test_node)
 	
 	# Act: Resolve display name
-	var display_name: String = GBMetadataResolver.resolve_display_name(test_node)
+	var resolved_name: String = GBMetadataResolver.resolve_display_name(test_node)
 	
-	# Assert: Should fallback to node.name
-	assert_str(display_name).append_failure_message(
-		"Display name should fallback to node.name. Got: %s" % display_name
+	# Assert: Should fallback to node.name (priority 4)
+	assert_str(resolved_name).append_failure_message(
+		"Display name should fallback to node.name (priority 4). Got: %s" % resolved_name
 	).is_equal("FallbackNodeName")
+
+
+func test_display_name_resolution_ultimate_fallback() -> void:
+	## Tests display name resolution with null node using ultimate fallback
+	## Priority: method > property > metadata > node name > fallback
+	
+	# Setup: Null node
+	var null_node: Node = null
+	
+	# Act: Resolve display name with custom fallback
+	var resolved_name: String = GBMetadataResolver.resolve_display_name(null_node, "<custom_fallback>")
+	
+	# Assert: Should use provided fallback (priority 5)
+	assert_str(resolved_name).append_failure_message(
+		"Display name should use fallback for null node (priority 5). Got: %s" % resolved_name
+	).is_equal("<custom_fallback>")
+	
+	# Test default fallback
+	var default_resolved: String = GBMetadataResolver.resolve_display_name(null_node)
+	assert_str(default_resolved).append_failure_message(
+		"Display name should use default '<none>' fallback. Got: %s" % default_resolved
+	).is_equal("<none>")
+
+
+func test_display_name_resolution_empty_string_handling() -> void:
+	## Tests that empty strings at any priority level are skipped
+	## Empty strings should cause fallback to next priority level
+	
+	# Setup: Node with empty string method
+	var test_script: GDScript = GDScript.new()
+	test_script.source_code = """
+extends Node2D
+
+var display_name: String = ""  # Empty property
+
+func get_display_name() -> String:
+	return ""  # Empty method result
+"""
+	test_script.reload()
+	
+	var test_node: Node2D = auto_free(Node2D.new())
+	test_node.set_script(test_script)
+	test_node.name = "ActualNodeName"
+	test_node.set_meta("display_name", "")  # Empty metadata
+	add_child(test_node)
+	
+	# Act: Resolve display name
+	var resolved_name: String = GBMetadataResolver.resolve_display_name(test_node)
+	
+	# Assert: Should skip all empty strings and fall back to node.name
+	assert_str(resolved_name).append_failure_message(
+		"Empty strings should be skipped, should use node.name. Got: %s" % resolved_name
+	).is_equal("ActualNodeName")

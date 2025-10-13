@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="GBConfig" load_steps=8 format=3 uid="uid://c61e3vpaj7ym2"]
 
 [ext_resource type="Script" uid="uid://b8qexmaqap2qt" path="res://addons/grid_building/resources/actions/gb_actions.gd" id="1_5jcve"]
-[ext_resource type="Resource" path="res://test/grid_building_test/resources/composition_containers/test_td_settings.tres" id="3_5jcve"]
+[ext_resource type="Resource" uid="uid://btx4aumxk22fj" path="res://demos/top_down/config/settings/td_settings.tres" id="3_5jcve"]
 [ext_resource type="Script" uid="uid://candxhdqm5c6q" path="res://addons/grid_building/resources/gb_config.gd" id="3_lexmi"]
 [ext_resource type="PackedScene" uid="uid://dhox8mb8kuaxa" path="res://test/grid_building_test/scenes/indicators/test_indicator.tscn" id="4_mewtm"]
 [ext_resource type="Script" uid="uid://bvictehrnbjh3" path="res://addons/grid_building/resources/templates/gb_templates.gd" id="5_lexmi"]

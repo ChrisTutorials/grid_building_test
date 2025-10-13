@@ -63,6 +63,7 @@ func before_test() -> void:
 	runner.simulate_frames(2)  # Initial setup frames
 	
 	_env = runner.scene() as AllSystemsTestEnvironment
+	# Container is already duplicated by environment's _ready() for test isolation
 	_container = _env.get_container()
 	
 	# Disable mouse input to prevent interference
@@ -411,7 +412,7 @@ func test_force_validation_update(
 	collision_body.global_position = indicator.global_position
 
 	indicator.add_rule(rule)
-    
+	
 	assert_bool(indicator.force_validity_evaluation()).append_failure_message(
 		_diag("force_validity_evaluation() did not return expected value; expected=%s current_valid=%s" % [str(expected_valid), str(indicator.valid)])
 	).is_equal(expected_valid)

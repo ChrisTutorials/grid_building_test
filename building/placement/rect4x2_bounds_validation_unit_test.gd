@@ -44,7 +44,7 @@ func before_test() -> void:
 	# Set up targeting state
 	if _targeting_state.target_map == null:
 		_targeting_state.target_map = _map
-	_targeting_state.target = env.placer
+	_targeting_state.set_manual_target(env.placer)
 
 	# Ensure test-friendly targeting settings (no auto snapping/restriction side-effects)
 	if _container and _container.config and _container.config.settings and _container.config.settings.targeting:

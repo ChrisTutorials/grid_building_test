@@ -53,7 +53,7 @@ func test_trapezoid_full_pipeline_integration() -> void:
 	auto_free(test_object)
 	
 	# 2) Set targeting state
-	_targeting_state.target = test_object
+	_targeting_state.set_manual_target(test_object)
 	_targeting_state.positioner.global_position = TRAPEZOID_POSITION
 	
 	print("[TRAPEZOID] Test object created at position: %s" % str(test_object.global_position))

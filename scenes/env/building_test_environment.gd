@@ -42,6 +42,9 @@ func get_issues() -> Array[String]:
 	return issues
 
 func _ready() -> void:
+	# Note: Container duplication for test isolation is now automatic via GBTestInjectorSystem
+	# No manual duplication needed - the injector handles it when the container is assigned
+	
 	# Ensure indicator_manager references the injected manager from context
 	if get_container():
 		var indicator_context: IndicatorContext = get_container().get_indicator_context()

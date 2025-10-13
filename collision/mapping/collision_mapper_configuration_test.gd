@@ -82,7 +82,7 @@ func _create_mock_indicator(indicator_name: String, collision_mask: int) -> Rule
 
 # Helper method to setup targeting state for a target object
 func _setup_targeting_state(target: Node2D) -> void:
-	_targeting_state.target = target
+	_targeting_state.set_manual_target(target)
 	# Position the positioner at a grid-aligned location near the map center
 	# This ensures indicators will be positioned within map bounds
 	var center_tile := Vector2i(15, 15)  # Center of 31x31 map

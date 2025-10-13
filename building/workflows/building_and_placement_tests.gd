@@ -135,7 +135,7 @@ func before_test() -> void:
 	# CRITICAL: Always set target to user_node (even if not null) because
 	# GBTestIsolation.cleanup_building_test_isolation() sets it to null in after_test()
 	# This ensures each parameterized test run has a valid target
-	_targeting_state.target = user_node
+	_targeting_state.set_manual_target(user_node)
 	
 	# CRITICAL: Explicitly set position_on_enable_policy to NONE to prevent automatic recentering
 	# This ensures tests have full control over positioner positioning without interference
@@ -475,25 +475,25 @@ func test_placement_validation_with_rules(
 	_positioner.global_position = TEST_TILE_CENTER  # (8.0, 8.0) - center of tile (0,0)
 	runner.simulate_frames(2)  # Let position update take effect
 	
-	# Enhanced diagnostic: Verify _targeting_state and _targeting_state.target exist
+	# Enhanced diagnostic: Verify _targeting_state and _targeting_state.get_target() exist
 	assert_object(_targeting_state).append_failure_message(
 		"CRITICAL: _targeting_state is null in test_placement_validation_with_rules. " +
 		"Rule scenario: " + str(rule_scenario) + ", Rule type: " + str(rule_type) + ". " +
 		"This indicates GridTargetingSystem.get_state() failed or returned null."
 	).is_not_null()
 	
-	assert_object(_targeting_state.target).append_failure_message(
-		"CRITICAL: _targeting_state.target is null in test_placement_validation_with_rules. " +
+	assert_object(_targeting_state.get_target()).append_failure_message(
+		"CRITICAL: _targeting_state.get_target() is null in test_placement_validation_with_rules. " +
 		"Rule scenario: " + str(rule_scenario) + ", Rule type: " + str(rule_type) + ". " +
 		"Test environment details: " +
 		"env.placer=" + (str(env.placer) if env else "env is null") + ", " +
 		"user_node=" + str(user_node) + ", " +
-		"_targeting_state.target was set in before_test() but is now null. " +
+		"_targeting_state.get_target() was set in before_test() but is now null. " +
 		"This may indicate the target node was freed or not properly retained between tests."
 	).is_not_null()
 	
 	# Also update the targeting state target position to match (both should be at tile center)
-	_targeting_state.target.global_position = TEST_TILE_CENTER
+	_targeting_state.get_target().global_position = TEST_TILE_CENTER
 	
 	# Setup environment for specific rule scenarios AFTER positioning
 	if rule_type == "collision_blocking" or rule_type == "multiple_invalid":
@@ -795,7 +795,7 @@ func _collect_placement_diagnostics(context: String = "") -> String:
 	diag.append("context=" + context)
 	diag.append("positioner=" + str(_positioner.global_position))
 	# Safe access: target may be null during initialization or cleanup
-	var target_pos: String = "null" if _targeting_state.target == null else str(_targeting_state.target.global_position)
+	var target_pos: String = "null" if _targeting_state.get_target() == null else str(_targeting_state.get_target().global_position)
 	diag.append("target=" + target_pos)
 	diag.append("map_used_rect=" + str(_map.get_used_rect()))
 	diag.append("placed_count=" + str(_placed_positions.size()))
@@ -834,7 +834,7 @@ func _format_validation_failure_details(scenario: String, rule_type: String, exp
 	details.append("ENVIRONMENT STATE:")
 	details.append("  • Positioner position: " + str(_positioner.global_position))
 	# Safe access: target may be null
-	var target_pos_str: String = "null" if _targeting_state.target == null else str(_targeting_state.target.global_position)
+	var target_pos_str: String = "null" if _targeting_state.get_target() == null else str(_targeting_state.get_target().global_position)
 	details.append("  • Target position: " + target_pos_str)
 	details.append("  • Map used rect: " + str(_map.get_used_rect()))
 	details.append("  • Position within bounds: " + str(_is_position_within_map_bounds(_positioner.global_position)))
@@ -998,25 +998,25 @@ func test_large_rectangle_generates_full_grid_of_indicators() -> void:
 	_positioner.global_position = TEST_TILE_CENTER  # (8.0, 8.0) - center of tile (0,0)
 	runner.simulate_frames(2)  # Let position update take effect
 	
-	# Enhanced diagnostic: Verify _targeting_state and _targeting_state.target exist
+	# Enhanced diagnostic: Verify _targeting_state and _targeting_state.get_target() exist
 	assert_object(_targeting_state).append_failure_message(
 		"CRITICAL: _targeting_state is null in test_large_rectangle_generates_full_grid_of_indicators. " +
 		"This indicates GridTargetingSystem.get_state() failed or returned null."
 	).is_not_null()
 	
-	assert_object(_targeting_state.target).append_failure_message(
-		"CRITICAL: _targeting_state.target is null in test_large_rectangle_generates_full_grid_of_indicators. " +
+	assert_object(_targeting_state.get_target()).append_failure_message(
+		"CRITICAL: _targeting_state.get_target() is null in test_large_rectangle_generates_full_grid_of_indicators. " +
 		"Test environment details: " +
 		"env.placer=" + (str(env.placer) if env else "env is null") + ", " +
 		"user_node=" + str(user_node) + ", " +
-		"_targeting_state.target was set in before_test() but is now null. " +
+		"_targeting_state.get_target() was set in before_test() but is now null. " +
 		"This may indicate: " +
 		"1) The target node was freed between tests (test isolation issue), " +
 		"2) env.placer was null when assigned in before_test(), or " +
-		"3) A previous test modified _targeting_state.target without cleanup."
+		"3) A previous test modified _targeting_state.get_target() without cleanup."
 	).is_not_null()
 	
-	_targeting_state.target.global_position = TEST_TILE_CENTER
+	_targeting_state.get_target().global_position = TEST_TILE_CENTER
 	
 	# Create a factory-generated rectangular collision object with known dimensions
 	# DOCUMENTED: Creates a 48x64 pixel rectangle = 3x4 tiles (with 16x16 tile size) = 12 total tiles
@@ -1029,7 +1029,7 @@ func test_large_rectangle_generates_full_grid_of_indicators() -> void:
 	test_building.collision_layer = TEST_COLLISION_LAYER  # Standard collision layer
 	
 	# Attach to TARGET (user_node) so IndicatorService sources this shape for indicators
-	_targeting_state.target.add_child(test_building)
+	_targeting_state.get_target().add_child(test_building)
 	test_building.position = TEST_WORLD_ORIGIN  # Local position relative to target
 	
 	# Force physics update to ensure collision shape is properly registered
@@ -1571,8 +1571,8 @@ func _prepare_target_for_successful_build(_tile: Vector2i = SAFE_LEFT_TILE) -> v
 	if is_instance_valid(user_node):
 		user_node.global_position = _positioner.global_position
 	if _targeting_state != null:
-		_targeting_state.target = user_node
-		_targeting_state.target.global_position = _positioner.global_position
+		_targeting_state.set_manual_target(user_node)
+		_targeting_state.get_target().global_position = _positioner.global_position
 	
 	# Allow a frame for any positioning changes to take effect
 	runner.simulate_frames(2)  # Replaced await get_tree().process_frame
@@ -1620,12 +1620,12 @@ func _setup_test_object_collision_shapes() -> void:
 ## Without collision shapes, rules that check collision/bounds treat zero indicators as failure.
 ## This method adds a lightweight collision shape specifically for validation (not building).
 func _setup_target_collision_shape_for_validation() -> void:
-	if not is_instance_valid(_targeting_state.target):
+	if not is_instance_valid(_targeting_state.get_target()):
 		logger.log_warning("Cannot setup collision shape - target is invalid")
 		return
 	
 	# Check if collision body already exists
-	var existing_body: StaticBody2D = _targeting_state.target.get_node_or_null("ValidationCollisionBody") as StaticBody2D
+	var existing_body: StaticBody2D = _targeting_state.get_target().get_node_or_null("ValidationCollisionBody") as StaticBody2D
 	if existing_body != null:
 		return  # Already set up
 	
@@ -1646,10 +1646,10 @@ func _setup_target_collision_shape_for_validation() -> void:
 	
 	# Proper hierarchy: StaticBody2D -> CollisionShape2D
 	collision_body.add_child(collision_shape)
-	_targeting_state.target.add_child(collision_body)
+	_targeting_state.get_target().add_child(collision_body)
 	auto_free(collision_body)  # Ensure cleanup (child will be freed automatically)
 	
-	logger.log_verbose("Added validation collision body with shape to target: %s" % _targeting_state.target.name)
+	logger.log_verbose("Added validation collision body with shape to target: %s" % _targeting_state.get_target().name)
 
 func _resolve_tile_for_build(preferred_tile: Vector2i) -> Vector2i:
 	assert_object(_map).append_failure_message("TileMapLayer missing when resolving build tile").is_not_null()

@@ -1,8 +1,11 @@
 ## Test environment for grid building tests
+##
+## Uses [GBTestInjectorSystem] which automatically duplicates composition containers
+## for test isolation. This prevents cross-test contamination.
 class_name GBTestEnvironment
 extends Node
 
-@export var injector : GBInjectorSystem
+@export var injector : GBTestInjectorSystem
 @export var grid_targeting_system : GridTargetingSystem
 @export var positioner : GridPositioner2D
 @export var targeter : TargetingShapeCast2D

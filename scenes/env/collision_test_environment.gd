@@ -15,6 +15,9 @@ var targeting_state : GridTargetingState
 var container : GBCompositionContainer
 
 func _ready() -> void:
+	# Container duplication is now automatic via GBTestInjectorSystem
+	# When composition_container is assigned, it's automatically duplicated for test isolation
+	
 	# Initialize container reference for convenience
 	container = get_container()
 	
@@ -85,4 +88,6 @@ func get_issues() -> Array[String]:
 	return issues
 
 func get_container() -> GBCompositionContainer:
-	return injector.composition_container
+	# Use get_node instead of export because exports aren't resolved until after _ready
+	var inj: GBTestInjectorSystem = get_node("../GBInjectorSystem") if has_node("../GBInjectorSystem") else injector
+	return inj.composition_container if inj else null

@@ -1,0 +1,104 @@
+[gd_resource type="Resource" script_class="GBSettings" load_steps=30 format=3 uid="uid://lgs80wdaci77"]
+
+[ext_resource type="Script" uid="uid://dwidaqo6s5e7k" path="res://addons/grid_building/resources/settings/action_log_settings.gd" id="1_p4qpv"]
+[ext_resource type="Script" uid="uid://cufp4o5ctq6ak" path="res://addons/grid_building/components/building_node.gd" id="2_0dfm3"]
+[ext_resource type="Script" uid="uid://4bb3o5haegwy" path="res://addons/grid_building/systems/building/building_settings.gd" id="3_ec2w3"]
+[ext_resource type="Script" uid="uid://cdothihd02bh" path="res://addons/grid_building/debug/gb_debug_settings.gd" id="4_rmjjx"]
+[ext_resource type="Script" uid="uid://dd2upd0f43el6" path="res://addons/grid_building/systems/manipulation/manipulation_settings.gd" id="5_yleph"]
+[ext_resource type="Script" uid="uid://ceem2vqcha7ki" path="res://addons/grid_building/placement/placement_rules/placement_rule.gd" id="8_p4qpv"]
+[ext_resource type="Script" uid="uid://canj8n1of5xmx" path="res://addons/grid_building/placement/placement_rules/template_rules/collisions_check_rule.gd" id="9_collision"]
+[ext_resource type="Script" uid="uid://s0vakpw0uegl" path="res://addons/grid_building/placement/placement_rules/template_rules/within_tilemap_bounds_rule.gd" id="10_bounds"]
+[ext_resource type="Script" uid="uid://c57eqttydbunb" path="res://addons/grid_building/placement/rule_check_indicator/indicator_visual_settings.gd" id="11_visual"]
+[ext_resource type="Texture2D" uid="uid://da3dy6wxkc4e3" path="res://addons/grid_building/placement/rule_check_indicator/tile_textures/red_collision_tile_overlay_16x16_100_opacity_with_build_b.png" id="12_red_tex"]
+[ext_resource type="Texture2D" uid="uid://be7hk3nccgu7f" path="res://addons/grid_building/placement/rule_check_indicator/tile_textures/orange_collision_tile_overlay_16x16_100_opacity_with_build_b.png" id="13_orange_tex"]
+[ext_resource type="Script" uid="uid://dttqh3os8nvgy" path="res://addons/grid_building/validation/gb_runtime_checks.gd" id="14_n358t"]
+[ext_resource type="Script" uid="uid://c07xmsvybhcx7" path="res://addons/grid_building/resources/settings/gb_settings.gd" id="15_f1j78"]
+[ext_resource type="Script" uid="uid://bf1f0wwpo5syj" path="res://addons/grid_building/systems/grid_targeting/grid_targeting_settings.gd" id="16_rtydx"]
+[ext_resource type="Resource" uid="uid://dibitb2ygyn3i" path="res://demos/shared/settings/demo_cursor_settings.tres" id="17_mhpts"]
+[ext_resource type="Resource" uid="uid://vjnhs7n1f6ve" path="res://demos/shared/settings/demo_highlight_settings.tres" id="18_wgyia"]
+[ext_resource type="Script" uid="uid://covy88fxfbhlc" path="res://addons/grid_building/resources/settings/gb_visual_settings.gd" id="19_56jcj"]
+[ext_resource type="Resource" uid="uid://c0owy4lc2bffq" path="res://demos/shared/settings/demo_target_info_settings.tres" id="20_2xq3p"]
+
+[sub_resource type="Resource" id="Resource_bvms1"]
+script = ExtResource("1_p4qpv")
+failed_color = Color(0.941176, 0.501961, 0.501961, 1)
+success_color = Color(0.678431, 0.847059, 0.901961, 1)
+metadata/_custom_type_script = "uid://dwidaqo6s5e7k"
+
+[sub_resource type="Resource" id="Resource_2l0f0"]
+script = ExtResource("3_ec2w3")
+preview_root_script = ExtResource("2_0dfm3")
+metadata/_custom_type_script = "uid://4bb3o5haegwy"
+
+[sub_resource type="Resource" id="Resource_j7yyx"]
+script = ExtResource("4_rmjjx")
+level = 5
+grid_positioner_log_mode = 1
+indicator_connection_line_color = Color(1, 0.647059, 0, 1)
+metadata/_custom_type_script = "uid://cdothihd02bh"
+
+[sub_resource type="Resource" id="Resource_rjppk"]
+script = ExtResource("5_yleph")
+enable_demolish = true
+demolish_while_moving = true
+disable_layer_in_manipulation = true
+disabled_physics_layer = 10
+
+[sub_resource type="Resource" id="Resource_collision_visual"]
+script = ExtResource("11_visual")
+texture = ExtResource("12_red_tex")
+metadata/_custom_type_script = "uid://c57eqttydbunb"
+
+[sub_resource type="Resource" id="Resource_collision_rule"]
+script = ExtResource("9_collision")
+collision_mask = 513
+apply_to_objects_mask = 1537
+visual_priority = 5
+fail_visual_settings = SubResource("Resource_collision_visual")
+metadata/_custom_type_script = "uid://canj8n1of5xmx"
+
+[sub_resource type="Resource" id="Resource_bounds_visual"]
+script = ExtResource("11_visual")
+texture = ExtResource("13_orange_tex")
+metadata/_custom_type_script = "uid://c57eqttydbunb"
+
+[sub_resource type="Resource" id="Resource_bounds_rule"]
+script = ExtResource("10_bounds")
+apply_to_objects_mask = 513
+visual_priority = 3
+fail_visual_settings = SubResource("Resource_bounds_visual")
+metadata/_custom_type_script = "uid://s0vakpw0uegl"
+
+[sub_resource type="Resource" id="Resource_q2h6c"]
+script = ExtResource("14_n358t")
+building_system = true
+targeting_system = true
+manipulation_system = true
+camera_2d = false
+metadata/_custom_type_script = "uid://dttqh3os8nvgy"
+
+[sub_resource type="Resource" id="Resource_s2vin"]
+script = ExtResource("16_rtydx")
+max_tile_distance = 7
+enable_mouse_input = false
+remain_active_in_off_mode = true
+position_on_enable_policy = 0
+
+[sub_resource type="Resource" id="Resource_c3cc1"]
+script = ExtResource("19_56jcj")
+cursor = ExtResource("17_mhpts")
+highlight = ExtResource("18_wgyia")
+target_info = ExtResource("20_2xq3p")
+metadata/_custom_type_script = "uid://covy88fxfbhlc"
+
+[resource]
+script = ExtResource("15_f1j78")
+building = SubResource("Resource_2l0f0")
+manipulation = SubResource("Resource_rjppk")
+targeting = SubResource("Resource_s2vin")
+visual = SubResource("Resource_c3cc1")
+action_log = SubResource("Resource_bvms1")
+placement_rules = Array[ExtResource("8_p4qpv")]([SubResource("Resource_collision_rule"), SubResource("Resource_bounds_rule")])
+runtime_checks = SubResource("Resource_q2h6c")
+debug = SubResource("Resource_j7yyx")
+metadata/_custom_type_script = "uid://c07xmsvybhcx7"

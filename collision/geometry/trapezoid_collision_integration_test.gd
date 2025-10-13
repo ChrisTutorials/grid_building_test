@@ -62,7 +62,7 @@ func test_trapezoid_collision_detection_integration() -> void:
 	auto_free(test_object)
 	
 	# 3) Set targeting state
-	_targeting_state.target = test_object
+	_targeting_state.set_manual_target(test_object)
 	_targeting_state.positioner.global_position = TRAPEZOID_POSITION
 	
 	print("[TRAPEZOID_TRACE] Test object position: %s" % str(test_object.global_position))
@@ -213,7 +213,7 @@ func test_full_indicator_generation_integration() -> void:
 	auto_free(test_object)
 	
 	# Set targeting state
-	_targeting_state.target = test_object
+	_targeting_state.set_manual_target(test_object)
 	_targeting_state.positioner.global_position = TRAPEZOID_POSITION
 	
 	# Create placement rules

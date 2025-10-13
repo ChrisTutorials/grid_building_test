@@ -1,6 +1,5 @@
-[gd_scene load_steps=4 format=3 uid="uid://blllj8hw6xgpl"]
+[gd_scene load_steps=3 format=3 uid="uid://blllj8hw6xgpl"]
 
-[ext_resource type="Texture2D" uid="uid://bvpnel075tx5k" path="res://icon.png" id="1_12akl"]
 [ext_resource type="Script" uid="uid://bib4d58jc2hi1" path="res://addons/grid_building/components/manipulatable.gd" id="2_38ifq"]
 [ext_resource type="Resource" path="res://test/grid_building_test/resources/settings/manipulatable/manipulatable_settings_all_allowed.tres" id="3_agky1"]
 
@@ -13,7 +12,6 @@ polygon = PackedVector2Array(-32, 12, -16, -12, 17, -12, 32, 12)
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 visible = false
-texture = ExtResource("1_12akl")
 
 [node name="Manipulatable" type="Node" parent="." node_paths=PackedStringArray("root")]
 script = ExtResource("2_38ifq")

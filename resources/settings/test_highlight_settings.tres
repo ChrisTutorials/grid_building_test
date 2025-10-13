@@ -1,6 +1,6 @@
-[gd_resource type="Resource" script_class="HighlightSettings" load_steps=2 format=3 uid="uid://test_highlight_settings"]
+[gd_resource type="Resource" script_class="HighlightSettings" load_steps=2 format=3 uid="uid://cigf6bdwvwf6q"]
 
-[ext_resource type="Script" uid="uid://o8yqg2pfgjam" path="res://addons/grid_building/components/highlight_settings.gd" id="1_highlight"]
+[ext_resource type="Script" uid="uid://b4kfcjekrmwxx" path="res://addons/grid_building/systems/grid_targeting/highlight_settings.gd" id="1_sa2cy"]
 
 [resource]
-script = ExtResource("1_highlight")
+script = ExtResource("1_sa2cy")

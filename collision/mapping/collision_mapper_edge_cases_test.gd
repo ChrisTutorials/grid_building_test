@@ -60,7 +60,7 @@ func test_collision_mapper_polygon_edge_cases(
 	auto_free(test_object)
 	
 	# Set targeting state
-	_targeting_state.target = test_object
+	_targeting_state.set_manual_target(test_object)
 	_targeting_state.positioner.global_position = TEST_POSITION
 	
 	# Calculate expected tiles using CollisionGeometryUtils (verified working method)

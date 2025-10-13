@@ -19,6 +19,8 @@ func before_test() -> void:
 	runner.simulate_frames(2)  # Initial setup frames
 	
 	_env = runner.scene() as CollisionTestEnvironment
+	# Container is already duplicated by environment's _ready() for test isolation
+	
 	_positioner = _env.positioner
 	_targeting_state = _env.targeting_state
 	_settings = _env.container.config.settings.targeting

@@ -83,17 +83,13 @@ static func prepare_targeting_state_ready(test: GdUnitTestSuite, container: GBCo
 ## Delegate: Create test composition container
 ## @deprecated: Use GBCompositionContainer.new() directly or specific factory methods
 static func create_test_composition_container(_test: GdUnitTestSuite) -> GBCompositionContainer:
-	# Prefer duplicating the repo-provided test composition container so config
-	# and placement_rules are present during test runs. Fall back to a new empty
-	# container when the shared test resource is unavailable.
-	# Prefer duplicating the repo-provided test composition container so tests
-	# receive a container with preconfigured `config.settings.placement_rules`.
-	var base_container: GBCompositionContainer = null
-	# GBTestConstants.TEST_COMPOSITION_CONTAINER is a preloaded resource used
-	# across tests (see `gb_test_constants.gd`). Use it when available.
-	base_container = GBTestConstants.TEST_COMPOSITION_CONTAINER
+	# Use GBTestConstants.TEST_COMPOSITION_CONTAINER as the base and duplicate it
+	# for test isolation using GBTestInjectorSystem pattern
+	var base_container: GBCompositionContainer = GBTestConstants.TEST_COMPOSITION_CONTAINER
 
 	if base_container:
+		# Note: We could use GBTestInjectorSystem.setup_test_container() here, but since
+		# we don't have an injector instance yet, we duplicate directly
 		var dup: GBCompositionContainer = base_container.duplicate(true)
 		return dup
 

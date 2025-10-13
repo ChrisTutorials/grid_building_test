@@ -6,6 +6,7 @@ extends BuildingTestEnvironment
 @export var target_highlighter : TargetHighlighter
 
 func _ready() -> void:
+	# Call parent _ready() which handles container duplication for test isolation
 	super()
 
 func get_issues() -> Array[String]:

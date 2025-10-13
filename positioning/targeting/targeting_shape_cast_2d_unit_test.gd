@@ -69,13 +69,13 @@ func test_targeting_detects_static_body_with_matching_collision_layers() -> void
 	).is_true()
 	
 	# Assert: GridTargetingState.target should be updated
-	assert_object(targeting_state.target).append_failure_message(
+	assert_object(targeting_state.get_target()).append_failure_message(
 		"GridTargetingState.target should be set to the detected StaticBody2D after update_target(). Currently: %s" % 
-		str(targeting_state.target)
+		str(targeting_state.get_target())
 	).is_not_null()
 	
-	if targeting_state.target != null:
-		assert_object(targeting_state.target).append_failure_message(
+	if targeting_state.get_target() != null:
+		assert_object(targeting_state.get_target()).append_failure_message(
 			"GridTargetingState.target should be the StaticBody2D we created"
 		).is_same(target_body)
 
@@ -114,9 +114,9 @@ func test_targeting_continuous_update_via_physics_process() -> void:
 	await get_tree().physics_frame
 	
 	# Assert: After physics frames, target should be detected automatically
-	assert_object(targeting_state.target).append_failure_message(
+	assert_object(targeting_state.get_target()).append_failure_message(
 		"After physics frames, GridTargetingState.target should be set by _physics_process. Currently: %s" % 
-		str(targeting_state.target)
+		str(targeting_state.get_target())
 	).is_not_null()
 	
 	assert_bool(sc.is_colliding()).append_failure_message(
@@ -160,7 +160,7 @@ func test_targeting_detects_object_without_leaving_collision_area() -> void:
 	sc.global_position = Vector2(300, 300)  # Already over the object
 	
 	# Verify no target set initially
-	assert_object(targeting_state.target).append_failure_message(
+	assert_object(targeting_state.get_target()).append_failure_message(
 		"Initial state: target should be null before physics update"
 	).is_null()
 	
@@ -177,18 +177,18 @@ func test_targeting_detects_object_without_leaving_collision_area() -> void:
 	).is_true()
 	
 	# This is the failing assertion that reveals the bug
-	assert_object(targeting_state.target).append_failure_message(
+	assert_object(targeting_state.get_target()).append_failure_message(
 		"REGRESSION: Target should be set when ShapeCast is already over object, " +
 		"without needing to move mouse out and back in. " +
 		"is_colliding=%s, collider=%s, target=%s" % 
 		[str(sc.is_colliding()), 
 		 str(sc.get_collider(0)) if sc.is_colliding() else "none",
-		 str(targeting_state.target)]
+		 str(targeting_state.get_target())]
 	).is_not_null()
 	
 	# Verify it's the correct target
-	if targeting_state.target != null:
-		assert_object(targeting_state.target).append_failure_message(
+	if targeting_state.get_target() != null:
+		assert_object(targeting_state.get_target()).append_failure_message(
 			"Target should be the object we positioned ShapeCast over"
 		).is_same(target_body)
 
@@ -238,7 +238,7 @@ func test_targeting_updates_when_target_changes_to_null() -> void:
 	await get_tree().physics_frame
 	await get_tree().physics_frame
 	
-	assert_object(targeting_state.target).append_failure_message(
+	assert_object(targeting_state.get_target()).append_failure_message(
 		"Step 1: ObjectA should be targeted"
 	).is_same(object_a)
 	
@@ -248,14 +248,14 @@ func test_targeting_updates_when_target_changes_to_null() -> void:
 	await get_tree().physics_frame
 	
 	# Target should automatically update to ObjectB
-	assert_object(targeting_state.target).append_failure_message(
+	assert_object(targeting_state.get_target()).append_failure_message(
 		"Step 2: Target should update to ObjectB when ShapeCast moves over it. " +
 		"is_colliding=%s, current_target=%s" %
-		[str(sc.is_colliding()), str(targeting_state.target)]
+		[str(sc.is_colliding()), str(targeting_state.get_target())]
 	).is_same(object_b)
 	
 	# Step 3: Manually clear target (simulating manipulation end or other system clearing)
-	targeting_state.target = null
+	targeting_state.clear()
 	await get_tree().physics_frame
 	
 	# Step 4: ShapeCast is STILL over ObjectB - it should re-detect it
@@ -263,10 +263,10 @@ func test_targeting_updates_when_target_changes_to_null() -> void:
 	# detect the object it's already hovering over?
 	await get_tree().physics_frame
 	
-	assert_object(targeting_state.target).append_failure_message(
+	assert_object(targeting_state.get_target()).append_failure_message(
 		"Step 4: After target cleared, ShapeCast should re-detect ObjectB " +
 		"that it's still hovering over. is_colliding=%s, target=%s" %
-		[str(sc.is_colliding()), str(targeting_state.target)]
+		[str(sc.is_colliding()), str(targeting_state.get_target())]
 	).is_same(object_b)
 
 
@@ -311,16 +311,16 @@ func test_targeting_after_external_target_clear_while_hovering() -> void:
 	await get_tree().physics_frame
 	await get_tree().physics_frame
 	
-	assert_object(targeting_state.target).append_failure_message(
+	assert_object(targeting_state.get_target()).append_failure_message(
 		"Setup: Target should be set to persistent object"
 	).is_same(persistent_obj)
 	
 	# Critical step: EXTERNAL system clears target (e.g., after manipulation)
 	# ShapeCast position has NOT changed - still hovering over the object
-	targeting_state.target = null
+	targeting_state.clear()
 	
 	# Verify target is cleared
-	assert_object(targeting_state.target).append_failure_message(
+	assert_object(targeting_state.get_target()).append_failure_message(
 		"After external clear: target should be null"
 	).is_null()
 	
@@ -341,12 +341,357 @@ func test_targeting_after_external_target_clear_while_hovering() -> void:
 	if sc.is_colliding():
 		collider_str = str(sc.get_collider(0))
 	
-	var failure_msg: String = "REGRESSION: After external clear, ShapeCast should re-detect object it's still hovering over. is_colliding=%s, collider=%s, old_target_was_null=true, current_target=%s" % [str(sc.is_colliding()), collider_str, str(targeting_state.target)]
+	var failure_msg: String = "REGRESSION: After external clear, ShapeCast should re-detect object it's still hovering over. is_colliding=%s, collider=%s, old_target_was_null=true, current_target=%s" % [str(sc.is_colliding()), collider_str, str(targeting_state.get_target())]
 	
-	assert_object(targeting_state.target).append_failure_message(failure_msg).is_not_null()
+	assert_object(targeting_state.get_target()).append_failure_message(failure_msg).is_not_null()
 	
-	assert_object(targeting_state.target).append_failure_message(
+	assert_object(targeting_state.get_target()).append_failure_message(
 		"Re-detected target should be the persistent object"
 	).is_same(persistent_obj)
+
+
+#region Metadata-Based Root Targeting Tests
+
+func test_root_node_metadata_on_collision_object_redirects_to_root() -> void:
+	# Test: When collision object has root_node metadata, targeting should redirect to that node
+	# Setup: Create Node2D root with Area2D child. Area2D has root_node metadata pointing to root
+	var container: GBCompositionContainer = auto_free(GBCompositionContainer.new())
+	var targeting_state: GridTargetingState = container.get_states().targeting
+	
+	var sc: TargetingShapeCast2D = auto_free(TargetingShapeCast2D.new())
+	var shape := RectangleShape2D.new()
+	shape.size = Vector2(16, 16)
+	sc.shape = shape
+	sc.collision_mask = 513  # Bits 1+9
+	sc.target_position = Vector2.ZERO
+	add_child(sc)
+	sc.resolve_gb_dependencies(container)
+	
+	# Create scene structure: RootNode2D -> StaticBody2D (with gb_root_node metadata)
+	var root_node: Node2D = auto_free(Node2D.new())
+	root_node.name = "LogicalRoot"
+	root_node.global_position = Vector2(100, 100)
+	add_child(root_node)
+	
+	var collision_body: StaticBody2D = StaticBody2D.new()
+	collision_body.name = "CollisionChild"
+	collision_body.collision_layer = 513
+	var body_shape: CollisionShape2D = CollisionShape2D.new()
+	var body_rect := RectangleShape2D.new()
+	body_rect.size = Vector2(32, 32)
+	body_shape.shape = body_rect
+	collision_body.add_child(body_shape)
+	root_node.add_child(collision_body)
+	
+	# Set metadata on collision body pointing to root
+	collision_body.set_meta("root_node", root_node)
+	
+	# Position ShapeCast over collision body
+	sc.global_position = Vector2(100, 100)
+	await get_tree().physics_frame
+	await get_tree().physics_frame
+	
+	# Assert: Target should be collision body, target_root should be the resolved root node
+	assert_object(targeting_state.get_collider()).append_failure_message(
+		"Target should be the collision body. Got: %s, ShapeCast colliding: %s" % 
+		[str(targeting_state.get_collider()), str(sc.is_colliding())]
+	).is_same(collision_body)
+	
+	assert_object(targeting_state.get_target()).append_failure_message(
+		"Target root should be redirected to root node via root_node metadata. " +
+		"Expected: %s, Got: %s" % 
+		[root_node.name, str(targeting_state.get_target())]
+	).is_same(root_node)
+
+
+func test_root_node_metadata_hierarchical_search() -> void:
+	# Test: Should find Manipulatable component in sibling/child hierarchy
+	# Setup: Collision object with sibling Manipulatable that has root
+	var container: GBCompositionContainer = auto_free(GBCompositionContainer.new())
+	var targeting_state: GridTargetingState = container.get_states().targeting
+	
+	var sc: TargetingShapeCast2D = auto_free(TargetingShapeCast2D.new())
+	var shape := RectangleShape2D.new()
+	shape.size = Vector2(16, 16)
+	sc.shape = shape
+	sc.collision_mask = 513
+	sc.target_position = Vector2.ZERO
+	add_child(sc)
+	sc.resolve_gb_dependencies(container)
+	
+	# Create hierarchy: Parent -> [Collision, Manipulatable with root]
+	var parent_node: Node2D = auto_free(Node2D.new())
+	parent_node.name = "ParentNode"
+	parent_node.global_position = Vector2(200, 200)
+	add_child(parent_node)
+	
+	var root_node: Node2D = Node2D.new()
+	root_node.name = "ActualRoot"
+	parent_node.add_child(root_node)
+	
+	var manipulatable: Manipulatable = Manipulatable.new()
+	manipulatable.name = "ManipulatableComponent"
+	manipulatable.root = root_node
+	parent_node.add_child(manipulatable)
+	
+	var collision_body: StaticBody2D = StaticBody2D.new()
+	collision_body.name = "CollisionSibling"
+	collision_body.collision_layer = 513
+	var body_shape: CollisionShape2D = CollisionShape2D.new()
+	var body_rect := RectangleShape2D.new()
+	body_rect.size = Vector2(32, 32)
+	body_shape.shape = body_rect
+	collision_body.add_child(body_shape)
+	parent_node.add_child(collision_body)
+	
+	# Position ShapeCast
+	sc.global_position = Vector2(200, 200)
+	await get_tree().physics_frame
+	await get_tree().physics_frame
+	
+	# Assert: target should be collision body, target_root should be resolved via Manipulatable
+	assert_object(targeting_state.get_collider()).append_failure_message(
+		"Target should be the collision body. Got: %s" % [str(targeting_state.get_collider())]
+	).is_same(collision_body)
+	
+	assert_object(targeting_state.get_target()).append_failure_message(
+		"Target root should be resolved via sibling Manipulatable search. " +
+		"Expected: %s, Got: %s" % [root_node.name, str(targeting_state.get_target())]
+	).is_same(root_node)
+
+
+func test_root_node_metadata_max_depth_limit() -> void:
+	# Test: Child search should only go 1 level deep (not recursive)
+	# Setup: Collision with nested children, only direct child Manipulatable should be found
+	var container: GBCompositionContainer = auto_free(GBCompositionContainer.new())
+	var targeting_state: GridTargetingState = container.get_states().targeting
+	
+	var sc: TargetingShapeCast2D = auto_free(TargetingShapeCast2D.new())
+	var shape := RectangleShape2D.new()
+	shape.size = Vector2(16, 16)
+	sc.shape = shape
+	sc.collision_mask = 513
+	sc.target_position = Vector2.ZERO
+	add_child(sc)
+	sc.resolve_gb_dependencies(container)
+	
+	# Create collision with direct child (should be found) and grandchild (should NOT be found)
+	var collision_body: StaticBody2D = auto_free(StaticBody2D.new())
+	collision_body.name = "ParentCollision"
+	collision_body.collision_layer = 513
+	collision_body.global_position = Vector2(300, 300)
+	var body_shape: CollisionShape2D = CollisionShape2D.new()
+	var body_rect := RectangleShape2D.new()
+	body_rect.size = Vector2(32, 32)
+	body_shape.shape = body_rect
+	collision_body.add_child(body_shape)
+	add_child(collision_body)
+	
+	# Add a direct child Manipulatable (1 level deep - should be found)
+	var root_node: Node2D = Node2D.new()
+	root_node.name = "DirectChildRoot"
+	collision_body.add_child(root_node)
+	
+	var direct_manipulatable: Manipulatable = Manipulatable.new()
+	direct_manipulatable.name = "DirectManipulatable"
+	direct_manipulatable.root = root_node
+	collision_body.add_child(direct_manipulatable)
+	
+	# Add a nested grandchild Manipulatable (2 levels deep - should NOT be found)
+	var intermediate: Node2D = Node2D.new()
+	intermediate.name = "IntermediateNode"
+	collision_body.add_child(intermediate)
+	
+	var deep_root: Node2D = Node2D.new()
+	deep_root.name = "DeepRoot"
+	intermediate.add_child(deep_root)
+	
+	var deep_manipulatable: Manipulatable = Manipulatable.new()
+	deep_manipulatable.name = "DeepManipulatable"
+	deep_manipulatable.root = deep_root
+	intermediate.add_child(deep_manipulatable)
+	
+	# Position ShapeCast
+	sc.global_position = Vector2(300, 300)
+	await get_tree().physics_frame
+	await get_tree().physics_frame
+	
+	# Assert: target should be collision body, target_root should be resolved from direct child
+	assert_object(targeting_state.get_collider()).append_failure_message(
+		"Target should be the collision body. Got: %s" % [str(targeting_state.get_collider())]
+	).is_same(collision_body)
+	
+	assert_object(targeting_state.get_target()).append_failure_message(
+		"Target root should be resolved from direct child Manipulatable (1 level), not grandchild (2 levels). " +
+		"Expected: %s, Got: %s" % [root_node.name, str(targeting_state.get_target())]
+	).is_same(root_node)
+
+
+func test_root_node_metadata_invalid_value_fallback() -> void:
+	# Test: If root_node metadata exists but points to invalid node, fallback gracefully
+	# Setup: Collision object with root_node metadata pointing to null/freed node
+	var container: GBCompositionContainer = auto_free(GBCompositionContainer.new())
+	var targeting_state: GridTargetingState = container.get_states().targeting
+	
+	var sc: TargetingShapeCast2D = auto_free(TargetingShapeCast2D.new())
+	var shape := RectangleShape2D.new()
+	shape.size = Vector2(16, 16)
+	sc.shape = shape
+	sc.collision_mask = 513
+	sc.target_position = Vector2.ZERO
+	add_child(sc)
+	sc.resolve_gb_dependencies(container)
+	
+	# Create collision object with invalid metadata
+	var collision_body: StaticBody2D = auto_free(StaticBody2D.new())
+	collision_body.name = "InvalidMetadataBody"
+	collision_body.collision_layer = 513
+	collision_body.global_position = Vector2(400, 400)
+	var body_shape: CollisionShape2D = CollisionShape2D.new()
+	var body_rect := RectangleShape2D.new()
+	body_rect.size = Vector2(32, 32)
+	body_shape.shape = body_rect
+	collision_body.add_child(body_shape)
+	add_child(collision_body)
+	
+	# Set metadata to null (invalid)
+	collision_body.set_meta("root_node", null)
+	
+	# Position ShapeCast
+	sc.global_position = Vector2(400, 400)
+	await get_tree().physics_frame
+	await get_tree().physics_frame
+	
+	# Assert: Should fallback to collision body itself
+	assert_object(targeting_state.get_target()).append_failure_message(
+		"Target should fallback to collision body when metadata value is invalid (null). " +
+		"Expected: %s, Got: %s" % [collision_body.name, str(targeting_state.get_target())]
+	).is_same(collision_body)
+
+
+func test_root_node_metadata_wrong_type_fallback() -> void:
+	# Test: If root_node metadata points to non-Node2D, fallback gracefully
+	var container: GBCompositionContainer = auto_free(GBCompositionContainer.new())
+	var targeting_state: GridTargetingState = container.get_states().targeting
+	
+	var sc: TargetingShapeCast2D = auto_free(TargetingShapeCast2D.new())
+	var shape := RectangleShape2D.new()
+	shape.size = Vector2(16, 16)
+	sc.shape = shape
+	sc.collision_mask = 513
+	sc.target_position = Vector2.ZERO
+	add_child(sc)
+	sc.resolve_gb_dependencies(container)
+	
+	# Create collision object with wrong type metadata
+	var collision_body: StaticBody2D = auto_free(StaticBody2D.new())
+	collision_body.name = "WrongTypeMetadata"
+	collision_body.collision_layer = 513
+	collision_body.global_position = Vector2(500, 500)
+	var body_shape: CollisionShape2D = CollisionShape2D.new()
+	var body_rect := RectangleShape2D.new()
+	body_rect.size = Vector2(32, 32)
+	body_shape.shape = body_rect
+	collision_body.add_child(body_shape)
+	add_child(collision_body)
+	
+	# Set metadata to a Node (not Node2D) - wrong type
+	var wrong_node := Node.new()  # Plain Node, not Node2D
+	wrong_node.name = "NotANode2D"
+	add_child(wrong_node)
+	collision_body.set_meta("root_node", wrong_node)
+	
+	# Position ShapeCast
+	sc.global_position = Vector2(500, 500)
+	await get_tree().physics_frame
+	await get_tree().physics_frame
+	
+	# Assert: Should fallback to collision body when metadata wrong type
+	assert_object(targeting_state.get_target()).append_failure_message(
+		"Target should fallback to collision body when metadata type is not Node2D. " +
+		"Expected: %s, Got: %s" % [collision_body.name, str(targeting_state.get_target())]
+	).is_same(collision_body)
+
+
+func test_root_node_metadata_backward_compatibility() -> void:
+	# Test: Existing scenes without metadata should work unchanged (backward compatibility)
+	# Setup: Traditional Area2D-rooted scene with NO metadata
+	var container: GBCompositionContainer = auto_free(GBCompositionContainer.new())
+	var targeting_state: GridTargetingState = container.get_states().targeting
+	
+	var sc: TargetingShapeCast2D = auto_free(TargetingShapeCast2D.new())
+	var shape := RectangleShape2D.new()
+	shape.size = Vector2(16, 16)
+	sc.shape = shape
+	sc.collision_mask = 513
+	sc.target_position = Vector2.ZERO
+	add_child(sc)
+	sc.resolve_gb_dependencies(container)
+	
+	# Traditional structure: Area2D root with StaticBody2D child (NO metadata)
+	var area_root: StaticBody2D = auto_free(StaticBody2D.new())
+	area_root.name = "TraditionalStaticBody"
+	area_root.collision_layer = 513
+	area_root.global_position = Vector2(600, 600)
+	var area_shape: CollisionShape2D = CollisionShape2D.new()
+	var area_rect := RectangleShape2D.new()
+	area_rect.size = Vector2(32, 32)
+	area_shape.shape = area_rect
+	area_root.add_child(area_shape)
+	add_child(area_root)
+	
+	# Position ShapeCast
+	sc.global_position = Vector2(600, 600)
+	await get_tree().physics_frame
+	await get_tree().physics_frame
+	
+	# Assert: Should target the StaticBody2D itself (traditional behavior)
+	assert_object(targeting_state.get_target()).append_failure_message(
+		"Backward compatibility: Traditional scenes without metadata should target collision object. " +
+		"Expected: %s, Got: %s" % [area_root.name, str(targeting_state.get_target())]
+	).is_same(area_root)
+
+
+func test_root_node_metadata_self_reference() -> void:
+	# Test: Node can set root_node metadata to itself (common pattern for root nodes)
+	var container: GBCompositionContainer = auto_free(GBCompositionContainer.new())
+	var targeting_state: GridTargetingState = container.get_states().targeting
+	
+	var sc: TargetingShapeCast2D = auto_free(TargetingShapeCast2D.new())
+	var shape := RectangleShape2D.new()
+	shape.size = Vector2(16, 16)
+	sc.shape = shape
+	sc.collision_mask = 513
+	sc.target_position = Vector2.ZERO
+	add_child(sc)
+	sc.resolve_gb_dependencies(container)
+	
+	# Create root that is also the collision object (references itself)
+	var self_root: StaticBody2D = auto_free(StaticBody2D.new())
+	self_root.name = "SelfReferencingRoot"
+	self_root.collision_layer = 513
+	self_root.global_position = Vector2(700, 700)
+	var self_shape: CollisionShape2D = CollisionShape2D.new()
+	var self_rect := RectangleShape2D.new()
+	self_rect.size = Vector2(32, 32)
+	self_shape.shape = self_rect
+	self_root.add_child(self_shape)
+	add_child(self_root)
+	
+	# Set metadata to self
+	self_root.set_meta("root_node", self_root)
+	
+	# Position ShapeCast
+	sc.global_position = Vector2(700, 700)
+	await get_tree().physics_frame
+	await get_tree().physics_frame
+	
+	# Assert: Should resolve to self (no-op but valid)
+	assert_object(targeting_state.get_target()).append_failure_message(
+		"Self-referencing metadata should work (node references itself as root). " +
+		"Expected: %s, Got: %s" % [self_root.name, str(targeting_state.get_target())]
+	).is_same(self_root)
+
+#endregion
 
 

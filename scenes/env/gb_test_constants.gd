@@ -82,6 +82,12 @@ const PLACEABLE_NO_COL_TEST_2D: Placeable = preload("uid://jgmywi04ib7c")
 ## Small rectangular test placeable (4x2 tiles - 64x32 px)
 const PLACEABLE_RECT_4X2: Placeable = preload("res://test/grid_building_test/resources/placeable/test_placeable_rect_4x2.tres")
 
+## Top-down demo pillar placeable - used for rotation indicator testing
+const PLACEABLE_PILLAR_TD: Placeable = preload("uid://dratv0oi76yl5")
+
+## Top-down demo smithy placeable - large building for testing
+const PLACEABLE_SMITHY_TD: Placeable = preload("uid://bifgdqn17060d")
+
 #endregion
 #region Object Scene Paths
 ## Fallback paths for test objects
@@ -226,3 +232,24 @@ static func assert_tile_map_size(test_suite: GdUnitTestSuite, environment: GBTes
 	test_suite.assert_int(environment.get_tile_count()).append_failure_message(
 		"Tile map should have expected number of tiles for %dx%d grid (%d tiles)" % [expected_width, expected_height, expected_count]
 	).is_equal(expected_count)
+
+## Duplicate a GBCompositionContainer for safe modification in tests.
+##
+## TEST ISOLATION BEST PRACTICE:
+## Always duplicate containers before modifying their settings to prevent
+## cross-test contamination. Modified cached resources persist across tests.
+##
+## Usage:
+##   var container_copy: GBCompositionContainer = GBTestConstants.duplicate_container(original_container)
+##   container_copy.config.settings.targeting.enable_mouse_input = false
+##
+## [param container] The container to duplicate
+## [return] A deep copy of the container safe for modification
+static func duplicate_container(container: GBCompositionContainer) -> GBCompositionContainer:
+	if container == null:
+		push_error("GBTestConstants.duplicate_container: Cannot duplicate null container")
+		return null
+	
+	# Use Godot's built-in duplicate() with DUPLICATE_USE_INSTANTIATION flag
+	# This creates a deep copy including all sub-resources
+	return container.duplicate(true) as GBCompositionContainer
