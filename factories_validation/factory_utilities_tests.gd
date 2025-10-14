@@ -448,7 +448,7 @@ func test_factory_error_recovery() -> void:
 
 func test_factory_memory_cleanup() -> void:
 	# Test that factory properly cleans up created objects
-	var temp_node: Node2D = UnifiedTestFactory.create_test_node2d(self)
+	var temp_node: Node2D = GodotTestFactory.create_node2d(self)
 	var _node_path: NodePath = temp_node.get_path()
 	
 	# Node should exist initially
