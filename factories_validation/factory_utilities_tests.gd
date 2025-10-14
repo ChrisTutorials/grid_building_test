@@ -137,11 +137,16 @@ func _validate_environment_components(env: Variant, required_components: Array[S
 
 func _create_test_node_with_tracking() -> Node2D:
 	"""Create a test Node2D with automatic tracking"""
-	return _track_object(UnifiedTestFactory.create_test_node2d(self))
+	# Use GodotTestFactory for Node2D creation (specific factory)
+	var node := GodotTestFactory.create_node2d(self, "FactoryTestNode2D")
+	return _track_object(node)
 
 func _create_test_container_with_tracking() -> GBCompositionContainer:
 	"""Create a test composition container with automatic tracking"""
-	return _track_object(UnifiedTestFactory.create_test_composition_container(self))
+	# Use explicit constructor for composition container to avoid UnifiedTestFactory
+	var container := GBCompositionContainer.new()
+	_track_object(container)
+	return container
 
 func _create_test_tilemap_with_tracking() -> TileMapLayer:
 	"""Create a test tilemap with automatic tracking"""
