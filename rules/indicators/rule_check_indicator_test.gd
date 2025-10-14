@@ -133,7 +133,7 @@ func test_setup_indicator_defaults() -> void:
 
 ## Integration test: indicator switches valid → fail → valid as collision body is added/removed
 func test_indicator_validity_switches_on_dynamic_collision() -> void:
-	var rule: CollisionsCheckRule = UnifiedTestFactory.create_test_collisions_check_rule()
+	var rule: CollisionsCheckRule = PlacementRuleTestFactory.create_default_collision_rule()
 	rule.pass_on_collision = false
 	rule.collision_mask = 1
 	
@@ -199,7 +199,7 @@ func test_indicator_validity_switches_on_dynamic_collision() -> void:
 
 ## Test: validity_sprite texture changes when indicator validity changes
 func test_validity_sprite_texture_switches_on_validity_change() -> void:
-	var rule2: CollisionsCheckRule = UnifiedTestFactory.create_test_collisions_check_rule()
+	var rule2: CollisionsCheckRule = PlacementRuleTestFactory.create_default_collision_rule()
 	rule2.pass_on_collision = false
 	rule2.collision_mask = 1
 	var targeting_state2: GridTargetingState = create_rule_targeting_state()
@@ -297,7 +297,7 @@ func test_indicator_validity_scenarios(
 
 	# Create, setup, and add rules to indicator
 	for r: Dictionary in rules:
-		var rule: CollisionsCheckRule = UnifiedTestFactory.create_test_collisions_check_rule()
+		var rule: CollisionsCheckRule = PlacementRuleTestFactory.create_default_collision_rule()
 		rule.pass_on_collision = r["pass_on_collision"]
 		rule.collision_mask = int(r["mask"])
 		var targeting_state: GridTargetingState = create_rule_targeting_state()
@@ -329,7 +329,7 @@ func test_valid_changed_signal_emitted_on_state_change(
 	test_parameters := [[{"pass_on_collision": false, "mask": 1}, false]]
 ) -> void:
 	var signal_data: Array[bool] = [false, false]
-	var rule: CollisionsCheckRule = UnifiedTestFactory.create_test_collisions_check_rule()
+	var rule: CollisionsCheckRule = PlacementRuleTestFactory.create_default_collision_rule()
 	rule.pass_on_collision = rule_spec["pass_on_collision"]
 	rule.collision_mask = int(rule_spec["mask"])
 	var targeting_state: GridTargetingState = create_rule_targeting_state()
@@ -368,7 +368,7 @@ func test_visual_settings_update_on_validity_change() -> void:
 	).is_equal(indicator.valid_settings.modulate)
 	
 	# Create a failing rule to trigger visual change
-	var failing_rule: CollisionsCheckRule = UnifiedTestFactory.create_test_collisions_check_rule()
+	var failing_rule: CollisionsCheckRule = PlacementRuleTestFactory.create_default_collision_rule()
 	# This rule should fail when there is a collision
 	failing_rule.pass_on_collision = false
 	failing_rule.collision_mask = 1
@@ -401,7 +401,7 @@ func test_force_validation_update(
 	expected_valid: bool,
 	test_parameters := [[{"pass_on_collision": false, "mask": 1}, false]]
 ) -> void:
-	var rule: CollisionsCheckRule = UnifiedTestFactory.create_test_collisions_check_rule()
+	var rule: CollisionsCheckRule = PlacementRuleTestFactory.create_default_collision_rule()
 	rule.pass_on_collision = rule_spec["pass_on_collision"]
 	rule.collision_mask = int(rule_spec["mask"])
 	var targeting_state: GridTargetingState = create_rule_targeting_state()
@@ -437,7 +437,7 @@ func test_rules_added_after_ready() -> void:
 	).is_true()
 	
 	# Create and add a failing rule after _ready
-	var failing_rule: CollisionsCheckRule = UnifiedTestFactory.create_test_collisions_check_rule()
+	var failing_rule: CollisionsCheckRule = PlacementRuleTestFactory.create_default_collision_rule()
 	failing_rule.pass_on_collision = false
 	failing_rule.collision_mask = 1
 	
@@ -464,7 +464,7 @@ func test_rules_added_after_ready() -> void:
 ## Test that indicators properly handle rules being removed
 func test_rules_removed() -> void:
 	# Create a failing rule
-	var failing_rule: CollisionsCheckRule = UnifiedTestFactory.create_test_collisions_check_rule()
+	var failing_rule: CollisionsCheckRule = PlacementRuleTestFactory.create_default_collision_rule()
 	failing_rule.pass_on_collision = false
 	failing_rule.collision_mask = 1
 	
@@ -524,7 +524,7 @@ func test_ready_debug_log_format_no_rules() -> void:
 ## Test per-frame evaluation toggled by environment variable
 func test_per_frame_validation_env_flag() -> void:
 	OS.set_environment("GB_INDICATOR_EVAL_EACH_FRAME", "1")
-	var rule: CollisionsCheckRule = UnifiedTestFactory.create_test_collisions_check_rule()
+	var rule: CollisionsCheckRule = PlacementRuleTestFactory.create_default_collision_rule()
 	rule.pass_on_collision = false
 	rule.collision_mask = 1
 	var targeting_state: GridTargetingState = create_rule_targeting_state()

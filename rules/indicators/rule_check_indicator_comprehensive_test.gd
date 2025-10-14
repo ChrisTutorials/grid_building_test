@@ -58,7 +58,7 @@ func test_indicator_validity_dynamics(pass_on_collision: bool, simulate_collisio
 	[true, true, true],    # collision present, rule expects collision -> valid
 ]) -> void:
 	var indicator: RuleCheckIndicator = _create_test_indicator("rectangle", {"size": Vector2(16, 16)})
-	var rule: CollisionsCheckRule = UnifiedTestFactory.create_test_collisions_check_rule()
+	var rule: CollisionsCheckRule = PlacementRuleTestFactory.create_default_collision_rule()
 	rule.pass_on_collision = pass_on_collision
 	rule.collision_mask = 1
 
@@ -110,7 +110,7 @@ func test_indicator_collision_layers(indicator_mask: int, body_layer: int, shoul
 	var indicator: RuleCheckIndicator = _create_test_indicator("rectangle", {"size": Vector2(16, 16)})
 	indicator.collision_mask = indicator_mask
 
-	var rule: CollisionsCheckRule = UnifiedTestFactory.create_test_collisions_check_rule()
+	var rule: CollisionsCheckRule = PlacementRuleTestFactory.create_default_collision_rule()
 	rule.pass_on_collision = false
 	rule.collision_mask = indicator_mask
 
@@ -223,7 +223,7 @@ func test_indicator_overlap_threshold(
 	var _indicator: RuleCheckIndicator = _create_test_indicator("rectangle", {"size": Vector2(16, 16)})
 
 	# Create a mock overlap test
-	var rule: CollisionsCheckRule = UnifiedTestFactory.create_test_collisions_check_rule()
+	var rule: CollisionsCheckRule = PlacementRuleTestFactory.create_default_collision_rule()
 	rule.pass_on_collision = false
 
 	# Set up test to simulate overlap calculations
