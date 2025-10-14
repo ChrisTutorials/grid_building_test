@@ -244,7 +244,13 @@ func _create_test_validation_params() -> GridTargetingState:
 
 ## Helper method to create test indicators with different shapes
 func _create_test_indicator(shape_type: String, shape_data: Dictionary) -> RuleCheckIndicator:
-	var indicator: RuleCheckIndicator = UnifiedTestFactory.create_test_rule_check_indicator(self) # Adds child automatically
+	var indicator: RuleCheckIndicator = RuleCheckIndicator.new()
+	auto_free(indicator)
+	var default_shape: RectangleShape2D = RectangleShape2D.new()
+	default_shape.size = Vector2(16, 16)
+	indicator.shape = default_shape
+	indicator.target_position = Vector2.ZERO
+	add_child(indicator)
 	indicator.collision_mask = 1
 
 	match shape_type:

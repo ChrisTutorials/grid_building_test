@@ -509,7 +509,13 @@ func test_ready_debug_log_format_no_rules() -> void:
 	# Simulate logger with debug enabled
 	var dbg: GBDebugSettings = _env.get_container().get_debug_settings()
 	dbg.level = GBDebugSettings.LogLevel.DEBUG
-	var test_indicator: RuleCheckIndicator = UnifiedTestFactory.create_test_rule_check_indicator(self)
+	var test_indicator: RuleCheckIndicator = RuleCheckIndicator.new()
+	auto_free(test_indicator)
+	var default_shape: RectangleShape2D = RectangleShape2D.new()
+	default_shape.size = Vector2.ONE
+	test_indicator.shape = default_shape
+	test_indicator.target_position = Vector2.ZERO
+	_env.add_child(test_indicator)
 	test_indicator.shape = RectangleShape2D.new(); test_indicator.shape.size = Vector2.ONE
 	test_indicator.resolve_gb_dependencies(_container)
 	runner.simulate_frames(1)

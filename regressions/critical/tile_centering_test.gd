@@ -6,8 +6,11 @@ var target_map: TileMapLayer
 
 func before_test() -> void:
 	# Create test components manually
-	grid_positioner = UnifiedTestFactory.create_grid_positioner(self)
-	target_map = UnifiedTestFactory.create_tile_map_layer(self)
+	grid_positioner = GridPositioner2D.new()
+	# Ensure ownership and proper teardown
+	add_child(grid_positioner)
+	auto_free(grid_positioner)
+	target_map = GodotTestFactory.create_tile_map_layer(self)
 
 func after_test() -> void:
 	# Cleanup

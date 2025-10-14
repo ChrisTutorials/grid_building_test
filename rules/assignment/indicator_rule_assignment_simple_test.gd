@@ -63,7 +63,14 @@ func test_indicator_rule_assignment_via_factory() -> void:
 ## Test that add_rule() properly establishes bidirectional relationship
 func test_add_rule_bidirectional_relationship() -> void:
 	# Create indicator using factory to avoid dependency injection issues
-	var indicator: RuleCheckIndicator = UnifiedTestFactory.create_test_rule_check_indicator(self)
+	var indicator: RuleCheckIndicator = RuleCheckIndicator.new()
+	auto_free(indicator)
+	# Ensure shape exists to avoid invalid shape assertions
+	var default_shape: RectangleShape2D = RectangleShape2D.new()
+	default_shape.size = Vector2(16,16)
+	indicator.shape = default_shape
+	indicator.target_position = Vector2.ZERO
+	add_child(indicator)
 	
 	var collision_rule: CollisionsCheckRule = _create_test_collision_rule()
 	

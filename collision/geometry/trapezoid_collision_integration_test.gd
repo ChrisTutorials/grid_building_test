@@ -159,7 +159,7 @@ func test_collision_mapper_integration() -> void:
 	assert_int(owner_shapes.size()).is_greater(0)
 	
 	# Create collision test rules
-	var collision_rule: CollisionsCheckRule = UnifiedTestFactory.create_test_collisions_check_rule()
+	var collision_rule: CollisionsCheckRule = PlacementRuleTestFactory.create_default_collision_rule()
 	var tile_check_rules: Array[TileCheckRule] = [collision_rule]
 	
 	# Test the collision mapper directly

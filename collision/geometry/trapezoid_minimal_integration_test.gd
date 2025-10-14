@@ -85,7 +85,7 @@ func test_trapezoid_full_pipeline_integration() -> void:
 			print("[TRAPEZOID]   >>> COLLISION CALCULATION ISSUE: Tile %s missing from direct calculations!" % str(tile))
 
 	# 5) Now test the full indicator generation pipeline
-	var collision_rule: CollisionsCheckRule = UnifiedTestFactory.create_test_collisions_check_rule()
+	var collision_rule: CollisionsCheckRule = PlacementRuleTestFactory.create_default_collision_rule()
 	var placement_rules: Array[PlacementRule] = [collision_rule]
 	
 	print("[TRAPEZOID] Running IndicatorManager.try_setup with %d placement rules" % placement_rules.size())

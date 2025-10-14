@@ -271,7 +271,7 @@ func test_rules_and_collision_integration() -> void:
 	assert_array(setup_issues).is_empty()
 	
 	# Test that collision mapper and rules work together
-	var test_object: Node2D = UnifiedTestFactory.create_test_static_body_with_rect_shape(self)
+	var test_object: Node2D = GodotTestFactory.create_static_body_with_rect_shape(self)
 	
 	# Set up collision mapper with test object and proper positioner
 	var indicator_manager: IndicatorManager = env.indicator_manager
@@ -328,7 +328,7 @@ func test_tile_check_rule_basic() -> void:
 
 func test_collision_mapper_shape_processing() -> void:
 	var local_collision_mapper: CollisionMapper = CollisionMapper.create_with_injection(_container)
-	var test_object: Node2D = UnifiedTestFactory.create_test_static_body_with_rect_shape(self)
+	var test_object: Node2D = GodotTestFactory.create_static_body_with_rect_shape(self)
 
 	# Set up collision mapper with test object
 	var test_parent: Node2D = Node2D.new()

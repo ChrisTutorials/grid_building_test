@@ -77,7 +77,7 @@ func test_positioner_basic_positioning() -> void:
 
 func test_positioner_with_collision_tracking() -> void:
 	# Add collision object to positioner using factory method
-	var collision_body: StaticBody2D = UnifiedTestFactory.create_test_static_body_with_rect_shape(self)
+	var collision_body: StaticBody2D = GodotTestFactory.create_static_body_with_rect_shape(self)
 	
 	# Remove from test root and add to positioner if needed
 	if collision_body.get_parent() != null:
@@ -242,7 +242,7 @@ func test_positioner_performance_bulk_moves() -> void:
 
 func test_positioner_integration_workflow() -> void:
 	# Add test objects using factory method
-	var collision_body: StaticBody2D = UnifiedTestFactory.create_test_static_body_with_rect_shape(self)
+	var collision_body: StaticBody2D = GodotTestFactory.create_static_body_with_rect_shape(self)
 	
 	# Remove from test root and add to positioner if needed
 	if collision_body.get_parent() != null:

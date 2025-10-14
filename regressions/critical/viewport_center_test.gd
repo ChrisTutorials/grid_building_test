@@ -8,8 +8,10 @@ var camera: Camera2D
 
 func before_test() -> void:
 	# Create test components manually
-	grid_positioner = UnifiedTestFactory.create_grid_positioner(self)
-	target_map = UnifiedTestFactory.create_tile_map_layer(self)
+	grid_positioner = GridPositioner2D.new()
+	add_child(grid_positioner)
+	auto_free(grid_positioner)
+	target_map = GodotTestFactory.create_tile_map_layer(self)
 	
 	# Add camera to the viewport
 	viewport = get_viewport()
