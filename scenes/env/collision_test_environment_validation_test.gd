@@ -1,18 +1,17 @@
-## Name: CollisionTestEnvironmentValidationTest 
+## Name: CollisionTestEnvironmentValidationTest
 ## Unit test to validate CollisionTestEnvironment scene integrity
 ## Tests that collision-specific systems are properly initialized and connected
 extends GdUnitTestSuite
 
 var test_env: CollisionTestEnvironment
-var runner: GdUnitSceneRunner
 
 func before_test() -> void:
-	# Load the CollisionTestEnvironment scene using scene_runner pattern
-	runner = scene_runner(GBTestConstants.COLLISION_TEST_ENV_UID)
-	test_env = runner.scene() as CollisionTestEnvironment
+	# Use EnvironmentTestFactory for validation tests - provides guaranteed initialization
+	# and automatic container duplication for test isolation
+	test_env = EnvironmentTestFactory.create_collision_test_environment(self)
 
 func after_test() -> void:
-	# scene_runner handles cleanup automatically
+	# EnvironmentTestFactory handles cleanup automatically
 	pass
 
 ## Test: Core systems from GBTestEnvironment are present
