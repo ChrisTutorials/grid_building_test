@@ -217,7 +217,7 @@ func test_full_indicator_generation_integration() -> void:
 	_targeting_state.positioner.global_position = TRAPEZOID_POSITION
 	
 	# Create placement rules
-	var collision_rule: CollisionsCheckRule = UnifiedTestFactory.create_test_collisions_check_rule()
+	var collision_rule: CollisionsCheckRule = PlacementRuleTestFactory.create_default_collision_rule()
 	var placement_rules: Array[PlacementRule] = [collision_rule]
 	
 	# Run the full indicator generation pipeline
