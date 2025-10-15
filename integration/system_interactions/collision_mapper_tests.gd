@@ -4,8 +4,6 @@
 ## without legacy environment dependencies. Focus on core parameterized tests.
 extends GdUnitTestSuite
 
-const TEST_FACTORY = preload("res://test/grid_building_test/factories/unified_test_factory.gd")
-
 var _container: GBCompositionContainer
 var _mapper: CollisionMapper
 var _targeting: GridTargetingState

@@ -2,7 +2,6 @@
 extends GdUnitTestSuite
 
 const DebugHelper = preload("uid://cjtkkhcp460sg")
-const TEST_FACTORY = preload("res://test/grid_building_test/factories/unified_test_factory.gd")
 
 var _test_env: AllSystemsTestEnvironment
 var _manager_validation: Dictionary
