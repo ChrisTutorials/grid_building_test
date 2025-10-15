@@ -4,14 +4,16 @@ class_name BuildingTestEnvironmentValidationTest
 extends GdUnitTestSuite
 
 var test_env: BuildingTestEnvironment
+var runner: GdUnitSceneRunner
 
 func before_test() -> void:
-	# Load the BuildingTestEnvironment scene directly
-	test_env = UnifiedTestFactory.instance_building_test_env(self, "uid://c4ujk08n8llv8")
+	# Load the BuildingTestEnvironment scene using scene_runner pattern
+	runner = scene_runner(GBTestConstants.BUILDING_TEST_ENV_UID)
+	test_env = runner.scene() as BuildingTestEnvironment
 
 func after_test() -> void:
-	if test_env != null:
-		test_env.queue_free()
+	# scene_runner handles cleanup automatically
+	pass
 
 ## Test: Core systems from GBTestEnvironment are present
 func test_core_systems_present() -> void:

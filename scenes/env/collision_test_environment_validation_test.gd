@@ -4,14 +4,16 @@
 extends GdUnitTestSuite
 
 var test_env: CollisionTestEnvironment
+var runner: GdUnitSceneRunner
 
 func before_test() -> void:
-	# Load the CollisionTestEnvironment scene directly
-	test_env = UnifiedTestFactory.instance_collision_test_env(self, "uid://cdrtd538vrmun")
+	# Load the CollisionTestEnvironment scene using scene_runner pattern
+	runner = scene_runner(GBTestConstants.COLLISION_TEST_ENV_UID)
+	test_env = runner.scene() as CollisionTestEnvironment
 
 func after_test() -> void:
-	if test_env != null:
-		test_env.queue_free()
+	# scene_runner handles cleanup automatically
+	pass
 
 ## Test: Core systems from GBTestEnvironment are present
 func test_core_systems_present() -> void:
