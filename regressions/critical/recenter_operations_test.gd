@@ -7,7 +7,9 @@ var tile_map: TileMapLayer
 
 func before_test() -> void:
 	container = UnifiedTestFactory.create_test_composition_container(self)
-	positioner = UnifiedTestFactory.create_grid_positioner(self)
+	positioner = GridPositioner2D.new()
+	add_child(positioner)
+	auto_free(positioner)
 	tile_map = UnifiedTestFactory.create_tile_map_layer(self)
 	
 	# Set up dependencies

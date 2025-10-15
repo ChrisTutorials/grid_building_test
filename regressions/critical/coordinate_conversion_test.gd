@@ -6,7 +6,7 @@ var camera: Camera2D
 var viewport: Viewport
 
 func before_test() -> void:
-	tile_map = UnifiedTestFactory.create_tile_map_layer(self)
+	tile_map = GodotTestFactory.create_tile_map_layer(self)
 	viewport = get_viewport()
 	
 	# Create camera at origin like in the failing test

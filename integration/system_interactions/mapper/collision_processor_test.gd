@@ -20,10 +20,13 @@ func after_test() -> void:
 
 ## Helper method to create common test environment (DRY principle)
 func _create_base_test_environment() -> Dictionary:
+	var positioner := GridPositioner2D.new()
+	add_child(positioner)
+	auto_free(positioner)
 	return {
 		"top_down_map": GodotTestFactory.create_top_down_tile_map_layer(self, 40),
 		"isometric_map": GodotTestFactory.create_isometric_tile_map_layer(self, 40),
-		"positioner": UnifiedTestFactory.create_grid_positioner(self),
+		"positioner": positioner,
 		"tile_size": Vector2(16, 16),
 		"test_position": Vector2(840, 680),  # Maps to tile (52, 42)
 		"center_tile": Vector2i(52, 42)

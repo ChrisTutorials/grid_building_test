@@ -215,7 +215,13 @@ func test_create_circle_shape() -> void:
 
 
 func test_create_rule_check_indicator() -> void:
-	var indicator: RuleCheckIndicator = UnifiedTestFactory.create_test_rule_check_indicator(self)
+	var indicator: RuleCheckIndicator = RuleCheckIndicator.new()
+	var default_shape: RectangleShape2D = RectangleShape2D.new()
+	default_shape.size = Vector2(16, 16)
+	indicator.shape = default_shape
+	indicator.target_position = Vector2.ZERO
+	add_child(indicator)
+	auto_free(indicator)
 	# Adjust size to 32x32 for this test case
 	if indicator.shape is RectangleShape2D:
 		(indicator.shape as RectangleShape2D).size = Vector2(32, 32)

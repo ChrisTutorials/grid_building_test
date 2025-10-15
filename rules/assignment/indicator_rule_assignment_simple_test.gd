@@ -95,7 +95,13 @@ func test_rules_array_is_private() -> void:
 ## Test that indicators validate rules correctly when rules are added
 func test_indicator_rule_validation() -> void:
 	# Create indicator using factory to avoid dependency injection issues
-	var indicator: RuleCheckIndicator = UnifiedTestFactory.create_test_rule_check_indicator(self)
+	var indicator: RuleCheckIndicator = RuleCheckIndicator.new()
+	var default_shape: RectangleShape2D = RectangleShape2D.new()
+	default_shape.size = Vector2(16, 16)
+	indicator.shape = default_shape
+	indicator.target_position = Vector2.ZERO
+	add_child(indicator)
+	auto_free(indicator)
 	
 	# Create collision rule that expects no collisions
 	var collision_rule: CollisionsCheckRule = _create_test_collision_rule()
@@ -128,7 +134,13 @@ func test_factory_uses_add_rule_method() -> void:
 ## Test rule clearing functionality
 func test_clear_rules() -> void:
 	# Create indicator using factory to avoid dependency injection issues
-	var indicator: RuleCheckIndicator = UnifiedTestFactory.create_test_rule_check_indicator(self)
+	var indicator: RuleCheckIndicator = RuleCheckIndicator.new()
+	var default_shape: RectangleShape2D = RectangleShape2D.new()
+	default_shape.size = Vector2(16, 16)
+	indicator.shape = default_shape
+	indicator.target_position = Vector2.ZERO
+	add_child(indicator)
+	auto_free(indicator)
 	
 	var collision_rule: CollisionsCheckRule = _create_test_collision_rule()
 	indicator.add_rule(collision_rule)
