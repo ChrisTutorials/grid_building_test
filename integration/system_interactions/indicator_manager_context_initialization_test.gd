@@ -9,7 +9,9 @@ var _container: GBCompositionContainer
 
 func before_test() -> void:
 	# Use a basic test environment
-	env = UnifiedTestFactory.instance_building_test_env(self, "uid://c4ujk08n8llv8")
+	var runner: GdUnitSceneRunner = scene_runner(GBTestConstants.BUILDING_TEST_ENV_UID)
+	env = runner.scene() as BuildingTestEnvironment
+	await_idle_frame()
 	_container = env.get_container()
 
 func after_test() -> void:

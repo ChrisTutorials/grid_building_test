@@ -160,7 +160,9 @@ func _create_test_tilemap_with_tracking() -> TileMapLayer:
 
 func _create_indicator_test_environment_with_tracking() -> CollisionTestEnvironment:
 	"""Create indicator test environment with automatic component tracking"""
-	var env: CollisionTestEnvironment = UnifiedTestFactory.instance_collision_test_env(self, "uid://cdrtd538vrmun")
+	var runner: GdUnitSceneRunner = scene_runner(GBTestConstants.COLLISION_TEST_ENV_UID)
+	var env: CollisionTestEnvironment = runner.scene() as CollisionTestEnvironment
+	await_idle_frame()
 	_track_object(env)
 	return env
 
@@ -336,7 +338,9 @@ func test_factory_edge_cases_invalid_configurations() -> void:
 	var max_environments: int = 10
 	
 	for i in range(max_environments):
-		var env: CollisionTestEnvironment = UnifiedTestFactory.instance_collision_test_env(self, "uid://cdrtd538vrmun")
+		var runner: GdUnitSceneRunner = scene_runner(GBTestConstants.COLLISION_TEST_ENV_UID)
+		var env: CollisionTestEnvironment = runner.scene() as CollisionTestEnvironment
+		await_idle_frame()
 		if env:
 			environments.append(env)
 			_track_object(env)
@@ -412,7 +416,7 @@ func test_factory_stress_and_recovery() -> void:
 	var total_attempts: int = 50
 
 	for i in range(total_attempts):
-		var container: GBCompositionContainer = UnifiedTestFactory.create_test_composition_container(self)
+		var container: GBCompositionContainer = GBTestConstants.TEST_COMPOSITION_CONTAINER.duplicate(true)
 		if container:
 			successful_creations += 1
 			_track_object(container)
@@ -428,23 +432,20 @@ func test_factory_error_recovery() -> void:
 	"""Test factory error recovery and graceful degradation"""
 	# Note: Factory asserts on invalid parameters by design. Skip calling with null to avoid debug break.
 	# Instead, focus on robustness under repeated usage and resource constraints.
-	
-	# Test resource exhaustion simulation
-	var environments: Array = []
-	var max_environments: int = 10
-	
-	for i in range(max_environments):
-		var env: CollisionTestEnvironment = UnifiedTestFactory.instance_collision_test_env(self, "uid://cdrtd538vrmun")
-		if env:
-			environments.append(env)
-			_track_object(env)
-	
-	# Should be able to create multiple environments
-	assert_int(environments.size()).append_failure_message(
-		"Should be able to create multiple test environments"
-	).is_greater_equal(MINIMUM_ENVIRONMENT_COUNT)
 
-#region FACTORY EDGE CASES
+	# Test single environment creation and cleanup
+	var env: CollisionTestEnvironment = _create_indicator_test_environment_with_tracking()
+	assert_that(env).append_failure_message(
+		"Should be able to create a test environment"
+	).is_not_null()
+
+	# Test that environment is properly initialized
+	assert_that(env.collision_mapper).append_failure_message(
+		"Environment should have collision mapper"
+	).is_not_null()
+
+	# Test cleanup behavior
+	_track_object(env)  # Ensure proper cleanup#region FACTORY EDGE CASES
 
 func test_factory_memory_cleanup() -> void:
 	# Test that factory properly cleans up created objects
@@ -470,7 +471,7 @@ func test_factory_memory_cleanup() -> void:
 
 func test_collision_rule_validation() -> void:
 	"""Test collision rule factory creation and basic properties"""
-	var container: GBCompositionContainer = UnifiedTestFactory.create_test_composition_container(self)
+	var container: GBCompositionContainer = GBTestConstants.TEST_COMPOSITION_CONTAINER.duplicate(true)
 	_track_object(container)
 	
 	var collision_rule: CollisionsCheckRule = CollisionsCheckRule.new()
@@ -504,7 +505,7 @@ func test_collision_rule_validation() -> void:
 # Setting target_map to null causes type errors in defensive assertions
 
 func test_validation_out_of_bounds() -> void:
-	var container: GBCompositionContainer = UnifiedTestFactory.create_test_composition_container(self)
+	var container: GBCompositionContainer = GBTestConstants.TEST_COMPOSITION_CONTAINER.duplicate(true)
 	_track_object(container)
 
 	# Skip targeting state test - method removed from factory
@@ -535,7 +536,9 @@ func test_deprecated_factory_methods_usage() -> void:
 	"""Test deprecated factory methods to ensure they warn about deprecation"""
 	
 	# Test deprecated indicator test environment method
-	var deprecated_env: CollisionTestEnvironment = UnifiedTestFactory.instance_collision_test_env(self, "uid://cdrtd538vrmun")
+	var runner: GdUnitSceneRunner = scene_runner(GBTestConstants.COLLISION_TEST_ENV_UID)
+	var deprecated_env: CollisionTestEnvironment = runner.scene() as CollisionTestEnvironment
+	await_idle_frame()
 	_track_object(deprecated_env)
 	
 	# Should work but issue warning

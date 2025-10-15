@@ -64,7 +64,7 @@ func setup_mode_and_assert_initial_state(mode_value: GBEnums.Mode, canvas: Node2
 func before_test() -> void:
 	highlighter = TargetHighlighter.new()
 	settings = HighlightSettings.new()
-	composition_container = UnifiedTestFactory.create_test_composition_container(self)
+	composition_container = GBTestConstants.TEST_COMPOSITION_CONTAINER.duplicate(true)
 	var states := composition_container.get_states()
 	manipulation_state = states.manipulation
 	highlighter.targeting_state = states.targeting

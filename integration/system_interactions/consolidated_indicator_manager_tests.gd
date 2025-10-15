@@ -6,16 +6,18 @@ const CollisionObjectTestFactoryGd = preload("res://test/grid_building_test/fact
 const COLLISION_TEST_ENV_UID : String = "uid://cdrtd538vrmun"
 
 var env: CollisionTestEnvironment
+var runner: GdUnitSceneRunner
 var _test_tile_map_layer: TileMapLayer = null
 
 func before_test() -> void:
-	env = UnifiedTestFactory.instance_collision_test_env(self, COLLISION_TEST_ENV_UID)
+	runner = scene_runner(COLLISION_TEST_ENV_UID)
+	env = runner.scene() as CollisionTestEnvironment
 	
 	# Set up targeting state with default target for indicator tests
 	_setup_targeting_state_for_tests()
 	
-	# Wait for environment initialization to complete
-	await await_idle_frame()
+	# Force synchronous indicator validation instead of awaiting frames
+	env.indicator_manager.force_indicators_validity_evaluation()
 
 	if _test_tile_map_layer == null:
 		_test_tile_map_layer = GodotTestFactory.create_empty_tile_map_layer(self)
@@ -23,21 +25,21 @@ func before_test() -> void:
 ## Sets up the GridTargetingState with a default target for indicator tests
 func _setup_targeting_state_for_tests() -> void:
 	# Create a default target for the targeting state if none exists
-	if env.targeting_state.target == null:
+	if env.targeting_state.get_target() == null:
 		var default_target: Node2D = auto_free(Node2D.new())
 		default_target.position = Vector2(64, 64)
 		default_target.name = "DefaultTarget"
 		add_child(default_target)
-		env.targeting_state.target = default_target
+		env.targeting_state.set_manual_target(default_target)
 
 ## Ensures targeting state has a valid target (call right before try_setup)
 func _ensure_targeting_state_has_target() -> void:
-	if env.targeting_state.target == null:
+	if env.targeting_state.get_target() == null:
 		var target: Node2D = auto_free(Node2D.new())
 		target.position = Vector2(64, 64)
 		target.name = "TestTarget"
 		add_child(target)
-		env.targeting_state.target = target
+		env.targeting_state.set_manual_target(target)
 
 # ===== COLLISION MAPPER SHAPE POSITIONING TESTS =====
 

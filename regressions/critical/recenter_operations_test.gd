@@ -6,11 +6,11 @@ var positioner: GridPositioner2D
 var tile_map: TileMapLayer
 
 func before_test() -> void:
-	container = UnifiedTestFactory.create_test_composition_container(self)
+	container = GBTestConstants.TEST_COMPOSITION_CONTAINER.duplicate(true)
 	positioner = GridPositioner2D.new()
 	add_child(positioner)
 	auto_free(positioner)
-	tile_map = UnifiedTestFactory.create_tile_map_layer(self)
+	tile_map = GodotTestFactory.create_tile_map_layer(self)
 	
 	# Set up dependencies
 	positioner.resolve_gb_dependencies(container)
