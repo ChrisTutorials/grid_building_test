@@ -39,6 +39,17 @@ func before_test() -> void:
 	_positioner = env.positioner
 	_container = env.get_container()
 	
+	# NOTE: GBTestEnvironment._ready() automatically clears targeting state for test isolation
+	# NOTE: GBTestConstants.TEST_COMPOSITION_CONTAINER has enable_mouse_input=false
+	# This prevents positioner from resetting to mouse cursor on enable
+	# No need to manually configure here
+	
+	# CRITICAL: Reset positioner to safe starting position
+	# Prevents inherited position from previous test runs affecting this test
+	var safe_start: Vector2i = Vector2i(0, 0)
+	var start_world_pos: Vector2 = _map.to_global(_map.map_to_local(safe_start))
+	_positioner.global_position = start_world_pos
+	
 	# Enable trace logging for DragManager diagnostics
 	var logger: GBLogger = _container.get_logger()
 	var debug_settings: GBDebugSettings = _container.get_debug_settings()
@@ -159,6 +170,10 @@ func _format_drag_manager_state() -> String:
 ## Act: Simulate rapid tile changes without waiting for physics frames
 ## Assert: Only one build per physics frame, no double builds
 func test_rapid_tile_changes_no_double_build() -> void:
+	# TEST ISOLATION FIX: Reset positioner to known state at test start
+	_positioner.global_position = Vector2.ZERO
+	runner.simulate_frames(1)
+	
 	# Setup: Enter build mode at safe empty area within map bounds
 	var placeable: Placeable = GBTestConstants.PLACEABLE_RECT_4X2
 	_position_at_tile(SAFE_TILE_A)
@@ -228,10 +243,24 @@ func test_rapid_tile_changes_no_double_build() -> void:
 ## Act: Attempt build at B before physics frame completes
 ## Assert: Build at B should fail OR wait for physics update (no race condition)
 func test_collision_state_synchronized_with_builds() -> void:
+	# TEST ISOLATION FIX: Reset positioner to known state at test start
+	# Multiple tests use BUILDING_TEST_ENV_UID, causing cross-test contamination
+	# Reset to origin first, then move to intended position
+	_positioner.global_position = Vector2.ZERO
+	runner.simulate_frames(1)
+	
 	# Setup: Enter build mode and build first object at safe empty area
 	var placeable: Placeable = GBTestConstants.PLACEABLE_RECT_4X2
-	_position_at_tile(SAFE_TILE_D)
-	runner.simulate_frames(1)
+	
+	# CRITICAL: Position at safe tile BEFORE entering build mode
+	# The positioner must be at the correct position so indicators are set up properly
+	var target_world_pos: Vector2 = _map.to_global(_map.map_to_local(SAFE_TILE_D))
+	_positioner.global_position = target_world_pos
+	runner.simulate_frames(2)  # Let position stabilize
+	
+	# Verify position was actually set
+	var current_tile: Vector2i = _map.local_to_map(_map.to_local(_positioner.global_position))
+	print("[SETUP] Positioner at tile: %s (expected %s)" % [current_tile, SAFE_TILE_D])
 	
 	var report: PlacementReport = _building_system.enter_build_mode(placeable)
 	var issues_detail := str(report.get_issues())
@@ -239,16 +268,36 @@ func test_collision_state_synchronized_with_builds() -> void:
 		"Enter build mode failed at tile (%d,%d): %s" % [SAFE_TILE_D.x, SAFE_TILE_D.y, issues_detail]
 	)
 	
+	# Wait for build mode setup to stabilize
+	runner.simulate_frames(3)
+	
 	# Start drag and build first object
 	_drag_manager.start_drag()
 	runner.simulate_frames(5)  # Wait for collision setup
 	
 	# Build at SAFE_TILE_D
+	# Ensure indicators have been evaluated before attempting build
+	var indicator_manager: IndicatorManager = env.indicator_manager
+	indicator_manager.force_indicators_validity_evaluation()
+	runner.simulate_frames(1)  # One more frame to settle
+	
 	var first_build_report: PlacementReport = _building_system.try_build()
 	var first_issues := str(first_build_report.get_issues())
-	assert_bool(first_build_report.is_successful()).is_true().append_failure_message(
-		"First build should succeed at tile (%d,%d): %s" % [SAFE_TILE_D.x, SAFE_TILE_D.y, first_issues]
+	var positioner_pos := _positioner.global_position
+	var pos_tile := _map.local_to_map(_map.to_local(positioner_pos))
+	var preview_exists := _building_system._states.building.preview != null
+	var target_node := _targeting_state.get_target()
+	var diagnostic_msg := (
+		"First build failed at tile (%d,%d). Diagnostic: " % [SAFE_TILE_D.x, SAFE_TILE_D.y] +
+		"Issues=[%s], " % [first_issues] +
+		"PositionerTile=(%d,%d), " % [pos_tile.x, pos_tile.y] +
+		"PreviewExists=%s, " % [preview_exists] +
+		"TargetNode=%s, " % ["valid" if target_node else "null"] +
+		"DragState=%s, " % [_format_drag_manager_state()] +
+		"SystemState=%s" % [_format_system_state()]
 	)
+	print("[BUILD FIRST] %s" % diagnostic_msg)
+	assert_bool(first_build_report.is_successful()).is_true().append_failure_message(diagnostic_msg)
 	
 	var first_built_tile := SAFE_TILE_D
 	
@@ -298,6 +347,10 @@ func test_process_vs_physics_timing_analysis(
 		["timing_analysis"]
 	]
 ) -> void:
+	# TEST ISOLATION FIX: Reset positioner to known state at test start
+	_positioner.global_position = Vector2.ZERO
+	runner.simulate_frames(1)
+	
 	# Setup at safe empty area within bounds
 	var placeable: Placeable = GBTestConstants.PLACEABLE_RECT_4X2
 	_position_at_tile(Vector2i(8, -8))  # Safe position within -15 to +15
@@ -364,6 +417,10 @@ func test_process_vs_physics_timing_analysis(
 ## Act: Move away and return to tile A in same drag session
 ## Assert: Should not rebuild at tile A (deduplication working)
 func test_drag_tile_deduplication_prevents_same_tile_rebuild() -> void:
+	# TEST ISOLATION FIX: Reset positioner to known state at test start
+	_positioner.global_position = Vector2.ZERO
+	runner.simulate_frames(1)
+	
 	# Setup at safe empty area - start at DIFFERENT tile than where we'll build
 	var placeable: Placeable = GBTestConstants.PLACEABLE_RECT_4X2
 	_position_at_tile(SAFE_TILE_D)  # Start at tile D (not A)
