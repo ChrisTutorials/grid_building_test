@@ -33,13 +33,13 @@ static func _setup_targeting_state_for_tests(test_suite: GdUnitTestSuite, env: A
 	var targeting_state: GridTargetingState = env.injector.composition_container.get_targeting_state()
 	
 	# Create a default target for the targeting state if none exists
-	if targeting_state.target == null:
+	if targeting_state.get_target() == null:
 		var default_target: Node2D = Node2D.new()
 		default_target.position = Vector2(64, 64)
 		default_target.name = "DefaultTarget"
 		test_suite.add_child(default_target)
 		test_suite.auto_free(default_target)
-		targeting_state.target = default_target
+		targeting_state.set_manual_target(default_target)
 
 ## Helper to create a basic collision rule for testing
 static func create_basic_collision_rule(collision_layer: int = 1) -> CollisionsCheckRule:

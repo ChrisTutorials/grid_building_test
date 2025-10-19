@@ -22,14 +22,14 @@ func before_test() -> void:
 	# Clear any residual targeting state from previous tests
 	var gts: GridTargetingState = env.get_container().get_states().targeting
 	if gts:
-		gts.target = null
+		gts.clear()
 
 func after_test() -> void:
 	# Clear targeting state before runner cleanup
 	if env and is_instance_valid(env):
 		var gts: GridTargetingState = env.get_container().get_states().targeting
 		if gts:
-			gts.target = null
+			gts.clear()
 	
 	# Let scene runner handle cleanup
 	runner = null
@@ -45,7 +45,7 @@ func test_env_injection_wires_targeting_state() -> void:
 	gts.is_manual_targeting_active = false
 	
 	# Verify initial state is clean
-	assert_object(gts.target).append_failure_message(
+	assert_object(gts.get_target()).append_failure_message(
 		"Initial target should be null before test begins"
 	).is_null()
 	
@@ -62,17 +62,17 @@ func test_env_injection_wires_targeting_state() -> void:
 	
 	# Test manual targeting mode - set target directly
 	gts.is_manual_targeting_active = true
-	gts.target = collision_body
+	gts.set_manual_target(collision_body)
 	
 	# Verify manual targeting works
-	assert_object(gts.target).append_failure_message(
+	assert_object(gts.get_target()).append_failure_message(
 		"Manual targeting should set target to collision_body"
 	).is_same(collision_body)
 	
 	# Test clearing target
-	gts.target = null
+	gts.clear()
 	
-	assert_object(gts.target).append_failure_message(
+	assert_object(gts.get_target()).append_failure_message(
 		"Target should be null after being cleared"
 	).is_null()
 	
@@ -82,7 +82,7 @@ func test_env_injection_wires_targeting_state() -> void:
 	runner.simulate_frames(3)
 	
 	# Target should remain null because manual mode blocks automatic updates
-	assert_object(gts.target).append_failure_message(
+	assert_object(gts.get_target()).append_failure_message(
 		"Target should remain null when manual targeting is active (blocks automatic updates)"
 	).is_null()
 	

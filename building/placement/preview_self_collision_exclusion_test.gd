@@ -81,7 +81,7 @@ func test_preview_added_to_collision_exclusions_on_enter_build_mode() -> void:
 	runner.simulate_frames(3)
 	
 	# Get the preview object - check both sources
-	var preview_from_target: Node2D = _gts.target
+	var preview_from_target: Node2D = _gts.get_target()
 	var preview_from_state: Node2D = _container.get_states().building.preview
 	
 	# Enhanced diagnostics

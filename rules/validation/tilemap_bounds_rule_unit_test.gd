@@ -41,7 +41,7 @@ func _create_test_rule_setup() -> Dictionary:
 	# Create target (like placer in integration test)
 	var target: Node2D = auto_free(Node2D.new())
 	add_child(target)
-	targeting_state.target = target
+	targeting_state.set_manual_target(target)
 	
 	setup["targeting_state"] = targeting_state
 	setup["positioner"] = positioner

@@ -45,7 +45,7 @@ func after_test() -> void:
 
 	# Reset targeting state
 	if _gts:
-		_gts.target = null
+		_gts.clear()
 #endregion
 
 #region Test Cases
@@ -93,7 +93,7 @@ func test_indicator_generation() -> void:
 	# Enter build mode and set up targeting
 	env.building_system.enter_build_mode(placeable)
 	var preview: Node2D = _container.get_states().building.preview
-	_gts.target = preview
+	_gts.set_manual_target(preview)
 
 	# Set up rules and check indicators
 	var setup_report: PlacementReport = env.indicator_manager.try_setup(placeable.placement_rules, _gts, false)
@@ -119,7 +119,7 @@ func test_indicator_rules() -> void:
 	# Enter build mode and set up targeting
 	env.building_system.enter_build_mode(placeable)
 	var preview: Node2D = _container.get_states().building.preview
-	_gts.target = preview
+	_gts.set_manual_target(preview)
 
 	# Generate indicators
 	env.indicator_manager.try_setup(placeable.placement_rules, _gts, false)

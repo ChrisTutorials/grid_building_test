@@ -220,7 +220,7 @@ func test_exclusion_cleared_when_target_changes() -> void:
 	# WHEN: Target changes (manually clear exclusions for test)
 	var dummy_target := Node2D.new()
 	_env.add_child(dummy_target)
-	_env.targeting_state.target = dummy_target
+	_env.targeting_state.set_manual_target(dummy_target)
 	_env.targeting_state.clear_collision_exclusions()  # Explicit clear for deterministic testing
 	
 	# Force collision recheck after target change

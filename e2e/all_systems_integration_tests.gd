@@ -443,7 +443,7 @@ func test_multi_rule_indicator_attachment() -> void:
 	
 	# Set the test object as the target so indicators can be generated
 	var targeting_state: GridTargetingState = env.grid_targeting_system.get_state()
-	targeting_state.target = test_object
+	targeting_state.set_manual_target(test_object)
 
 	var rules: Array[PlacementRule] = [collision_rule, tile_rule]
 	var setup_result: PlacementReport = indicator_manager.try_setup(rules, targeting_state)
@@ -471,7 +471,7 @@ func test_rule_indicator_state_synchronization() -> void:
 
 	# Ensure targeting state has a valid target for indicator setup
 	var targeting_state_sync: GridTargetingState = _gts.get_state()
-	targeting_state_sync.target = test_object
+	targeting_state_sync.set_manual_target(test_object)
 
 	var setup_result: PlacementReport = indicator_manager.try_setup([rule], targeting_state_sync)
 	_assert_placement_report_successful(setup_result, "Initial rule setup")
@@ -488,7 +488,7 @@ func test_indicators_are_parented_and_inside_tree() -> void:
 	# Create a preview object with collision
 	var preview: Node2D = _create_preview_with_collision()
 	var targeting_state: GridTargetingState = _container.get_states().targeting
-	targeting_state.target = preview
+	targeting_state.set_manual_target(preview)
 
 	# Build a collisions rule for testing
 	var rule: CollisionsCheckRule = PlacementRuleTestFactory.create_default_collision_rule()
@@ -526,7 +526,7 @@ func test_smithy_indicator_generation() -> void:
 	add_child(smithy_node)
 	# Set the targeting state's target to the smithy node before setup
 	var targeting_state_smithy: GridTargetingState = _gts.get_state()
-	targeting_state_smithy.target = smithy_node
+	targeting_state_smithy.set_manual_target(smithy_node)
 	var setup_result: PlacementReport = indicator_manager.try_setup(test_rules, targeting_state_smithy)
 	_assert_placement_report_successful(setup_result, "Smithy indicator generation setup")
 
@@ -637,9 +637,9 @@ func test_enter_build_mode_state_consistency() -> void:
 	).is_true()
 
 	# Verify state consistency
-	var building_target: Node = building_system.get_targeting_state().target
+	var building_target: Node = building_system.get_targeting_state().get_target()
 	var current_targeting_state: GridTargetingState = targeting_system.get_state()
-	var targeting_target: Node = current_targeting_state.target
+	var targeting_target: Node = current_targeting_state.get_target()
 
 	# Systems should maintain consistent target positions
 	assert_object(building_target).append_failure_message(
@@ -662,7 +662,7 @@ func test_polygon_test_object_indicator_generation() -> void:
 	add_child(polygon_node)
 	# Set target to polygon node before indicator setup
 	var targeting_state_polygon: GridTargetingState = _gts.get_state()
-	targeting_state_polygon.target = polygon_node
+	targeting_state_polygon.set_manual_target(polygon_node)
 	var setup_result: PlacementReport = indicator_manager.try_setup(test_rules, targeting_state_polygon)
 	_assert_placement_report_successful(setup_result, "Polygon indicator generation setup")
 
@@ -714,8 +714,8 @@ func test_targeting_highligher_colors_current_target_integration_test() -> void:
 	# Test targeting with highlight updates
 	var targeting_state: GridTargetingState = targeting_system.get_state()
 	var test_node: Node2D = GodotTestFactory.create_node2d(self)
-	targeting_state.target = test_node
-	targeting_state.target.position = TEST_POSITION_1
+	targeting_state.set_manual_target(test_node)
+	targeting_state.get_target().position = TEST_POSITION_1
 
 	# Verify highlight state updates with targeting
 	target_highlighter.current_target = test_node
@@ -784,7 +784,7 @@ func test_full_system_integration_workflow() -> void:
 	add_child(smithy_node)
 	# Ensure targeting has the correct node set before indicator setup
 	var targeting_state_full: GridTargetingState = _gts.get_state()
-	targeting_state_full.target = smithy_node
+	targeting_state_full.set_manual_target(smithy_node)
 
 	var smithy_rules: Array[PlacementRule] = test_placeable.placement_rules
 	var indicator_result: PlacementReport = indicator_manager.try_setup(smithy_rules, targeting_state_full)

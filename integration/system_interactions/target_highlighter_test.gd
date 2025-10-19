@@ -80,7 +80,7 @@ func before_test() -> void:
 
 	highlight_target = auto_free(Node2D.new())
 	add_child(highlight_target)
-	targeting_state.target = highlight_target
+	targeting_state.set_manual_target(highlight_target)
 	#endregion
 
 	# Create manipulatables using factory
@@ -109,11 +109,13 @@ func test_target_modulate_clears_on_target_null() -> void:
 	target.modulate = Color.AQUAMARINE
 	assert_object(target).is_not_null()
 	assert_that(target.modulate).is_not_equal(settings.reset_color)
-	targeting_state.target = null
+	targeting_state.clear()
 	await await_idle_frame()
-	assert_that(highlighter.current_target).is_null()
-	assert_that(target).is_not_null()
-	assert_color_equal(target.modulate, settings.reset_color, "Target modulate should reset to reset_color")
+	assert_that(highlighter.current_target).is_null() \
+		.append_failure_message("Highlighter's current_target should be null after targeting_state.clear()")
+	assert_that(target).is_not_null() \
+		.append_failure_message("Original target reference should still be valid")
+	assert_color_equal(target.modulate, settings.reset_color, "Target modulate should reset to reset_color after targeting state cleared")
 
 
 @warning_ignore("unused_parameter")
@@ -229,9 +231,9 @@ func test_should_highlight(
 	test_parameters := [
 		[null, null, false, "Both data and target are null"],
 		[null, auto_free(Node2D.new()), true, "Target is different"],
-		[data_source_is_target, auto_free(Node2D.new()), false, "Is data but target is the same as p_data target"],
-		[data_source_is_target, data_source_is_target.target.root, true, "Is Data, Target is Same, but source is different"],
-		[data_source_is_not_target, data_source_is_target.target.root, false, "Is Data, Target is Same, but source is different"]
+		[data_source_is_target, auto_free(Node2D.new()), false, "Is data but target is the same as p_data move_copy"],
+		[data_source_is_target, data_source_is_target.move_copy.root, true, "Is Data, Target is Same, but source is different"],
+		[data_source_is_not_target, data_source_is_target.move_copy.root, false, "Is Data, Target is Same, but source is different"]
 	]
 ) -> void:
 	assert_bool(highlighter.should_highlight(p_data, p_new_target)).append_failure_message("Expected: %s" % p_description).is_equal(p_expected)

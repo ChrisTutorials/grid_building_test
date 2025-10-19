@@ -71,6 +71,12 @@ func _ready() -> void:
 	# NodeLocator methods have been disabled temporarily due to parse errors
 	# The NodeLocator class has instance methods, not static methods
 
+## Override to skip validation in test environments where incomplete setups are expected
+## Test isolation is already handled by container duplication
+func _validate_after_injection() -> void:
+	# Skip validation in test injector - lenient setups are intentional
+	pass
+
 ## Populate missing container dependencies from the scene tree
 ## This reduces false validation warnings for test environments that have the required nodes
 ## TEMPORARILY DISABLED - needs refactoring for proper NodeLocator usage

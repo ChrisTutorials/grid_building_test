@@ -58,12 +58,12 @@ func before_test() -> void:
 func _setup_targeting_state() -> void:
 	var targeting_state: GridTargetingState = _container.get_states().targeting
 	
-	if targeting_state.target == null:
+	if targeting_state.get_target() == null:
 		var default_target: Node2D = auto_free(Node2D.new())
 		default_target.position = Vector2(64, 64)
 		default_target.name = "DefaultTarget"
 		add_child(default_target)
-		targeting_state.target = default_target
+		targeting_state.set_manual_target(default_target)
 
 func after_test() -> void:
 	# Cancel any active manipulation
@@ -113,18 +113,18 @@ func _create_test_manipulatable() -> Manipulatable:
 
 ## Starts manipulation (pickup) - returns true if successful
 func _start_manipulation(manipulatable: Manipulatable) -> bool:
-	var move_data: ManipulationData = _manipulation_system.try_move(manipulatable.root)
+	# CRITICAL: Set targeting state BEFORE calling try_move()
+	# targeting_state is the single source of truth for which object to manipulate
+	var targeting_state: GridTargetingState = _container.get_states().targeting
+	targeting_state.set_manual_target(manipulatable.root)
 	
-	assert_object(move_data).append_failure_message(
-		"try_move should return ManipulationData"
-	).is_not_null()
+	var move_data: ManipulationData = _manipulation_system.try_move(manipulatable.root)
 	
 	if move_data == null:
 		return false
 	
 	var started: bool = move_data.status == GBEnums.Status.STARTED
 	_indicator_manager.force_indicators_validity_evaluation()
-		
 	
 	return started
 
@@ -140,26 +140,55 @@ func _rotate_manipulation(degrees: float) -> bool:
 	
 	return success
 
+## Formats ManipulationData for diagnostic output
+func _format_manipulation_data(data: ManipulationData) -> String:
+	if data == null:
+		return "ManipulationData: null"
+	
+	var source_root: String = "null"
+	if data.source != null and data.source.root != null:
+		source_root = "%s@%s" % [data.source.root.name, str(data.source.root.global_position)]
+	
+	var move_copy_root: String = "null"
+	if data.move_copy != null and data.move_copy.root != null:
+		move_copy_root = "%s@%s" % [data.move_copy.root.name, str(data.move_copy.root.global_position)]
+	
+	return "ManipulationData{status=%s, action=%s, source=%s, move_copy=%s}" % [
+		GBEnums.Status.keys()[data.status],
+		GBEnums.Action.keys()[data.action],
+		source_root,
+		move_copy_root
+	]## Formats ValidationResults for diagnostic output
+func _format_validation_results(results: ValidationResults) -> String:
+	if results == null:
+		return "ValidationResults: null"
+	
+	var issues := results.get_issues()
+	var errors := results.get_errors() if results.has_method("get_errors") else []
+	
+	return "ValidationResults[success=%s, message='%s', issues=%d, errors=%d, details=%s]" % [
+		str(results.is_successful()),
+		results.message,
+		issues.size(),
+		errors.size(),
+		str(issues) if not issues.is_empty() else "[]"
+	]
+
 ## Places the manipulated object - returns true if successful
-func _place_manipulated_object() -> bool:
+func _place_manipulated_object() -> ValidationResults:
 	var move_data: ManipulationData = _manipulation_state.data
 	
-	if move_data == null or move_data.target == null:
-		return false
+	if move_data == null or move_data.move_copy == null:
+		return null
 	
 	# Position for placement
-	move_data.target.root.global_position = TEST_POSITION
+	move_data.move_copy.root.global_position = TEST_POSITION
 	
 	# Try placement
 	var placement_results: ValidationResults = _manipulation_system.try_placement(move_data)
-	
-	if placement_results == null:
-		return false
-	
-	var success: bool = placement_results.is_successful()
 	_indicator_manager.force_indicators_validity_evaluation()
 	
-	return success
+	return placement_results
 
 #endregion
 
@@ -178,33 +207,50 @@ func test_manipulation_workflow_succeeds_after_rotation() -> void:
 	
 	# STEP 2: Start manipulation (pickup)
 	var pickup_success: bool = _start_manipulation(manipulatable)
+	var move_data: ManipulationData = _manipulation_state.data
+	var targeting_state: GridTargetingState = _container.get_states().targeting
+	var grid_target: Node = targeting_state.get_target()
+	var grid_target_info: String = "null"
+	if grid_target != null:
+		grid_target_info = "%s@%s" % [grid_target.name, str(grid_target.global_position)]
 	
 	assert_bool(pickup_success).append_failure_message(
-		"Initial pickup should succeed - indicates try_move works"
+		"Pickup failed - Expected: true, Actual: false | %s | GridTarget: %s" 
+		% [_format_manipulation_data(move_data), grid_target_info]
 	).is_true()
 	
 	# STEP 3: Rotate 90 degrees
 	var rotation_success: bool = _rotate_manipulation(90.0)
+	var root_rotation: float = 0.0
+	if is_instance_valid(manipulatable.root):
+		root_rotation = manipulatable.root.rotation_degrees
 	
 	assert_bool(rotation_success).append_failure_message(
-		"Rotation should succeed - indicates rotate system works"
+		"Rotation failed - Expected: true, Actual: false, Rotation: %.1f° | %s" 
+		% [root_rotation, _format_manipulation_data(move_data)]
 	).is_true()
 	
 	# STEP 4: Place the rotated object
-	var place_success: bool = _place_manipulated_object()
+	var placement_results: ValidationResults = _place_manipulated_object()
 	
-	assert_bool(place_success).append_failure_message(
-		"REGRESSION: Placement failed after rotation!\n" +
-		"This indicates indicator generation is broken.\n" +
-		"Historical bug: Rotation caused indicator loss → placement failures.\n" +
-		"Expected: Placement succeeds → indicators work correctly after rotation."
-	).is_true()
+	assert_object(placement_results).append_failure_message(
+		"Placement returned null - Expected: ValidationResults, Actual: null | %s | GridTarget: %s" 
+		% [_format_manipulation_data(move_data), grid_target_info]
+	).is_not_null()
+	
+	if placement_results != null:
+		assert_bool(placement_results.is_successful()).append_failure_message(
+			"REGRESSION: Placement failed after rotation - Expected: success, Actual: failed | %s" 
+			% _format_validation_results(placement_results)
+		).is_true()
 	
 	# STEP 5: Verify we can pick up again (proves no state corruption)
 	var pickup_again_success: bool = _start_manipulation(manipulatable)
+	var move_data2: ManipulationData = _manipulation_state.data
 	
 	assert_bool(pickup_again_success).append_failure_message(
-		"Second pickup should succeed - proves no state corruption from rotation"
+		"Second pickup failed - Expected: true, Actual: false | %s" 
+		% _format_manipulation_data(move_data2)
 	).is_true()
 
 func test_multiple_rotations_maintain_workflow() -> void:
@@ -216,6 +262,7 @@ func test_multiple_rotations_maintain_workflow() -> void:
 	
 	# Create test manipulatable
 	var manipulatable: Manipulatable = _create_test_manipulatable()
+	var targeting_state: GridTargetingState = _container.get_states().targeting
 	
 	# Test 4 rotations (full circle)
 	var rotation_angles: Array[int] = [90, 180, 270, 360]
@@ -223,50 +270,94 @@ func test_multiple_rotations_maintain_workflow() -> void:
 	for angle in rotation_angles:
 		# Pickup
 		var pickup_success: bool = _start_manipulation(manipulatable)
+		var move_data: ManipulationData = _manipulation_state.data
+		var grid_target: Node = targeting_state.get_target()
+		var grid_target_info: String = "null"
+		if grid_target != null:
+			grid_target_info = "%s@%s" % [grid_target.name, str(grid_target.global_position)]
 		
 		assert_bool(pickup_success).append_failure_message(
-			"Pickup should succeed before %d° rotation" % angle
+			"Pickup failed at %d° - Expected: true, Actual: false | %s | GridTarget: %s" 
+			% [angle, _format_manipulation_data(move_data), grid_target_info]
 		).is_true()
 		
 		# Rotate
 		var rotation_success: bool = _rotate_manipulation(90.0)
+		var root_rotation: float = 0.0
+		if is_instance_valid(manipulatable.root):
+			root_rotation = manipulatable.root.rotation_degrees
 		
 		assert_bool(rotation_success).append_failure_message(
-			"Rotation to %d° should succeed" % angle
+			"Rotation to %d° failed - Expected: true, Actual: false, Current: %.1f° | %s" 
+			% [angle, root_rotation, _format_manipulation_data(move_data)]
 		).is_true()
 		
 		# Place - this PROVES indicators work at this rotation angle
-		var place_success: bool = _place_manipulated_object()
+		var placement_results: ValidationResults = _place_manipulated_object()
 		
-		assert_bool(place_success).append_failure_message(
-			("REGRESSION at %d°: Placement failed!\n" +
-			"Indicators not working correctly at this rotation angle.\n" +
-			"Historical bug: Some angles caused indicator loss.") % angle
-		).is_true()
+		assert_object(placement_results).append_failure_message(
+			"Placement returned null at %d° - Expected: ValidationResults, Actual: null | %s | GridTarget: %s" 
+			% [angle, _format_manipulation_data(move_data), grid_target_info]
+		).is_not_null()
+		
+		if placement_results != null:
+			assert_bool(placement_results.is_successful()).append_failure_message(
+				"REGRESSION at %d°: Placement failed - Expected: success, Actual: failed | %s" 
+				% [angle, _format_validation_results(placement_results)]
+			).is_true()
 
 func test_rotate_then_flip_workflow() -> void:
 	## Tests combined transformations: rotation + flip
 	## Ensures indicator generation works with multiple transform types
 	
 	var manipulatable: Manipulatable = _create_test_manipulatable()
+	var targeting_state: GridTargetingState = _container.get_states().targeting
 	
 	# Pickup
 	var pickup_success: bool = _start_manipulation(manipulatable)
-	assert_bool(pickup_success).is_true()
+	var move_data: ManipulationData = _manipulation_state.data
+	var grid_target: Node = targeting_state.get_target()
+	var grid_target_info: String = "null"
+	if grid_target != null:
+		grid_target_info = "%s@%s" % [grid_target.name, str(grid_target.global_position)]
+	
+	assert_bool(pickup_success).append_failure_message(
+		"Pickup failed - Expected: true, Actual: false | %s | GridTarget: %s" 
+		% [_format_manipulation_data(move_data), grid_target_info]
+	).is_true()
 	
 	# Rotate 45 degrees
 	var rotation_success: bool = _rotate_manipulation(45.0)
-	assert_bool(rotation_success).is_true()
+	var root_rotation: float = 0.0
+	if is_instance_valid(manipulatable.root):
+		root_rotation = manipulatable.root.rotation_degrees
+	
+	assert_bool(rotation_success).append_failure_message(
+		"Rotation to 45° failed - Expected: true, Actual: false, Current: %.1f° | %s" 
+		% [root_rotation, _format_manipulation_data(move_data)]
+	).is_true()
 	
 	# Flip horizontal
 	_manipulation_system.flip_horizontal(manipulatable.root)
 	_indicator_manager.force_indicators_validity_evaluation()
+	var root_scale: Vector2 = Vector2.ZERO
+	if is_instance_valid(manipulatable.root):
+		root_scale = manipulatable.root.scale
 	
 	# Place - should succeed with combined transforms
-	var place_success: bool = _place_manipulated_object()
+	var placement_results: ValidationResults = _place_manipulated_object()
 	
-	assert_bool(place_success).append_failure_message(
-		"Placement should succeed after rotation + flip"
-	).is_true()
+	assert_object(placement_results).append_failure_message(
+		"Placement returned null after rotation+flip - Expected: ValidationResults, Actual: null | Rotation: %.1f°, Scale: %s | %s | GridTarget: %s" 
+		% [root_rotation, str(root_scale), _format_manipulation_data(move_data), grid_target_info]
+	).is_not_null()
+	
+	if placement_results != null:
+		assert_bool(placement_results.is_successful()).append_failure_message(
+			"Placement failed after rotation+flip - Expected: success, Actual: failed | Rotation: %.1f°, Scale: %s | %s" 
+			% [root_rotation, str(root_scale), _format_validation_results(placement_results)]
+		).is_true()
+
+#endregion
 
 #endregion

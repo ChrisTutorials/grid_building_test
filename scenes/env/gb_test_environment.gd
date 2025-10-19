@@ -76,10 +76,13 @@ func get_tile_count() -> int:
 	return tile_map_layer.get_used_cells().size()
 
 func _ready() -> void:
-	# Clear targeting state for test isolation
+	# Set targeting state for test isolation
 	# Even though GBTestInjectorSystem duplicates the container, the targeting state
 	# object inside the duplicated container may carry over stale target/collider state
-	# from the previous test run. Clear it here to ensure clean state.
+	# from the previous test run. Set target to null here to ensure clean state.
 	if grid_targeting_system != null:
-		grid_targeting_system.clear()
+		var targeting_state := grid_targeting_system.get_state()
+		if targeting_state != null:
+			targeting_state.target = null
+			targeting_state.target_root = null
 		grid_targeting_system.target_map = tile_map_layer

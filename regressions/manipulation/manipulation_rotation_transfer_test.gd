@@ -144,7 +144,7 @@ func test_rotation_transferred_after_indicator_generation() -> void:
 		"Manipulation data should exist"
 	)
 	
-	var copy_root: Node = manipulation_data.target.root
+	var copy_root: Node = manipulation_data.move_copy.root
 	assert_object(copy_root).is_not_null().append_failure_message(
 		"Manipulation copy should exist"
 	)
@@ -250,7 +250,7 @@ func test_preview_shows_correct_rotation_visually() -> void:
 	
 	# Get the manipulation copy
 	var manipulation_data: ManipulationData = _container.get_states().manipulation.data
-	var copy_root: Node = manipulation_data.target.root
+	var copy_root: Node = manipulation_data.move_copy.root
 	
 	# Calculate combined transform via global_rotation
 	var copy_global_rotation: float = copy_root.global_rotation
@@ -289,7 +289,7 @@ func test_rotation_transferred_to_parent_after_indicator_generation() -> void:
 	
 	# Get the manipulation copy
 	var manipulation_data: ManipulationData = _container.get_states().manipulation.data
-	var copy_root: Node2D = manipulation_data.target.root
+	var copy_root: Node2D = manipulation_data.move_copy.root
 	
 	# Assert 1: Copy should be normalized (rotation=0, scale=1.0) for canonical geometry
 	assert_float(copy_root.rotation).is_equal_approx(0.0, 0.01).append_failure_message(

@@ -18,6 +18,18 @@
 ## - Position preservation when validation fails
 ## - Proper cleanup of target copy on validation failure
 ## - Status reporting accuracy (FAILED vs FINISHED)
+##
+## IMPORTANT: Architecture Pattern (v5.x)
+## As of v5.x, GridTargetingState is the single source of truth for the target node.
+## 
+## The correct pattern for manipulation tests:
+## 1. Create a manipulatable object
+## 2. Set targeting_state to target that manipulatable (before calling try_move)
+## 3. Call manipulation_system.try_move() - it will use targeting_state.get_target()
+## 4. The returned ManipulationData.source contains the found Manipulatable component
+##
+## DO NOT pass the manipulatable directly expecting it to be used as target.
+## The system uses targeting_state as the single source of truth.
 
 extends GdUnitTestSuite
 @warning_ignore("unused_parameter")
@@ -50,12 +62,12 @@ func before_test() -> void:
 
 func _setup_targeting_state() -> void:
 	var targeting_state: GridTargetingState = _container.get_states().targeting
-	if targeting_state.target == null:
+	if targeting_state.get_target() == null:
 		var default_target: Node2D = auto_free(Node2D.new())
 		default_target.position = Vector2(64, 64)
 		default_target.name = "DefaultTarget"
 		env.add_child(default_target)
-		targeting_state.target = default_target
+		targeting_state.set_manual_target(default_target)
 #endregion
 
 #region Helper Methods
@@ -99,6 +111,13 @@ func _create_collision_obstacle_at_position(position: Vector2) -> StaticBody2D:
 ## the source object is still moved to the target position despite the failure.
 ## 
 ## Expected: Object should remain at original position when validation fails.
+##
+## SETUP PATTERN (v5.x Architecture):
+## 1. Create manipulatable object
+## 2. IMPORTANT: Call targeting_state.set_manual_target(manipulatable.root) BEFORE try_move()
+##    This establishes targeting_state as the single source of truth for the target
+## 3. Call manipulation_system.try_move() - uses targeting_state.get_target() internally
+## 4. The returned ManipulationData.source will contain the Manipulatable component found
 func test_validation_failure_prevents_object_movement() -> void:
 	# Setup: Create manipulatable with collision rules
 	var manipulatable: Manipulatable = ManipulationHelpers.create_test_manipulatable(
@@ -109,6 +128,11 @@ func test_validation_failure_prevents_object_movement() -> void:
 		true  # with_move_rules = true
 	)
 	var original_position: Vector2 = manipulatable.root.global_position
+	
+	# CRITICAL: Update targeting_state BEFORE calling try_move()
+	# targeting_state is now the single source of truth for which node is being manipulated
+	var targeting_state: GridTargetingState = _container.get_states().targeting
+	targeting_state.set_manual_target(manipulatable.root)
 	
 	# Setup: Create collision obstacle at target position to cause validation failure
 	var target_position: Vector2 = Vector2(96, 96)
@@ -146,7 +170,6 @@ func test_validation_failure_prevents_object_movement() -> void:
 	# Act: Move positioner to collision position (this moves preview AND indicators together)
 	# The manipulation system parents the target to ManipulationParent, and indicators
 	# are positioned relative to the target. Moving the positioner updates everything.
-	var targeting_state: GridTargetingState = _container.get_states().targeting
 	targeting_state.positioner.global_position = target_position
 	
 	# Force indicators to regenerate at new position with collision detection
@@ -199,6 +222,13 @@ func test_validation_failure_prevents_object_movement() -> void:
 ##
 ## This test ensures that when validation succeeds, the object DOES move.
 ## Uses NO collision rules to guarantee success.
+##
+## SETUP PATTERN (v5.x Architecture):
+## 1. Create manipulatable object
+## 2. IMPORTANT: Call targeting_state.set_manual_target(manipulatable.root) BEFORE try_move()
+##    This establishes targeting_state as the single source of truth for the target
+## 3. Call manipulation_system.try_move() - uses targeting_state.get_target() internally
+## 4. The returned ManipulationData.source will contain the Manipulatable component found
 func test_validation_success_allows_object_movement() -> void:
 	# Setup: Create manipulatable WITHOUT collision rules
 	# No rules means no validation constraints, placement always succeeds
@@ -210,6 +240,11 @@ func test_validation_success_allows_object_movement() -> void:
 		false  # with_move_rules = false - no validation rules
 	)
 	
+	# CRITICAL: Update targeting_state BEFORE calling try_move()
+	# targeting_state is now the single source of truth for which node is being manipulated
+	var targeting_state: GridTargetingState = _container.get_states().targeting
+	targeting_state.set_manual_target(manipulatable.root)
+	
 	var original_position: Vector2 = manipulatable.root.global_position
 	var target_position: Vector2 = Vector2(256, 256)
 	
@@ -220,7 +255,7 @@ func test_validation_success_allows_object_movement() -> void:
 	).is_not_null()
 	
 	# Act: Move to target and attempt placement
-	move_data.target.root.global_position = target_position
+	move_data.move_copy.root.global_position = target_position
 	var validation_results: ValidationResults = manipulation_system.try_placement(move_data)
 	
 	# Assert: Validation should succeed (no rules to fail)

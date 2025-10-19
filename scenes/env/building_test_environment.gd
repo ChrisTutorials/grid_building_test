@@ -42,6 +42,9 @@ func get_issues() -> Array[String]:
 	return issues
 
 func _ready() -> void:
+	# Call parent _ready() first to handle base environment setup
+	super._ready()
+	
 	# Note: Container duplication for test isolation is now automatic via GBTestInjectorSystem
 	# No manual duplication needed - the injector handles it when the container is assigned
 	

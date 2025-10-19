@@ -143,7 +143,7 @@ func _position_target_at_tile(tile_coords: Vector2i) -> void:
 	var world_position: Vector2 = map.map_to_local(tile_coords)
 	positioner.global_position = world_position
 	user_node.global_position = world_position
-	targeting_state.target = user_node
+	targeting_state.set_manual_target(user_node)
 	
 	logger.log_debug("Positioned target at tile %s (world: %s)" % [str(tile_coords), str(world_position)])
 

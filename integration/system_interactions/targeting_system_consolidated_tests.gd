@@ -22,7 +22,7 @@ func after_test() -> void:
 #region HELPER METHODS
 
 ## Get node name or "null" for diagnostic messages
-func _node_name(node: Variant) -> String:
+func _node_name(node: Node2D) -> String:
 	if node == null:
 		return "null"
 	if not is_instance_valid(node):
@@ -37,12 +37,12 @@ func _setup_default_target() -> void:
 	var targeting_state: GridTargetingState = targeting_system.get_state()
 	
 	# Only create a target if none exists
-	if targeting_state.target == null:
+	if targeting_state.get_target() == null:
 		default_target = Node2D.new()
 		default_target.position = Vector2(64, 64)
 		default_target.name = "TestTarget"
 		env.level.add_child(default_target)
-		targeting_state.target = default_target
+		targeting_state.set_manual_target(default_target)
 		# Note: Don't use auto_free() on shared target - managed in after_test
 
 #endregion
@@ -59,7 +59,7 @@ func test_targeting_basic() -> void:
 	).is_not_null()
 	
 	# Default target should have been created in before_test
-	var current_target: Variant = targeting_state.target
+	var current_target: Node2D = targeting_state.get_target()
 	assert_object(current_target).append_failure_message(
 		"Default target should be available from setup"
 	).is_not_null()
@@ -86,9 +86,9 @@ func test_targeting_grid_alignment() -> void:
 	).is_equal(world_pos)
 
 func test_targeting_validation() -> void:
-	var targeting_system: Variant = env.grid_targeting_system
-	var _tile_map: Variant = env.tile_map_layer
-	var targeting_state: Variant = targeting_system.get_state()
+	var targeting_system: GridTargetingSystem = env.grid_targeting_system
+	var _tile_map: TileMapLayer = env.tile_map_layer
+	var targeting_state: GridTargetingState = targeting_system.get_state()
 	
 	# Test valid position using factory's default target
 	var issues: Array = targeting_system.get_runtime_issues()
@@ -103,22 +103,22 @@ func test_targeting_validation() -> void:
 	auto_free(invalid_target)
 	
 	# Store original target before setting invalid one
-	var original_target: Node2D = targeting_state.target
-	targeting_state.target = invalid_target
+	var original_target: Node2D = targeting_state.get_target()
+	targeting_state.set_manual_target(invalid_target)
 	
 	# The system should still function but may have different behavior
-	assert_object(targeting_state.target).append_failure_message(
+	assert_object(targeting_state.get_target()).append_failure_message(
 		"Targeting state should maintain target reference even for invalid positions"
 	).is_not_null()
 	
 	# Restore original target before invalid target is freed
-	targeting_state.target = original_target
+	targeting_state.set_manual_target(original_target)
 	
 	auto_free(invalid_target)
 
 func test_targeting_with_rules() -> void:
-	var targeting_system: Variant = env.grid_targeting_system
-	var targeting_state: Variant = targeting_system.get_state()
+	var targeting_system: GridTargetingSystem = env.grid_targeting_system
+	var targeting_state: GridTargetingState = targeting_system.get_state()
 	
 	# Test that the system can validate dependencies using factory's default target
 	var issues: Array = targeting_system.get_runtime_issues()
@@ -133,23 +133,23 @@ func test_targeting_with_rules() -> void:
 	)
 
 func test_targeting_area_selection() -> void:
-	var targeting_system: Variant = env.grid_targeting_system
-	var targeting_state: Variant = targeting_system.get_state()
+	var targeting_system: GridTargetingSystem = env.grid_targeting_system
+	var targeting_state: GridTargetingState = targeting_system.get_state()
 	
 	# Test area targeting using factory's default target
 	assert_object(targeting_state).append_failure_message(
 		"Targeting state should be properly initialized"
 	).is_not_null()
-	assert_object(targeting_state.target).append_failure_message(
+	assert_object(targeting_state.get_target()).append_failure_message(
 		"Factory should provide a default target for area selection tests"
 	).is_not_null()
-	assert_vector(targeting_state.target.position).append_failure_message(
+	assert_vector(targeting_state.get_target().position).append_failure_message(
 		"Default target should maintain factory position for area operations"
 	).is_equal(Vector2(64, 64))
 
 func test_targeting_multiple_objects() -> void:
-	var targeting_system: Variant = env.grid_targeting_system
-	var positioner: Variant = env.positioner
+	var targeting_system: GridTargetingSystem = env.grid_targeting_system
+	var positioner: GridPositioner2D = env.positioner
 	
 	# Add multiple objects
 	var objects: Array = []
@@ -161,8 +161,8 @@ func test_targeting_multiple_objects() -> void:
 		auto_free(obj)
 	
 	# Test that the system can handle multiple objects using factory's default target
-	var targeting_state: Variant = targeting_system.get_state()
-	assert_object(targeting_state.target).is_not_null().append_failure_message(
+	var targeting_state: GridTargetingState = targeting_system.get_state()
+	assert_object(targeting_state.get_target()).is_not_null().append_failure_message(
 		"Targeting system should maintain default target when multiple objects are present"
 	)
 	assert_array(objects).has_size(3).append_failure_message(
@@ -170,11 +170,11 @@ func test_targeting_multiple_objects() -> void:
 	)
 
 func test_targeting_system_integration() -> void:
-	var targeting_system: Variant = env.grid_targeting_system
+	var targeting_system: GridTargetingSystem = env.grid_targeting_system
 	
 	# Test targeting system functionality in collision environment
-	var targeting_state: Variant = targeting_system.get_state()
-	assert_object(targeting_state.target).is_not_null().append_failure_message(
+	var targeting_state: GridTargetingState = targeting_system.get_state()
+	assert_object(targeting_state.get_target()).is_not_null().append_failure_message(
 		"Targeting state should have default target for integration testing"
 	)
 	
@@ -187,40 +187,40 @@ func test_targeting_system_integration() -> void:
 	)
 
 func test_targeting_cursor_tracking() -> void:
-	var targeting_system: Variant = env.grid_targeting_system
+	var targeting_system: GridTargetingSystem = env.grid_targeting_system
 	
 	# Test cursor position tracking by updating factory's default target
 	var mock_cursor_pos: Vector2 = Vector2(200, 150)
-	var targeting_state: Variant = targeting_system.get_state()
-	targeting_state.target.position = mock_cursor_pos
+	var targeting_state: GridTargetingState = targeting_system.get_state()
+	targeting_state.get_target().position = mock_cursor_pos
 	
 	# Verify the system can handle cursor-like targeting
-	assert_object(targeting_state.target).is_not_null().append_failure_message(
+	assert_object(targeting_state.get_target()).is_not_null().append_failure_message(
 		"Targeting state should maintain target reference during cursor tracking"
 	)
-	assert_vector(targeting_state.target.position).is_equal(mock_cursor_pos).append_failure_message(
+	assert_vector(targeting_state.get_target().position).is_equal(mock_cursor_pos).append_failure_message(
 		"Target position should update to match cursor position"
 	)
 
 func test_targeting_precision_modes() -> void:
-	var targeting_system: Variant = env.grid_targeting_system
+	var targeting_system: GridTargetingSystem = env.grid_targeting_system
 	
 	# Test different precision modes using factory's default target
-	var targeting_state: Variant = targeting_system.get_state()
+	var targeting_state: GridTargetingState = targeting_system.get_state()
 	var test_pos: Vector2 = Vector2(128, 96)
-	targeting_state.target.position = test_pos
+	targeting_state.get_target().position = test_pos
 	
 	# Test that the system can handle position processing through its tile methods
-	var tile_pos: Variant = targeting_system.get_tile_from_global_position(test_pos, targeting_state.target_map)
+	var tile_pos: Vector2i = targeting_system.get_tile_from_global_position(test_pos, targeting_state.target_map)
 	assert_object(tile_pos).is_not_null().append_failure_message(
 		"Should be able to convert global position to tile coordinates"
 	)
 	
 	# Verify the system maintains state consistency
-	assert_object(targeting_state.target).is_not_null().append_failure_message(
+	assert_object(targeting_state.get_target()).is_not_null().append_failure_message(
 		"Targeting state should maintain target reference during precision operations"
 	)
-	assert_vector(targeting_state.target.position).is_equal(test_pos).append_failure_message(
+	assert_vector(targeting_state.get_target().position).is_equal(test_pos).append_failure_message(
 		"Target position should remain consistent after precision mode operations"
 	)
 
@@ -248,7 +248,7 @@ func test_target_informer_shows_targeting_info() -> void:
 	
 	# NOW trigger target change (simulates hovering over object)
 	# This should fire the signal that TargetInformer is now listening to
-	targeting_state.target = test_target
+	targeting_state.set_manual_target(test_target)
 	
 	# Wait for signal propagation - use deterministic frame simulation
 	runner.simulate_frames(2)
@@ -257,7 +257,7 @@ func test_target_informer_shows_targeting_info() -> void:
 	assert_object(informer.target).append_failure_message(
 		"TargetInformer should have target set from GridTargetingState.target_changed signal. " +
 		"Targeting state target: %s, Informer connected: %s" % [
-			str(targeting_state.target),
+			str(targeting_state.get_target()),
 			targeting_state.is_connected("target_changed", Callable(informer, "_on_targeting_state_target_changed"))
 		]
 	).is_same(test_target)
@@ -299,14 +299,14 @@ func test_target_informer_manipulation_priority() -> void:
 	env.level.add_child(manipulated_object)
 	
 	# Step 1: Hover over first object (targeting only)
-	targeting_state.target = hovered_object
+	targeting_state.set_manual_target(hovered_object)
 	runner.simulate_frames(2)
 	
 	assert_object(informer.target).append_failure_message(
 		"Step 1 failed - Expected: %s, Got: %s, Targeting: %s, Manipulation: %s" % [
 			_node_name(hovered_object),
 			_node_name(informer.target),
-			_node_name(targeting_state.target),
+			_node_name(targeting_state.get_target()),
 			str(manipulation_state.active_target_node)
 		]
 	).is_same(hovered_object)
@@ -330,7 +330,7 @@ func test_target_informer_manipulation_priority() -> void:
 	another_hovered.global_position = Vector2(150, 150)
 	env.level.add_child(another_hovered)
 	
-	targeting_state.target = another_hovered
+	targeting_state.set_manual_target(another_hovered)
 	runner.simulate_frames(2)
 	
 	assert_object(informer.target).append_failure_message(
@@ -346,7 +346,7 @@ func test_target_informer_manipulation_priority() -> void:
 		"Step 4 failed - Expected: %s, Got: %s, Targeting: %s, Manipulation: %s" % [
 			_node_name(another_hovered),
 			_node_name(informer.target),
-			_node_name(targeting_state.target),
+			_node_name(targeting_state.get_target()),
 			str(manipulation_state.active_target_node)
 		]
 	).is_same(another_hovered)
@@ -370,26 +370,26 @@ func test_target_informer_null_handling() -> void:
 	test_target.name = "TestTarget"
 	env.level.add_child(test_target)
 	
-	targeting_state.target = test_target
+	targeting_state.set_manual_target(test_target)
 	runner.simulate_frames(1)
 	
 	assert_object(informer.target).append_failure_message(
 		"Initial target set failed - Expected: %s, Got: %s, Targeting: %s" % [
 			test_target.name,
 			_node_name(informer.target),
-			_node_name(targeting_state.target)
+			_node_name(targeting_state.get_target())
 		]
 	).is_not_null()
 	
 	# Clear target (simulates mouse leaving all objects)
-	targeting_state.target = null
+	targeting_state.clear()
 	runner.simulate_frames(1)
 	
 	# TargetInformer should clear its display
 	assert_object(informer.target).append_failure_message(
 		"Target clear failed - Expected: null, Got: %s, Targeting: %s" % [
 			_node_name(informer.target),
-			str(targeting_state.target)
+			str(targeting_state.get_target())
 		]
 	).is_null()
 
@@ -413,7 +413,7 @@ func test_target_informer_tracks_target_position() -> void:
 	moving_target.global_position = Vector2(100, 100)
 	env.level.add_child(moving_target)
 	
-	targeting_state.target = moving_target
+	targeting_state.set_manual_target(moving_target)
 	runner.simulate_frames(1)
 	
 	# Initial position check
@@ -422,7 +422,7 @@ func test_target_informer_tracks_target_position() -> void:
 			moving_target.name,
 			_node_name(informer.target),
 			str(moving_target.global_position),
-			_node_name(targeting_state.target)
+			_node_name(targeting_state.get_target())
 		]
 	).is_same(moving_target)
 	
@@ -476,7 +476,7 @@ func test_target_informer_building_preview_priority() -> void:
 	preview_object.add_child(building_node)
 	
 	# Step 1: Target a regular object first
-	targeting_state.target = hovered_object
+	targeting_state.set_manual_target(hovered_object)
 	runner.simulate_frames(1)
 	
 	assert_object(informer.target).append_failure_message(
@@ -496,7 +496,7 @@ func test_target_informer_building_preview_priority() -> void:
 			preview_object.name,
 			_node_name(informer.target),
 			_node_name(building_state.preview),
-			_node_name(targeting_state.target)
+			_node_name(targeting_state.get_target())
 		]
 	).is_same(preview_object)
 	
@@ -505,7 +505,7 @@ func test_target_informer_building_preview_priority() -> void:
 	another_object.name = "AnotherObject"
 	add_child(another_object)
 	
-	targeting_state.target = another_object
+	targeting_state.set_manual_target(another_object)
 	runner.simulate_frames(1)
 	
 	assert_object(informer.target).append_failure_message(
@@ -586,16 +586,16 @@ func test_placed_object_becomes_targetable_after_manipulation() -> void:
 	
 	# Step 3: Hover over the placed object (simulate mouse moving over it)
 	# This should trigger TargetingShapeCast2D to detect it
-	targeting_state.target = manipulated_object  # Simulate ShapeCast detection
+	targeting_state.set_manual_target(manipulated_object)  # Simulate ShapeCast detection
 	runner.simulate_frames(1)
 	
 	# THE REGRESSION: This should work but might fail if manipulation state interferes
-	assert_object(targeting_state.target).append_failure_message(
+	assert_object(targeting_state.get_target()).append_failure_message(
 		"Step 3 REGRESSION: After manipulation ends, placed object should be targetable. " +
 		"manipulation_active=%s, manipulation_target=%s, targeting_target=%s" %
 		[str(targeting_state.is_manual_targeting_active),
 		 str(manipulation_state.active_target_node),
-		 str(targeting_state.target)]
+		 str(targeting_state.get_target())]
 	).is_same(manipulated_object)
 
 
@@ -641,7 +641,7 @@ func test_manipulation_state_doesnt_block_targeting_after_clear() -> void:
 	runner.simulate_frames(1)
 	
 	# Step 3: Hover over ObjectB (different object)
-	targeting_state.target = object_b
+	targeting_state.set_manual_target(object_b)
 	runner.simulate_frames(1)
 	
 	# REGRESSION: TargetInformer should now show ObjectB, not stuck on ObjectA
@@ -705,7 +705,7 @@ func test_targeting_blocked_by_lingering_manipulation_target() -> void:
 	runner.simulate_frames(1)
 	
 	# Step 3: Try to target ObjectB (mouse moves over it)
-	targeting_state.target = object_b
+	targeting_state.set_manual_target(object_b)
 	runner.simulate_frames(1)
 	
 	# EXPECTED: TargetInformer should show ObjectB because manipulation state is clear

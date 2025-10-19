@@ -1,67 +1,56 @@
 ## Environment Test Factory
 ##
-## ⚠️ DEPRECATED: This factory class is deprecated in favor of GdUnitSceneRunner pattern.
+## HYBRID APPROACH: Use EnvironmentTestFactory for environment validation tests,
+## scene_runner for tests requiring frame simulation.
 ##
-## ## Migration Guide
+## ## When to Use EnvironmentTestFactory
 ##
-## **Old pattern (deprecated):**
+## - **Environment validation tests** that check get_issues() and system initialization
+## - Tests that benefit from guaranteed synchronous initialization waits
+##
+## ## When to Use scene_runner
+##
+## - **Tests requiring simulate_frames()** for physics/animation testing
+## - Tests needing async input processing (await_input_processed())
+## - Most integration and interaction tests
+##
+## ## Migration Pattern
+##
+## **Environment validation (use EnvironmentTestFactory):**
 ## [codeblock]
-## var env: CollisionTestEnvironment = EnvironmentTestFactory.create_collision_test_environment(self)
+## func before_test() -> void:
+##     test_env = EnvironmentTestFactory.create_collision_test_environment(self)
 ## [/codeblock]
 ##
-## **New pattern (recommended):**
+## **Frame simulation tests (use scene_runner):**
 ## [codeblock]
-## var runner: GdUnitSceneRunner
-## var env: CollisionTestEnvironment
-##
 ## func before_test() -> void:
 ##     runner = scene_runner(GBTestConstants.COLLISION_TEST_ENV_UID)
-##     runner.simulate_frames(2)  # Initial setup frames
+##     runner.simulate_frames(2)  # For physics initialization
 ##     env = runner.scene() as CollisionTestEnvironment
-##
-## func after_test() -> void:
-##     runner = null
 ## [/codeblock]
 ##
-## ## Why Scene Runner?
+## ## Isolation Guarantee
 ##
-## - **Deterministic**: Explicit frame control eliminates timing-based flakiness
-## - **Reliable**: No dependency on real-time physics or scene tree timing
-## - **Maintainable**: Standard GdUnit4 pattern used across the codebase
-## - **Clean**: Automatic cleanup through GdUnit lifecycle management
-##
-## ## Available Test Environments
-##
-## - [code]GBTestConstants.ALL_SYSTEMS_ENV_UID[/code] - Complete system integration
-## - [code]GBTestConstants.BUILDING_TEST_ENV_UID[/code] - Building system focused
-## - [code]GBTestConstants.COLLISION_TEST_ENV_UID[/code] - Collision and placement
-## - [code]GBTestConstants.ISOMETRIC_TEST_ENV_UID[/code] - Isometric tile testing
-##
-## See existing tests using scene runner pattern:
-## - [code]collisions_check_rule_exclusion_test.gd[/code]
-## - [code]preview_self_collision_exclusion_test.gd[/code]
-## - [code]drag_building_race_condition_test.gd[/code]
+## Both approaches provide automatic GBCompositionContainer duplication for test isolation
+## through GBTestInjectorSystem._duplicate_container_if_needed() during scene initialization.
 ##
 ## Following GdUnit best practices: DRY principle, centralize common object creation
-class_name EnvironmentTestFactory
-extends RefCounted
 
-## @deprecated Use scene_runner(GBTestConstants.ALL_SYSTEMS_ENV_UID) instead
+## @deprecated Use scene_runner for frame simulation tests, keep EnvironmentTestFactory for validation tests
 ## Creates an AllSystemsTestEnvironment (extracted from UnifiedTestFactory) [br]
 ## [param test]: Test instance for node management [br]
 ## [param scene_uid]: Scene UID for environment setup
 static func create_all_systems_env(test: GdUnitTestSuite, scene_uid: String = GBTestConstants.ALL_SYSTEMS_ENV_UID) -> AllSystemsTestEnvironment:
-	push_warning("EnvironmentTestFactory.create_all_systems_env() is deprecated. Use scene_runner(GBTestConstants.ALL_SYSTEMS_ENV_UID) instead for deterministic frame control.")
 	var env: AllSystemsTestEnvironment = load(scene_uid).instantiate()
 	_prepare_test_environment_sync(test, env)
 	return env
 
-## @deprecated Use scene_runner(GBTestConstants.BUILDING_TEST_ENV_UID) instead
+## @deprecated Use scene_runner for frame simulation tests, keep EnvironmentTestFactory for validation tests
 ## Creates a basic building system test environment
 ## [param test]: Test instance for node management
 ## [param scene_uid]: Scene UID for environment setup
 static func create_building_system_test_environment(test: GdUnitTestSuite, scene_uid: String = GBTestConstants.BUILDING_TEST_ENV_PATH) -> BuildingTestEnvironment:
-	push_warning("EnvironmentTestFactory.create_building_system_test_environment() is deprecated. Use scene_runner(GBTestConstants.BUILDING_TEST_ENV_UID) instead for deterministic frame control.")
 	var env: BuildingTestEnvironment = load(scene_uid).instantiate()
 	# Pass the environment directly; it already extends GBTestEnvironment.
 	_prepare_test_environment_sync(test, env)
@@ -72,7 +61,6 @@ static func create_building_system_test_environment(test: GdUnitTestSuite, scene
 ## [param test]: Test instance for node management
 ## [param scene_uid]: Scene UID for environment setup
 static func create_collision_test_environment(test: GdUnitTestSuite, scene_uid: String = GBTestConstants.COLLISION_TEST_ENV_PATH) -> CollisionTestEnvironment:
-	push_warning("EnvironmentTestFactory.create_collision_test_environment() is deprecated. Use scene_runner(GBTestConstants.COLLISION_TEST_ENV_UID) instead for deterministic frame control.")
 	var env: CollisionTestEnvironment = load(scene_uid).instantiate()
 	_prepare_test_environment_sync(test, env)
 	return env

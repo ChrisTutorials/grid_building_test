@@ -444,3 +444,325 @@ func test_placement_component_error_handling() -> void:
 	assert_bool(invalid_result.is_successful()).append_failure_message(
 		"Invalid rule setup should be handled gracefully and succeed (null rules are filtered out)"
 	).is_true()
+
+# ===== INDICATOR CONTEXT INITIALIZATION TESTS =====
+
+func test_indicator_context_reports_missing_manager_initially() -> void:
+	# Create a fresh IndicatorContext without pre-assigned manager
+	var fresh_indicator_context: IndicatorContext = IndicatorContext.new()
+	auto_free(fresh_indicator_context)
+
+	# Initially, fresh context should report that IndicatorManager is not assigned
+	var initial_issues : Array[String] = fresh_indicator_context.get_runtime_issues()
+	assert_array(initial_issues).append_failure_message(
+		"IndicatorContext should return an array of issues"
+	).is_not_empty()
+
+	var has_manager_issue : bool = false
+	for issue in initial_issues:
+		if "IndicatorManager is not assigned in IndicatorContext" in issue:
+			has_manager_issue = true
+			break
+
+	assert_bool(has_manager_issue).append_failure_message(
+		"IndicatorContext should report IndicatorManager not assigned initially. Issues found: %s" % str(initial_issues)
+	).is_true()
+
+	# Should not have a manager initially
+	assert_bool(fresh_indicator_context.has_manager()).append_failure_message(
+		"IndicatorContext should not have a manager initially"
+	).is_false()
+
+func test_indicator_context_after_manager_assignment() -> void:
+	# Get the indicator context from container
+	var indicator_context: IndicatorContext = env.container.get_indicator_context()
+
+	# Create and assign an IndicatorManager
+	var indicator_manager: IndicatorManager = env.indicator_manager
+	indicator_context.set_manager(indicator_manager)
+
+	# After assignment, should have no runtime issues
+	var post_assignment_issues : Array[String] = indicator_context.get_runtime_issues()
+	assert_array(post_assignment_issues).append_failure_message(
+		"IndicatorContext should have no runtime issues after IndicatorManager assignment, but found: %s" % str(post_assignment_issues)
+	).is_empty()
+
+	# Should have a manager
+	assert_bool(indicator_context.has_manager()).append_failure_message(
+		"IndicatorContext should have a manager after assignment"
+	).is_true()
+
+	# Should be able to retrieve the same manager
+	var retrieved_manager : IndicatorManager = indicator_context.get_manager()
+	assert_object(retrieved_manager).append_failure_message(
+		"Should be able to retrieve the assigned IndicatorManager"
+	).is_same(indicator_manager)
+
+func test_indicator_context_manager_changed_signal() -> void:
+	# Get the indicator context from container
+	var indicator_context: IndicatorContext = env.container.get_indicator_context()
+
+	# Create and assign an IndicatorManager
+	var indicator_manager: IndicatorManager = env.indicator_manager
+	indicator_context.set_manager(indicator_manager)
+
+	# Verify manager was set (basic functionality test)
+	assert_bool(indicator_context.has_manager()).append_failure_message(
+		"IndicatorContext should have manager after assignment"
+	).is_true()
+
+	# Test setting the same manager doesn't cause issues
+	indicator_context.set_manager(indicator_manager)
+	assert_bool(indicator_context.has_manager()).append_failure_message(
+		"IndicatorContext should still have manager after re-assignment"
+	).is_true()
+
+func test_composition_container_validation_with_manager() -> void:
+	# Create a fresh composition container without pre-assigned manager
+	var fresh_container: GBCompositionContainer = GBCompositionContainer.new()
+	fresh_container.config = env.container.config  # Copy the config
+	auto_free(fresh_container)
+
+	# Before manager assignment, fresh container should have runtime issues
+	var initial_issues : Array[String] = fresh_container.get_runtime_issues()
+	var has_indicator_manager_issue : bool = false
+	for issue in initial_issues:
+		if "IndicatorManager is not assigned in IndicatorContext" in issue:
+			has_indicator_manager_issue = true
+			break
+
+	assert_bool(has_indicator_manager_issue).append_failure_message(
+		"Composition container should report IndicatorManager not assigned issue initially. Issues found: %s" % str(initial_issues)
+	).is_true()
+
+	# Assign IndicatorManager to fresh context
+	var indicator_context: IndicatorContext = fresh_container.get_indicator_context()
+	var indicator_manager: IndicatorManager = env.indicator_manager
+	indicator_context.set_manager(indicator_manager)
+
+	# After assignment, the specific issue should be resolved
+	var post_assignment_issues : Array[String] = fresh_container.get_runtime_issues()
+	var still_has_indicator_manager_issue : bool = false
+	for issue : String in post_assignment_issues:
+		if "IndicatorManager is not assigned in IndicatorContext" in issue:
+			still_has_indicator_manager_issue = true
+			break
+
+	assert_bool(still_has_indicator_manager_issue).append_failure_message(
+		"Composition container should not report IndicatorManager issue after assignment. Issues found: %s" % str(post_assignment_issues)
+	).is_false()
+
+# ===== TREE INTEGRATION TESTS =====
+
+func test_indicators_are_parented_and_inside_tree() -> void:
+	var preview: Node2D = _create_preview_with_collision()
+	env.targeting_state.set_manual_target(preview)
+
+	# Build a tile check rule that applies to layer 1 and should create indicators
+	var rule: TileCheckRule = TileCheckRule.new()
+	rule.apply_to_objects_mask = GBTestConstants.TEST_COLLISION_LAYER
+	rule.resource_name = "test_tile_rule"
+	var rules: Array[PlacementRule] = [rule]
+
+	var setup_results: PlacementReport = env.indicator_manager.try_setup(rules, env.targeting_state)
+	assert_bool(setup_results.is_successful()).append_failure_message("IndicatorManager.try_setup failed: " + str(setup_results.get_issues())).is_true()
+
+	var indicators: Array[RuleCheckIndicator] = env.indicator_manager.get_indicators()
+	assert_array(indicators).append_failure_message("No indicators created. Setup result: " + str(setup_results.is_successful())).is_not_empty()
+
+	for ind: RuleCheckIndicator in indicators:
+		assert_bool(ind.is_inside_tree()).append_failure_message("Indicator not inside tree: %s" % ind.name).is_true()
+		assert_object(ind.get_parent()).append_failure_message("Indicator has no parent: %s" % ind.name).is_not_null()
+
+		# Current architecture: indicators are parented under the IndicatorManager itself
+		var expected_parent: Node = env.indicator_manager
+		var actual_parent: Node = ind.get_parent()
+
+		assert_object(ind.get_parent()).append_failure_message("Unexpected parent for indicator: %s" % [ind.name]).is_equal(expected_parent)
+
+# ===== BASIC INDICATOR MANAGER TESTS =====
+
+func test_indicator_manager_creation() -> void:
+	var indicator_manager: IndicatorManager = env.indicator_manager
+	assert_that(indicator_manager).is_not_null()
+	assert_that(indicator_manager.get_parent()).is_not_null()
+
+func test_indicator_setup_basic() -> void:
+	var indicator_manager: IndicatorManager = env.indicator_manager
+
+	# Create and setup test area
+	var area: Area2D = _create_test_area()
+	_setup_test_area(area)
+
+	var rules: Array[TileCheckRule] = _create_test_rules()
+	var report: IndicatorSetupReport = indicator_manager.setup_indicators(area, rules)
+	assert_that(report).is_not_null()
+
+func test_indicator_cleanup() -> void:
+	var indicator_manager: IndicatorManager = env.indicator_manager
+
+	# Create and setup test indicators first
+	var area: Area2D = _create_test_area()
+	_setup_test_area(area)
+
+	var rules: Array[TileCheckRule] = _create_test_rules()
+	indicator_manager.setup_indicators(area, rules)
+
+	# Test cleanup
+	indicator_manager.tear_down()
+
+	# Count remaining indicators (should only have test objects, not indicators)
+	var indicator_count: int = _count_indicators(self)
+	var indicator_names: Array[String] = _get_indicator_names()
+	assert_int(indicator_count).append_failure_message(
+		"Indicator cleanup failed - expected 0 indicators, found %d. Remaining: %s" % [indicator_count, str(indicator_names)]
+	).is_equal(0)
+
+func test_indicator_positioning() -> void:
+	var indicator_manager: IndicatorManager = env.indicator_manager
+	var positioner: Node2D = env.positioner
+
+	# Position positioner at specific location
+	positioner.position = Vector2(32, 32)
+
+	# Create and setup test object
+	var area: Area2D = _create_test_area()
+	_setup_test_area(area)
+
+	var rules: Array[TileCheckRule] = _create_test_rules()
+	var report: IndicatorSetupReport = indicator_manager.setup_indicators(area, rules)
+
+	assert_that(report).is_not_null()
+	# Verify indicators are positioned (basic check)
+	for child: Node in indicator_manager.get_children():
+		if child is RuleCheckIndicator:
+			assert_that(child.global_position).is_not_equal(Vector2.ZERO)
+
+func test_multiple_setup_calls() -> void:
+	var indicator_manager: IndicatorManager = env.indicator_manager
+
+	# Create and setup test object
+	var area: Area2D = _create_test_area()
+	_setup_test_area(area)
+
+	var rules: Array[TileCheckRule] = _create_test_rules()
+
+	# First setup
+	indicator_manager.setup_indicators(area, rules)
+	await get_tree().process_frame
+	var first_count: int = _count_indicators(self)
+	var first_names: Array[String] = _get_indicator_names()
+
+	# Second setup should replace, not duplicate
+	indicator_manager.setup_indicators(area, rules)
+	await get_tree().process_frame
+	var second_count: int = _count_indicators(self)
+	var second_names: Array[String] = _get_indicator_names()
+
+	assert_int(first_count).append_failure_message(
+		"First setup produced no indicators. Names: %s" % [str(first_names)]
+	).is_greater(0)
+	assert_int(second_count).append_failure_message(
+		"Second setup should replace, not duplicate - expected %d, got %d. First: %s | Second: %s" % [first_count, second_count, str(first_names), str(second_names)]
+	).is_equal(first_count)
+
+# ===== HELPER FUNCTIONS =====
+
+func _create_preview_with_collision() -> Node2D:
+	var root: Node2D = Node2D.new()
+	root.name = "PreviewRoot"
+	# Simple body with collision on layer 1
+	var area: Area2D = Area2D.new()
+	area.collision_layer = GBTestConstants.TEST_COLLISION_LAYER
+	area.collision_mask = GBTestConstants.TEST_COLLISION_MASK
+	var shape: CollisionShape2D = CollisionShape2D.new()
+	var rect: RectangleShape2D = RectangleShape2D.new()
+	# Use half tile size for smaller collision shape
+	const HALF_TILE_SIZE: Vector2 = GBTestConstants.DEFAULT_TILE_SIZE / 2
+	rect.size = HALF_TILE_SIZE
+	shape.shape = rect
+	area.add_child(shape)
+	root.add_child(area)
+	# Add to test scene instead of positioner
+	add_child(root)
+	return root
+
+func _create_test_area() -> Area2D:
+	var area: Area2D = Area2D.new()
+	var collision_shape: CollisionShape2D = CollisionShape2D.new()
+	collision_shape.shape = RectangleShape2D.new()
+	collision_shape.shape.size = Vector2(16, 16)
+	area.add_child(collision_shape)
+	return area
+
+func _create_test_rules() -> Array[TileCheckRule]:
+	var rules : Array[TileCheckRule] = []
+	# Base tile check to keep pipeline consistent
+	rules.append(TileCheckRule.new())
+	# Add a collisions rule to ensure indicators are generated for the test area
+	var collisions_rule := CollisionsCheckRule.new()
+	# Set up with the environment's targeting state to avoid null context
+	var setup_issues: Array[String] = collisions_rule.setup(env.get_container().get_targeting_state())
+	assert_array(setup_issues).append_failure_message("CollisionsCheckRule.setup returned issues: %s" % [str(setup_issues)]).is_empty()
+	rules.append(collisions_rule)
+	return rules
+
+func _setup_test_area(area: Area2D) -> void:
+	# For CollisionTestEnvironment, add directly to the test scene
+	add_child(area)
+	auto_free(area)
+
+func _count_indicators(parent: Node) -> int:
+	var manager: IndicatorManager = env.indicator_manager
+	if manager != null and is_instance_valid(manager):
+		# Prefer public API: returns Array[RuleCheckIndicator]
+		var indicators: Array[RuleCheckIndicator] = manager.get_indicators()
+		if indicators != null:
+			if indicators.size() > 0:
+				# Optional debug
+				var names: Array[String] = []
+				for ind: RuleCheckIndicator in indicators:
+					names.append(ind.name)
+				print("_count_indicators via API found %d indicators: %s" % [indicators.size(), str(names)])
+			return indicators.size()
+
+	# Fallback: name-based scan if API unavailable
+	var count: int = 0
+	var child_names: Array[String] = []
+	for child in parent.get_children():
+		if typeof(child.name) == TYPE_STRING and String(child.name).begins_with("RuleCheckIndicator"):
+			count += 1
+			child_names.append(child.name + "(" + child.get_class() + ")")
+	if count > 0:
+		print("_count_indicators via fallback found %d indicators: %s" % [count, str(child_names)])
+	return count
+
+func _get_indicator_names() -> Array[String]:
+	var names: Array[String] = []
+	var manager: IndicatorManager = env.indicator_manager
+	if manager != null and is_instance_valid(manager):
+		var indicators: Array[RuleCheckIndicator] = manager.get_indicators()
+		if indicators != null:
+			for ind: RuleCheckIndicator in indicators:
+				if typeof(ind.name) == TYPE_STRING:
+					names.append(String(ind.name))
+			return names
+		# Fallback to child scan if API not available
+		for child in manager.get_children():
+			if typeof(child.name) == TYPE_STRING and String(child.name).begins_with("RuleCheckIndicator"):
+				names.append(String(child.name))
+		return names
+	return names
+
+## Helper: build a tile->indicator map using GridTargetingState.target_map
+func _map_indicators_by_tile(indicators: Array[RuleCheckIndicator]) -> Dictionary:
+	var result: Dictionary = {}
+	var tm: TileMapLayer = env.get_container().get_targeting_state().target_map
+	for ind in indicators:
+		var tile := _get_indicator_tile(ind, tm)
+		result[tile] = ind
+	return result
+
+## Helper: compute the tile for a given indicator
+func _get_indicator_tile(indicator: RuleCheckIndicator, tm: TileMapLayer) -> Vector2i:
+	return tm.local_to_map(tm.to_local(indicator.global_position))

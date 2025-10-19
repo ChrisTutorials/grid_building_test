@@ -32,12 +32,12 @@ func before_test() -> void:
 ## Sets up the GridTargetingState with a default target for indicator tests
 func _setup_targeting_state_for_tests() -> void:
 	# Create a default target for the targeting state if none exists
-	if targeting_state.target == null:
+	if targeting_state.get_target() == null:
 		var default_target: Node2D = auto_free(Node2D.new())
 		default_target.position = Vector2(64, 64)
 		default_target.name = "DefaultTarget"
 		add_child(default_target)
-		targeting_state.target = default_target
+		targeting_state.set_manual_target(default_target)
 
 # region Helper functions
 func _create_preview_with_collision() -> Node2D:
@@ -61,7 +61,7 @@ func _create_preview_with_collision() -> Node2D:
 
 func test_indicators_are_parented_and_inside_tree() -> void:
 	var preview: Node2D = _create_preview_with_collision()
-	targeting_state.target = preview
+	targeting_state.set_manual_target(preview)
 	# Build a tile check rule that applies to layer 1 and should create indicators
 	var rule: TileCheckRule = TileCheckRule.new()
 	rule.apply_to_objects_mask = GBTestConstants.TEST_COLLISION_LAYER

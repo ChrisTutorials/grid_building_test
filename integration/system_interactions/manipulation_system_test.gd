@@ -79,12 +79,12 @@ func _setup_targeting_state() -> void:
 	var targeting_state: GridTargetingState = _container.get_states().targeting
 	
 	# Create a default target for the targeting state if none exists
-	if targeting_state.target == null:
+	if targeting_state.get_target() == null:
 		var default_target: Node2D = auto_free(Node2D.new())
 		default_target.position = Vector2(64, 64)
 		default_target.name = "DefaultTarget"
 		add_child(default_target)
-		targeting_state.target = default_target
+		targeting_state.set_manual_target(default_target)
 #endregion
 
 func _instance_manipulatable_hierarchy() -> Dictionary[String, Node]:
@@ -138,11 +138,11 @@ func test_start_move(
 		var result: bool = result_data.status == GBEnums.Status.STARTED
 		assert_bool(result).append_failure_message("Move operation result should match expected value %s" % p_expected).is_equal(p_expected)
 		
-		# During manipulation, the target should follow the positioner position, not the source position
+		# During manipulation, the move copy should follow the positioner position, not the source position
 		# This provides visual feedback to the user about where the object will be placed
-		if result_data.source != null and result_data.target != null and _container.get_states().targeting.positioner != null:
+		if result_data.source != null and result_data.move_copy != null and _container.get_states().targeting.positioner != null:
 			var positioner_pos: Vector2 = _container.get_states().targeting.positioner.global_position
-			assert_vector(result_data.target.root.global_position).append_failure_message("Target position should match positioner position during move").is_equal(positioner_pos)
+			assert_vector(result_data.move_copy.root.global_position).append_failure_message("Move copy position should match positioner position during move").is_equal(positioner_pos)
 
 func test_cancel() -> void:
 	var source: Manipulatable = _create_test_manipulatable(manipulatable_settings_all_allowed)
@@ -161,8 +161,8 @@ func test_cancel() -> void:
 		_validate_manipulation_data(active_data, "active manipulation data after move")
 
 		# Test cancel behavior
-		if active_data != null and active_data.target != null:
-			active_data.target.root.global_position = CANCEL_TEST_POSITION
+		if active_data != null and active_data.move_copy != null:
+			active_data.move_copy.root.global_position = CANCEL_TEST_POSITION
 			var origin: Vector2 = active_data.source.root.global_transform.origin
 			assert_float(origin.x).append_failure_message("Origin x position should be approximately %f" % TEST_POSITION.x).is_equal_approx(TEST_POSITION.x, POSITION_PRECISION)
 			assert_float(origin.y).append_failure_message("Origin y position should be approximately %f" % TEST_POSITION.y).is_equal_approx(TEST_POSITION.y, POSITION_PRECISION)
@@ -245,9 +245,9 @@ func test_try_placement(
 		var move_data: ManipulationData = _container.get_states().manipulation.data
 		_validate_manipulation_data(move_data, "manipulation data for placement")
 
-		if move_data != null and move_data.target != null:
+		if move_data != null and move_data.move_copy != null:
 			var test_location: Vector2 = TEST_POSITION
-			move_data.target.root.global_position = test_location
+			move_data.move_copy.root.global_position = test_location
 			
 			var placement_results: ValidationResults = system.try_placement(move_data)
 			assert_that(placement_results).append_failure_message("Placement results should not be null").is_not_null()
@@ -267,7 +267,7 @@ func test_try_placement(
 				
 				# After successful placement, verify state changes
 				if success_status:
-					assert_object(move_data.target).append_failure_message("Target should be null after successful placement").is_null()
+					assert_object(move_data.move_copy).append_failure_message("Move copy should be null after successful placement").is_null()
 					assert_vector(source.root.global_position).append_failure_message("Source position should match test location after placement").is_equal(test_location)
 
 ## Test: Failed placement due to collision should NOT execute move and should clean up target
@@ -296,10 +296,10 @@ func test_failed_placement_with_invalid_move_data_cleans_up() -> void:
 	
 	var move_data: ManipulationData = _container.get_states().manipulation.data
 	assert_that(move_data).append_failure_message("Move data should exist").is_not_null()
-	assert_that(move_data.target).append_failure_message("Target copy should exist").is_not_null()
+	assert_that(move_data.move_copy).append_failure_message("Move copy should exist").is_not_null()
 	
-	# Store reference to target for later verification
-	var target_root: Node = move_data.target.root
+	# Store reference to move copy for later verification
+	var move_copy_root: Node = move_data.get_move_copy_root()
 	
 	# CRITICAL: Make ManipulationData invalid by nulling source
 	# This triggers the p_move.is_valid() == false path in try_placement()
@@ -325,15 +325,15 @@ func test_failed_placement_with_invalid_move_data_cleans_up() -> void:
 		]
 	).is_equal(original_source_position)
 	
-	# Assert: CRITICAL - Target copy should be cleaned up (freed or removed from tree)
-	# After failed placement, the target should be cleaned up to prevent orphaned objects
+	# Assert: CRITICAL - Move copy should be cleaned up (freed or removed from tree)
+	# After failed placement, the move copy should be cleaned up to prevent orphaned objects
 	# Wait a frame for queue_free() to process
 	await get_tree().process_frame
-	if is_instance_valid(target_root):
-		assert_bool(target_root.is_inside_tree()).append_failure_message(
-			"Target copy should be removed from scene tree after failed placement"
+	if is_instance_valid(move_copy_root):
+		assert_bool(move_copy_root.is_inside_tree()).append_failure_message(
+			"Move copy should be removed from scene tree after failed placement"
 		).is_false()
-	# If target was freed, that's also acceptable (even better)
+	# If move copy was freed, that's also acceptable (even better)
 	
 	# Assert: ManipulationData should be cleared or marked invalid
 	# The system should not retain invalid manipulation data
@@ -475,7 +475,7 @@ func _create_test_move_data(p_settings: ManipulatableSettings) -> ManipulationDa
 		GBEnums.Action.MOVE
 	)
 	assert_that(data).append_failure_message("Manipulation data should not be null after creation").is_not_null()
-	add_child(data.target)
+	add_child(data.move_copy)
 	return data
 
 ## Validates manipulation data to prevent null reference errors - used 3+ times
@@ -489,13 +489,13 @@ func _validate_manipulation_data(data: ManipulationData, context: String) -> voi
 			"%s source should not be null" % context
 		).is_not_null()
 		
-		assert_that(data.target).append_failure_message(
-			"%s target should not be null" % context
+		assert_that(data.move_copy).append_failure_message(
+			"%s move_copy should not be null" % context
 		).is_not_null()
 		
-		if data.source != null and data.target != null:
-			assert_that(data.source).append_failure_message("Source should be different instance from target in %s" % context).is_not_same(data.target)
-			assert_that(data.source.root).append_failure_message("Source root should be different instance from target root in %s" % context).is_not_same(data.target.root)
+		if data.source != null and data.move_copy != null:
+			assert_that(data.source).append_failure_message("Source should be different instance from move_copy in %s" % context).is_not_same(data.move_copy)
+			assert_that(data.source.root).append_failure_message("Source root should be different instance from move_copy root in %s" % context).is_not_same(data.move_copy.root)
 
 ## Validates manipulatable for transform operations - prevents null errors
 func _validate_manipulatable_for_transform(p_manipulatable: Manipulatable, operation: String) -> void:

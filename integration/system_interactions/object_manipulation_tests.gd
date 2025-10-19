@@ -257,15 +257,19 @@ func test_grid_alignment_basic() -> void:
 func test_collision_layer_rule_setup_validation() -> void:
 	var collision_rule: CollisionsCheckRule = PlacementRuleTestFactory.create_default_collision_rule()
 	
-	assert_that(collision_rule).is_not_null()
-	assert_that(collision_rule.collision_mask).is_equal(1)  # Default mask
+	assert_that(collision_rule).is_not_null() \
+		.append_failure_message("CollisionsCheckRule should be created by factory")
+	
+	assert_that(collision_rule.collision_mask).is_equal(1) \
+		.append_failure_message("Default collision rule should have collision_mask=1 (World layer)")
 
 @warning_ignore("unused_parameter")
 func test_collision_layer_rule_setup_with_custom_mask() -> void:
 	var collision_rule: CollisionsCheckRule = PlacementRuleTestFactory.create_default_collision_rule()
 	collision_rule.collision_mask = 256  # Custom mask
 	
-	assert_that(collision_rule.collision_mask).is_equal(256)
+	assert_that(collision_rule.collision_mask).is_equal(256) \
+		.append_failure_message("Collision rule should have custom collision_mask=256 after assignment")
 
 #endregion
 
@@ -276,11 +280,22 @@ func test_collision_layer_rule_setup_with_custom_mask() -> void:
 @warning_ignore("unused_parameter")
 func test_placement_environment_integration() -> void:
 	# Verify all components of placement system environment work together
-	assert_that(test_env.injector).is_not_null()
-	assert_that(test_env.logger).is_not_null()
-	assert_that(test_env.tile_map_layer).is_not_null()
-	assert_that(test_env.container).is_equal(TEST_CONTAINER)
-	assert_that(test_env.indicator_manager).is_not_null()
+	assert_that(test_env.injector).is_not_null() \
+		.append_failure_message("Injector should be instantiated and available in test environment")
+	
+	assert_that(test_env.logger).is_not_null() \
+		.append_failure_message("Logger should be instantiated and available in test environment")
+	
+	assert_that(test_env.tile_map_layer).is_not_null() \
+		.append_failure_message("TileMapLayer should be loaded and available in test environment")
+	
+	# Note: Test injector duplicates the container for isolation, so check non-null instead of identity
+	var env_container := test_env.get_container()
+	assert_that(env_container).is_not_null() \
+		.append_failure_message("Environment container should be duplicated and available (GBTestInjectorSystem duplicates containers for test isolation)")
+	
+	assert_that(test_env.indicator_manager).is_not_null() \
+		.append_failure_message("IndicatorManager should be instantiated and available in test environment")
 	# Note: collision_setup property was removed from environment - collision setups are now created per-test as needed
 
 @warning_ignore("unused_parameter")
