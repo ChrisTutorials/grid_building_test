@@ -126,8 +126,13 @@ func _assert_validation_result(validation_result: ValidationResults, position: V
 
 func _log_conditional_message(message: String, force_log: bool = false) -> void:
 	"""Centralized conditional logging that respects test verbosity settings"""
+	# In debug or forced logging, print immediately for developer runs.
+	# In standard test runs, buffer diagnostics so they attach to failures instead
+	# of polluting stdout.
 	if force_log or OS.has_feature("debug"):
 		print(message)
+	else:
+		GBTestDiagnostics.buffer(message)
 
 func _format_system_state_debug(building_system: Object, indicator_manager: IndicatorManager) -> String:
 	"""Format comprehensive system state information for diagnostics"""
@@ -610,9 +615,10 @@ func test_build_and_move_multi_system_integration() -> void:
 		return
 	
 	# Only test manipulation state if it was properly set up
-	if manipulation_state.active_target_node != null:
-		assert_object(manipulation_state.active_target_node).append_failure_message(
-			"When moving, the target node should be the built object - Expected: %s, Actual: %s" % [built_node, manipulation_state.active_target_node]
+	var active_root: Node = manipulation_state.get_active_root()
+	if active_root != null:
+		assert_object(active_root).append_failure_message(
+			"When moving, the target node should be the built object - Expected: %s, Actual: %s" % [built_node, active_root]
 		).is_equal(built_node)
 		assert_bool(manipulation_state.is_targeted_movable()).append_failure_message(
 			"Expected that the built %s is movable - State: %s" % [built_node, manipulation_state.get_debug_info() if manipulation_state.has_method("get_debug_info") else "no debug info"]

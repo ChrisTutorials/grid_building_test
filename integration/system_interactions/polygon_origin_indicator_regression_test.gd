@@ -43,7 +43,7 @@ func test_polygon_test_object_no_indicator_at_origin_when_centered() -> void:
 		return
 	
 	# Arrange: Create polygon test object using proper collision structure
-	# NOTE: UnifiedTestFactory.create_polygon_test_object creates invalid structure,
+	# NOTE: The legacy unified factory's create_polygon_test_object created an invalid structure. Use PlaceableTestFactory.create_polygon_test_object or inline construction instead.
 	# so we'll create our own proper collision object
 	var polygon_obj: Node = Node2D.new()
 	polygon_obj.name = "ProperPolygonTestObject"

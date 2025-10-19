@@ -1,6 +1,50 @@
-## Factory for creating Godot base class objects in tests.
-## Provides convenient methods for common Godot objects used in testing.
-## Keep this separate from UnifiedTestFactory to maintain clean separation.
+## GodotTestFactory - Core, plugin-agnostic test object factory
+##
+## Purpose:
+## - Provide small, well-documented factory helpers that rely ONLY on
+##   core Godot Engine classes and GDScript APIs. This file must remain
+##   plugin-agnostic so it can be safely used in tests that do not load
+##   project-specific plugin classes.
+## - Higher-level or plugin-specific factories (for grid_building types
+##   such as `Manipulatable`, `RuleCheckIndicator`, etc.) belong in
+##   plugin-aware factory modules (for example `EnvironmentTestFactory`,
+##   `PlaceableTestFactory`, or other domain-specific factory files under
+##   `godot/test/.../factories/`). The legacy `UnifiedTestFactory` has been removed; prefer the modern factory modules below
+##   and should NOT be used in new tests.
+##
+## Policy:
+## - Do not `@export` or reference project-specific classes in this file.
+## - If a helper must interact with plugin classes, it should either:
+##     a) be a tiny plugin-safe "stub" that creates plain Node2D/Node
+##        objects and documents how to attach plugin behavior in tests,
+##     b) or be moved to a plugin-aware factory (preferred). Do NOT use
+##        rather than the removed `UnifiedTestFactory`.
+## - Use `test.auto_free(...)` and `test.add_child(...)` consistently
+##   so tests maintain proper lifecycle and isolation.
+##
+## Migration Guidance (important):
+## - Any factory that returns or constructs plugin-specific types (for
+##   example `Manipulatable`, `RuleCheckIndicator`, or other types from
+##   the grid_building plugin) should be migrated out of this core file
+##   into a plugin-aware factory module (e.g., `PlaceableTestFactory`) or other modern factories.
+## - Prefer using real engine nodes in tests and then attach plugin
+##   behavior via the plugin's constructors or by loading and setting the
+##   plugin script in the test `before_test()` rather than stubbing
+##   behaviour inside `GodotTestFactory`.
+## - When you need to emulate plugin behavior for fast unit tests,
+##   prefer to create the real node and call `test.mock()` or attach a
+##   minimal script that implements only the interface required by the
+##   test. This preserves test fidelity and avoids hidden differences
+##   from stubbing.
+##
+## Migration notes:
+## - Functions that previously returned plugin-specific types have been
+##   replaced with plugin-safe alternatives or documented as deprecated.
+## - Callers that need real plugin objects should use a plugin-aware
+##   factory (for example `EnvironmentTestFactory` or `PlaceableTestFactory`)
+##   or adapt the returned lightweight Node/Node2D stubs by attaching the
+##   plugin component in the test's `before_test()`.
+
 class_name GodotTestFactory
 extends RefCounted
 
@@ -65,21 +109,24 @@ static func create_tile_size(size: int = 16) -> Vector2:
 static func create_node2d(test: GdUnitTestSuite, p_name : String = "TestNode2D") -> Node2D:
 	var node: Node2D = test.auto_free(Node2D.new())
 	node.name = p_name
-	test.add_child(node)
+	if node.get_parent() == null:
+		test.add_child(node)
 	return node as Node2D
 
 ## Creates a Node with auto_free setup
 static func create_node(test: GdUnitTestSuite) -> Node:
 	var node: Node = test.auto_free(Node.new())
 	node.name = "TestNode"
-	test.add_child(node)
+	if node.get_parent() == null:
+		test.add_child(node)
 	return node
 
 ## Creates a CanvasItem with auto_free setup
 static func create_canvas_item(test: GdUnitTestSuite) -> CanvasItem:
 	var item: CanvasItem = test.auto_free(Node2D.new())  # Use Node2D as concrete CanvasItem
 	item.name = "TestCanvasItem"
-	test.add_child(item)
+	if item.get_parent() == null:
+		test.add_child(item)
 	return item
 
 #endregion
@@ -174,7 +221,8 @@ static func create_empty_tile_map_layer(test: GdUnitTestSuite) -> TileMapLayer:
 	atlas.create_tile(Vector2i(0,0))
 	tile_set.add_source(atlas)
 	map_layer.tile_set = tile_set
-	test.add_child(map_layer)
+	if map_layer.get_parent() == null:
+		test.add_child(map_layer)
 	return map_layer as TileMapLayer
 
 
@@ -312,8 +360,10 @@ static func create_parent_with_body_and_polygon(test: GdUnitTestSuite) -> Node2D
 	if poly.get_parent() != null:
 		poly.get_parent().remove_child(poly)
 
-	parent.add_child(body)
-	parent.add_child(poly)
+	if body.get_parent() == null:
+		parent.add_child(body)
+	if poly.get_parent() == null:
+		parent.add_child(poly)
 	return parent
 
 
@@ -344,17 +394,51 @@ static func create_circle_shape(radius: float = 8.0) -> CircleShape2D:
 ## Creates a Manipulatable with proper setup
 static func create_manipulatable(
 	test: GdUnitTestSuite, root_name: String = "ManipulatableRoot"
-) -> Manipulatable:
+) -> Node:
+	# Deprecated: This function returns a project-specific `Manipulatable`
+	# type. GodotTestFactory is intended to be plugin-agnostic. Tests that
+	# need a real `Manipulatable` should call the plugin-aware factory (e.g., PlaceableTestFactory.create_manipulatable(...))
+	# which lives in the plugin-aware test factories.
+	push_warning("GodotTestFactory.create_manipulatable() is deprecated - use a plugin-aware factory (e.g., PlaceableTestFactory) for plugin-specific factories")
+	# Best-effort fallback: attempt to construct the type if it's available,
+	# otherwise emit a warning and return a lightweight stub node.
 	var root: Node2D = test.auto_free(Node2D.new())
 	test.add_child(root)
-	var manipulatable: Manipulatable = test.auto_free(Manipulatable.new())
-	manipulatable.root = root
-	root.add_child(manipulatable)
+
+	# We deliberately DO NOT attempt to instantiate project-specific
+	# classes here. If the plugin-provided `Manipulatable` is available,
+	# tests should use the plugin-aware factory's create_manipulatable() which
+	# knows how to construct plugin types. This factory returns a plain
+	# Node2D stub that tests can adapt by attaching plugin scripts or
+	# wiring in `before_test()`.
+	push_warning("GodotTestFactory.create_manipulatable(): returning plugin-agnostic Node2D stub. Use the plugin-aware factory for real plugin objects.")
 	root.name = root_name
-	manipulatable.name = "Manipulatable"
-	return manipulatable
+	var stub: Node2D = test.auto_free(Node2D.new())
+	stub.name = "ManipulatableStub"
+	root.add_child(stub)
+	return stub
 
 
 ## (Removed) RuleCheckIndicator factory relocated
 ## This factory only handles Godot base class objects. Grid-building specific
-## factories such as RuleCheckIndicator are provided by UnifiedTestFactory.
+## Factories for plugin-provided objects (e.g., RuleCheckIndicator) live in plugin-aware factory modules such as `PlaceableTestFactory`.
+
+## Attaches a script (by resource path) to a node if the script file exists.
+## This is a convenience for tests that create core Node2D stubs and then
+## need to attach plugin scripts at runtime. The helper does not load any
+## plugin-specific IDE configuration and only uses engine ResourceLoader.
+## @param node: Node to attach script to
+## @param script_path: String path to GDScript resource (e.g. "res://addons/grid_building/..")
+## @return: true if script attached, false if script not found
+static func attach_script_if_exists(node: Node, script_path: String) -> bool:
+	assert(node != null, "attach_script_if_exists: node cannot be null")
+	if script_path == null or script_path == "":
+		return false
+	var res := ResourceLoader.exists(script_path)
+	if not res:
+		return false
+	var script := ResourceLoader.load(script_path)
+	if script == null:
+		return false
+	node.set_script(script)
+	return true

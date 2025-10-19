@@ -10,7 +10,7 @@
 extends GdUnitTestSuite
 
 func test_45_degree_skew_square_geometric_analysis() -> void:
-	print("\n=== GEOMETRIC ANALYSIS: 45° Skew Transform of 32x32 Square ===")
+	GBTestDiagnostics.buffer("\n=== GEOMETRIC ANALYSIS: 45° Skew Transform of 32x32 Square ===")
 	
 	# Original 32x32 square centered at origin
 	var original_square: PackedVector2Array = PackedVector2Array([
@@ -28,30 +28,30 @@ func test_45_degree_skew_square_geometric_analysis() -> void:
 		Vector2(-16, 0)     # Original (-16, 16) skewed
 	])
 	
-	print("Original 32x32 square vertices: ", original_square)
-	print("45° Skewed square vertices: ", skewed_square)
+	GBTestDiagnostics.buffer("Original 32x32 square vertices: %s" % [str(original_square)])
+	GBTestDiagnostics.buffer("45° Skewed square vertices: %s" % [str(skewed_square)])
 	
 	var original_bbox: Dictionary = _get_bounding_box(original_square)
 	var skewed_bbox: Dictionary = _get_bounding_box(skewed_square)
 	
-	print("Original bounding box: ", original_bbox)
-	print("Skewed bounding box: ", skewed_bbox)
+	GBTestDiagnostics.buffer("Original bounding box: %s" % [str(original_bbox)])
+	GBTestDiagnostics.buffer("Skewed bounding box: %s" % [str(skewed_bbox)])
 	
 	var original_area: float = _calculate_polygon_area(original_square)
 	var skewed_area: float = _calculate_polygon_area(skewed_square)
 	
-	print("Original area: %.2f square units" % original_area)
-	print("Skewed area: %.2f square units" % skewed_area)
+	GBTestDiagnostics.buffer("Original area: %.2f square units" % original_area)
+	GBTestDiagnostics.buffer("Skewed area: %.2f square units" % skewed_area)
 	
 	# Analyze tile grid intersection
 	var tile_size: int = 32
 	var skewed_tiles: Dictionary = _analyze_tile_intersection(skewed_square, tile_size)
-	print("Skewed tile intersection analysis: ", skewed_tiles)
+	GBTestDiagnostics.buffer("Skewed tile intersection analysis: %s" % [str(skewed_tiles)])
 	
 	# Test shows that actual result is 3 tiles: [(-1, -1), (0, -1), (0, 0)]
 	var actual_tile_offsets: Array[Vector2i] = [Vector2i(-1, -1), Vector2i(0, -1), Vector2i(0, 0)]
-	print("Actual detected tiles from test failure: ", actual_tile_offsets)
-	print("Actual tile count: ", actual_tile_offsets.size())
+	GBTestDiagnostics.buffer("Actual detected tiles from test failure: %s" % [str(actual_tile_offsets)])
+	GBTestDiagnostics.buffer("Actual tile count: %s" % [str(actual_tile_offsets.size())])
 	
 	# The key question: Should this diamond shape actually intersect 4 tiles?
 	# Based on vertices: (-16, -32), (16, 0), (16, 32), (-16, 0)
@@ -59,20 +59,20 @@ func test_45_degree_skew_square_geometric_analysis() -> void:
 	# - Horizontally: -16 to +16 (32 units, exactly 1 tile width)
 	# - Vertically: -32 to +32 (64 units, exactly 2 tile heights)
 	
-	print("\nGEOMETRIC REASONING:")
-	print("The skewed diamond spans exactly 1 tile horizontally and 2 tiles vertically")
-	print("Diamond vertices create pointed intersections with tiles, not full coverage")
-	print("A 45° skew creates a parallelogram that may naturally only intersect 3 tiles")
+	GBTestDiagnostics.buffer("\nGEOMETRIC REASONING:")
+	GBTestDiagnostics.buffer("The skewed diamond spans exactly 1 tile horizontally and 2 tiles vertically")
+	GBTestDiagnostics.buffer("Diamond vertices create pointed intersections with tiles, not full coverage")
+	GBTestDiagnostics.buffer("A 45° skew creates a parallelogram that may naturally only intersect 3 tiles")
 	
 	# Assertions for documentation
 	assert_that(skewed_area).is_equal(original_area).append_failure_message(
-		"Skew transform should preserve area: original=%.2f, skewed=%.2f" % [original_area, skewed_area])
+		"Skew transform should preserve area: original=%.2f, skewed=%.2f" % [original_area, skewed_area] + "\n" + GBTestDiagnostics.flush_for_assert())
 	
 	assert_that(actual_tile_offsets.size()).is_equal(3).append_failure_message(
-		"Current test result shows 3 tiles, confirming geometric analysis")
+		"Current test result shows 3 tiles, confirming geometric analysis" + "\n" + GBTestDiagnostics.flush_for_assert())
 
 func test_45_degree_rotation_square_geometric_analysis() -> void:
-	print("\n=== GEOMETRIC ANALYSIS: 45° Rotation Transform of 32x32 Square ===")
+	GBTestDiagnostics.buffer("\n=== GEOMETRIC ANALYSIS: 45° Rotation Transform of 32x32 Square ===")
 	
 	# Original 32x32 square centered at origin
 	var original_square: PackedVector2Array = PackedVector2Array([
@@ -87,65 +87,65 @@ func test_45_degree_rotation_square_geometric_analysis() -> void:
 		Vector2(-22.627, 0)
 	])
 	
-	print("Original 32x32 square vertices: ", original_square)
-	print("45° Rotated square vertices: ", rotated_square)
+	GBTestDiagnostics.buffer("Original 32x32 square vertices: %s" % [str(original_square)])
+	GBTestDiagnostics.buffer("45° Rotated square vertices: %s" % [str(rotated_square)])
 	
 	var original_bbox: Dictionary = _get_bounding_box(original_square)
 	var rotated_bbox: Dictionary = _get_bounding_box(rotated_square)
 	
-	print("Original bounding box: ", original_bbox)
-	print("Rotated bounding box: ", rotated_bbox)
+	GBTestDiagnostics.buffer("Original bounding box: %s" % [str(original_bbox)])
+	GBTestDiagnostics.buffer("Rotated bounding box: %s" % [str(rotated_bbox)])
 	
 	var original_area: float = _calculate_polygon_area(original_square)
 	var rotated_area: float = _calculate_polygon_area(rotated_square)
 	
-	print("Original area: %.2f square units" % original_area)
-	print("Rotated area: %.2f square units" % rotated_area)
+	GBTestDiagnostics.buffer("Original area: %.2f square units" % original_area)
+	GBTestDiagnostics.buffer("Rotated area: %.2f square units" % rotated_area)
 	
 	# Key insight: 45° rotation creates diamond inscribed in circle
 	# Diagonal length = 32 * sqrt(2) ≈ 45.25
 	# But vertices only reach ±22.627, which is 32/sqrt(2) = 22.627
 	var expected_vertex_distance: float = 32.0 / sqrt(2.0)
-	print("Expected vertex distance from center: %.3f" % expected_vertex_distance)
-	print("Actual vertex distance: %.3f" % rotated_square[1].x)
+	GBTestDiagnostics.buffer("Expected vertex distance from center: %.3f" % expected_vertex_distance)
+	GBTestDiagnostics.buffer("Actual vertex distance: %.3f" % rotated_square[1].x)
 	
 	# Test shows that actual result is 3 tiles: [(-1, -1), (0, -1), (0, 0)]
 	var actual_tile_offsets: Array[Vector2i] = [Vector2i(-1, -1), Vector2i(0, -1), Vector2i(0, 0)]
-	print("Actual detected tiles from test failure: ", actual_tile_offsets)
-	print("Actual tile count: ", actual_tile_offsets.size())
+	GBTestDiagnostics.buffer("Actual detected tiles from test failure: %s" % [str(actual_tile_offsets)])
+	GBTestDiagnostics.buffer("Actual tile count: %s" % [str(actual_tile_offsets.size())])
 	
-	print("\nGEOMETRIC REASONING:")
-	print("45° rotated square creates diamond with vertices at distance 22.627 from center")
-	print("This diamond doesn't extend far enough into corner tiles to achieve 4-tile coverage")
-	print("The diamond shape intersects tiles (-1,-1), (0,-1), and (0,0) but misses (1,0)")
+	GBTestDiagnostics.buffer("\nGEOMETRIC REASONING:")
+	GBTestDiagnostics.buffer("45° rotated square creates diamond with vertices at distance 22.627 from center")
+	GBTestDiagnostics.buffer("This diamond doesn't extend far enough into corner tiles to achieve 4-tile coverage")
+	GBTestDiagnostics.buffer("The diamond shape intersects tiles (-1,-1), (0,-1), and (0,0) but misses (1,0)")
 	
 	# Assertions for documentation
 	assert_that(rotated_area).is_equal_approx(original_area, 0.1).append_failure_message(
-		"Rotation should preserve area: original=%.2f, rotated=%.2f" % [original_area, rotated_area])
+		"Rotation should preserve area: original=%.2f, rotated=%.2f" % [original_area, rotated_area] + "\n" + GBTestDiagnostics.flush_for_assert())
 	
 	assert_that(actual_tile_offsets.size()).is_equal(3).append_failure_message(
-		"Current test result shows 3 tiles, confirming geometric analysis")
+		"Current test result shows 3 tiles, confirming geometric analysis" + "\n" + GBTestDiagnostics.flush_for_assert())
 
 func test_determine_correct_expectations_for_45_degree_transforms() -> void:
-	print("\n=== CONCLUSION: Correct Expectations for 45° Transforms ===")
-	
-	print("ANALYSIS SUMMARY:")
-	print("1. 45° skew of 32x32 square creates diamond spanning 1×2 tiles")
-	print("2. 45° rotation of 32x32 square creates diamond with vertices at ±22.63")
-	print("3. Both transforms create pointed diamonds, not rectangular coverage")
-	print("4. Geometric reality: These diamonds naturally intersect 3 tiles, not 4")
-	print("")
-	print("RECOMMENDATION:")
-	print("Update test expectations from 4 to 3 tiles for both:")
-	print("- 45° skew of 32x32 square: expect 3 tiles")
-	print("- 45° rotation of 32x32 square: expect 3 tiles")
-	print("")
-	print("ALTERNATIVE (if 4-tile coverage desired):")
-	print("Use larger base polygons (e.g., 40x40) that would actually cover 4 tiles when transformed")
-	
-	# This test documents the conclusion
+	GBTestDiagnostics.buffer("\n=== CONCLUSION: Correct Expectations for 45° Transforms ===")
+
+	GBTestDiagnostics.buffer("ANALYSIS SUMMARY:")
+	GBTestDiagnostics.buffer("1. 45° skew of 32x32 square creates diamond spanning 1×2 tiles")
+	GBTestDiagnostics.buffer("2. 45° rotation of 32x32 square creates diamond with vertices at ±22.63")
+	GBTestDiagnostics.buffer("3. Both transforms create pointed diamonds, not rectangular coverage")
+	GBTestDiagnostics.buffer("4. Geometric reality: These diamonds naturally intersect 3 tiles, not 4")
+	GBTestDiagnostics.buffer("")
+	GBTestDiagnostics.buffer("RECOMMENDATION:")
+	GBTestDiagnostics.buffer("Update test expectations from 4 to 3 tiles for both:")
+	GBTestDiagnostics.buffer("- 45° skew of 32x32 square: expect 3 tiles")
+	GBTestDiagnostics.buffer("- 45° rotation of 32x32 square: expect 3 tiles")
+	GBTestDiagnostics.buffer("")
+	GBTestDiagnostics.buffer("ALTERNATIVE (if 4-tile coverage desired):")
+	GBTestDiagnostics.buffer("Use larger base polygons (e.g., 40x40) that would actually cover 4 tiles when transformed")
+    
+	# This test documents the conclusion; attach diagnostics to assertion
 	assert_bool(true).is_true().append_failure_message(
-		"Geometric analysis confirms 3 tiles is the correct expectation for 45° transforms of 32x32 squares")
+		"Geometric analysis confirms 3 tiles is the correct expectation for 45° transforms of 32x32 squares" + "\n" + GBTestDiagnostics.flush_for_assert())
 
 ## Helper function to calculate polygon area using shoelace formula
 func _calculate_polygon_area(vertices: PackedVector2Array) -> float:

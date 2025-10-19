@@ -38,11 +38,11 @@ func before_test() -> void:
 
 ## Test that focuses on the trapezoid collision detection integration
 func test_trapezoid_collision_detection_integration() -> void:
-	print("[TRAPEZOID_TRACE] === STARTING INTEGRATION TEST ===")
+	GBTestDiagnostics.buffer("[TRAPEZOID_TRACE] === STARTING INTEGRATION TEST ===")
 	
 	# 1) Create the exact trapezoid from runtime
 	var trapezoid_polygon: PackedVector2Array = create_trapezoid_from_runtime()
-	print("[TRAPEZOID_TRACE] Trapezoid polygon: %s" % str(trapezoid_polygon))
+	GBTestDiagnostics.buffer("[TRAPEZOID_TRACE] Trapezoid polygon: %s" % str(trapezoid_polygon))
 	
 	# 2) Create test object with collision shape (needs to be a physics body)
 	var test_object: StaticBody2D = StaticBody2D.new()
@@ -65,23 +65,23 @@ func test_trapezoid_collision_detection_integration() -> void:
 	_targeting_state.set_manual_target(test_object)
 	_targeting_state.positioner.global_position = TRAPEZOID_POSITION
 	
-	print("[TRAPEZOID_TRACE] Test object position: %s" % str(test_object.global_position))
-	print("[TRAPEZOID_TRACE] Positioner position: %s" % str(_targeting_state.positioner.global_position))
+	GBTestDiagnostics.buffer("[TRAPEZOID_TRACE] Test object position: %s" % str(test_object.global_position))
+	GBTestDiagnostics.buffer("[TRAPEZOID_TRACE] Positioner position: %s" % str(_targeting_state.positioner.global_position))
 	
 	# 4) Test collision shape detection
 	var owner_shapes: Dictionary = GBGeometryUtils.get_all_collision_shapes_by_owner(test_object)
-	print("[TRAPEZOID_TRACE] Owner shapes found: %d" % owner_shapes.size())
+	GBTestDiagnostics.buffer("[TRAPEZOID_TRACE] Owner shapes found: %d" % owner_shapes.size())
 	
 	assert_int(owner_shapes.size()).append_failure_message(
-		"No collision shapes detected from trapezoid test object"
+		"No collision shapes detected from trapezoid test object" + "\n" + GBTestDiagnostics.flush_for_assert()
 	).is_greater(0)
 	
 	for shape_owner: Node in owner_shapes.keys():
 		var shapes: Array = owner_shapes[shape_owner]
-		print("[TRAPEZOID_TRACE] Owner '%s' has %d shapes" % [shape_owner.name, shapes.size()])
+		GBTestDiagnostics.buffer("[TRAPEZOID_TRACE] Owner '%s' has %d shapes" % [shape_owner.name, shapes.size()])
 		for i in range(shapes.size()):
 			var shape_info: Variant = shapes[i]  # Use Variant to handle any type returned
-			print("[TRAPEZOID_TRACE] Shape[%d]: type=%s, polygon_size=%s" % [
+			GBTestDiagnostics.buffer("[TRAPEZOID_TRACE] Shape[%d]: type=%s, polygon_size=%s" % [
 				i, 
 				shape_info.get("type", "unknown") if shape_info is Dictionary else "object_type",
 				shape_info.get("polygon", PackedVector2Array()).size() if shape_info is Dictionary else "N/A"
@@ -103,7 +103,7 @@ func test_trapezoid_collision_detection_integration() -> void:
 	var tile_offsets: Array[Vector2i] = CollisionGeometryUtils.compute_polygon_tile_offsets(
 		world_polygon, tile_size, center_tile
 	)
-	print("[TRAPEZOID_TRACE] Direct collision calculation tile offsets: %s" % str(tile_offsets))
+	GBTestDiagnostics.buffer("[TRAPEZOID_TRACE] Direct collision calculation tile offsets: %s" % str(tile_offsets))
 	
 	# 6) Expected tiles based on the visual evidence from the runtime image
 	# The runtime shows indicators missing at bottom-left and bottom-right extensions
@@ -120,23 +120,23 @@ func test_trapezoid_collision_detection_integration() -> void:
 		Vector2i(1, 0)    # Right-center (should be present)
 	]
 	
-	print("[TRAPEZOID_TRACE] Checking for expected missing tiles: %s" % str(expected_missing_tiles))
-	print("[TRAPEZOID_TRACE] Checking for expected present tiles: %s" % str(expected_present_tiles))
+	GBTestDiagnostics.buffer("[TRAPEZOID_TRACE] Checking for expected missing tiles: %s" % str(expected_missing_tiles))
+	GBTestDiagnostics.buffer("[TRAPEZOID_TRACE] Checking for expected present tiles: %s" % str(expected_present_tiles))
 	
 	# 7) Verify that the collision calculation includes the expected tiles
 	for tile: Vector2i in expected_present_tiles:
 		var is_present: bool = tile_offsets.has(tile)
-		print("[TRAPEZOID_TRACE] Expected tile %s present: %s" % [tile, is_present])
-	
+		GBTestDiagnostics.buffer("[TRAPEZOID_TRACE] Expected tile %s present: %s" % [tile, is_present])
+
 	for tile: Vector2i in expected_missing_tiles:
 		var is_present: bool = tile_offsets.has(tile)
-		print("[TRAPEZOID_TRACE] Expected missing tile %s present: %s" % [tile, is_present])
+		GBTestDiagnostics.buffer("[TRAPEZOID_TRACE] Expected missing tile %s present: %s" % [tile, is_present])
 		if is_present:
-			print("[TRAPEZOID_TRACE] *** KEY FINDING: Tile %s is calculated but not appearing in runtime!" % tile)
+			GBTestDiagnostics.buffer("[TRAPEZOID_TRACE] *** KEY FINDING: Tile %s is calculated but not appearing in runtime!" % tile)
 
 ## Test the collision mapping integration specifically  
 func test_collision_mapper_integration() -> void:
-	print("[MAPPER_TRACE] === COLLISION MAPPER INTEGRATION TEST ===")
+	GBTestDiagnostics.buffer("[MAPPER_TRACE] === COLLISION MAPPER INTEGRATION TEST ===")
 	
 	# Create trapezoid test object with proper physics body
 	var trapezoid_polygon: PackedVector2Array = create_trapezoid_from_runtime()
@@ -163,7 +163,7 @@ func test_collision_mapper_integration() -> void:
 	var tile_check_rules: Array[TileCheckRule] = [collision_rule]
 	
 	# Test the collision mapper directly
-	print("[MAPPER_TRACE] Testing collision_mapper.map_collision_positions_to_rules")
+	GBTestDiagnostics.buffer("[MAPPER_TRACE] Testing collision_mapper.map_collision_positions_to_rules")
 	
 	# Convert owner_shapes.keys() to properly typed Array[Node2D]
 	var col_objects: Array[Node2D] = []
@@ -175,10 +175,10 @@ func test_collision_mapper_integration() -> void:
 		col_objects, tile_check_rules
 	)
 	
-	print("[MAPPER_TRACE] Position rules map size: %d" % position_rules_map.size())
+	GBTestDiagnostics.buffer("[MAPPER_TRACE] Position rules map size: %d" % position_rules_map.size())
 	var positions: Array = position_rules_map.keys()
 	positions.sort()  # Sort for consistent output
-	print("[MAPPER_TRACE] Mapped positions: %s" % str(positions))
+	GBTestDiagnostics.buffer("[MAPPER_TRACE] Mapped positions: %s" % str(positions))
 	
 	# Check for expected positions 
 	var expected_extensions: Array[Vector2i] = [
@@ -188,13 +188,13 @@ func test_collision_mapper_integration() -> void:
 	
 	for pos: Vector2i in expected_extensions:
 		var is_mapped: bool = position_rules_map.has(pos)
-		print("[MAPPER_TRACE] Expected extension %s mapped: %s" % [pos, is_mapped])
+		GBTestDiagnostics.buffer("[MAPPER_TRACE] Expected extension %s mapped: %s" % [pos, is_mapped])
 		if not is_mapped:
-			print("[MAPPER_TRACE] *** ISSUE FOUND: Position %s not mapped by collision_mapper!" % pos)
+			GBTestDiagnostics.buffer("[MAPPER_TRACE] *** ISSUE FOUND: Position %s not mapped by collision_mapper!" % pos)
 
 ## Test the full indicator generation integration
 func test_full_indicator_generation_integration() -> void:
-	print("[INTEGRATION_TRACE] === FULL INDICATOR GENERATION INTEGRATION ===")
+	GBTestDiagnostics.buffer("[INTEGRATION_TRACE] === FULL INDICATOR GENERATION INTEGRATION ===")
 	
 	# Create trapezoid with exact runtime setup
 	var trapezoid_polygon: PackedVector2Array = create_trapezoid_from_runtime()
@@ -221,18 +221,18 @@ func test_full_indicator_generation_integration() -> void:
 	var placement_rules: Array[PlacementRule] = [collision_rule]
 	
 	# Run the full indicator generation pipeline
-	print("[INTEGRATION_TRACE] Running IndicatorManager.try_setup")
+	GBTestDiagnostics.buffer("[INTEGRATION_TRACE] Running IndicatorManager.try_setup")
 	var report: PlacementReport = _indicator_manager.try_setup(placement_rules, _targeting_state, true)
 	
 	assert_object(report).append_failure_message("PlacementReport is null").is_not_null()
 	
 	if not report.is_successful():
-		print("[INTEGRATION_TRACE] Placement failed with issues: %s" % str(report.get_issues()))
-		fail("Placement report indicates failure")
+		GBTestDiagnostics.buffer("[INTEGRATION_TRACE] Placement failed with issues: %s" % str(report.get_issues()))
+		fail("Placement report indicates failure - " + GBTestDiagnostics.flush_for_assert())
 	
 	# Get generated indicators
 	var indicators: Array[RuleCheckIndicator] = report.indicators_report.indicators
-	print("[INTEGRATION_TRACE] Generated indicators count: %d" % indicators.size())
+	GBTestDiagnostics.buffer("[INTEGRATION_TRACE] Generated indicators count: %d" % indicators.size())
 	
 	# Extract indicator positions from their names (format: "RuleCheckIndicator-Offset(X,Y)")
 	var indicator_positions: Array[Vector2i] = []
@@ -248,7 +248,7 @@ func test_full_indicator_generation_integration() -> void:
 				indicator_positions.append(offset)
 	
 	indicator_positions.sort()  # Sort for consistent output
-	print("[INTEGRATION_TRACE] Indicator positions: %s" % str(indicator_positions))
+	GBTestDiagnostics.buffer("[INTEGRATION_TRACE] Indicator positions: %s" % str(indicator_positions))
 	
 	# Check for the missing positions from runtime
 	var missing_positions: Array[Vector2i] = [
@@ -258,14 +258,14 @@ func test_full_indicator_generation_integration() -> void:
 	
 	for pos: Vector2i in missing_positions:
 		var has_indicator: bool = indicator_positions.has(pos)
-		print("[INTEGRATION_TRACE] Position %s has indicator: %s" % [pos, has_indicator])
-		
+		GBTestDiagnostics.buffer("[INTEGRATION_TRACE] Position %s has indicator: %s" % [pos, has_indicator])
+        
 		if not has_indicator:
-			print("[INTEGRATION_TRACE] *** RUNTIME ISSUE CONFIRMED: Position %s missing from indicators!" % pos)
+			GBTestDiagnostics.buffer("[INTEGRATION_TRACE] *** RUNTIME ISSUE CONFIRMED: Position %s missing from indicators!" % pos)
 		else:
-			print("[INTEGRATION_TRACE] *** Position %s correctly generated!" % pos)
+			GBTestDiagnostics.buffer("[INTEGRATION_TRACE] *** Position %s correctly generated!" % pos)
 	
 	# This test should help us identify exactly where the issue occurs
 	assert_array(indicators).append_failure_message(
-		"No indicators generated for trapezoid shape"
+		"No indicators generated for trapezoid shape" + "\n" + GBTestDiagnostics.flush_for_assert()
 	).is_not_empty()

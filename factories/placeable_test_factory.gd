@@ -19,7 +19,7 @@ static func create_test_placeable_with_rules(base_placeable: Placeable, display_
 	
 	return placeable
 
-## Creates a polygon test placeable (extracted from UnifiedTestFactory)
+## Creates a polygon test placeable (extracted from the legacy unified factory implementation)
 ## @param test_instance: Test instance for node management
 static func create_polygon_test_placeable(test_instance: Node) -> Placeable:
 	assert(test_instance != null, "test parameter cannot be null")

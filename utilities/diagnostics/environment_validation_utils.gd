@@ -10,7 +10,7 @@ extends RefCounted
 ## Returns true if valid, false if invalid (with error messages logged)
 static func validate_all_systems_environment(env: AllSystemsTestEnvironment, test_name: String = "Test") -> bool:
 	if env == null:
-		push_error("%s: AllSystemsTestEnvironment is null - check UnifiedTestFactory.instance_all_systems_env() call" % test_name)
+		push_error("%s: AllSystemsTestEnvironment is null - check EnvironmentTestFactory.instance_all_systems_env() or EnvironmentTestFactory.create_all_systems_env() call" % test_name)
 		return false
 	
 	var validation_errors: Array[String] = []
@@ -67,7 +67,7 @@ static func validate_all_systems_environment(env: AllSystemsTestEnvironment, tes
 ## Validates that a collision test environment is properly set up
 static func validate_collision_test_environment(env: Node, test_name: String = "Test") -> bool:
 	if env == null:
-		push_error("%s: CollisionTestEnvironment is null - check UnifiedTestFactory.instance_collision_test_env() call" % test_name)
+		push_error("%s: CollisionTestEnvironment is null - check EnvironmentTestFactory.instance_collision_test_env() or EnvironmentTestFactory.create_collision_test_env() call" % test_name)
 		return false
 	
 	# Check if it has basic methods we expect

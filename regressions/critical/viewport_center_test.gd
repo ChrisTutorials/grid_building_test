@@ -32,39 +32,28 @@ func test_debug_viewport_center_calculation() -> void:
 	
 	# Check if camera is current
 	var current_camera: Camera2D = viewport.get_camera_2d()
-	print("DEBUG: Current camera = ", current_camera)
-	print("DEBUG: Our camera = ", camera)
-	if camera:
-		print("DEBUG: Camera position = ", camera.global_position)
-	else:
-		print("DEBUG: Camera position = null")
-	print("DEBUG: Viewport size = ", viewport.get_visible_rect().size)
-	print("DEBUG: Viewport center = ", viewport.get_visible_rect().get_center())
+	var cam_pos_str := camera.global_position if camera != null else "null"
+	var diag := "camera_current=%s our_camera=%s cam_pos=%s viewport_size=%s viewport_center=%s" % [str(current_camera), str(camera), str(cam_pos_str), str(viewport.get_visible_rect().size), str(viewport.get_visible_rect().get_center())]
 	
 	# Test viewport center to world conversion
 	var viewport_center: Vector2 = viewport.get_visible_rect().get_center()
 	var world_pos: Vector2 = GBPositioning2DUtils.convert_screen_to_world_position(viewport_center, viewport)
-	print("DEBUG: Viewport center screen = ", viewport_center)
-	print("DEBUG: Viewport center world = ", world_pos)
+	diag += " | viewport_center=%s world_pos=%s" % [str(viewport_center), str(world_pos)]
 	
 	# Test direct viewport center positioning utility
 	var result_tile: Vector2i = GBPositioning2DUtils.move_node_to_tile_at_viewport_center(grid_positioner, target_map, viewport)
-	print("DEBUG: Result tile from viewport center = ", result_tile)
-	print("DEBUG: GridPositioner position after viewport center = ", grid_positioner.global_position)
+	diag += " | result_tile=%s grid_pos=%s" % [str(result_tile), str(grid_positioner.global_position)]
 	
 	# Test expected calculation manually
 	var expected_world: Vector2 = GBPositioning2DUtils.viewport_center_to_world_position(viewport)
 	var expected_tile: Vector2i = GBPositioning2DUtils.get_tile_from_global_position(expected_world, target_map)
 	var expected_center: Vector2 = target_map.map_to_local(expected_tile)
 	var expected_center_global: Vector2 = target_map.to_global(expected_center)
-	print("DEBUG: Expected world = ", expected_world)
-	print("DEBUG: Expected tile = ", expected_tile) 
-	print("DEBUG: Expected center local = ", expected_center)
-	print("DEBUG: Expected center global = ", expected_center_global)
+	diag += " | expected_world=%s expected_tile=%s expected_center=%s expected_center_global=%s" % [str(expected_world), str(expected_tile), str(expected_center), str(expected_center_global)]
 	
 	# Compare results
 	var position_delta: Vector2 = grid_positioner.global_position - expected_center_global
-	print("DEBUG: Position delta = ", position_delta)
+	diag += " | delta=%s" % str(position_delta)
 
 func test_debug_camera_setup() -> void:
 	# Ensure camera is set as current
@@ -79,5 +68,5 @@ func test_debug_camera_setup() -> void:
 		print("DEBUG: After make_current - Camera enabled = null")
 	
 	assert_object(current_camera).is_same(camera).append_failure_message(
-		"Camera should be current. Expected: %s, Got: %s" % [str(camera), str(current_camera)]
+		"Camera should be current. Expected: %s, Got: %s\n%s" % [str(camera), str(current_camera), diag]
 	)

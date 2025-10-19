@@ -2,31 +2,84 @@
 ## Verifies metadata-based root node resolution for targeting system
 extends GdUnitTestSuite
 
+#region Helper Methods
+
+## Creates a Node2D with specified name, adds to tree, and marks for auto_free
+func _create_node(p_name: String, p_type: Variant = Node2D) -> Node:
+	var node: Node = auto_free(p_type.new())
+	node.name = p_name
+	add_child(node)
+	return node
+
+## Creates a basic hierarchy: root → collision area
+## Returns dictionary with 'root' and 'collision' keys
+func _create_basic_collision_hierarchy(p_root_name: String = "Root", p_collision_name: String = "Collision") -> Dictionary:
+	var root: Node2D = auto_free(Node2D.new())
+	root.name = p_root_name
+	add_child(root)
+	
+	var collision: Area2D = auto_free(Area2D.new())
+	collision.name = p_collision_name
+	root.add_child(collision)
+	
+	return {"root": root, "collision": collision}
+
+## Creates hierarchy with Manipulatable: root → collision → manipulatable
+## Returns dictionary with 'root', 'collision', 'manipulatable' keys
+func _create_manipulatable_hierarchy(p_root_name: String = "Root") -> Dictionary:
+	var result: Dictionary = _create_basic_collision_hierarchy(p_root_name, "Collision")
+	
+	var manipulatable: Manipulatable = auto_free(Manipulatable.new())
+	manipulatable.root = result.root
+	result.collision.add_child(manipulatable)
+	
+	result.manipulatable = manipulatable
+	return result
+
+## Sets metadata on a node with optional value
+func _set_node_metadata(p_node: Node, p_key: String, p_value: Variant) -> void:
+	p_node.set_meta(p_key, p_value)
+
+## Asserts that resolved node matches expected node with formatted failure message
+func _assert_resolved_root(p_actual: Node2D, p_expected: Node2D, p_context: String = "") -> void:
+	var message: String = "Should resolve to expected root"
+	if p_context:
+		message += ": " + p_context
+	message += ". Got: %s, Expected: %s" % [
+		GBDiagnostics.format_node_label(p_actual) if p_actual else "null",
+		GBDiagnostics.format_node_label(p_expected) if p_expected else "null"
+	]
+	
+	assert_object(p_actual).append_failure_message(message).is_same(p_expected)
+
+## Asserts display name matches expected value
+func _assert_display_name(p_actual: String, p_expected: String, p_context: String = "") -> void:
+	var message: String = "Display name should match expected value"
+	if p_context:
+		message += ": " + p_context
+	message += ". Got: %s, Expected: %s" % [p_actual, p_expected]
+	
+	assert_str(p_actual).append_failure_message(message).is_equal(p_expected)
+
+#endregion
+
 func test_resolve_root_node_with_metadata_node_path() -> void:
 	# Setup: Create scene structure matching Smithy
 	# THISISROOTSMITHY-Node2D
 	#   └─ Smithy (Area2D with metadata/root_node = NodePath(".."))
 	
-	var root_node: Node2D = auto_free(Node2D.new())
-	root_node.name = "THISISROOTSMITHY-Node2D"
-	add_child(root_node)
-	
-	var collision_area: Area2D = auto_free(Area2D.new())
-	collision_area.name = "Smithy"
-	root_node.add_child(collision_area)
+	var hierarchy: Dictionary = _create_basic_collision_hierarchy("THISISROOTSMITHY-Node2D", "Smithy")
+	var root: Node2D = hierarchy.root
+	var collision: Area2D = hierarchy.collision
 	
 	# Set metadata: root_node = NodePath("..") (points to parent)
-	collision_area.set_meta("root_node", NodePath(".."))
+	_set_node_metadata(collision, "root_node", NodePath(".."))
 	
 	# Act: Resolve root node from collision object
-	var resolved: Node2D = GBMetadataResolver.resolve_root_node(collision_area)
+	var resolved: Node2D = GBMetadataResolver.resolve_root_node(collision)
 	
 	# Assert: Should resolve to root_node (THISISROOTSMITHY-Node2D)
-	assert_object(resolved).append_failure_message(
-		"Should resolve to root node via metadata/root_node. Got: %s" % 
-		(resolved.name if resolved else "null")
-	).is_same(root_node)
-	
+	_assert_resolved_root(resolved, root, "via metadata/root_node")
 	assert_str(resolved.name).append_failure_message(
 		"Resolved node name should be 'THISISROOTSMITHY-Node2D'"
 	).is_equal("THISISROOTSMITHY-Node2D")
@@ -34,69 +87,48 @@ func test_resolve_root_node_with_metadata_node_path() -> void:
 
 func test_resolve_root_node_with_metadata_direct_node() -> void:
 	# Setup: metadata/root_node can also be a Node2D directly
-	var root_node: Node2D = auto_free(Node2D.new())
-	root_node.name = "DirectRoot"
-	add_child(root_node)
-	
-	var collision_area: Area2D = auto_free(Area2D.new())
-	collision_area.name = "CollisionObject"
-	add_child(collision_area)
+	var root: Node2D = _create_node("DirectRoot") as Node2D
+	var collision: Area2D = _create_node("CollisionObject", Area2D) as Area2D
 	
 	# Set metadata: root_node = Node2D directly
-	collision_area.set_meta("root_node", root_node)
+	_set_node_metadata(collision, "root_node", root)
 	
 	# Act: Resolve root node
-	var resolved: Node2D = GBMetadataResolver.resolve_root_node(collision_area)
+	var resolved: Node2D = GBMetadataResolver.resolve_root_node(collision)
 	
 	# Assert: Should return the direct node
-	assert_object(resolved).append_failure_message(
-		"Should resolve to direct Node2D from metadata. Got: %s" % 
-		(resolved.name if resolved else "null")
-	).is_same(root_node)
+	_assert_resolved_root(resolved, root, "direct Node2D from metadata")
 
 
 func test_resolve_root_node_fallback_to_collision_object() -> void:
 	# Setup: No metadata, no Manipulatable - should return collision object itself
-	var collision_area: Area2D = auto_free(Area2D.new())
-	collision_area.name = "SelfTargeting"
-	add_child(collision_area)
+	var collision: Area2D = _create_node("SelfTargeting", Area2D) as Area2D
 	
 	# Act: Resolve root node (no metadata)
-	var resolved: Node2D = GBMetadataResolver.resolve_root_node(collision_area)
+	var resolved: Node2D = GBMetadataResolver.resolve_root_node(collision)
 	
 	# Assert: Should return collision object itself as fallback
-	assert_object(resolved).append_failure_message(
-		"Should fallback to collision object when no metadata. Got: %s" % 
-		(resolved.name if resolved else "null")
-	).is_same(collision_area)
+	_assert_resolved_root(resolved, collision, "fallback to collision object when no metadata")
 
 
 func test_resolve_root_node_with_manipulatable_sibling() -> void:
 	# Setup: Manipulatable as sibling of collision object
-	var root_node: Node2D = auto_free(Node2D.new())
-	root_node.name = "ManipulatableRoot"
-	add_child(root_node)
+	var root: Node2D = _create_node("ManipulatableRoot") as Node2D
+	var parent: Node2D = _create_node("Parent") as Node2D
 	
-	var parent: Node2D = auto_free(Node2D.new())
-	parent.name = "Parent"
-	add_child(parent)
-	
-	var collision_area: Area2D = auto_free(Area2D.new())
-	collision_area.name = "Collision"
-	parent.add_child(collision_area)
+	var collision: Area2D = auto_free(Area2D.new())
+	collision.name = "Collision"
+	parent.add_child(collision)
 	
 	var manipulatable: Manipulatable = auto_free(Manipulatable.new())
-	manipulatable.root = root_node
+	manipulatable.root = root
 	parent.add_child(manipulatable)
 	
 	# Act: Resolve root node (should find Manipulatable sibling)
-	var resolved: Node2D = GBMetadataResolver.resolve_root_node(collision_area)
+	var resolved: Node2D = GBMetadataResolver.resolve_root_node(collision)
 	
 	# Assert: Should resolve to Manipulatable.root
-	assert_object(resolved).append_failure_message(
-		"Should resolve to Manipulatable.root from sibling search. Got: %s" % 
-		(resolved.name if resolved else "null")
-	).is_same(root_node)
+	_assert_resolved_root(resolved, root, "Manipulatable.root from sibling search")
 
 
 func test_resolve_root_node_with_manipulatable_child() -> void:
@@ -370,172 +402,82 @@ func test_manipulatable_root_nodepath_configuration() -> void:
 	).is_same(scene_root)
 
 
-func test_display_name_resolution_method_priority() -> void:
-	## Tests display name resolution with get_display_name() method having highest priority
-	## Priority: method > property > metadata > node name > fallback
+## Tests display name resolution priority chain
+## Priority: method > property > metadata > node name > fallback
+## Consolidated from 8 separate tests into parameterized test
+@warning_ignore("unused_parameter")
+func test_display_name_resolution_priority_chain(
+	p_priority_level: String,
+	p_expected_name: String,
+	p_has_method: bool,
+	p_has_property: bool,
+	p_has_metadata: bool,
+	p_node_name: String,
+	p_description: String = "",
+	test_parameters := [
+		# [priority_level, expected_name, has_method, has_property, has_metadata, node_name, description]
+		["method", "MethodDisplayName", true, true, true, "NodeName", "Method has highest priority"],
+		["property", "PropertyDisplayName", false, true, true, "NodeName", "Property is priority 2"],
+		["metadata_string", "MetadataDisplayName", false, false, true, "NodeName", "Metadata string is priority 3"],
+		["metadata_stringname", "StringNameDisplayName", false, false, true, "NodeName", "StringName metadata works"],
+		["node_name", "FallbackNodeName", false, false, false, "FallbackNodeName", "Node name is priority 4"],
+		["empty_strings", "ActualNodeName", false, false, false, "ActualNodeName", "Empty strings are skipped"],
+	]
+) -> void:
+	# Build script dynamically based on parameters
+	var script_source: String = "extends Node2D\n"
 	
-	# Setup: Create a test class with get_display_name() method
-	var test_script: GDScript = GDScript.new()
-	test_script.source_code = """
-extends Node2D
-
-var display_name: String = "PropertyDisplayName"
-
-func get_display_name() -> String:
-	return "MethodDisplayName"
-"""
-	test_script.reload()
+	if p_has_property:
+		if p_priority_level == "empty_strings":
+			script_source += "var display_name: String = \"\"\n"  # Empty property
+		else:
+			script_source += "var display_name: String = \"PropertyDisplayName\"\n"
 	
+	if p_has_method:
+		script_source += "func get_display_name() -> String:\n"
+		if p_priority_level == "empty_strings":
+			script_source += "\treturn \"\"\n"  # Empty method
+		else:
+			script_source += "\treturn \"MethodDisplayName\"\n"
+	
+	# Create node with script
 	var test_node: Node2D = auto_free(Node2D.new())
-	test_node.set_script(test_script)
-	test_node.name = "NodeName"
-	test_node.set_meta("display_name", "MetadataDisplayName")
+	
+	if p_has_method or p_has_property:
+		var test_script: GDScript = GDScript.new()
+		test_script.source_code = script_source
+		test_script.reload()
+		test_node.set_script(test_script)
+	
+	test_node.name = p_node_name
+	
+	if p_has_metadata:
+		if p_priority_level == "metadata_stringname":
+			test_node.set_meta("display_name", &"StringNameDisplayName")
+		elif p_priority_level == "empty_strings":
+			test_node.set_meta("display_name", "")  # Empty metadata
+		else:
+			test_node.set_meta("display_name", "MetadataDisplayName")
+	
 	add_child(test_node)
 	
 	# Act: Resolve display name
 	var resolved_name: String = GBMetadataResolver.resolve_display_name(test_node)
 	
-	# Assert: Should use method (highest priority)
-	assert_str(resolved_name).append_failure_message(
-		"Display name should use get_display_name() method (priority 1). Got: %s" % resolved_name
-	).is_equal("MethodDisplayName")
+	# Assert: Should match expected based on priority
+	_assert_display_name(resolved_name, p_expected_name, p_description)
 
 
-func test_display_name_resolution_property_priority() -> void:
-	## Tests display name resolution with property having second priority
-	## Priority: method > property > metadata > node name > fallback
+func test_display_name_resolution_null_fallback() -> void:
+	## Tests display name resolution with null node using fallback parameter
 	
-	# Setup: Node with display_name property but NO method
-	var test_script: GDScript = GDScript.new()
-	test_script.source_code = """
-extends Node2D
-
-var display_name: String = "PropertyDisplayName"
-"""
-	test_script.reload()
-	
-	var test_node: Node2D = auto_free(Node2D.new())
-	test_node.set_script(test_script)
-	test_node.name = "NodeName"
-	test_node.set_meta("display_name", "MetadataDisplayName")
-	add_child(test_node)
-	
-	# Act: Resolve display name
-	var resolved_name: String = GBMetadataResolver.resolve_display_name(test_node)
-	
-	# Assert: Should use property (priority 2)
-	assert_str(resolved_name).append_failure_message(
-		"Display name should use display_name property (priority 2). Got: %s" % resolved_name
-	).is_equal("PropertyDisplayName")
-
-
-func test_display_name_resolution_metadata_priority() -> void:
-	## Tests display name resolution with metadata having third priority
-	## Priority: method > property > metadata > node name > fallback
-	
-	# Setup: Node with display_name metadata (no method or property)
-	var test_node: Node2D = auto_free(Node2D.new())
-	test_node.name = "NodeName"
-	test_node.set_meta("display_name", "MetadataDisplayName")
-	add_child(test_node)
-	
-	# Act: Resolve display name
-	var resolved_name: String = GBMetadataResolver.resolve_display_name(test_node)
-	
-	# Assert: Should use metadata (priority 3)
-	assert_str(resolved_name).append_failure_message(
-		"Display name should use metadata/display_name (priority 3). Got: %s" % resolved_name
-	).is_equal("MetadataDisplayName")
-
-
-func test_display_name_resolution_stringname_support() -> void:
-	## Tests that display name resolution accepts StringName in metadata
-	## StringName (&"text") should work the same as String
-	
-	# Setup: Node with StringName metadata
-	var test_node: Node2D = auto_free(Node2D.new())
-	test_node.name = "NodeName"
-	test_node.set_meta("display_name", &"StringNameDisplayName")  # StringName literal
-	add_child(test_node)
-	
-	# Act: Resolve display name
-	var resolved_name: String = GBMetadataResolver.resolve_display_name(test_node)
-	
-	# Assert: Should convert StringName to String and use it
-	assert_str(resolved_name).append_failure_message(
-		"Display name should accept StringName metadata. Got: %s" % resolved_name
-	).is_equal("StringNameDisplayName")
-
-
-func test_display_name_resolution_node_name_fallback() -> void:
-	## Tests display name resolution fallback to node.name
-	## Priority: method > property > metadata > node name > fallback
-	
-	# Setup: Node with no display_name method, property, or metadata
-	var test_node: Node2D = auto_free(Node2D.new())
-	test_node.name = "FallbackNodeName"
-	add_child(test_node)
-	
-	# Act: Resolve display name
-	var resolved_name: String = GBMetadataResolver.resolve_display_name(test_node)
-	
-	# Assert: Should fallback to node.name (priority 4)
-	assert_str(resolved_name).append_failure_message(
-		"Display name should fallback to node.name (priority 4). Got: %s" % resolved_name
-	).is_equal("FallbackNodeName")
-
-
-func test_display_name_resolution_ultimate_fallback() -> void:
-	## Tests display name resolution with null node using ultimate fallback
-	## Priority: method > property > metadata > node name > fallback
-	
-	# Setup: Null node
-	var null_node: Node = null
-	
-	# Act: Resolve display name with custom fallback
-	var resolved_name: String = GBMetadataResolver.resolve_display_name(null_node, "<custom_fallback>")
-	
-	# Assert: Should use provided fallback (priority 5)
-	assert_str(resolved_name).append_failure_message(
-		"Display name should use fallback for null node (priority 5). Got: %s" % resolved_name
-	).is_equal("<custom_fallback>")
+	# Test custom fallback
+	var resolved: String = GBMetadataResolver.resolve_display_name(null, "<custom_fallback>")
+	_assert_display_name(resolved, "<custom_fallback>", "custom fallback for null node")
 	
 	# Test default fallback
-	var default_resolved: String = GBMetadataResolver.resolve_display_name(null_node)
-	assert_str(default_resolved).append_failure_message(
-		"Display name should use default '<none>' fallback. Got: %s" % default_resolved
-	).is_equal("<none>")
-
-
-func test_display_name_resolution_empty_string_handling() -> void:
-	## Tests that empty strings at any priority level are skipped
-	## Empty strings should cause fallback to next priority level
-	
-	# Setup: Node with empty string method
-	var test_script: GDScript = GDScript.new()
-	test_script.source_code = """
-extends Node2D
-
-var display_name: String = ""  # Empty property
-
-func get_display_name() -> String:
-	return ""  # Empty method result
-"""
-	test_script.reload()
-	
-	var test_node: Node2D = auto_free(Node2D.new())
-	test_node.set_script(test_script)
-	test_node.name = "ActualNodeName"
-	test_node.set_meta("display_name", "")  # Empty metadata
-	add_child(test_node)
-	
-	# Act: Resolve display name
-	var resolved_name: String = GBMetadataResolver.resolve_display_name(test_node)
-	
-	# Assert: Should skip all empty strings and fall back to node.name
-	assert_str(resolved_name).append_failure_message(
-		"Empty strings should be skipped, should use node.name. Got: %s" % resolved_name
-	).is_equal("ActualNodeName")
+	var default_resolved: String = GBMetadataResolver.resolve_display_name(null)
+	_assert_display_name(default_resolved, "<none>", "default fallback for null node")
 
 
 #region MANIPULATABLE HIERARCHY INDEPENDENCE TESTS

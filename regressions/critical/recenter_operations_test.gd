@@ -24,57 +24,57 @@ func before_test() -> void:
 	await get_tree().process_frame
 
 func test_debug_recenter_operations() -> void:
-	print("=== RECENTER DEBUG TEST ===")
+	GBTestDiagnostics.buffer("=== RECENTER DEBUG TEST ===")
 	
 	# Check initial state
-	print("Initial positioner position: ", positioner.global_position)
-	print("Initial tile: ", GBPositioning2DUtils.get_tile_from_global_position(positioner.global_position, tile_map))
+	GBTestDiagnostics.buffer("Initial positioner position: %s" % [str(positioner.global_position)])
+	GBTestDiagnostics.buffer("Initial tile: %s" % [str(GBPositioning2DUtils.get_tile_from_global_position(positioner.global_position, tile_map))])
 	
 	# Check dependencies
-	print("\n=== DEPENDENCY CHECK ===")
-	print("is_input_ready(): ", positioner.is_input_ready())
-	print("targeting_state: ", positioner._targeting_state)
+	GBTestDiagnostics.buffer("\n=== DEPENDENCY CHECK ===")
+	GBTestDiagnostics.buffer("is_input_ready(): %s" % [str(positioner.is_input_ready())])
+	GBTestDiagnostics.buffer("targeting_state: %s" % [str(positioner._targeting_state)])
 	if positioner._targeting_state:
-		print("target_map: ", positioner._targeting_state.target_map)
+		GBTestDiagnostics.buffer("target_map: %s" % [str(positioner._targeting_state.target_map)])
 	else:
-		print("target_map: null")
-	print("targeting_settings: ", positioner._targeting_settings)
-	print("input_processing_enabled: ", positioner.input_processing_enabled)
+		GBTestDiagnostics.buffer("target_map: null")
+	GBTestDiagnostics.buffer("targeting_settings: %s" % [str(positioner._targeting_settings)])
+	GBTestDiagnostics.buffer("input_processing_enabled: %s" % [str(positioner.input_processing_enabled)])
 	
 	# Check viewport and camera
-	print("\n=== VIEWPORT/CAMERA CHECK ===")
+	GBTestDiagnostics.buffer("\n=== VIEWPORT/CAMERA CHECK ===")
 	var vp: Viewport = tile_map.get_viewport()
 	var cam: Camera2D = vp.get_camera_2d()
-	print("viewport: ", vp)
-	print("camera: ", cam)
+	GBTestDiagnostics.buffer("viewport: %s" % [str(vp)])
+	GBTestDiagnostics.buffer("camera: %s" % [str(cam)])
 	if cam:
-		print("camera position: ", cam.global_position)
+		GBTestDiagnostics.buffer("camera position: %s" % [str(cam.global_position)])
 	else:
-		print("camera position: null")
-	print("viewport size: ", vp.get_visible_rect().size)
+		GBTestDiagnostics.buffer("camera position: null")
+	GBTestDiagnostics.buffer("viewport size: %s" % [str(vp.get_visible_rect().size)])
 	
 	# Test viewport center calculation
-	print("\n=== VIEWPORT CENTER TEST ===")
+	GBTestDiagnostics.buffer("\n=== VIEWPORT CENTER TEST ===")
 	var viewport_center_world: Vector2 = GBPositioning2DUtils.viewport_center_to_world_position(vp)
 	var viewport_center_tile: Vector2i = GBPositioning2DUtils.get_tile_from_global_position(viewport_center_world, tile_map)
-	print("viewport center world: ", viewport_center_world)
-	print("viewport center tile: ", viewport_center_tile)
+	GBTestDiagnostics.buffer("viewport center world: %s" % [str(viewport_center_world)])
+	GBTestDiagnostics.buffer("viewport center tile: %s" % [str(viewport_center_tile)])
 	
 	# Test move_to_viewport_center_tile directly
-	print("\n=== DIRECT VIEWPORT CENTER MOVE ===")
-	print("Before move_to_viewport_center_tile: ", positioner.global_position)
+	GBTestDiagnostics.buffer("\n=== DIRECT VIEWPORT CENTER MOVE ===")
+	GBTestDiagnostics.buffer("Before move_to_viewport_center_tile: %s" % [str(positioner.global_position)])
 	var result_tile: Vector2i = positioner.move_to_viewport_center_tile()
-	print("After move_to_viewport_center_tile: ", positioner.global_position)
-	print("Returned tile: ", result_tile)
+	GBTestDiagnostics.buffer("After move_to_viewport_center_tile: %s" % [str(positioner.global_position)])
+	GBTestDiagnostics.buffer("Returned tile: %s" % [str(result_tile)])
 	
 	# Test cursor move with specific screen position
-	print("\n=== CURSOR MOVE TEST ===")
+	GBTestDiagnostics.buffer("\n=== CURSOR MOVE TEST ===")
 	var screen_pos: Vector2 = Vector2(224, 176)
 	var cursor_world: Vector2 = GBPositioning2DUtils.convert_screen_to_world_position(screen_pos, vp)
 	var cursor_tile: Vector2i = GBPositioning2DUtils.get_tile_from_global_position(cursor_world, tile_map)
-	print("Screen pos: ", screen_pos)
-	print("Cursor world: ", cursor_world)  
-	print("Cursor tile: ", cursor_tile)
+	GBTestDiagnostics.buffer("Screen pos: %s" % [str(screen_pos)])
+	GBTestDiagnostics.buffer("Cursor world: %s" % [str(cursor_world)])
+	GBTestDiagnostics.buffer("Cursor tile: %s" % [str(cursor_tile)])
 	
 	# Simulate mouse input to cache position
 	var mouse_event: InputEventMouseMotion = InputEventMouseMotion.new()
@@ -82,31 +82,34 @@ func test_debug_recenter_operations() -> void:
 	mouse_event.global_position = cursor_world
 	positioner._input(mouse_event)
 	
-	print("Before move_to_cursor_center_tile: ", positioner.global_position)
+	GBTestDiagnostics.buffer("Before move_to_cursor_center_tile: %s" % [str(positioner.global_position)])
 	var cursor_result_tile: Vector2i = positioner.move_to_cursor_center_tile()
-	print("After move_to_cursor_center_tile: ", positioner.global_position)
-	print("Returned cursor tile: ", cursor_result_tile)
+	GBTestDiagnostics.buffer("After move_to_cursor_center_tile: %s" % [str(positioner.global_position)])
+	GBTestDiagnostics.buffer("Returned cursor tile: %s" % [str(cursor_result_tile)])
 	
 	# Test recenter on enable
-	print("\n=== RECENTER ON ENABLE TEST ===")
+	GBTestDiagnostics.buffer("\n=== RECENTER ON ENABLE TEST ===")
 	
 	# Set up settings for mouse recenter
 	var settings: GridTargetingSettings = container.config.settings.targeting
 	settings.enable_mouse_input = true
 	settings.manual_recenter_mode = GBEnums.CenteringMode.CENTER_ON_MOUSE
 	
-	print("Settings - mouse enabled: ", settings.enable_mouse_input)
-	print("Settings - manual recenter mode: ", settings.manual_recenter_mode)
-	print("Settings - position on enable policy: ", settings.position_on_enable_policy)
+	GBTestDiagnostics.buffer("Settings - mouse enabled: %s" % [str(settings.enable_mouse_input)])
+	GBTestDiagnostics.buffer("Settings - manual recenter mode: %s" % [str(settings.manual_recenter_mode)])
+	GBTestDiagnostics.buffer("Settings - position on enable policy: %s" % [str(settings.position_on_enable_policy)])
 	
 	# Test _apply_recenter_on_enable
-	print("Before _apply_recenter_on_enable: ", positioner.global_position)
+	GBTestDiagnostics.buffer("Before _apply_recenter_on_enable: %s" % [str(positioner.global_position)])
 	positioner._apply_recenter_on_enable()
-	print("After _apply_recenter_on_enable: ", positioner.global_position)
+	GBTestDiagnostics.buffer("After _apply_recenter_on_enable: %s" % [str(positioner.global_position)])
 	
 	# Check for any issues that might cause fallback
-	print("\n=== DIAGNOSTIC CHECKS ===")
+	GBTestDiagnostics.buffer("\n=== DIAGNOSTIC CHECKS ===")
 	var disabled_in_off_mode: bool = positioner._is_disabled_in_off_mode() if positioner.has_method("_is_disabled_in_off_mode") else false
 	var mouse_on_screen: bool = positioner._is_mouse_cursor_on_screen() if positioner.has_method("_is_mouse_cursor_on_screen") else false
-	print("disabled_in_off_mode: ", disabled_in_off_mode)
-	print("mouse_on_screen: ", mouse_on_screen)
+	GBTestDiagnostics.buffer("disabled_in_off_mode: %s" % [str(disabled_in_off_mode)])
+	GBTestDiagnostics.buffer("mouse_on_screen: %s" % [str(mouse_on_screen)])
+
+	# Attach diagnostics to a no-op assertion so failure messages include the collected data
+	assert_bool(true).is_true().append_failure_message(GBTestDiagnostics.flush_for_assert())

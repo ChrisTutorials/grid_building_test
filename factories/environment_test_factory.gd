@@ -37,8 +37,10 @@
 ##
 ## Following GdUnit best practices: DRY principle, centralize common object creation
 
+class_name EnvironmentTestFactory
+
 ## @deprecated Use scene_runner for frame simulation tests, keep EnvironmentTestFactory for validation tests
-## Creates an AllSystemsTestEnvironment (extracted from UnifiedTestFactory) [br]
+## Creates an AllSystemsTestEnvironment (extracted from the legacy unified factory implementation) [br]
 ## [param test]: Test instance for node management [br]
 ## [param scene_uid]: Scene UID for environment setup
 static func create_all_systems_env(test: GdUnitTestSuite, scene_uid: String = GBTestConstants.ALL_SYSTEMS_ENV_UID) -> AllSystemsTestEnvironment:
