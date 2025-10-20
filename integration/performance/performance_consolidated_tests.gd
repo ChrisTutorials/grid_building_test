@@ -3,7 +3,9 @@ extends GdUnitTestSuite
 ## Consolidated performance tests using factory patterns
 
 const TEST_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
-const ALL_SYSTEMS_ENV_SCENE: PackedScene = preload("uid://ioucajhfxc8b")
+
+# Use helper to load environment scene (UID first, then path fallback)
+var ALL_SYSTEMS_ENV_SCENE: PackedScene = GBTestConstants.get_environment_scene(GBTestConstants.EnvironmentType.ALL_SYSTEMS)
 
 var test_hierarchy: AllSystemsTestEnvironment
 

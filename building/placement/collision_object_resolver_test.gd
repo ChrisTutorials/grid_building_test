@@ -4,7 +4,6 @@
 ## - CollisionObject2D (direct)
 ## - CollisionShape2D (via parent CollisionObject2D)
 ## - CollisionPolygon2D (via parent CollisionObject2D)
-class_name CollisionObjectResolverTest
 extends GdUnitTestSuite
 
 var _CollisionObjectResolver: GDScript = preload("res://addons/grid_building/placement/manager/components/mapper/collision_object_resolver.gd")

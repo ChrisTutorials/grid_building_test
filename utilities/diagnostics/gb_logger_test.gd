@@ -1,5 +1,4 @@
 # GdUnit generated TestSuite
-class_name GBLoggerTest
 extends GdUnitTestSuite
 
 const DBG_LEVEL := GBDebugSettings.LogLevel

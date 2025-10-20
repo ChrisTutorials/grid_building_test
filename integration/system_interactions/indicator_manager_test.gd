@@ -147,7 +147,7 @@ func test_indicator_manager_dependencies_initialized() -> void:
 	# Attempt physics body layer overlap prerequisite; don't hard fail if only raw shapes exist.
 	var overlap_ok: bool = _collision_layer_overlaps(shape_scene, col_checking_rules)
 	if not overlap_ok:
-		print("[TEST][indicator_manager] WARNING: No physics body layer overlap for eclipse_scene; proceeding (shape-only scene)")
+		GBTestDiagnostics.buffer("[TEST][indicator_manager] WARNING: No physics body layer overlap for eclipse_scene; proceeding (shape-only scene)")
 
 	var indicators_report : IndicatorSetupReport = setup_scene_with_indicators(shape_scene)
 	var data: Dictionary = get_indicators_and_summary(indicators_report)
@@ -155,9 +155,10 @@ func test_indicator_manager_dependencies_initialized() -> void:
 	var summary: String = data.summary
 
 	# Assert that indicators were created (this tests the internal functionality without exposing private properties)
+	var context := GBTestDiagnostics.flush_for_assert()
 	assert_int(indicators.size()).append_failure_message(
-		"No indicators generated for eclipse_scene. shapes=%d rules=%s summary=%s" %
-		[collision_shape_count, str(col_checking_rules), summary]
+		"No indicators generated for eclipse_scene. shapes=%d rules=%s summary=%s\nContext: %s" %
+		[collision_shape_count, str(col_checking_rules), summary, context]
 	).is_greater(0)
 
 	# Test that the manager can get colliding indicators

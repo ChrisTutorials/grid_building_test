@@ -1,5 +1,4 @@
 extends GdUnitTestSuite
-class_name IndicatorPositioningIsolationTest
 
 # Test to isolate the specific positioning issue where indicators might be using
 # global positions instead of relative positions from their parent preview_instance
@@ -90,33 +89,34 @@ func test_indicator_positions_are_relative_to_parent() -> void:
 	
 	# Check that indicators are positioned relative to test_object, not globally
 	var test_object_global_pos: Vector2 = test_object.global_position
-	print("Test object global position: ", test_object_global_pos)
-	
-	# DEBUG: Let's see what collision positions were detected
-	print("DEBUG: Number of indicators created: ", indicators.size())
+	GBTestDiagnostics.buffer("Test object global position: %s" % [test_object_global_pos])
+    
+	# DEBUG: Let's see what collision positions were detected (buffered)
+	GBTestDiagnostics.buffer("DEBUG: Number of indicators created: %d" % [indicators.size()])
 
 	for i in range(indicators.size()):
 		var indicator: RuleCheckIndicator = indicators[i]
 		var indicator_global_pos: Vector2 = indicator.global_position
 		var indicator_local_pos: Vector2 = indicator.position
-		
-		print("Indicator global position: ", indicator_global_pos)
-		print("Indicator local position: ", indicator_local_pos) 
+
+		GBTestDiagnostics.buffer("Indicator global position: %s" % [indicator_global_pos])
+		GBTestDiagnostics.buffer("Indicator local position: %s" % [indicator_local_pos])
 		var parent_name: String = "null"
 		if indicator.get_parent():
 			parent_name = indicator.get_parent().name
-		print("Indicator parent: ", parent_name)
-		
-		# If positioned correctly relative to parent, the indicator's global position 
-		# should be near the test_object's global position (within tile bounds)
+		GBTestDiagnostics.buffer("Indicator parent: %s" % [parent_name])
+        
+	# If positioned correctly relative to parent, the indicator's global position 
+	# should be near the test_object's global position (within tile bounds)
 		var distance_from_test_object: float = indicator_global_pos.distance_to(test_object_global_pos)
-		
+
 		# For a 32x32 shape, indicators should be within reasonable range (a few tiles)
 		var max_expected_distance: float = 96.0  # 3 tiles worth of distance
-		
+
+		var context := GBTestDiagnostics.flush_for_assert()
 		assert_that(distance_from_test_object).is_less_equal(max_expected_distance).override_failure_message(
-			"Indicator at %s is too far from test object at %s (distance: %f). This suggests global positioning instead of relative positioning." % 
-			[indicator_global_pos, test_object_global_pos, distance_from_test_object]
+			"Indicator at %s is too far from test object at %s (distance: %f). This suggests global positioning instead of relative positioning.\nContext: %s" % 
+			[indicator_global_pos, test_object_global_pos, distance_from_test_object, context]
 		)
 
 func test_indicator_parent_hierarchy() -> void:
@@ -143,12 +143,13 @@ func test_indicator_parent_hierarchy() -> void:
 		var parent_name: String = "null"
 		if indicator.get_parent():
 			parent_name = indicator.get_parent().name
-		print("Indicator parent: ", parent_name)
-		print("Expected parent: IndicatorManager")
+		GBTestDiagnostics.buffer("Indicator parent: %s" % parent_name)
+		GBTestDiagnostics.buffer("Expected parent: IndicatorManager")
 		
 		# Indicators should be children of IndicatorManager
+		var context := GBTestDiagnostics.flush_for_assert()
 		assert_that(indicator.get_parent()).is_equal(indicator_manager).override_failure_message(
-			"Indicator should be parented to IndicatorManager, but parent is: %s" % parent_name
+			"Indicator should be parented to IndicatorManager, but parent is: %s\nContext: %s" % [parent_name, context]
 		)
 
 func test_multiple_positions_show_relative_behavior() -> void:
@@ -198,8 +199,8 @@ func test_multiple_positions_show_relative_behavior() -> void:
 	# The collision system should generate different indicator positions when test_object moves
 	var test_object_movement := Vector2(200, 300) - Vector2(50, 50)  # (150, 250)
 	
-	print("Test object movement: ", test_object_movement)
-	print("Test object moved from (50,50) to (200,300)")
+	GBTestDiagnostics.buffer("Test object movement: %s" % [test_object_movement])
+	GBTestDiagnostics.buffer("Test object moved from (50,50) to (200,300)")
 	
 	# Verify that some indicators have moved (basic sanity check)
 	var indicators_moved: bool = false
@@ -209,8 +210,8 @@ func test_multiple_positions_show_relative_behavior() -> void:
 		var initial_pos : Vector2 = initial_indicators_data[i]["global_pos"]
 		var moved_pos : Vector2 = moved_indicators_data[i]["global_pos"]
 		var actual_offset : Vector2 = moved_pos - initial_pos
-		
-		print("Indicator %d: initial=%s, moved=%s, actual_offset=%s" % [i, initial_pos, moved_pos, actual_offset])
+
+		GBTestDiagnostics.buffer("Indicator %d: initial=%s, moved=%s, actual_offset=%s" % [i, initial_pos, moved_pos, actual_offset])
 		
 		# Check if indicator moved at all (not necessarily by exact test_object movement)
 		if actual_offset.length() > 1.0:  # Moved by more than 1 pixel
@@ -225,4 +226,4 @@ func test_multiple_positions_show_relative_behavior() -> void:
 	
 	# At minimum, verify that the indicator creation system responds to test_object position changes
 	# (This is a weaker assertion but more aligned with actual system behavior)
-	print("Indicators moved: ", indicators_moved)
+	GBTestDiagnostics.buffer("Indicators moved: %s" % [indicators_moved])

@@ -1,4 +1,3 @@
-class_name PhysicsMatchingUtils2DUnitTest
 extends GdUnitTestSuite
 
 const PhysicsUtils = preload("res://addons/grid_building/utils/physics_matching_utils_2d.gd")
@@ -136,22 +135,15 @@ func assert_array_contains_exactly(actual: Array[int], expected: Array[int], _me
 # Simple test that prints actual values to see what we're getting
 func test_debug_layers_from_bitmask() -> void:
 	var layers_513: Array[int] = PhysicsUtils.get_layers_from_bitmask(513)
-	print("Layers from mask 513: ", layers_513)
-	
 	var layers_2561: Array[int] = PhysicsUtils.get_layers_from_bitmask(2561)
-	print("Layers from mask 2561: ", layers_2561)
-	
 	var layers_0: Array[int] = PhysicsUtils.get_layers_from_bitmask(0)
-	print("Layers from mask 0: ", layers_0)
-	
 	var layers_1: Array[int] = PhysicsUtils.get_layers_from_bitmask(1)
-	print("Layers from mask 1: ", layers_1)
 	
-	# Basic assertions that should work
-	assert_that(layers_0.size()).is_equal(0)
-	assert_that(layers_1.size()).is_equal(1)
-	assert_that(layers_513.size()).is_equal(2)
-	assert_that(layers_2561.size()).is_equal(3)
+	# Basic assertions with diagnostic context
+	assert_that(layers_0.size()).append_failure_message("Layers from mask 0: %s" % str(layers_0)).is_equal(0)
+	assert_that(layers_1.size()).append_failure_message("Layers from mask 1: %s" % str(layers_1)).is_equal(1)
+	assert_that(layers_513.size()).append_failure_message("Layers from mask 513: %s" % str(layers_513)).is_equal(2)
+	assert_that(layers_2561.size()).append_failure_message("Layers from mask 2561: %s" % str(layers_2561)).is_equal(3)
 
 # Helper function for string arrays
 func assert_array_contains_exactly_strings(actual: Array[String], expected: Array[String], _message: String = "") -> void:

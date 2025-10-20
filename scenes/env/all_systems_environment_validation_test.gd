@@ -1,6 +1,5 @@
 ## Unit test to validate AllSystemsTestEnvironment scene integrity
 ## Tests that all required systems are properly initialized and connected
-class_name AllSystemsEnvironmentValidationTest
 extends GdUnitTestSuite
 
 var test_env: AllSystemsTestEnvironment

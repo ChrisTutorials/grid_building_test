@@ -42,37 +42,37 @@ func test_indicator_generation_from_container_rules() -> void:
 		var cr: CollisionsCheckRule = GBTestConstants.COLLISIONS_CHECK_RULE
 		rules = [cr]
 
-	# Enhanced diagnostics: trace rule identity and characteristics
-	print("[RULE_TRACE] === CONTAINER RULE ANALYSIS ===")
-	print("[RULE_TRACE] container placement_rules size = %s" % [_container.get_placement_rules().size()])
-	print("[RULE_TRACE] using rules size = %s" % [rules.size()])
-	
+	# Enhanced diagnostics: trace rule identity and characteristics (buffered)
+	GBTestDiagnostics.buffer("[RULE_TRACE] === CONTAINER RULE ANALYSIS ===")
+	GBTestDiagnostics.buffer("[RULE_TRACE] container placement_rules size = %s" % [_container.get_placement_rules().size()])
+	GBTestDiagnostics.buffer("[RULE_TRACE] using rules size = %s" % [rules.size()])
+    
 	for i in range(rules.size()):
 		var r: PlacementRule = rules[i]
-		print("[RULE_TRACE] rule[%d] IDENTITY: object_id=%s, class=%s" % [i, str(r.get_instance_id()), r.get_class()])
-		print("[RULE_TRACE] rule[%d] TYPE_INFO: typeof=%s, is_PlacementRule=%s, is_TileCheckRule=%s, is_CollisionsCheckRule=%s" % [i, typeof(r), str(r is PlacementRule), str(r is TileCheckRule), str(r is CollisionsCheckRule)])
+		GBTestDiagnostics.buffer("[RULE_TRACE] rule[%d] IDENTITY: object_id=%s, class=%s" % [i, str(r.get_instance_id()), r.get_class()])
+		GBTestDiagnostics.buffer("[RULE_TRACE] rule[%d] TYPE_INFO: typeof=%s, is_PlacementRule=%s, is_TileCheckRule=%s, is_CollisionsCheckRule=%s" % [i, typeof(r), str(r is PlacementRule), str(r is TileCheckRule), str(r is CollisionsCheckRule)])
 		if r.has_method("get_script"):
-			print("[RULE_TRACE] rule[%d] SCRIPT: %s" % [i, str(r.get_script())])
+			GBTestDiagnostics.buffer("[RULE_TRACE] rule[%d] SCRIPT: %s" % [i, str(r.get_script())])
 		# Direct property access instead of has_property() - fail fast pattern
-		print("[RULE_TRACE] rule[%d] RESOURCE_PATH: %s" % [i, str(r.resource_path) if "resource_path" in r else "N/A"])
-		print("[RULE_TRACE] rule[%d] STRING_REPR: %s" % [i, str(r)])
+		GBTestDiagnostics.buffer("[RULE_TRACE] rule[%d] RESOURCE_PATH: %s" % [i, str(r.resource_path) if "resource_path" in r else "N/A"])
+		GBTestDiagnostics.buffer("[RULE_TRACE] rule[%d] STRING_REPR: %s" % [i, str(r)])
 
-	# Ensure rules are setup and trace setup results
-	print("[RULE_TRACE] === RULE SETUP PHASE ===")
+	# Ensure rules are setup and trace setup results (buffered instead of print)
+	GBTestDiagnostics.buffer("[RULE_TRACE] === RULE SETUP PHASE ===")
 	for idx in range(rules.size()):
 		var rule: PlacementRule = rules[idx]
 		if rule is CollisionsCheckRule:
 			var collisions_rule: CollisionsCheckRule = rule as CollisionsCheckRule
-			print("[RULE_TRACE] rule[%d] SETUP_BEFORE: apply_to_objects_mask=%s, collision_mask=%s" % [idx, collisions_rule.apply_to_objects_mask, collisions_rule.collision_mask])
+			GBTestDiagnostics.buffer("[RULE_TRACE] rule[%d] SETUP_BEFORE: apply_to_objects_mask=%s, collision_mask=%s" % [idx, collisions_rule.apply_to_objects_mask, collisions_rule.collision_mask])
 			var setup_issues: Array[String] = collisions_rule.setup(_state)
-			print("[RULE_TRACE] rule[%d] SETUP_RESULT: issues_count=%s, issues=%s" % [idx, setup_issues.size(), str(setup_issues)])
-			assert_array(setup_issues).append_failure_message("Rule setup failed for rule %d" % idx).is_empty()
-			print("[RULE_TRACE] rule[%d] SETUP_AFTER: still_same_id=%s, still_CollisionsCheckRule=%s" % [idx, str(rule.get_instance_id()), str(rule is CollisionsCheckRule)])
+			GBTestDiagnostics.buffer("[RULE_TRACE] rule[%d] SETUP_RESULT: issues_count=%s, issues=%s" % [idx, setup_issues.size(), str(setup_issues)])
+			assert_array(setup_issues).append_failure_message("Rule setup failed for rule %d\n%s" % [idx, GBTestDiagnostics.flush_for_assert()]).is_empty()
+			GBTestDiagnostics.buffer("[RULE_TRACE] rule[%d] SETUP_AFTER: still_same_id=%s, still_CollisionsCheckRule=%s" % [idx, str(rule.get_instance_id()), str(rule is CollisionsCheckRule)])
 		elif rule is TileCheckRule:
 			var tile_rule: TileCheckRule = rule as TileCheckRule
 			var setup_issues: Array[String] = tile_rule.setup(_state)
-			print("[RULE_TRACE] rule[%d] TILE_SETUP_RESULT: issues_count=%s" % [idx, setup_issues.size()])
-			assert_array(setup_issues).append_failure_message("Rule setup failed for rule %d" % idx).is_empty()
+			GBTestDiagnostics.buffer("[RULE_TRACE] rule[%d] TILE_SETUP_RESULT: issues_count=%s" % [idx, setup_issues.size()])
+			assert_array(setup_issues).append_failure_message("Rule setup failed for rule %d\n%s" % [idx, GBTestDiagnostics.flush_for_assert()]).is_empty()
 
 	# Act: Run try_setup
 	var report: PlacementReport = _manager.try_setup(rules, _state, true)
@@ -80,19 +80,19 @@ func test_indicator_generation_from_container_rules() -> void:
 
 	# Diagnostics: dump report details
 	if report:
-		print("[diagnostic] report.is_successful = %s" % [report.is_successful()])
+		GBTestDiagnostics.buffer("[diagnostic] report.is_successful = %s" % [report.is_successful()])
 		if report.indicators_report:
 			var ind_list: Array[RuleCheckIndicator] = report.indicators_report.indicators
-			print("[diagnostic] indicators_report.indicators size = %s" % [ind_list.size()])
+			GBTestDiagnostics.buffer("[diagnostic] indicators_report.indicators size = %s" % [ind_list.size()])
 			for j in range(ind_list.size()):
 				var ind: RuleCheckIndicator = ind_list[j]
-				print("[diagnostic] indicator[%d] = %s" % [j, str(ind)])
+				GBTestDiagnostics.buffer("[diagnostic] indicator[%d] = %s" % [j, str(ind)])
 	# Check success
 	if not report.is_successful():
-		fail("try_setup reported failure: %s" % [str(report.get_issues())])
+		fail("try_setup reported failure: %s - %s" % [str(report.get_issues()), GBTestDiagnostics.flush_for_assert()])
 
 	var indicators: Array[RuleCheckIndicator] = report.indicators_report.indicators
-	assert_array(indicators).append_failure_message("No indicators generated (unit test)").is_not_empty()
+	assert_array(indicators).append_failure_message("No indicators generated (unit test)\n%s" % GBTestDiagnostics.flush_for_assert()).is_not_empty()
 
 func test_indicators_are_freed_on_reset() -> void:
 	var shape_scene: Node2D = CollisionObjectTestFactory.create_polygon_test_object(self, self)

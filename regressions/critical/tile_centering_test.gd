@@ -24,26 +24,17 @@ func test_debug_tile_centering_issue() -> void:
 	
 	# Check tile size - should be 16x16 for standard Grid Building
 	var tile_size: Vector2i = target_map.tile_set.tile_size
-	print("DEBUG: TileSet tile_size = ", tile_size)
 	
 	# Test direct tile centering with utilities
 	var test_tile: Vector2i = Vector2i(5, 3)  # Arbitrary test tile
 	var expected_center: Vector2 = target_map.map_to_local(test_tile)  # map_to_local already returns center
 	var expected_center_global: Vector2 = target_map.to_global(expected_center)
 	
-	print("DEBUG: Test tile = ", test_tile)
-	print("DEBUG: Expected center local = ", expected_center)
-	print("DEBUG: Expected center global = ", expected_center_global)
-	
 	# Use the positioning utility directly
-	var result_tile: Vector2i = GBPositioning2DUtils.move_to_tile_center(grid_positioner, test_tile, target_map)
-	
-	print("DEBUG: Actual position after move = ", grid_positioner.global_position)
-	print("DEBUG: Result tile = ", result_tile)
+	GBPositioning2DUtils.move_to_tile_center(grid_positioner, test_tile, target_map)
 	
 	# Check if the positioning is correct
 	var position_delta: Vector2 = grid_positioner.global_position - expected_center_global
-	print("DEBUG: Position delta = ", position_delta)
 	
 	assert_vector(grid_positioner.global_position).append_failure_message(
 		"GridPositioner should be centered on tile. Expected: %s, Got: %s, Delta: %s, TileSize: %s" % [
@@ -55,8 +46,6 @@ func test_debug_map_to_local_behavior() -> void:
 	# Test map_to_local behavior to understand coordinate conversion
 	var tile_size: Vector2i = target_map.tile_set.tile_size
 	
-	print("DEBUG: Starting map_to_local behavior test with tile_size = ", tile_size)
-	
 	# Test several tiles
 	var test_tiles: Array[Vector2i] = [Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, 1), Vector2i(1, 1)]
 	
@@ -64,10 +53,6 @@ func test_debug_map_to_local_behavior() -> void:
 		var map_local: Vector2 = target_map.map_to_local(test_tile)
 		var expected_top_left: Vector2 = Vector2(test_tile.x * tile_size.x, test_tile.y * tile_size.y)
 		var expected_center: Vector2 = expected_top_left + Vector2(tile_size) * 0.5
-		
-		print("DEBUG: Tile %s -> map_to_local = %s (type: %s), expected_center = %s (type: %s)" % [
-			str(test_tile), str(map_local), typeof(map_local), str(expected_center), typeof(expected_center)
-		])
 		
 		# Enhanced diagnostics: check if map_local is actually a Vector2
 		assert_object(map_local).append_failure_message("map_to_local should return non-null value for tile: %s" % str(test_tile)).is_not_null()

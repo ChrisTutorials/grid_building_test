@@ -8,7 +8,6 @@
 # -----------------------------------------------------------------------------
 
 
-class_name GeometryValidationTestSuite
 extends GdUnitTestSuite
 
 # Shared test TileMapLayer for tile-overlap tests

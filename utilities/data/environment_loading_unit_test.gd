@@ -92,9 +92,10 @@ func test_environment_uses_same_test_container() -> void:
 		if environment_type == GBTestConstants.EnvironmentType.ISOMETRIC_TEST:
 			# ISOMETRIC_TEST may use a different container - just verify it has placement rules
 			var placement_rules: Array[PlacementRule] = container.get_placement_rules()
-			print("[CONTAINER_TEST] %s environment placement_rules count: %d" % [type_name, placement_rules.size()])
+			GBTestDiagnostics.buffer("[CONTAINER_TEST] %s environment placement_rules count: %d" % [type_name, placement_rules.size()])
+			var context := GBTestDiagnostics.flush_for_assert()
 			assert_that(placement_rules.size()).append_failure_message(
-				"%s environment should have placement rules configured" % type_name
+				"%s environment should have placement rules configured. Context: %s" % [type_name, context]
 			).is_greater(0)
 		else:
 			# Other environments should use the standard test container
@@ -106,13 +107,14 @@ func test_environment_uses_same_test_container() -> void:
 
 			# Verify placement rules are consistent (single source of truth)
 			var placement_rules: Array[PlacementRule] = container.get_placement_rules()
-			print("[CONTAINER_TEST] %s environment placement_rules count: %d" % [type_name, placement_rules.size()])
+			GBTestDiagnostics.buffer("[CONTAINER_TEST] %s environment placement_rules count: %d" % [type_name, placement_rules.size()])
 			
 			# All test environments should have the same placement rules from the shared container
 			var expected_rules: Array[PlacementRule] = expected_container.get_placement_rules()
+			var context := GBTestDiagnostics.flush_for_assert()
 			assert_that(placement_rules.size()).append_failure_message(
-				"%s environment should have same number of placement rules as test container. Expected: %d, Got: %d" % [
-					type_name, expected_rules.size(), placement_rules.size()
+				"%s environment should have same number of placement rules as test container. Expected: %d, Got: %d. Context: %s" % [
+					type_name, expected_rules.size(), placement_rules.size(), context
 				]
 			).is_equal(expected_rules.size())
 
@@ -241,8 +243,5 @@ func test_isometric_environment_tilemap_dimensions() -> void:
 	assert_int(tile_size.y).append_failure_message(
 		"ISOMETRIC_TEST tile_size.y should be positive, got %d" % tile_size.y
 	).is_greater(0)
-
-	# Log actual dimensions for documentation
-	print("ISOMETRIC_TEST actual dimensions: used_rect=%s, tile_size=%s" % [used_rect, tile_size])
 
 	auto_free(env)

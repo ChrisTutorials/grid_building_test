@@ -1,4 +1,3 @@
-class_name CollisionLayerIntegrationTest
 extends GdUnitTestSuite
 ## Tests collision layer matching integration to isolate specific layer mask 2561 vs collision layer 513 failures
 

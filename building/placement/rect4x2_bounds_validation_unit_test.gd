@@ -67,7 +67,6 @@ func before_test() -> void:
 			continue
 		if r2.has_method("get_target_map"):
 			var rule_map: TileMapLayer = r2.call("get_target_map") as TileMapLayer
-			print("[TEST_DEBUG] rule[%d] target_map = %s" % [i, str(rule_map)])
 			# If rule exposes the target_map, assert it's the same TileMapLayer instance used by the test
 			assert_bool(rule_map == _map).append_failure_message("PlacementRule at index %d is not bound to the test tilemap (_map)." % i).is_true()
 
@@ -83,10 +82,6 @@ func _move_positioner_to_tile(target_tile: Vector2i) -> void:
 	var local_pos: Vector2 = _map.map_to_local(target_tile)
 	var global_pos: Vector2 = _map.to_global(local_pos)
 	_positioner.global_position = global_pos
-	
-	var verify_tile: Vector2i = _map.local_to_map(_map.to_local(_positioner.global_position))
-	print("DEBUG move_positioner: tile=", target_tile, " local_pos=", local_pos, " global_pos=", global_pos)
-	print("DEBUG verify_positioner: final_global=", _positioner.global_position, " verify_tile=", verify_tile)
 
 # Helper method to enter build mode for a placeable
 func _enter_build_mode_for_placeable(placeable: Placeable) -> PlacementReport:
@@ -110,10 +105,6 @@ func _get_indicator_tile_positions_as_strings() -> Array[String]:
 			# Convert indicator's global position to tile coordinates relative to the tile map
 			# Result is in tile units (e.g., (17, 3) means tile at x=17, y=3 in tile map coordinates)
 			var tile_pos: Vector2i = _map.local_to_map(_map.to_local(indicator.global_position))
-			# DEBUG: Add diagnostic information
-			var positioner_tile: Vector2i = _map.local_to_map(_map.to_local(_positioner.global_position))
-			var relative_offset: Vector2i = tile_pos - positioner_tile
-			print("DEBUG indicator: global_pos=%s tile_pos=%s positioner_tile=%s relative_offset=%s" % [indicator.global_position, tile_pos, positioner_tile, relative_offset])
 			indicator_tile_positions.append(str(tile_pos))
 	return indicator_tile_positions
 
@@ -151,16 +142,12 @@ func test_pre_validation_is_successful_for_rect4x2_start_tile() -> void:
 	var start_tile: Vector2i = SAFE_START_TILE
 	_move_positioner_to_tile(start_tile)
 	
-	# DEBUG: Check positioner position before and after build mode
-	var positioner_tile_before: Vector2i = _map.local_to_map(_map.to_local(_positioner.global_position))
-	print("DEBUG before build mode: positioner_tile=%s global_pos=%s" % [positioner_tile_before, _positioner.global_position])
-	
 	# Use actual runtime path: enter build mode to ensure indicators are created
 	var placeable: Placeable = PLACEABLE_RECT_4X2
 	
 	# Replace raw prints with assert chains so failure reports include these diagnostics
 	assert_object(_positioner).append_failure_message(
-		"start_tile=%s positioner.global_position=%s" % [str(start_tile), str(_positioner.global_position)]).is_not_null()
+		"start_tile=%s positioner.global_position=%s before_build" % [str(start_tile), str(_positioner.global_position)]).is_not_null()
 	assert_object(_targeting_state).append_failure_message(
 		"targeting_state.positioner.global_position=%s" % str(_targeting_state.positioner.global_position)).is_not_null()
 	assert_bool(_positioner == _targeting_state.positioner).append_failure_message(
@@ -179,9 +166,8 @@ func test_pre_validation_is_successful_for_rect4x2_start_tile() -> void:
 
 	# DEBUG: Check positioner position after build mode
 	var positioner_tile_after: Vector2i = _map.local_to_map(_map.to_local(_positioner.global_position))
-	print("DEBUG after build mode: positioner_tile=%s global_pos=%s" % [positioner_tile_after, _positioner.global_position])
 	assert_bool(positioner_tile_after == start_tile).append_failure_message(
-		"Positioner must be on start_tile after setup; positioner_tile_after=%s start_tile=%s" % [str(positioner_tile_after), str(start_tile)]
+		"Positioner must be on start_tile after setup; positioner_tile_after=%s global_pos=%s start_tile=%s" % [str(positioner_tile_after), str(_positioner.global_position), str(start_tile)]
 	).is_true()
 	
 	# Act
@@ -215,10 +201,8 @@ func test_pre_validation_out_of_bounds_outside_used_rect() -> void:
 	).is_true()
 
 	# Move the positioner and capture tiles for diagnostics
-	var positioner_tile_before: Vector2i = _map.local_to_map(_map.to_local(_positioner.global_position))
 	_move_positioner_to_tile(outside_tile)
 	var positioner_tile_after: Vector2i = _map.local_to_map(_map.to_local(_positioner.global_position))
-	print("DEBUG OOB Test: outside_tile=", outside_tile, " used_rect=", ur, " pos_before=", positioner_tile_before, " pos_after=", positioner_tile_after)
 	var placeable: Placeable = PLACEABLE_RECT_4X2
 	var _setup_report: PlacementReport = _enter_build_mode_for_placeable(placeable)
 

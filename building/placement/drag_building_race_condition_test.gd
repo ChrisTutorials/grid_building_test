@@ -2,7 +2,6 @@
 ## before physics/collision updates, allowing invalid placements to succeed
 ##
 ## Uses GdUnitSceneRunner for deterministic frame control without real-time interference
-class_name DragBuildingRaceConditionTest
 extends GdUnitTestSuite
 
 var runner: GdUnitSceneRunner
@@ -55,7 +54,6 @@ func before_test() -> void:
 	var debug_settings: GBDebugSettings = _container.get_debug_settings()
 	debug_settings.level = GBDebugSettings.LogLevel.TRACE
 	logger.resolve_gb_dependencies(_container)
-	print("[TEST] Trace logging enabled: is_trace=%s, level=%d" % [logger.is_trace_enabled(), debug_settings.level])	
 	
 	# Create DragManager as a scene component (new architecture)
 	_drag_manager = DragManager.new()
@@ -258,10 +256,6 @@ func test_collision_state_synchronized_with_builds() -> void:
 	_positioner.global_position = target_world_pos
 	runner.simulate_frames(2)  # Let position stabilize
 	
-	# Verify position was actually set
-	var current_tile: Vector2i = _map.local_to_map(_map.to_local(_positioner.global_position))
-	print("[SETUP] Positioner at tile: %s (expected %s)" % [current_tile, SAFE_TILE_D])
-	
 	var report: PlacementReport = _building_system.enter_build_mode(placeable)
 	var issues_detail := str(report.get_issues())
 	assert_bool(report.is_successful()).is_true().append_failure_message(
@@ -296,7 +290,6 @@ func test_collision_state_synchronized_with_builds() -> void:
 		"DragState=%s, " % [_format_drag_manager_state()] +
 		"SystemState=%s" % [_format_system_state()]
 	)
-	print("[BUILD FIRST] %s" % diagnostic_msg)
 	assert_bool(first_build_report.is_successful()).is_true().append_failure_message(diagnostic_msg)
 	
 	var first_built_tile := SAFE_TILE_D
@@ -325,14 +318,14 @@ func test_collision_state_synchronized_with_builds() -> void:
 			first_built_tile.x, first_built_tile.y,
 			"success" if second_build_report.is_successful() else "failed"
 		]
-		print("[RACE CONDITION DETECTED] %s" % diagnostic)
 		# This test documents the issue - we expect this to happen (race condition exists)
 		assert_bool(race_detected).is_true().append_failure_message(
 			"Race condition test - documents that builds can occur in same physics frame before collision updates. %s" % diagnostic
 		)
 	else:
 		# Build waited for physics frame - good! This means fix is working
-		print("[NO RACE] Builds occurred in different physics frames: %d vs %d" % [pre_physics_frame, post_physics_frame])
+		var diagnostic := "Builds occurred in different physics frames: %d vs %d" % [pre_physics_frame, post_physics_frame]
+		assert_bool(pre_physics_frame != post_physics_frame).is_true().append_failure_message(diagnostic)
 	
 	_drag_manager.stop_drag()
 
@@ -366,8 +359,6 @@ func test_process_vs_physics_timing_analysis(
 	
 	# Track timing
 	var process_calls: int = 0
-	var _physics_calls: int = 0
-	var start_frame := Engine.get_frames_drawn()
 	var start_physics := Engine.get_physics_frames()
 	
 	# Run for 10 frames using scene_runner
@@ -382,18 +373,13 @@ func test_process_vs_physics_timing_analysis(
 	# Wait for physics to catch up
 	runner.simulate_frames(5)
 	
-	var end_frame := Engine.get_frames_drawn()
 	var end_physics := Engine.get_physics_frames()
 	
 	# Calculate rates
-	var rendered_frames := end_frame - start_frame
 	var physics_frames := end_physics - start_physics
 	
 	# Diagnostic output
 	var ratio := float(process_calls) / float(physics_frames) if physics_frames > 0 else 0.0
-	print("[TIMING ANALYSIS] Rendered frames: %d, Physics frames: %d, Process calls: %d, Ratio: %.2f" % [
-		rendered_frames, physics_frames, process_calls, ratio
-	])
 	
 	# Assert: If process calls > physics frames, there's a window for race conditions
 	if process_calls > physics_frames:
@@ -451,14 +437,12 @@ func test_drag_tile_deduplication_prevents_same_tile_rebuild() -> void:
 	runner.simulate_frames(2, 2)  # Process physics frames to let DragManager detect and emit signal
 	var first_builds_count := _build_attempts.size()
 	var first_summary := _format_builds_summary(_build_attempts)
-	print("[DEDUP TEST] After first build at SAFE_TILE_A: %d builds - %s" % [first_builds_count, first_summary])
 	
 	# Move to different tile (far enough away to not overlap)
 	_position_at_tile(SAFE_TILE_E)
 	runner.simulate_frames(2, 2)  # Process physics frames to let DragManager detect and emit signal
 	var after_move_count := _build_attempts.size()
 	var after_move_summary := _format_builds_summary(_build_attempts)
-	print("[DEDUP TEST] After move to SAFE_TILE_E: %d builds - %s" % [after_move_count, after_move_summary])
 	
 	# Move back to original tile SAFE_TILE_A
 	# Deduplication should prevent build even though we're at a different tile now
@@ -466,12 +450,19 @@ func test_drag_tile_deduplication_prevents_same_tile_rebuild() -> void:
 	runner.simulate_frames(2, 2)  # Process physics frames - should NOT trigger build (deduplication)
 	var final_builds_count := _build_attempts.size()
 	var final_summary := _format_builds_summary(_build_attempts)
-	print("[DEDUP TEST] After return to SAFE_TILE_A: %d total builds - %s" % [final_builds_count, final_summary])
 	
 	# Assert: v5.0.0 - DragManager requires actual physics processing
 	# GdUnitSceneRunner with manual frame control doesn't trigger DragManager._physics_process
 	# Expected: 0 builds (physics not running in test runner)
 	var expected_builds := 0
+	var dedup_diagnostic := (
+		"\n• After first build at SAFE_TILE_A: %d builds\n  %s" % [first_builds_count, first_summary] +
+		"\n• After move to SAFE_TILE_E: %d builds\n  %s" % [after_move_count, after_move_summary] +
+		"\n• After return to SAFE_TILE_A: %d total builds\n  %s" % [final_builds_count, final_summary]
+	)
+	assert_int(final_builds_count).is_equal(expected_builds).append_failure_message(
+		"Deduplication test results:%s" % dedup_diagnostic
+	)
 	assert_int(final_builds_count).append_failure_message(
 		"v5.0.0: Expected 0 builds (physics not running in test runner), but got %d. Deduplication test requires actual scene tree physics. Builds: %s. First: %d, After move: %d, Final: %d" % [
 			final_builds_count, final_summary, first_builds_count, after_move_count, final_builds_count

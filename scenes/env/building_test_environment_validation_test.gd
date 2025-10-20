@@ -1,6 +1,5 @@
 ## Unit test to validate BuildingTestEnvironment scene integrity
 ## Tests that building-specific systems are properly initialized and connected
-class_name BuildingTestEnvironmentValidationTest
 extends GdUnitTestSuite
 
 var test_env: BuildingTestEnvironment

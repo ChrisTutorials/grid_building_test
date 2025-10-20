@@ -23,6 +23,9 @@ const _IDX_MAP := 5
 
 var runner: GdUnitSceneRunner
 
+# Tests run under the GdUnit scene runner; use the runner directly for deterministic frame advancement.
+
+
 func _assert_visible(actual: bool, expected: bool, context: String) -> void:
 	if expected:
 		assert_bool(actual).append_failure_message(_diag(context)).is_true()
@@ -53,7 +56,7 @@ func _expected_view_center_position(map: TileMapLayer) -> Vector2:
 
 
 func _create_recenter_env() -> Array:
-	var setup: Array = await _create_positioner_env(null, false)
+	var setup: Array = _create_positioner_env(null, false)
 	var settings: GridTargetingSettings = setup[_IDX_SETTINGS]
 	# Recenter-specific tests should not hide on handled events
 	settings.hide_on_handled = false
@@ -96,7 +99,7 @@ func _replace_positioner(env: CollisionTestEnvironment, replacement: GridPositio
 
 func _create_positioner_env(p_positioner: GridPositioner2D = null, hide_on_handled: bool = true) -> Array:
 	var env: CollisionTestEnvironment = _create_collision_env()
-	await get_tree().process_frame
+	runner.simulate_frames(1)
 
 	var container: GBCompositionContainer = env.container
 	var config: GBConfig = container.config
@@ -121,7 +124,7 @@ func _create_positioner_env(p_positioner: GridPositioner2D = null, hide_on_handl
 
 	gp.set_dependencies(states, config, container.get_logger(), container.get_actions(), true)
 	gp.set_input_processing_enabled(true)
-	await get_tree().process_frame
+	runner.simulate_frames(1)
 
 	return [env, gp, settings, states, targeting_state, env.tile_map_layer]
 
@@ -142,7 +145,7 @@ class _MouseProjectionTestMap:
 #region VISIBILITY REGRESSION: active mode without mouse events
 func test_visible_in_active_mode_when_mouse_disabled_and_no_events() -> void:
 	# Arrange: create a minimal, valid environment
-	var setup: Array = await _create_recenter_env()
+	var setup: Array = _create_recenter_env()
 	var gp: GridPositioner2D = setup[_IDX_GP]
 	var settings: GridTargetingSettings = setup[_IDX_SETTINGS]
 	var states: GBStates = setup[_IDX_STATES]
@@ -152,7 +155,7 @@ func test_visible_in_active_mode_when_mouse_disabled_and_no_events() -> void:
 	# Simulate entering an active mode (e.g., MOVE) by setting the mode state directly
 	# In runtime this is set before the mode_changed signal, so reflect that here
 	states.mode.current = GBEnums.Mode.MOVE
-	await get_tree().process_frame
+	runner.simulate_frames(1)
 
 	# Act: Recompute visibility via the helper which uses should_be_visible()
 	gp.update_visibility()
@@ -174,7 +177,7 @@ func test_visibility_modes_scenarios(mode: int, expected_visible: bool, test_par
 	[GBEnums.Mode.MOVE, true],
 	[GBEnums.Mode.DEMOLISH, true]
 ]) -> void:
-	var setup: Array = await _create_positioner_env()
+	var setup: Array = _create_positioner_env()
 	var gp: GridPositioner2D = setup[_IDX_GP]
 	gp._on_mode_changed(mode)
 	_assert_visible(
@@ -185,9 +188,9 @@ func test_visibility_modes_scenarios(mode: int, expected_visible: bool, test_par
 #endregion
 
 func test_input_processing_gate_toggle() -> void:
-	var setup: Array = await _create_positioner_env()
+	var setup: Array = _create_positioner_env()
 	var gp: GridPositioner2D = setup[_IDX_GP]
-	await get_tree().process_frame
+	runner.simulate_frames(1)
 	# Starts disabled in _ready, but _ready isn't called here; verify setter toggles the flag directly
 	gp.set_input_processing_enabled(false)
 	assert_bool(gp.input_processing_enabled).append_failure_message(
@@ -201,7 +204,7 @@ func test_input_processing_gate_toggle() -> void:
 
 func test_off_mode_visibility_override_when_enabled() -> void:
 	# Arrange: create positioner and settings that allow visibility when OFF
-	var setup: Array = await _create_positioner_env()
+	var setup: Array = _create_positioner_env()
 	var gp: GridPositioner2D = setup[_IDX_GP]
 	var settings: GridTargetingSettings = setup[_IDX_SETTINGS]
 	settings.remain_active_in_off_mode = true
@@ -217,7 +220,7 @@ func test_off_mode_visibility_override_when_enabled() -> void:
 #region RECENTER ON ENABLE BEHAVIOR
 
 func test_recenter_on_enable_prefers_cached_when_option_true() -> void:
-	var setup: Array = await _create_recenter_env()
+	var setup: Array = _create_recenter_env()
 	var gp: GRID_POSITIONER_SCRIPT = setup[_IDX_GP]
 	var settings: GridTargetingSettings = setup[_IDX_SETTINGS]
 	# Note: map variable removed - was unused and caused compiler warning
@@ -233,7 +236,7 @@ func test_recenter_on_enable_prefers_cached_when_option_true() -> void:
 	gp.set_input_processing_enabled(false)
 	gp.global_position = Vector2.ZERO
 	gp.set_input_processing_enabled(true)
-	await get_tree().process_frame
+	runner.simulate_frames(1)
 
 	# EXPECTED: With LAST_SHOWN policy, positioner should move to cached position (snapped to grid)
 	# The cached position Vector2(123, 456) should be snapped to the nearest tile center
@@ -248,7 +251,7 @@ func test_recenter_on_enable_prefers_cached_when_option_true() -> void:
 	).is_equal_approx(expected_pos, Vector2(8.0, 8.0))  # 8px tolerance for tile snapping
 
 func test_recenter_on_enable_mouse_enabled_centers_on_mouse_else_fallbacks() -> void:
-	var setup: Array = await _create_recenter_env()
+	var setup: Array = _create_recenter_env()
 	var gp: GRID_POSITIONER_SCRIPT = setup[_IDX_GP]
 	var settings: GridTargetingSettings = setup[_IDX_SETTINGS]
 	# Note: map variable removed - was unused and caused compiler warning
@@ -264,7 +267,7 @@ func test_recenter_on_enable_mouse_enabled_centers_on_mouse_else_fallbacks() -> 
 	gp.set_input_processing_enabled(false)
 	gp.global_position = Vector2.ZERO
 	gp.set_input_processing_enabled(true)
-	await get_tree().process_frame
+	runner.simulate_frames(1)
 
 	# EXPECTED: With MOUSE_CURSOR policy, positioner should move to cached mouse position (snapped to grid)
 	# The cached position Vector2(10, 20) should be snapped to the nearest tile center
@@ -279,7 +282,7 @@ func test_recenter_on_enable_mouse_enabled_centers_on_mouse_else_fallbacks() -> 
 	).is_equal_approx(expected_pos, Vector2(8.0, 8.0))  # 8px tolerance for tile snapping
 
 func test_recenter_on_enable_keyboard_only_centers_view() -> void:
-	var setup: Array = await _create_recenter_env()
+	var setup: Array = _create_recenter_env()
 	var gp: GRID_POSITIONER_SCRIPT = setup[_IDX_GP]
 	var settings: GridTargetingSettings = setup[_IDX_SETTINGS]
 	var map: TileMapLayer = setup[_IDX_MAP]
@@ -290,7 +293,7 @@ func test_recenter_on_enable_keyboard_only_centers_view() -> void:
 	gp.global_position = Vector2(1, 1)
 	gp.set_input_processing_enabled(false)
 	gp.set_input_processing_enabled(true)
-	await get_tree().process_frame
+	runner.simulate_frames(1)
 
 	var expected_global_vc: Vector2 = _expected_view_center_position(map)
 	assert_vector(gp.global_position).append_failure_message(
@@ -300,7 +303,7 @@ func test_recenter_on_enable_keyboard_only_centers_view() -> void:
 	).is_equal_approx(expected_global_vc, Vector2(8.0, 8.0))
 
 func test_restrict_to_map_area_respects_parent_transform() -> void:
-	var setup: Array = await _create_recenter_env()
+	var setup: Array = _create_recenter_env()
 	var gp: GRID_POSITIONER_SCRIPT = setup[_IDX_GP]
 	var settings: GridTargetingSettings = setup[_IDX_SETTINGS]
 	var map: TileMapLayer = setup[_IDX_MAP]
@@ -312,7 +315,7 @@ func test_restrict_to_map_area_respects_parent_transform() -> void:
 	add_child(map_parent)
 	map.get_parent().remove_child(map)
 	map_parent.add_child(map) 
-	await get_tree().process_frame
+	runner.simulate_frames(1)
 
 	var target_tile: Vector2i = Vector2i(1, 2)
 	var expected_global: Vector2 = map.to_global(map.map_to_local(target_tile))
@@ -354,7 +357,7 @@ func test_hide_on_handled_mouse_event_hides_positioner() -> void:
 	
 	# Create the stub positioner specifically for this test
 	var stub_positioner := _StubGateGridPositioner.new()
-	var setup: Array = await _create_positioner_env(stub_positioner, true)
+	var setup: Array = _create_positioner_env(stub_positioner, true)
 	var gp: GridPositioner2D = setup[_IDX_GP]
 	var settings: GridTargetingSettings = setup[_IDX_SETTINGS]
 	var states: GBStates = setup[_IDX_STATES]
@@ -371,7 +374,7 @@ func test_hide_on_handled_mouse_event_hides_positioner() -> void:
 	# Clear any cached mouse state by setting the positioner to OFF mode first
 	# This ensures we start with a clean state
 	states.mode.current = GBEnums.Mode.OFF
-	await get_tree().process_frame
+	runner.simulate_frames(1)
 	
 	# Set the gate to block input BEFORE any mouse events
 	stub.set_next_gate(GATE_BLOCKS_INPUT)
@@ -409,7 +412,7 @@ func test_hide_on_handled_mouse_event_hides_positioner() -> void:
 	).is_false()
 
 func test_recenter_on_resolve_dependencies_mouse_enabled_and_cursor_on_screen() -> void:
-	var setup: Array = await _create_recenter_env()
+	var setup: Array = _create_recenter_env()
 	var gp: GRID_POSITIONER_SCRIPT = setup[_IDX_GP]
 	var settings: GridTargetingSettings = setup[_IDX_SETTINGS]
 	# Note: map variable not needed for this test (avoids unused variable warning)
@@ -429,7 +432,7 @@ func test_recenter_on_resolve_dependencies_mouse_enabled_and_cursor_on_screen() 
 	
 	# Trigger recenter logic by enabling input processing (simulates resolve dependencies)
 	gp.set_input_processing_enabled(true)
-	await get_tree().process_frame
+	runner.simulate_frames(1)
 	
 	# Should fail fast - positioning utilities now require Camera2D and return Vector2.ZERO on failure
 	# With fail-fast behavior, Vector2.ZERO maps to tile (0,0) which centers at (8.0, 8.0)
@@ -440,7 +443,7 @@ func test_recenter_on_resolve_dependencies_mouse_enabled_and_cursor_on_screen() 
 	).is_equal(expected_fail_safe_position)
 
 func test_recenter_on_resolve_dependencies_mouse_disabled_moves_to_center() -> void:
-	var setup: Array = await _create_recenter_env()
+	var setup: Array = _create_recenter_env()
 	var gp: GRID_POSITIONER_SCRIPT = setup[_IDX_GP]
 	var settings: GridTargetingSettings = setup[_IDX_SETTINGS]
 	
@@ -453,7 +456,7 @@ func test_recenter_on_resolve_dependencies_mouse_disabled_moves_to_center() -> v
 	
 	# Trigger recenter logic by enabling input processing (simulates resolve dependencies)
 	gp.set_input_processing_enabled(true)
-	await get_tree().process_frame
+	runner.simulate_frames(1)
 	
 	# Should fail fast - positioning utilities now require Camera2D and return Vector2.ZERO on failure
 	# With fail-fast behavior, Vector2.ZERO maps to tile (0,0) which centers at (8.0, 8.0)
@@ -463,7 +466,7 @@ func test_recenter_on_resolve_dependencies_mouse_disabled_moves_to_center() -> v
 	).is_equal(expected_fail_safe_position)
 
 func test_recenter_on_resolve_dependencies_cursor_off_screen_moves_to_center() -> void:
-	var setup: Array = await _create_recenter_env()
+	var setup: Array = _create_recenter_env()
 	var gp: GRID_POSITIONER_SCRIPT = setup[_IDX_GP]
 	var settings: GridTargetingSettings = setup[_IDX_SETTINGS]
 	
@@ -476,23 +479,20 @@ func test_recenter_on_resolve_dependencies_cursor_off_screen_moves_to_center() -
 	gp = _replace_positioner(setup[_IDX_ENV], test_positioner)
 	
 	# Wait for scene tree to stabilize after positioner replacement
-	await get_tree().process_frame
-	await get_tree().process_frame
+	runner.simulate_frames(2)
 	
 	# Set positioner to a known position away from center and disable input processing
 	gp.global_position = Vector2(1, 1)
 	gp.set_input_processing_enabled(false)
 	
 	# Wait for state to propagate
-	await get_tree().process_frame
+	runner.simulate_frames(1)
 	
 	# Trigger recenter logic by enabling input processing (simulates resolve dependencies)
 	gp.set_input_processing_enabled(true)
 	
 	# Wait for positioning logic to complete (multiple frames for full propagation)
-	await get_tree().process_frame
-	await get_tree().process_frame
-	await get_tree().process_frame
+	runner.simulate_frames(3)
 	
 	# Should fail fast - positioning utilities now require Camera2D and return Vector2.ZERO on failure
 	# With fail-fast behavior, Vector2.ZERO maps to tile (0,0) which centers at (8.0, 8.0)
@@ -546,7 +546,7 @@ func _send_blocked_mouse_events(gp: GridPositioner2D, _stub: _StubGateGridPositi
 		var mouse_event := InputEventMouseMotion.new()
 		mouse_event.position = DEFAULT_HIDE_GATE_POSITION + (POSITION_OFFSET_INCREMENT * i)
 		gp._input(mouse_event)
-		await get_tree().process_frame
+		runner.simulate_frames(1)
 
 ## Helper method for validating hide_on_handled settings configuration
 func _assert_hide_settings_configured(settings: GridTargetingSettings, stub: _StubGateGridPositioner, states: GBStates) -> void:

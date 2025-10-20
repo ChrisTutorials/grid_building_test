@@ -1,5 +1,4 @@
 ## Debug test to figure out why enter_build_mode is failing
-class_name BuildModeDebugTest
 extends GdUnitTestSuite
 
 var test_env: AllSystemsTestEnvironment

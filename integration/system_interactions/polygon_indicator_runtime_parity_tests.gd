@@ -68,7 +68,10 @@ func test_polygon_indicators_align_with_geometry() -> void:
 	
 	# Skip test if build mode fails 
 	if not _building_validation.is_successful:
-		print("[SKIP] Build mode failed, cannot test indicator alignment")
+		var diagnostic: String = GBTestDiagnostics.flush_for_assert()
+		assert_bool(_building_validation.is_successful).append_failure_message(
+			"Build mode failed, cannot test indicator alignment. Diagnostics: %s" % diagnostic
+		).is_true()
 		return
 	
 	var preview: Node2D = _building_validation.preview
@@ -76,7 +79,10 @@ func test_polygon_indicators_align_with_geometry() -> void:
 	
 	# Skip test if manager setup fails
 	if not _manager_validation.is_valid:
-		print("[SKIP] Manager setup failed, cannot test indicator alignment")
+		var diagnostic: String = GBTestDiagnostics.flush_for_assert()
+		assert_bool(_manager_validation.is_valid).append_failure_message(
+			"Manager setup failed, cannot test indicator alignment. Diagnostics: %s" % diagnostic
+		).is_true()
 		return
 	
 	# Generate indicators
@@ -86,7 +92,10 @@ func test_polygon_indicators_align_with_geometry() -> void:
 	
 	# Skip if no indicators generated
 	if indicator_result.indicator_count == 0:
-		print("[SKIP] No indicators generated, cannot test alignment")
+		var diagnostic: String = GBTestDiagnostics.flush_for_assert()
+		assert_int(indicator_result.indicator_count).append_failure_message(
+			"No indicators generated, cannot test alignment. Diagnostics: %s" % diagnostic
+		).is_greater(0)
 		return
 	
 	# Verify at least one indicator is near the positioner center
@@ -111,7 +120,10 @@ func test_polygon_preview_has_collision_polygon() -> void:
 	
 	# This test can provide useful debugging even if build mode fails
 	if not _building_validation.is_successful:
-		print("[DEBUG] Build mode failed: %s" % _building_validation.error_summary)
+		var diagnostic: String = GBTestDiagnostics.flush_for_assert()
+		assert_bool(_building_validation.is_successful).append_failure_message(
+			"Build mode failed: %s. Diagnostics: %s" % [_building_validation.error_summary, diagnostic]
+		).is_true()
 		return
 	
 	var preview: Node2D = _building_validation.preview

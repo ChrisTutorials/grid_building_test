@@ -146,16 +146,14 @@ func test_validation_failure_prevents_object_movement() -> void:
 	# CRITICAL: Wait for physics to register the obstacle
 	runner.simulate_frames(2, 60)  # 2 physics frames
 	
-	# DEBUG: Verify obstacle is in scene tree and has proper setup
-	print("DEBUG: Obstacle in tree: ", collision_body.is_inside_tree())
-	print("DEBUG: Obstacle position: ", collision_body.global_position)
-	print("DEBUG: Obstacle collision_layer: ", collision_body.collision_layer)
-	print("DEBUG: Obstacle has CollisionShape2D child: ", collision_body.get_child_count() > 0)
+	# Verify obstacle is in scene tree with proper setup
+	assert_bool(collision_body.is_inside_tree()).append_failure_message("Obstacle should be in scene tree").is_true()
+	assert_int(collision_body.get_child_count()).append_failure_message("Obstacle should have CollisionShape2D child").is_greater(0)
+	
 	if collision_body.get_child_count() > 0:
 		var shape_node: CollisionShape2D = collision_body.get_child(0) as CollisionShape2D
 		if shape_node:
-			print("DEBUG: CollisionShape2D exists, shape: ", shape_node.shape)
-			print("DEBUG: CollisionShape2D disabled: ", shape_node.disabled)
+			assert_object(shape_node.shape).append_failure_message("CollisionShape2D should have a shape").is_not_null()
 	
 	# Act: Start move operation
 	var move_data: ManipulationData = manipulation_system.try_move(manipulatable.root)

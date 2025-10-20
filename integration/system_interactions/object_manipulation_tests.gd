@@ -6,11 +6,11 @@ extends GdUnitTestSuite
 
 const TEST_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
 
-## Isometric game RuleCheckIndicator 
-const RCI_ISOMETRIC : PackedScene = preload("uid://bs3xba0ifer7b")
+## Isometric game RuleCheckIndicator (centralized)
+var RCI_ISOMETRIC : PackedScene = GBTestConstants.TEST_INDICATOR_ISOMETRIC
 
-## Top-down sidescroller square shape RuleCheckIndicator
-const RCI_TD_SIDE : PackedScene = preload("uid://dhox8mb8kuaxa")
+## Top-down sidescroller square shape RuleCheckIndicator (centralized)
+var RCI_TD_SIDE : PackedScene = GBTestConstants.TEST_INDICATOR_TD_PLATFORMER
 
 
 # Test constants

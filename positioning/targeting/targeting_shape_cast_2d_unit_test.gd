@@ -1,6 +1,8 @@
 ## Unit tests for TargetingShapeCast2D component
 extends GdUnitTestSuite
 
+var runner: GdUnitSceneRunner
+
 func test_force_shapecast_update_no_crash() -> void:
 	# Create a TargetingShapeCast2D instance with a valid shape and ensure update_target() is safe
 	var sc: TargetingShapeCast2D = TargetingShapeCast2D.new()
@@ -56,8 +58,7 @@ func test_targeting_detects_static_body_with_matching_collision_layers() -> void
 	target_body.global_position = Vector2(100, 100)
 	
 	# Wait for physics to process
-	await get_tree().physics_frame
-	await get_tree().physics_frame
+	runner.simulate_frames(2)
 	
 	# Act: Update target (this is what _physics_process does)
 	sc.update_target()
@@ -109,9 +110,7 @@ func test_targeting_continuous_update_via_physics_process() -> void:
 	target_body.global_position = Vector2(200, 200)
 	
 	# Wait for multiple physics frames - _physics_process should update automatically
-	await get_tree().physics_frame
-	await get_tree().physics_frame
-	await get_tree().physics_frame
+	runner.simulate_frames(3)
 	
 	# Assert: After physics frames, target should be detected automatically
 	assert_object(targeting_state.get_target()).append_failure_message(
@@ -165,8 +164,7 @@ func test_targeting_detects_object_without_leaving_collision_area() -> void:
 	).is_null()
 	
 	# Wait for physics - this is the critical moment
-	await get_tree().physics_frame
-	await get_tree().physics_frame
+	runner.simulate_frames(2)
 	
 	# EXPECTED: Target should now be set because ShapeCast is colliding
 	# ACTUAL BUG: Target stays null until mouse moves out and back in
@@ -235,8 +233,7 @@ func test_targeting_updates_when_target_changes_to_null() -> void:
 	
 	# Step 1: Position over ObjectA and let it be targeted
 	sc.global_position = Vector2(100, 100)
-	await get_tree().physics_frame
-	await get_tree().physics_frame
+	runner.simulate_frames(2)
 	
 	assert_object(targeting_state.get_target()).append_failure_message(
 		"Step 1: ObjectA should be targeted"
@@ -244,8 +241,7 @@ func test_targeting_updates_when_target_changes_to_null() -> void:
 	
 	# Step 2: Move ShapeCast over ObjectB
 	sc.global_position = Vector2(200, 200)
-	await get_tree().physics_frame
-	await get_tree().physics_frame
+	runner.simulate_frames(2)
 	
 	# Target should automatically update to ObjectB
 	assert_object(targeting_state.get_target()).append_failure_message(
@@ -256,13 +252,13 @@ func test_targeting_updates_when_target_changes_to_null() -> void:
 	
 	# Step 3: Manually clear target (simulating manipulation end or other system clearing)
 	targeting_state.clear()
-	await get_tree().physics_frame
+	runner.simulate_frames(1)
 	
 	# Step 4: ShapeCast is STILL over ObjectB - it should re-detect it
 	# This is the key scenario: after target is cleared, does ShapeCast
 	# detect the object it's already hovering over?
-	await get_tree().physics_frame
-	
+	runner.simulate_frames(1)
+
 	assert_object(targeting_state.get_target()).append_failure_message(
 		"Step 4: After target cleared, ShapeCast should re-detect ObjectB " +
 		"that it's still hovering over. is_colliding=%s, target=%s" %
@@ -308,8 +304,7 @@ func test_targeting_after_external_target_clear_while_hovering() -> void:
 	
 	# Simulate: ShapeCast hovering over object and target is set
 	sc.global_position = Vector2(100, 100)
-	await get_tree().physics_frame
-	await get_tree().physics_frame
+	runner.simulate_frames(2)
 	
 	assert_object(targeting_state.get_target()).append_failure_message(
 		"Setup: Target should be set to persistent object"
@@ -332,7 +327,7 @@ func test_targeting_after_external_target_clear_while_hovering() -> void:
 	# Now the critical moment: next physics frame
 	# ShapeCast._physics_process() will call update_target()
 	# Should it re-set the target even though it's the "same" object?
-	await get_tree().physics_frame
+	runner.simulate_frames(1)
 	
 	# THE BUG: This assertion should pass but currently fails
 	# because update_target() sees old_target (null) != promoted_target (persistent_obj)
@@ -388,8 +383,7 @@ func test_root_node_metadata_on_collision_object_redirects_to_root() -> void:
 	
 	# Position ShapeCast over collision body
 	sc.global_position = Vector2(100, 100)
-	await get_tree().physics_frame
-	await get_tree().physics_frame
+	runner.simulate_frames(2)
 	
 	# Assert: Target should be collision body, target_root should be the resolved root node
 	assert_object(targeting_state.get_collider()).append_failure_message(
@@ -446,8 +440,7 @@ func test_root_node_metadata_hierarchical_search() -> void:
 	
 	# Position ShapeCast
 	sc.global_position = Vector2(200, 200)
-	await get_tree().physics_frame
-	await get_tree().physics_frame
+	runner.simulate_frames(2)
 	
 	# Assert: target should be collision body, target_root should be resolved via Manipulatable
 	assert_object(targeting_state.get_collider()).append_failure_message(
@@ -513,8 +506,7 @@ func test_root_node_metadata_max_depth_limit() -> void:
 	
 	# Position ShapeCast
 	sc.global_position = Vector2(300, 300)
-	await get_tree().physics_frame
-	await get_tree().physics_frame
+	runner.simulate_frames(2)
 	
 	# Assert: target should be collision body, target_root should be resolved from direct child
 	assert_object(targeting_state.get_collider()).append_failure_message(
@@ -559,8 +551,7 @@ func test_root_node_metadata_invalid_value_fallback() -> void:
 	
 	# Position ShapeCast
 	sc.global_position = Vector2(400, 400)
-	await get_tree().physics_frame
-	await get_tree().physics_frame
+	runner.simulate_frames(2)
 	
 	# Assert: Should fallback to collision body itself
 	assert_object(targeting_state.get_target()).append_failure_message(
@@ -603,8 +594,7 @@ func test_root_node_metadata_wrong_type_fallback() -> void:
 	
 	# Position ShapeCast
 	sc.global_position = Vector2(500, 500)
-	await get_tree().physics_frame
-	await get_tree().physics_frame
+	runner.simulate_frames(2)
 	
 	# Assert: Should fallback to collision body when metadata wrong type
 	assert_object(targeting_state.get_target()).append_failure_message(
@@ -642,8 +632,7 @@ func test_root_node_metadata_backward_compatibility() -> void:
 	
 	# Position ShapeCast
 	sc.global_position = Vector2(600, 600)
-	await get_tree().physics_frame
-	await get_tree().physics_frame
+	runner.simulate_frames(2)
 	
 	# Assert: Should target the StaticBody2D itself (traditional behavior)
 	assert_object(targeting_state.get_target()).append_failure_message(
@@ -683,8 +672,7 @@ func test_root_node_metadata_self_reference() -> void:
 	
 	# Position ShapeCast
 	sc.global_position = Vector2(700, 700)
-	await get_tree().physics_frame
-	await get_tree().physics_frame
+	runner.simulate_frames(2)
 	
 	# Assert: Should resolve to self (no-op but valid)
 	assert_object(targeting_state.get_target()).append_failure_message(

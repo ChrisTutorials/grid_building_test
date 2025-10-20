@@ -83,21 +83,31 @@ func before_test() -> void:
 	targeting_state.set_manual_target(highlight_target)
 	#endregion
 
-	# Create manipulatables using factory
-	var same_mani: Manipulatable = GodotTestFactory.create_manipulatable(self, "ManipulatableRoot")
+	# Create small Manipulatable instances with explicit root nodes so move_copy.root is available
+	var same_root: Node2D = auto_free(Node2D.new())
+	same_root.name = "ManipulatableRoot"
+	add_child(same_root)
+
+	var same_mani: Manipulatable = auto_free(Manipulatable.new())
+	same_mani.root = same_root
+
 	data_source_is_target = ManipulationData.new(
 		auto_free(Node.new()), same_mani, same_mani, GBEnums.Action.BUILD
 	)
 
-	var mani_dif_1: Manipulatable = GodotTestFactory.create_manipulatable(
-		self, "ManipulatableRoot1"
-	)
-	mani_dif_1.name = "Manipulatable1"
+	var diff_root_1: Node2D = auto_free(Node2D.new())
+	diff_root_1.name = "ManipulatableRoot1"
+	add_child(diff_root_1)
 
-	var mani_dif_2: Manipulatable = GodotTestFactory.create_manipulatable(
-		self, "ManipulatableRoot2"
-	)
-	mani_dif_2.name = "Manipulatable2"
+	var mani_dif_1: Manipulatable = auto_free(Manipulatable.new())
+	mani_dif_1.root = diff_root_1
+
+	var diff_root_2: Node2D = auto_free(Node2D.new())
+	diff_root_2.name = "ManipulatableRoot2"
+	add_child(diff_root_2)
+
+	var mani_dif_2: Manipulatable = auto_free(Manipulatable.new())
+	mani_dif_2.root = diff_root_2
 
 	data_source_is_not_target = ManipulationData.new(
 		auto_free(Node.new()), mani_dif_1, mani_dif_2, GBEnums.Action.BUILD
@@ -223,22 +233,67 @@ func add_child_manipulatable_with_settings(p_target: Node) -> void:
 
 
 @warning_ignore("unused_parameter")
+@warning_ignore("unused_parameter")
 func test_should_highlight(
-	p_data: ManipulationData,
-	p_new_target: CanvasItem,
+	p_data: Variant,
+	p_target_builder: Callable,
 	p_expected: bool,
-	p_description: String = "",
+	p_desc: String = "",
 	test_parameters := [
-		[null, null, false, "Both data and target are null"],
-		[null, auto_free(Node2D.new()), true, "Target is different"],
-		[data_source_is_target, auto_free(Node2D.new()), false, "Is data but target is the same as p_data move_copy"],
-		[data_source_is_target, data_source_is_target.move_copy.root, true, "Is Data, Target is Same, but source is different"],
-		[data_source_is_not_target, data_source_is_target.move_copy.root, false, "Is Data, Target is Same, but source is different"]
+		# Both data and target are null
+	[null, Callable(self, "_build_null_target"), false, "Both data and target are null"],
+		# Target is different (no data)
+	[null, Callable(self, "_build_new_target"), true, "Target is different"],
+		# Data is present, but target is not the move_copy.root -> should not highlight
+	["DATA_SOURCE_IS_TARGET", Callable(self, "_build_new_target"), false, "Is data but target is the same as p_data move_copy"],
+		# Data is present, target is move_copy.root and source differs -> should highlight
+	["DATA_SOURCE_IS_TARGET", Callable(self, "_build_move_copy_root_target"), true, "Is Data, Target is Same, but source is different"],
+		# Different data, target is move_copy.root for other data -> should not highlight
+	["DATA_SOURCE_IS_NOT_TARGET", Callable(self, "_build_move_copy_root_target"), false, "Is Data, Target is Same, but source is different"]
 	]
 ) -> void:
-	assert_bool(highlighter.should_highlight(p_data, p_new_target)).append_failure_message("Expected: %s" % p_description).is_equal(p_expected)
-	if p_new_target:
-		p_new_target.free()
+	# Resolve sentinel values into actual objects created at runtime
+	var d: ManipulationData = null
+	if p_data == "DATA_SOURCE_IS_TARGET":
+		d = data_source_is_target
+	elif p_data == "DATA_SOURCE_IS_NOT_TARGET":
+		d = data_source_is_not_target
+
+	# Build or obtain the target via the callable to ensure unique instances where needed
+	var t: CanvasItem = null
+	if p_target_builder != null:
+		t = p_target_builder.call()
+
+	# Run assertion
+	assert_bool(highlighter.should_highlight(d, t)).append_failure_message("should_highlight failed - %s" % p_desc).is_equal(p_expected)
+
+	# Cleanup: free dynamically created targets that are not owned elsewhere
+	if t != null:
+		var is_owned: bool = false
+		if is_instance_valid(data_source_is_target) and data_source_is_target.move_copy != null and is_instance_valid(data_source_is_target.move_copy.root):
+			if t == data_source_is_target.move_copy.root:
+				is_owned = true
+		if is_instance_valid(data_source_is_not_target) and data_source_is_not_target.move_copy != null and is_instance_valid(data_source_is_not_target.move_copy.root):
+			if t == data_source_is_not_target.move_copy.root:
+				is_owned = true
+		if not is_owned:
+			t.free()
+
+func _build_null_target() -> CanvasItem:
+	return null
+
+func _build_new_target() -> CanvasItem:
+	var n: Node2D = auto_free(Node2D.new())
+	add_child(n)
+	return n
+
+func _build_move_copy_root_target() -> CanvasItem:
+	# Return the move_copy.root of data_source_is_target if available, otherwise create a new Node
+	if is_instance_valid(data_source_is_target) and data_source_is_target.move_copy != null and is_instance_valid(data_source_is_target.move_copy.root):
+		return data_source_is_target.move_copy.root
+	var fallback: Node2D = auto_free(Node2D.new())
+	add_child(fallback)
+	return fallback
 
 func test_build_mode_preview_objects_still_highlighted() -> void:
 	"""Test that preview objects in BUILD mode still get highlighted correctly."""

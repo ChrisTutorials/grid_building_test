@@ -1,7 +1,6 @@
 ## GBPositioning2DUtils Test Suite
 ## Tests for 2D positioning utility functions including coordinate conversions,
 ## tile positioning, viewport-to-world transformations, and region validation.
-class_name GBPositioning2DUtilsTestSuite
 extends GdUnitTestSuite
 
 # Test environment and shared resources

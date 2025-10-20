@@ -3,7 +3,6 @@
 ## Tests the GridContainer-based approach for displaying both individual placeables and sequences
 ## simultaneously in categorized tabs with configurable column layouts and proper dependency injection.
 ## Validates template instantiation, content loading, signal handling, and building system integration.
-class_name PlaceableSelectionUITest
 extends GdUnitTestSuite
 
 # Test constants for magic number elimination

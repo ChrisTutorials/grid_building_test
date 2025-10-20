@@ -542,4 +542,5 @@ func test_concave_polygon_tile_distribution() -> void:
 		).is_false()
 	
 	# Debug output to see what tiles are actually filled
-	print("Concave polygon test - filled tiles: %s" % str(tile_positions))
+	GBTestDiagnostics.buffer("Concave polygon test - filled tiles: %s" % str(tile_positions))
+

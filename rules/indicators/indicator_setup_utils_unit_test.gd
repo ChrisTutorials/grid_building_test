@@ -14,7 +14,6 @@
 ## - validate_indicator_positions: Position accuracy validation
 ## - calculate_indicator_count: Indicator count calculation
 ## - validate_setup_preconditions: Input validation checks
-class_name IndicatorSetupUtilsUnitTest
 extends GdUnitTestSuite
 
 ## Test constants for magic number elimination
@@ -97,7 +96,9 @@ func test_gather_collision_shapes_parameterized() -> void:
 		
 		var scene: PackedScene = load(scene_path) as PackedScene
 		if scene == null:
-			print("Warning: Could not load scene at path: ", scene_path)
+			GBTestDiagnostics.buffer("Warning: Could not load scene at path: %s" % scene_path)
+			var context := GBTestDiagnostics.flush_for_assert()
+			assert_bool(scene != null).append_failure_message("Scene should load successfully: %s\nContext: %s" % [scene_path, context]).is_true()
 			continue
 			
 		var test_object: Node2D = scene.instantiate() as Node2D
@@ -210,8 +211,7 @@ func test_collision_mapping_works_but_indicator_creation_fails() -> void:
 	assert_that(test_setups.size()).is_greater(0).append_failure_message("Should create at least one CollisionTestSetup2D for the test object")
 	
 	# Create test indicator for collision mapper setup
-	var test_indicator_scene: PackedScene = preload("uid://dhox8mb8kuaxa")
-	var test_indicator: RuleCheckIndicator = test_indicator_scene.instantiate()
+	var test_indicator: RuleCheckIndicator = GBTestConstants.TEST_INDICATOR_TD_PLATFORMER.instantiate()
 	add_child(test_indicator)
 	auto_free(test_indicator)
 	
@@ -360,7 +360,7 @@ func test_calculate_indicator_count_parameterized() -> void:
 		
 		var scene: PackedScene = load(scene_path) as PackedScene
 		if scene == null:
-			print("Warning: Could not load scene at path: ", scene_path)
+			GBTestDiagnostics.buffer("Warning: Could not load scene at path: %s" % scene_path)
 			continue
 			
 		var test_object: Node2D = scene.instantiate() as Node2D
@@ -688,7 +688,7 @@ func test_collision_rule_validation_setup() -> void:
 	var result := IndicatorSetupUtils.validate_setup_preconditions(test_object, rules, mock_collision_mapper)
 	assert_that(result).append_failure_message("Expected no validation issues with properly configured collision rule").is_empty()
 	
-	print("Collision rule validation test - rule configured properly, setup validation passed")
+	GBTestDiagnostics.buffer("Collision rule validation test - rule configured properly, setup validation passed")
 
 ## Test rule validation with multiple rules - isolates multi-rule scenarios
 func test_multiple_rule_validation_setup() -> void:
@@ -716,4 +716,4 @@ func test_multiple_rule_validation_setup() -> void:
 	assert_bool(rules[0] is CollisionsCheckRule).append_failure_message("Expected first rule to be CollisionsCheckRule").is_true()
 	assert_bool(rules[1] is TileCheckRule).append_failure_message("Expected second rule to be TileCheckRule").is_true()
 	
-	print("Multiple rule validation test - %d rules configured, setup validation passed" % rules.size())
+	GBTestDiagnostics.buffer("Multiple rule validation test - %d rules configured, setup validation passed" % rules.size())

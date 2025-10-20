@@ -11,7 +11,6 @@
 ## - CollisionGeometryCalculator tile overlap detection accuracy
 ## - Debug output verification for development troubleshooting
 
-class_name DebugPolygonTest
 extends GdUnitTestSuite
 
 #region Test Constants
@@ -47,25 +46,13 @@ func test_debug_polygon_bounds() -> void:
 
 		bounds = Rect2(min_x, min_y, max_x - min_x, max_y - min_y)
 
-	print("Polygon: ", polygon)
-	print("Bounds: ", bounds)
-	print("bounds.position: ", bounds.position)
-	print("bounds.size: ", bounds.size)
-	print("bounds.position + bounds.size: ", bounds.position + bounds.size)
-
 	var start_tile: Vector2i = Vector2i(floor(bounds.position.x / tile_size.x), floor(bounds.position.y / tile_size.y))
 	var end_tile: Vector2i = Vector2i(ceil((bounds.position.x + bounds.size.x) / tile_size.x), ceil((bounds.position.y + bounds.size.y) / tile_size.y))
-
-	print("start_tile: ", start_tile)
-	print("end_tile: ", end_tile)
 
 	var tiles_checked: Array[Vector2i] = []
 	for x: int in range(start_tile.x, end_tile.x):
 		for y: int in range(start_tile.y, end_tile.y):
 			tiles_checked.append(Vector2i(x, y))
-
-	print("Tiles checked: ", tiles_checked)
-	print("Number of tiles: ", tiles_checked.size())
 
 	# Test actual collision detection
 	# Create a temporary tile map layer for map-aware calculations
@@ -73,5 +60,11 @@ func test_debug_polygon_bounds() -> void:
 	var tiles: Array[Vector2i] = CollisionGeometryCalculator.calculate_tile_overlap(
 		polygon, tile_size, TileSet.TILE_SHAPE_SQUARE, _test_tile_map_layer, COLLISION_TOLERANCE, COLLISION_TOLERANCE
 	)
-	print("Actually overlapping tiles: ", tiles)
+	
+	# Verify polygon overlap detection
+	assert_array(tiles).append_failure_message(
+		"Polygon overlap detection should work. Polygon: %s, Bounds: %s, Tiles checked: %d, Actual overlapping tiles: %s" % [
+			str(polygon), str(bounds), tiles_checked.size(), str(tiles)
+		]
+	).is_not_empty()
 #endregion

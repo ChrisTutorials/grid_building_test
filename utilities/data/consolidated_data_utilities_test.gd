@@ -14,7 +14,7 @@ const NODE_NAME_NUM_SEPARATOR: int = 2
 # -----------------------------------------------------------------------------
 var _container : GBCompositionContainer = GBTestConstants.TEST_COMPOSITION_CONTAINER
 var test_node: Node
-var building_node_script: Script = load("uid://cufp4o5ctq6ak")
+var building_node_script: Script = GBTestConstants.BUILDING_NODE_SCRIPT
 var project_name_num_seperator: int
 var container: GBCompositionContainer
 
@@ -115,9 +115,8 @@ func test_debug_setting_float_and_color_are_read() -> void:
 	# Create GBLogger with our settings
 	var test_logger: GBLogger = _make_test_logger_with_settings(settings)
 
-	# Instantiate a RuleCheckIndicator scene
-	var IndicatorScene: PackedScene = preload("res://templates/grid_building_templates/indicator/rule_check_indicator_16x16.tscn")
-	var indicator: Node = IndicatorScene.instantiate() as Node
+	# Instantiate a RuleCheckIndicator scene using central test constant
+	var indicator: Node = GBTestConstants.TEST_INDICATOR_16X16.instantiate() as Node
 
 	# Inject the logger by setting the _logger field directly (tests may do this)
 	indicator._logger = test_logger
@@ -204,7 +203,7 @@ func test_trapezoid_collision_calculation_diagnostic() -> void:
 
 			if overlaps_strict or overlaps_loose:
 				var clipped: PackedVector2Array = CollisionGeometryCalculator.clip_polygon_to_rect(trapezoid_points, tile_rect)
-				var area: float = CollisionGeometryCalculator.polygon_area(clipped)
+				var _area: float = CollisionGeometryCalculator.polygon_area(clipped)
 
 				if overlaps_strict:
 					overlapping_tiles.append(tile_pos)

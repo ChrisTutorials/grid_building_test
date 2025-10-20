@@ -11,7 +11,6 @@
 ## 1. Entering build mode with a placeable that has collision shapes
 ## 2. Verifying the preview is added to collision_exclusions
 ## 3. Verifying indicators don't detect collision with the preview itself
-class_name PreviewSelfCollisionExclusionTest
 extends GdUnitTestSuite
 
 var runner: GdUnitSceneRunner

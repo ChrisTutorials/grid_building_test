@@ -112,8 +112,8 @@ func test_visibility_context_with_hidden_ancestor_and_zoom_bounds() -> void:
 	parent.visible = false
 	var child := Sprite2D.new()
 	parent.add_child(child)
-	var ctx := GBDiagnostics.format_visibility_context(child, child, null, null)
-	assert_str(ctx).contains("anc_hidden=HiddenParent(Node2D)")
+	var visibility_info := GBDiagnostics.format_visibility_context(child, child, null, null)
+	assert_str(visibility_info).contains("anc_hidden=HiddenParent(Node2D)")
 	# Zoom bounds formatting via screen state
 	var vp: SubViewport = SubViewport.new()
 	vp.size = Vector2i(400, 300)

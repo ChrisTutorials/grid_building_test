@@ -1,7 +1,6 @@
 ## Test to demonstrate and verify the initialization timing issue with positioner
 ## This test shows the exact sequence of events that causes the positioner null warning
 ## and ensures the fix prevents regression
-class_name InitializationTimingTest
 extends GdUnitTestSuite
 
 var test_env: AllSystemsTestEnvironment

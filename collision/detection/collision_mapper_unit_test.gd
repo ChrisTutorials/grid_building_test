@@ -7,7 +7,7 @@ extends GdUnitTestSuite
 const CollisionUtilities = preload("res://addons/grid_building/placement/manager/components/mapper/collision_utilities.gd")
 
 var _logger: GBLogger
-var indicator_template : PackedScene = preload("uid://dhox8mb8kuaxa")
+var indicator_template : PackedScene = GBTestConstants.TEST_INDICATOR_TD_PLATFORMER
 
 func before_test() -> void:
 	_logger = GBLogger.new(GBDebugSettings.new())

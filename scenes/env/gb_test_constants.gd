@@ -44,6 +44,8 @@ const COLLISION_TEST_ENV_PATH: String = "res://test/grid_building_test/scenes/en
 const ISOMETRIC_TEST_ENV_PATH: String = "res://test/grid_building_test/scenes/env/isometric_test_environment.tscn"
 
 #endregion
+## Demo scenes used by demo tests
+static var TEST_DEMO_ISOMETRIC: PackedScene = preload("res://demos/isometric/demo_isometric_2d.tscn")
 #region Placement Rules
 
 const COLLISIONS_CHECK_RULE : CollisionsCheckRule = preload("uid://du7xu07247202")
@@ -88,6 +90,10 @@ const PLACEABLE_PILLAR_TD: Placeable = preload("uid://dratv0oi76yl5")
 ## Top-down demo smithy placeable - large building for testing
 const PLACEABLE_SMITHY_TD: Placeable = preload("uid://bifgdqn17060d")
 
+## Isometric demo blacksmith placeable (blue)
+## Path: res://demos/isometric/objects/buildings/placeable_blacksmith_blue.tres
+static var PLACEABLE_BLACKSMITH_BLUE: Placeable = preload("uid://c5bv6v8a4kvkb")
+
 #endregion
 #region Object Scene Paths
 ## Fallback paths for test objects
@@ -111,6 +117,16 @@ static var TEST_INDICATOR_TD_PLATFORMER : PackedScene = preload("uid://dhox8mb8k
 
 ## Isometric indicator for placement rule testing
 static var TEST_INDICATOR_ISOMETRIC : PackedScene = preload("uid://bas7hdwotyoiy")
+
+## Small 16x16 rule-check indicator template used by many unit tests
+static var TEST_INDICATOR_16X16: PackedScene = preload("res://templates/grid_building_templates/indicator/rule_check_indicator_16x16.tscn")
+
+# Gigantic egg scene and placeable central constants
+static var GIGANTIC_EGG_SCENE: PackedScene = preload("res://test/grid_building_test/scenes/objects/test_gigantic_egg.tscn")
+static var GIGANTIC_EGG_PLACEABLE: Placeable = preload("uid://cier8t1gci00a")
+
+# Commonly-used scripts
+static var BUILDING_NODE_SCRIPT: Script = load("uid://cufp4o5ctq6ak")
 
 #endregion
 #region Test Configuration Constants

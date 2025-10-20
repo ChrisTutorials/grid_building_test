@@ -4,6 +4,7 @@
 extends GdUnitTestSuite
 
 var _logger: GBLogger
+var runner: GdUnitSceneRunner
 
 func before_test() -> void:
 	_logger = GBLogger.new(GBDebugSettings.new())
@@ -90,14 +91,13 @@ func test_preloaded_tilemap_has_valid_tile_data() -> void:
 				test_pos, used_rect, tile_map.get_cell_source_id(test_pos), tile_map.get_cell_atlas_coords(test_pos)
 			]
 		).is_not_null()
-		
 		# If TileData exists, verify it's properly configured
 		if tile_data != null:
 			# The custom tileset should have "type" custom data (from custom_data_tileset_for_tests.tres)
 			var custom_data: Variant = tile_data.get_custom_data_by_layer_id(0) if tile_data.get_custom_data_by_layer_id(0) != null else "none"
 			# We don't assert custom data presence since it might be optional,
-			# but we document what we found for debugging
-			print("DEBUG: Position %s TileData custom_data_0: %s" % [test_pos, custom_data])
+			# but we document what we found for debugging (buffered)
+			GBTestDiagnostics.buffer("DEBUG: Position %s TileData custom_data_0: %s" % [test_pos, custom_data])
 
 func test_preloaded_tilemap_matches_integration_test_setup() -> void:
 	# This test ensures our preloaded tilemap matches the exact configuration
@@ -149,8 +149,8 @@ func test_within_tilemap_bounds_rule_at_valid_position() -> void:
 	var rule: WithinTilemapBoundsRule = WithinTilemapBoundsRule.new()
 	rule.setup(targeting_state)
 	
-	# Allow frame for setup
-	await get_tree().process_frame
+	# Allow frame for setup (use runner for deterministic frame simulation)
+	runner.simulate_frames(1)
 	
 	# Create a test indicator at the positioner position like integration test does
 	var test_indicator: RuleCheckIndicator = auto_free(RuleCheckIndicator.new())
@@ -165,8 +165,7 @@ func test_within_tilemap_bounds_rule_at_valid_position() -> void:
 	test_indicator.global_position = positioner.global_position  # (8.0, 8.0)
 	
 	# Force physics update and allow _ready() to process
-	await get_tree().process_frame
-	await get_tree().physics_frame
+	runner.simulate_frames(2)
 	
 	# Force validity evaluation to eliminate any timing issues
 	# This ensures the indicator has evaluated all rules immediately
@@ -210,19 +209,18 @@ func test_within_tilemap_bounds_rule_at_invalid_position() -> void:
 	add_child(test_indicator)
 	test_indicator.global_position = Vector2(1000.0, 1000.0)  # Way outside bounds
 	
-	await get_tree().process_frame
-	await get_tree().physics_frame
+	runner.simulate_frames(2)
 	
 	# Force validity evaluation to eliminate timing issues
 	test_indicator.force_validity_evaluation()
 	
-	# Debug ValidationResults directly
+	# Debug ValidationResults directly (buffered)
 	var validation_results: ValidationResults = rule._is_over_valid_tile(test_indicator, tile_map)
-	print("DEBUG ValidationResults:")
-	print("  is_successful(): ", validation_results.is_successful())
-	print("  has_errors(): ", validation_results.has_errors())
-	print("  get_errors(): ", validation_results.get_errors())
-	print("  has_failing_rules(): ", validation_results.has_failing_rules())
+	GBTestDiagnostics.buffer("DEBUG ValidationResults:")
+	GBTestDiagnostics.buffer("  is_successful(): %s" % [validation_results.is_successful()])
+	GBTestDiagnostics.buffer("  has_errors(): %s" % [validation_results.has_errors()])
+	GBTestDiagnostics.buffer("  get_errors(): %s" % [validation_results.get_errors()])
+	GBTestDiagnostics.buffer("  has_failing_rules(): %s" % [validation_results.has_failing_rules()])
 	
 	# Test the rule - should fail for out of bounds position
 	var failing_indicators: Array[RuleCheckIndicator] = rule.get_failing_indicators([test_indicator])
@@ -232,8 +230,9 @@ func test_within_tilemap_bounds_rule_at_invalid_position() -> void:
 	var used_rect: Rect2i = tile_map.get_used_rect()
 	
 	# This should fail since position is outside bounds
+	var context := GBTestDiagnostics.flush_for_assert()
 	assert_bool(is_valid).append_failure_message(
-		"WithinTilemapBoundsRule should fail for out-of-bounds position. Indicator tile: %s, Used rect: %s, Within bounds: %s. ValidationResults.is_successful(): %s" % [str(indicator_tile), str(used_rect), str(used_rect.has_point(indicator_tile)), str(validation_results.is_successful())]
+		"WithinTilemapBoundsRule should fail for out-of-bounds position. Indicator tile: %s, Used rect: %s, Within bounds: %s. ValidationResults.is_successful(): %s\nContext: %s" % [str(indicator_tile), str(used_rect), str(used_rect.has_point(indicator_tile)), str(validation_results.is_successful()), context]
 	).is_false()
 
 # Test edge case: position exactly on boundary
@@ -271,19 +270,18 @@ func test_within_tilemap_bounds_rule_boundary_positions(
 	var world_position: Vector2 = tile_map.to_global(tile_map.map_to_local(tile_position))
 	test_indicator.global_position = world_position
 	
-	await get_tree().process_frame
-	await get_tree().physics_frame
+	runner.simulate_frames(2)
 	
 	# Force validity evaluation to eliminate timing issues
 	test_indicator.force_validity_evaluation()
 	
-	# Debug ValidationResults for failing cases
+	# Debug ValidationResults for failing cases (buffered)
 	if not expected_valid:
 		var validation_results: ValidationResults = rule._is_over_valid_tile(test_indicator, tile_map)
-		print("DEBUG ValidationResults for '%s' at %s:" % [boundary_description, str(tile_position)])
-		print("  is_successful(): ", validation_results.is_successful())
-		print("  has_errors(): ", validation_results.has_errors())
-		print("  get_errors(): ", validation_results.get_errors())
+		GBTestDiagnostics.buffer("DEBUG ValidationResults for '%s' at %s:" % [boundary_description, str(tile_position)])
+		GBTestDiagnostics.buffer("  is_successful(): %s" % [validation_results.is_successful()])
+		GBTestDiagnostics.buffer("  has_errors(): %s" % [validation_results.has_errors()])
+		GBTestDiagnostics.buffer("  get_errors(): %s" % [validation_results.get_errors()])
 	
 	var failing_indicators: Array[RuleCheckIndicator] = rule.get_failing_indicators([test_indicator])
 	var is_valid: bool = failing_indicators.size() == 0
@@ -336,8 +334,7 @@ func test_multiple_rules_validation_combination() -> void:
 	add_child(test_indicator)
 	test_indicator.global_position = positioner.global_position
 	
-	await get_tree().process_frame
-	await get_tree().physics_frame
+	runner.simulate_frames(2)
 	
 	# Force validity evaluation to eliminate timing issues
 	test_indicator.force_validity_evaluation()

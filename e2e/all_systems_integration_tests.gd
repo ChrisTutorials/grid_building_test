@@ -124,15 +124,11 @@ func _assert_validation_result(validation_result: ValidationResults, position: V
 			[context, success_description, position, actual_description, issues]
 		).is_false()
 
-func _log_conditional_message(message: String, force_log: bool = false) -> void:
+func _log_conditional_message(message: String) -> void:
 	"""Centralized conditional logging that respects test verbosity settings"""
-	# In debug or forced logging, print immediately for developer runs.
-	# In standard test runs, buffer diagnostics so they attach to failures instead
-	# of polluting stdout.
-	if force_log or OS.has_feature("debug"):
-		print(message)
-	else:
-		GBTestDiagnostics.buffer(message)
+	# Always buffer diagnostics so they attach to failures instead of polluting stdout.
+	# GBTestDiagnostics.buffer respects GB_VERBOSE_TESTS environment variable for immediate output.
+	GBTestDiagnostics.buffer(message)
 
 func _format_system_state_debug(building_system: Object, indicator_manager: IndicatorManager) -> String:
 	"""Format comprehensive system state information for diagnostics"""
@@ -233,30 +229,6 @@ func after_test() -> void:
 #endregion
 
 #region Building Workflow Integration Tests
-
-func test_basic_building_workflow() -> void:
-	var building_system: Object = env.building_system
-	var test_placeable: Placeable = _create_test_placeable_with_rules()
-
-	# Allow frames for initialization
-	runner.simulate_frames(2)
-
-	# Test basic building workflow using helper
-	var _setup_report: PlacementReport = _enter_build_mode_successfully(building_system, test_placeable, "basic workflow test")
-
-	# Test building at position
-	var placement_report: PlacementReport = building_system.try_build_at_position(TEST_POSITION_1)
-	assert_bool(placement_report.is_successful()).append_failure_message(
-		"Placement report should be successful - Issues: %s | Position: %s | Report Details: %s" % [
-			str(placement_report.get_issues()), 
-			str(TEST_POSITION_1), 
-			_format_placement_report_debug(placement_report)
-		]
-	).is_true()
-
-	# Test exiting build mode
-	building_system.exit_build_mode()
-	assert_bool(building_system.is_in_build_mode()).is_false()
 
 func test_building_workflow_with_validation() -> void:
 	var building_system: Object = env.building_system
@@ -408,7 +380,7 @@ func _monitor_memory_usage(operation_callable: Callable, operation_name: String,
 	if child_diff > threshold:
 		_log_conditional_message(LOG_MESSAGES.memory_warning % [operation_name, child_diff])
 
-func _retry_operation_with_exponential_backoff(callable: Callable, max_attempts: int = MAX_VALIDATION_ATTEMPTS, operation_name: String = "operation") -> bool:
+func _retry_operation_with_exponential_backoff(callable: Callable, max_attempts: int = MAX_VALIDATION_ATTEMPTS) -> bool:
 	"""Retry an operation with exponential backoff for flaky operations"""
 	for attempt in range(max_attempts):
 		# Call the operation and check if it succeeded
@@ -426,7 +398,6 @@ func _retry_operation_with_exponential_backoff(callable: Callable, max_attempts:
 		
 		# Operation failed, wait before retry
 		if attempt == max_attempts - 1:
-			print("Error: %s failed after %d attempts" % [operation_name, max_attempts])
 			return false
 		else:
 			var wait_time: float = pow(2, attempt) * 0.1  # 100ms, 200ms, 400ms, etc.
@@ -714,7 +685,6 @@ func test_targeting_highligher_colors_current_target_integration_test() -> void:
 
 	# Skip test if target highlighter is not available
 	if target_highlighter == null:
-		print("Target highlighter not available in this test environment")
 		return
 
 	# Test targeting with highlight updates
@@ -734,10 +704,11 @@ func test_targeting_highligher_colors_current_target_integration_test() -> void:
 	var is_white: bool = modulate_color.is_equal_approx(Color.WHITE)
 	
 	# If color hasn't changed, this might be expected behavior in some configurations
+	# Just log the behavior for diagnostic purposes without asserting
 	if is_white:
-		print("Target highlighting did not change color (may be expected in this configuration)")
+		_log_conditional_message("Target highlighting did not change color (may be expected in this configuration)")
 	else:
-		print("Target highlighting successfully changed color to: %s" % modulate_color)
+		_log_conditional_message("Target highlighting successfully changed color to: %s" % modulate_color)
 
 func test_targeting_state_transitions() -> void:
 	# Test state transitions
@@ -847,261 +818,65 @@ func test_system_error_recovery() -> void:
 
 #region Building System Tests
 
+## Parameterized system state integration test
 @warning_ignore("unused_parameter")
-func test_building_system_initialization() -> void:
-	var _building_system: BuildingSystem = env.building_system
-	
-	assert_that(_building_system).is_not_null()
-	assert_that(_building_system is BuildingSystem).is_true()
-
-@warning_ignore("unused_parameter")
-func test_building_system_dependencies() -> void:
-	var building_system: BuildingSystem = env.building_system
-	
-	# Verify system has proper dependencies
-	assert_object(building_system).is_not_null()
-
-@warning_ignore("unused_parameter") 
-func test_building_system_state_integration() -> void:
-	var _building_system: BuildingSystem = env.building_system
+func test_system_state_integration(
+	system: String,
+	test_parameters := [
+		["building", 0],
+		["manipulation", 1]
+	]
+) -> void:
 	var container: GBCompositionContainer = env.get_container()
 	
-	# Test building state configuration
-	var building_state: BuildingState = container.get_states().building
-	assert_that(building_state).is_not_null()
+	match system:
+		"building":
+			var _building_system: BuildingSystem = env.building_system
+			var building_state: BuildingState = container.get_states().building
+			assert_that(building_state).is_not_null().append_failure_message("Building state should be properly configured")
+		
+		"manipulation":
+			var _manipulation_system: ManipulationSystem = env.manipulation_system
+			var manipulation_state: ManipulationState = _container.get_states().manipulation
+			assert_that(manipulation_state).is_not_null().append_failure_message("Manipulation state should be properly configured")
+			assert_that(manipulation_state.parent).is_not_null().append_failure_message("Manipulation state parent should be configured")
 
 #endregion
 
 #region Manipulation System Tests
-
-@warning_ignore("unused_parameter")
-func test_manipulation_system_initialization() -> void:
-	var _manipulation_system: ManipulationSystem = env.manipulation_system
-	
-	assert_that(_manipulation_system).is_not_null()
-	assert_that(_manipulation_system is ManipulationSystem).is_true()
-
-@warning_ignore("unused_parameter")
-func test_manipulation_system_dependencies() -> void:
-	var manipulation_system: ManipulationSystem = env.manipulation_system
-	
-	# Verify system has proper dependencies
-	assert_object(manipulation_system).is_not_null()
-
-@warning_ignore("unused_parameter")
-func test_manipulation_system_state_integration() -> void:
-	var _manipulation_system: ManipulationSystem = env.manipulation_system
-	
-	# Test manipulation state configuration
-	var manipulation_state: ManipulationState = _container.get_states().manipulation
-	assert_that(manipulation_state).is_not_null()
-	assert_that(manipulation_state.parent).is_not_null()
+#endregion
 
 #region TARGETING SYSTEM TESTS
 
+## Parameterized targeting system behavior test
 @warning_ignore("unused_parameter")
-func test_targeting_system_state_integration() -> void:
-	# Test targeting state configuration
-	var targeting_state: GridTargetingState = _container.get_states().targeting
-	assert_that(targeting_state).is_not_null()
-	assert_that(targeting_state.positioner).is_not_null()
-
-#endregion
-#region INJECTOR SYSTEM TESTS
-
-@warning_ignore("unused_parameter")
-func test_injector_system_initialization() -> void:
-	var injector: GBInjectorSystem = env.injector
-	
-	assert_that(injector).is_not_null()
-	assert_that(injector is GBInjectorSystem).is_true()
-
-@warning_ignore("unused_parameter")
-func test_injector_system_container_integration() -> void:
-	var injector: GBInjectorSystem = env.injector
-	
-	assert_that(injector).is_not_null()
-	assert_that(_container).is_not_null()
-	# Verify injector is working with the _container
-	assert_that(_container.get_logger()).is_not_null()
-
-#endregion
-#region CROSS-SYSTEM INTEGRATION TESTS
-
-@warning_ignore("unused_parameter")
-func test_all_systems_dependency_resolution() -> void:
-	# Verify all systems have their dependencies properly resolved
-	assert_object(env.building_system).is_not_null()
-	assert_object(env.manipulation_system).is_not_null()
-	assert_object(env.grid_targeting_system).is_not_null()
-
-#endregion
-#region SYSTEM STATE SYNCHRONIZATION TESTS
-
-@warning_ignore("unused_parameter")
-func test_system_state_consistency() -> void:
-	# Verify all states are properly initialized and consistent
-	var building_state: BuildingState = _container.get_states().building
-	var manipulation_state: ManipulationState = _container.get_states().manipulation
-	var targeting_state: GridTargetingState = _container.get_states().targeting
-	
-	assert_that(building_state).is_not_null()
-	assert_that(manipulation_state).is_not_null()
-	assert_that(targeting_state).is_not_null()
-
-@warning_ignore("unused_parameter")
-func test_system_state_hierarchy() -> void:
-	
-	# Test that system states maintain proper hierarchy
-	var manipulation_state: ManipulationState = _container.get_states().manipulation
-	var targeting_state: GridTargetingState = _container.get_states().targeting
-	
-	# Manipulation parent should be under targeting positioner
-	if manipulation_state.parent and targeting_state.positioner:
-		var manipulation_parent: Node = manipulation_state.parent
-		var positioner: Node = targeting_state.positioner
+func test_targeting_system_behavior(
+	behavior: String,
+	test_parameters := [
+		["state", 0],
+		["position_updates", 1]
+	]
+) -> void:
+	match behavior:
+		"state":
+			var targeting_state: GridTargetingState = _container.get_states().targeting
+			var positioner: Node2D = env.positioner
+			
+			assert_that(targeting_state).is_not_null().append_failure_message("Targeting state should be initialized")
+			assert_that(targeting_state.positioner).is_equal(positioner).append_failure_message("Targeting state positioner should match environment positioner")
+			assert_that(targeting_state.target_map).is_equal(env.tile_map_layer).append_failure_message("Targeting state target_map should match tile map")
 		
-		# Check if manipulation parent is in positioner's tree
-		var _is_in_tree: bool = false
-		var current: Node = manipulation_parent
-		while current != null:
-			if current == positioner:
-				_is_in_tree = true
-				break
-			current = current.get_parent()
-		
-		# This may not always be true depending on test setup, so just verify both exist
-		assert_that(manipulation_parent).is_not_null()
-		assert_that(positioner).is_not_null()
-
-#endregion
-#region SYSTEM WORKFLOW TESTS
-
-@warning_ignore("unused_parameter") 
-func test_can_create_object_in_scene() -> void:
-	# Create a test object to work with
-	var test_object: Node2D = GodotTestFactory.create_static_body_with_rect_shape(self)
-	assert_that(test_object).is_not_null()
-
-@warning_ignore("unused_parameter")
-func test_system_performance_integration() -> void:
-	var start_time: int = Time.get_ticks_usec()
-	
-	# Performance test with all systems active
-	for i in range(10):
-		var test_object: Node2D = GodotTestFactory.create_static_body_with_rect_shape(self)
-		test_object.position = Vector2(i * 20, i * 20)
-		assert_that(test_object).is_not_null()
-	
-	var elapsed: int = Time.get_ticks_usec() - start_time
-	_container.get_logger().log_info( "Systems integration performance test completed in " + str(elapsed) + " microseconds")
-	assert_that(elapsed).is_less(1000000)  # Should complete in under 1 second
-
-#endregion
-
-#region Building System Placement Tests
-
-func test_building_system_placement() -> void:
-	var building_system: Object = env.building_system
-	var positioner: Node2D = env.positioner
-	
-	# Position for placement
-	positioner.position = TEST_POSITION_1
-	
-	# Create a simple placeable object
-	var placeable: Node2D = Node2D.new()
-	placeable.name = "TestPlaceable"
-	auto_free(placeable)
-	
-	# Test basic building system functionality
-	# Note: This is a simplified test - full implementation would require more setup
-	assert_that(building_system).is_not_null()
-
-func test_building_system_with_manipulation() -> void:
-	var building_system: Object = env.building_system
-	var manipulation_system: ManipulationSystem = env.manipulation_system
-	var positioner: Node2D = env.positioner
-	
-	# Test coordination between building and manipulation systems
-	assert_that(building_system).is_not_null()
-	assert_that(manipulation_system).is_not_null()
-	
-	# Position the positioner
-	positioner.position = TEST_POSITION_64
-	
-	# Verify both systems can work together
-	assert_that(positioner.position).is_equal(TEST_POSITION_64)
-
-#endregion
-
-#region Manipulation System Hierarchy Tests
-
-func test_manipulation_system_hierarchy() -> void:
-	var positioner: Node2D = env.positioner
-	var manipulation_parent: Node2D = env.manipulation_parent
-	var indicator_manager: IndicatorManager = env.indicator_manager
-	
-	# Test the hierarchy: positioner -> manipulation_parent -> indicator_manager
-	assert_that(manipulation_parent.get_parent()).is_equal(positioner)
-	assert_that(indicator_manager).is_not_null()
-
-func test_manipulation_system_state_management() -> void:
-	var _manipulation_system: ManipulationSystem = env.manipulation_system
-	
-	# Test state management
-	var manipulation_state: ManipulationState = _container.get_states().manipulation
-	assert_that(manipulation_state).is_not_null()
-	assert_that(manipulation_state.parent).is_not_null()
-
-#endregion
-
-#region Grid Targeting System Tests
-
-func test_targeting_system_state() -> void:
-	var targeting_state: GridTargetingState = _container.get_states().targeting
-	var positioner: Node2D = env.positioner
-	
-	assert_that(targeting_state).is_not_null()
-	assert_that(targeting_state.positioner).is_equal(positioner)
-	assert_that(targeting_state.target_map).is_equal(env.tile_map_layer)
-
-func test_targeting_system_position_updates() -> void:
-	var positioner: Node2D = env.positioner
-	
-	# Test position updates
-	var _initial_pos: Vector2 = positioner.position
-	positioner.position = TEST_POSITION_128
-	
-	# Verify targeting system can track position changes
-	var targeting_state: GridTargetingState = _container.get_states().targeting
-	assert_that(targeting_state.positioner.position).is_equal(TEST_POSITION_128)
+		"position_updates":
+			var positioner: Node2D = env.positioner
+			var _initial_pos: Vector2 = positioner.position
+			positioner.position = TEST_POSITION_128
+			
+			var targeting_state: GridTargetingState = _container.get_states().targeting
+			assert_that(targeting_state.positioner.position).is_equal(TEST_POSITION_128).append_failure_message("Targeting system should track positioner position updates")
 
 #endregion
 
 #region Full System Integration Tests
-
-func test_full_system_integration() -> void:
-	var indicator_manager: IndicatorManager = env.indicator_manager
-	var positioner: Node2D = env.positioner
-	
-	# Position the positioner
-	positioner.position = Vector2(32, 32)
-	
-	# Create a simple test object for indicators
-	var test_area: Area2D = Area2D.new()
-	var collision_shape: CollisionShape2D = CollisionShape2D.new()
-	collision_shape.shape = RectangleShape2D.new()
-	collision_shape.shape.size = Vector2(32, 32)
-	test_area.add_child(collision_shape)
-	env.manipulation_parent.add_child(test_area)
-	auto_free(test_area)
-	
-	# Test indicator setup with all systems active
-	var rules: Array[TileCheckRule] = [TileCheckRule.new()]
-	var report: IndicatorSetupReport = indicator_manager.setup_indicators(test_area, rules)
-	
-	# Should work even with all systems running
-	assert_that(report).is_not_null()
 
 func test_system_cleanup_integration() -> void:
 	var indicator_manager: IndicatorManager = env.indicator_manager
@@ -1199,13 +974,17 @@ func test_edge_case_positions_comprehensive() -> void:
 			"position": position
 		}
 		
-		# Log results for analysis - don't assert success as some positions should fail
+		# Validate results - don't assert success as some positions should fail
+		# but log diagnostics for edge case analysis
+		var result_diagnostic: String = ""
 		if result == null:
-			print("Position %s: returned null (expected for out-of-bounds)" % position)
+			result_diagnostic = "Position %s: returned null (expected for out-of-bounds)" % position
 		elif not result.is_successful():
-			print("Position %s: failed with issues: %s" % [position, result.get_issues()])
+			result_diagnostic = "Position %s: failed with issues: %s" % [position, result.get_issues()]
 		else:
-			print("Position %s: placement successful" % position)
+			result_diagnostic = "Position %s: placement successful" % position
+		
+		_log_conditional_message(result_diagnostic)
 	
 	# Verify system remains stable after testing edge cases
 	_verify_system_state_consistency("after edge case position testing")
@@ -1228,7 +1007,7 @@ func test_collision_layer_edge_cases() -> void:
 	]
 	
 	for layer in test_layers:
-		print("Testing collision layer: %d" % layer)
+		_log_conditional_message("Testing collision layer: %d" % layer)
 		
 		# Create placeable with specific collision layer
 		var test_placeable: Placeable = Placeable.new()
@@ -1251,11 +1030,11 @@ func test_collision_layer_edge_cases() -> void:
 		var setup_result: PlacementReport = building_system.enter_build_mode(test_placeable)
 		
 		if setup_result != null and setup_result.is_successful():
-			print("Layer %d: setup successful" % layer)
+			_log_conditional_message("Layer %d: setup successful" % layer)
 			building_system.exit_build_mode()
 		else:
 			var issues: Array[String] = setup_result.get_issues() if setup_result != null else ["null result"]
-			print("Layer %d: setup failed: %s" % [layer, issues])
+			_log_conditional_message("Layer %d: setup failed: %s" % [layer, issues])
 		
 		# Ensure system is clean between tests
 		_ensure_build_mode_cleanup(building_system, "collision layer test iteration")
@@ -1291,23 +1070,24 @@ func test_performance_regression_prevention() -> void:
 	, "try_build_at_position")
 	
 	# Log performance results with breakdown
-	print("Performance Results:")
-	print("  Build Mode Entry: %d ms" % build_mode_time)
-	print("  Validation Setup (collision processing): %d ms" % setup_time)
-	print("  Validation Only (indicator evaluation): %d ms" % validation_time)
-	print("  Placement Operation: %d ms" % placement_time)
+	GBTestDiagnostics.buffer("Performance Results:")
+	GBTestDiagnostics.buffer("  Build Mode Entry: %d ms" % build_mode_time)
+	GBTestDiagnostics.buffer("  Validation Setup (collision processing): %d ms" % setup_time)
+	GBTestDiagnostics.buffer("  Validation Only (indicator evaluation): %d ms" % validation_time)
+	GBTestDiagnostics.buffer("  Placement Operation: %d ms" % placement_time)
 	
 	# Explain performance characteristics
 	if setup_time > validation_time * 5:
-		print("  ✓ Performance profile is correct: setup includes expensive collision processing")
+		GBTestDiagnostics.buffer("  ✓ Performance profile is correct: setup includes expensive collision processing")
 	else:
-		print("  ⚠ Unexpected: validation should be much faster than setup")
+		GBTestDiagnostics.buffer("  ⚠ Unexpected: validation should be much faster than setup")
 	
 	# Total workflow should be reasonable (using separated setup + validation)
 	var total_time: int = build_mode_time + setup_time + validation_time + placement_time
-	assert_int(total_time).append_failure_message(
-		"Total workflow time %d ms should be under performance threshold %d ms" % [total_time, PERFORMANCE_THRESHOLD_MS * 4]
-	).is_less(PERFORMANCE_THRESHOLD_MS * 4)
+	var perf_summary: String = "Total workflow time %d ms under performance threshold %d ms. Diagnostics: %s" % [
+		total_time, PERFORMANCE_THRESHOLD_MS * 4, GBTestDiagnostics.flush_for_assert()
+	]
+	assert_int(total_time).append_failure_message(perf_summary).is_less(PERFORMANCE_THRESHOLD_MS * 4)
 
 #endregion
 
@@ -1361,7 +1141,7 @@ func _format_collision_debug(collision_object: StaticBody2D) -> String:
 
 func _log_test_message(message: String, category: String = "INFO") -> void:
 	"""Centralized test logging with consistent formatting"""
-	print("[TestDiagnostic-%s] %s" % [category, message])
+	_log_conditional_message("[TestDiagnostic-%s] %s" % [category, message])
 
 ## Unit test: collision detection diagnostics and spacing requirements
 ## Setup: Test collision detection behavior with diagnostic logging

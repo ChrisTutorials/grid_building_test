@@ -300,10 +300,11 @@ func test_rotation_transferred_to_parent_after_indicator_generation() -> void:
 	)
 	
 	# Assert 2: ManipulationParent should have the original rotation/scale
-	print("[TEST] Checking ManipulationParent (instance_id=%d) rotation=%f scale=%s" % [_manipulation_parent.get_instance_id(), _manipulation_parent.rotation, str(_manipulation_parent.scale)])
+	GBTestDiagnostics.buffer("[TEST] Checking ManipulationParent (instance_id=%d) rotation=%f scale=%s" % [_manipulation_parent.get_instance_id(), _manipulation_parent.rotation, str(_manipulation_parent.scale)])
+	var context := GBTestDiagnostics.flush_for_assert()
 	assert_float(_manipulation_parent.rotation).is_equal_approx(original_rotation, 0.01).append_failure_message(
 		"ManipulationParent should have original rotation after indicator generation. " +
-		"Expected: %f, Actual: %f" % [original_rotation, _manipulation_parent.rotation]
+		"Expected: %f, Actual: %f. Context: %s" % [original_rotation, _manipulation_parent.rotation, context]
 	)
 	assert_vector(_manipulation_parent.scale).is_equal_approx(original_scale, Vector2(0.01, 0.01)).append_failure_message(
 		"ManipulationParent should have original scale after indicator generation. " +

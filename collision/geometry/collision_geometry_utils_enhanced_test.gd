@@ -419,7 +419,8 @@ func test_collision_geometry_calculator_concave_tile_overlap() -> void:
 		concave_u_shape, tile_size, tile_type, GodotTestFactory.create_empty_tile_map_layer(self), 0.01, min_overlap_ratio
 	)
 	
-	print("CollisionGeometryCalculator test - overlapped tiles: %s" % str(overlapped_tiles))
+	GBTestDiagnostics.buffer("CollisionGeometryCalculator test - overlapped tiles: %s" % str(overlapped_tiles))
+	var context := GBTestDiagnostics.flush_for_assert()
 	
 	# Convert to center-relative coordinates for analysis (assuming center at origin)
 	var center_tile: Vector2i = Vector2i(0, 0)  # Origin tile 
@@ -444,15 +445,17 @@ func test_collision_geometry_calculator_concave_tile_overlap() -> void:
 				break
 		
 		assert_bool(tile_found).append_failure_message(
-			"CollisionGeometryCalculator should include tile %s which intersects the concave polygon. Tiles found: %s" % [expected_tile, str(overlapped_tiles)]
+			"CollisionGeometryCalculator should include tile %s which intersects the concave polygon. Tiles found: %s\nContext: %s" % [expected_tile, str(overlapped_tiles), context]
 		).is_true()
 	
 	# Verify minimum expected tile count (U-shape should intersect multiple tiles)
 	assert_int(overlapped_tiles.size()).append_failure_message(
-		"U-shaped concave polygon should intersect multiple tiles, got %d: %s" % [overlapped_tiles.size(), str(overlapped_tiles)]
+		"U-shaped concave polygon should intersect multiple tiles, got %d: %s%s%s" % [
+			overlapped_tiles.size(), str(overlapped_tiles), 
+			"\n" if relative_tiles.size() > 0 else "",
+			"Relative tiles: %s" % str(relative_tiles) if relative_tiles.size() > 0 else ""
+		]
 	).is_greater_equal(4)
-	
-	print("CollisionGeometryCalculator concave test - relative tiles: %s" % str(relative_tiles))
 
 ## Comprehensive parameterized test for polygon overlap detection
 @warning_ignore("unused_parameter")
