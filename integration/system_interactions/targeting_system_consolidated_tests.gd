@@ -254,16 +254,16 @@ func test_target_informer_shows_targeting_info() -> void:
 	runner.simulate_frames(2)
 	
 	# Assert: TargetInformer should display the targeted object
-	assert_object(informer.target).append_failure_message(
+	assert_object(informer.get_display_target()).append_failure_message(
 		"TargetInformer should have target set from GridTargetingState.target_changed signal. " +
 		"Targeting state target: %s, Informer connected: %s" % [
 			str(targeting_state.get_target()),
-			targeting_state.is_connected("target_changed", Callable(informer, "_on_targeting_state_target_changed"))
+			targeting_state.is_connected("target_changed", Callable(informer, "_on_state_changed"))
 		]
 	).is_same(test_target)
 	
-	if informer.target != null:
-		assert_str(informer.target.name).append_failure_message(
+	if informer.get_display_target() != null:
+		assert_str(informer.get_display_target().name).append_failure_message(
 			"TargetInformer target name should match hovered object"
 		).is_equal("HoveredObject")
 
@@ -302,25 +302,25 @@ func test_target_informer_manipulation_priority() -> void:
 	targeting_state.set_manual_target(hovered_object)
 	runner.simulate_frames(2)
 	
-	assert_object(informer.target).append_failure_message(
+	assert_object(informer.get_display_target()).append_failure_message(
 		"Step 1 failed - Expected: %s, Got: %s, Targeting: %s, Manipulation: %s" % [
 			_node_name(hovered_object),
-			_node_name(informer.target),
+			_node_name(informer.get_display_target()),
 			_node_name(targeting_state.get_target()),
-			str(manipulation_state.active_target_node)
+			"active=%s" % str(manipulation_state.active_manipulatable != null)
 		]
 	).is_same(hovered_object)
 	
 	# Step 2: Start manipulation (should override targeting)
-	manipulation_state.active_target_node = manipulatable
+	manipulation_state.active_manipulatable = manipulatable
 	runner.simulate_frames(2)
 	
-	assert_object(informer.target).append_failure_message(
+	assert_object(informer.get_display_target()).append_failure_message(
 		"Step 2 failed - Expected: %s, Got: %s, Manipulatable root: %s, Active: %s" % [
 			_node_name(manipulated_object),
-			_node_name(informer.target),
+			_node_name(informer.get_display_target()),
 			_node_name(manipulatable.root if manipulatable and manipulatable.root else null),
-			str(manipulation_state.active_target_node != null)
+			str(manipulation_state.active_manipulatable != null)
 		]
 	).is_same(manipulated_object)
 	
@@ -333,21 +333,21 @@ func test_target_informer_manipulation_priority() -> void:
 	targeting_state.set_manual_target(another_hovered)
 	runner.simulate_frames(2)
 	
-	assert_object(informer.target).append_failure_message(
+	assert_object(informer.get_display_target()).append_failure_message(
 		"Step 3: TargetInformer should still show manipulated object, ignoring targeting changes"
 	).is_same(manipulated_object)
 	
 	# Step 4: End manipulation (should return to showing targeting)
-	manipulation_state.active_target_node = null
+	manipulation_state.active_manipulatable = null
 	runner.simulate_frames(2)
 	
 	# After manipulation ends, it should show the currently targeted object
-	assert_object(informer.target).append_failure_message(
+	assert_object(informer.get_display_target()).append_failure_message(
 		"Step 4 failed - Expected: %s, Got: %s, Targeting: %s, Manipulation: %s" % [
 			_node_name(another_hovered),
-			_node_name(informer.target),
+			_node_name(informer.get_display_target()),
 			_node_name(targeting_state.get_target()),
-			str(manipulation_state.active_target_node)
+			"active=%s" % str(manipulation_state.active_manipulatable != null)
 		]
 	).is_same(another_hovered)
 
@@ -373,10 +373,10 @@ func test_target_informer_null_handling() -> void:
 	targeting_state.set_manual_target(test_target)
 	runner.simulate_frames(1)
 	
-	assert_object(informer.target).append_failure_message(
+	assert_object(informer.get_display_target()).append_failure_message(
 		"Initial target set failed - Expected: %s, Got: %s, Targeting: %s" % [
 			test_target.name,
-			_node_name(informer.target),
+			_node_name(informer.get_display_target()),
 			_node_name(targeting_state.get_target())
 		]
 	).is_not_null()
@@ -386,9 +386,9 @@ func test_target_informer_null_handling() -> void:
 	runner.simulate_frames(1)
 	
 	# TargetInformer should clear its display
-	assert_object(informer.target).append_failure_message(
+	assert_object(informer.get_display_target()).append_failure_message(
 		"Target clear failed - Expected: null, Got: %s, Targeting: %s" % [
-			_node_name(informer.target),
+			_node_name(informer.get_display_target()),
 			str(targeting_state.get_target())
 		]
 	).is_null()
@@ -417,10 +417,10 @@ func test_target_informer_tracks_target_position() -> void:
 	runner.simulate_frames(1)
 	
 	# Initial position check
-	assert_object(informer.target).append_failure_message(
+	assert_object(informer.get_display_target()).append_failure_message(
 		"Initial tracking failed - Expected: %s, Got: %s, Position: %s, Targeting: %s" % [
 			moving_target.name,
-			_node_name(informer.target),
+			_node_name(informer.get_display_target()),
 			str(moving_target.global_position),
 			_node_name(targeting_state.get_target())
 		]
@@ -432,19 +432,19 @@ func test_target_informer_tracks_target_position() -> void:
 	
 	# TargetInformer's _process should update the position display
 	# We verify it's still tracking the same target
-	assert_object(informer.target).append_failure_message(
+	assert_object(informer.get_display_target()).append_failure_message(
 		"Position tracking failed - Expected: %s at %s, Got: %s, Valid: %s" % [
 			moving_target.name,
 			str(Vector2(200, 300)),
-			_node_name(informer.target),
-			str(is_instance_valid(informer.target))
+			_node_name(informer.get_display_target()),
+			str(is_instance_valid(informer.get_display_target()))
 		]
 	).is_same(moving_target)
 	
-	assert_vector(informer.target.global_position).append_failure_message(
+	assert_vector(informer.get_display_target().global_position).append_failure_message(
 		"Target position mismatch - Expected: %s, Got: %s" % [
 			str(Vector2(200, 300)),
-			str(informer.target.global_position)
+			str(informer.get_display_target().global_position)
 		]
 	).is_equal(Vector2(200, 300))
 
@@ -479,10 +479,10 @@ func test_target_informer_building_preview_priority() -> void:
 	targeting_state.set_manual_target(hovered_object)
 	runner.simulate_frames(1)
 	
-	assert_object(informer.target).append_failure_message(
+	assert_object(informer.get_display_target()).append_failure_message(
 		"Step 1 failed - Expected: %s, Got: %s, Preview: %s" % [
 			hovered_object.name,
-			_node_name(informer.target),
+			_node_name(informer.get_display_target()),
 			str(building_state.preview)
 		]
 	).is_same(hovered_object)
@@ -491,10 +491,10 @@ func test_target_informer_building_preview_priority() -> void:
 	building_state.preview = preview_object
 	runner.simulate_frames(1)
 	
-	assert_object(informer.target).append_failure_message(
+	assert_object(informer.get_display_target()).append_failure_message(
 		"Step 2 failed - Expected: %s, Got: %s, Preview: %s, Targeting: %s" % [
 			preview_object.name,
-			_node_name(informer.target),
+			_node_name(informer.get_display_target()),
 			_node_name(building_state.preview),
 			_node_name(targeting_state.get_target())
 		]
@@ -508,10 +508,10 @@ func test_target_informer_building_preview_priority() -> void:
 	targeting_state.set_manual_target(another_object)
 	runner.simulate_frames(1)
 	
-	assert_object(informer.target).append_failure_message(
+	assert_object(informer.get_display_target()).append_failure_message(
 		"Step 3 failed - Expected: %s (preview), Got: %s, Targeting: %s" % [
 			preview_object.name,
-			_node_name(informer.target),
+			_node_name(informer.get_display_target()),
 			another_object.name
 		]
 	).is_same(preview_object)
@@ -520,10 +520,10 @@ func test_target_informer_building_preview_priority() -> void:
 	building_state.preview = null
 	runner.simulate_frames(1)
 	
-	assert_object(informer.target).append_failure_message(
+	assert_object(informer.get_display_target()).append_failure_message(
 		"Step 4 failed - Expected: %s, Got: %s, Preview: %s, Targeting: %s" % [
 			another_object.name,
-			_node_name(informer.target),
+			_node_name(informer.get_display_target()),
 			str(building_state.preview),
 			another_object.name
 		]
@@ -560,23 +560,23 @@ func test_placed_object_becomes_targetable_after_manipulation() -> void:
 	runner.simulate_frames(1)
 	
 	# Step 1: Start manipulation (simulate selecting object for movement)
-	manipulation_state.active_target_node = manipulatable
+	manipulation_state.active_manipulatable = manipulatable
 	runner.simulate_frames(1)
 	
-	assert_object(manipulation_state.active_target_node).append_failure_message(
+	assert_object(manipulation_state.active_manipulatable).append_failure_message(
 		"Step 1: Manipulation should have active target set"
 	).is_not_null()
 	
 	# Step 2: End manipulation (simulate placing the object)
 	# In real system, this would be done by ManipulationSystem._finish()
 	# which clears manipulation state and sets is_manual_targeting_active = false
-	manipulation_state.active_target_node = null
+	manipulation_state.active_manipulatable = null
 	targeting_state.is_manual_targeting_active = false
 	targeting_state.clear_collision_exclusions()
 	runner.simulate_frames(1)
 	
 	# Verify manipulation state is cleared
-	assert_object(manipulation_state.active_target_node).append_failure_message(
+	assert_object(manipulation_state.active_manipulatable).append_failure_message(
 		"Step 2: Manipulation state should be cleared after placement"
 	).is_null()
 	
@@ -594,7 +594,7 @@ func test_placed_object_becomes_targetable_after_manipulation() -> void:
 		"Step 3 REGRESSION: After manipulation ends, placed object should be targetable. " +
 		"manipulation_active=%s, manipulation_target=%s, targeting_target=%s" %
 		[str(targeting_state.is_manual_targeting_active),
-		 str(manipulation_state.active_target_node),
+		 str(manipulation_state.active_manipulatable),
 		 str(targeting_state.get_target())]
 	).is_same(manipulated_object)
 
@@ -627,16 +627,16 @@ func test_manipulation_state_doesnt_block_targeting_after_clear() -> void:
 	manipulatable_a.root = object_a
 	object_a.add_child(manipulatable_a)
 	
-	manipulation_state.active_target_node = manipulatable_a
+	manipulation_state.active_manipulatable = manipulatable_a
 	runner.simulate_frames(1)
 	
 	# TargetInformer should show ObjectA (prioritizes manipulation)
-	assert_object(informer.target).append_failure_message(
+	assert_object(informer.get_display_target()).append_failure_message(
 		"Step 1: TargetInformer should show manipulated object"
 	).is_same(object_a)
 	
 	# Step 2: End manipulation, clear states
-	manipulation_state.active_target_node = null
+	manipulation_state.active_manipulatable = null
 	targeting_state.is_manual_targeting_active = false
 	runner.simulate_frames(1)
 	
@@ -645,12 +645,12 @@ func test_manipulation_state_doesnt_block_targeting_after_clear() -> void:
 	runner.simulate_frames(1)
 	
 	# REGRESSION: TargetInformer should now show ObjectB, not stuck on ObjectA
-	assert_object(informer.target).append_failure_message(
+	assert_object(informer.get_display_target()).append_failure_message(
 		"Step 3 REGRESSION: After manipulation cleared, TargetInformer should show new target. " +
 		"Expected=%s, Got=%s, manipulation_active=%s, manipulation_target=%s" %
-		[object_b.name, _node_name(informer.target),
+		[object_b.name, _node_name(informer.get_display_target()),
 		 str(targeting_state.is_manual_targeting_active),
-		 str(manipulation_state.active_target_node)]
+		 str(manipulation_state.active_manipulatable)]
 	).is_same(object_b)
 
 
@@ -689,19 +689,19 @@ func test_targeting_blocked_by_lingering_manipulation_target() -> void:
 	runner.simulate_frames(1)
 	
 	# Step 1: Simulate manipulation of ObjectA
-	manipulation_state.active_target_node = manipulatable_a
+	manipulation_state.active_manipulatable = manipulatable_a
 	targeting_state.is_manual_targeting_active = true
 	runner.simulate_frames(1)
 	
 	# Verify: TargetInformer shows manipulated object
-	assert_object(informer.target).append_failure_message(
+	assert_object(informer.get_display_target()).append_failure_message(
 		"Step 1: TargetInformer should show manipulated object"
 	).is_same(object_a)
 	
 	# Step 2: Manipulation ends and active_target_node IS cleared (simulates the fix)
 	# This simulates the ManipulationSystem._finish() fix where active_target_node is properly cleared
 	targeting_state.is_manual_targeting_active = false  # This gets cleared correctly
-	manipulation_state.active_target_node = null  # FIX: Clear the target properly
+	manipulation_state.active_manipulatable = null  # FIX: Clear the target properly
 	runner.simulate_frames(1)
 	
 	# Step 3: Try to target ObjectB (mouse moves over it)
@@ -709,11 +709,11 @@ func test_targeting_blocked_by_lingering_manipulation_target() -> void:
 	runner.simulate_frames(1)
 	
 	# EXPECTED: TargetInformer should show ObjectB because manipulation state is clear
-	assert_object(informer.target).append_failure_message(
+	assert_object(informer.get_display_target()).append_failure_message(
 		"VERIFIED FIX: After manipulation ends with proper cleanup, new targeting should work. " +
-		"Expected ObjectB (" + str(object_b.name) + ") but got (" + _node_name(informer.target) + "). " +
+		"Expected ObjectB (" + str(object_b.name) + ") but got (" + _node_name(informer.get_display_target()) + "). " +
 		"manipulation_active=" + str(targeting_state.is_manual_targeting_active) + 
-		", manipulation_target=" + _node_name(manipulation_state.active_target_node)
+		", manipulation_target=" + _node_name(manipulation_state.active_manipulatable.root if manipulation_state.active_manipulatable else null)
 	).is_same(object_b)
 
 #endregion

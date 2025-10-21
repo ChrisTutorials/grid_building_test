@@ -6,6 +6,23 @@ const DBG_LEVEL := GBDebugSettings.LogLevel
 var _logger: GBLogger
 var _received_logs: Array[Dictionary]
 
+# Per-file message constants to reduce magic-string repetitions
+const MSG_DEBUG_ONE := "This is a test debug message"
+const MSG_DEBUG_TWO := "This is another test debug message"
+const MSG_WARN_ONE := "This is a test warning message"
+const MSG_WARN_TWO := "This is another test warning message"
+const MSG_ERR_ONE := "This is a test error message"
+const MSG_ERR_TWO := "This is another test error message"
+const MSG_INFO_ONE := "This is a test info message"
+const MSG_INFO_TWO := "This is another test info message"
+const MSG_HEAVY_RESULT := "heavy result"
+const MSG_CALLABLE_RESULT := "callable result"
+const MSG_PROBLEM := "problem"
+const MSG_DIRECT_STRING := "direct string"
+const MSG_FIRST := "first"
+const MSG_SECOND := "second"
+const MSG_THIRD := "third"
+
 func before_test() -> void:
 	var debug_settings := GBDebugSettings.new()
 	debug_settings.level = DBG_LEVEL.DEBUG
@@ -30,43 +47,43 @@ func test_instantiation() -> void:
 
 
 func test_log_debug_once_logs_only_once() -> void:
-	_logger.log_debug_once(self, "This is a test debug message")
-	_logger.log_debug_once(self, "This is another test debug message")
+	_logger.log_debug_once(self, MSG_DEBUG_ONE)
+	_logger.log_debug_once(self, MSG_DEBUG_TWO)
 	assert_that(_received_logs.size()).append_failure_message("Should only log once for the same object").is_equal(1)
-	assert_that(_received_logs[0]["message"]).is_equal("This is a test debug message").append_failure_message("First log message should match the expected debug message")
+	assert_that(_received_logs[0]["message"]).is_equal(MSG_DEBUG_ONE).append_failure_message("First log message should match the expected debug message")
 
 
 func test_log_warning_once_logs_only_once() -> void:
-	_logger.log_warning_once(self, "This is a test warning message")
-	_logger.log_warning_once(self, "This is another test warning message")
+	_logger.log_warning_once(self, MSG_WARN_ONE)
+	_logger.log_warning_once(self, MSG_WARN_TWO)
 	assert_that(_received_logs.size()).append_failure_message("Should only log once for the same object").is_equal(1)
-	assert_that(_received_logs[0]["message"]).is_equal("This is a test warning message")
+	assert_that(_received_logs[0]["message"]).is_equal(MSG_WARN_ONE).append_failure_message("First log message should match the expected warning message")
 
 
 func test_log_warning_once_logs_multiple_times_for_different_objects() -> void:
 	var obj1: Node = Node.new()
 	var obj2: Node = Node.new()
-	_logger.log_warning_once(obj1, "This is a test warning message")
-	_logger.log_warning_once(obj2, "This is another test warning message")
+	_logger.log_warning_once(obj1, MSG_WARN_ONE)
+	_logger.log_warning_once(obj2, MSG_WARN_TWO)
 	assert_that(_received_logs.size()).append_failure_message("Should log once for each different object").is_equal(2)
-	assert_that(_received_logs[0]["message"]).is_equal("This is a test warning message").append_failure_message("First log should contain the first object's message")
-	assert_that(_received_logs[1]["message"]).is_equal("This is another test warning message").append_failure_message("Second log should contain the second object's message")
+	assert_that(_received_logs[0]["message"]).is_equal(MSG_WARN_ONE).append_failure_message("First log should contain the first object's message")
+	assert_that(_received_logs[1]["message"]).is_equal(MSG_WARN_TWO).append_failure_message("Second log should contain the second object's message")
 	obj1.free()
 	obj2.free()
 
 
 func test_log_error_once_logs_only_once() -> void:
-	_logger.log_error_once(self, "This is a test error message")
-	_logger.log_error_once(self, "This is another test error message")
+	_logger.log_error_once(self, MSG_ERR_ONE)
+	_logger.log_error_once(self, MSG_ERR_TWO)
 	assert_that(_received_logs.size()).append_failure_message("Should only log once for the same object").is_equal(1)
-	assert_that(_received_logs[0]["message"]).is_equal("This is a test error message").append_failure_message("First log message should match the expected error message")
+	assert_that(_received_logs[0]["message"]).is_equal(MSG_ERR_ONE).append_failure_message("First log message should match the expected error message")
 
 
 func test_log_info_once_logs_only_once() -> void:
-	_logger.log_info_once(self, "This is a test info message")
-	_logger.log_info_once(self, "This is another test info message")
+	_logger.log_info_once(self, MSG_INFO_ONE)
+	_logger.log_info_once(self, MSG_INFO_TWO)
 	assert_that(_received_logs.size()).append_failure_message("Should only log once for the same object").is_equal(1)
-	assert_that(_received_logs[0]["message"]).is_equal("This is a test info message").append_failure_message("First log message should match the expected info message")
+	assert_that(_received_logs[0]["message"]).is_equal(MSG_INFO_ONE).append_failure_message("First log message should match the expected info message")
 
 
 func test_context_from_get_stack() -> void:
@@ -145,14 +162,14 @@ func test_lazy_provider_called_when_enabled_and_sink_receives_message() -> void:
 	var called_container: Dictionary = {"v": false}
 	var provider: Callable = func() -> String:
 		called_container["v"] = true
-		return "heavy result"
+		return MSG_HEAVY_RESULT
 
 	_logger.log_debug_lazy(provider)
 
 	assert_that(called_container["v"]).append_failure_message("Provider should be called when DEBUG enabled").is_true()
 	assert_that(_received_logs.size()).append_failure_message("Sink should have received exactly one message").is_equal(1)
 	var entry: Dictionary = _received_logs[0]
-	assert_that(entry["message"]).append_failure_message("Message should match the provider result").is_equal("heavy result")
+	assert_that(entry["message"]).append_failure_message("Message should match the provider result").is_equal(MSG_HEAVY_RESULT)
 
 func test_set_log_sink_works_for_errors() -> void:
 	_logger.get_debug_settings().level = DBG_LEVEL.ERROR
@@ -162,7 +179,7 @@ func test_set_log_sink_works_for_errors() -> void:
 	assert_that(_received_logs.size()).append_failure_message("Sink should receive one message for error log").is_equal(1)
 	var e: Dictionary = _received_logs[0]
 	assert_that(e["level"]).append_failure_message("Log level should be ERROR").is_equal(DBG_LEVEL.ERROR)
-	assert_that(e["message"]).append_failure_message("Log message should match input").is_equal("problem")
+	assert_that(e["message"]).append_failure_message("Log message should match input").is_equal(MSG_PROBLEM)
 
 func test_default_emission_without_sink_calls_provider_and_does_not_crash() -> void:
 	_logger.set_log_sink(Callable())
@@ -208,21 +225,21 @@ func test_is_level_enabled_filters_correctly() -> void:
 	assert_that(_logger.is_level_enabled(DBG_LEVEL.DEBUG)).append_failure_message("DEBUG should be disabled when level is WARNING").is_false()
 
 func test_log_at_with_string_message() -> void:
-	_logger.log_at(DBG_LEVEL.DEBUG, "direct string")
+	_logger.log_at(DBG_LEVEL.DEBUG, MSG_DIRECT_STRING)
 
 	assert_that(_received_logs.size()).append_failure_message("Should receive one message").is_equal(1)
-	assert_that(_received_logs[0]["message"]).append_failure_message("Message should be the string").is_equal("direct string")
+	assert_that(_received_logs[0]["message"]).append_failure_message("Message should be the string").is_equal(MSG_DIRECT_STRING)
 
 func test_log_at_with_callable_message() -> void:
 	var called_container: Dictionary = {"v": false}
 	var provider: Callable = func() -> String:
 		called_container["v"] = true
-		return "callable result"
+		return MSG_CALLABLE_RESULT
 
 	_logger.log_at(DBG_LEVEL.DEBUG, provider)
 
 	assert_that(called_container["v"]).append_failure_message("Provider should be called").is_true()
-	assert_that(_received_logs[0]["message"]).append_failure_message("Message should be the result").is_equal("callable result")
+	assert_that(_received_logs[0]["message"]).append_failure_message("Message should be the result").is_equal(MSG_CALLABLE_RESULT)
 
 func test_invalid_callable_provider() -> void:
 	var invalid_provider: Callable = Callable()  # empty callable
@@ -232,11 +249,11 @@ func test_invalid_callable_provider() -> void:
 	assert_that(_received_logs[0]["message"]).append_failure_message("Invalid callable should result in empty message").is_equal("")
 
 func test_multiple_logs() -> void:
-	_logger.log_debug("first")
-	_logger.log_debug("second")
-	_logger.log_debug("third")
+	_logger.log_debug(MSG_FIRST)
+	_logger.log_debug(MSG_SECOND)
+	_logger.log_debug(MSG_THIRD)
 
 	assert_that(_received_logs.size()).append_failure_message("Should receive 3 messages").is_equal(3)
-	assert_that(_received_logs[0]["message"]).is_equal("first")
-	assert_that(_received_logs[1]["message"]).is_equal("second")
-	assert_that(_received_logs[2]["message"]).is_equal("third")
+	assert_that(_received_logs[0]["message"]).append_failure_message("First message should be 'first'").is_equal(MSG_FIRST)
+	assert_that(_received_logs[1]["message"]).append_failure_message("Second message should be 'second'").is_equal(MSG_SECOND)
+	assert_that(_received_logs[2]["message"]).append_failure_message("Third message should be 'third'").is_equal(MSG_THIRD)

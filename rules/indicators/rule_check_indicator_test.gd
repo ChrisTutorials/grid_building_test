@@ -607,7 +607,9 @@ func test_instance_collisions(
 	indicator.collision_mask = phys_body.collision_layer
 	indicator.force_shapecast_update()
 	var collision_count: int = indicator.get_collision_count()
-	assert_int(collision_count).is_equal(p_expected_collisions)
+	assert_int(collision_count).append_failure_message(
+		"Collision count should match expected value"
+	).is_equal(p_expected_collisions)
 
 
 @warning_ignore("unused_parameter")
@@ -616,7 +618,9 @@ func test__update_visuals() -> void:
 	var local_settings: IndicatorVisualSettings = IndicatorVisualSettings.new()
 	local_settings.modulate = Color(0.5, 0.5, 0.5)
 	var updated_sprite: Sprite2D = indicator._update_visuals(local_settings)
-	assert_that(updated_sprite.modulate).is_equal(local_settings.modulate)
+	assert_that(updated_sprite.modulate).append_failure_message(
+		"Sprite modulate should match settings modulate"
+	).is_equal(local_settings.modulate)
 
 
 ## Test the default return of get_tile_positon
@@ -624,7 +628,9 @@ func test_get_tile_position_default() -> void:
 	var test_tile_map: TileMapLayer = auto_free(GBTestConstants.TEST_TILE_MAP_LAYER_BUILDABLE.instantiate())
 	add_child(test_tile_map)
 	var position: Vector2i = indicator.get_tile_position(test_tile_map)
-	assert_vector(position).is_equal(Vector2i.ZERO)
+	assert_vector(position).append_failure_message(
+		"Default tile position should be Vector2i.ZERO"
+	).is_equal(Vector2i.ZERO)
 
 
 ## Creates a test collision body for testing rule validation

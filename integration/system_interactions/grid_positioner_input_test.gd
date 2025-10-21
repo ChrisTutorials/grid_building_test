@@ -175,8 +175,11 @@ func test_coordinate_conversions() -> void:
 #region RUNTIME VALIDATION TESTS
 
 func test_runtime_issues_when_dependencies_missing() -> void:
+	# Create positioner in isolation to avoid auto-injection from test environment
+	var isolated_scene := Node.new()
 	var test_positioner: GridPositioner2D = GridPositioner2D.new()
-	add_child(test_positioner)
+	isolated_scene.add_child(test_positioner)
+	auto_free(isolated_scene)
 	
 	var issues: Array[String] = test_positioner.get_runtime_issues()
 	var issue_count: int = issues.size()
@@ -189,7 +192,5 @@ func test_runtime_issues_when_dependencies_missing() -> void:
 	assert_int(issue_count).append_failure_message(
 		"Expected >= %d dependency issues, got %d: %s" % [min_expected, issue_count, str(issues)]
 	).is_greater_equal(min_expected)
-	
-	test_positioner.queue_free()
 
 #endregion

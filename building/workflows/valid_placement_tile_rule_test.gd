@@ -25,7 +25,7 @@ var tile_data_partial_match: TileData
 var tile_data_missing_key: TileData
 var tile_data_full_match: TileData
 var tile_data_none: TileData
-var _container: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
+var _container: GBCompositionContainer
 var _env: AllSystemsTestEnvironment
 var _gts: GridTargetingState
 
@@ -33,11 +33,9 @@ var _gts: GridTargetingState
 
 func before_test() -> void:
 	_env = EnvironmentTestFactory.create_all_systems_env(self, GBTestConstants.ALL_SYSTEMS_ENV_UID)
-	if _env and _container:
-		_gts = _container.get_states().targeting
-	else:
-		fail("Environment or container not properly initialized in before_test")
-		return
+	_container = _env.injector.composition_container
+	_gts = _container.get_states().targeting
+
 	# Rule and indicator setup. Rule requires the tile data to be grass and Green
 	rule = ValidPlacementTileRule.new()
 	rule.expected_tile_custom_data = {"type": "grass", "color": Color.GREEN}
@@ -59,13 +57,12 @@ func before_test() -> void:
 	add_child(map_layer)
 	_gts.target_map = map_layer
 	_gts.maps = [map_layer]
-	# Positioner is already set by the factory, but ensure it's in the scene tree
-	if _gts.positioner and _gts.positioner.get_parent() == null:
-		add_child(_gts.positioner)
 
 	## This must validate successfully
 	var setup_issues := rule.setup(_gts)
-	assert_array(setup_issues).is_empty()
+	assert_array(setup_issues).append_failure_message(
+		"Rule setup should complete without issues"
+	).is_empty()
 
 	# Assign the TileSet to the TileMap
 	map_layer.tile_set = GBTestConstants.TEST_CUSTOM_DATA_TILE_SET
@@ -97,7 +94,9 @@ func test_does_tile_have_valid_data(
 		fail("Rule is null - cannot test does_tile_have_valid_data")
 		return
 	var result: bool = rule.does_tile_have_valid_data(p_indicator, [map_layer])
-	assert_bool(result).is_equal(p_expected)
+	assert_bool(result).append_failure_message(
+		"Tile data validation should match expected result for indicator: " + str(p_indicator)
+	).is_equal(p_expected)
 
 @warning_ignore("unused_parameter")
 func test_test_tile_data_for_all_matches(
@@ -118,7 +117,9 @@ func test_test_tile_data_for_all_matches(
 		return
 	assert_object(rule.expected_tile_custom_data).append_failure_message("Rule expected_tile_custom_data should not be null").is_not_null()
 	var result: bool = rule._test_tile_data_for_all_matches(p_tile_data, rule.expected_tile_custom_data)
-	assert_bool(result).is_equal(p_expected)
+	assert_bool(result).append_failure_message(
+		"Tile data matching should match expected result for tile data: " + str(p_tile_data)
+	).is_equal(p_expected)
 
 #endregion
 #region Helper methods

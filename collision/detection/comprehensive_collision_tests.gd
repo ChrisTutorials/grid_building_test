@@ -3,11 +3,11 @@ extends GdUnitTestSuite
 ## Comprehensive parameterized test suite for collision detection
 ## Consolidates functionality from multiple debug tests into a single, maintainable test file
 
-## Constants for test configuration
-const TILE_SIZE: Vector2 = Vector2(16, 16)
-const BOUNDS_TOLERANCE: float = 1.0
+## Use centralized GBTestConstants for shared values
+const TILE_SIZE: Vector2 = GBTestConstants.DEFAULT_TILE_SIZE
+var BOUNDS_TOLERANCE: float = 1.0  # kept as a runtime var for tolerance
 const OVERLAP_EPSILON_RATIO: float = 0.05
-const PERFORMANCE_TIMEOUT_MS: int = 100
+var PERFORMANCE_TIMEOUT_MS: int = GBTestConstants.TEST_TIMEOUT_MS
 
 ## Test data for different collision shapes
 
@@ -74,7 +74,7 @@ func _generate_test_positions(grid_size: int = 21, tile_size: Vector2 = TILE_SIZ
 func before_test() -> void:
 	# Create test injector to get isolated container for this test
 	var temp_injector := GBInjectorSystem.new(GBTestConstants.TEST_COMPOSITION_CONTAINER)
-	test_container = GBTestInjectorSystem.duplicate_container_for_testing(temp_injector)
+	test_container = temp_injector.get_container()
 
 ## Test capsule shape bounds and tile coverage
 @warning_ignore("unused_parameter")

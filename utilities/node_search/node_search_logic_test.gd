@@ -264,9 +264,9 @@ func test_combine_search_results() -> void:
 	var combined: Array[Node] = NodeSearchLogic.combine_search_results([result1, result2])
 	
 	assert_int(combined.size()).append_failure_message("Combine search expected 3 got %d -> %s" % [combined.size(), combined]).is_equal(3)  # Should have all unique nodes
-	assert_bool(combined.has(test_nodes[0])).is_true()
-	assert_bool(combined.has(test_nodes[1])).is_true()
-	assert_bool(combined.has(test_nodes[2])).is_true()
+	assert_bool(combined.has(test_nodes[0])).append_failure_message("Combined results should contain test_nodes[0]").is_true()
+	assert_bool(combined.has(test_nodes[1])).append_failure_message("Combined results should contain test_nodes[1]").is_true()
+	assert_bool(combined.has(test_nodes[2])).append_failure_message("Combined results should contain test_nodes[2]").is_true()
 
 func test_filter_search_results() -> void:
 	var filter_func: Callable = func(node: Node) -> bool: return node.name.begins_with(TEST_NODE_PREFIX)

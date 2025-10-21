@@ -158,10 +158,18 @@ func test_manipulation_system_scene_runner_pattern() -> void:
 func test_manipulation_system_dependency_injection() -> void:
 	"""Test that manipulation system receives proper dependency injection"""
 	# System should have access to all required dependencies through the environment
-	assert_object(manipulation_system).is_not_null()
-	assert_object(manipulation_state).is_not_null()
-	assert_object(container).is_not_null()
-	assert_object(test_environment.injector).is_not_null()
+	assert_object(manipulation_system).append_failure_message(
+		"ManipulationSystem should be available through dependency injection"
+	).is_not_null()
+	assert_object(manipulation_state).append_failure_message(
+		"ManipulationState should be available through dependency injection"
+	).is_not_null()
+	assert_object(container).append_failure_message(
+		"CompositionContainer should be available through dependency injection"
+	).is_not_null()
+	assert_object(test_environment.injector).append_failure_message(
+		"Injector should be available in test environment"
+	).is_not_null()
 
 	# Test that the system can perform basic operations without null reference errors
 	var test_result: Variant = manipulation_system.try_move(null)

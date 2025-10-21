@@ -74,7 +74,7 @@ func _generate_test_positions(grid_size: int = 21, tile_size: Vector2 = TILE_SIZ
 func before_test() -> void:
 	# Create test injector to get isolated container for this test
 	var temp_injector := GBInjectorSystem.new(GBTestConstants.TEST_COMPOSITION_CONTAINER)
-	test_container = GBTestInjectorSystem.duplicate_container_for_testing(temp_injector)
+	test_container = temp_injector.get_container()
 
 ## Test capsule shape bounds and tile coverage
 @warning_ignore("unused_parameter")

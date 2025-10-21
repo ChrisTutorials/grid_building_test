@@ -213,7 +213,9 @@ func test_indicator_count_consistent_across_rotations() -> void:
 	# Test 1: Smithy at 0 degrees
 	_smithy.root.rotation = 0.0
 	var move_result_0: ManipulationData = _manipulation_system.try_move(_smithy.root)
-	assert_bool(move_result_0.status == GBEnums.Status.STARTED).is_true()
+	assert_bool(move_result_0.status == GBEnums.Status.STARTED).is_true().append_failure_message(
+		"Move operation should start successfully for smithy at 0° rotation"
+	)
 	
 	var indicators_0deg: Array[RuleCheckIndicator] = _indicator_manager.get_indicators()
 	var count_0deg: int = indicators_0deg.size()
@@ -225,7 +227,9 @@ func test_indicator_count_consistent_across_rotations() -> void:
 	# Test 2: Smithy at 90 degrees
 	_smithy.root.rotation = deg_to_rad(90)
 	var move_result_90: ManipulationData = _manipulation_system.try_move(_smithy.root)
-	assert_bool(move_result_90.status == GBEnums.Status.STARTED).is_true()
+	assert_bool(move_result_90.status == GBEnums.Status.STARTED).is_true().append_failure_message(
+		"Move operation should start successfully for smithy at 90° rotation"
+	)
 	
 	var indicators_90deg: Array[RuleCheckIndicator] = _indicator_manager.get_indicators()
 	var count_90deg: int = indicators_90deg.size()

@@ -1,10 +1,10 @@
 ## Unit tests for PolygonTileMapper static methods
 extends GdUnitTestSuite
 
-## DRY Constants - reused 3+ times across test methods
-const DEFAULT_TILE_SIZE = Vector2i(16, 16)
-const DEFAULT_TEST_POSITION = Vector2(320, 320)
-const TEST_MAP_SIZE = 40
+## DRY Constants - use canonical GBTestConstants where possible
+const DEFAULT_TILE_SIZE: Vector2i = Vector2i(int(GBTestConstants.DEFAULT_TILE_SIZE.x), int(GBTestConstants.DEFAULT_TILE_SIZE.y))
+const DEFAULT_TEST_POSITION: Vector2 = GBTestConstants.DEFAULT_TEST_POSITION
+const TEST_MAP_SIZE: int = 40
 
 ## DRY Helper: Create a properly configured TileMapLayer for testing
 func _create_test_tile_map(tile_size: Vector2i = DEFAULT_TILE_SIZE) -> TileMapLayer:
@@ -69,10 +69,10 @@ func test_compute_tile_offsets_polygon_shapes(
 	description: String,
 	expected_range: Array,
 	test_parameters := [
-		["triangle", PackedVector2Array([Vector2(0, 0), Vector2(32, 0), Vector2(16, 32)]), "basic triangle polygon", []],
-		["rectangle", PackedVector2Array([Vector2(-16, -16), Vector2(16, -16), Vector2(16, 16), Vector2(-16, 16)]), "32x32 rectangle polygon", [1, 9]],
-		["convex", PackedVector2Array([Vector2(0, 0), Vector2(24, -8), Vector2(32, 16), Vector2(16, 32), Vector2(-8, 24)]), "complex convex polygon", []],
-		["concave", PackedVector2Array([Vector2(0, 0), Vector2(32, 0), Vector2(16, 16), Vector2(32, 32), Vector2(0, 32)]), "concave polygon with indent", []]
+		["triangle", PackedVector2Array([Vector2(0, 0), Vector2(GBTestConstants.DOUBLE_TILE_PX, 0), Vector2(GBTestConstants.DEFAULT_TILE_PX, GBTestConstants.DOUBLE_TILE_PX)]), "basic triangle polygon", []],
+		["rectangle", PackedVector2Array([Vector2(-GBTestConstants.DEFAULT_TILE_PX, -GBTestConstants.DEFAULT_TILE_PX), Vector2(GBTestConstants.DEFAULT_TILE_PX, -GBTestConstants.DEFAULT_TILE_PX), Vector2(GBTestConstants.DEFAULT_TILE_PX, GBTestConstants.DEFAULT_TILE_PX), Vector2(-GBTestConstants.DEFAULT_TILE_PX, GBTestConstants.DEFAULT_TILE_PX)]), "32x32 rectangle polygon", [1, 9]],
+		["convex", PackedVector2Array([Vector2(0, 0), Vector2(24, -8), Vector2(GBTestConstants.DOUBLE_TILE_PX, GBTestConstants.DEFAULT_TILE_PX), Vector2(GBTestConstants.DEFAULT_TILE_PX, GBTestConstants.DOUBLE_TILE_PX), Vector2(-8, 24)]), "complex convex polygon", []],
+		["concave", PackedVector2Array([Vector2(0, 0), Vector2(GBTestConstants.DOUBLE_TILE_PX, 0), Vector2(GBTestConstants.DEFAULT_TILE_PX, GBTestConstants.DEFAULT_TILE_PX), Vector2(GBTestConstants.DOUBLE_TILE_PX, GBTestConstants.DOUBLE_TILE_PX), Vector2(0, GBTestConstants.DOUBLE_TILE_PX)]), "concave polygon with indent", []]
 	]
 ) -> void:
 	_run_polygon_test(points, description, "square", 1, -1, Vector2(320, 320))
@@ -88,14 +88,14 @@ func test_compute_tile_offsets_tile_types(
 		["isometric", "isometric", "isometric tiles"]
 	]
 ) -> void:
-	var points := PackedVector2Array([Vector2(0, 0), Vector2(32, 0), Vector2(16, 32)])
+	var points := PackedVector2Array([Vector2(0, 0), Vector2(GBTestConstants.DOUBLE_TILE_PX, 0), Vector2(GBTestConstants.DEFAULT_TILE_PX, GBTestConstants.DOUBLE_TILE_PX)])
 	_run_polygon_test(points, "triangle on " + description, tile_type)
 
 ## DRY: Covered by parameterized shape/tile tests above
 
 ## Test diagnostic processing functionality
 func test_process_polygon_with_diagnostics() -> void:
-	var points := PackedVector2Array([Vector2(0, 0), Vector2(32, 0), Vector2(16, 32)])
+	var points := PackedVector2Array([Vector2(0, 0), Vector2(GBTestConstants.DOUBLE_TILE_PX, 0), Vector2(GBTestConstants.DEFAULT_TILE_PX, GBTestConstants.DOUBLE_TILE_PX)])
 	_run_polygon_test(points, "diagnostic processing")
 
 ## Test null polygon handling
@@ -191,10 +191,10 @@ func test_process_polygon_with_diagnostics_convex() -> void:
 	convex_polygon = auto_free(convex_polygon)
 	add_child(convex_polygon)
 	convex_polygon.polygon = PackedVector2Array([
-		Vector2(0, 0),
-		Vector2(32, 0),
-		Vector2(32, 32),
-		Vector2(0, 32)
+	Vector2(0, 0),
+	Vector2(GBTestConstants.DOUBLE_TILE_PX, 0),
+	Vector2(GBTestConstants.DOUBLE_TILE_PX, GBTestConstants.DOUBLE_TILE_PX),
+	Vector2(0, GBTestConstants.DOUBLE_TILE_PX)
 	])  # Rectangle (convex)
 	convex_polygon.position = DEFAULT_TEST_POSITION  # Center of 40x40 tilemap
 
@@ -211,10 +211,10 @@ func test_process_polygon_with_diagnostics_concave() -> void:
 	add_child(concave_polygon)
 	concave_polygon.polygon = PackedVector2Array([
 		Vector2(0, 0),
-		Vector2(32, 0),
-		Vector2(16, 16),  # Indent creates concave shape
-		Vector2(32, 32),
-		Vector2(0, 32)
+		Vector2(GBTestConstants.DOUBLE_TILE_PX, 0),
+		Vector2(GBTestConstants.DEFAULT_TILE_PX, GBTestConstants.DEFAULT_TILE_PX),  # Indent creates concave shape
+		Vector2(GBTestConstants.DOUBLE_TILE_PX, GBTestConstants.DOUBLE_TILE_PX),
+		Vector2(0, GBTestConstants.DOUBLE_TILE_PX)
 	])
 	concave_polygon.position = DEFAULT_TEST_POSITION
 
@@ -249,7 +249,7 @@ func test_process_polygon_with_diagnostics_cases(
 
 ## Test polygon processing with different tile sizes
 func test_compute_tile_offsets_different_tile_sizes() -> void:
-	var points := PackedVector2Array([Vector2(0, 0), Vector2(32, 0), Vector2(16, 32)])
+	var points := PackedVector2Array([Vector2(0, 0), Vector2(GBTestConstants.DOUBLE_TILE_PX, 0), Vector2(GBTestConstants.DEFAULT_TILE_PX, GBTestConstants.DOUBLE_TILE_PX)])
 	_run_polygon_test(points, "polygon on map with 32x32 tiles")
 
 ## Test polygon completely outside tilemap bounds
@@ -260,8 +260,8 @@ func test_compute_tile_offsets_outside_bounds() -> void:
 	add_child(triangle_polygon)
 	triangle_polygon.polygon = PackedVector2Array([
 		Vector2(0, 0),
-		Vector2(32, 0),
-		Vector2(16, 32)
+		Vector2(GBTestConstants.DOUBLE_TILE_PX, 0),
+		Vector2(GBTestConstants.DEFAULT_TILE_PX, GBTestConstants.DOUBLE_TILE_PX)
 	])
 	triangle_polygon.position = Vector2(1000, 1000)  # Way outside the tilemap
 

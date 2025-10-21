@@ -14,8 +14,8 @@ extends GdUnitTestSuite
 # Constants
 # -----------------------------------------------------------------------------
 const TILEMAP_SIZE: int = 40
-const TILE_SIZE: Vector2i = Vector2i(16, 16)
-const POLYGON_POSITION: Vector2 = Vector2(320, 320)
+const TILE_SIZE: Vector2i = GBTestConstants.DEFAULT_TILE_SIZE_I
+const POLYGON_POSITION: Vector2 = GBTestConstants.DEFAULT_TEST_POSITION
 const CENTER_TILE: Vector2i = Vector2i(20, 20)
 
 # -----------------------------------------------------------------------------

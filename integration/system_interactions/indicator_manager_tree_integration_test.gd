@@ -4,6 +4,9 @@
 ## and are accessible for manipulation and rendering
 extends GdUnitTestSuite
 
+# Module-level constant(s) extracted from helper
+const HALF_TILE_SIZE: Vector2 = GBTestConstants.DEFAULT_TILE_SIZE / 2
+
 var _container: GBCompositionContainer
 var indicator_manager: IndicatorManager
 var targeting_state: GridTargetingState
@@ -50,7 +53,6 @@ func _create_preview_with_collision() -> Node2D:
 	var shape: CollisionShape2D = CollisionShape2D.new()
 	var rect: RectangleShape2D = RectangleShape2D.new()
 	# Use half tile size for smaller collision shape
-	const HALF_TILE_SIZE: Vector2 = GBTestConstants.DEFAULT_TILE_SIZE / 2
 	rect.size = HALF_TILE_SIZE
 	shape.shape = rect
 	area.add_child(shape)

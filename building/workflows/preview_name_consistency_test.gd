@@ -22,7 +22,9 @@ var placeable_with_rules: Placeable
 #region Setup and Teardown
 func before_test() -> void:
 	# Validate test resources are loaded
-	assert_object(placeable_2d_test).is_not_null()
+	assert_object(placeable_2d_test).append_failure_message(
+		"Test placeable resource should be loaded successfully"
+	).is_not_null()
 
 	# Create complete all systems test environment
 	runner = scene_runner(GBTestConstants.ALL_SYSTEMS_ENV_UID)
@@ -32,7 +34,9 @@ func before_test() -> void:
 	
 	# Access shared states from the pre-configured test container
 	var states := _container.get_states()
-	assert_object(states).is_not_null()
+	assert_object(states).append_failure_message(
+		"Container states should be accessible and initialized"
+	).is_not_null()
 	targeting_state = states.targeting
 	mode_state = states.mode
 
@@ -83,7 +87,9 @@ func test_same_placeable_twice_preserves_name() -> void:
 	_assert_preview_valid_and_named(preview2, expected_name)
 
 	# Ensure it's a different instance (not the same object)
-	assert_object(preview2).is_not_same(preview1)
+	assert_object(preview2).append_failure_message(
+		"Second preview should be a different instance from the first"
+	).is_not_same(preview1)
 
 
 func test_different_placeables_have_correct_names() -> void:

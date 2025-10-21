@@ -172,7 +172,7 @@ func test_complete_building_workflow(p_placeable : Placeable, test_parameters :=
 func test_multi_rule_indicator_attachment() -> void:
 	# Generated object must have a CollisionObject2D and a shape / polygon
 	var test_obj := CollisionObjectTestFactory.create_static_body_with_diamond(self, 32, 64)
-	_gts.target = test_obj
+	_gts.set_manual_target(test_obj)
 	
 	# Assert environment provides TileMap rather than creating it
 	assert_object(_gts.target_map).append_failure_message(
@@ -194,7 +194,7 @@ func test_multi_rule_indicator_attachment() -> void:
 func test_rule_indicator_state_synchronization() -> void:
 	var static_body : StaticBody2D = CollisionObjectTestFactory.create_static_body_with_rect(self, Vector2(32,32))
 	static_body.global_position = VALID_BUILD_POS
-	_gts.target = static_body
+	_gts.set_manual_target(static_body)
 	var setup_result: PlacementReport = _indicator_manager.try_setup([collision_rule], _gts)
 	assert_bool(setup_result.is_successful()).append_failure_message(
 		"Initial indicator setup should succeed with collision rule: %s" % str(setup_result.get_issues())
@@ -217,7 +217,7 @@ func test_indicators_are_parented_and_inside_tree() -> void:
 	
 	# Set up test target from environment - MUST have collisionObject2D and collision shape or polygon to get indicators
 	var test_target: Node2D = CollisionObjectTestFactory.create_static_body_with_circle(self, 32)
-	_gts.target = test_target
+	_gts.set_manual_target(test_target)
 	
 	# Create rule for indicator generation
 	var rule: CollisionsCheckRule = CollisionsCheckRule.new()
@@ -253,7 +253,7 @@ func test_smithy_indicator_generation() -> void:
 	
 	# Generate indicators using helper method
 	var smithy_instance : Area2D = CollisionObjectTestFactory.instance_placeable(self, smithy_placeable, env.objects_parent)
-	_gts.target = smithy_instance
+	_gts.set_manual_target(smithy_instance)
 	var setup_result: PlacementReport = _indicator_manager.try_setup(test_rules, _gts)
 	_assert_setup_successful(setup_result, "Test placeable indicator generation")
 
@@ -309,7 +309,7 @@ func test_complex_multi_system_workflow(p_placeable : Placeable, test_parameters
 
 func test_polygon_test_object_indicator_generation() -> void:
 	var polygon_object_root: Node2D = CollisionObjectTestFactory.create_polygon_test_object(self, env.positioner)
-	_gts.target = polygon_object_root
+	_gts.set_manual_target(polygon_object_root)
 	# Generate indicators for polygon object using proper parameters
 	var setup_result: PlacementReport = _indicator_manager.try_setup([], _gts)
 	assert_bool(setup_result.is_successful()).append_failure_message(

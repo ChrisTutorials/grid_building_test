@@ -4,12 +4,12 @@ var _test_env: AllSystemsTestEnvironment
 var _collision_mapper: CollisionMapper
 
 func before_test() -> void:
-_test_env = EnvironmentTestFactory.create_all_systems_env(self, GBTestConstants.ALL_SYSTEMS_ENV_UID)
-assert_object(_test_env).append_failure_message("Environment setup failed").is_not_null()
+	_test_env = EnvironmentTestFactory.create_all_systems_env(self, GBTestConstants.ALL_SYSTEMS_ENV_UID)
+	assert_object(_test_env).append_failure_message("Environment setup failed").is_not_null()
 
-var targeting_state: GridTargetingState = _test_env.grid_targeting_system.get_state()
-var container: GBCompositionContainer = _test_env.get_container()
-_collision_mapper = auto_free(CollisionMapper.new(targeting_state, container.get_logger()))
+	var targeting_state: GridTargetingState = _test_env.grid_targeting_system.get_state()
+	var container: GBCompositionContainer = _test_env.get_container()
+	_collision_mapper = auto_free(CollisionMapper.new(targeting_state, container.get_logger()))
 
 func after_test() -> void:
 _test_env = null

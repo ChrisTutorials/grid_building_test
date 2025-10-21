@@ -72,7 +72,10 @@ func test_no_test_resources_depend_on_templates_or_demos() -> void:
 		assert_bool(false).append_failure_message(error_msg).is_true()
 	
 	# Pass if no violations
-	assert_int(violations.size()).is_equal(0)
+	assert_int(violations.size()).append_failure_message(
+		"Resource integrity check should pass with no violations - Found %d violations" % \
+		violations.size()
+	).is_equal(0)
 
 
 func test_all_test_scenes_instantiate_without_errors() -> void:
@@ -114,7 +117,9 @@ func test_all_test_scenes_instantiate_without_errors() -> void:
 		
 		assert_bool(false).append_failure_message(error_msg).is_true()
 	
-	assert_int(failures.size()).is_equal(0)
+	assert_int(failures.size()).append_failure_message(
+		"All test scenes should instantiate without errors - Found %d failures" % failures.size()
+	).is_equal(0)
 
 
 func test_all_test_resources_load_successfully() -> void:
@@ -143,7 +148,9 @@ func test_all_test_resources_load_successfully() -> void:
 		
 		assert_bool(false).append_failure_message(error_msg).is_true()
 	
-	assert_int(failures.size()).is_equal(0)
+	assert_int(failures.size()).append_failure_message(
+		"All test resources should load successfully - Found %d failures" % failures.size()
+	).is_equal(0)
 
 
 func test_test_folder_is_portable() -> void:
@@ -189,7 +196,10 @@ func test_test_folder_is_portable() -> void:
 		
 		assert_bool(false).append_failure_message(error_msg).is_true()
 	
-	assert_int(external_deps.size()).is_equal(0)
+	assert_int(external_deps.size()).append_failure_message(
+		"Test folder should be portable with no external dependencies - Found %d external deps" % \
+		external_deps.size()
+	).is_equal(0)
 
 
 ## Helper: List all .tscn and .tres files under a root path

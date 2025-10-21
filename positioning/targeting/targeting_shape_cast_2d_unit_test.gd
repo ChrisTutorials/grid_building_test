@@ -1,4 +1,10 @@
 ## Unit tests for TargetingShapeCast2D component
+##
+## **DESIGN DECISION:** Tests include Manipulatable component interaction because:
+## - TargetingShapeCast2D has built-in search logic for finding Manipulatable roots
+## - This is core functionality being tested (not separate primary script testing)
+## - The interaction tests are minimal and focused on targeting's responsibility
+## - Separation would require duplicating complex setup logic for minimal benefit
 extends GdUnitTestSuite
 
 var runner: GdUnitSceneRunner

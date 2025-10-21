@@ -5,7 +5,7 @@
 ## GBTestConstants and verifies that indicators are produced.
 extends GdUnitTestSuite
 
-const DEFAULT_POSITION: Vector2 = Vector2(0, 0)
+const DEFAULT_POSITION: Vector2 = Vector2.ZERO
 
 var _env: BuildingTestEnvironment
 var _manager: IndicatorManager
@@ -17,9 +17,9 @@ func before_test() -> void:
 	_manager = _env.indicator_manager
 	_container = _env.get_container()
 	_state = _env.grid_targeting_system.get_state()
-	assert_object(_manager).is_not_null()
-	assert_object(_container).is_not_null()
-	assert_object(_state).is_not_null()
+	assert_object(_manager).append_failure_message("IndicatorManager should be available in test environment").is_not_null()
+	assert_object(_container).append_failure_message("CompositionContainer should be available in test environment").is_not_null()
+	assert_object(_state).append_failure_message("GridTargetingState should be available in test environment").is_not_null()
 
 func test_indicator_generation_from_container_rules() -> void:
 	# Arrange: create a polygon preview like integration tests do
@@ -32,8 +32,9 @@ func test_indicator_generation_from_container_rules() -> void:
 
 	# Parent under the environment's positioner (runtime-like)
 	_state.positioner.add_child(preview)
-	_state.target = preview
-	_state.positioner.global_position = Vector2(64, 64)
+	_state.set_manual_target(preview)
+	# Place positioner at 4 tiles over (64px) using canonical tile pixel size
+	_state.positioner.global_position = Vector2(GBTestConstants.DEFAULT_TILE_PX * 4, GBTestConstants.DEFAULT_TILE_PX * 4)
 
 	# Acquire placement rules from the container (or GBTestConstants fallback)
 	var rules: Array[PlacementRule] = _container.get_placement_rules()
@@ -47,16 +48,16 @@ func test_indicator_generation_from_container_rules() -> void:
 	diag.append("[RULE_TRACE] === CONTAINER RULE ANALYSIS ===")
 	diag.append("[RULE_TRACE] container placement_rules size = %s" % [_container.get_placement_rules().size()])
 	diag.append("[RULE_TRACE] using rules size = %s" % [rules.size()])
-    
+	
 	for i in range(rules.size()):
 		var r: PlacementRule = rules[i]
-	diag.append("[RULE_TRACE] rule[%d] IDENTITY: object_id=%s, class=%s" % [i, str(r.get_instance_id()), r.get_class()])
-	diag.append("[RULE_TRACE] rule[%d] TYPE_INFO: typeof=%s, is_PlacementRule=%s, is_TileCheckRule=%s, is_CollisionsCheckRule=%s" % [i, typeof(r), str(r is PlacementRule), str(r is TileCheckRule), str(r is CollisionsCheckRule)])
+		diag.append("[RULE_TRACE] rule[%d] IDENTITY: object_id=%s, class=%s" % [i, str(r.get_instance_id()), r.get_class()])
+		diag.append("[RULE_TRACE] rule[%d] TYPE_INFO: typeof=%s, is_PlacementRule=%s, is_TileCheckRule=%s, is_CollisionsCheckRule=%s" % [i, typeof(r), str(r is PlacementRule), str(r is TileCheckRule), str(r is CollisionsCheckRule)])
 		if r.has_method("get_script"):
 			diag.append("[RULE_TRACE] rule[%d] SCRIPT: %s" % [i, str(r.get_script())])
 		# Direct property access instead of has_property() - fail fast pattern
-	diag.append("[RULE_TRACE] rule[%d] RESOURCE_PATH: %s" % [i, str(r.resource_path) if "resource_path" in r else "N/A"])
-	diag.append("[RULE_TRACE] rule[%d] STRING_REPR: %s" % [i, str(r)])
+		diag.append("[RULE_TRACE] rule[%d] RESOURCE_PATH: %s" % [i, str(r.resource_path) if "resource_path" in r else "N/A"])
+		diag.append("[RULE_TRACE] rule[%d] STRING_REPR: %s" % [i, str(r)])
 
 	# Ensure rules are setup and trace setup results (buffered instead of print)
 	diag.append("[RULE_TRACE] === RULE SETUP PHASE ===")
@@ -81,7 +82,7 @@ func test_indicator_generation_from_container_rules() -> void:
 
 	# Diagnostics: dump report details
 	if report:
-	diag.append("[diagnostic] report.is_successful = %s" % [report.is_successful()])
+		diag.append("[diagnostic] report.is_successful = %s" % [report.is_successful()])
 		if report.indicators_report:
 			var ind_list: Array[RuleCheckIndicator] = report.indicators_report.indicators
 			diag.append("[diagnostic] indicators_report.indicators size = %s" % [ind_list.size()])
@@ -107,4 +108,6 @@ func test_indicators_are_freed_on_reset() -> void:
 
 	# Reset the indicator manager and verify indicators are freed
 	_manager.clear()
-	assert_array(_manager.get_indicators()).is_empty()
+	assert_array(_manager.get_indicators()).append_failure_message(
+		"Indicators should be cleared after reset"
+	).is_empty()

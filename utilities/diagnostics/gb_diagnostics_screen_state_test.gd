@@ -1,6 +1,22 @@
 ## Unit tests for GBDiagnostics screen/camera helpers and formatted output.
 extends GdUnitTestSuite
 
+# Module-level constants extracted from tests
+const NO_CAMERA_MARKER: String = "<no camera>"
+const KEY_CAM_CENTER: String = "cam_center="
+const KEY_WORLD_MIN: String = "world_min="
+const KEY_WORLD_MAX: String = "world_max="
+const KEY_POS: String = "pos="
+const KEY_INSIDE: String = "inside="
+const KEY_POS_TILE: String = "pos_tile="
+const KEY_MOUSE_WORLD: String = "mouse_world="
+const KEY_MOUSE_TILE: String = "mouse_tile="
+const KEY_DELTA_TILES: String = "delta_tiles="
+const KEY_HAS_MOUSE_TRUE: String = "has_mouse=true"
+const EXPECT_POS_TILE: String = "pos_tile=(3, 4)"
+const EXPECT_MOUSE_TILE: String = "mouse_tile=(5, 5)"
+const EXPECT_DELTA_TILES: String = "delta_tiles=(2, 1)"
+
 ## Simple fake map implementing the minimal API used by GBPositioning2DUtils
 class FakeMap:
 	extends Node2D
@@ -13,7 +29,7 @@ class FakeMap:
 func test_format_screen_state_no_camera() -> void:
 	var pos := Vector2(100, 200)
 	var msg := GBDiagnostics.format_screen_state(null, null, pos, false, Vector2.ZERO, null)
-	assert_str(msg).append_failure_message("format_screen_state with null camera should include '<no camera>' marker. Got: %s" % msg).contains("<no camera>")
+	assert_str(msg).append_failure_message("format_screen_state with null camera should include '<no camera>' marker. Got: %s" % msg).contains(NO_CAMERA_MARKER)
 	assert_str(msg).append_failure_message("format_screen_state should include position %s. Got: %s" % [str(pos), msg]).contains(str(pos))
 
 func test_camera_world_bounds_and_inside_flag() -> void:
@@ -55,20 +71,20 @@ func test_format_screen_state_with_map_and_mouse() -> void:
 	var mouse := Vector2(80, 80) # -> tiles (5,5)
 	var msg := GBDiagnostics.format_screen_state(cam, vp, pos, true, mouse, map)
 	# Expect core fields present
-	assert_str(msg).append_failure_message("Screen state should include camera center field").contains("cam_center=")
-	assert_str(msg).append_failure_message("Screen state should include world min field").contains("world_min=")
-	assert_str(msg).append_failure_message("Screen state should include world max field").contains("world_max=")
-	assert_str(msg).append_failure_message("Screen state should include position field").contains("pos=")
-	assert_str(msg).append_failure_message("Screen state should include inside field").contains("inside=")
-	assert_str(msg).append_failure_message("Screen state should include position tile field").contains("pos_tile=")
-	assert_str(msg).append_failure_message("Screen state should include mouse world field").contains("mouse_world=")
-	assert_str(msg).append_failure_message("Screen state should include mouse tile field").contains("mouse_tile=")
-	assert_str(msg).append_failure_message("Screen state should include delta tiles field").contains("delta_tiles=")
-	assert_str(msg).append_failure_message("Screen state should show has_mouse=true").contains("has_mouse=true")
+	assert_str(msg).append_failure_message("Screen state should include camera center field").contains(KEY_CAM_CENTER)
+	assert_str(msg).append_failure_message("Screen state should include world min field").contains(KEY_WORLD_MIN)
+	assert_str(msg).append_failure_message("Screen state should include world max field").contains(KEY_WORLD_MAX)
+	assert_str(msg).append_failure_message("Screen state should include position field").contains(KEY_POS)
+	assert_str(msg).append_failure_message("Screen state should include inside field").contains(KEY_INSIDE)
+	assert_str(msg).append_failure_message("Screen state should include position tile field").contains(KEY_POS_TILE)
+	assert_str(msg).append_failure_message("Screen state should include mouse world field").contains(KEY_MOUSE_WORLD)
+	assert_str(msg).append_failure_message("Screen state should include mouse tile field").contains(KEY_MOUSE_TILE)
+	assert_str(msg).append_failure_message("Screen state should include delta tiles field").contains(KEY_DELTA_TILES)
+	assert_str(msg).append_failure_message("Screen state should show has_mouse=true").contains(KEY_HAS_MOUSE_TRUE)
 	# Check specific tile computations
-	assert_str(msg).append_failure_message("Screen state should show correct position tile (3, 4)").contains("pos_tile=(3, 4)")
-	assert_str(msg).append_failure_message("Screen state should show correct mouse tile (5, 5)").contains("mouse_tile=(5, 5)")
-	assert_str(msg).append_failure_message("Screen state should show correct delta tiles (2, 1)").contains("delta_tiles=(2, 1)")
+	assert_str(msg).append_failure_message("Screen state should show correct position tile (3, 4)").contains(EXPECT_POS_TILE)
+	assert_str(msg).append_failure_message("Screen state should show correct mouse tile (5, 5)").contains(EXPECT_MOUSE_TILE)
+	assert_str(msg).append_failure_message("Screen state should show correct delta tiles (2, 1)").contains(EXPECT_DELTA_TILES)
 	cam.free()
 	vp.free()
 	map.free()

@@ -76,9 +76,9 @@ func test_adjust_rect_to_testing_size() -> void:
 			var result_rect : Rect2 = setup._adjust_rect_to_testing_size(rect, setup.collision_object.global_transform)
 			var result_rect_size: Vector2 = result_rect.size
 			var minimum_expected_size: Vector2 = rect.size + TILE_SIZE * 1
-			assert_vector(result_rect_size).is_not_equal(rect.size)
-			assert_float(result_rect_size.x).is_greater_equal(minimum_expected_size.x)
-			assert_float(result_rect.size.y).is_greater_equal(minimum_expected_size.y)
+			assert_vector(result_rect_size).append_failure_message("Adjusted rect size should differ from original rect size").is_not_equal(rect.size)
+			assert_float(result_rect_size.x).append_failure_message("Adjusted rect width should meet minimum size requirement").is_greater_equal(minimum_expected_size.x)
+			assert_float(result_rect.size.y).append_failure_message("Adjusted rect height should meet minimum size requirement").is_greater_equal(minimum_expected_size.y)
 
 func create_test_setups(p_container : Node) -> Array[CollisionTestSetup2D]:
 	var test_setups : Array[CollisionTestSetup2D] = []

@@ -3,8 +3,12 @@
 ## to debug indicator clustering vs proper distribution issues
 extends GdUnitTestSuite
 
-# Test constants matching GBTestConstants but for isolated testing
-const TILE_SIZE: Vector2 = Vector2(16, 16)
+## Use centralized GBTestConstants for shared test values
+# local convenience alias (keeps existing code readable)
+const TILE_SIZE: Vector2 = GBTestConstants.DEFAULT_TILE_SIZE
+## Per-file constants to avoid magic literals
+const REGRESSION_EXPECTED_POS: Vector2 = Vector2(456.0, 552.0)
+const LARGE_DISTANCE_THRESHOLD: float = 100.0
 const TEST_POSITIONS: Array[Vector2i] = [
 	Vector2i(0, 0),   # Center
 	Vector2i(1, 0),   # Right
@@ -27,7 +31,7 @@ func before_test() -> void:
 	# Create tile map using existing factory
 	
 	# Create positioner using existing factory
-	_positioner.global_position = Vector2(64, 48)  # Position at tile (4, 3) for non-zero baseline
+	_positioner.global_position = GBTestConstants.CENTER / 2  # Position at a non-zero baseline
 	
 	# Create targeting state - requires GBOwnerContext for constructor
 	var owner_context: GBOwnerContext = GBOwnerContext.new()
@@ -43,7 +47,7 @@ func before_test() -> void:
 	# Create test object for positioning relative to
 	_test_object = auto_free(Node2D.new())
 	add_child(_test_object)
-	_test_object.global_position = Vector2(80, 80)  # Position at a known location
+	_test_object.global_position = GBTestConstants.OFF_GRID  # Position at a known location
 	
 	# Load indicator template from correct path
 	_indicator_template = GBTestConstants.TEST_INDICATOR_TD_PLATFORMER
@@ -168,7 +172,9 @@ func test_indicators_use_global_positioning() -> void:
 		_test_object
 	)
 	
-	assert_that(indicators.size()).is_equal(2)
+	assert_that(indicators.size()).append_failure_message(
+		"Should generate 2 indicators for 2 test positions"
+	).is_equal(2)
 	
 	# Verify indicators have different global positions
 	var pos1: Vector2 = indicators[0].global_position
@@ -203,7 +209,9 @@ func test_parent_transforms_do_not_interfere() -> void:
 		_test_object
 	)
 	
-	assert_that(indicators.size()).is_equal(1)
+	assert_that(indicators.size()).append_failure_message(
+		"Should generate 1 indicator for single test position"
+	).is_equal(1)
 	
 	# Calculate expected position based on tile grid, ignoring parent transform
 	var positioner_tile: Vector2i = _tile_map.local_to_map(_tile_map.to_local(_positioner.global_position))
@@ -250,9 +258,12 @@ func _verify_indicators_distributed_on_grid(indicators: Array[RuleCheckIndicator
 # Reproduces runtime scene analysis issue where indicators appear at wrong positions
 func test_indicator_positioning_regression_800_pixel_offset() -> void:
 	# Set test object and positioner at specific coordinates that match runtime analysis
-	var expected_pos := Vector2(456.0, 552.0)  # From runtime scene analysis
-	_test_object.global_position = expected_pos
-	_positioner.global_position = expected_pos
+	# Use per-file constant for regression expected position
+	_test_object.global_position = REGRESSION_EXPECTED_POS
+	_positioner.global_position = REGRESSION_EXPECTED_POS
+
+	# Local alias for readability and to avoid changing other usages in this test
+	var expected_pos: Vector2 = REGRESSION_EXPECTED_POS
 	
 	# Create simple single-indicator test
 	var position_rules_map: Dictionary[Vector2i, Array] = {}
@@ -284,7 +295,7 @@ func test_indicator_positioning_regression_800_pixel_offset() -> void:
 	
 	# Key assertion: This should FAIL if 800+ pixel regression is present
 	# If indicators appear at positions like (1272.0, 888.0), the distance will be ~800+ pixels
-	assert_that(distance).is_less(100.0).append_failure_message(
+	assert_that(distance).is_less(LARGE_DISTANCE_THRESHOLD).append_failure_message(
 		"REGRESSION DETECTED: Indicator positioned at (%s), expected near (%s). " % [indicator_pos, expected_pos] +
 		"Distance is %.1f pixels. The 800+ pixel offset regression means indicators appear far from expected positions." % distance
 	)
@@ -335,11 +346,11 @@ func test_debug_collision_position_mapping() -> void:
 	var expected_distance_range_max := 50.0
 	
 	if distance > 100.0:
-	diag.append("REGRESSION DETECTED: Large offset detected - positioning system creating wrong tile positions")
-	diag.append("Tile offset %s creates %.1f pixel displacement" % [realistic_offset, distance])
-	assert_that(false).append_failure_message("Realistic offset created unexpectedly large displacement: %.1f pixels\n%s" % [distance, "\n".join(diag)]).is_true()
+		diag.append("REGRESSION DETECTED: Large offset detected - positioning system creating wrong tile positions")
+		diag.append("Tile offset %s creates %.1f pixel displacement" % [realistic_offset, distance])
+		fail("Realistic offset created unexpectedly large displacement: %.1f pixels\n%s" % [distance, "\n".join(diag)])
 	else:
-	diag.append("POSITIONING WORKING: Realistic offset creates reasonable displacement")
+		diag.append("POSITIONING WORKING: Realistic offset creates reasonable displacement")
 	
 	# Verify the offset creates displacement in the expected range
 	assert_that(distance).is_greater(expected_distance_range_min).is_less(expected_distance_range_max).append_failure_message(

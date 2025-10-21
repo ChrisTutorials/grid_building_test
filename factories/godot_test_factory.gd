@@ -385,39 +385,7 @@ static func create_circle_shape(radius: float = 8.0) -> CircleShape2D:
 	circle.radius = radius
 	return circle
 
-
-# ================================
-# Grid Building Specific Nodes
-# ================================
-
-
-## Creates a Manipulatable with proper setup
-static func create_manipulatable(
-	test: GdUnitTestSuite, root_name: String = "ManipulatableRoot"
-) -> Node:
-	# Deprecated: This function returns a project-specific `Manipulatable`
-	# type. GodotTestFactory is intended to be plugin-agnostic. Tests that
-	# need a real `Manipulatable` should call the plugin-aware factory (e.g., PlaceableTestFactory.create_manipulatable(...))
-	# which lives in the plugin-aware test factories.
-	push_warning("GodotTestFactory.create_manipulatable() is deprecated - use a plugin-aware factory (e.g., PlaceableTestFactory) for plugin-specific factories")
-	# Best-effort fallback: attempt to construct the type if it's available,
-	# otherwise emit a warning and return a lightweight stub node.
-	var root: Node2D = test.auto_free(Node2D.new())
-	test.add_child(root)
-
-	# We deliberately DO NOT attempt to instantiate project-specific
-	# classes here. If the plugin-provided `Manipulatable` is available,
-	# tests should use the plugin-aware factory's create_manipulatable() which
-	# knows how to construct plugin types. This factory returns a plain
-	# Node2D stub that tests can adapt by attaching plugin scripts or
-	# wiring in `before_test()`.
-	push_warning("GodotTestFactory.create_manipulatable(): returning plugin-agnostic Node2D stub. Use the plugin-aware factory for real plugin objects.")
-	root.name = root_name
-	var stub: Node2D = test.auto_free(Node2D.new())
-	stub.name = "ManipulatableStub"
-	root.add_child(stub)
-	return stub
-
+#region Grid Building Specific Nodes
 
 ## (Removed) RuleCheckIndicator factory relocated
 ## This factory only handles Godot base class objects. Grid-building specific

@@ -122,7 +122,9 @@ func test_indicators_do_not_collide_with_preview() -> void:
 	var preview: Node2D = _container.get_states().building.preview
 	var indicators: Array[RuleCheckIndicator] = _indicator_manager.get_indicators()
 	
-	assert_object(preview).is_not_null()
+	assert_object(preview).append_failure_message(
+		"Preview should be created when entering build mode"
+	).is_not_null()
 	assert_int(indicators.size()).append_failure_message(
 		"Should have created indicators for placeable"
 	).is_greater(0)
@@ -253,12 +255,16 @@ func test_exit_build_mode_clears_collision_exclusions() -> void:
 	
 	# Enter build mode
 	var report: PlacementReport = _building_system.enter_build_mode(placeable)
-	assert_bool(report.is_successful()).is_true()
+	assert_bool(report.is_successful()).append_failure_message(
+		"Should successfully enter build mode with valid placeable"
+	).is_true()
 	runner.simulate_frames(2)
 	
 	# Verify preview is excluded - use building_state
 	var preview: Node2D = _container.get_states().building.preview
-	assert_object(preview).is_not_null()
+	assert_object(preview).append_failure_message(
+		"Preview should exist after entering build mode"
+	).is_not_null()
 	assert_bool(_gts.collision_exclusions.has(preview)).append_failure_message(
 		"Preview should be excluded after entering build mode"
 	).is_true()

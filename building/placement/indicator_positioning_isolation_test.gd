@@ -17,7 +17,7 @@ func before_test() -> void:
 	test_map = auto_free(TileMapLayer.new())
 	add_child(test_map)
 	var tile_set := TileSet.new()
-	tile_set.tile_size = Vector2i(16, 16)
+	tile_set.tile_size = Vector2i(GBTestConstants.DEFAULT_TILE_SIZE.x, GBTestConstants.DEFAULT_TILE_SIZE.y)
 	test_map.tile_set = tile_set
 	
 	# Create positioner for positioning tests
@@ -42,7 +42,7 @@ func before_test() -> void:
 	
 	# Create a basic test object with collision shape
 	test_object = Node2D.new()
-	test_object.position = Vector2(100, 200)  # Set a specific non-zero position
+	test_object.position = GBTestConstants.OFF_GRID  # Set a specific non-zero position
 	add_child(auto_free(test_object))  # Add to scene tree and auto_free it
 	
 	var area: Area2D = Area2D.new()
@@ -54,7 +54,7 @@ func before_test() -> void:
 	var collision_shape: CollisionShape2D = CollisionShape2D.new()
 	auto_free(collision_shape)
 	var rectangle_shape: RectangleShape2D = RectangleShape2D.new()
-	rectangle_shape.size = Vector2(32, 32)
+	rectangle_shape.size = GBTestConstants.DEFAULT_TILE_SIZE * 2  # 2x2 tiles (32x32)
 	collision_shape.shape = rectangle_shape
 	area.add_child(collision_shape)
 
@@ -100,8 +100,8 @@ func test_indicator_positions_are_relative_to_parent() -> void:
 		var indicator_global_pos: Vector2 = indicator.global_position
 		var indicator_local_pos: Vector2 = indicator.position
 
-				diag.append("Indicator global position: %s" % [indicator_global_pos])
-				diag.append("Indicator local position: %s" % [indicator_local_pos])
+		diag.append("Indicator global position: %s" % [indicator_global_pos])
+		diag.append("Indicator local position: %s" % [indicator_local_pos])
 		var parent_name: String = "null"
 		if indicator.get_parent():
 			parent_name = indicator.get_parent().name
@@ -223,7 +223,7 @@ func test_multiple_positions_show_relative_behavior() -> void:
 		var moved_pos : Vector2 = moved_indicators_data[i]["global_pos"]
 		var actual_offset : Vector2 = moved_pos - initial_pos
 
-			diag.append("Indicator %d: initial=%s, moved=%s, actual_offset=%s" % [i, initial_pos, moved_pos, actual_offset])
+		diag.append("Indicator %d: initial=%s, moved=%s, actual_offset=%s" % [i, initial_pos, moved_pos, actual_offset])
 		
 		# Check if indicator moved at all (not necessarily by exact test_object movement)
 		if actual_offset.length() > 1.0:  # Moved by more than 1 pixel
@@ -240,7 +240,7 @@ func test_multiple_positions_show_relative_behavior() -> void:
 	# (This is a weaker assertion but more aligned with actual system behavior)
 	diag.append("Indicators moved: %s" % [indicators_moved])
 
-		# Consume diag for static-analysis: include diagnostic context in a benign assertion so the local
-		# diagnostic buffer is not reported as unused by the code-smell detector.
-		var __diag_context := "\n".join(diag)
-		assert_that(__diag_context).is_not_null().append_failure_message("Diag context (truncated): %s" % __diag_context)
+	# Consume diag for static-analysis: include diagnostic context in a benign assertion so the local
+	# diagnostic buffer is not reported as unused by the code-smell detector.
+	var __diag_context := "\n".join(diag)
+	assert_that(__diag_context).is_not_null().append_failure_message("Diag context (truncated): %s" % __diag_context)

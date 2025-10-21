@@ -158,7 +158,7 @@ func test_indicator_updates_immediately_after_exclusion_added() -> void:
 	var indicator := _create_indicator(Vector2(100, 100))
 	indicator.add_rule(_rule)
 	
- runner.simulate_frames(1)
+	runner.simulate_frames(1)
 	assert_bool(indicator.valid).append_failure_message(
 		"Should be invalid without exclusion - %s, %s, %s" % [
 			_format_indicator_state(indicator),
@@ -171,7 +171,7 @@ func test_indicator_updates_immediately_after_exclusion_added() -> void:
 	_env.targeting_state.collision_exclusions = [body]
 	
 	# THEN: Indicator becomes valid on next validation
- runner.simulate_frames(1)
+	runner.simulate_frames(1)
 	assert_bool(indicator.valid).append_failure_message(
 		"Should be valid with exclusion - %s, %s" % [
 			_format_indicator_state(indicator),
@@ -190,16 +190,16 @@ func test_indicator_respects_exclusions_during_continuous_validation() -> void:
 	indicator2.add_rule(_rule)
 	
 	_env.targeting_state.collision_exclusions = [excluded_body]
-
- runner.simulate_frames(1)
+	
+	runner.simulate_frames(1)
 	var ind1_valid_f1 := indicator1.valid
 	var ind2_valid_f1 := indicator2.valid
 	
- runner.simulate_frames(1)
+	runner.simulate_frames(1)
 	var ind1_valid_f2 := indicator1.valid
 	var ind2_valid_f2 := indicator2.valid
 	
- runner.simulate_frames(1)
+	runner.simulate_frames(1)
 	var ind1_valid_f3 := indicator1.valid
 	var ind2_valid_f3 := indicator2.valid
 	
@@ -233,7 +233,7 @@ func test_indicator_emits_valid_changed_signal_when_exclusion_changes() -> void:
 	var indicator := _create_indicator(Vector2(100, 100))
 	indicator.add_rule(_rule)
 	
- runner.simulate_frames(1)
+	runner.simulate_frames(1)
 	assert_bool(indicator.valid).append_failure_message(
 		"Should be invalid initially - %s, %s" % [
 			_format_indicator_state(indicator),
@@ -243,7 +243,7 @@ func test_indicator_emits_valid_changed_signal_when_exclusion_changes() -> void:
 
 	# WHEN: Exclusion added
 	_env.targeting_state.collision_exclusions = [body]
- runner.simulate_frames(1)
+	runner.simulate_frames(1)
 
 	# THEN: Signal emitted with true and indicator becomes valid
 	assert_signal(indicator).is_emitted("valid_changed")

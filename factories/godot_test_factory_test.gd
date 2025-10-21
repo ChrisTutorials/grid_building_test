@@ -73,18 +73,6 @@ func test_create_empty_tile_map_layer() -> void:
 	assert_object(layer.get_parent()).append_failure_message("create_empty_tile_map_layer: layer should be parented to test instance").is_equal(self)
 	assert_object(layer.tile_set).append_failure_message("create_empty_tile_map_layer: layer.tile_set should not be null").is_not_null()
 
-
-func test_create_manipulatable() -> void:
-	var manipulatable: Manipulatable = GodotTestFactory.create_manipulatable(
-		self, "TestManipulatable"
-	)
-
-	assert_object(manipulatable).append_failure_message("create_manipulatable: manipulatable should not be null").is_not_null()
-	assert_that(manipulatable.name).append_failure_message("create_manipulatable: manipulatable name mismatch - expected 'Manipulatable'").is_equal("Manipulatable")
-	assert_object(manipulatable.root).append_failure_message("create_manipulatable: manipulatable.root should not be null").is_not_null()
-	assert_that(manipulatable.root.name).append_failure_message("create_manipulatable: manipulatable.root.name mismatch").is_equal("TestManipulatable")
-
-
 func test_create_static_body_with_rect_shape_default() -> void:
 	var body: StaticBody2D = GodotTestFactory.create_static_body_with_rect_shape(self)
 	

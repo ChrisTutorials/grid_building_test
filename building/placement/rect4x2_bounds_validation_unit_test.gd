@@ -47,9 +47,7 @@ func before_test() -> void:
 	_targeting_state.set_manual_target(env.placer)
 
 	# Ensure test-friendly targeting settings (no auto snapping/restriction side-effects)
-	if _container and _container.config and _container.config.settings and _container.config.settings.targeting:
-		_container.config.settings.targeting.restrict_to_map_area = false
-		_container.config.settings.targeting.limit_to_adjacent = false
+	_apply_test_targeting_settings()
 
 	# Ensure any existing placement rules are configured with the test targeting state
 	# Prefer configuring the rule provided by the composition container (single source-of-truth)
@@ -75,6 +73,19 @@ func before_test() -> void:
 	
 	# Set up test isolation to prevent mouse interference
 	_isolation_state = TestIsolation.setup_building_test_isolation(_positioner, _map, _container.get_logger())
+
+# Helper guard method: Extract complex conditional for targeting settings configuration
+func _apply_test_targeting_settings() -> void:
+	# Guard: Check if targeting settings path exists
+	if not _has_targeting_settings():
+		return
+	_container.config.settings.targeting.restrict_to_map_area = false
+	_container.config.settings.targeting.limit_to_adjacent = false
+
+# Helper guard method: Check if targeting settings are accessible (3+ conditionals)
+func _has_targeting_settings() -> bool:
+	return _container != null and _container.config != null and \
+		_container.config.settings != null and _container.config.settings.targeting != null
 
 # Helper method to move positioner to a specific tile
 func _move_positioner_to_tile(target_tile: Vector2i) -> void:

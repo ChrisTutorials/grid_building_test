@@ -135,6 +135,11 @@ static var BUILDING_NODE_SCRIPT: Script = load("uid://cufp4o5ctq6ak")
 ## Default tile size for test environments
 const DEFAULT_TILE_SIZE: Vector2 = Vector2(16, 16)
 
+## Integer pixel sizes derived from DEFAULT_TILE_SIZE for use in tests
+const DEFAULT_TILE_PX: int = int(DEFAULT_TILE_SIZE.x)
+const DEFAULT_TILE_SIZE_I: Vector2i = Vector2i(DEFAULT_TILE_PX, DEFAULT_TILE_PX)
+const DOUBLE_TILE_PX: int = DEFAULT_TILE_PX * 2
+
 ## Default test grid size
 const DEFAULT_GRID_SIZE: Vector2i = Vector2i(20, 20)
 
@@ -172,6 +177,9 @@ const OFF_GRID: Vector2 = Vector2(50, 50)  # Not aligned to tile boundaries
 
 ## Default center tile for positioner initialization - should be within map bounds for all test environments
 const DEFAULT_CENTER_TILE: Vector2i = Vector2i(0, 0)
+
+## Default test position used by multiple polygon/tile mapping tests (central pixel coordinate)
+const DEFAULT_TEST_POSITION: Vector2 = Vector2(320, 320)
 
 #endregion
 #region Test Tile Maps and Sets

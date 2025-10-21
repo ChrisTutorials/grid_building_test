@@ -31,7 +31,9 @@ func before_test() -> void:
 	add_child(env)
 	auto_free(env)
 	_container = env.get_container()
-	assert_array(env.get_issues()).is_empty()
+	assert_array(env.get_issues()).append_failure_message(
+		"Environment should initialize without issues"
+	).is_empty()
 	_gts = _container.get_states().targeting
 
 	# Configure the test collision rule
@@ -61,8 +63,12 @@ func test_collision_object_creation() -> void:
 
 	# Assert collision shape properties
 	var shape: CollisionShape2D = test_box.get_child(0)
-	assert_object(shape).is_not_null()
-	assert_object(shape.shape).is_not_null()
+	assert_object(shape).append_failure_message(
+		"Test box should have CollisionShape2D child"
+	).is_not_null()
+	assert_object(shape.shape).append_failure_message(
+		"CollisionShape2D should have a shape assigned"
+	).is_not_null()
 	if shape.shape is RectangleShape2D:
 		assert_vector(shape.shape.size)\
 			.append_failure_message("Collision shape size should be %s, got %s" % [TEST_BOX_SIZE, shape.shape.size])\
@@ -180,7 +186,9 @@ func _create_test_collision_box() -> RigidBody2D:
 func _create_placeable_from_node(node: Node, rules: Array[TileCheckRule]) -> Placeable:
 	var scene: PackedScene = PackedScene.new()
 	var result: int = scene.pack(node)
-	assert_int(result).is_zero()  # PACKED_SCENE_PACK_OK = 0
+	assert_int(result).append_failure_message(
+		"PackedScene.pack should succeed (PACKED_SCENE_PACK_OK = 0)"
+	).is_zero()
 
 	var placement_rules: Array[PlacementRule] = []
 	for rule in rules:
