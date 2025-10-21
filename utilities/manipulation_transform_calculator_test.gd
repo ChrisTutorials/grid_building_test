@@ -158,7 +158,9 @@ func test_validate_transform_preservation_valid() -> void:
 	assert_bool(result["is_valid"]).is_true().append_failure_message(
 		"Valid transforms should pass validation. Issues: %s" % str(result["issues"])
 	)
-	assert_array(result["issues"]).is_empty()
+	assert_array(result["issues"]).is_empty().append_failure_message(
+		"Valid transforms should have no validation issues"
+	)
 
 ## Test: Negative scale (flips) pass validation
 func test_validate_transform_preservation_negative_scale_valid() -> void:
@@ -193,7 +195,9 @@ func test_validate_transform_preservation_zero_scale_invalid() -> void:
 	assert_bool(result["is_valid"]).is_false().append_failure_message(
 		"Near-zero scale should fail validation"
 	)
-	assert_array(result["issues"]).is_not_empty()
+	assert_array(result["issues"]).is_not_empty().append_failure_message(
+		"Near-zero scale should produce validation issues"
+	)
 
 ## Test: Missing keys fail validation
 func test_validate_transform_preservation_missing_keys() -> void:
@@ -207,7 +211,9 @@ func test_validate_transform_preservation_missing_keys() -> void:
 	var result := ManipulationTransformCalculator.validate_transform_preservation(transforms)
 	
 	# Assert
-	assert_bool(result["is_valid"]).is_false()
+	assert_bool(result["is_valid"]).is_false().append_failure_message(
+		"Missing keys should fail validation"
+	)
 	assert_array(result["issues"]).is_not_empty().append_failure_message(
 		"Missing keys should produce validation issues"
 	)
@@ -237,7 +243,9 @@ func test_compare_transforms_identical() -> void:
 	assert_bool(result["matches"]).is_true().append_failure_message(
 		"Identical transforms should match. Differences: %s" % str(result["differences"])
 	)
-	assert_that(result["differences"]).is_empty()
+	assert_that(result["differences"]).is_empty().append_failure_message(
+		"Identical transforms should have no differences"
+	)
 
 ## Test: Small differences within tolerance match
 func test_compare_transforms_within_tolerance() -> void:
@@ -282,10 +290,18 @@ func test_compare_transforms_beyond_tolerance() -> void:
 	assert_bool(result["matches"]).is_false().append_failure_message(
 		"Transforms beyond tolerance should not match"
 	)
-	assert_that(result["differences"]).is_not_empty()
-	assert_that(result["differences"].has("position")).is_true()
-	assert_that(result["differences"].has("rotation")).is_true()
-	assert_that(result["differences"].has("scale")).is_true()
+	assert_that(result["differences"]).is_not_empty().append_failure_message(
+		"Differences array should contain detected differences"
+	)
+	assert_that(result["differences"].has("position")).is_true().append_failure_message(
+		"Position difference should be detected when beyond tolerance"
+	)
+	assert_that(result["differences"].has("rotation")).is_true().append_failure_message(
+		"Rotation difference should be detected when beyond tolerance"
+	)
+	assert_that(result["differences"].has("scale")).is_true().append_failure_message(
+		"Scale difference should be detected when beyond tolerance"
+	)
 
 #endregion
 

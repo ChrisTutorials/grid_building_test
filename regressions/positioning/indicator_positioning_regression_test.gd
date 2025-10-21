@@ -14,7 +14,7 @@ var test_tile_map: TileMapLayer
 var test_object: Node2D
 
 func before_test() -> void:
-	container = TEST_CONTAINER.duplicate()
+	container = auto_free(TEST_CONTAINER.duplicate(true))
 	# Create test environment
 	test_parent = Node2D.new()
 	add_child(test_parent)

@@ -8,8 +8,11 @@ extends GdUnitTestSuite
 var _container : GBCompositionContainer = GBTestConstants.TEST_COMPOSITION_CONTAINER 
 
 func test_validate_test_composition_container_subcomponents() -> void:
-	print("DEBUG: Running validation test - IndicatorManager validation moved to runtime-only checks")
-	assert_that(_container).append_failure_message("Failed to load test composition container resource: %s" % GBTestConstants.TEST_COMPOSITION_CONTAINER.resource_path).is_not_null()
+	# Test: Validate test composition container has all subcomponents (runtime checks only)
+	var diagnostic := GBTestDiagnostics.flush_for_assert()
+	assert_that(_container)\
+		.append_failure_message("Failed to load test composition container resource. Context: %s" % diagnostic)\
+		.is_not_null()
 
 	# Instantiate if it's a PackedScene-like resource that needs instantiation, otherwise it's a Resource
 	var container: GBCompositionContainer = null

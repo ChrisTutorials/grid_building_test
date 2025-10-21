@@ -32,7 +32,7 @@ func before_test() -> void:
 	building_system = _env.building_system
 	indicator_manager = _env.indicator_manager
 
-	assert_array(_env.get_issues()).is_empty()
+	assert_array(_env.get_issues()).is_empty().append_failure_message("Test environment should initialize without issues")
 
 #region Helper Functions
 
@@ -135,7 +135,7 @@ func test_polygon_test_object_indicator_collision_filtering() -> void:
 
 	# Get indicators from the setup report
 	var indicators : Array[RuleCheckIndicator] = setup_report.indicators_report.indicators
-	assert_array(indicators).is_not_empty()
+	assert_array(indicators).is_not_empty().append_failure_message("Setup should generate at least one indicator")
 
 	# Find the indicator at offset (0,0) - this should be filtered out due to collision
 	var center_indicator: RuleCheckIndicator = find_center_indicator(indicators)
@@ -187,13 +187,13 @@ func test_indicator_rule_assignment_during_creation() -> void:
 	# Assign the collision rule to the indicator
 	indicator.add_rule(collision_rule)
 
-	assert_object(indicator).is_not_null()
+	assert_object(indicator).is_not_null().append_failure_message("Indicator should be created successfully")
 
 	# Verify rules are properly assigned
 	var assigned_rules: Array[TileCheckRule] = indicator.get_rules()
 	assert_array(assigned_rules).has_size(1)
 	
-	assert_object(assigned_rules.get(0)).is_same(collision_rule)
+	assert_object(assigned_rules.get(0)).is_same(collision_rule).append_failure_message("First assigned rule should be the collision rule")
 
 	# Verify bidirectional relationship - rule should have indicator in its indicators array
 	assert_array(collision_rule.indicators).contains([indicator])
@@ -213,7 +213,7 @@ func test_indicator_rule_validation() -> void:
 
 	# Setup the rule
 	var setup_issues: Array[String] = collision_rule.setup(targeting_state)
-	assert_array(setup_issues).is_empty()
+	assert_array(setup_issues).is_empty().append_failure_message("Collision rule setup should complete without issues")
 
 	# Create indicator with the rule using DRY pattern with proper collision shape
 	var indicator: RuleCheckIndicator = RuleCheckIndicator.new()
@@ -235,7 +235,7 @@ func test_indicator_rule_validation() -> void:
 
 	indicator.force_shapecast_update()
 
-	assert_bool(indicator.valid).is_true()
+	assert_bool(indicator.valid).is_true().append_failure_message("Indicator should be valid when no collision object is present")
 
 	# Now create a collision object at the same position using DRY pattern
 	var _collision_object: StaticBody2D = create_collision_object_at(DEFAULT_POSITION)
@@ -273,7 +273,7 @@ func test_polygon_test_object_center_tile_filtering() -> void:
 	for rule: PlacementRule in rules:
 		if rule is CollisionsCheckRule:
 			var setup_issues: Array[String] = rule.setup(_container.get_targeting_state())
-			assert_array(setup_issues).is_empty()
+			assert_array(setup_issues).is_empty().append_failure_message("Collision rule setup should complete without issues for rule: %s" % rule.get_class())
 
 	# Call try_setup directly on the IndicatorManager
 	# Ensure the targeting state has the test instance as the current target
@@ -290,7 +290,7 @@ func test_polygon_test_object_center_tile_filtering() -> void:
 	var indicators: Array[RuleCheckIndicator] = setup_report.indicators_report.indicators
 
 	# There should be indicators generated based on the polygon shape
-	assert_array(indicators).is_not_empty()
+	assert_array(indicators).is_not_empty().append_failure_message("Setup should generate indicators for polygon shape")
 
 	# Find center indicator (offset 0,0) using DRY pattern
 	var center_indicator: RuleCheckIndicator = find_center_indicator(indicators)

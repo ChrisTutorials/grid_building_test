@@ -57,7 +57,7 @@ func assert_color_equal(actual: Color, expected: Color, context: String = "") ->
 func setup_mode_and_assert_initial_state(mode_value: GBEnums.Mode, canvas: Node2D) -> void:
 	"""Set the mode and assert initial canvas state."""
 	highlighter.mode_state.current = mode_value
-	assert_that(highlighter.mode_state.current).is_equal(mode_value)
+	assert_that(highlighter.mode_state.current).append_failure_message("Mode should be set to %s" % mode_value).is_equal(mode_value)
 	assert_color_equal(canvas.modulate, Color.WHITE, "Initial canvas modulate should be white")
 
 
@@ -117,8 +117,8 @@ func before_test() -> void:
 func test_target_modulate_clears_on_target_null() -> void:
 	var target: CanvasItem = highlighter.current_target
 	target.modulate = Color.AQUAMARINE
-	assert_object(target).is_not_null()
-	assert_that(target.modulate).is_not_equal(settings.reset_color)
+	assert_object(target).append_failure_message("Target should exist before clearing").is_not_null()
+	assert_that(target.modulate).append_failure_message("Target modulate should be set to aquamarine").is_not_equal(settings.reset_color)
 	targeting_state.clear()
 	await await_idle_frame()
 	assert_that(highlighter.current_target).is_null() \
@@ -148,7 +148,7 @@ func test__on_target_changed(
 	add_child(target)
 	highlighter._on_target_changed(target, null)
 
-	assert_object(highlighter.current_target).is_equal(target)
+	assert_object(highlighter.current_target).append_failure_message("Highlighter should have target set after _on_target_changed").is_equal(target)
 	assert_color_equal(target.modulate, p_expected_invalid, "Target should have invalid color initially")
 
 	#region Add manipulatable to make it valid

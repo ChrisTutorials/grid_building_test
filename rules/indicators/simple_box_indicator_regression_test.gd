@@ -208,12 +208,13 @@ func _find_collision_objects(node: Node, output: Array[Node2D]) -> void:
 	for child in node.get_children():
 		_find_collision_objects(child, output)
 
-## Helper: Debug node structure recursively
-func _debug_node_recursively(node: Node, depth: int) -> void:
+## Helper: Debug node structure recursively (for append_failure_message context)
+func _debug_node_recursively(node: Node, depth: int) -> String:
 	var indent: String = "  ".repeat(depth)
 	var node_info: String = "%s%s (%s)" % [indent, node.name, node.get_class()]
 	if node is CollisionObject2D:
 		node_info += " [layer: %d]" % node.collision_layer
-	print(node_info)
+	var result := node_info
 	for child in node.get_children():
-		_debug_node_recursively(child, depth + 1)
+		result += "\n" + _debug_node_recursively(child, depth + 1)
+	return result

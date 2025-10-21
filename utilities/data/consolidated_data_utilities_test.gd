@@ -12,7 +12,7 @@ const NODE_NAME_NUM_SEPARATOR: int = 2
 # -----------------------------------------------------------------------------
 # Test Variables
 # -----------------------------------------------------------------------------
-var _container : GBCompositionContainer = GBTestConstants.TEST_COMPOSITION_CONTAINER
+var _container : GBCompositionContainer = null
 var test_node: Node
 var building_node_script: Script = GBTestConstants.BUILDING_NODE_SCRIPT
 var project_name_num_seperator: int
@@ -27,6 +27,8 @@ func before_test() -> void:
 	# Initialize container for composition/configuration tests
 	container = GBCompositionContainer.new()
 	container.config = GBConfig.new()
+	# Duplicate canonical test composition container per-test to avoid shared-resource pollution
+	_container = auto_free(GBTestConstants.TEST_COMPOSITION_CONTAINER.duplicate(true))
 
 func after_test() -> void:
 	ProjectSettings.set_setting("editor/naming/node_name_num_separator", project_name_num_seperator)
@@ -89,9 +91,9 @@ func test_get_display_name(p_name: String, p_method_name: String, p_ex: String, 
 	test_node.name = p_name
 	var display_name: String = GBObjectUtils.get_display_name(test_node, "<none>")
 	if p_ex_start_with:
-		assert_str(display_name).starts_with(p_ex)
+		assert_str(display_name).append_failure_message("Display name should start with expected prefix").starts_with(p_ex)
 	else:
-		assert_str(display_name).contains(p_ex)
+		assert_str(display_name).append_failure_message("Display name should contain expected substring").contains(p_ex)
 		assert_int(display_name.length()).append_failure_message("Account for the space in returned string").is_equal(p_ex.length())
 
 @warning_ignore("unused_parameter")
@@ -100,7 +102,7 @@ func test_building_node_get_display_name(p_name: String, p_ex: String, test_para
 	var building_node: Node = auto_free(building_node_script.new())
 	building_node.name = p_name
 	var display_name: String = GBObjectUtils.get_display_name(building_node)
-	assert_str(display_name).is_equal(p_ex)
+	assert_str(display_name).append_failure_message("Building node display name should match expected format").is_equal(p_ex)
 
 #region Debug Settings Tests
 func test_debug_setting_float_and_color_are_read() -> void:
@@ -223,23 +225,23 @@ func test_trapezoid_collision_calculation_diagnostic() -> void:
 func test_test_composition_container_loads_and_has_placement_rules() -> void:
 	"""Test: Composition container loading and placement rules"""
 	var repo_res: GBCompositionContainer = GBTestConstants.TEST_COMPOSITION_CONTAINER
-	assert_object(repo_res).is_not_null().append_failure_message("GBTestConstants.TEST_COMPOSITION_CONTAINER must be a valid resource")
+	assert_object(repo_res).append_failure_message("GBTestConstants.TEST_COMPOSITION_CONTAINER must be a valid resource").is_not_null()
 	var pr: Array = repo_res.get_placement_rules()
 	var pr_count: int = pr.size() if pr else 0
-	assert_int(pr_count).is_greater(0).append_failure_message("Expected repo composition container to contain placement rules")
+	assert_int(pr_count).append_failure_message("Expected repo composition container to contain placement rules").is_greater(0)
 
 	var dup: GBCompositionContainer = repo_res.duplicate(true)
-	assert_object(dup).is_not_null()
+	assert_object(dup).append_failure_message("Duplicated container should not be null").is_not_null()
 	var pr_dup: Array = dup.get_placement_rules()
 	var pr_dup_count: int = pr_dup.size() if pr_dup else 0
-	assert_int(pr_dup_count).is_greater(0).append_failure_message("Duplicated container should retain placement rules")
+	assert_int(pr_dup_count).append_failure_message("Duplicated container should retain placement rules").is_greater(0)
 
 	var path: String = "res://test/grid_building_test/resources/composition_containers/test_composition_container.tres"
 	var loaded: Resource = ResourceLoader.load(path)
 	assert_object(loaded).append_failure_message("ResourceLoader failed to load %s" % path).is_not_null()
 	var pr_loaded: Array = loaded.get_placement_rules() if loaded and loaded.has_method("get_placement_rules") else []
 	var pr_loaded_count: int = pr_loaded.size() if pr_loaded else 0
-	assert_int(pr_loaded_count).is_greater(0).append_failure_message("Loaded resource should have placement rules")
+	assert_int(pr_loaded_count).append_failure_message("Loaded resource should have placement rules").is_greater(0)
 
 func test_validate_configuration_with_complete_config() -> void:
 	"""Test: Configuration validator with complete config"""
@@ -253,14 +255,14 @@ func test_validate_runtime_configuration_minimum() -> void:
 	"""Test: Runtime configuration validation minimum"""
 	var issues : Array[String] = container.get_runtime_issues()
 	# Expect some non-critical issues by default; ensure API returns an array
-	assert_array(issues).is_not_null()
+	assert_array(issues).append_failure_message("Runtime issues should be an array").is_not_null()
 
 func test_injectable_factory_create_collision_mapper() -> void:
 	"""Test: Injectable factory creates collision mapper"""
 	container.config.settings = GBSettings.new()
 	var mapper: CollisionMapper = GBInjectableFactory.create_collision_mapper(container)
-	assert_object(mapper).is_not_null()
-	assert_bool(mapper is CollisionMapper).is_true()
+	assert_object(mapper).append_failure_message("Collision mapper should be created").is_not_null()
+	assert_bool(mapper is CollisionMapper).append_failure_message("Created object should be CollisionMapper type").is_true()
 	var issues: Array[String] = mapper.get_runtime_issues()
 	assert_int(issues.size()).append_failure_message("Validation issues: %s" % str(issues)).is_equal(0)
 
@@ -274,8 +276,8 @@ func test_hierarchy_valid_when_root_is_ancestor() -> void:
 	var m := Manipulatable.new()
 	child.add_child(m)
 	m.root = root
-	assert_bool(m.is_root_hierarchy_valid()).is_true()
-	assert_array(m.get_issues()).is_empty()
+	assert_bool(m.is_root_hierarchy_valid()).append_failure_message("Hierarchy should be valid when root is ancestor").is_true()
+	assert_array(m.get_issues()).append_failure_message("No issues expected for valid hierarchy").is_empty()
 
 func test_hierarchy_invalid_when_root_not_ancestor() -> void:
 	"""Test: Manipulatable hierarchy validation when root is not ancestor"""
@@ -288,6 +290,6 @@ func test_hierarchy_invalid_when_root_not_ancestor() -> void:
 	var m := Manipulatable.new()
 	child.add_child(m)
 	m.root = unrelated
-	assert_bool(m.is_root_hierarchy_valid()).is_false()
-	assert_array(m.get_issues()).is_not_empty()
+	assert_bool(m.is_root_hierarchy_valid()).append_failure_message("Hierarchy should be invalid when root is not ancestor").is_false()
+	assert_array(m.get_issues()).append_failure_message("Issues expected for invalid hierarchy").is_not_empty()
 #endregion

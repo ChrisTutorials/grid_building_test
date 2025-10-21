@@ -49,23 +49,23 @@ func test_object_has_matching_layer() -> void:
 	
 	# Test exact match: collision layer 513 (bits 0,9) with mask 513 (bits 0,9)
 	test_area.collision_layer = 513
-	assert_that(PhysicsUtils.object_has_matching_layer(test_area, 513)).is_true()
+	assert_that(PhysicsUtils.object_has_matching_layer(test_area, 513)).append_failure_message("Exact match: collision layer 513 should match mask 513").is_true()
 	
 	# Test partial match: collision layer 513 (bits 0,9) with mask 2561 (bits 0,9,11)
 	test_area.collision_layer = 513
-	assert_that(PhysicsUtils.object_has_matching_layer(test_area, 2561)).is_true()
+	assert_that(PhysicsUtils.object_has_matching_layer(test_area, 2561)).append_failure_message("Partial match: collision layer 513 should match mask 2561 (overlapping bits)").is_true()
 	
 	# Test no match: collision layer 2 (bit 1) with mask 513 (bits 0,9)
 	test_area.collision_layer = 2
-	assert_that(PhysicsUtils.object_has_matching_layer(test_area, 513)).is_false()
+	assert_that(PhysicsUtils.object_has_matching_layer(test_area, 513)).append_failure_message("No match: collision layer 2 should not match mask 513").is_false()
 	
 	# Test zero collision layer (no layers active)
 	test_area.collision_layer = 0
-	assert_that(PhysicsUtils.object_has_matching_layer(test_area, 513)).is_false()
+	assert_that(PhysicsUtils.object_has_matching_layer(test_area, 513)).append_failure_message("Zero collision layer should not match any mask").is_false()
 	
 	# Test zero mask (no layers to match)
 	test_area.collision_layer = 513
-	assert_that(PhysicsUtils.object_has_matching_layer(test_area, 0)).is_false()
+	assert_that(PhysicsUtils.object_has_matching_layer(test_area, 0)).append_failure_message("Zero mask should not match any collision layer").is_false()
 	
 	test_area.queue_free()
 
@@ -75,17 +75,17 @@ func test_object_has_matching_layer_complex_cases() -> void:
 	# Test multiple overlapping bits
 	test_area.collision_layer = 0b110011  # bits 0,1,4,5
 	var mask: int = 0b1111  # bits 0,1,2,3
-	assert_that(PhysicsUtils.object_has_matching_layer(test_area, mask)).is_true()
+	assert_that(PhysicsUtils.object_has_matching_layer(test_area, mask)).append_failure_message("Multiple overlapping bits: collision layer 0b110011 should match mask 0b1111").is_true()
 	
 	# Test non-overlapping bits
 	test_area.collision_layer = 0b110000  # bits 4,5
 	mask = 0b001111  # bits 0,1,2,3
-	assert_that(PhysicsUtils.object_has_matching_layer(test_area, mask)).is_false()
+	assert_that(PhysicsUtils.object_has_matching_layer(test_area, mask)).append_failure_message("Non-overlapping bits: collision layer 0b110000 should not match mask 0b001111").is_false()
 	
 	# Test single bit overlap
 	test_area.collision_layer = 0b100000  # bit 5
 	mask = 0b101111  # bits 0,1,2,3,5
-	assert_that(PhysicsUtils.object_has_matching_layer(test_area, mask)).is_true()
+	assert_that(PhysicsUtils.object_has_matching_layer(test_area, mask)).append_failure_message("Single bit overlap: collision layer 0b100000 should match mask 0b101111").is_true()
 	
 	test_area.queue_free()
 
@@ -109,7 +109,7 @@ func test_regression_collision_layer_513_matches_mask_2561() -> void:
 	test_area.collision_layer = 513  # TEST_COLLISION_LAYER from tests
 	
 	# This should return true since both have bits 0 and 9 set
-	assert_that(PhysicsUtils.object_has_matching_layer(test_area, 2561)).is_true()
+	assert_that(PhysicsUtils.object_has_matching_layer(test_area, 2561)).append_failure_message("Regression test: collision layer 513 should match mask 2561 (both have bits 0 and 9)").is_true()
 	
 	test_area.queue_free()
 
@@ -126,7 +126,7 @@ func test_bitmask_conversion_consistency() -> void:
 
 # Helper function to assert array contains exactly the expected elements (order doesn't matter)
 func assert_array_contains_exactly(actual: Array[int], expected: Array[int], _message: String = "") -> void:
-	assert_that(actual.size()).is_equal(expected.size())
+	assert_that(actual.size()).append_failure_message("Array size should match expected size").is_equal(expected.size())
 	for item in expected:
 		assert_that(actual).contains(item)
 	for item in actual:
@@ -147,7 +147,7 @@ func test_debug_layers_from_bitmask() -> void:
 
 # Helper function for string arrays
 func assert_array_contains_exactly_strings(actual: Array[String], expected: Array[String], _message: String = "") -> void:
-	assert_that(actual.size()).is_equal(expected.size())
+	assert_that(actual.size()).append_failure_message("String array size should match expected size").is_equal(expected.size())
 	for item in expected:
 		assert_that(actual).contains(item)
 	for item in actual:

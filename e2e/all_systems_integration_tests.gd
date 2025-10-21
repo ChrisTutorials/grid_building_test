@@ -286,7 +286,7 @@ func _create_preview_with_collision() -> Node2D:
 
 func _create_test_placeable_with_rules() -> Placeable:
 	# Use the 4x2 rectangle test placeable instead of smithy for consistent testing
-	var placeable: Placeable = test_rect_4x2_placeable.duplicate()
+	var placeable: Placeable = test_rect_4x2_placeable.duplicate(true)
 	
 	# Use PlaceableTestFactory for rule creation
 	# Use false to exclude ValidPlacementTileRule - tests don't have pre-placed tiles

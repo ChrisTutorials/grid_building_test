@@ -88,7 +88,7 @@ func test_environment_uses_same_test_container() -> void:
 		assert_that(container).append_failure_message("%s environment should have a container" % type_name).is_not_null()
 
 		# Verify it's the same test composition container instance/resource (except for ISOMETRIC_TEST)
-		var expected_container: GBCompositionContainer = GBTestConstants.TEST_COMPOSITION_CONTAINER
+	var expected_container: GBCompositionContainer = auto_free(GBTestConstants.TEST_COMPOSITION_CONTAINER.duplicate(true))
 		if environment_type == GBTestConstants.EnvironmentType.ISOMETRIC_TEST:
 			# ISOMETRIC_TEST may use a different container - just verify it has placement rules
 			var placement_rules: Array[PlacementRule] = container.get_placement_rules()

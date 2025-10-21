@@ -51,7 +51,7 @@ func test_should_be_visible_off_mode_active_when_off() -> void:
 	var has_mouse := false
 	
 	var result := GridPositionerLogic.should_be_visible(GBEnums.Mode.OFF, settings, last_mouse, has_mouse)
-	assert_bool(result).is_true()
+	assert_bool(result).append_failure_message("should_be_visible: OFF mode with active_when_off=true should be visible").is_true()
 
 func test_should_be_visible_off_mode_not_active_when_off() -> void:
 	var settings := _make_settings(false, true, true)
@@ -59,7 +59,7 @@ func test_should_be_visible_off_mode_not_active_when_off() -> void:
 	var has_mouse := false
 	
 	var result := GridPositionerLogic.should_be_visible(GBEnums.Mode.OFF, settings, last_mouse, has_mouse)
-	assert_bool(result).is_false()
+	assert_bool(result).append_failure_message("should_be_visible: OFF mode with active_when_off=false should not be visible").is_false()
 
 func test_should_be_visible_info_mode() -> void:
 	var settings := GridTargetingSettings.new()
@@ -67,7 +67,7 @@ func test_should_be_visible_info_mode() -> void:
 	var has_mouse := false
 	
 	var result := GridPositionerLogic.should_be_visible(GBEnums.Mode.INFO, settings, last_mouse, has_mouse)
-	assert_bool(result).is_false()
+	assert_bool(result).append_failure_message("should_be_visible: INFO mode should not be visible").is_false()
 
 func test_should_be_visible_active_mode_with_last_mouse_allowed() -> void:
 	var settings := GridTargetingSettings.new()
@@ -76,7 +76,7 @@ func test_should_be_visible_active_mode_with_last_mouse_allowed() -> void:
 	var has_mouse := false
 	
 	var result := GridPositionerLogic.should_be_visible(GBEnums.Mode.MOVE, settings, last_mouse, has_mouse)
-	assert_bool(result).is_true()
+	assert_bool(result).append_failure_message("should_be_visible: MOVE mode with allowed last mouse should be visible").is_true()
 
 func test_should_be_visible_active_mode_with_mouse_world_and_enabled() -> void:
 	var settings := GridTargetingSettings.new()
@@ -99,31 +99,31 @@ func test_should_be_visible_active_mode_default() -> void:
 	var has_mouse := false
 	
 	var result := GridPositionerLogic.should_be_visible(GBEnums.Mode.MOVE, settings, last_mouse, has_mouse)
-	assert_bool(result).is_true()
+	assert_bool(result).append_failure_message("should_be_visible: MOVE mode default should be visible").is_true()
 
 func test_should_be_visible_for_mode_off_active() -> void:
 	var settings := _make_settings(true, true, true)
 	
 	var result := GridPositionerLogic.should_be_visible_for_mode(GBEnums.Mode.OFF, settings)
-	assert_bool(result).is_true()
+	assert_bool(result).append_failure_message("should_be_visible_for_mode: OFF mode active should be visible").is_true()
 
 func test_should_be_visible_for_mode_off_not_active() -> void:
 	var settings := _make_settings(false, true, true)
 	
 	var result := GridPositionerLogic.should_be_visible_for_mode(GBEnums.Mode.OFF, settings)
-	assert_bool(result).is_false()
+	assert_bool(result).append_failure_message("should_be_visible_for_mode: OFF mode not active should not be visible").is_false()
 
 func test_should_be_visible_for_mode_info() -> void:
 	var settings := GridTargetingSettings.new()
 	
 	var result := GridPositionerLogic.should_be_visible_for_mode(GBEnums.Mode.INFO, settings)
-	assert_bool(result).is_false()
+	assert_bool(result).append_failure_message("should_be_visible_for_mode: INFO mode should not be visible").is_false()
 
 func test_should_be_visible_for_mode_active() -> void:
 	var settings := GridTargetingSettings.new()
 	
 	var result := GridPositionerLogic.should_be_visible_for_mode(GBEnums.Mode.MOVE, settings)
-	assert_bool(result).is_true()
+	assert_bool(result).append_failure_message("should_be_visible_for_mode: MOVE mode should be visible").is_true()
 
 #endregion
 
@@ -132,21 +132,21 @@ func test_should_be_visible_for_mode_active() -> void:
 func test_mouse_event_gate_allowed_off_active_shows() -> void:
 	var s := _make_settings(true, true, true)
 	var res: Variant = GridPositionerLogic.visibility_on_mouse_event(GBEnums.Mode.OFF, s, true)
-	assert_bool(res.apply).is_true()
-	assert_bool(res.visible).is_true()
-	assert_str(res.reason).contains("allowed")
+	assert_bool(res.apply).append_failure_message("visibility_on_mouse_event: OFF mode active with allowed mouse should apply").is_true()
+	assert_bool(res.visible).append_failure_message("visibility_on_mouse_event: OFF mode active with allowed mouse should be visible").is_true()
+	assert_str(res.reason).append_failure_message("visibility_on_mouse_event: reason should contain 'allowed'").contains("allowed")
 
 func test_mouse_event_gate_blocked_off_inactive_hides() -> void:
 	var s := _make_settings(false, true, true)
 	var res: Variant = GridPositionerLogic.visibility_on_mouse_event(GBEnums.Mode.OFF, s, false)
-	assert_bool(res.apply).is_true()
-	assert_bool(res.visible).is_false()
-	assert_str(res.reason).contains("blocked")
+	assert_bool(res.apply).append_failure_message("visibility_on_mouse_event: OFF mode inactive with blocked mouse should apply").is_true()
+	assert_bool(res.visible).append_failure_message("visibility_on_mouse_event: OFF mode inactive with blocked mouse should not be visible").is_false()
+	assert_str(res.reason).append_failure_message("visibility_on_mouse_event: reason should contain 'blocked'").contains("blocked")
 
 func test_mouse_event_noop_when_hide_on_handled_false() -> void:
 	var s := _make_settings(true, false, true)
 	var res: Variant = GridPositionerLogic.visibility_on_mouse_event(GBEnums.Mode.MOVE, s, true)
-	assert_bool(res.apply).is_false()
+	assert_bool(res.apply).append_failure_message("visibility_on_mouse_event: hide_on_handled=false should not apply").is_false()
 
 func test_hide_on_handled_ignored_when_mouse_disabled() -> void:
 	var settings := _make_settings(true, true, false)
@@ -183,45 +183,42 @@ func test_visibility_reconcile_applies_when_differs() -> void:
 	var last := GBMouseInputStatus.new()
 	last.allowed = true
 	var res: Variant = GridPositionerLogic.visibility_reconcile(GBEnums.Mode.MOVE, s, false, last, false)
-	assert_bool(res.apply).is_true()
-	assert_bool(res.visible).is_true()
-	assert_str(res.reason).is_equal("reconcile_should_be_visible")
+	assert_bool(res.apply).append_failure_message("visibility_reconcile: should apply when visibility differs").is_true()
+	assert_bool(res.visible).append_failure_message("visibility_reconcile: should be visible when differs").is_true()
+	assert_str(res.reason).append_failure_message("visibility_reconcile: reason should be 'reconcile_should_be_visible'").is_equal("reconcile_should_be_visible")
 
 func test_visibility_reconcile_noop_when_same() -> void:
 	var s := _make_settings()
 	var last := GBMouseInputStatus.new()
 	last.allowed = true
 	var res: Variant = GridPositionerLogic.visibility_reconcile(GBEnums.Mode.MOVE, s, true, last, false)
-	assert_bool(res.apply).append_failure_message(
-		"Visibility reconcile should return apply=false when current visibility matches expected - Mode: %s, CurrentVisible: %s, MouseAllowed: %s, ShouldBeVisible: should match CurrentVisible" % 
-		[GBEnums.Mode.MOVE, true, last.allowed]
-	).is_false()
+	assert_bool(res.apply).append_failure_message("visibility_reconcile: should not apply when visibility same").is_false()
 
 func test_recenter_decision_none() -> void:
 	var d := GridPositionerLogic.recenter_on_enable_decision(GridTargetingSettings.RecenterOnEnablePolicy.NONE, false, true, true)
-	assert_int(d).is_equal(GridPositionerLogic.RecenterDecision.NONE)
+	assert_int(d).append_failure_message("recenter_on_enable_decision: NONE policy should return NONE").is_equal(GridPositionerLogic.RecenterDecision.NONE)
 
 func test_recenter_decision_last_shown_prefers_cache() -> void:
 	var d := GridPositionerLogic.recenter_on_enable_decision(GridTargetingSettings.RecenterOnEnablePolicy.LAST_SHOWN, true, true, true)
-	assert_int(d).is_equal(GridPositionerLogic.RecenterDecision.LAST_SHOWN)
+	assert_int(d).append_failure_message("recenter_on_enable_decision: LAST_SHOWN with cache should return LAST_SHOWN").is_equal(GridPositionerLogic.RecenterDecision.LAST_SHOWN)
 
 func test_recenter_decision_last_shown_fallback_mouse_then_center() -> void:
 	var d1 := GridPositionerLogic.recenter_on_enable_decision(GridTargetingSettings.RecenterOnEnablePolicy.LAST_SHOWN, false, true, true)
-	assert_int(d1).is_equal(GridPositionerLogic.RecenterDecision.MOUSE_CURSOR)
+	assert_int(d1).append_failure_message("recenter_on_enable_decision: LAST_SHOWN fallback to mouse").is_equal(GridPositionerLogic.RecenterDecision.MOUSE_CURSOR)
 	var d2 := GridPositionerLogic.recenter_on_enable_decision(GridTargetingSettings.RecenterOnEnablePolicy.LAST_SHOWN, false, false, false)
-	assert_int(d2).is_equal(GridPositionerLogic.RecenterDecision.VIEW_CENTER)
+	assert_int(d2).append_failure_message("recenter_on_enable_decision: LAST_SHOWN fallback to center").is_equal(GridPositionerLogic.RecenterDecision.VIEW_CENTER)
 
 func test_recenter_decision_mouse_cursor_prefers_cache_or_viewport() -> void:
 	var d1 := GridPositionerLogic.recenter_on_enable_decision(GridTargetingSettings.RecenterOnEnablePolicy.MOUSE_CURSOR, true, true, false)
-	assert_int(d1).is_equal(GridPositionerLogic.RecenterDecision.MOUSE_CURSOR)
+	assert_int(d1).append_failure_message("recenter_on_enable_decision: MOUSE_CURSOR with cache").is_equal(GridPositionerLogic.RecenterDecision.MOUSE_CURSOR)
 	var d2 := GridPositionerLogic.recenter_on_enable_decision(GridTargetingSettings.RecenterOnEnablePolicy.MOUSE_CURSOR, false, true, true)
-	assert_int(d2).is_equal(GridPositionerLogic.RecenterDecision.MOUSE_CURSOR)
+	assert_int(d2).append_failure_message("recenter_on_enable_decision: MOUSE_CURSOR fallback").is_equal(GridPositionerLogic.RecenterDecision.MOUSE_CURSOR)
 	var d3 := GridPositionerLogic.recenter_on_enable_decision(GridTargetingSettings.RecenterOnEnablePolicy.MOUSE_CURSOR, false, false, false)
-	assert_int(d3).is_equal(GridPositionerLogic.RecenterDecision.VIEW_CENTER)
+	assert_int(d3).append_failure_message("recenter_on_enable_decision: MOUSE_CURSOR to center").is_equal(GridPositionerLogic.RecenterDecision.VIEW_CENTER)
 
 func test_recenter_decision_view_center() -> void:
 	var d := GridPositionerLogic.recenter_on_enable_decision(GridTargetingSettings.RecenterOnEnablePolicy.VIEW_CENTER, false, true, true)
-	assert_int(d).is_equal(GridPositionerLogic.RecenterDecision.VIEW_CENTER)
+	assert_int(d).append_failure_message("recenter_on_enable_decision: VIEW_CENTER should return VIEW_CENTER").is_equal(GridPositionerLogic.RecenterDecision.VIEW_CENTER)
 
 #endregion
 
@@ -291,11 +288,11 @@ func test_visibility_decision_trace() -> void:
 	var has_mouse := true
 	
 	var trace := GridPositionerLogic.visibility_decision_trace(mode_state, settings, last_mouse, has_mouse)
-	assert_str(trace).contains("mode=MOVE")
-	assert_str(trace).contains("last_mouse_allowed=true")
-	assert_str(trace).contains("has_mouse_world=true")
-	assert_str(trace).contains("mouse_enabled=true")
-	assert_str(trace).contains("computed_should=true")
+	assert_str(trace).append_failure_message("visibility_decision_trace: should contain mode=MOVE").contains("mode=MOVE")
+	assert_str(trace).append_failure_message("visibility_decision_trace: should contain last_mouse_allowed=true").contains("last_mouse_allowed=true")
+	assert_str(trace).append_failure_message("visibility_decision_trace: should contain has_mouse_world=true").contains("has_mouse_world=true")
+	assert_str(trace).append_failure_message("visibility_decision_trace: should contain mouse_enabled=true").contains("mouse_enabled=true")
+	assert_str(trace).append_failure_message("visibility_decision_trace: should contain computed_should=true").contains("computed_should=true")
 
 func test_visibility_decision_trace_null_mode_state() -> void:
 	var settings := GridTargetingSettings.new()
@@ -303,7 +300,7 @@ func test_visibility_decision_trace_null_mode_state() -> void:
 	var has_mouse := false
 	
 	var trace := GridPositionerLogic.visibility_decision_trace(null, settings, last_mouse, has_mouse)
-	assert_str(trace).contains("mode=<none>")
+	assert_str(trace).append_failure_message("visibility_decision_trace: null mode_state should contain mode=<none>").contains("mode=<none>")
 
 func test_visibility_decision_trace_null_settings() -> void:
 	var mode_state := ModeState.new()
@@ -312,7 +309,7 @@ func test_visibility_decision_trace_null_settings() -> void:
 	var has_mouse := false
 	
 	var trace := GridPositionerLogic.visibility_decision_trace(mode_state, null, last_mouse, has_mouse)
-	assert_str(trace).contains("mouse_enabled=<n/a>")
+	assert_str(trace).append_failure_message("visibility_decision_trace: null settings should contain mouse_enabled=<n/a>").contains("mouse_enabled=<n/a>")
 
 #endregion
 

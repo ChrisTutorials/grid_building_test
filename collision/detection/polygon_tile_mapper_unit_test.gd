@@ -444,35 +444,35 @@ func test_polygon_tile_overlap_area_empty_polygon() -> void:
 	var rect := Rect2(0, 0, 16, 16)
 	var empty_polygon := PackedVector2Array()
 	var area := PolygonTileMapper.get_polygon_tile_overlap_area(empty_polygon, rect)
-	assert_float(area).is_equal(0.0)
+	assert_float(area).append_failure_message("Expected empty polygon to have 0 area").is_equal(0.0)
 
 ## Test polygon completely outside rect
 func test_polygon_tile_overlap_area_outside() -> void:
 	var rect := Rect2(0, 0, 16, 16)
 	var outside_polygon := PackedVector2Array([Vector2(20, 20), Vector2(30, 20), Vector2(30, 30), Vector2(20, 30)])
 	var area := PolygonTileMapper.get_polygon_tile_overlap_area(outside_polygon, rect)
-	assert_float(area).is_equal(0.0)
+	assert_float(area).append_failure_message("Expected polygon outside rect to have 0 area").is_equal(0.0)
 
 ## Test polygon completely inside rect
 func test_polygon_tile_overlap_area_completely_inside() -> void:
 	var rect: Rect2 = Rect2(0, 0, 16, 16)
 	var inside_polygon: PackedVector2Array = PackedVector2Array([Vector2(4, 4), Vector2(12, 4), Vector2(12, 12), Vector2(4, 12)])
 	var area: float = PolygonTileMapper.get_polygon_tile_overlap_area(inside_polygon, rect)
-	assert_float(area).is_equal(64.0)  # 8x8 square = 64
+	assert_float(area).append_failure_message("Expected 8x8 polygon inside 16x16 rect to have 64 area").is_equal(64.0)  # 8x8 square = 64
 
 ## Test polygon exactly matching rect bounds
 func test_polygon_tile_overlap_area_exact_match() -> void:
 	var rect: Rect2 = Rect2(0, 0, 16, 16)
 	var matching_polygon: PackedVector2Array = PackedVector2Array([Vector2(0, 0), Vector2(16, 0), Vector2(16, 16), Vector2(0, 16)])
 	var area: float = PolygonTileMapper.get_polygon_tile_overlap_area(matching_polygon, rect)
-	assert_float(area).is_equal(256.0)
+	assert_float(area).append_failure_message("Expected polygon matching rect bounds to have 256 area").is_equal(256.0)
 
 ## Test polygon completely containing rect
 func test_polygon_tile_overlap_area_contains_rect() -> void:
 	var rect: Rect2 = Rect2(4, 4, 8, 8)
 	var containing_polygon: PackedVector2Array = PackedVector2Array([Vector2(0, 0), Vector2(16, 0), Vector2(16, 16), Vector2(0, 16)])
 	var area: float = PolygonTileMapper.get_polygon_tile_overlap_area(containing_polygon, rect)
-	assert_float(area).is_equal(64.0)
+	assert_float(area).append_failure_message("Expected polygon containing 8x8 rect to have 64 area").is_equal(64.0)
 
 ## Test partial overlap
 func test_polygon_tile_overlap_area_partial_overlap() -> void:
@@ -541,6 +541,9 @@ func test_concave_polygon_tile_distribution() -> void:
 			"Concave polygon incorrectly filled center tile %s. Actual tiles: %s" % [empty_tile, str(tile_positions)]
 		).is_false()
 	
-	# Debug output to see what tiles are actually filled
+	# Verify no center tiles were filled (with diagnostic context)
 	GBTestDiagnostics.buffer("Concave polygon test - filled tiles: %s" % str(tile_positions))
+	assert_bool(true).is_true().append_failure_message(
+		"Concave polygon diagnostics: %s" % GBTestDiagnostics.flush_for_assert()
+	)
 

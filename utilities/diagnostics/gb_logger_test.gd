@@ -26,14 +26,14 @@ func test_level_filtering() -> void:
 
 
 func test_instantiation() -> void:
-	assert_that(_logger).is_not_null()
+	assert_that(_logger).is_not_null().append_failure_message("Logger should be instantiated successfully")
 
 
 func test_log_debug_once_logs_only_once() -> void:
 	_logger.log_debug_once(self, "This is a test debug message")
 	_logger.log_debug_once(self, "This is another test debug message")
 	assert_that(_received_logs.size()).append_failure_message("Should only log once for the same object").is_equal(1)
-	assert_that(_received_logs[0]["message"]).is_equal("This is a test debug message")
+	assert_that(_received_logs[0]["message"]).is_equal("This is a test debug message").append_failure_message("First log message should match the expected debug message")
 
 
 func test_log_warning_once_logs_only_once() -> void:
@@ -49,8 +49,8 @@ func test_log_warning_once_logs_multiple_times_for_different_objects() -> void:
 	_logger.log_warning_once(obj1, "This is a test warning message")
 	_logger.log_warning_once(obj2, "This is another test warning message")
 	assert_that(_received_logs.size()).append_failure_message("Should log once for each different object").is_equal(2)
-	assert_that(_received_logs[0]["message"]).is_equal("This is a test warning message")
-	assert_that(_received_logs[1]["message"]).is_equal("This is another test warning message")
+	assert_that(_received_logs[0]["message"]).is_equal("This is a test warning message").append_failure_message("First log should contain the first object's message")
+	assert_that(_received_logs[1]["message"]).is_equal("This is another test warning message").append_failure_message("Second log should contain the second object's message")
 	obj1.free()
 	obj2.free()
 
@@ -59,14 +59,14 @@ func test_log_error_once_logs_only_once() -> void:
 	_logger.log_error_once(self, "This is a test error message")
 	_logger.log_error_once(self, "This is another test error message")
 	assert_that(_received_logs.size()).append_failure_message("Should only log once for the same object").is_equal(1)
-	assert_that(_received_logs[0]["message"]).is_equal("This is a test error message")
+	assert_that(_received_logs[0]["message"]).is_equal("This is a test error message").append_failure_message("First log message should match the expected error message")
 
 
 func test_log_info_once_logs_only_once() -> void:
 	_logger.log_info_once(self, "This is a test info message")
 	_logger.log_info_once(self, "This is another test info message")
 	assert_that(_received_logs.size()).append_failure_message("Should only log once for the same object").is_equal(1)
-	assert_that(_received_logs[0]["message"]).is_equal("This is a test info message")
+	assert_that(_received_logs[0]["message"]).is_equal("This is a test info message").append_failure_message("First log message should match the expected info message")
 
 
 func test_context_from_get_stack() -> void:

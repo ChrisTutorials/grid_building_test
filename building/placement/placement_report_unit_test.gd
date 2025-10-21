@@ -15,11 +15,11 @@ func after_test() -> void:
 
 func test_rule_result_backward_compatibility_is_empty() -> void:
 	var rr := RuleResult.new(_dummy_rule)
-	assert_that(rr.is_empty()).is_true()
-	assert_that(rr.get_issues()).is_empty()
+	assert_that(rr.is_empty()).append_failure_message("RuleResult should be empty initially").is_true()
+	assert_that(rr.get_issues()).append_failure_message("RuleResult should have no issues initially").is_empty()
 	rr.add_issue("failure A")
-	assert_that(rr.is_empty()).is_false()
-	assert_array(rr.get_issues()).has_size(1)
+	assert_that(rr.is_empty()).append_failure_message("RuleResult should not be empty after adding issue").is_false()
+	assert_array(rr.get_issues()).append_failure_message("RuleResult should have exactly one issue").has_size(1)
 
 func test_validation_results_mixed_api_support() -> void:
 	var rr1 := RuleResult.new(_dummy_rule) # empty success
@@ -27,12 +27,12 @@ func test_validation_results_mixed_api_support() -> void:
 	rr2.add_issue("problem")
 	var vr := ValidationResults.new(true, "", { _dummy_rule: rr2 })
 	vr.add_rule_result(_dummy_rule, rr1) # overwrite with success version
-	assert_that(vr.has_failing_rules()).is_false()
-	assert_that(vr.is_successful()).is_true()
+	assert_that(vr.has_failing_rules()).append_failure_message("ValidationResults should not have failing rules after adding success result").is_false()
+	assert_that(vr.is_successful()).append_failure_message("ValidationResults should be successful after adding success result").is_true()
 	# Re-add failing
 	vr.add_rule_result(_dummy_rule, rr2)
-	assert_that(vr.has_failing_rules()).is_true()
-	assert_array(vr.get_issues()).has_size(1)
+	assert_that(vr.has_failing_rules()).append_failure_message("ValidationResults should have failing rules after adding failing result").is_true()
+	assert_array(vr.get_issues()).append_failure_message("ValidationResults should have exactly one issue").has_size(1)
 
 func test_placement_report_aggregates_indicator_and_primary_issues() -> void:
 	var rr := RuleResult.new(_dummy_rule)
@@ -50,7 +50,7 @@ func test_placement_report_aggregates_indicator_and_primary_issues() -> void:
 	report.add_issue("primary fail")
 	var issues := report.get_issues()
 	# Expect at least the manually added and primary issue; rule collision fail comes via ValidationResults only if indicators_report exposes it.
-	assert_that(issues.size() > 1).is_true()
+	assert_that(issues.size() > 1).append_failure_message("PlacementReport should aggregate multiple issues from indicator and primary sources").is_true()
 
 func test_validation_results_stores_both_errors_and_issues() -> void:
 	# Test: ValidationResults should expose both configuration errors and rule validation failures
