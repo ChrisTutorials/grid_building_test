@@ -247,17 +247,31 @@ func test_null_placeables_handling() -> void:
 	sequence.placeables = [test_placeable_1, null, test_placeable_2, null]
 	
 	# Count should include nulls
-	assert_int(sequence.count()).is_equal(4)
+	assert_int(sequence.count()).append_failure_message(
+		"Sequence count should include null placeables"
+	).is_equal(4)
 	
 	# get_variant should handle nulls gracefully
-	assert_object(sequence.get_variant(0)).is_same(test_placeable_1)
-	assert_object(sequence.get_variant(1)).is_null()
-	assert_object(sequence.get_variant(2)).is_same(test_placeable_2)
-	assert_object(sequence.get_variant(3)).is_null()
+	assert_object(sequence.get_variant(0)).append_failure_message(
+		"First variant should return the first non-null placeable"
+	).is_same(test_placeable_1)
+	assert_object(sequence.get_variant(1)).append_failure_message(
+		"Second variant should return null for null placeable"
+	).is_null()
+	assert_object(sequence.get_variant(2)).append_failure_message(
+		"Third variant should return the second non-null placeable"
+	).is_same(test_placeable_2)
+	assert_object(sequence.get_variant(3)).append_failure_message(
+		"Fourth variant should return null for null placeable"
+	).is_null()
 	
 	# variant_display_name should handle nulls
-	assert_str(sequence.variant_display_name(0)).is_equal("Basic Building")
-	assert_str(sequence.variant_display_name(1)).is_equal("<Unknown>")
+	assert_str(sequence.variant_display_name(0)).append_failure_message(
+		"Display name for first variant should match the placeable's name"
+	).is_equal("Basic Building")
+	assert_str(sequence.variant_display_name(1)).append_failure_message(
+		"Display name for null variant should be '<Unknown>'"
+	).is_equal("<Unknown>")
 	
 	# Should have validation issues for null placeables
 	var issues: Array[String] = sequence.get_editor_issues()

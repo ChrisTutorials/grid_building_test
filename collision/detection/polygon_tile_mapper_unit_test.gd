@@ -479,14 +479,14 @@ func test_polygon_tile_overlap_area_partial_overlap() -> void:
 	var rect: Rect2 = Rect2(0, 0, 16, 16)
 	var partial_polygon: PackedVector2Array = PackedVector2Array([Vector2(-8, -8), Vector2(8, -8), Vector2(8, 8), Vector2(-8, 8)])
 	var area: float = PolygonTileMapper.get_polygon_tile_overlap_area(partial_polygon, rect)
-	assert_float(area).is_greater(30.0).is_less(70.0)  # Should be around 64
+	assert_float(area).append_failure_message("Expected partial overlap to be around 64 area").is_greater(30.0).is_less(70.0)  # Should be around 64
 
 ## Test triangle overlap
 func test_polygon_tile_overlap_area_triangle() -> void:
 	var rect: Rect2 = Rect2(0, 0, 16, 16)
 	var triangle: PackedVector2Array = PackedVector2Array([Vector2(0, 0), Vector2(16, 0), Vector2(8, 16)])
 	var area: float = PolygonTileMapper.get_polygon_tile_overlap_area(triangle, rect)
-	assert_float(area).is_greater(120.0).is_less(140.0)  # Should be around 128
+	assert_float(area).append_failure_message("Expected triangle overlap to be around 128 area").is_greater(120.0).is_less(140.0)  # Should be around 128
 
 ## Test complex polygon
 func test_polygon_tile_overlap_area_complex() -> void:
@@ -496,7 +496,7 @@ func test_polygon_tile_overlap_area_complex() -> void:
 		Vector2(10, 10), Vector2(14, 10), Vector2(14, 14), Vector2(2, 14)
 	])
 	var area: float = PolygonTileMapper.get_polygon_tile_overlap_area(complex_polygon, rect)
-	assert_float(area).is_equal(128.0)  # L-shaped polygon: 12x12 - 4x4 cutout = 144 - 16 = 128
+	assert_float(area).append_failure_message("Expected L-shaped polygon to have 128 area").is_equal(128.0)  # L-shaped polygon: 12x12 - 4x4 cutout = 144 - 16 = 128
 
 ## Test concave polygon tile distribution - isolates issue from integration test
 func test_concave_polygon_tile_distribution() -> void:
@@ -543,7 +543,7 @@ func test_concave_polygon_tile_distribution() -> void:
 	
 	# Verify no center tiles were filled (with diagnostic context)
 	GBTestDiagnostics.buffer("Concave polygon test - filled tiles: %s" % str(tile_positions))
-	assert_bool(true).is_true().append_failure_message(
+	assert_bool(true).append_failure_message(
 		"Concave polygon diagnostics: %s" % GBTestDiagnostics.flush_for_assert()
-	)
+	).is_true()
 

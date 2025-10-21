@@ -288,31 +288,31 @@ func test_convert_shape_to_polygon_for_all_types(
 func test_get_polygon_bounds_edge_cases() -> void:
 	# Empty polygon
 	var empty_bounds: Rect2 = GBGeometryMath.get_polygon_bounds(PackedVector2Array())
-	assert_that(empty_bounds).is_equal(Rect2())
+	assert_that(empty_bounds).append_failure_message("Empty polygon bounds should be zero rect").is_equal(Rect2())
 	
 	# Single point
 	var single_point_bounds: Rect2 = GBGeometryMath.get_polygon_bounds(PackedVector2Array([Vector2(5, 10)]))
-	assert_that(single_point_bounds.position).is_equal_approx(Vector2(5, 10), Vector2(0.1, 0.1))
-	assert_that(single_point_bounds.size).is_equal_approx(Vector2.ZERO, Vector2(0.1, 0.1))
+	assert_that(single_point_bounds.position).append_failure_message("Single point bounds position should match point").is_equal_approx(Vector2(5, 10), Vector2(0.1, 0.1))
+	assert_that(single_point_bounds.size).append_failure_message("Single point bounds size should be zero").is_equal_approx(Vector2.ZERO, Vector2(0.1, 0.1))
 	
 	# Multiple points
 	var multi_point_bounds: Rect2 = GBGeometryMath.get_polygon_bounds(PackedVector2Array([Vector2(0, 0), Vector2(10, 0), Vector2(10, 10), Vector2(0, 10)]))
-	assert_that(multi_point_bounds.position).is_equal_approx(Vector2.ZERO, Vector2(0.1, 0.1))
-	assert_that(multi_point_bounds.size).is_equal_approx(Vector2(10, 10), Vector2(0.1, 0.1))
+	assert_that(multi_point_bounds.position).append_failure_message("Multi-point bounds position should be at origin").is_equal_approx(Vector2.ZERO, Vector2(0.1, 0.1))
+	assert_that(multi_point_bounds.size).append_failure_message("Multi-point bounds size should be 10x10").is_equal_approx(Vector2(10, 10), Vector2(0.1, 0.1))
 
 @warning_ignore("unused_parameter")
 func test_polygon_intersection_area_edge_cases() -> void:
 	# Empty polygons
 	var area1: float = GBGeometryMath.polygon_intersection_area(PackedVector2Array(), PackedVector2Array([Vector2(0, 0), Vector2(10, 0), Vector2(10, 10), Vector2(0, 10)]))
-	assert_that(area1).is_equal(0.0)
+	assert_that(area1).append_failure_message("Intersection with empty polygon should be 0").is_equal(0.0)
 	
 	# Identical polygons
 	var poly: PackedVector2Array = PackedVector2Array([Vector2(0, 0), Vector2(10, 0), Vector2(10, 10), Vector2(0, 10)])
 	var area2: float = GBGeometryMath.polygon_intersection_area(poly, poly)
-	assert_that(area2).is_equal(100.0)
+	assert_that(area2).append_failure_message("Intersection of identical polygons should equal polygon area").is_equal(100.0)
 	
 	# Non-overlapping polygons
 	var poly1: PackedVector2Array = PackedVector2Array([Vector2(0, 0), Vector2(5, 0), Vector2(5, 5), Vector2(0, 5)])
 	var poly2: PackedVector2Array = PackedVector2Array([Vector2(10, 10), Vector2(15, 10), Vector2(15, 15), Vector2(10, 15)])
 	var area3: float = GBGeometryMath.polygon_intersection_area(poly1, poly2)
-	assert_that(area3).is_equal(0.0)
+	assert_that(area3).append_failure_message("Intersection of non-overlapping polygons should be 0").is_equal(0.0)

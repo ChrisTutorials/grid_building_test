@@ -320,12 +320,26 @@ func test_format_transforms_debug() -> void:
 	var formatted := ManipulationTransformCalculator.format_transforms_debug(transforms)
 	
 	# Assert: Should contain all components in readable format
-	assert_str(formatted).contains("Position")
-	assert_str(formatted).contains("100")
-	assert_str(formatted).contains("200")
-	assert_str(formatted).contains("Rotation")
-	assert_str(formatted).contains("45")
-	assert_str(formatted).contains("Scale")
-	assert_str(formatted).contains("-1")  # Should show negative scale for flip
+	assert_str(formatted).append_failure_message(
+		"Formatted debug string should contain 'Position' label"
+	).contains("Position")
+	assert_str(formatted).append_failure_message(
+		"Formatted debug string should contain position X coordinate '100'"
+	).contains("100")
+	assert_str(formatted).append_failure_message(
+		"Formatted debug string should contain position Y coordinate '200'"
+	).contains("200")
+	assert_str(formatted).append_failure_message(
+		"Formatted debug string should contain 'Rotation' label"
+	).contains("Rotation")
+	assert_str(formatted).append_failure_message(
+		"Formatted debug string should contain rotation value '45'"
+	).contains("45")
+	assert_str(formatted).append_failure_message(
+		"Formatted debug string should contain 'Scale' label"
+	).contains("Scale")
+	assert_str(formatted).append_failure_message(
+		"Formatted debug string should contain negative scale value '-1' for horizontal flip"
+	).contains("-1")  # Should show negative scale for flip
 
 #endregion

@@ -33,8 +33,18 @@ func test_build_failed_report_returns_expected_issues() -> void:
 	var report: PlacementReport = manager._build_failed_report(issues, dummy_target)
 
 	# Assert
-	assert_object(report).is_not_null()
-	assert_array(report.issues).is_not_empty()
-	assert_that(report.issues[0]).contains("A failed")
-	assert_that(report.issues[1]).contains("Placement validation setup failed")
-	assert_that(report.issues[2]).contains("Rule ")
+	assert_object(report).append_failure_message(
+		"_build_failed_report should return a non-null PlacementReport"
+	).is_not_null()
+	assert_array(report.issues).append_failure_message(
+		"Failed report should contain issues array"
+	).is_not_empty()
+	assert_that(report.issues[0]).append_failure_message(
+		"First issue should contain 'A failed' - Issues: %s" % str(report.issues)
+	).contains("A failed")
+	assert_that(report.issues[1]).append_failure_message(
+		"Second issue should contain validation setup failure - Issues: %s" % str(report.issues)
+	).contains("Placement validation setup failed")
+	assert_that(report.issues[2]).append_failure_message(
+		"Third issue should contain 'Rule ' - Issues: %s" % str(report.issues)
+	).contains("Rule ")

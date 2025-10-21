@@ -152,14 +152,18 @@ func test_collision_processor_cache_invalidation() -> void:
 
 	# First call to populate cache
 	var result1 : Dictionary[Vector2i, Array] = _processor.get_tile_offsets_for_collision(collision_obj, test_data, _test_env.top_down_map, _test_env.positioner)
-	assert_that(result1.size()).is_greater(0)
+	assert_that(result1.size()).append_failure_message(
+		"First collision processing call should return tile offsets"
+	).is_greater(0)
 
 	# Invalidate cache
 	_processor.invalidate_cache()
 
 	# Second call should still work (cache cleared but functionality intact)
 	var result2 : Dictionary[Vector2i, Array] = _processor.get_tile_offsets_for_collision(collision_obj, test_data, _test_env.top_down_map, _test_env.positioner)
-	assert_that(result2.size()).is_greater(0)
+	assert_that(result2.size()).append_failure_message(
+		"Second collision processing call after cache invalidation should return tile offsets"
+	).is_greater(0)
 
 	# Results should be identical
 	assert_that(result1).append_failure_message("Expected identical results after cache invalidation").is_equal(result2)
@@ -228,9 +232,15 @@ func test_calculate_tile_range_shapes(
 	var result: Dictionary = _processor.calculate_tile_range(shape, bounds, _test_env.top_down_map, _test_env.tile_size, shape_transform)
 	
 	# Assert
-	assert_that(result).is_not_null()
-	assert_that(result.has("start")).is_true()
-	assert_that(result.has("end_exclusive")).is_true()
+	assert_that(result).append_failure_message(
+		"calculate_tile_range should return a non-null result"
+	).is_not_null()
+	assert_that(result.has("start")).append_failure_message(
+		"calculate_tile_range result should contain 'start' key"
+	).is_true()
+	assert_that(result.has("end_exclusive")).append_failure_message(
+		"calculate_tile_range result should contain 'end_exclusive' key"
+	).is_true()
 	
 	var start_tile: Vector2i = result["start"]
 	var end_exclusive: Vector2i = result["end_exclusive"]
@@ -252,7 +262,9 @@ func test_process_shape_offsets_rectangle() -> void:
 	var result: Dictionary = _processor.process_shape_offsets(rect_test_setup, test_data, _test_env.top_down_map, _test_env.center_tile, _test_env.tile_size, shape_epsilon, collision_obj)
 	
 	# Assert - result is a Dictionary[Vector2i, Array[Node2D]]
-	assert_that(result).is_not_null()
+	assert_that(result).append_failure_message(
+		"process_shape_offsets should return a non-null result for rectangle shape"
+	).is_not_null()
 	assert_that(result.size()).append_failure_message("Expected shape offsets to be calculated for rectangle, got %d results" % result.size()).is_greater(0)
 	# Since collision object and center_tile are at same position, relative offset should be (0, 0)
 	var expected_relative_offset: Vector2i = Vector2i(0, 0)

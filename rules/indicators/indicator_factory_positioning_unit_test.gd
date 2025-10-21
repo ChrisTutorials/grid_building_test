@@ -274,12 +274,13 @@ func test_indicator_positioning_regression_800_pixel_offset() -> void:
 	var indicator_pos: Vector2 = indicator.global_position
 	var distance: float = indicator_pos.distance_to(expected_pos)
 	
-	# Log detailed positioning data for analysis (matches runtime analysis format)
-	GBTestDiagnostics.buffer("=== POSITIONING REGRESSION TEST ===")
-	GBTestDiagnostics.buffer("Distance: %.1f pixels" % distance)
-	GBTestDiagnostics.buffer("Offset vector: %s" % [indicator_pos - expected_pos])
+	# Log detailed positioning data for analysis (use local diag)
+	var diag: PackedStringArray = PackedStringArray()
+	diag.append("=== POSITIONING REGRESSION TEST ===")
+	diag.append("Distance: %.1f pixels" % distance)
+	diag.append("Offset vector: %s" % [indicator_pos - expected_pos])
 
-	assert_vector(expected_pos).append_failure_message("Expected position for indicator\n%s" % GBTestDiagnostics.flush_for_assert()).is_equal(indicator_pos)
+	assert_vector(expected_pos).append_failure_message("Expected position for indicator\n%s" % "\n".join(diag)).is_equal(indicator_pos)
 	
 	# Key assertion: This should FAIL if 800+ pixel regression is present
 	# If indicators appear at positions like (1272.0, 888.0), the distance will be ~800+ pixels
@@ -320,12 +321,13 @@ func test_debug_collision_position_mapping() -> void:
 	var actual_pos := indicator.global_position
 	var distance := actual_pos.distance_to(expected_pos)
 	
-	GBTestDiagnostics.buffer("=== COLLISION POSITION MAPPING DEBUG ===")
-	GBTestDiagnostics.buffer("Realistic offset: %s" % [realistic_offset])
-	GBTestDiagnostics.buffer("Expected position: %s" % [expected_pos])
-	GBTestDiagnostics.buffer("Actual position: %s" % [actual_pos])
-	GBTestDiagnostics.buffer("Distance: %.1f pixels" % distance)
-	GBTestDiagnostics.buffer("Local position offset: %s" % [actual_pos - expected_pos])
+	var diag: PackedStringArray = PackedStringArray()
+	diag.append("=== COLLISION POSITION MAPPING DEBUG ===")
+	diag.append("Realistic offset: %s" % [realistic_offset])
+	diag.append("Expected position: %s" % [expected_pos])
+	diag.append("Actual position: %s" % [actual_pos])
+	diag.append("Distance: %.1f pixels" % distance)
+	diag.append("Local position offset: %s" % [actual_pos - expected_pos])
 	
 	# With realistic offsets, we should get reasonable pixel distances
 	# (-2, 1) offset means 2 tiles left, 1 tile down = (-32, 16) pixels approximately
@@ -333,11 +335,11 @@ func test_debug_collision_position_mapping() -> void:
 	var expected_distance_range_max := 50.0
 	
 	if distance > 100.0:
-		GBTestDiagnostics.buffer("REGRESSION DETECTED: Large offset detected - positioning system creating wrong tile positions")
-		GBTestDiagnostics.buffer("Tile offset %s creates %.1f pixel displacement" % [realistic_offset, distance])
-		assert_that(false).append_failure_message("Realistic offset created unexpectedly large displacement: %.1f pixels\n%s" % [distance, GBTestDiagnostics.flush_for_assert()]).is_true()
+	diag.append("REGRESSION DETECTED: Large offset detected - positioning system creating wrong tile positions")
+	diag.append("Tile offset %s creates %.1f pixel displacement" % [realistic_offset, distance])
+	assert_that(false).append_failure_message("Realistic offset created unexpectedly large displacement: %.1f pixels\n%s" % [distance, "\n".join(diag)]).is_true()
 	else:
-		GBTestDiagnostics.buffer("POSITIONING WORKING: Realistic offset creates reasonable displacement")
+	diag.append("POSITIONING WORKING: Realistic offset creates reasonable displacement")
 	
 	# Verify the offset creates displacement in the expected range
 	assert_that(distance).is_greater(expected_distance_range_min).is_less(expected_distance_range_max).append_failure_message(
@@ -362,7 +364,7 @@ func test_debug_collision_position_mapping() -> void:
 	var small_indicator := small_indicators[0]
 	var small_distance := small_indicator.global_position.distance_to(expected_pos)
 	
-	GBTestDiagnostics.buffer("Small offset test: %s creates %.1f pixel distance" % [small_offset, small_distance])
+	diag.append("Small offset test: %s creates %.1f pixel distance" % [small_offset, small_distance])
 	
 	# Small offsets should create reasonable distances (~16 pixels for 1 tile)
 	assert_that(small_distance).is_greater(10.0).is_less(30.0).append_failure_message(

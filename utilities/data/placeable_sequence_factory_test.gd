@@ -135,8 +135,12 @@ func test_ensure_sequences_preserves_existing_sequences() -> void:
 	assert_str(result[1].display_name).append_failure_message(
 		"Second result should be converted placeable with preserved name"
 	).is_equal(test_placeable_1.display_name)
-	assert_int(result[1].placeables.size()).is_equal(1)
-	assert_object(result[1].placeables[0]).is_same(test_placeable_1)
+	assert_int(result[1].placeables.size()).append_failure_message(
+		"Converted placeable sequence should contain exactly one placeable"
+	).is_equal(1)
+	assert_object(result[1].placeables[0]).append_failure_message(
+		"Converted placeable sequence should contain the original placeable"
+	).is_same(test_placeable_1)
 	
 	# Third item should be preserved sequence
 	assert_object(result[2]).append_failure_message(
@@ -223,20 +227,28 @@ func test_null_and_empty_input_handling() -> void:
 	# Test empty arrays
 	var empty_placeables: Array[Placeable] = []
 	var empty_result: Array[PlaceableSequence] = PlaceableSequenceFactory.from_placeables(empty_placeables)
-	assert_array(empty_result).is_empty()
+	assert_array(empty_result).append_failure_message(
+		"from_placeables with empty array should return empty result"
+	).is_empty()
 	
 	var empty_mixed: Array = []
 	var empty_mixed_result: Array[PlaceableSequence] = PlaceableSequenceFactory.ensure_sequences(empty_mixed)
-	assert_array(empty_mixed_result).is_empty()
+	assert_array(empty_mixed_result).append_failure_message(
+		"ensure_sequences with empty array should return empty result"
+	).is_empty()
 	
 	# Test arrays with only nulls
 	var only_nulls: Array[Placeable] = [null, null, null]
 	var null_result: Array[PlaceableSequence] = PlaceableSequenceFactory.from_placeables(only_nulls)
-	assert_array(null_result).is_empty()
+	assert_array(null_result).append_failure_message(
+		"from_placeables with only nulls should return empty result"
+	).is_empty()
 	
 	var mixed_nulls: Array = [null, null]
 	var mixed_null_result: Array[PlaceableSequence] = PlaceableSequenceFactory.ensure_sequences(mixed_nulls)
-	assert_array(mixed_null_result).is_empty()
+	assert_array(mixed_null_result).append_failure_message(
+		"ensure_sequences with only nulls should return empty result"
+	).is_empty()
 
 func test_large_array_performance() -> void:
 	# Test with larger arrays to ensure reasonable performance
@@ -269,8 +281,12 @@ func test_large_array_performance() -> void:
 	var time2: int = Time.get_ticks_msec() - start_time
 	
 	# Verify correct output sizes
-	assert_int(result1.size()).is_equal(100)
-	assert_int(result2.size()).is_equal(100)
+	assert_int(result1.size()).append_failure_message(
+		"from_placeables should convert 100 placeables to 100 sequences"
+	).is_equal(100)
+	assert_int(result2.size()).append_failure_message(
+		"ensure_sequences should process 100 mixed items to 100 sequences"
+	).is_equal(100)
 	
 	# Performance should be reasonable (< 100ms for 100 items)
 	assert_int(time1).append_failure_message(

@@ -96,8 +96,9 @@ func test_gather_collision_shapes_parameterized() -> void:
 		
 		var scene: PackedScene = load(scene_path) as PackedScene
 		if scene == null:
-			GBTestDiagnostics.buffer("Warning: Could not load scene at path: %s" % scene_path)
-			var context := GBTestDiagnostics.flush_for_assert()
+			var diag: PackedStringArray = PackedStringArray()
+			diag.append("Warning: Could not load scene at path: %s" % scene_path)
+			var context := "\n".join(diag)
 			assert_bool(scene != null).append_failure_message("Scene should load successfully: %s\nContext: %s" % [scene_path, context]).is_true()
 			continue
 			
@@ -178,9 +179,11 @@ func test_execute_indicator_setup_produces_zero_indicators_despite_collision_sha
 	
 	# Check if setup_result is valid before accessing properties
 	if setup_result == null:
+		var diag: PackedStringArray = PackedStringArray()
+		diag.append("IndicatorSetupUtils.execute_indicator_setup returned null")
 		assert_that(false).append_failure_message(
-			"IndicatorSetupUtils.execute_indicator_setup returned null. DBG: collision_shapes=%d, test_setups=%d, expected_collision_tiles=%d, smithy_pos=%s" % [
-				collision_shapes_count, test_setups.size(), expected_collision_tiles, smithy_obj.global_position
+			"IndicatorSetupUtils.execute_indicator_setup returned null. DBG: collision_shapes=%d, test_setups=%d, expected_collision_tiles=%d, smithy_pos=%s\n%s" % [
+				collision_shapes_count, test_setups.size(), expected_collision_tiles, smithy_obj.global_position, "\n".join(diag)
 			]
 		).is_true()
 		return
@@ -255,9 +258,11 @@ func test_collision_mapping_works_but_indicator_creation_fails() -> void:
 	
 	# Check if setup_result is valid before accessing properties
 	if setup_result == null:
+		var diag: PackedStringArray = PackedStringArray()
+		diag.append("IndicatorSetupUtils.execute_indicator_setup returned null when collision mapping finds %d tiles" % collision_tiles_found)
 		assert_that(false).append_failure_message(
-			"IndicatorSetupUtils.execute_indicator_setup returned null when collision mapping finds %d tiles. DBG: collision_tiles=%d, test_object_pos=%s" % [
-				collision_tiles_found, collision_tiles_found, test_object.global_position
+			"IndicatorSetupUtils.execute_indicator_setup returned null when collision mapping finds %d tiles. DBG: collision_tiles=%d, test_object_pos=%s\n%s" % [
+				collision_tiles_found, collision_tiles_found, test_object.global_position, "\n".join(diag)
 			]
 		).is_true()
 		return
@@ -360,7 +365,10 @@ func test_calculate_indicator_count_parameterized() -> void:
 		
 		var scene: PackedScene = load(scene_path) as PackedScene
 		if scene == null:
-			GBTestDiagnostics.buffer("Warning: Could not load scene at path: %s" % scene_path)
+			var diag: PackedStringArray = PackedStringArray()
+			diag.append("Warning: Could not load scene at path: %s" % scene_path)
+			var context := "\n".join(diag)
+			assert_bool(scene != null).append_failure_message("Scene should load successfully: %s\nContext: %s" % [scene_path, context]).is_true()
 			continue
 			
 		var test_object: Node2D = scene.instantiate() as Node2D
@@ -688,7 +696,8 @@ func test_collision_rule_validation_setup() -> void:
 	var result := IndicatorSetupUtils.validate_setup_preconditions(test_object, rules, mock_collision_mapper)
 	assert_that(result).append_failure_message("Expected no validation issues with properly configured collision rule").is_empty()
 	
-	GBTestDiagnostics.buffer("Collision rule validation test - rule configured properly, setup validation passed")
+	var diag_rule_ok: PackedStringArray = PackedStringArray()
+	diag_rule_ok.append("Collision rule validation test - rule configured properly, setup validation passed")
 
 ## Test rule validation with multiple rules - isolates multi-rule scenarios
 func test_multiple_rule_validation_setup() -> void:
@@ -716,4 +725,5 @@ func test_multiple_rule_validation_setup() -> void:
 	assert_bool(rules[0] is CollisionsCheckRule).append_failure_message("Expected first rule to be CollisionsCheckRule").is_true()
 	assert_bool(rules[1] is TileCheckRule).append_failure_message("Expected second rule to be TileCheckRule").is_true()
 	
-	GBTestDiagnostics.buffer("Multiple rule validation test - %d rules configured, setup validation passed" % rules.size())
+	var diag_multi: PackedStringArray = PackedStringArray()
+	diag_multi.append("Multiple rule validation test - %d rules configured, setup validation passed" % rules.size())

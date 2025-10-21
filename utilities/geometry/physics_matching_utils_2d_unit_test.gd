@@ -92,16 +92,6 @@ func test_object_has_matching_layer_complex_cases() -> void:
 func test_get_physics_layer_names() -> void:
 	# Skip this test for now - ProjectSettings layer access seems problematic in tests
 	pass
-	# Test with layers array converted from mask
-	#var layers_513: Array[int] = PhysicsUtils.get_layers_from_bitmask(513)
-	#var names: Array[String] = PhysicsUtils.get_physics_layer_names(layers_513)
-	#assert_that(names).is_not_null()
-	#assert_that(names.size()).is_greater_than(0)
-	
-	# Test with empty layers array
-	#var empty_layers: Array[int] = []
-	#names = PhysicsUtils.get_physics_layer_names(empty_layers)
-	#assert_array_contains_exactly_strings(names, [], "Empty layers should return empty array")
 
 func test_regression_collision_layer_513_matches_mask_2561() -> void:
 	# This is the specific issue from the failing tests
@@ -126,11 +116,18 @@ func test_bitmask_conversion_consistency() -> void:
 
 # Helper function to assert array contains exactly the expected elements (order doesn't matter)
 func assert_array_contains_exactly(actual: Array[int], expected: Array[int], _message: String = "") -> void:
-	assert_that(actual.size()).append_failure_message("Array size should match expected size").is_equal(expected.size())
+	assert_that(actual.size()).append_failure_message(
+		"Array size should match expected size - Actual: %s, Expected: %s" % \
+		[str(actual.size()), str(expected.size())]
+	).is_equal(expected.size())
 	for item in expected:
-		assert_that(actual).contains(item)
+		assert_that(actual).append_failure_message(
+			"Array should contain expected item %d - Actual: %s" % [item, str(actual)]
+		).contains(item)
 	for item in actual:
-		assert_that(expected).contains(item)
+		assert_that(expected).append_failure_message(
+			"Array should not contain unexpected item %d - Expected: %s" % [item, str(expected)]
+		).contains(item)
 
 # Simple test that prints actual values to see what we're getting
 func test_debug_layers_from_bitmask() -> void:
@@ -147,8 +144,15 @@ func test_debug_layers_from_bitmask() -> void:
 
 # Helper function for string arrays
 func assert_array_contains_exactly_strings(actual: Array[String], expected: Array[String], _message: String = "") -> void:
-	assert_that(actual.size()).append_failure_message("String array size should match expected size").is_equal(expected.size())
+	assert_that(actual.size()).append_failure_message(
+		"String array size should match expected size - Actual: %s, Expected: %s" % \
+		[str(actual.size()), str(expected.size())]
+	).is_equal(expected.size())
 	for item in expected:
-		assert_that(actual).contains(item)
+		assert_that(actual).append_failure_message(
+			"String array should contain expected item '%s' - Actual: %s" % [item, str(actual)]
+		).contains(item)
 	for item in actual:
-		assert_that(expected).contains(item)
+		assert_that(expected).append_failure_message(
+			"String array should not contain unexpected item '%s' - Expected: %s" % [item, str(expected)]
+		).contains(item)

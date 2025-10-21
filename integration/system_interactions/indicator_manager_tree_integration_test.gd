@@ -91,8 +91,9 @@ func test_indicators_are_parented_and_inside_tree() -> void:
 			actual_name = actual_parent.name
 			actual_class = actual_parent.get_class()
 
-		GBTestDiagnostics.buffer("Tree integration debug - Expected parent: %s (%s), Actual parent: %s (%s)" % [expected_name, expected_class, actual_name, actual_class])
+			var diag: PackedStringArray = PackedStringArray()
+			diag.append("Tree integration debug - Expected parent: %s (%s), Actual parent: %s (%s)" % [expected_name, expected_class, actual_name, actual_class])
 
-		var context := GBTestDiagnostics.flush_for_assert()
-		assert_object(ind.get_parent()).append_failure_message("Unexpected parent for indicator: %s. Expected parent node: %s, Got: %s\nContext: %s" % [ind.name, expected_name, actual_name, context]).is_equal(expected_parent)
+			var context := "\n".join(diag)
+			assert_object(ind.get_parent()).append_failure_message("Unexpected parent for indicator: %s. Expected parent node: %s, Got: %s\nContext: %s" % [ind.name, expected_name, actual_name, context]).is_equal(expected_parent)
 
