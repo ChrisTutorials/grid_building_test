@@ -39,16 +39,16 @@ func after_test() -> void:
 
 ## Test cardinal direction conversion from degrees
 func test_degrees_to_cardinal_conversion() -> void:
-	assert_int(GridRotationUtils.degrees_to_cardinal(0)).append_failure_message(
+	assert_int(GridRotationUtils.degrees_to_cardinal(GBTestConstants.ROTATION_NORTH)).append_failure_message(
 		"0° should convert to NORTH"
 	).is_equal(GridRotationUtils.CardinalDirection.NORTH)
-	assert_int(GridRotationUtils.degrees_to_cardinal(90)).append_failure_message(
+	assert_int(GridRotationUtils.degrees_to_cardinal(GBTestConstants.ROTATION_EAST)).append_failure_message(
 		"90° should convert to EAST"
 	).is_equal(GridRotationUtils.CardinalDirection.EAST)
-	assert_int(GridRotationUtils.degrees_to_cardinal(180)).append_failure_message(
+	assert_int(GridRotationUtils.degrees_to_cardinal(GBTestConstants.ROTATION_SOUTH)).append_failure_message(
 		"180° should convert to SOUTH"
 	).is_equal(GridRotationUtils.CardinalDirection.SOUTH)
-	assert_int(GridRotationUtils.degrees_to_cardinal(270)).append_failure_message(
+	assert_int(GridRotationUtils.degrees_to_cardinal(GBTestConstants.ROTATION_WEST)).append_failure_message(
 		"270° should convert to WEST"
 	).is_equal(GridRotationUtils.CardinalDirection.WEST)
 
@@ -56,16 +56,16 @@ func test_degrees_to_cardinal_conversion() -> void:
 func test_cardinal_to_degrees_conversion() -> void:
 	assert_float(GridRotationUtils.cardinal_to_degrees(GridRotationUtils.CardinalDirection.NORTH)).append_failure_message(
 		"NORTH should convert to 0°"
-	).is_equal(0.0)
+	).is_equal(GBTestConstants.ROTATION_NORTH)
 	assert_float(GridRotationUtils.cardinal_to_degrees(GridRotationUtils.CardinalDirection.EAST)).append_failure_message(
 		"EAST should convert to 90°"
-	).is_equal(90.0)
+	).is_equal(GBTestConstants.ROTATION_EAST)
 	assert_float(GridRotationUtils.cardinal_to_degrees(GridRotationUtils.CardinalDirection.SOUTH)).append_failure_message(
 		"SOUTH should convert to 180°"
-	).is_equal(180.0)
+	).is_equal(GBTestConstants.ROTATION_SOUTH)
 	assert_float(GridRotationUtils.cardinal_to_degrees(GridRotationUtils.CardinalDirection.WEST)).append_failure_message(
 		"WEST should convert to 270°"
-	).is_equal(270.0)
+	).is_equal(GBTestConstants.ROTATION_WEST)
 
 ## Test clockwise rotation sequence
 func test_clockwise_rotation_sequence() -> void:
@@ -112,16 +112,16 @@ func test_counter_clockwise_rotation_sequence() -> void:
 ## Test node rotation with grid snapping
 func test_node_rotation_with_grid_snapping() -> void:
 	# Set initial rotation to 0 (North/0°)
-	test_node.rotation = 0.0
+	test_node.rotation = GBTestConstants.ROTATION_NORTH
 	
 	# Test clockwise rotation (default 90° increment)
 	var new_rotation_deg: float = GridRotationUtils.rotate_node_clockwise(test_node, test_map)
 	assert_float(new_rotation_deg).append_failure_message(
 		"Expected 90° rotation, got %0.1f°" % new_rotation_deg
-	).is_equal_approx(90.0, 0.1)
+	).is_equal_approx(GBTestConstants.ROTATION_EAST, 0.1)
 	assert_float(rad_to_deg(test_node.rotation)).append_failure_message(
 		"Node rotation should be 90° after clockwise rotation"
-	).is_equal_approx(90.0, 0.1)
+	).is_equal_approx(GBTestConstants.ROTATION_EAST, 0.1)
 
 ## Test direction tile delta calculations
 func test_direction_tile_deltas() -> void:
