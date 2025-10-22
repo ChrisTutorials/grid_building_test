@@ -8,16 +8,12 @@ var _received_logs: Array[Dictionary]
 
 # Per-file message constants to reduce magic-string repetitions
 const MSG_DEBUG_ONE := "This is a test debug message"
-const MSG_DEBUG_TWO := "This is another test debug message"
 const MSG_WARN_ONE := "This is a test warning message"
 const MSG_WARN_TWO := "This is another test warning message"
 const MSG_ERR_ONE := "This is a test error message"
-const MSG_ERR_TWO := "This is another test error message"
 const MSG_INFO_ONE := "This is a test info message"
-const MSG_INFO_TWO := "This is another test info message"
 const MSG_HEAVY_RESULT := "heavy result"
 const MSG_CALLABLE_RESULT := "callable result"
-const MSG_PROBLEM := "problem"
 const MSG_DIRECT_STRING := "direct string"
 const MSG_FIRST := "first"
 const MSG_SECOND := "second"
@@ -48,7 +44,7 @@ func test_instantiation() -> void:
 
 func test_log_debug_once_logs_only_once() -> void:
 	_logger.log_debug_once(self, MSG_DEBUG_ONE)
-	_logger.log_debug_once(self, MSG_DEBUG_TWO)
+	_logger.log_debug_once(self, "This is another test debug message")
 	assert_that(_received_logs.size()).append_failure_message("Should only log once for the same object").is_equal(1)
 	assert_that(_received_logs[0]["message"]).is_equal(MSG_DEBUG_ONE).append_failure_message("First log message should match the expected debug message")
 
@@ -74,14 +70,14 @@ func test_log_warning_once_logs_multiple_times_for_different_objects() -> void:
 
 func test_log_error_once_logs_only_once() -> void:
 	_logger.log_error_once(self, MSG_ERR_ONE)
-	_logger.log_error_once(self, MSG_ERR_TWO)
+	_logger.log_error_once(self, "This is another test error message")
 	assert_that(_received_logs.size()).append_failure_message("Should only log once for the same object").is_equal(1)
 	assert_that(_received_logs[0]["message"]).is_equal(MSG_ERR_ONE).append_failure_message("First log message should match the expected error message")
 
 
 func test_log_info_once_logs_only_once() -> void:
 	_logger.log_info_once(self, MSG_INFO_ONE)
-	_logger.log_info_once(self, MSG_INFO_TWO)
+	_logger.log_info_once(self, "This is another test info message")
 	assert_that(_received_logs.size()).append_failure_message("Should only log once for the same object").is_equal(1)
 	assert_that(_received_logs[0]["message"]).is_equal(MSG_INFO_ONE).append_failure_message("First log message should match the expected info message")
 
@@ -179,7 +175,7 @@ func test_set_log_sink_works_for_errors() -> void:
 	assert_that(_received_logs.size()).append_failure_message("Sink should receive one message for error log").is_equal(1)
 	var e: Dictionary = _received_logs[0]
 	assert_that(e["level"]).append_failure_message("Log level should be ERROR").is_equal(DBG_LEVEL.ERROR)
-	assert_that(e["message"]).append_failure_message("Log message should match input").is_equal(MSG_PROBLEM)
+	assert_that(e["message"]).append_failure_message("Log message should match input").is_equal("problem")
 
 func test_default_emission_without_sink_calls_provider_and_does_not_crash() -> void:
 	_logger.set_log_sink(Callable())

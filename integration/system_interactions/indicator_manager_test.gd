@@ -317,9 +317,7 @@ func test_indicators_are_freed_on_reset() -> void:
 		"indicator_manager.get_indicators() not empty after tear_down"
 	).is_equal(0)
 
-# -------------------------
-# Helper diagnostics
-# -------------------------
+#region Helper diagnostics
 func _count_collision_shapes(root: Node) -> int:
 	var count := 0
 	var stack : Array[Node] = [root]
@@ -367,3 +365,4 @@ func _collision_layer_overlaps(root: Node, tile_rules: Array[TileCheckRule]) -> 
 				if ((child as CollisionObject2D).collision_layer & mask) != 0:
 					return true
 	return false
+#endregion

@@ -28,7 +28,9 @@ func before_test() -> void:
 	_rule.pass_on_collision = false  # Fail when collision detected
 	_rule.collision_mask = 1  # Check layer 0
 	var setup_issues := _rule.setup(_env.targeting_state)
-	assert_array(setup_issues).is_empty()
+	assert_array(setup_issues).append_failure_message(
+		"CollisionsCheckRule setup should have no issues"
+	).is_empty()
 
 func after_test() -> void:
 	# Clear collision exclusions to prevent test isolation issues

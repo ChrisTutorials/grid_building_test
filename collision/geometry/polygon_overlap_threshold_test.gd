@@ -44,4 +44,6 @@ func test_polygon_overlap_threshold(
     var clipped_area := CollisionGeometryCalculator.polygon_area(clipped)
 
     # Assert
-    assert_bool(result).is_equal(expected).append_failure_message("%s | clipped_area=%.6f min_ratio=%.3f expected=%s" % [description, clipped_area, min_overlap_ratio, str(expected)])
+    assert_bool(result).append_failure_message(
+        "%s | clipped_area=%.6f min_ratio=%.3f expected=%s" % [description, clipped_area, min_overlap_ratio, str(expected)]
+    ).is_equal(expected)

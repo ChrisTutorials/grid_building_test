@@ -57,7 +57,7 @@ func test_adjust_rect_to_testing_size() -> void:
 	var skew: Node2D = _create_rectangular_collision_object("SkewRotationTestObject", Vector2(128, 128))
 	add_child(skew)
 	
-	var pillar: Node2D = auto_free(load("uid://enlg28ry7lxk").instantiate())
+	var pillar: Node2D = auto_free(load(GBTestConstants.PILLAR_UID).instantiate())
 	add_child(pillar)
 	
 	# Create test setups

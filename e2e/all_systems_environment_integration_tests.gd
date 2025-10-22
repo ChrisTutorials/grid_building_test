@@ -3,8 +3,6 @@ extends GdUnitTestSuite
 ## Integration tests using the premade AllSystemsTestEnvironment
 ## Tests system interactions and functionality with the complete environment
 
-const ALL_SYSTEMS_ENV_UID: String = "uid://ioucajhfxc8b"
-
 var test_env: AllSystemsTestEnvironment
 
 func before_test() -> void:
@@ -200,8 +198,7 @@ func test_single_position_validation() -> void:
 	# Debug the validation result
 	if not validation_result.is_successful():
 		var issues: Array = validation_result.get_issues()
-		print("Validation failed at origin. Issues: ", issues)
-		print("Issue count: ", issues.size())
+		# Debug output removed - issues will be captured in failure messages if assertion fails
 		
 		# Check for duplicate issues
 		var issue_counts := {}

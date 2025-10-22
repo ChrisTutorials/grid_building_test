@@ -54,7 +54,7 @@ func test_polygon_preview_indicators_respect_min_overlap_ratio() -> void:
 	_state.positioner.add_child(preview)
 
 	# Set the target for the targeting state
-	_state.target = preview
+	_state.set_manual_target(preview)
 
 	# Position the positioner at a valid location
 	_state.positioner.global_position = Vector2(64, 64)

@@ -19,6 +19,5 @@ func _run() -> void:
 	]
 
 	for pos : Vector2 in test_positions:
-		var area : float = GBGeometryMath.intersection_area_with_tile(trapezoid, pos, Vector2(16.0, 16.0), TileSet.TileShape.TILE_SHAPE_SQUARE)
-		var overlaps : bool = area > 1.0
-		print("Tile at ", pos, ": area=", area, ", overlaps=", overlaps)
+		var _area : float = GBGeometryMath.intersection_area_with_tile(trapezoid, pos, Vector2(16.0, 16.0), TileSet.TileShape.TILE_SHAPE_SQUARE)
+		# Debug output removed - use test failure messages for debugging instead

@@ -20,6 +20,12 @@ const SUCCESS_VALIDATION_MESSAGE: String = "Validation passed successfully"
 const NO_COLLISION_SUCCESS_REASON: String = "No collisions detected"
 const WITHIN_BOUNDS_SUCCESS_REASON: String = "Position within valid bounds"
 
+# Additional test message constants
+const HIDDEN_FAILURE_REASON: String = "Should not appear in log"
+const HIGH_LEVEL_ISSUE: String = "Build failed due to rule violations"
+const SUCCESS_MESSAGE: String = "Success validation message"
+const SECRET_FAILURE_DETAILS: String = "Secret failure details should not appear"
+
 var action_log: GBActionLog
 var message_label: RichTextLabel
 var test_settings: ActionLogSettings
@@ -179,8 +185,6 @@ func test_append_validation_results_shows_failed_reasons_when_enabled() -> void:
 ## Act: Call append_validation_results with failed ValidationResults
 ## Assert: Detailed failure reasons are hidden from log
 func test_append_validation_results_respects_disabled_failed_reasons() -> void:
-	const HIDDEN_FAILURE_REASON: String = "Should not appear in log"
-	
 	# Setup: Disable failed reasons printing
 	test_settings.print_failed_reasons = false
 	
@@ -209,8 +213,6 @@ func test_append_validation_results_respects_disabled_failed_reasons() -> void:
 ## Act: Call _handle_build_result with failed build
 ## Assert: High-level issues appear in log
 func test_handle_build_result_shows_placement_report_issues() -> void:
-	const HIGH_LEVEL_ISSUE: String = "Build failed due to rule violations"
-	
 	# Setup: Create build action data with placement report containing high-level issues
 	var placement_report: PlacementReport = _create_placement_report_with_issues([HIGH_LEVEL_ISSUE])
 	var build_data: BuildActionData = _create_build_action_data(DEFAULT_BUILDING_NAME, placement_report)
@@ -329,8 +331,6 @@ func test_append_validation_results_shows_success_reasons_when_enabled() -> void
 ## Act: Call append_validation_results with successful ValidationResults
 ## Assert: Only validation message appears, detailed success reasons are hidden
 func test_append_validation_results_respects_disabled_success_reasons() -> void:
-	const SUCCESS_MESSAGE: String = "Success validation message"
-	
 	# Setup: Disable success reasons printing
 	test_settings.print_success_reasons = false
 	test_settings.print_failed_reasons = false  # Also disable failed to isolate test
@@ -390,8 +390,6 @@ func test_handle_build_result_respects_print_failed_reasons_setting() -> void:
 ## Act: Call _handle_build_result with failed BuildActionData  
 ## Assert: Only main failure message appears, detailed reasons are hidden
 func test_handle_build_result_hides_details_when_print_failed_reasons_disabled() -> void:
-	const SECRET_FAILURE_DETAILS: String = "Secret failure details should not appear"
-	
 	# Setup: Disable detailed failure reasons
 	test_settings.print_failed_reasons = false
 	

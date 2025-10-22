@@ -5,9 +5,12 @@ extends GdUnitTestSuite
 
 var _logger: GBLogger
 var runner: GdUnitSceneRunner
+var _env: CollisionTestEnvironment
 
 func before_test() -> void:
-	_logger = GBLogger.new(GBDebugSettings.new())
+	runner = scene_runner(GBTestConstants.COLLISION_TEST_ENV_UID)
+	_env = runner.scene() as CollisionTestEnvironment
+	_logger = _env.get_container().get_logger()
 
 # Helper to create minimal test setup using the SAME tilemap as test environments
 # This ensures we're testing against the actual tilemap configuration used in integration tests

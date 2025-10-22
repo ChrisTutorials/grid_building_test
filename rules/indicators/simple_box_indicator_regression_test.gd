@@ -1,26 +1,19 @@
-# -----------------------------------------------------------------------------
 # Test Suite: Simple Box Indicator Regression Tests
-# -----------------------------------------------------------------------------
 # This test suite validates regression fixes for indicator generation with simple
 # box collision objects. It specifically tests that RigidBody2D objects with
 # collision layer 513 generate proper placement indicators through the indicator
 # manager and collision geometry utilities.
-# -----------------------------------------------------------------------------
-
 
 extends GdUnitTestSuite
 
-# -----------------------------------------------------------------------------
-# Constants
-# -----------------------------------------------------------------------------
+#region Constants
 const TEST_COLLISION_LAYER: int = 513  # Bits 0 and 9 (layers 1 and 10)
 const TILEMAP_SIZE: int = 7  # 5x5 around origin (-3 to 3)
 const TILEMAP_OFFSET: int = -3
 const COLLISION_SHAPE_SIZE: Vector2 = Vector2(32, 32)  # Use reasonable size instead of 1x1
+#endregion
 
-# -----------------------------------------------------------------------------
-# Test Variables
-# -----------------------------------------------------------------------------
+#region Test Variables
 var unoccupied_space: CollisionsCheckRule = load("uid://dw6l5ddiuak8b")
 var _container: GBCompositionContainer
 var building_system: BuildingSystem
@@ -28,10 +21,9 @@ var positioner: Node2D
 var tile_map_layer: TileMapLayer
 var _injector: GBInjectorSystem
 var _gts: GridTargetingState
+#endregion
 
-# -----------------------------------------------------------------------------
-# Setup and Teardown
-# -----------------------------------------------------------------------------
+#region Setup and Teardown
 func before_test() -> void:
 	# Create environment using premade scene
 	var env_scene: PackedScene = GBTestConstants.get_environment_scene(GBTestConstants.EnvironmentType.ALL_SYSTEMS)
@@ -86,10 +78,9 @@ func before_test() -> void:
 	if _container.get_contexts().indicator.get_manager() == null:
 		var pm := IndicatorManager.create_with_injection(_container)
 		add_child(auto_free(pm))
+#endregion
 
-# -----------------------------------------------------------------------------
-# Test Functions
-# -----------------------------------------------------------------------------
+#region Test Functions
 func test_rigid_body_with_collision_layer_513_generates_indicators() -> void:
 	# Create a simple test scene with just a collision object
 	# NOTE: Don't use auto_free for nodes that will be packed into PackedScene
@@ -197,10 +188,9 @@ func test_rigid_body_with_collision_layer_513_generates_indicators() -> void:
 	assert_array(indicators).append_failure_message(
 		"REGRESSION: No indicators generated for simple box with collision layer 513. Preview collision objects: %d, Owner shapes: %d" % [preview_collision_objects.size(), owner_shapes.size()]
 	).is_not_empty()
+#endregion
 
-# -----------------------------------------------------------------------------
-# Helper Functions
-# -----------------------------------------------------------------------------
+#region Helper Functions
 ## Helper: Find all collision objects recursively
 func _find_collision_objects(node: Node, output: Array[Node2D]) -> void:
 	if node is CollisionObject2D or node is CollisionPolygon2D:
@@ -218,3 +208,4 @@ func _debug_node_recursively(node: Node, depth: int) -> String:
 	for child in node.get_children():
 		result += "\n" + _debug_node_recursively(child, depth + 1)
 	return result
+#endregion

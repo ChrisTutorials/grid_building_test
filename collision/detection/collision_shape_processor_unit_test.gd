@@ -1,36 +1,27 @@
-# -----------------------------------------------------------------------------
 # Test Suite: Collision Shape Processor Unit Tests
-# -----------------------------------------------------------------------------
 # This test suite validates the CollisionShapeProcessor class initialization and
 # basic functionality. It focuses on catching geometry calculation issues that
 # could cause collision mapping failures in higher-level integration tests.
-# -----------------------------------------------------------------------------
-
 
 extends GdUnitTestSuite
 
-# -----------------------------------------------------------------------------
-# Constants
-# -----------------------------------------------------------------------------
+#region Constants
 const CollisionShapeProcessor = preload("uid://dtk40r28wldb4")
 const GeometryCacheManager = preload("uid://d0cdgiqycnh43")
+#endregion
 
-# -----------------------------------------------------------------------------
-# Test Variables
-# -----------------------------------------------------------------------------
+#region Test Variables
 var _cache_manager: GeometryCacheManager
 var _processor: CollisionShapeProcessor
+#endregion
 
-# -----------------------------------------------------------------------------
-# Setup and Teardown
-# -----------------------------------------------------------------------------
+#region Setup and Teardown
 func before_test() -> void:
 	_cache_manager = GeometryCacheManager.new()
 	_processor = CollisionShapeProcessor.new(_cache_manager)
+#endregion
 
-# -----------------------------------------------------------------------------
-# Test Functions
-# -----------------------------------------------------------------------------
+#region Test Functions
 # Test catches: CollisionShapeProcessor initialization failures
 func test_collision_shape_processor_initialization() -> void:
 	assert_that(_processor != null).append_failure_message("CollisionShapeProcessor should initialize successfully").is_true()
@@ -86,3 +77,4 @@ func test_collision_shape_processor_null_positioner() -> void:
 	var positioner: Node2D = Node2D.new()
 	assert_that(positioner != null).append_failure_message("Should be able to create positioner").is_true()
 	auto_free(positioner)
+#endregion

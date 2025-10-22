@@ -719,22 +719,19 @@ func _count_indicators(parent: Node) -> int:
 		var indicators: Array[RuleCheckIndicator] = manager.get_indicators()
 		if indicators != null:
 			if indicators.size() > 0:
-				# Optional debug
-				var names: Array[String] = []
+				# Optional debug - removed print, use assertions for debugging
+				var _names: Array[String] = []
 				for ind: RuleCheckIndicator in indicators:
-					names.append(ind.name)
-				print("_count_indicators via API found %d indicators: %s" % [indicators.size(), str(names)])
+					_names.append(ind.name)
 			return indicators.size()
 
 	# Fallback: name-based scan if API unavailable
 	var count: int = 0
-	var child_names: Array[String] = []
+	var _child_names: Array[String] = []
 	for child in parent.get_children():
 		if typeof(child.name) == TYPE_STRING and String(child.name).begins_with("RuleCheckIndicator"):
 			count += 1
-			child_names.append(child.name + "(" + child.get_class() + ")")
-	if count > 0:
-		print("_count_indicators via fallback found %d indicators: %s" % [count, str(child_names)])
+			_child_names.append(child.name + "(" + child.get_class() + ")")
 	return count
 
 func _get_indicator_names() -> Array[String]:

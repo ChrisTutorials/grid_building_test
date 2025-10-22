@@ -85,7 +85,9 @@ func test_indicator_positions_are_relative_to_parent() -> void:
 	# Get the created indicators
 	var indicators: Array[RuleCheckIndicator] = indicator_manager.get_indicators()
 	
-	assert_that(indicators).is_not_empty().override_failure_message("Should have created at least one indicator")
+	assert_that(indicators).append_failure_message(
+		"Should have created at least one indicator"
+	).is_not_empty()
 	
 	# Check that indicators are positioned relative to test_object, not globally
 	var test_object_global_pos: Vector2 = test_object.global_position
@@ -115,10 +117,10 @@ func test_indicator_positions_are_relative_to_parent() -> void:
 		var max_expected_distance: float = 96.0  # 3 tiles worth of distance
 
 		var context := "\n".join(diag)
-		assert_that(distance_from_test_object).is_less_equal(max_expected_distance).override_failure_message(
+		assert_that(distance_from_test_object).append_failure_message(
 			"Indicator at %s is too far from test object at %s (distance: %f). This suggests global positioning instead of relative positioning.\nContext: %s" % 
 			[indicator_global_pos, test_object_global_pos, distance_from_test_object, context]
-		)
+		).is_less_equal(max_expected_distance)
 
 		# Consume diag for static-analysis: include diagnostic context in a benign assertion so the local
 		# diagnostic buffer is not reported as unused by the code-smell detector.
@@ -143,7 +145,9 @@ func test_indicator_parent_hierarchy() -> void:
 	# Check indicator parenting
 	var indicators: Array[RuleCheckIndicator] = indicator_manager.get_indicators()
 	
-	assert_that(indicators).is_not_empty().override_failure_message("Should have created indicators")
+	assert_that(indicators).append_failure_message(
+		"Should have created indicators"
+	).is_not_empty()
 	
 	var diag: PackedStringArray = PackedStringArray()
 	for indicator : RuleCheckIndicator in indicators:
@@ -155,9 +159,9 @@ func test_indicator_parent_hierarchy() -> void:
         
 		# Indicators should be children of IndicatorManager
 		var context := "\n".join(diag)
-		assert_that(indicator.get_parent()).is_equal(indicator_manager).override_failure_message(
+		assert_that(indicator.get_parent()).append_failure_message(
 			"Indicator should be parented to IndicatorManager, but parent is: %s\nContext: %s" % [parent_name, context]
-		)
+		).is_equal(indicator_manager)
 
 		# Consume diag for static-analysis: include diagnostic context in a benign assertion so the local
 		# diagnostic buffer is not reported as unused by the code-smell detector.
@@ -189,7 +193,9 @@ func test_multiple_positions_show_relative_behavior() -> void:
 			"local_pos": indicator.position
 		})
 	
-	assert_that(initial_indicators_data).is_not_empty().override_failure_message("Should have created indicators at first position")
+	assert_that(initial_indicators_data).append_failure_message(
+		"Should have created indicators at first position"
+	).is_not_empty()
 	
 	# Clear indicators and move test object
 	indicator_manager.tear_down()
@@ -206,13 +212,15 @@ func test_multiple_positions_show_relative_behavior() -> void:
 			"local_pos": indicator.position
 		})
 	
-	assert_that(moved_indicators_data).is_not_empty().override_failure_message("Should have created indicators at second position\nContext: %s" % "\n".join(diag))
-	
 	# The collision system should generate different indicator positions when test_object moves
 	var test_object_movement := Vector2(200, 300) - Vector2(50, 50)  # (150, 250)
 	var diag: PackedStringArray = PackedStringArray()
 	diag.append("Test object movement: %s" % [test_object_movement])
 	diag.append("Test object moved from (50,50) to (200,300)")
+	
+	assert_that(moved_indicators_data).is_not_empty().append_failure_message(
+		"Should have created indicators at second position\nContext: %s" % "\n".join(diag)
+	)
 	
 	# Verify that some indicators have moved (basic sanity check)
 	var indicators_moved: bool = false
@@ -231,10 +239,10 @@ func test_multiple_positions_show_relative_behavior() -> void:
 		
 		# Verify indicators are positioned reasonably (within the map bounds)
 		var max_reasonable_distance: float = 1000.0  # Max reasonable distance from origin
-		assert_that(moved_pos.length()).is_less_equal(max_reasonable_distance).override_failure_message(
+		assert_that(moved_pos.length()).append_failure_message(
 			"Indicator position seems unreasonable: %s (distance from origin: %f)" %
 			[moved_pos, moved_pos.length()]
-		)
+		).is_less_equal(max_reasonable_distance)
 	
 	# At minimum, verify that the indicator creation system responds to test_object position changes
 	# (This is a weaker assertion but more aligned with actual system behavior)

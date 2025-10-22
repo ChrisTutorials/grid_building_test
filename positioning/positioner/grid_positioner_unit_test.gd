@@ -21,6 +21,15 @@ const _IDX_STATES := 3
 const _IDX_TARGETING_STATE := 4
 const _IDX_MAP := 5
 
+# Test configuration constants
+const DEFAULT_HIDE_GATE_POSITION := Vector2(100, 100)
+const EXPECTED_ACTIVE_MODE := GBEnums.Mode.MOVE
+const GATE_BLOCKS_INPUT := false
+const GATE_ALLOWS_INPUT := true
+const INITIAL_VISIBILITY := true
+const MOUSE_EVENT_REPETITIONS := 3
+const POSITION_OFFSET_INCREMENT := Vector2(1, 1)
+
 var runner: GdUnitSceneRunner
 
 # Tests run under the GdUnit scene runner; use the runner directly for deterministic frame advancement.
@@ -339,15 +348,6 @@ class _StubGateGridPositioner:
 
 	func _mouse_input_gate() -> bool:
 		return _next_gate_allowed
-
-# CONSTANTS for test configuration
-const DEFAULT_HIDE_GATE_POSITION := Vector2(100, 100)
-const EXPECTED_ACTIVE_MODE := GBEnums.Mode.MOVE
-const GATE_BLOCKS_INPUT := false
-const GATE_ALLOWS_INPUT := true
-const INITIAL_VISIBILITY := true
-const MOUSE_EVENT_REPETITIONS := 3
-const POSITION_OFFSET_INCREMENT := Vector2(1, 1)
 
 func test_hide_on_handled_mouse_event_hides_positioner() -> void:
 	# Test: hide_on_handled behavior when gate blocks input

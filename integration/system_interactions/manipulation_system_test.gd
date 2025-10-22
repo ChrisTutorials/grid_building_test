@@ -32,7 +32,6 @@ const ROTATION_RANGE_MAX: float = 360.0
 const TEST_POSITION: Vector2 = Vector2(8.0, 8.0)
 const CANCEL_TEST_POSITION: Vector2i = Vector2i(100, -100)
 const ROTATION_ITERATIONS: int = 10
-const ALL_SYSTEMS_ENV_UID: String = "uid://ioucajhfxc8b"
 
 # Local constants for ManipulatableSettings (pulled from old TestSceneLibrary)
 var manipulatable_settings_all_allowed: ManipulatableSettings = load("uid://dn881lunp3lrm")
@@ -122,12 +121,14 @@ func test_start_move(
 	# Set positioner to TEST_POSITION to ensure consistent behavior
 	_container.get_states().targeting.positioner.global_position = TEST_POSITION
 	
-	var move_data: ManipulationData = _create_test_move_data(p_settings)
-	assert_that(move_data).append_failure_message("Move data should not be null after creation").is_not_null()
-	assert_that(move_data.source).append_failure_message("Move data source should not be null").is_not_null()
-	assert_that(move_data.source.root).append_failure_message("Move data source root node should not be null").is_not_null()
+	var source_manipulatable: Manipulatable = _create_test_manipulatable(p_settings)
+	assert_that(source_manipulatable).append_failure_message("Source manipulatable should not be null").is_not_null()
+	assert_that(source_manipulatable.root).append_failure_message("Source manipulatable root should not be null").is_not_null()
 	
-	var result_data: ManipulationData = system.try_move(move_data.source.root)
+	# Set the targeting state to target this manipulatable's root
+	_container.get_states().targeting.set_manual_target(source_manipulatable.root)
+	
+	var result_data: ManipulationData = system.try_move(source_manipulatable.root)
 	
 	# Fix null reference issue: ensure result_data is not null
 	assert_that(result_data).append_failure_message(
@@ -146,6 +147,9 @@ func test_start_move(
 
 func test_cancel() -> void:
 	var source: Manipulatable = _create_test_manipulatable(manipulatable_settings_all_allowed)
+	
+	# Set the targeting state to target this manipulatable's root
+	_container.get_states().targeting.set_manual_target(source.root)
 
 	var move_result: ManipulationData = system.try_move(source.root)
 	assert_that(move_result).append_failure_message(
@@ -182,7 +186,13 @@ func test_try_move(
 		["manipulatable_root", GBEnums.Status.STARTED]
 	]
 ) -> void:
-	var result_data: ManipulationData = system.try_move(manipulation_hierarchy.get(p_move_target, null))
+	var target_node: Node = manipulation_hierarchy.get(p_move_target, null)
+	
+	# For valid target nodes, set up the targeting state
+	if target_node != null and target_node is Node2D:
+		_container.get_states().targeting.set_manual_target(target_node as Node2D)
+	
+	var result_data: ManipulationData = system.try_move(target_node)
 	
 	# Ensure result is not null to prevent property access errors
 	assert_that(result_data).append_failure_message(
@@ -232,6 +242,9 @@ func test_try_placement(
 ) -> void:
 	var source: Manipulatable = _create_test_manipulatable(p_settings)
 	assert_that(source).append_failure_message("Source manipulatable should not be null for placement test").is_not_null()
+
+	# Set the targeting state to target this manipulatable's root
+	_container.get_states().targeting.set_manual_target(source.root)
 
 	var move_result: ManipulationData = system.try_move(source.root)
 	assert_that(move_result).append_failure_message(
@@ -287,6 +300,9 @@ func test_failed_placement_with_invalid_move_data_cleans_up() -> void:
 	var source: Manipulatable = _create_test_manipulatable(manipulatable_settings_all_allowed)
 	var original_source_position: Vector2 = source.root.global_position
 	assert_vector(original_source_position).is_equal(TEST_POSITION)
+	
+	# Set the targeting state to target this manipulatable's root
+	_container.get_states().targeting.set_manual_target(source.root)
 	
 	# Act: Start a move operation
 	var move_result: ManipulationData = system.try_move(source.root)

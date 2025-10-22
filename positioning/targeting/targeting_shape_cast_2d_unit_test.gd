@@ -9,6 +9,10 @@ extends GdUnitTestSuite
 
 var runner: GdUnitSceneRunner
 
+func before_test() -> void:
+	# Load collision test environment to provide physics frame simulation
+	runner = scene_runner(GBTestConstants.COLLISION_TEST_ENV_UID)
+
 func test_force_shapecast_update_no_crash() -> void:
 	# Create a TargetingShapeCast2D instance with a valid shape and ensure update_target() is safe
 	var sc: TargetingShapeCast2D = TargetingShapeCast2D.new()

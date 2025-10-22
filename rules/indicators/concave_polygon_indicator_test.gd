@@ -20,10 +20,16 @@ func before_test() -> void:
 	
 	# Acquire container states and configure targeting FIRST (positioner, target map, maps) 
 	_targeting = _container.get_states().targeting
-	_map = auto_free(TileMapLayer.new())
-	_map.tile_set = TileSet.new()
-	_map.tile_set.tile_size = Vector2(16, 16)
-	add_child(_map)
+	
+	# Create tilemap with cells covering the concave polygon's bounding box
+	# Concave polygon spans from (-32, -16) to (32, 16), which at 16x16 tile size covers:
+	# tile coords: (-2, -1) to (2, 1) - a 5x3 grid centered around origin
+	_map = GodotTestFactory.create_populated_tile_map_layer(
+		self,
+		Rect2i(-2, -1, 5, 3),  # position: (-2, -1), size: 5x3
+		0,
+		Vector2i.ZERO
+	)
 	_targeting.target_map = _map
 	_targeting.maps = [_map]
 	
@@ -64,7 +70,7 @@ func before_test() -> void:
 	_preview = CollisionObjectTestFactory.create_polygon_test_object(self, _targeting.positioner)
 
 	# Critical: make the preview the active target so IndicatorManager maps indicators for it
-	_targeting.target = _preview
+	_targeting.set_manual_target(_preview)
 
 	# Reduce debug verbosity to avoid unrelated formatting/log noise during this focused geometry test
 	var dbg: GBDebugSettings = _container.get_debug_settings()

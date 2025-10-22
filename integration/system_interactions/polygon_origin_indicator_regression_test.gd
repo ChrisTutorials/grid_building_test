@@ -10,9 +10,6 @@
 ## See docs/systems/parent_node_architecture.md for detailed architecture documentation.
 extends GdUnitTestSuite
 
-## AllSystemsTestEnvironment UID for consistent test setup
-const ALL_SYSTEMS_ENV_UID: String = "uid://ioucajhfxc8b"
-
 var test_env: AllSystemsTestEnvironment
 var _indicator_manager: IndicatorManager
 var _targeting_state: GridTargetingState

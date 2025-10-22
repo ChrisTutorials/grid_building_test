@@ -83,7 +83,7 @@ func test_polygon_test_object_indicator_collision_filtering() -> void:
 	auto_free(preview_instance)
 	preview_instance.global_position = Vector2.ZERO
 	obj_parent.add_child(preview_instance)
-	_state.target = preview_instance
+	_state.set_manual_target(preview_instance)
 
 	# Position the positioner at a valid location
 	positioner.global_position = Vector2(64, 64)
@@ -277,7 +277,7 @@ func test_polygon_test_object_center_tile_filtering() -> void:
 
 	# Call try_setup directly on the IndicatorManager
 	# Ensure the targeting state has the test instance as the current target
-	_container.get_targeting_state().target = test_instance
+	_container.get_targeting_state().set_manual_target(test_instance)
 
 	# Position the positioner at a valid location
 	positioner.global_position = Vector2.ZERO

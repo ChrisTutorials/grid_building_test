@@ -1,36 +1,28 @@
-# -----------------------------------------------------------------------------
 # Test Suite: Debug Coordinate Transformation Tests
-# -----------------------------------------------------------------------------
 # This test suite validates coordinate transformation logic between world space,
 # local space, and tilemap coordinates. It examines polygon positioning, tile
 # offset calculations, and collision geometry utilities to ensure correct
 # spatial transformations in the grid building system.
-# -----------------------------------------------------------------------------
-
 
 extends GdUnitTestSuite
 
-# -----------------------------------------------------------------------------
-# Constants
-# -----------------------------------------------------------------------------
+#region Constants
 const TILEMAP_SIZE: int = 40
 const TILE_SIZE: Vector2i = GBTestConstants.DEFAULT_TILE_SIZE_I
 const POLYGON_POSITION: Vector2 = GBTestConstants.DEFAULT_TEST_POSITION
 const CENTER_TILE: Vector2i = Vector2i(20, 20)
+#endregion
 
-# -----------------------------------------------------------------------------
-# Test Variables
-# -----------------------------------------------------------------------------
+#region Test Variables
 var polygon_points: PackedVector2Array = PackedVector2Array([
 	Vector2(-16, -16), Vector2(16, -16), Vector2(16, 16), Vector2(-16, 16)
 ])
 var expected_world_points: PackedVector2Array = PackedVector2Array([
 	Vector2(304, 304), Vector2(336, 304), Vector2(336, 336), Vector2(304, 336)
 ])
+#endregion
 
-# -----------------------------------------------------------------------------
-# Test Functions
-# -----------------------------------------------------------------------------
+#region Test Functions
 ## Debug test to examine coordinate transformation issue
 func test_debug_coordinate_transformation() -> void:
 	# Create the same setup as the failing tests
@@ -67,3 +59,4 @@ func test_debug_coordinate_transformation() -> void:
 	assert_that(offsets.size()).is_greater_equal(1).append_failure_message(
 		"Should produce tile offsets for 32x32 polygon at center of tilemap. " +
 		"World points: %s, tile_size: %s, center_tile: %s, result: %s" % [world_points, tile_size, center_tile, offsets])
+#endregion

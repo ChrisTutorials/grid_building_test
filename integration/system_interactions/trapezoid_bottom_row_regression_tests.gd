@@ -12,7 +12,7 @@ func before_test() -> void:
 	_collision_mapper = auto_free(CollisionMapper.new(targeting_state, container.get_logger()))
 
 func after_test() -> void:
-_test_env = null
+	_test_env = null
 
 func test_trapezoid_bottom_row_coverage() -> void:
 var trapezoid_body: StaticBody2D = _create_trapezoid_test_object()

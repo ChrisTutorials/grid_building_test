@@ -254,9 +254,9 @@ func test_real_world_indicator_positioning() -> void:
 
 	# Validate targeting state using DRY pattern
 	var targeting_issues: Array = targeting_state.get_runtime_issues()
-	assert_that(targeting_issues.is_empty()).append_failure_message(
+	assert_array(targeting_issues).append_failure_message(
 		"Targeting state issues: %s" % str(targeting_issues)
-	).is_true()
+	).is_empty()
 
 	# Generate indicators using DRY pattern
 	var tile_check_rules: Array[TileCheckRule] = [tile_check_rule]

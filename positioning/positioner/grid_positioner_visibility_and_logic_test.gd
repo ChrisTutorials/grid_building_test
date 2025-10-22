@@ -141,16 +141,14 @@ func test_mouse_event_gate_allowed_off_active_shows() -> void:
 	var result: Variant = GridPositionerLogic.visibility_on_mouse_event(GBEnums.Mode.OFF, targeting_settings, true)
 	assert_bool(result.apply).append_failure_message("visibility_on_mouse_event: OFF mode active with allowed mouse should apply").is_true()
 	assert_bool(result.visible).append_failure_message("visibility_on_mouse_event: OFF mode active with allowed mouse should be visible").is_true()
-	const REASON_ALLOWED := "allowed"
-	assert_str(result.reason).append_failure_message("visibility_on_mouse_event: reason should contain 'allowed'").contains(REASON_ALLOWED)
+	assert_str(result.reason).append_failure_message("visibility_on_mouse_event: reason should contain 'allowed'").contains("allowed")
 
 func test_mouse_event_gate_blocked_off_inactive_hides() -> void:
 	var targeting_settings := _make_settings(false, true, true)
 	var result: Variant = GridPositionerLogic.visibility_on_mouse_event(GBEnums.Mode.OFF, targeting_settings, false)
 	assert_bool(result.apply).append_failure_message("visibility_on_mouse_event: OFF mode inactive with blocked mouse should apply").is_true()
 	assert_bool(result.visible).append_failure_message("visibility_on_mouse_event: OFF mode inactive with blocked mouse should not be visible").is_false()
-	const REASON_BLOCKED := "blocked"
-	assert_str(result.reason).append_failure_message("visibility_on_mouse_event: reason should contain 'blocked'").contains(REASON_BLOCKED)
+	assert_str(result.reason).append_failure_message("visibility_on_mouse_event: reason should contain 'blocked'").contains("blocked")
 
 func test_mouse_event_noop_when_hide_on_handled_false() -> void:
 	var targeting_settings := _make_settings(true, false, true)

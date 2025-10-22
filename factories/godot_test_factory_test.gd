@@ -63,7 +63,7 @@ func test_create_tile_map_layer_with_grid() -> void:
 	assert_object(layer.tile_set).append_failure_message("create_tile_map_layer_with_grid: layer.tile_set should not be null").is_not_null()
 	# Verify expected used rect matches 31x31 dimensions used in environments
 	var used_rect: Rect2i = layer.get_used_rect()
-	assert_vector(Vector2(used_rect.size)).is_equal(Vector2(31, 31)).append_failure_message("Packed test tilemap should be 31x31")
+	assert_vector(Vector2(used_rect.size)).append_failure_message("Packed test tilemap should be 31x31").is_equal(Vector2(31, 31))
 
 
 func test_create_empty_tile_map_layer() -> void:

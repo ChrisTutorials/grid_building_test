@@ -28,9 +28,13 @@ var _indicator_template: PackedScene
 var _test_object: Node2D
 
 func before_test() -> void:
-	# Create tile map using existing factory
+	# Initialize core components FIRST
+	_tile_map = GodotTestFactory.create_tile_map_layer(self)
+	_positioner = GridPositioner2D.new()
+	add_child(_positioner)
+	auto_free(_positioner)
 	
-	# Create positioner using existing factory
+	# Now position the positioner after it's created
 	_positioner.global_position = GBTestConstants.CENTER / 2  # Position at a non-zero baseline
 	
 	# Create targeting state - requires GBOwnerContext for constructor
@@ -54,12 +58,8 @@ func before_test() -> void:
 	
 	# Validate setup
 	assert_that(_indicator_template).append_failure_message("Failed to load indicator template").is_not_null()
+	assert_that(_tile_map).append_failure_message("TileMap should be created").is_not_null()
 	assert_that(_tile_map.tile_set).append_failure_message("TileSet not properly assigned").is_not_null()
-	_tile_map = GodotTestFactory.create_tile_map_layer(self)
-	_positioner = GridPositioner2D.new()
-	# Ensure positioner is owned by the test and auto-freed
-	add_child(_positioner)
-	auto_free(_positioner)
 
 func test_coordinate_transformation_pipeline() -> void:
 	# Test the key positioning calculation from IndicatorFactory.generate_indicators()

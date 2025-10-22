@@ -26,7 +26,7 @@ func test_debug_enter_build_mode_failure() -> void:
 	
 	var indicator_context: IndicatorContext = container.get_contexts().indicator
 	assert_that(indicator_context).append_failure_message("Indicator context should be available").is_not_null()
-	assert_that(indicator_context.has_manager()).is_true().append_failure_message("Indicator manager should be registered")
+	assert_that(indicator_context.has_manager()).append_failure_message("Indicator manager should be registered").is_true()
 	
 	var indicator_manager: IndicatorManager = indicator_context.get_manager()
 	assert_that(indicator_manager).append_failure_message("Indicator manager instance should exist").is_not_null()

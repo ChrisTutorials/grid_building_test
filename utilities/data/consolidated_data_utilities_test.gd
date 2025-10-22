@@ -4,19 +4,17 @@ extends GdUnitTestSuite
 ## Tests for data objects, configuration validation, display names, and object initialization
 ## Combines: composition container validation, display name formatting, debug settings, and object initialization tests
 
-# -----------------------------------------------------------------------------
-# Constants
-# -----------------------------------------------------------------------------
+#region Constants
 const NODE_NAME_NUM_SEPARATOR: int = 2
+#endregion
 
-# -----------------------------------------------------------------------------
-# Test Variables
-# -----------------------------------------------------------------------------
+#region Test Variables
 var _container : GBCompositionContainer = null
 var test_node: Node
 var building_node_script: Script = GBTestConstants.BUILDING_NODE_SCRIPT
 var project_name_num_seperator: int
 var container: GBCompositionContainer
+#endregion
 
 func before_test() -> void:
 	test_node = auto_free(Node.new())

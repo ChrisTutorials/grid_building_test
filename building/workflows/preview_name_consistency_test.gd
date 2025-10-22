@@ -15,7 +15,7 @@ var system: BuildingSystem
 var targeting_state: GridTargetingState
 var mode_state: ModeState
 var _container: GBCompositionContainer
-var placeable_2d_test: Placeable = load("uid://jgmywi04ib7c")
+var placeable_2d_test: Placeable = GBTestConstants.PLACEABLE_NO_COL_TEST_2D
 var placeable_with_rules: Placeable
 #endregion
 

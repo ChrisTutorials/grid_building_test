@@ -11,6 +11,10 @@ extends GdUnitTestSuite
 ##
 ## IMPORTANT: Uses AllSystemsTestEnvironment with scene_runner pattern for full system initialization
 
+const SMITHY_TEST_ROOT_NAME := "SmithyTestRoot"
+const TEST_ROTATION_DEGREES := 90
+const ROTATION_TOLERANCE := 0.0001
+
 var _runner: GdUnitSceneRunner
 var _env: AllSystemsTestEnvironment
 var _container: GBCompositionContainer
@@ -21,8 +25,7 @@ var _smithy: Manipulatable
 
 func before_test() -> void:
 	# Use AllSystemsTestEnvironment with scene_runner pattern
-	# UID: uid://ioucajhfxc8b from all_systems_test_environment.tscn
-	_runner = scene_runner("uid://ioucajhfxc8b")
+	_runner = scene_runner(GBTestConstants.ALL_SYSTEMS_ENV_UID)
 	_runner.simulate_frames(3)
 	
 	# Get environment and systems
@@ -47,10 +50,13 @@ func before_test() -> void:
 	)
 	
 	# Create test manipulatable object using factory (pass 'this' GdUnitTestSuite)
-	_smithy = GodotTestFactory.create_manipulatable(self, "SmithyTestRoot")
+	_smithy = ManipulatableTestFactory.create_manipulatable_with_root(
+		self, SMITHY_TEST_ROOT_NAME
+	)
 	
 	# CRITICAL: Configure manipulatable settings to enable rotation transfer
-	# Without settings, ManipulationState validation fails with "Active manipulatable has no settings configured"
+	# Without settings, ManipulationState validation fails with
+	# "Active manipulatable has no settings configured"
 	var manipulatable_settings: ManipulatableSettings = ManipulatableSettings.new()
 	manipulatable_settings.movable = true
 	manipulatable_settings.move_rules = []  # No rules needed for this test
@@ -119,24 +125,30 @@ func test_rotation_transferred_after_indicator_generation() -> void:
 	
 	# Record initial state
 	var initial_smithy_rotation: float = _smithy.root.rotation
-	assert_float(initial_smithy_rotation).is_equal_approx(deg_to_rad(90), 0.0001).append_failure_message(
-		"Smithy should start at 90 degrees"
-	)
+	assert_float(initial_smithy_rotation).append_failure_message(
+		"Smithy should start at %d degrees" % TEST_ROTATION_DEGREES
+	).is_equal_approx(deg_to_rad(TEST_ROTATION_DEGREES), ROTATION_TOLERANCE)
 	
 	# Act: Start move operation
 	var move_result: ManipulationData = _manipulation_system.try_move(_smithy.root)
 	
 	# Assert: Move started successfully
-	assert_bool(move_result.status == GBEnums.Status.STARTED).is_true().append_failure_message(
-		"Move operation should succeed. Status: %s" % GBEnums.Status.keys()[move_result.status]
-	)
+	var expected_status: int = GBEnums.Status.STARTED
+	assert_bool(move_result.status == expected_status).append_failure_message(
+		"Move operation should succeed. Status: %s" % GBEnums.Status.keys()[
+			move_result.status
+		]
+	).is_true()
 	
 	# CRITICAL ASSERTION 1: ManipulationParent should now have the rotation
 	var parent_rotation: float = _manipulation_parent.rotation
-	assert_float(parent_rotation).is_equal_approx(deg_to_rad(90), 0.0001).append_failure_message(
-		"ManipulationParent should have received 90° rotation AFTER indicator generation. " +
-		"Expected: %f, Actual: %f" % [deg_to_rad(90), parent_rotation]
-	)
+	var expected_rotation: float = deg_to_rad(TEST_ROTATION_DEGREES)
+	assert_float(parent_rotation).append_failure_message(
+		"ManipulationParent should have received %d° rotation AFTER indicator "
+		+ "generation. Expected: %f, Actual: %f" % [
+			TEST_ROTATION_DEGREES, expected_rotation, parent_rotation
+		]
+	).is_equal_approx(expected_rotation, ROTATION_TOLERANCE)
 	
 	# CRITICAL ASSERTION 2: The manipulation copy should be normalized (rotation=0)
 	var manipulation_data: ManipulationData = _container.get_states().manipulation.data
@@ -150,8 +162,8 @@ func test_rotation_transferred_after_indicator_generation() -> void:
 	)
 	
 	assert_float(copy_root.rotation).is_equal(0.0).append_failure_message(
-		"Manipulation copy should be normalized to rotation=0 for canonical indicator generation. " +
-		"Actual: %f" % copy_root.rotation
+		"Manipulation copy should be normalized to rotation=0 for canonical "
+		+ "indicator generation. Actual: %f" % copy_root.rotation
 	)
 	
 	# CRITICAL ASSERTION 3: Indicators should exist
@@ -178,9 +190,9 @@ func test_indicators_inherit_rotation_from_manipulation_parent() -> void:
 	
 	# Act: Start move operation
 	var move_result: ManipulationData = _manipulation_system.try_move(_smithy.root)
-	assert_bool(move_result.status == GBEnums.Status.STARTED).is_true().append_failure_message(
+	assert_bool(move_result.status == GBEnums.Status.STARTED).append_failure_message(
 		"Move should succeed. Status: %s" % GBEnums.Status.keys()[move_result.status]
-	)
+	).is_true()
 	
 	# Get indicators
 	var indicators: Array[RuleCheckIndicator] = _indicator_manager.get_indicators()
@@ -197,12 +209,12 @@ func test_indicators_inherit_rotation_from_manipulation_parent() -> void:
 		
 		# Allow small floating point tolerance
 		var rotation_diff: float = abs(indicator_global_rotation - expected_global_rotation)
-		assert_bool(rotation_diff < 0.01).is_true().append_failure_message(
+		assert_bool(rotation_diff < 0.01).append_failure_message(
 			("Indicator[%d] should inherit ManipulationParent rotation via transform inheritance. " +
 			"Expected global_rotation: %.4f, Actual: %.4f, Diff: %.4f") % [
 				i, expected_global_rotation, indicator_global_rotation, rotation_diff
 			]
-		)
+		).is_true()
 
 func test_indicator_count_consistent_across_rotations() -> void:
 	## Test: Verify same indicator count for rotated vs non-rotated objects
@@ -213,9 +225,9 @@ func test_indicator_count_consistent_across_rotations() -> void:
 	# Test 1: Smithy at 0 degrees
 	_smithy.root.rotation = 0.0
 	var move_result_0: ManipulationData = _manipulation_system.try_move(_smithy.root)
-	assert_bool(move_result_0.status == GBEnums.Status.STARTED).is_true().append_failure_message(
+	assert_bool(move_result_0.status == GBEnums.Status.STARTED).append_failure_message(
 		"Move operation should start successfully for smithy at 0° rotation"
-	)
+	).is_true()
 	
 	var indicators_0deg: Array[RuleCheckIndicator] = _indicator_manager.get_indicators()
 	var count_0deg: int = indicators_0deg.size()
@@ -227,9 +239,9 @@ func test_indicator_count_consistent_across_rotations() -> void:
 	# Test 2: Smithy at 90 degrees
 	_smithy.root.rotation = deg_to_rad(90)
 	var move_result_90: ManipulationData = _manipulation_system.try_move(_smithy.root)
-	assert_bool(move_result_90.status == GBEnums.Status.STARTED).is_true().append_failure_message(
+	assert_bool(move_result_90.status == GBEnums.Status.STARTED).append_failure_message(
 		"Move operation should start successfully for smithy at 90° rotation"
-	)
+	).is_true()
 	
 	var indicators_90deg: Array[RuleCheckIndicator] = _indicator_manager.get_indicators()
 	var count_90deg: int = indicators_90deg.size()
@@ -243,14 +255,14 @@ func test_indicator_count_consistent_across_rotations() -> void:
 func test_preview_shows_correct_rotation_visually() -> void:
 	## Test: Verify preview object appears rotated correctly
 	## Setup: Smithy at 90°
-	## Act: Start move
-	## Assert: Combined transform (copy + parent) equals original rotation
-	
+	# Setup: record original rotation
 	var original_rotation: float = _smithy.root.rotation
-	
+
 	# Act: Start move
 	var move_result: ManipulationData = _manipulation_system.try_move(_smithy.root)
-	assert_bool(move_result.status == GBEnums.Status.STARTED).is_true()
+	assert_bool(move_result.status == GBEnums.Status.STARTED).append_failure_message(
+		"Move operation should start successfully"
+	).is_true()
 	
 	# Get the manipulation copy
 	var manipulation_data: ManipulationData = _container.get_states().manipulation.data
@@ -261,12 +273,12 @@ func test_preview_shows_correct_rotation_visually() -> void:
 	
 	# Assert: Copy's global rotation should match original (via parent transform)
 	var rotation_diff: float = abs(copy_global_rotation - original_rotation)
-	assert_bool(rotation_diff < 0.01).is_true().append_failure_message(
+	assert_bool(rotation_diff < 0.01).append_failure_message(
 		"Preview should appear at original rotation visually. " +
 		"Original: %f, Copy local: %f, Copy global: %f (includes parent), Diff: %f" % [
 			original_rotation, copy_root.rotation, copy_global_rotation, rotation_diff
 		]
-	)
+	).is_true()
 
 func test_rotation_transferred_to_parent_after_indicator_generation() -> void:
 	## Test: Verify rotation/scale is transferred to ManipulationParent AFTER indicators created
@@ -297,20 +309,36 @@ func test_rotation_transferred_to_parent_after_indicator_generation() -> void:
 	
 	# Assert 1: Copy should be normalized (rotation=0, scale=1.0) for canonical geometry
 	assert_float(copy_root.rotation).is_equal_approx(0.0, 0.01).append_failure_message(
-		"Copy rotation should be normalized to 0 for indicator generation. Actual: %f" % copy_root.rotation
+		"Copy rotation should be normalized to 0 for indicator generation. " +
+		"Actual: %f" % copy_root.rotation
 	)
-	assert_vector(copy_root.scale).is_equal_approx(Vector2.ONE, Vector2(0.01, 0.01)).append_failure_message(
-		"Copy scale should be normalized to (1,1) for indicator generation. Actual: %s" % str(copy_root.scale)
+	assert_vector(copy_root.scale).is_equal_approx(
+		Vector2.ONE, Vector2(0.01, 0.01)
+	).append_failure_message(
+		"Copy scale should be normalized to (1,1) for indicator generation. " +
+		"Actual: %s" % str(copy_root.scale)
 	)
 	
 	# Assert 2: ManipulationParent should have the original rotation/scale
-	GBTestDiagnostics.buffer("[TEST] Checking ManipulationParent (instance_id=%d) rotation=%f scale=%s" % [_manipulation_parent.get_instance_id(), _manipulation_parent.rotation, str(_manipulation_parent.scale)])
-	var context := GBTestDiagnostics.flush_for_assert()
-	assert_float(_manipulation_parent.rotation).is_equal_approx(original_rotation, 0.01).append_failure_message(
-		"ManipulationParent should have original rotation after indicator generation. " +
-		"Expected: %f, Actual: %f. Context: %s" % [original_rotation, _manipulation_parent.rotation, context]
+	var parent_id: int = _manipulation_parent.get_instance_id()
+	var parent_scale_str: String = str(_manipulation_parent.scale)
+	GBTestDiagnostics.buffer(
+		"[TEST] Checking ManipulationParent (instance_id=%d) rotation=%f scale=%s" % [
+			parent_id, _manipulation_parent.rotation, parent_scale_str
+		]
 	)
-	assert_vector(_manipulation_parent.scale).is_equal_approx(original_scale, Vector2(0.01, 0.01)).append_failure_message(
+	var context := GBTestDiagnostics.flush_for_assert()
+	assert_float(_manipulation_parent.rotation).is_equal_approx(
+		original_rotation, 0.01
+	).append_failure_message(
+		"ManipulationParent should have original rotation after indicator generation. " +
+		"Expected: %f, Actual: %f. Context: %s" % [
+			original_rotation, _manipulation_parent.rotation, context
+		]
+	)
+	assert_vector(_manipulation_parent.scale).is_equal_approx(
+		original_scale, Vector2(0.01, 0.01)
+	).append_failure_message(
 		"ManipulationParent should have original scale after indicator generation. " +
 		"Expected: %s, Actual: %s" % [str(original_scale), str(_manipulation_parent.scale)]
 	)
@@ -328,11 +356,15 @@ func test_rotation_transferred_to_parent_after_indicator_generation() -> void:
 	
 	assert_bool(rotation_diff < 0.1).is_true().append_failure_message(
 		"Copy's global rotation (via parent) should match original. " +
-		"Original: %f, Copy global: %f, Diff: %f" % [original_rotation, copy_global_rotation, rotation_diff]
+		"Original: %f, Copy global: %f, Diff: %f" % [
+			original_rotation, copy_global_rotation, rotation_diff
+		]
 	)
 	
 	# Note: Global scale comparison is approximate due to transform composition
-	assert_vector(copy_global_scale).is_equal_approx(original_scale, Vector2(0.1, 0.1)).append_failure_message(
+	assert_vector(copy_global_scale).is_equal_approx(
+		original_scale, Vector2(0.1, 0.1)
+	).append_failure_message(
 		"Copy's global scale (via parent) should approximately match original. " +
 		"Expected: %s, Actual: %s" % [str(original_scale), str(copy_global_scale)]
 	)

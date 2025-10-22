@@ -66,8 +66,8 @@ const PILLAR_UID: String = "uid://enlg28ry7lxk"
 ## Ellipse test object
 const ELLIPSE_UID: String = "uid://j5837ml5dduu"
 
-## Eclipse test scene (alias for ellipse)
-static var eclipse_scene : PackedScene = preload("uid://j5837ml5dduu")
+## Eclipse test scene (alias for ellipse) - uses ELLIPSE_UID constant
+static var eclipse_scene : PackedScene = preload(ELLIPSE_UID)
 
 #endregion
 #region Placeables

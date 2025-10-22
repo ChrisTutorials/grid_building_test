@@ -40,10 +40,9 @@ func test_visibility_with_remain_active_in_off_mode() -> void:
 		false # has_mouse_world
 	)
 	
-	print("Mode: ", states.mode.current)
-	print("remain_active_in_off_mode: ", settings.remain_active_in_off_mode)
-	print("should_be_visible result: ", should_be_visible)
-	
 	assert_bool(should_be_visible).is_true().append_failure_message(
-		"Expected positioner to be visible with remain_active_in_off_mode=true in OFF mode"
+		"Expected positioner to be visible with remain_active_in_off_mode=true in OFF mode | " +
+		"Mode: %s, remain_active_in_off_mode: %s, should_be_visible: %s" % [
+			str(states.mode.current), str(settings.remain_active_in_off_mode), str(should_be_visible)
+		]
 	)
