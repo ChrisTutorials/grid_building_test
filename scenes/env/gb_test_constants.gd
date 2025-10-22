@@ -165,6 +165,14 @@ const TEST_COMPOSITION_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p
 const ISO_COMPOSITION_CONTAINER : GBCompositionContainer = preload("uid://kxdod6rj5icx")
 
 #endregion
+#region Cardinal Rotation Angles
+## Semantic constants for cardinal direction rotation angles (not magic numbers)
+const ROTATION_NORTH: float = 0.0
+const ROTATION_EAST: float = 90.0
+const ROTATION_SOUTH: float = 180.0
+const ROTATION_WEST: float = 270.0
+
+#endregion
 #region Common Test Positions
 ## Frequently used positions in test scenarios
 const ORIGIN: Vector2 = Vector2.ZERO
