@@ -18,7 +18,7 @@ const EXPECTED_SMITHY_INDICATORS: int = 35  # 7x5 tiles coverage
 ## For ellipse shape - based on actual test results
 const EXPECTED_ELLIPSE_INDICATORS: int = 23  # Actual result from test
 
-## For gigantic egg, larger oval shape - based on actual test results  
+## For gigantic egg, larger oval shape - based on actual test results
 const EXPECTED_GIGANTIC_EGG_INDICATORS: int = 51  # Actual result from test
 
 ## For rect 15 tiles, as named - 15 tile coverage
@@ -42,7 +42,7 @@ func setup_scene_with_indicators(scene: Node2D) -> IndicatorSetupReport:
 
 """Assert that a scene has collision shapes and return the count."""
 func assert_scene_has_collision_shapes(scene: Node2D, context: String = "") -> int:
-	
+
 	var count := _count_collision_shapes(scene)
 	assert_int(count).append_failure_message("Scene lacks collision shapes%s" % context).is_greater(0)
 	return count
@@ -63,7 +63,7 @@ func _create_polygon_scene() -> Node2D:
 	return scene
 
 func _create_rect_area_scene(size: Vector2) -> Node2D:
-	# Factory expects test_suite and calls add_child + auto_free internally  
+	# Factory expects test_suite and calls add_child + auto_free internally
 	var scene: Node2D = CollisionObjectTestFactory.create_area_with_rect(self, size, Vector2.ZERO)
 	return scene
 
@@ -105,19 +105,19 @@ func before_test() -> void:
 	# Use the EnvironmentTestFactory to provide a consistent prebuilt test environment
 	_test_env = EnvironmentTestFactory.create_collision_test_environment(self)
 	assert_object(_test_env).is_not_null().append_failure_message("EnvironmentTestFactory failed to create collision env")
-	
+
 	# Extract components from environment using proper property names
 	_container = _test_env.get_container()
 	_positioner = _test_env.positioner
 	indicator_manager = _test_env.indicator_manager
 	map_layer = _test_env.tile_map_layer
-	
+
 	# Verify all required components are available
 	assert_object(_container).is_not_null().append_failure_message("Container is null")
-	assert_object(_positioner).is_not_null().append_failure_message("Positioner is null") 
+	assert_object(_positioner).is_not_null().append_failure_message("Positioner is null")
 	assert_object(indicator_manager).is_not_null().append_failure_message("IndicatorManager is null")
 	assert_object(map_layer).is_not_null().append_failure_message("TileMapLayer is null")
-	
+
 	# Set up test constants
 	global_snap_pos = map_layer.map_to_local(Vector2i(0,0))
 	col_checking_rules = [CollisionsCheckRule.new()]
@@ -192,7 +192,7 @@ func test_indicator_count_for_shapes(shape_scene_key: String, expected: int, tes
 	else:
 		shape_scene = _create_polygon_scene()  # Default fallback
 		expected = EXPECTED_ECLIPSE_INDICATORS
-	
+
 	shape_scene.global_position = global_snap_pos
 	assert_scene_has_collision_shapes(shape_scene, "; expected >0 for indicator generation")
 
@@ -263,7 +263,7 @@ func test_indicator_generation_distance(shape_scene_key: String, expected_distan
 	else:
 		shape_scene = _create_polygon_scene()  # Default fallback
 		expected_distance = INDICATOR_SPACING
-	
+
 	shape_scene.global_position = global_snap_pos
 	var report : IndicatorSetupReport = setup_scene_with_indicators(shape_scene)
 	var data: Dictionary = get_indicators_and_summary(report)
@@ -277,13 +277,13 @@ func test_indicator_generation_distance(shape_scene_key: String, expected_distan
 
 	var indicator_0: RuleCheckIndicator = indicators.get(0)
 	var indicator_1: RuleCheckIndicator = indicators.get(1)
-	
+
 	assert_bool(indicator_0 != null && indicator_1 != null).append_failure_message("Expected to generate 2 indicators for this test: [%s, %s]" % [indicator_0, indicator_1]).is_true()
-	
+
 	if indicator_0 == null || indicator_1 == null:
 		fail("Cannot finish test if the two indicators did not generate")
 		return
-	
+
 	var distance_to: float = indicator_0.global_position.distance_to(indicator_1.global_position)
 
 	assert_float(distance_to).append_failure_message(

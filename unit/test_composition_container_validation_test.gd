@@ -5,7 +5,7 @@ extends GdUnitTestSuite
 ## tests and asserts that all exported GBConfig subresources are present. It
 ## then calls `get_runtime_issues()` to surface any remaining environment issues.
 
-var _container : GBCompositionContainer = GBTestConstants.TEST_COMPOSITION_CONTAINER 
+var _container : GBCompositionContainer = GBTestConstants.TEST_COMPOSITION_CONTAINER
 
 func test_validate_test_composition_container_subcomponents() -> void:
 	# Test: Validate test composition container has all subcomponents (runtime checks only)
@@ -40,15 +40,15 @@ func test_validate_test_composition_container_subcomponents() -> void:
 	assert_that(rules).append_failure_message("get_placement_rules returned null").is_not_null()
 	assert_array(rules).append_failure_message("placement_rules should be an array").is_not_null()
 
-	# Run editor validation to collect issues  
+	# Run editor validation to collect issues
 	var issues: Array = container.get_editor_issues()
-	
+
 	# Note: IndicatorManager assignment is now properly classified as a runtime-only issue
 	# since the IndicatorManager is assigned during system initialization at runtime.
 	# Editor validation should only flag issues that can be detected at resource creation time.
-	
+
 	# Validate that we have no editor-level validation issues for test resources
 	assert_that(issues.size()).append_failure_message(
-		"Expected no editor issues in test composition container, got %d issues: %s" % 
+		"Expected no editor issues in test composition container, got %d issues: %s" %
 		[issues.size(), str(issues)]
 	).is_equal(0)

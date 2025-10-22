@@ -19,7 +19,7 @@ func before_test() -> void:
 	owner_node.name = search_owner_name
 	owner_node.add_to_group(owner_group)
 	add_child(owner_node)
-	
+
 	# Create item_container with a script so NodeLocator can find it
 	item_container = auto_free(Node2D.new())
 	# Create a dummy script resource for testing
@@ -27,7 +27,7 @@ func before_test() -> void:
 	dummy_script.source_code = "extends Node2D"
 	dummy_script.reload()
 	item_container.set_script(dummy_script)
-	
+
 	# Add item_container as a child to simulate the relationship
 	owner_node.add_child(item_container)
 	# Ensure both parent and child share the search group for group search test expectations

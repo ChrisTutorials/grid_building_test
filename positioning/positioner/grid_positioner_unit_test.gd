@@ -70,18 +70,18 @@ func _create_recenter_env() -> Array:
 	# Recenter-specific tests should not hide on handled events
 	settings.hide_on_handled = false
 	return setup
-	
+
 func _diag(message: String) -> String:
 	return GBDiagnostics.format_debug(message, SUITE_NAME, get_script().resource_path)
 
 func _create_collision_env() -> CollisionTestEnvironment:
 	runner = scene_runner(GBTestConstants.COLLISION_TEST_ENV_UID)
 	var env: CollisionTestEnvironment = runner.scene() as CollisionTestEnvironment
-	
+
 	assert_object(env).append_failure_message(
 		"Failed to load CollisionTestEnvironment scene"
 	).is_not_null()
-	
+
 	return env
 
 func _replace_positioner(env: CollisionTestEnvironment, replacement: GridPositioner2D) -> GridPositioner2D:
@@ -148,7 +148,7 @@ class _MouseProjectionTestMap:
 	@warning_ignore("native_method_override")
 	func get_viewport() -> Viewport:
 		return null
-	
+
 #endregion
 
 #region VISIBILITY REGRESSION: active mode without mouse events
@@ -323,7 +323,7 @@ func test_restrict_to_map_area_respects_parent_transform() -> void:
 	map_parent.position = Vector2(512, 384)
 	add_child(map_parent)
 	map.get_parent().remove_child(map)
-	map_parent.add_child(map) 
+	map_parent.add_child(map)
 	runner.simulate_frames(1)
 
 	var target_tile: Vector2i = Vector2i(1, 2)
@@ -351,60 +351,60 @@ class _StubGateGridPositioner:
 
 func test_hide_on_handled_mouse_event_hides_positioner() -> void:
 	# Test: hide_on_handled behavior when gate blocks input
-	# Setup: Positioner with hide_on_handled enabled and blocking gate  
+	# Setup: Positioner with hide_on_handled enabled and blocking gate
 	# Act: Process mouse event with blocked gate
 	# Assert: System behavior matches current design (cached position retention priority)
-	
+
 	# Create the stub positioner specifically for this test
 	var stub_positioner := _StubGateGridPositioner.new()
 	var setup: Array = _create_positioner_env(stub_positioner, true)
 	var gp: GridPositioner2D = setup[_IDX_GP]
 	var settings: GridTargetingSettings = setup[_IDX_SETTINGS]
 	var states: GBStates = setup[_IDX_STATES]
-	
+
 	var stub := gp as _StubGateGridPositioner
-	
+
 	# Configure hide_on_handled behavior
 	settings.hide_on_handled = true
 	settings.enable_mouse_input = true
-	
+
 	# Set mode to an active state that would normally show the positioner
 	states.mode.current = EXPECTED_ACTIVE_MODE
-	
+
 	# Clear any cached mouse state by setting the positioner to OFF mode first
 	# This ensures we start with a clean state
 	states.mode.current = GBEnums.Mode.OFF
 	runner.simulate_frames(1)
-	
+
 	# Set the gate to block input BEFORE any mouse events
 	stub.set_next_gate(GATE_BLOCKS_INPUT)
-	
+
 	# Now switch back to active mode
 	states.mode.current = EXPECTED_ACTIVE_MODE
-	
+
 	# Set positioner visible initially
 	gp.visible = INITIAL_VISIBILITY
-	
+
 	# Send multiple blocked mouse events to ensure the system recognizes the blocking
 	_send_blocked_mouse_events(gp, stub)
-	
+
 	# Validate configuration before assertions
 	_assert_hide_settings_configured(settings, stub, states)
-	
+
 	# Get detailed state for enhanced diagnostics
 	var diagnostic_state := _create_comprehensive_diagnostic_state(gp, stub, settings, states)
-	
+
 	# Assert gate blocks input (this triggers hide_on_handled behavior)
 	var gate_blocks_input: bool = not stub.get_input_gate()
 	assert_bool(gate_blocks_input).append_failure_message(
 		"Gate should block input to trigger hide_on_handled behavior. %s" % diagnostic_state
 	).is_true()
-	
+
 	# Assert hide_on_handled setting is active
 	assert_bool(settings.hide_on_handled).append_failure_message(
 		"hide_on_handled should be enabled. %s" % diagnostic_state
 	).is_true()
-	
+
 	# Assert actual system behavior: hide_on_handled takes effect when gate blocks input
 	# Current design: mouse_gate:blocked triggers visibility off
 	assert_bool(gp.visible).append_failure_message(
@@ -416,28 +416,28 @@ func test_recenter_on_resolve_dependencies_mouse_enabled_and_cursor_on_screen() 
 	var gp: GRID_POSITIONER_SCRIPT = setup[_IDX_GP]
 	var settings: GridTargetingSettings = setup[_IDX_SETTINGS]
 	# Note: map variable not needed for this test (avoids unused variable warning)
-	
+
 	# Enable mouse input
 	settings.enable_mouse_input = true
-	
+
 	# Replace with test positioner that mocks cursor as on screen
 	var test_positioner := TestPositionerWithMockCursor.new()
 	test_positioner._mock_cursor_on_screen = true
 	test_positioner._test_expected_cursor_position = Vector2(160, 120)
 	gp = _replace_positioner(setup[_IDX_ENV], test_positioner)
-	
+
 	# Set positioner to a known position away from center and disable input processing
 	gp.global_position = Vector2(1, 1)
 	gp.set_input_processing_enabled(false)
-	
+
 	# Trigger recenter logic by enabling input processing (simulates resolve dependencies)
 	gp.set_input_processing_enabled(true)
 	runner.simulate_frames(1)
-	
+
 	# Should fail fast - positioning utilities now require Camera2D and return Vector2.ZERO on failure
 	# With fail-fast behavior, Vector2.ZERO maps to tile (0,0) which centers at (8.0, 8.0)
 	var expected_fail_safe_position: Vector2 = Vector2(8.0, 8.0)  # Tile (0,0) center
-	
+
 	assert_vector(gp.global_position).append_failure_message(
 		_diag("Expected fail-safe positioning to tile (0,0) center when Camera2D missing. Got: %s" % str(gp.global_position))
 	).is_equal(expected_fail_safe_position)
@@ -446,18 +446,18 @@ func test_recenter_on_resolve_dependencies_mouse_disabled_moves_to_center() -> v
 	var setup: Array = _create_recenter_env()
 	var gp: GRID_POSITIONER_SCRIPT = setup[_IDX_GP]
 	var settings: GridTargetingSettings = setup[_IDX_SETTINGS]
-	
+
 	# Disable mouse input
 	settings.enable_mouse_input = false
-	
+
 	# Set positioner to a known position away from center and disable input processing
 	gp.global_position = Vector2(1, 1)
 	gp.set_input_processing_enabled(false)
-	
+
 	# Trigger recenter logic by enabling input processing (simulates resolve dependencies)
 	gp.set_input_processing_enabled(true)
 	runner.simulate_frames(1)
-	
+
 	# Should fail fast - positioning utilities now require Camera2D and return Vector2.ZERO on failure
 	# With fail-fast behavior, Vector2.ZERO maps to tile (0,0) which centers at (8.0, 8.0)
 	var expected_fail_safe_position: Vector2 = Vector2(8.0, 8.0)  # Tile (0,0) center
@@ -469,31 +469,31 @@ func test_recenter_on_resolve_dependencies_cursor_off_screen_moves_to_center() -
 	var setup: Array = _create_recenter_env()
 	var gp: GRID_POSITIONER_SCRIPT = setup[_IDX_GP]
 	var settings: GridTargetingSettings = setup[_IDX_SETTINGS]
-	
+
 	# Enable mouse input
 	settings.enable_mouse_input = true
-	
+
 	# Set up a test scenario where cursor should be considered "off screen"
 	var test_positioner := TestPositionerWithMockCursor.new()
 	test_positioner._mock_cursor_on_screen = false
 	gp = _replace_positioner(setup[_IDX_ENV], test_positioner)
-	
+
 	# Wait for scene tree to stabilize after positioner replacement
 	runner.simulate_frames(2)
-	
+
 	# Set positioner to a known position away from center and disable input processing
 	gp.global_position = Vector2(1, 1)
 	gp.set_input_processing_enabled(false)
-	
+
 	# Wait for state to propagate
 	runner.simulate_frames(1)
-	
+
 	# Trigger recenter logic by enabling input processing (simulates resolve dependencies)
 	gp.set_input_processing_enabled(true)
-	
+
 	# Wait for positioning logic to complete (multiple frames for full propagation)
 	runner.simulate_frames(3)
-	
+
 	# Should fail fast - positioning utilities now require Camera2D and return Vector2.ZERO on failure
 	# With fail-fast behavior, Vector2.ZERO maps to tile (0,0) which centers at (8.0, 8.0)
 	var expected_fail_safe_position: Vector2 = Vector2(8.0, 8.0)  # Tile (0,0) center
@@ -504,13 +504,13 @@ func test_recenter_on_resolve_dependencies_cursor_off_screen_moves_to_center() -
 # Test helper class that extends GridPositioner2D to mock cursor behavior
 class TestPositionerWithMockCursor:
 	extends GridPositioner2D
-	
+
 	var _mock_cursor_on_screen: bool = false
 	var _test_expected_cursor_position: Vector2 = Vector2.ZERO
-	
+
 	func _is_mouse_cursor_on_screen() -> bool:
 		return _mock_cursor_on_screen
-	
+
 	func _get_cursor_world_position() -> Vector2:
 		return _test_expected_cursor_position
 
@@ -529,7 +529,7 @@ class TestPositionerWithMockCursor:
 # 	targeting_state.target_map = mock_map
 # 	env.world.add_child(mock_map)
 # 	await get_tree().process_frame
-# 
+#
 # 	# This test used the removed ProjectionSnapshot API
 # 	# var raw: ProjectionSnapshot = ProjectionSnapshot.new(Vector2(10, 10), GBEnums.ProjectionMethod.EVENT_GLOBAL, "event.global_position")
 # 	# var stabilized: ProjectionSnapshot = gp._stabilize_projection(raw, Vector2(5, 5), Vector2(5, 5))
@@ -563,11 +563,11 @@ func _assert_hide_settings_configured(settings: GridTargetingSettings, stub: _St
 		"Mode should be MOVE (active)"
 	).is_equal(EXPECTED_ACTIVE_MODE)
 
-## Helper method for creating comprehensive diagnostic state information  
+## Helper method for creating comprehensive diagnostic state information
 func _create_comprehensive_diagnostic_state(gp: GridPositioner2D, stub: _StubGateGridPositioner, settings: GridTargetingSettings, states: GBStates) -> String:
 	# Get diagnostic information from the positioner
 	var diagnostic_info := gp.to_diagnostic_string() if gp.has_method("to_diagnostic_string") else "no_diagnostic"
-	
+
 	return "Gate blocked: %s, Mouse enabled: %s, Hide on handled: %s, Mode: %s, Current visible: %s, Diagnostic: %s" % [
 		str(not stub.get_input_gate()),
 		str(settings.enable_mouse_input),

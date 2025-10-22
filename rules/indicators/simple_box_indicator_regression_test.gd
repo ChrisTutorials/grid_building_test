@@ -30,7 +30,7 @@ func before_test() -> void:
 	assert_that(env_scene).is_not_null()
 	var env: AllSystemsTestEnvironment = env_scene.instantiate()
 	add_child(env)
-	
+
 	_container = env.get_container()
 	_injector = env.injector
 	_gts = env.grid_targeting_system.get_state()
@@ -42,18 +42,18 @@ func before_test() -> void:
 	tile_map_layer = auto_free(packed_tilemap.instantiate() as TileMapLayer)
 	# Ensure tilemap is parented for scene tree operations
 	add_child(tile_map_layer)
-	
+
 	# Positioner
 	positioner = auto_free(Node2D.new())
 	add_child(positioner)
-	
+
 	# Set up targeting state
 	var targeting_state: GridTargetingState = _container.get_states().targeting
 	targeting_state.set_map_objects(tile_map_layer, [tile_map_layer])
 	targeting_state.positioner = positioner
-	
+
 	# Note: AllSystemsTestEnvironment already provides ManipulationParent setup via injection
-	
+
 	# Set up owner context
 	var owner_context: GBOwnerContext = _container.get_contexts().owner
 	var owner_node: Node2D = auto_free(Node2D.new())
@@ -62,18 +62,18 @@ func before_test() -> void:
 	var gb_owner := GBOwner.new(owner_node)
 	auto_free(gb_owner)
 	owner_context.set_owner(gb_owner)
-	
+
 	# Set up placed parent
 	var placed_parent: Node2D = auto_free(Node2D.new())
 	_container.get_states().building.placed_parent = placed_parent
 	add_child(placed_parent)
-	
+
 	# Use building system from AllSystemsTestEnvironment
 	building_system = env.building_system
 	assert_object(building_system).append_failure_message(
 		"AllSystemsTestEnvironment should provide BuildingSystem"
 	).is_not_null()
-	
+
 	# Ensure placement manager exists
 	if _container.get_contexts().indicator.get_manager() == null:
 		var pm := IndicatorManager.create_with_injection(_container)
@@ -87,19 +87,19 @@ func test_rigid_body_with_collision_layer_513_generates_indicators() -> void:
 	var test_box: RigidBody2D = RigidBody2D.new()
 	test_box.name = "SimpleBox"
 	test_box.collision_layer = TEST_COLLISION_LAYER  # Bits 0 and 9 (layers 1 and 10)
-	
+
 	# Add collision shape
 	var shape: CollisionShape2D = CollisionShape2D.new()
 	var rect: RectangleShape2D = RectangleShape2D.new()
 	rect.size = COLLISION_SHAPE_SIZE
 	shape.shape = rect
 	test_box.add_child(shape)
-	
+
 	# CRITICAL: Set owner for PackedScene to include the collision shape
 	shape.owner = test_box
-	
+
 	add_child(test_box)
-	
+
 	# CRITICAL: Position the test box at the positioner location for collision detection
 	test_box.global_position = positioner.global_position
 
@@ -163,7 +163,7 @@ func test_rigid_body_with_collision_layer_513_generates_indicators() -> void:
 
 	# Verify GBGeometryUtils can find collision shapes in preview
 	var owner_shapes: Dictionary[Node2D, Array] = GBGeometryUtils.get_all_collision_shapes_by_owner(preview)
-	
+
 	# This assertion should fail and expose the root cause
 	assert_int(owner_shapes.size()).append_failure_message(
 		"CORE ISSUE: GBGeometryUtils.get_all_collision_shapes_by_owner() returns 0 owners despite preview having %d collision objects: %s" % [preview_collision_objects.size(), collision_object_details]

@@ -30,14 +30,14 @@ func test_injector_system_instantiation() -> void:
 ## Test that composition_container property exists and can be set
 func test_composition_container_property_assignment() -> void:
 	var injector: GBTestInjectorSystem = auto_free(GBTestInjectorSystem.new())
-	
+
 	# Create a test container
 	var original_container: GBCompositionContainer = auto_free(GBCompositionContainer.new())
 	original_container.get_logger().log_debug("Original container created")
-	
+
 	# Assign to injector
 	injector.composition_container = original_container
-	
+
 	# Verify assignment worked
 	assert_object(injector.composition_container).is_not_null().append_failure_message(
 		"Composition container should be assigned"
@@ -50,20 +50,20 @@ func test_composition_container_property_assignment() -> void:
 ## This is an acceptable limitation since tests primarily use scene-loaded instances.
 func test_automatic_container_duplication() -> void:
 	var injector: GBTestInjectorSystem = auto_free(GBTestInjectorSystem.new())
-	
+
 	# Create a test container
 	var original_container: GBCompositionContainer = auto_free(GBCompositionContainer.new())
 	var original_id: int = original_container.get_instance_id()
-	
+
 	# Assign to injector (direct assignment does NOT duplicate)
 	injector.composition_container = original_container
-	
+
 	# Get the container from injector
 	var injector_container: GBCompositionContainer = injector.composition_container
 	assert_object(injector_container).is_not_null().append_failure_message(
 		"Injector should have a container after assignment"
 	)
-	
+
 	# For direct assignment, container is NOT duplicated (same instance)
 	# This is a known limitation - duplication only works during scene loading
 	var injector_id: int = injector_container.get_instance_id()
@@ -74,17 +74,17 @@ func test_automatic_container_duplication() -> void:
 ## Test that multiple assignments don't cause double-duplication
 func test_no_double_duplication() -> void:
 	var injector: GBTestInjectorSystem = auto_free(GBTestInjectorSystem.new())
-	
+
 	# First assignment
 	var container1: GBCompositionContainer = auto_free(GBCompositionContainer.new())
 	injector.composition_container = container1
 	var first_id: int = injector.composition_container.get_instance_id()
-	
+
 	# Second assignment (should not duplicate again)
 	var container2: GBCompositionContainer = auto_free(GBCompositionContainer.new())
 	injector.composition_container = container2
 	var second_id: int = injector.composition_container.get_instance_id()
-	
+
 	# The _has_duplicated flag should prevent duplication on second assignment
 	# So second_id should be different from first_id (new container assigned)
 	assert_int(second_id).is_not_equal(first_id).append_failure_message(
@@ -94,10 +94,10 @@ func test_no_double_duplication() -> void:
 ## Test that null assignment works correctly
 func test_null_assignment() -> void:
 	var injector: GBTestInjectorSystem = auto_free(GBTestInjectorSystem.new())
-	
+
 	# Assign null
 	injector.composition_container = null
-	
+
 	# Verify it's null
 	assert_object(injector.composition_container).is_null().append_failure_message(
 		"Null assignment should result in null container"
@@ -109,13 +109,13 @@ func test_scene_loading_with_injector() -> void:
 	assert_object(env).is_not_null().append_failure_message(
 		"Test environment should be loaded"
 	)
-	
+
 	# Find the injector node
 	var injector: Node = env.injector
 	assert_object(injector).is_not_null().append_failure_message(
 		"Environment should have GBInjectorSystem"
 	)
-	
+
 	assert_object(injector).is_instanceof(GBTestInjectorSystem).append_failure_message(
 		"Injector should be GBTestInjectorSystem type. Got: %s" % injector.get_class()
 	)
@@ -127,16 +127,16 @@ func test_injector_has_container_after_scene_load() -> void:
 	assert_object(injector).is_not_null().append_failure_message(
 		"Should find GBTestInjectorSystem in environment"
 	)
-	
+
 	# Check if composition_container is set
 	var container: GBCompositionContainer = injector.composition_container
 	assert_object(container).is_not_null().append_failure_message(
 		"Injector should have composition_container after scene load. Injector: %s, Container: %s" % [
-			injector, 
+			injector,
 			container
 		]
 	)
-	
+
 	# Verify container has a logger (basic validation)
 	var logger: GBLogger = container.get_logger()
 	assert_object(logger).is_not_null().append_failure_message(
@@ -149,21 +149,21 @@ func test_container_duplicated_during_scene_load() -> void:
 	var original_resource_path: String = "res://test/grid_building_test/resources/composition_containers/test_composition_container.tres"
 	var original_container: GBCompositionContainer = load(original_resource_path)
 	var original_id: int = original_container.get_instance_id()
-	
+
 	# Get the container from the injector in the environment
 	var injector_node: Node = env.injector
 	assert_object(injector_node).is_not_null().append_failure_message(
 		"Should find GBInjectorSystem node in environment"
 	)
-	
+
 	# Use get() to access the composition_container property from the script
 	var scene_container: GBCompositionContainer = injector_node.get("composition_container")
 	assert_object(scene_container).is_not_null().append_failure_message(
 		"Environment injector should have a container. Script: %s" % (injector_node.get_script().resource_path if injector_node.get_script() else "none")
 	)
-	
+
 	var scene_id: int = scene_container.get_instance_id()
-	
+
 	# Verify they're different instances (duplication occurred)
 	assert_int(scene_id).is_not_equal(original_id).append_failure_message(
 		"Scene container should be duplicated from resource. Original ID: %d, Scene ID: %d" % [original_id, scene_id]

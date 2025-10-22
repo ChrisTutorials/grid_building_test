@@ -21,7 +21,7 @@ func test_visibility_reconcile_noop_when_same() -> void:
     last.allowed = true  # Set to true so should_be_visible returns true
     var res: Variant = GridPositionerLogic.visibility_reconcile(GBEnums.Mode.MOVE, s, true, last, false)
     assert_bool(res.apply).append_failure_message(
-        "Visibility reconcile should return apply=false when current visibility matches expected - Mode: %s, CurrentVisible: %s, MouseAllowed: %s, ShouldBeVisible: should match CurrentVisible" % 
+        "Visibility reconcile should return apply=false when current visibility matches expected - Mode: %s, CurrentVisible: %s, MouseAllowed: %s, ShouldBeVisible: should match CurrentVisible" %
         [GBEnums.Mode.MOVE, true, last.allowed]
     ).is_false()
 

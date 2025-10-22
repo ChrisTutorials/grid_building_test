@@ -43,7 +43,7 @@ static func _indicator_state_diag(ind: RuleCheckIndicator, header: String = "") 
 func create_rule_targeting_state() -> GridTargetingState:
 	# Get the targeting state from the environment which should already be properly initialized
 	var targeting_state: GridTargetingState = _container.get_states().targeting
-	
+
 	# Validate that the environment properly set up the targeting state
 	assert_that(targeting_state).append_failure_message(
 		"Environment should provide targeting state"
@@ -54,21 +54,21 @@ func create_rule_targeting_state() -> GridTargetingState:
 	assert_that(targeting_state.positioner).append_failure_message(
 		"Environment targeting state should have positioner set"
 	).is_not_null()
-	
+
 	return targeting_state
 
 func before_test() -> void:
 	# Use scene_runner for reliable frame simulation
 	runner = scene_runner(GBTestConstants.ALL_SYSTEMS_ENV_UID)
 	runner.simulate_frames(2)  # Initial setup frames
-	
+
 	_env = runner.scene() as AllSystemsTestEnvironment
 	# Container is already duplicated by environment's _ready() for test isolation
 	_container = _env.get_container()
-	
+
 	# Disable mouse input to prevent interference
 	_container.config.settings.targeting.enable_mouse_input = false
-	
+
 	# Create indicator and configure all exported properties BEFORE adding to scene tree so _ready uses them.
 	indicator = RuleCheckIndicator.new()
 	auto_free(indicator)
@@ -113,7 +113,7 @@ func before_test() -> void:
 	# Resolve runtime dependencies so logger, debug settings and visuals are applied
 	# Tests rely on resolve_gb_dependencies() to set the _logger and apply current display settings
 	indicator.resolve_gb_dependencies(_container)
-	
+
 	# Simulate frames for indicator setup
 	runner.simulate_frames(2)
 
@@ -136,7 +136,7 @@ func test_indicator_validity_switches_on_dynamic_collision() -> void:
 	var rule: CollisionsCheckRule = PlacementRuleTestFactory.create_default_collision_rule()
 	rule.pass_on_collision = false
 	rule.collision_mask = 1
-	
+
 	var targeting_state: GridTargetingState = create_rule_targeting_state()
 	rule.setup(targeting_state)
 
@@ -366,7 +366,7 @@ func test_visual_settings_update_on_validity_change() -> void:
 	assert_that(indicator.validity_sprite.modulate).append_failure_message(
 		_indicator_state_diag(indicator, "validity_sprite.modulate should start as valid modulate")
 	).is_equal(indicator.valid_settings.modulate)
-	
+
 	# Create a failing rule to trigger visual change
 	var failing_rule: CollisionsCheckRule = PlacementRuleTestFactory.create_default_collision_rule()
 	# This rule should fail when there is a collision
@@ -377,10 +377,10 @@ func test_visual_settings_update_on_validity_change() -> void:
 
 	var collision_body: Node2D = _create_test_body()
 	_env.add_child(collision_body)
-	
+
 	# Position the collision body to overlap with the indicator
 	collision_body.global_position = indicator.global_position
-	
+
 	# Add the rule to trigger visual change
 	indicator.add_rule(failing_rule)
 	# Wait for physics process to run
@@ -412,7 +412,7 @@ func test_force_validation_update(
 	collision_body.global_position = indicator.global_position
 
 	indicator.add_rule(rule)
-	
+
 	assert_bool(indicator.force_validity_evaluation()).append_failure_message(
 		_diag("force_validity_evaluation() did not return expected value; expected=%s current_valid=%s" % [str(expected_valid), str(indicator.valid)])
 	).is_equal(expected_valid)
@@ -430,33 +430,33 @@ func test_force_validation_update(
 func test_rules_added_after_ready() -> void:
 	# Wait for _ready to complete
 	runner.simulate_frames(1)
-	
+
 	# Verify initial state
 	assert_bool(indicator.valid).append_failure_message(
 		_indicator_state_diag(indicator, "Indicator should start valid with no rules")
 	).is_true()
-	
+
 	# Create and add a failing rule after _ready
 	var failing_rule: CollisionsCheckRule = PlacementRuleTestFactory.create_default_collision_rule()
 	failing_rule.pass_on_collision = false
 	failing_rule.collision_mask = 1
-	
+
 	# Initialize the rule properly for testing
 	var targeting_state: GridTargetingState = create_rule_targeting_state()
 	failing_rule.setup(targeting_state)
 
 	var collision_body: Node2D = _create_test_body()
 	_env.add_child(collision_body)
-	
+
 	# Position the collision body to overlap with the indicator
 	collision_body.global_position = indicator.global_position
-	
+
 	# Add the rule
 	indicator.add_rule(failing_rule)
-	
+
 	# Wait for physics process to run
 	runner.simulate_frames(2)
-	
+
 	# Verify the indicator is now invalid
 	assert_bool(indicator.valid).append_failure_message(_diag("Indicator should be invalid after adding failing rule")).is_false()
 	assert_object(indicator.current_display_settings).append_failure_message(_diag("Display settings did not switch to invalid settings after failing rule")).is_equal(indicator.invalid_settings)
@@ -467,35 +467,35 @@ func test_rules_removed() -> void:
 	var failing_rule: CollisionsCheckRule = PlacementRuleTestFactory.create_default_collision_rule()
 	failing_rule.pass_on_collision = false
 	failing_rule.collision_mask = 1
-	
+
 	# Initialize the rule properly for testing
 	var targeting_state: GridTargetingState = create_rule_targeting_state()
 	failing_rule.setup(targeting_state)
 
 	var collision_body: Node2D = _create_test_body()
 	_env.add_child(collision_body)
-	
+
 	# Position the collision body to overlap with the indicator
 	collision_body.global_position = indicator.global_position
-	
+
 	# Add the rule
 	indicator.add_rule(failing_rule)
-	
+
 	# Wait for physics process to run
 	runner.simulate_frames(2)
-	
+
 	# Verify the indicator is invalid (provide detailed diagnostics)
 	var prior_rules_count: int = indicator.get_rules().size()
 	assert_bool(indicator.valid).append_failure_message(
 		_diag("Indicator unexpectedly valid before rule removal; rules=%d collisions=%d" % [prior_rules_count, indicator.get_collision_count()])
 	).is_false()
-	
+
 	# Remove the rule
 	indicator.clear()
-	
+
 	# Wait for physics process to run
 	runner.simulate_frames(2)
-	
+
 	# Verify the indicator is now valid again
 	assert_bool(indicator.valid).append_failure_message(
 		_diag("Indicator did not become valid after clear(); remaining_rules=%d" % [indicator.get_rules().size()])
@@ -634,7 +634,7 @@ func test_get_tile_position_default() -> void:
 
 
 ## Creates a test collision body for testing rule validation
-## 
+##
 ## IMPORTANT POSITIONING NOTES:
 ## - The collision body is created at position (0, 0) by default
 ## - Tests MUST position the collision body to overlap with the indicator
@@ -654,11 +654,11 @@ func _create_test_body() -> StaticBody2D:
 	var collision_shape: CollisionShape2D = auto_free(CollisionShape2D.new())
 	collision_body.add_child(collision_shape)
 	collision_shape.shape = RectangleShape2D.new()
-	
+
 	# IMPORTANT: The collision shape needs a size to actually collide
 	# RectangleShape2D defaults to size (0, 0) which means no collision detection
 	collision_shape.shape.size = Vector2.ONE  # Match the indicator size
-	
+
 	return collision_body
 
 

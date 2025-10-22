@@ -57,7 +57,7 @@ func before_test() -> void:
 	add_child(env)
 	auto_free(env)
 	_container = env.get_container()
-	
+
 	# Use premade 31x31 test tilemap instead of generating a large grid
 	var packed: PackedScene = GBTestConstants.TEST_TILE_MAP_LAYER_BUILDABLE
 	tilemap_layer = packed.instantiate() as TileMapLayer
@@ -66,18 +66,18 @@ func before_test() -> void:
 	# Ensure tile_set has expected tile_size
 	if tilemap_layer.tile_set != null:
 		tilemap_layer.tile_set.tile_size = TILE_SIZE
-	
+
 	# Create targeting state
 	var owner_context: GBOwnerContext = GBOwnerContext.new(null)
 	targeting_state = _container.get_states().targeting
 	targeting_state._owner_context = owner_context
 	targeting_state.target_map = tilemap_layer
-	
+
 	# Create positioner
 	var positioner: Node2D = GodotTestFactory.create_node2d(self)
 	positioner.global_position = POSITIONER_OFFSET
 	targeting_state.positioner = positioner
-	
+
 	# Create collision mapper - inject immediately with factory
 	collision_mapper = CollisionMapper.create_with_injection(_container)
 
@@ -98,20 +98,20 @@ func test_collision_shape_tile_coverage_with_various_shape_types(
 	]
 ) -> void:
 	var test_object: Node2D = _create_test_object_with_shape(shape_type, shape_data)
-	
+
 	# Calculate tile offsets using collision mapper
-	
+
 	var tile_offsets: Dictionary = collision_mapper.get_tile_offsets_for_test_collisions(
 		CollisionTestSetup2D.new(test_object, STANDARD_SHAPE_SIZE)
 	)
-	
+
 	# Verify expected tile count
 	assert_int(tile_offsets.size()).append_failure_message(
 		"Expected %d tiles for %s shape, got %d. Tiles: %s" % [
 			expected_tile_count, shape_type, tile_offsets.size(), tile_offsets.keys()
 		]
 	).is_equal(expected_tile_count)
-	
+
 	# Verify all offsets are valid Vector2i
 	for offset: Vector2i in tile_offsets.keys():
 		assert_object(offset).append_failure_message(
@@ -132,15 +132,15 @@ func test_collision_mapper_positioning_edge_cases_handle_problematic_positions(
 ) -> void:
 	# Set positioner to test position
 	targeting_state.positioner.global_position = position
-	
+
 	var shape_data: Dictionary = {"size": shape_size, "position": ORIGIN_POSITION}
 	var test_object: Node2D = _create_test_object_with_shape("rectangle", shape_data)
-	
+
 	# Calculate tile offsets
 	var tile_offsets: Dictionary = collision_mapper.get_tile_offsets_for_test_collisions(
 		CollisionTestSetup2D.new(test_object, shape_size)
 	)
-	
+
 	# Verify behavior based on expected case
 	match expected_behavior:
 		"normal_coverage":
@@ -170,27 +170,27 @@ func test_complex_polygon_shapes_handle_edge_cases_from_debug_tests() -> void:
 			"min_expected_tiles": 12
 		},
 		{
-			"name": "smithy_boundary_shape", 
+			"name": "smithy_boundary_shape",
 			"points": [Vector2(-64, -32), Vector2(64, -32), Vector2(64, 32), Vector2(-64, 32)],
 			"min_expected_tiles": 16
 		}
 	]
-	
+
 	for polygon_data in complex_polygons:
 		var test_object: Area2D = Area2D.new()
 		auto_free(test_object)
 		add_child(test_object)
 		test_object.global_position = targeting_state.positioner.global_position
-		
+
 		var collision_polygon: CollisionPolygon2D = CollisionPolygon2D.new()
 		collision_polygon.polygon = PackedVector2Array(polygon_data.points)
 		test_object.add_child(collision_polygon)
-		
+
 		var indicator_test_setup := CollisionTestSetup2D.new(test_object, SMALL_SHAPE_SIZE)
 		var tile_offsets: Dictionary = collision_mapper.get_tile_offsets_for_test_collisions(
 			indicator_test_setup
 		)
-		
+
 		assert_int(tile_offsets.size()).append_failure_message(
 			"Complex polygon '%s' should cover at least %d tiles, got %d" % [
 				polygon_data.name, polygon_data.min_expected_tiles, tile_offsets.size()
@@ -205,28 +205,28 @@ func test_collision_mapper_transform_consistency_across_different_transforms() -
 		{"position": base_position, "rotation": 0.0, "scale": Vector2(2, 1)},
 		{"position": base_position + SMALL_SHAPE_SIZE, "rotation": 0.0, "scale": Vector2.ONE}
 	]
-	
+
 	var shape_data: Dictionary = {"size": STANDARD_SHAPE_SIZE, "position": ORIGIN_POSITION}
-	
+
 	for i in range(test_transforms.size()):
 		var transform_data: Dictionary = test_transforms[i]
-		
+
 		# Set up positioner with transform
 		targeting_state.positioner.global_position = transform_data.position
 		targeting_state.positioner.rotation = transform_data.rotation
 		targeting_state.positioner.scale = transform_data.scale
-		
+
 		var test_object: Node2D = _create_test_object_with_shape("rectangle", shape_data)
-		
+
 		var tile_offsets: Dictionary = collision_mapper.get_tile_offsets_for_test_collisions(
 			CollisionTestSetup2D.new(test_object, STANDARD_SHAPE_SIZE)
 		)
-		
+
 		# Verify consistent behavior across transforms
 		assert_int(tile_offsets.size()).append_failure_message(
 			"Transform case %d should produce valid tile coverage. Transform: %s" % [i, transform_data]
 		).is_greater(0)
-		
+
 		# Verify all tile offsets are reasonable (within expected bounds)
 		for offset: Vector2i in tile_offsets.keys():
 			assert_bool(abs(offset.x) < 100 and abs(offset.y) < 100).append_failure_message(
@@ -238,7 +238,7 @@ func _create_test_object_with_shape(shape_type: String, shape_data: Dictionary) 
 	auto_free(test_object)
 	add_child(test_object)
 	test_object.global_position = targeting_state.positioner.global_position
-	
+
 	match shape_type:
 		"rectangle":
 			var collision_shape: CollisionShape2D = CollisionShape2D.new()
@@ -247,7 +247,7 @@ func _create_test_object_with_shape(shape_type: String, shape_data: Dictionary) 
 			rect.size = shape_data.size
 			collision_shape.shape = rect
 			test_object.add_child(collision_shape)
-			
+
 		"circle":
 			var collision_shape: CollisionShape2D = CollisionShape2D.new()
 			collision_shape.position = shape_data.get("position", Vector2.ZERO)
@@ -255,13 +255,13 @@ func _create_test_object_with_shape(shape_type: String, shape_data: Dictionary) 
 			circle.radius = shape_data.radius
 			collision_shape.shape = circle
 			test_object.add_child(collision_shape)
-			
+
 		"trapezoid":
 			var collision_polygon: CollisionPolygon2D = CollisionPolygon2D.new()
 			collision_polygon.position = shape_data.get("position", Vector2.ZERO)
 			collision_polygon.polygon = PackedVector2Array(shape_data.polygon)
 			test_object.add_child(collision_polygon)
-	
+
 	return test_object
 
 func test_rules_and_collision_integration() -> void:
@@ -269,36 +269,36 @@ func test_rules_and_collision_integration() -> void:
 	auto_free(rule)  # Clean up rule instance
 	var setup_issues: Array = rule.setup(targeting_state)
 	assert_array(setup_issues).is_empty()
-	
+
 	# Test that collision mapper and rules work together
 	var test_object: Node2D = GodotTestFactory.create_static_body_with_rect_shape(self)
-	
+
 	# Set up collision mapper with test object and proper positioner
 	var indicator_manager: IndicatorManager = env.indicator_manager
 	var test_parent: Node2D = Node2D.new()
 	test_parent.name = "TestParent2"
 	add_child(test_parent)
 	auto_free(test_parent)
-	
+
 	# Use the collision mapper from the indicator manager
 	var configured_collision_mapper: CollisionMapper = indicator_manager.get_collision_mapper()
-	
+
 	# Set up collision mapper with test indicator and test setups
 	var test_indicator: RuleCheckIndicator = _create_rule_check_indicator(test_parent)
 	var test_setups: Array[CollisionTestSetup2D] = [CollisionTestSetup2D.new(test_object, STANDARD_SHAPE_SIZE)]
 	auto_free(test_setups[0])
-	
+
 	# Configure collision mapper properly
 	configured_collision_mapper.setup(test_indicator, test_setups)
-	
+
 	var test_objects: Array[Node2D] = [test_object]
 	var collision_tiles: Dictionary[Vector2i, Array] = configured_collision_mapper.get_collision_tile_positions_with_mask(test_objects, 1)
-	
+
 	# Validate integration produces reasonable results
 	assert_dict(collision_tiles).append_failure_message(
 		"Collision mapping should produce tiles for rule validation"
 	).is_not_empty()
-	
+
 	var validation_result: Variant = rule.validate_placement()
 	assert_object(validation_result).append_failure_message(
 		"Rule validation should complete with collision context"
@@ -319,7 +319,7 @@ func test_tile_check_rule_basic() -> void:
 	assert_array(setup_issues).append_failure_message(
 		"Tile rule setup should succeed: %s" % str(setup_issues)
 	).is_empty()
-	
+
 	var validation_result: Variant = rule.validate_placement()
 	assert_object(validation_result).is_not_null()
 

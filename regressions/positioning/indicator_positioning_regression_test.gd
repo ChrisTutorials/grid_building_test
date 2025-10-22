@@ -33,7 +33,7 @@ func before_test() -> void:
 	test_targeting_state.positioner.position = Vector2(100, 100)  # Position at tile (10,10) assuming 10px tiles
 	test_parent.add_child(test_targeting_state.positioner)
 	auto_free(test_targeting_state.positioner)
-	
+
 	# Create test object for positioning
 	test_object = Node2D.new()
 	test_object.global_position = Vector2(80, 80)  # Position for test object

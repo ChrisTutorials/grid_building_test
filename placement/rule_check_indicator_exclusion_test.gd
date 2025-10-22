@@ -1,5 +1,5 @@
 ## Tests RuleCheckIndicator behavior with collision exclusions.
-## 
+##
 ## Verifies that indicators properly respect exclusions during their
 ## _physics_process() validation cycle, ensuring:
 ## - Valid state persists across multiple physics frames
@@ -18,11 +18,11 @@ func before_test() -> void:
 	# MIGRATION: Use scene_runner WITHOUT frame simulation
 	runner = scene_runner(GBTestConstants.COLLISION_TEST_ENV_UID)
 	_env = runner.scene() as CollisionTestEnvironment
-	
+
 	assert_object(_env).append_failure_message(
 		"Failed to load CollisionTestEnvironment scene"
 	).is_not_null()
-	
+
 	# Create collision rule
 	_rule = CollisionsCheckRule.new()
 	_rule.pass_on_collision = false  # Fail when collision detected
@@ -45,14 +45,14 @@ func _create_collision_body(p_name: String, p_position: Vector2, p_layer: int = 
 	body.position = p_position
 	body.collision_layer = p_layer
 	body.collision_mask = 0
-	
+
 	var shape := CollisionShape2D.new()
 	shape.name = "CollisionShape"
 	var rect := RectangleShape2D.new()
 	rect.size = Vector2(16, 16)
 	shape.shape = rect
 	body.add_child(shape)
-	
+
 	# Ensure the test suite will free this node at teardown
 	self.auto_free(body)
 	_env.add_child(body)
@@ -63,12 +63,12 @@ func _create_indicator(p_position: Vector2) -> RuleCheckIndicator:
 	var indicator := RuleCheckIndicator.new()
 	indicator.position = p_position
 	indicator.target_position = Vector2.ZERO
-	
+
 	# Create shape for indicator
 	var rect_shape := RectangleShape2D.new()
 	rect_shape.size = Vector2(16, 16)
 	indicator.shape = rect_shape
-	
+
 	indicator.collision_mask = 1
 	# Ensure the test suite will free this node at teardown
 	self.auto_free(indicator)
@@ -81,10 +81,10 @@ func test_indicator_stays_valid_across_physics_frames_with_exclusion() -> void:
 	var excluded_body := _create_collision_body("ExcludedBody", Vector2(100, 100))
 	var indicator := _create_indicator(Vector2(100, 100))
 	indicator.add_rule(_rule)
-	
+
 	# GIVEN: Body is excluded
 	_env.targeting_state.collision_exclusions = [excluded_body]
-	
+
 	# Evaluate indicators immediately after setting exclusions for deterministic result
 	_env.indicator_manager.force_indicators_validity_evaluation()
 	# WHEN: Multiple physics frames pass
@@ -108,7 +108,7 @@ func test_indicator_stays_valid_across_physics_frames_with_exclusion() -> void:
 	_env.indicator_manager.force_indicators_validity_evaluation()
 	indicator.force_validity_evaluation()
 	var valid_frame4 := indicator.valid
-	
+
 	# THEN: Indicator remains valid across all frames
 	assert_bool(valid_frame1).append_failure_message(
 		"Frame 1 should be valid - %s, %s, %s" % [
@@ -133,7 +133,7 @@ func test_indicator_becomes_invalid_when_exclusion_cleared() -> void:
 	var indicator := _create_indicator(Vector2(100, 100))
 	indicator.add_rule(_rule)
 	_env.targeting_state.collision_exclusions = [excluded_body]
-	
+
 	# Wait for indicator to validate with exclusion present
 	assert(runner != null, "scene_runner required for physics simulation")
 	runner.simulate_frames(2)
@@ -159,7 +159,7 @@ func test_indicator_updates_immediately_after_exclusion_added() -> void:
 	var body := _create_collision_body("Body", Vector2(100, 100))
 	var indicator := _create_indicator(Vector2(100, 100))
 	indicator.add_rule(_rule)
-	
+
 	runner.simulate_frames(1)
 	assert_bool(indicator.valid).append_failure_message(
 		"Should be invalid without exclusion - %s, %s, %s" % [
@@ -168,10 +168,10 @@ func test_indicator_updates_immediately_after_exclusion_added() -> void:
 			_format_exclusions()
 		]
 	).is_false()  # Collision detected
-	
+
 	# WHEN: Body is added to exclusions
 	_env.targeting_state.collision_exclusions = [body]
-	
+
 	# THEN: Indicator becomes valid on next validation
 	runner.simulate_frames(1)
 	assert_bool(indicator.valid).append_failure_message(
@@ -185,26 +185,26 @@ func test_indicator_respects_exclusions_during_continuous_validation() -> void:
 	# GIVEN: Two bodies - one excluded, one not
 	var excluded_body := _create_collision_body("Excluded", Vector2(100, 100))
 	var _detected_body := _create_collision_body("Detected", Vector2(132, 100))
-	
+
 	var indicator1 := _create_indicator(Vector2(100, 100))
 	var indicator2 := _create_indicator(Vector2(132, 100))
 	indicator1.add_rule(_rule)
 	indicator2.add_rule(_rule)
-	
+
 	_env.targeting_state.collision_exclusions = [excluded_body]
-	
+
 	runner.simulate_frames(1)
 	var ind1_valid_f1 := indicator1.valid
 	var ind2_valid_f1 := indicator2.valid
-	
+
 	runner.simulate_frames(1)
 	var ind1_valid_f2 := indicator1.valid
 	var ind2_valid_f2 := indicator2.valid
-	
+
 	runner.simulate_frames(1)
 	var ind1_valid_f3 := indicator1.valid
 	var ind2_valid_f3 := indicator2.valid
-	
+
 	# THEN: Indicator1 stays valid (excluded), Indicator2 stays invalid (detected)
 	assert_bool(ind1_valid_f1).append_failure_message(
 		"Ind1 F1 should be valid (excluded) - %s, %s" % [
@@ -218,7 +218,7 @@ func test_indicator_respects_exclusions_during_continuous_validation() -> void:
 	assert_bool(ind1_valid_f3).append_failure_message(
 		"Ind1 F3 should be valid (excluded) - %s" % _format_indicator_state(indicator1)
 	).is_true()
-	
+
 	assert_bool(ind2_valid_f1).append_failure_message(
 		"Ind2 F1 should be invalid (detected) - %s" % _format_indicator_state(indicator2)
 	).is_false()
@@ -234,7 +234,7 @@ func test_indicator_emits_valid_changed_signal_when_exclusion_changes() -> void:
 	var body := _create_collision_body("Body", Vector2(100, 100))
 	var indicator := _create_indicator(Vector2(100, 100))
 	indicator.add_rule(_rule)
-	
+
 	runner.simulate_frames(1)
 	assert_bool(indicator.valid).append_failure_message(
 		"Should be invalid initially - %s, %s" % [
@@ -254,19 +254,19 @@ func test_indicator_emits_valid_changed_signal_when_exclusion_changes() -> void:
 func test_multiple_indicators_share_same_exclusion_list() -> void:
 	# GIVEN: One body, multiple indicators at same position
 	var excluded_body := _create_collision_body("Excluded", Vector2(100, 100))
-	
+
 	var indicator1 := _create_indicator(Vector2(100, 100))
 	var indicator2 := _create_indicator(Vector2(100, 100))
 	var indicator3 := _create_indicator(Vector2(100, 100))
-	
+
 	indicator1.add_rule(_rule)
 	indicator2.add_rule(_rule)
 	indicator3.add_rule(_rule)
-	
+
 	# WHEN: Body excluded via targeting state
 	_env.targeting_state.collision_exclusions = [excluded_body]
  runner.simulate_frames(1)
-	
+
 	# THEN: All indicators respect the exclusion
 	assert_bool(indicator1.valid).append_failure_message(
 		"Ind1 should be valid with shared exclusion - %s, %s" % [
@@ -289,7 +289,7 @@ func test_indicator_handles_exclusion_of_nested_collision_objects() -> void:
 	# Ensure root is cleaned up by test harness
 	self.auto_free(root)
 	_env.add_child(root)
-	
+
 	var parent := CharacterBody2D.new()
 	parent.name = "Parent"
 	parent.collision_layer = 1
@@ -305,15 +305,15 @@ func test_indicator_handles_exclusion_of_nested_collision_objects() -> void:
 	rect.size = Vector2(16, 16)
 	shape.shape = rect
 	parent.add_child(shape)
-	
+
 	# Create indicator at same world position
 	var indicator := _create_indicator(Vector2(200, 100))
 	indicator.add_rule(_rule)
-	
+
 	# Wait for physics to detect collision
  runner.simulate_frames(1)
  runner.simulate_frames(1)
-	
+
 	# DEBUG: Verify collision setup
 	var body_world_pos := parent.global_position
 	var indicator_world_pos := indicator.global_position
@@ -325,11 +325,11 @@ func test_indicator_handles_exclusion_of_nested_collision_objects() -> void:
 			str(indicator_world_pos)
 		]
 	).is_false()  # Collision detected
-	
+
 	# WHEN: Root excluded (should exclude all children)
 	_env.targeting_state.collision_exclusions = [root]
  runner.simulate_frames(1)
-	
+
 	# THEN: Indicator becomes valid (nested collision excluded)
 	var root_name: String = str(root.name) if is_instance_valid(root) else "null"
 	assert_bool(indicator.valid).append_failure_message(
@@ -344,7 +344,7 @@ func test_indicator_validation_without_exclusions_baseline() -> void:
 	var _body := _create_collision_body("Body", Vector2(100, 100))
 	var indicator := _create_indicator(Vector2(100, 100))
 	indicator.add_rule(_rule)
-	
+
 	# WHEN: Multiple physics frames pass without exclusions
  runner.simulate_frames(1)
 	var valid_f1 := indicator.valid

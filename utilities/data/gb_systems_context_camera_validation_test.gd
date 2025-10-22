@@ -10,10 +10,10 @@ func before_test() -> void:
 	var debug_settings := GBDebugSettings.new()
 	debug_settings.level = GBDebugSettings.LogLevel.VERBOSE
 	test_logger = GBLogger.new(debug_settings)
-	
+
 	# Create test context
 	test_context = GBSystemsContext.new(test_logger)
-	
+
 	# Create runtime checks with Camera2D enabled
 	test_runtime_checks = GBRuntimeChecks.new()
 	test_runtime_checks.camera_2d = true
@@ -32,14 +32,14 @@ func after_test() -> void:
 ## Assert: Issue reported about missing Camera2D
 func test_camera_2d_validation_detects_missing_camera() -> void:
 	var issues: Array[String] = test_context.get_runtime_issues(test_runtime_checks)
-	
+
 	# Should report Camera2D missing
 	var has_camera_issue: bool = false
 	for issue in issues:
 		if "Camera2D not found in viewport" in issue:
 			has_camera_issue = true
 			break
-	
+
 	assert_bool(has_camera_issue).is_true().append_failure_message(
 		"Expected Camera2D validation issue to be reported. Issues: %s" % [str(issues)]
 	)
@@ -50,16 +50,16 @@ func test_camera_2d_validation_detects_missing_camera() -> void:
 ## Assert: No Camera2D issues reported
 func test_camera_2d_validation_skipped_when_disabled() -> void:
 	test_runtime_checks.camera_2d = false
-	
+
 	var issues: Array[String] = test_context.get_runtime_issues(test_runtime_checks)
-	
+
 	# Should NOT report Camera2D missing
 	var has_camera_issue: bool = false
 	for issue in issues:
 		if "Camera2D not found in viewport" in issue:
 			has_camera_issue = true
 			break
-	
+
 	assert_bool(has_camera_issue).is_false().append_failure_message(
 		"Camera2D validation should be skipped when disabled. Issues: %s" % [str(issues)]
 	)
@@ -71,7 +71,7 @@ func test_camera_2d_validation_skipped_when_disabled() -> void:
 func test_camera_2d_helper_handles_missing_viewport() -> void:
 	# This should not crash and should return false
 	var has_camera: bool = test_context._has_camera_2d_in_viewport()
-	
+
 	assert_bool(has_camera).is_false().append_failure_message(
 		"Expected _has_camera_2d_in_viewport to return false when no viewport is available"
 	)
@@ -85,19 +85,19 @@ func test_runtime_checks_with_all_systems_disabled() -> void:
 	test_runtime_checks.targeting_system = false
 	test_runtime_checks.manipulation_system = false
 	test_runtime_checks.camera_2d = true
-	
+
 	var issues: Array[String] = test_context.get_runtime_issues(test_runtime_checks)
-	
+
 	# Should only report Camera2D missing, not system issues
 	var camera_issue_count: int = 0
 	var system_issue_count: int = 0
-	
+
 	for issue in issues:
 		if "Camera2D not found in viewport" in issue:
 			camera_issue_count += 1
 		elif "system is not set" in issue:
 			system_issue_count += 1
-	
+
 	assert_int(camera_issue_count).is_equal(1).append_failure_message(
 		"Expected exactly one Camera2D issue. Issues: %s" % [str(issues)]
 	)

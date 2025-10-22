@@ -31,16 +31,16 @@ var test_nodes: Array[Node]
 func before_test() -> void:
 	# Create test nodes for searching - use typed literal initializer
 	test_nodes = []
-	
+
 	var node1: Node = _create_test_node_with_script(TEST_NODE_1_NAME, true)
 	test_nodes.append(node1)
-	
+
 	var node2: Node2D = _create_test_node_with_script(TEST_NODE_2_NAME, true)
 	test_nodes.append(node2)
-	
+
 	var node3: Node2D = _create_test_node_with_script(TEST_NODE_3_NAME, false)
 	test_nodes.append(node3)
-	
+
 	# Add nodes to groups
 	node1.add_to_group(GROUP_A_NAME)
 	node2.add_to_group(GROUP_A_NAME)
@@ -88,7 +88,7 @@ func test_name_search_scenarios(
 ) -> void:
 	var found_nodes: Array[Node] = NodeSearchLogic.find_nodes_by_name(test_nodes, search_name)
 	_assert_search_result_count(found_nodes, expected_count, "Name search '%s'" % search_name)
-	
+
 	if expected_count > 0:
 		assert_object(found_nodes[0]).append_failure_message("Name search should return valid node when expected_count > 0").is_not_null()
 		assert_str(found_nodes[0].name).append_failure_message("Found node name should match expected name '%s'" % expected_node_name).is_equal(expected_node_name)
@@ -112,7 +112,7 @@ func test_script_search_scenarios(
 ) -> void:
 	var found_nodes: Array[Node] = NodeSearchLogic.find_nodes_by_script(test_nodes, script_name)
 	_assert_search_result_count(found_nodes, expected_count, "Script search '%s'" % script_name)
-	
+
 	if expected_count > 0:
 		assert_object(found_nodes[0]).append_failure_message("Script search should return valid node when expected_count > 0").is_not_null()
 		assert_bool(found_nodes[0].get_script() != null).append_failure_message("Script presence should match expected_has_script for script '%s'" % script_name).is_equal(expected_has_script)
@@ -134,7 +134,7 @@ func test_group_search_scenarios(
 ) -> void:
 	var found_nodes: Array[Node] = NodeSearchLogic.find_nodes_by_group(test_nodes, group_name)
 	_assert_search_result_count(found_nodes, expected_count, "Group search '%s'" % group_name)
-	
+
 	# Verify expected nodes are found
 	for expected_index in expected_nodes:
 		assert_bool(found_nodes.has(test_nodes[expected_index])).append_failure_message("Group search for '%s' should include expected node at index %d" % [group_name, expected_index]).is_true()
@@ -154,7 +154,7 @@ func test_class_search_scenarios(
 ) -> void:
 	var found_nodes: Array[Node] = NodeSearchLogic.find_nodes_by_class(test_nodes, cls_name)
 	_assert_search_result_count(found_nodes, expected_count, "Class search '%s'" % cls_name)
-	
+
 	if expected_count > 0:
 		for node: Node in found_nodes:
 			assert_str(node.get_class()).append_failure_message("Class search for '%s' should return nodes of correct class" % cls_name).is_equal(expected_class)
@@ -175,10 +175,10 @@ func test_property_search_scenarios(
 	# Setup property if needed
 	if setup_property:
 		test_nodes[0].set(property_name, property_value)
-	
+
 	var found_nodes: Array[Node] = NodeSearchLogic.find_nodes_by_property(test_nodes, property_name, property_value)
 	_assert_search_result_count(found_nodes, expected_count, "Property search '%s'" % property_name)
-	
+
 	if expected_count > 0:
 		assert_object(found_nodes[0]).append_failure_message("Property search should return valid node when expected_count > 0").is_not_null()
 
@@ -227,7 +227,7 @@ func test_script_name_scenarios(
 ) -> void:
 	var node: Node = test_nodes[node_index] if node_index >= 0 and node_index < test_nodes.size() else null
 	var script_name: String = NodeSearchLogic.get_script_name(node)
-	
+
 	if expected_empty:
 		assert_str(script_name).append_failure_message("Script name should be empty for node at index %d" % node_index).is_empty()
 	else:
@@ -251,7 +251,7 @@ func test_validation_scenarios(
 ) -> void:
 	var issues: Array[String] = NodeSearchLogic.validate_search_params(search_method, search_string)
 	assert_bool(issues.is_empty()).append_failure_message("Validation result should match expected_valid for method %d and string '%s'" % [search_method, search_string]).is_equal(expected_valid)
-	
+
 	if not expected_valid:
 		assert_str(issues[0]).append_failure_message("Validation error should contain expected text").contains(expected_error_contains)
 
@@ -260,9 +260,9 @@ func test_validation_scenarios(
 func test_combine_search_results() -> void:
 	var result1: Array[Node] = [test_nodes[0], test_nodes[1]]
 	var result2: Array[Node] = [test_nodes[1], test_nodes[2]]  # Overlap with result1
-	
+
 	var combined: Array[Node] = NodeSearchLogic.combine_search_results([result1, result2])
-	
+
 	assert_int(combined.size()).append_failure_message("Combine search expected 3 got %d -> %s" % [combined.size(), combined]).is_equal(3)  # Should have all unique nodes
 	assert_bool(combined.has(test_nodes[0])).append_failure_message("Combined results should contain test_nodes[0]").is_true()
 	assert_bool(combined.has(test_nodes[1])).append_failure_message("Combined results should contain test_nodes[1]").is_true()
@@ -270,9 +270,9 @@ func test_combine_search_results() -> void:
 
 func test_filter_search_results() -> void:
 	var filter_func: Callable = func(node: Node) -> bool: return node.name.begins_with(TEST_NODE_PREFIX)
-	
+
 	var filtered: Array[Node] = NodeSearchLogic.filter_search_results(test_nodes, filter_func)
-	
+
 	assert_int(filtered.size()).append_failure_message("Filter expected 3 got %d" % filtered.size()).is_equal(3)
 	for node: Node in filtered:
 		assert_str(node.name).contains(TEST_NODE_PREFIX)

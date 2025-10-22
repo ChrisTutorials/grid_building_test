@@ -1,5 +1,5 @@
 ## DragManager unit tests focusing on API and state management
-## Scope: Validate non-physics-dependent DragManager APIs  
+## Scope: Validate non-physics-dependent DragManager APIs
 ## Physics-driven tile detection tested in integration tests
 extends GdUnitTestSuite
 

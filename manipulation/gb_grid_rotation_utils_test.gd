@@ -1,6 +1,6 @@
 ## Unit tests for GBGridRotationUtils
 ## Tests grid-aware rotation utilities for cardinal direction rotation
-## 
+##
 ## Note: These utilities are used by ManipulationParent for grid-aware object rotation.
 ## GridPositioner2D no longer handles rotation - it focuses strictly on tile targeting.
 extends GdUnitTestSuite
@@ -22,7 +22,7 @@ func before_test() -> void:
 	test_map.tile_set = TileSet.new()
 	test_map.tile_set.tile_size = Vector2i(16, 16)
 	add_child(test_map)
-	
+
 	# Create test node to rotate (positioned at grid center)
 	test_node = Node2D.new()
 	test_node.global_position = Vector2(100, 100)
@@ -52,7 +52,7 @@ func _assert_rotation_degrees(actual_deg: float, expected_deg: float, context: S
 	# Normalize both values before comparison
 	var normalized_actual: float = _normalize_degrees(actual_deg)
 	var normalized_expected: float = _normalize_degrees(expected_deg)
-	
+
 	assert_float(normalized_actual).append_failure_message(
 		"%s - Expected: %.2f°, Actual: %.2f° (raw: %.2f°), Difference: %.2f°" % [context, normalized_expected, normalized_actual, actual_deg, abs(normalized_actual - normalized_expected)]
 	).is_equal_approx(normalized_expected, ROTATION_TOLERANCE)
@@ -89,7 +89,7 @@ func test_clockwise_rotation_sequence() -> void:
 	var south := GridRotationUtils.rotate_clockwise(east)
 	var west := GridRotationUtils.rotate_clockwise(south)
 	var back_to_north := GridRotationUtils.rotate_clockwise(west)
-	
+
 	assert_int(east).append_failure_message("Rotating clockwise from NORTH: expected EAST (1), got %d" % east)\
 		.is_equal(GridRotationUtils.CardinalDirection.EAST)
 	assert_int(south).append_failure_message("Rotating clockwise from EAST: expected SOUTH (2), got %d" % south)\
@@ -106,7 +106,7 @@ func test_counter_clockwise_rotation_sequence() -> void:
 	var south := GridRotationUtils.rotate_counter_clockwise(west)
 	var east := GridRotationUtils.rotate_counter_clockwise(south)
 	var back_to_north := GridRotationUtils.rotate_counter_clockwise(east)
-	
+
 	assert_int(west).append_failure_message("Rotating counter-clockwise from NORTH: expected WEST (3), got %d" % west)\
 		.is_equal(GridRotationUtils.CardinalDirection.WEST)
 	assert_int(south).append_failure_message("Rotating counter-clockwise from WEST: expected SOUTH (2), got %d" % south)\
@@ -121,32 +121,32 @@ func test_node_rotation_with_grid_snapping() -> void:
 	# Setup: Start at North (0 degrees)
 	test_node.global_rotation = 0.0
 	var initial_rotation_deg: float = _normalize_degrees(rad_to_deg(test_node.global_rotation))
-	
+
 	# Act: Rotate clockwise by 90 degrees (North -> East)
 	var new_rotation_deg: float = GridRotationUtils.rotate_node_clockwise(test_node, test_map, DEFAULT_INCREMENT)
 	var actual_rotation_deg: float = _normalize_degrees(rad_to_deg(test_node.global_rotation))
-	
+
 	# Assert: Function returns degrees (not CardinalDirection enum)
 	assert_float(new_rotation_deg).append_failure_message(
 		"rotate_node_clockwise should return rotation in degrees. Got: %s (type: %s)" % [str(new_rotation_deg), type_string(typeof(new_rotation_deg))]
 	).is_equal_approx(90.0, ROTATION_TOLERANCE)
-	
+
 	# Assert: Node's actual rotation matches expected
 	_assert_rotation_degrees(
 		actual_rotation_deg,
 		90.0,
 		"Node rotation after first clockwise rotation (North -> East). Initial: %.2f°" % initial_rotation_deg
 	)
-	
+
 	# Act: Rotate clockwise again (East -> South)
 	new_rotation_deg = GridRotationUtils.rotate_node_clockwise(test_node, test_map, DEFAULT_INCREMENT)
 	actual_rotation_deg = _normalize_degrees(rad_to_deg(test_node.global_rotation))
-	
+
 	# Assert: Should be at 180 degrees (South)
 	assert_float(new_rotation_deg).append_failure_message(
 		"Second clockwise rotation should return 180° (South). Got: %.2f°" % new_rotation_deg
 	).is_equal_approx(180.0, ROTATION_TOLERANCE)
-	
+
 	_assert_rotation_degrees(
 		actual_rotation_deg,
 		180.0,
@@ -159,7 +159,7 @@ func test_direction_tile_deltas() -> void:
 	var east_delta := GridRotationUtils.get_direction_tile_delta(GridRotationUtils.CardinalDirection.EAST)
 	var south_delta := GridRotationUtils.get_direction_tile_delta(GridRotationUtils.CardinalDirection.SOUTH)
 	var west_delta := GridRotationUtils.get_direction_tile_delta(GridRotationUtils.CardinalDirection.WEST)
-	
+
 	assert_vector(north_delta).append_failure_message("NORTH delta: expected (0, -1), got %s" % north_delta).is_equal(Vector2i(0, -1))
 	assert_vector(east_delta).append_failure_message("EAST delta: expected (1, 0), got %s" % east_delta).is_equal(Vector2i(1, 0))
 	assert_vector(south_delta).append_failure_message("SOUTH delta: expected (0, 1), got %s" % south_delta).is_equal(Vector2i(0, 1))
@@ -193,7 +193,7 @@ func test_direction_classification() -> void:
 		.append_failure_message("NORTH should NOT be horizontal")\
 		.is_false()
 	assert_bool(GridRotationUtils.is_horizontal(GridRotationUtils.CardinalDirection.SOUTH)).append_failure_message("SOUTH should NOT be horizontal").is_false()
-	
+
 	# Test vertical directions
 	assert_bool(GridRotationUtils.is_vertical(GridRotationUtils.CardinalDirection.NORTH)).append_failure_message("NORTH should be vertical").is_true()
 	assert_bool(GridRotationUtils.is_vertical(GridRotationUtils.CardinalDirection.SOUTH)).append_failure_message("SOUTH should be vertical").is_true()
@@ -211,23 +211,23 @@ func test_direction_to_string() -> void:
 func test_full_rotation_cycle() -> void:
 	# Start at North (0°)
 	_set_and_verify_rotation(0.0)
-	
+
 	# Rotate through full cycle: North -> East -> South -> West -> North
 	var expected_rotations: Array[float] = [90.0, 180.0, 270.0, 0.0]  # Normalized to 0-360
-	
+
 	for i in range(4):
 		var new_rotation_deg: float = GridRotationUtils.rotate_node_clockwise(test_node, test_map, DEFAULT_INCREMENT)
 		var actual_rotation_deg: float = _normalize_degrees(rad_to_deg(test_node.global_rotation))
-		
+
 		var direction_name: String = ["East", "South", "West", "North"][i]
 		_assert_rotation_degrees(
-			new_rotation_deg, 
-			expected_rotations[i], 
+			new_rotation_deg,
+			expected_rotations[i],
 			"Rotation cycle step %d (%s) - return value" % [i + 1, direction_name]
 		)
 		_assert_rotation_degrees(
-			actual_rotation_deg, 
-			expected_rotations[i], 
+			actual_rotation_deg,
+			expected_rotations[i],
 			"Rotation cycle step %d (%s) - node.global_rotation" % [i + 1, direction_name]
 		)
 
@@ -235,22 +235,22 @@ func test_full_rotation_cycle() -> void:
 func test_counter_clockwise_full_cycle() -> void:
 	# Start at North (0°)
 	_set_and_verify_rotation(0.0)
-	
+
 	# Rotate counter-clockwise: North -> West -> South -> East -> North
 	var expected_rotations: Array[float] = [270.0, 180.0, 90.0, 0.0]  # Normalized to 0-360
-	
+
 	for i in range(4):
 		var new_rotation_deg: float = GridRotationUtils.rotate_node_counter_clockwise(test_node, test_map, DEFAULT_INCREMENT)
 		var actual_rotation_deg: float = _normalize_degrees(rad_to_deg(test_node.global_rotation))
-		
+
 		var direction_name: String = ["West", "South", "East", "North"][i]
 		_assert_rotation_degrees(
-			new_rotation_deg, 
-			expected_rotations[i], 
+			new_rotation_deg,
+			expected_rotations[i],
 			"Counter-clockwise cycle step %d (%s) - return value" % [i + 1, direction_name]
 		)
 		_assert_rotation_degrees(
-			actual_rotation_deg, 
-			expected_rotations[i], 
+			actual_rotation_deg,
+			expected_rotations[i],
 			"Counter-clockwise cycle step %d (%s) - node.global_rotation" % [i + 1, direction_name]
 		)

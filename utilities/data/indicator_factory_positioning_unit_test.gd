@@ -35,31 +35,31 @@ func before_test() -> void:
 	# Create minimal tile map setup
 	_tile_set = TileSet.new()
 	_tile_set.tile_size = TILE_SIZE
-	
+
 	_tile_map = auto_free(TileMapLayer.new())
 	add_child(_tile_map)
 	_tile_map.tile_set = _tile_set
-	
+
 	# Create positioner at specific location for predictable testing
 	_positioner = auto_free(Node2D.new())
 	add_child(_positioner)
 	_positioner.global_position = Vector2(64, 48)  # Position at tile (4, 3) for non-zero baseline
-	
+
 	# Create targeting state - requires GBOwnerContext for constructor
 	var owner_context: GBOwnerContext = GBOwnerContext.new()
 	_targeting_state = GridTargetingState.new(owner_context)
 	_targeting_state.target_map = _tile_map
 	_targeting_state.maps = [_tile_map]
 	_targeting_state.positioner = _positioner
-	
+
 	# Create parent node for indicators
 	_parent_node = auto_free(Node2D.new())
 	add_child(_parent_node)
-	
+
 	# Load indicator template
 	# Correct indicator template path (remove accidental 'godot/' prefix)
 	_indicator_template = load("res://addons/grid_building/placement/rule_check_indicator/rule_check_indicator.tscn")
-	
+
 	# Validate setup (include PIN marker for easier triage)
 	assert_that(_indicator_template).append_failure_message("PIN: Failed to load indicator template - template path = %s" % str(_indicator_template)).is_not_null()
 	# Additional PIN check so failing tests surface a clear marker in the middle of assertions
@@ -69,27 +69,27 @@ func before_test() -> void:
 func test_coordinate_transformation_pipeline() -> void:
 	# Test the key positioning calculation from IndicatorFactory.generate_indicators()
 	var test_position: Vector2i = Vector2i(2, -1)  # Arbitrary offset
-	
+
 	# Step 1: Calculate positioner tile position
 	var positioner_tile: Vector2i = _tile_map.local_to_map(_tile_map.to_local(_positioner.global_position))
-	
+
 	# Step 2: Calculate target tile by adding offset
 	var target_tile: Vector2i = positioner_tile + test_position
-	
+
 	# Step 3: Convert back to world coordinates
 	var expected_global_pos: Vector2 = _tile_map.to_global(_tile_map.map_to_local(target_tile))
-	
+
 	# Verify each step produces reasonable results
 	assert_that(positioner_tile).append_failure_message("Positioner tile calculation failed").is_not_null()
 	assert_that(target_tile).append_failure_message("Target tile calculation failed").is_not_null()
 	assert_that(expected_global_pos).append_failure_message("Global position calculation failed").is_not_null()
-	
+
 	# Verify the offset was applied correctly
 	var expected_target: Vector2i = positioner_tile + test_position
 	assert_that(target_tile).append_failure_message(
 		"Target tile should equal positioner_tile + offset: %s + %s = %s, got %s" % [positioner_tile, test_position, expected_target, target_tile]
 	).is_equal(expected_target)
-	
+
 	# Verify global position is different from positioner position (not clustered at origin)
 	var distance_from_positioner: float = expected_global_pos.distance_to(_positioner.global_position)
 	assert_that(distance_from_positioner).append_failure_message(
@@ -101,7 +101,7 @@ func test_generate_indicators_positions_correctly() -> void:
 	var position_rules_map: Dictionary[Vector2i, Array] = {}
 	for pos in TEST_POSITIONS:
 		position_rules_map[pos] = []  # Empty rules array for positioning test
-	
+
 	# Generate indicators
 	var indicators: Array[RuleCheckIndicator] = IndicatorFactory.generate_indicators(
 		position_rules_map,
@@ -110,12 +110,12 @@ func test_generate_indicators_positions_correctly() -> void:
 		_targeting_state,
 		_positioner  # Pass positioner as test_object
 	)
-	
+
 	# Verify correct number of indicators created
 	assert_that(indicators.size()).append_failure_message(
 		"Expected %d indicators for %d positions" % [TEST_POSITIONS.size(), TEST_POSITIONS.size()]
 	).is_equal(TEST_POSITIONS.size())
-	
+
 	# Collect actual positions for analysis
 	var indicator_positions: Array[Vector2] = []
 	for indicator in indicators:
@@ -168,7 +168,7 @@ func test_indicators_use_global_positioning() -> void:
 	var position_rules_map: Dictionary[Vector2i, Array] = {}
 	for pos in test_positions:
 		position_rules_map[pos] = []
-	
+
 	# Generate indicators
 	var indicators: Array[RuleCheckIndicator] = IndicatorFactory.generate_indicators(
 		position_rules_map,
@@ -177,21 +177,21 @@ func test_indicators_use_global_positioning() -> void:
 		_targeting_state,
 		_positioner  # Pass positioner as test_object for consistency
 	)
-	
+
 	assert_that(indicators.size()).is_equal(2)
-	
+
 	# Verify indicators have different global positions
 	var pos1: Vector2 = indicators[0].global_position
 	var pos2: Vector2 = indicators[1].global_position
-	
+
 	assert_that(pos1).append_failure_message(
 		"First indicator should have valid global position"
 	).is_not_equal(Vector2.ZERO)
-	
+
 	assert_that(pos2).append_failure_message(
 		"Second indicator should have valid global position"
 	).is_not_equal(Vector2.ZERO)
-	
+
 	assert_that(pos1.distance_to(pos2)).append_failure_message(
 		"Indicators should be positioned at different locations: pos1=%s, pos2=%s" % [pos1, pos2]
 	).is_greater(TILE_SIZE.x)  # Should be at least one tile apart
@@ -201,10 +201,10 @@ func test_parent_transforms_do_not_interfere() -> void:
 	_parent_node.position = Vector2(50, 25)
 	_parent_node.rotation = 0.5
 	_parent_node.scale = Vector2(1.2, 1.2)
-	
+
 	var test_position: Vector2i = Vector2i(1, 0)
 	var position_rules_map: Dictionary[Vector2i, Array] = {test_position: []}
-	
+
 	var indicators: Array[RuleCheckIndicator] = IndicatorFactory.generate_indicators(
 		position_rules_map,
 		_indicator_template,
@@ -212,17 +212,17 @@ func test_parent_transforms_do_not_interfere() -> void:
 		_targeting_state,
 		_positioner  # Pass positioner as test_object
 	)
-	
+
 	assert_that(indicators.size()).is_equal(1)
-	
+
 	# Calculate expected position based on tile grid, ignoring parent transform
 	var positioner_tile: Vector2i = _tile_map.local_to_map(_tile_map.to_local(_positioner.global_position))
 	var target_tile: Vector2i = positioner_tile + test_position
 	var expected_global_pos: Vector2 = _tile_map.to_global(_tile_map.map_to_local(target_tile))
-	
+
 	var actual_global_pos: Vector2 = indicators[0].global_position
 	var position_error: float = expected_global_pos.distance_to(actual_global_pos)
-	
+
 	# Attach diagnostic context to assertion
 	assert_that(position_error).append_failure_message("[DEBUG] test_parent_transforms_do_not_interfere: parent_pos=%s rot=%s scale=%s expected=%s actual=%s error=%f" % [str(_parent_node.position), str(_parent_node.rotation), str(_parent_node.scale), str(expected_global_pos), str(actual_global_pos), position_error]).is_less(1.0)
 	# The global_position should match expected regardless of parent transform
@@ -244,7 +244,7 @@ func _verify_indicators_not_clustered(positions: Array[Vector2]) -> void:
 func _verify_indicators_distributed_on_grid(indicators: Array[RuleCheckIndicator], expected_positions: Array[Vector2i]) -> void:
 	# Verify that indicators are positioned according to expected grid offsets
 	var positioner_tile: Vector2i = _tile_map.local_to_map(_tile_map.to_local(_positioner.global_position))
-	
+
 	for i in range(indicators.size()):
 		var indicator: RuleCheckIndicator = indicators[i]
 		var expected_offset: Vector2i = expected_positions[i]

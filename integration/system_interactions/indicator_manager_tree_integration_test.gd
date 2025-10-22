@@ -19,7 +19,7 @@ func before_test() -> void:
 	# Use GBTestConstants for premade environment instead of UnifiedTestFactory
 	var test_env: AllSystemsTestEnvironment = load(GBTestConstants.ALL_SYSTEMS_ENV_UID).instantiate()
 	add_child(test_env)
-	
+
 	# Extract setup components for test access
 	_container = test_env.get_container()
 	targeting_state = _container.get_states().targeting
@@ -28,7 +28,7 @@ func before_test() -> void:
 	manipulation_parent = test_env.objects_parent
 	_injector = test_env.injector
 	indicator_manager = test_env.indicator_manager
-	
+
 	# Set up targeting state with default target for indicator tests
 	_setup_targeting_state_for_tests()
 

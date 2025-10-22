@@ -17,7 +17,7 @@ func after_test() -> void:
 ## Test: Core systems from GBTestEnvironment are present
 func test_core_systems_present() -> void:
 	assert_that(test_env.injector).is_not_null().append_failure_message("GBInjectorSystem should be present")
-	assert_that(test_env.grid_targeting_system).is_not_null().append_failure_message("GridTargetingSystem should be present") 
+	assert_that(test_env.grid_targeting_system).is_not_null().append_failure_message("GridTargetingSystem should be present")
 	assert_that(test_env.positioner).is_not_null().append_failure_message("GridPositioner2D should be present")
 	assert_that(test_env.world).is_not_null().append_failure_message("World node should be present")
 	assert_that(test_env.level).is_not_null().append_failure_message("Level node should be present")
@@ -43,7 +43,7 @@ func test_dependency_injection_setup() -> void:
 func test_grid_targeting_system_setup() -> void:
 	var targeting_issues: Array[String] = test_env.grid_targeting_system.get_runtime_issues()
 	assert_array(targeting_issues).is_empty().append_failure_message("GridTargetingSystem should have no runtime issues: " + str(targeting_issues))
-	
+
 	# The positioner should be available for collision testing
 	assert_that(test_env.positioner).is_not_null().append_failure_message("Positioner should be available for collision testing")
 
@@ -57,7 +57,7 @@ func test_collision_environment_specific() -> void:
 	# CollisionTestEnvironment should provide basic collision testing capabilities
 	# The positioner should be ready for collision queries
 	assert_that(test_env.positioner).is_not_null().append_failure_message("Positioner should be ready for collision queries")
-	
+
 	# Level context should be set up for collision validation
 	assert_that(test_env.level_context).is_not_null().append_failure_message("LevelContext should be available for collision validation")
 

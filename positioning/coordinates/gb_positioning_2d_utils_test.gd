@@ -21,7 +21,7 @@ func before_test() -> void:
 	test_tile_map_layer = GodotTestFactory.create_empty_tile_map_layer(self)
 	test_node = auto_free(Node2D.new())
 	add_child(test_node)
-	
+
 	# Create viewport and camera for coordinate conversion tests
 	test_viewport = auto_free(SubViewport.new())
 	test_camera = auto_free(Camera2D.new())
@@ -43,9 +43,9 @@ func test_get_tile_from_global_position_basic() -> void:
 	# Assert: Correct tile coordinate returned
 	var world_pos: Vector2 = Vector2(80, 48)  # Should map to tile (5, 3) with 16x16 tiles
 	var expected_tile: Vector2i = Vector2i(5, 3)
-	
+
 	var result_tile: Vector2i = GBPositioning2DUtils.get_tile_from_global_position(world_pos, test_tile_map_layer)
-	
+
 	assert_that(result_tile).append_failure_message(
 		"World position %s should map to tile %s, got %s" % [str(world_pos), str(expected_tile), str(result_tile)]
 	).is_equal(expected_tile)
@@ -57,10 +57,10 @@ func test_get_tile_from_global_position_edge_cases() -> void:
 	# Assert: Proper handling of edge cases
 	var zero_pos: Vector2 = Vector2.ZERO
 	var negative_pos: Vector2 = Vector2(-32, -16)
-	
+
 	var zero_tile: Vector2i = GBPositioning2DUtils.get_tile_from_global_position(zero_pos, test_tile_map_layer)
 	var negative_tile: Vector2i = GBPositioning2DUtils.get_tile_from_global_position(negative_pos, test_tile_map_layer)
-	
+
 	assert_that(zero_tile).append_failure_message(
 		"Zero position should map to tile (0,0), got %s" % str(zero_tile)
 	).is_equal(Vector2i(0, 0))
@@ -78,9 +78,9 @@ func test_move_to_tile_center_basic() -> void:
 	# Act: Move node using utility function
 	# Assert: Node positioned at exact tile center
 	var target_tile: Vector2i = Vector2i(3, 2)
-	
+
 	var result_tile: Vector2i = GBPositioning2DUtils.move_to_tile_center(test_node, target_tile, test_tile_map_layer)
-	
+
 assert_that(result_tile).append_failure_message(
 		"Function should return the target tile %s, got %s" % [str(target_tile).is_equal(target_tile), str(result_tile)]
 	)
@@ -88,7 +88,7 @@ assert_that(result_tile).append_failure_message(
 assert_that(test_node.global_position).append_failure_message(
 		"Node should be moved from zero position after tile centering"
 	).is_not_equal(Vector2.ZERO)
-	
+
 	# Test that the function returned the expected tile (which is the input tile)
 assert_that(result_tile).append_failure_message(
 		"Function should return the input tile %s, got %s" % [str(target_tile).is_equal(target_tile), str(result_tile)]
@@ -101,9 +101,9 @@ func test_get_tile_from_node_position_basic() -> void:
 	# Assert: Correct tile coordinate returned
 	test_node.global_position = Vector2(72, 56)  # Should be tile (4, 3)
 	var expected_tile: Vector2i = Vector2i(4, 3)
-	
+
 	var result_tile: Vector2i = GBPositioning2DUtils.get_tile_from_node_position(test_node, test_tile_map_layer)
-	
+
 assert_that(result_tile).append_failure_message(
 		"Node at position %s should be on tile %s, got %s" % [str(test_node.global_position).is_equal(expected_tile), str(expected_tile), str(result_tile)]
 	)
@@ -116,7 +116,7 @@ func test_get_tile_from_node_position_null_safety() -> void:
 	var result_null_node: Vector2i = GBPositioning2DUtils.get_tile_from_node_position(null, test_tile_map_layer)
 	var result_null_map: Vector2i = GBPositioning2DUtils.get_tile_from_node_position(test_node, null)
 	var result_both_null: Vector2i = GBPositioning2DUtils.get_tile_from_node_position(null, null)
-	
+
 assert_that(result_null_node).append_failure_message(
 		"Null node should return Vector2i.ZERO, got %s" % str(result_null_node).is_equal(Vector2i.ZERO)
 	)
@@ -138,10 +138,10 @@ func test_move_node_by_tiles_basic() -> void:
 	# Assert: Node moved to correct tile
 	test_node.global_position = Vector2(40, 40)  # Starting at approximately tile (2, 2)
 	var tile_delta: Vector2i = Vector2i(2, -1)  # Move right 2 tiles, up 1 tile
-	
+
 	var result_tile: Vector2i = GBPositioning2DUtils.move_node_by_tiles(test_node, tile_delta, test_tile_map_layer)
 	var expected_tile: Vector2i = Vector2i(4, 1)  # (2,2) + (2,-1) = (4,1)
-	
+
 assert_that(result_tile).append_failure_message(
 		"Node moved by delta %s should end up on tile %s, got %s" % [str(tile_delta).is_equal(expected_tile), str(expected_tile), str(result_tile)]
 	)
@@ -163,11 +163,11 @@ func test_move_node_by_tiles_scenarios(
 ) -> void:
 	# Test: Various tile delta movement scenarios
 	test_node.global_position = start_position
-	
+
 	var result_tile: Vector2i = GBPositioning2DUtils.move_node_by_tiles(test_node, tile_delta, test_tile_map_layer)
-	
+
 assert_that(result_tile).append_failure_message(
-		"Test %s: Node at %s moved by %s should reach tile %s, got %s" % 
+		"Test %s: Node at %s moved by %s should reach tile %s, got %s" %
 		[test_name, str(start_position).is_equal(expected_tile), str(tile_delta), str(expected_tile), str(result_tile)]
 	)
 
@@ -184,7 +184,7 @@ func test_is_region_valid_scenarios() -> void:
 	var zero_region: Rect2i = Rect2i()
 	var negative_size_region: Rect2i = Rect2i(0, 0, -5, 10)
 	var zero_width_region: Rect2i = Rect2i(0, 0, 0, 10)
-	
+
 	assert_bool(GBPositioning2DUtils.is_region_valid(valid_region)).is_true().append_failure_message(
 		"Valid region should return true"
 	)
@@ -207,11 +207,11 @@ func test_snap_tile_to_region_basic() -> void:
 	var inside_tile: Vector2i = Vector2i(4, 5)
 	var outside_tile: Vector2i = Vector2i(10, 1)
 	var negative_tile: Vector2i = Vector2i(-1, -2)
-	
+
 	var snapped_inside: Vector2i = GBPositioning2DUtils.snap_tile_to_region(inside_tile, region)
 	var snapped_outside: Vector2i = GBPositioning2DUtils.snap_tile_to_region(outside_tile, region)
 	var snapped_negative: Vector2i = GBPositioning2DUtils.snap_tile_to_region(negative_tile, region)
-	
+
 assert_that(snapped_inside).append_failure_message(
 		"Tile inside region should remain unchanged: %s" % str(inside_tile).is_equal(inside_tile)
 	)
@@ -231,9 +231,9 @@ func test_snap_tile_to_region_invalid_region() -> void:
 	# Assert: Original tile returned unchanged
 	var invalid_region: Rect2i = Rect2i()
 	var test_tile: Vector2i = Vector2i(5, 7)
-	
+
 	var result: Vector2i = GBPositioning2DUtils.snap_tile_to_region(test_tile, invalid_region)
-	
+
 assert_that(result).append_failure_message(
 		"Invalid region should return original tile unchanged: %s" % str(test_tile).is_equal(test_tile)
 	)
@@ -249,9 +249,9 @@ func test_viewport_center_to_world_position_with_camera() -> void:
 	# Assert: Correct world position accounting for camera transform
 	test_camera.global_position = Vector2(200, 150)
 	test_camera.zoom = Vector2(1.0, 1.0)
-	
+
 	var world_position: Vector2 = GBPositioning2DUtils.viewport_center_to_world_position(test_viewport)
-	
+
 	# The result should account for camera position and viewport center
 assert_that(world_position).append_failure_message(
 		"World position should be calculated, got %s" % str(world_position).is_not_equal(Vector2.ZERO)
@@ -268,9 +268,9 @@ func test_move_node_to_tile_at_viewport_center() -> void:
 	# Assert: Node positioned at grid-aligned center
 	test_camera.global_position = Vector2(100, 100)
 	test_camera.zoom = Vector2(1.0, 1.0)
-	
+
 	var result_tile: Vector2i = GBPositioning2DUtils.move_node_to_tile_at_viewport_center(test_node, test_tile_map_layer, test_viewport)
-	
+
 	# Node should be moved to some valid tile coordinate
 assert_object(result_tile).append_failure_message(
 		"Should return valid tile coordinate"
@@ -303,9 +303,9 @@ func test_direction_to_tile_delta_scenarios(
 ) -> void:
 	# Test: Direction vector to 8-way tile delta conversion
 	var result_delta: Vector2i = GBPositioning2DUtils.direction_to_tile_delta(input_direction)
-	
+
 assert_that(result_delta).append_failure_message(
-		"Test %s: Direction %s should convert to delta %s, got %s" % 
+		"Test %s: Direction %s should convert to delta %s, got %s" %
 		[test_name, str(input_direction).is_equal(expected_delta), str(expected_delta), str(result_delta)]
 	)
 
@@ -317,10 +317,10 @@ func test_direction_to_tile_delta_threshold() -> void:
 	var threshold: float = 0.5
 	var below_threshold: Vector2 = Vector2(0.2, 0.1)  # When normalized, these become larger than threshold
 	var above_threshold: Vector2 = Vector2(0.6, 0.7)
-	
+
 	var result_below: Vector2i = GBPositioning2DUtils.direction_to_tile_delta(below_threshold, threshold)
 	var result_above: Vector2i = GBPositioning2DUtils.direction_to_tile_delta(above_threshold, threshold)
-	
+
 	# The normalized Vector2(0.2, 0.1) is approximately (0.89, 0.45), so both components exceed threshold
 	assert_that(result_below).is_equal(Vector2i(1, 0)).append_failure_message(
 		"Direction with normalized components above threshold should result in movement delta, got %s" % str(result_below)
@@ -339,21 +339,21 @@ func test_coordinate_conversion_roundtrip() -> void:
 	# Act: Convert to tile and back to world
 	# Assert: Consistent positioning (within tile center tolerance)
 	var original_position: Vector2 = Vector2(87, 55)
-	
+
 	# Convert to tile coordinate
 	var tile_coord: Vector2i = GBPositioning2DUtils.get_tile_from_global_position(original_position, test_tile_map_layer)
-	
+
 	# Move node to that tile center
 	GBPositioning2DUtils.move_to_tile_center(test_node, tile_coord, test_tile_map_layer)
-	
+
 	# Verify node is at tile center - the exact center depends on tile size and coordinate
 	var final_position: Vector2 = test_node.global_position
-	
+
 	# Just verify the node was moved to a valid position (not zero)
 assert_that(final_position).append_failure_message(
 		"Roundtrip conversion should move node from zero position, got %s" % str(final_position).is_not_equal(Vector2.ZERO)
 	)
-	
+
 	# Verify coordinate conversion worked (tile coordinate is valid)
 assert_that(tile_coord.x).append_failure_message(
 		"Tile X coordinate should be non-negative, got %d" % tile_coord.x
@@ -367,16 +367,16 @@ func test_positioning_utilities_dry_compliance() -> void:
 	# Setup: Test all unified functions
 	# Act: Call each function
 	# Assert: No compilation errors, functions return expected types
-	
+
 	# Test all the unified functions exist and return correct types
 	var tile_coord: Vector2i = GBPositioning2DUtils.get_tile_from_node_position(test_node, test_tile_map_layer)
 	var world_pos: Vector2 = GBPositioning2DUtils.viewport_center_to_world_position(test_viewport)
 	var region_valid: bool = GBPositioning2DUtils.is_region_valid(TEST_REGION)
 	var snapped_tile: Vector2i = GBPositioning2DUtils.snap_tile_to_region(TEST_TILE_COORD, TEST_REGION)
-	
+
 	# Verify functions return expected types (should not crash if properly refactored)
 assert_object(tile_coord).append_failure_message("get_tile_from_node_position should return Vector2i").is_not_null()
-	assert_object(world_pos).is_not_null().append_failure_message("viewport_center_to_world_position should return Vector2") 
+	assert_object(world_pos).is_not_null().append_failure_message("viewport_center_to_world_position should return Vector2")
 assert_bool(region_valid).append_failure_message("is_region_valid should return bool").is_true()
 	assert_object(snapped_tile).is_not_null().append_failure_message("snap_tile_to_region should return Vector2i")
 

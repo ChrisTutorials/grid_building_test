@@ -20,7 +20,7 @@ func before_test() -> void:
 @warning_ignore("unused_parameter")
 func test_collision_mapper_polygon_edge_cases(
 	test_name: String,
-	polygon: PackedVector2Array, 
+	polygon: PackedVector2Array,
 	expected_min_tiles: int,
 	description: String,
 	test_parameters := [
@@ -44,62 +44,62 @@ func test_collision_mapper_polygon_edge_cases(
 	details += "  Description: " + str(description) + "\n"
 	details += "  Polygon: " + str(polygon) + "\n"
 	details += "  Expected minimum tiles: " + str(expected_min_tiles) + "\n"
-	
+
 	# Create test object with the specified polygon
 	var test_object: StaticBody2D = StaticBody2D.new()
 	test_object.name = "EdgeCase_%s" % test_name
 	test_object.global_position = TEST_POSITION
-	
+
 	var collision_shape: CollisionShape2D = CollisionShape2D.new()
 	var shape: ConvexPolygonShape2D = ConvexPolygonShape2D.new()
 	shape.points = polygon
 	collision_shape.shape = shape
 	test_object.add_child(collision_shape)
-	
+
 	_env.add_child(test_object)
 	auto_free(test_object)
-	
+
 	# Set targeting state
 	_targeting_state.set_manual_target(test_object)
 	_targeting_state.positioner.global_position = TEST_POSITION
-	
+
 	# Calculate expected tiles using CollisionGeometryUtils (verified working method)
 	var center_tile: Vector2i = Vector2i(int(TEST_POSITION.x / TILE_SIZE.x), int(TEST_POSITION.y / TILE_SIZE.y))
-	
+
 	var world_polygon: PackedVector2Array = PackedVector2Array()
 	for point in polygon:
 		world_polygon.append(point + TEST_POSITION)
-	
+
 	var expected_offsets: Array[Vector2i] = CollisionGeometryUtils.compute_polygon_tile_offsets(
 		world_polygon, TILE_SIZE, center_tile
 	)
-	
+
 	details += "  CollisionGeometryUtils found " + str(expected_offsets.size()) + " tiles: " + str(expected_offsets) + "\n"
-	
+
 	# Test CollisionMapper
 	var col_objects: Array[Node2D] = [test_object]
 	var tile_check_rules: Array[TileCheckRule] = []  # Empty for now due to setup issues
-	
+
 	var position_rules: Dictionary = _collision_mapper.map_collision_positions_to_rules(col_objects, tile_check_rules)
-	
+
 	var mapped_count: int = position_rules.size()
 	details += "  CollisionMapper found " + str(mapped_count) + " positions\n"
-	
+
 	# Report discrepancy
 	var expected_count: int = expected_offsets.size()
 	var discrepancy: int = expected_count - mapped_count
-	
+
 	if discrepancy == 0:
 		details += "  ✓ Perfect match: " + str(expected_count) + " tiles\n"
 	else:
 		details += "  ✗ Discrepancy: Expected " + str(expected_count) + ", got " + str(mapped_count) + " (missing " + str(discrepancy) + ")\n"
-	
+
 	# For now, just verify that CollisionGeometryUtils meets minimum expectations
 	# (CollisionMapper will fail until setup issues are resolved)
 	assert_int(expected_count).append_failure_message(
 		details + "CollisionGeometryUtils should find at least " + str(expected_min_tiles) + " tiles for " + str(test_name) + " but found " + str(expected_count)
 	).is_greater_equal(expected_min_tiles)
-	
+
 	# Document the CollisionMapper issue for each shape
 	if mapped_count == 0:
 		# Append mapping diagnostic to failure messages when appropriate (non-fatal here)
@@ -128,64 +128,64 @@ func test_collision_mapper_position_independence(
 	var details: String = "[POSITION] TESTING: " + test_name.to_upper() + "\n"
 	details += "  Description: " + str(description) + "\n"
 	details += "  Position: " + str(position) + "\n"
-	
+
 	# Use consistent test polygon - simple square
 	var test_polygon: PackedVector2Array = PackedVector2Array([
 		Vector2(-16, -16), Vector2(16, -16), Vector2(16, 16), Vector2(-16, 16)
 	])
-	
+
 	# Create test object at specified position
 	var test_object: StaticBody2D = StaticBody2D.new()
 	test_object.name = "PositionTest_%s" % test_name
 	test_object.global_position = position
-	
+
 	var collision_shape: CollisionShape2D = CollisionShape2D.new()
 	var shape: ConvexPolygonShape2D = ConvexPolygonShape2D.new()
 	shape.points = test_polygon
 	collision_shape.shape = shape
 	test_object.add_child(collision_shape)
-	
+
 	_env.add_child(test_object)
 	auto_free(test_object)
-	
+
 	# Calculate expected tiles using CollisionGeometryUtils
 	var center_tile: Vector2i = Vector2i(int(position.x / TILE_SIZE.x), int(position.y / TILE_SIZE.y))
-	
+
 	var world_polygon: PackedVector2Array = PackedVector2Array()
 	for point in test_polygon:
 		world_polygon.append(point + position)
-	
+
 	var expected_offsets: Array[Vector2i] = CollisionGeometryUtils.compute_polygon_tile_offsets(
 		world_polygon, TILE_SIZE, center_tile
 	)
-	
+
 	details += "  Center tile: " + str(center_tile) + "\n"
 	details += "  Expected offsets: " + str(expected_offsets) + " (" + str(expected_offsets.size()) + " tiles)\n"
-	
+
 	# Test CollisionMapper
 	var col_objects: Array[Node2D] = [test_object]
 	var tile_check_rules: Array[TileCheckRule] = []
-	
+
 	var position_rules: Dictionary = _collision_mapper.map_collision_positions_to_rules(col_objects, tile_check_rules)
 	var mapped_count: int = position_rules.size()
-	
+
 	details += "  CollisionMapper mapped: " + str(mapped_count) + " positions\n"
-	
+
 	# Verify position stability - same shape should produce a bounded number of tiles
 	# For a 32x32 square on 16x16 tiles, the coverage varies slightly by alignment.
 	# Accept a reasonable range (1..9) instead of a fixed value.
 	assert_int(expected_offsets.size()).append_failure_message(
 		details + "Position stability: 32x32 square should map to a small bounded set of tiles (1..9), got " + str(expected_offsets.size()) + " at position " + str(position)
 	).is_between(1, 9)
-	
+
 	# Check that offsets are reasonable (within expected bounds for a 32x32 shape with 16x16 tiles)
 	for offset in expected_offsets:
 		assert_int(abs(offset.x)).append_failure_message(
 			details + "X offset " + str(offset.x) + " too large for 32x32 shape at position " + str(position)
 		).is_less_equal(2)
-		
+
 		assert_int(abs(offset.y)).append_failure_message(
-			details + "Y offset " + str(offset.y) + " too large for 32x32 shape at position " + str(position)  
+			details + "Y offset " + str(offset.y) + " too large for 32x32 shape at position " + str(position)
 		).is_less_equal(2)
 
 ## Test edge cases with very small or very large polygons
@@ -194,31 +194,31 @@ func test_collision_mapper_size_extremes() -> void:
 	var micro_polygon: PackedVector2Array = PackedVector2Array([
 		Vector2(-4, -4), Vector2(4, -4), Vector2(4, 4), Vector2(-4, 4)
 	])
-	
+
 	var test_object: StaticBody2D = StaticBody2D.new()
 	test_object.name = "MicroPolygonTest"
 	test_object.global_position = TEST_POSITION
-	
+
 	var collision_shape: CollisionShape2D = CollisionShape2D.new()
 	var shape: ConvexPolygonShape2D = ConvexPolygonShape2D.new()
 	shape.points = micro_polygon
 	collision_shape.shape = shape
 	test_object.add_child(collision_shape)
-	
+
 	_env.add_child(test_object)
 	auto_free(test_object)
-	
+
 	# Calculate expected tiles
 	var center_tile: Vector2i = Vector2i(int(TEST_POSITION.x / TILE_SIZE.x), int(TEST_POSITION.y / TILE_SIZE.y))
-	
+
 	var world_polygon: PackedVector2Array = PackedVector2Array()
 	for point in micro_polygon:
 		world_polygon.append(point + TEST_POSITION)
-	
+
 	var expected_offsets: Array[Vector2i] = CollisionGeometryUtils.compute_polygon_tile_offsets(
 		world_polygon, TILE_SIZE, center_tile
 	)
-	
+
 	# Summarize expected geometry-derived tiles for human-readable failure messages
 	var expected_count: int = expected_offsets.size()
 	var collision_mapper_results: Dictionary

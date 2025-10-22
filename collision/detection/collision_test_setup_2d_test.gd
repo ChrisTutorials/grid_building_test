@@ -43,30 +43,30 @@ func _create_rectangular_collision_object(object_name: String, size: Vector2) ->
 # endregion
 
 ## Tests to make sure that calling adjust_rect_to_testing_size
-## returns rects with the correct size 
+## returns rects with the correct size
 ## Expected adjusted size to be original rect + TileSize * 1
 func test_adjust_rect_to_testing_size() -> void:
 	# Create fresh objects for this test
 	# Note: Factory methods already add children to test suite, so no need to call add_child()
 	var eclipse: Node2D = CollisionObjectTestFactory.create_static_body_with_capsule(self)
-	
+
 	# _create_rectangular_collision_object returns objects with auto_free but NOT added to scene
 	var rect_8: Node2D = _create_rectangular_collision_object("RectTestObject", Vector2(128, 128))
 	add_child(rect_8)
-	
+
 	var skew: Node2D = _create_rectangular_collision_object("SkewRotationTestObject", Vector2(128, 128))
 	add_child(skew)
-	
+
 	var pillar: Node2D = auto_free(load(GBTestConstants.PILLAR_UID).instantiate())
 	add_child(pillar)
-	
+
 	# Create test setups
 	var all_setups: Array[CollisionTestSetup2D] = []
 	all_setups.append_array(create_test_setups(eclipse))
 	all_setups.append_array(create_test_setups(rect_8))
 	all_setups.append_array(create_test_setups(skew))
 	all_setups.append_array(create_test_setups(pillar))
-	
+
 	# Run tests on all setups
 	for setup in all_setups:
 		var rect_tests : Array[RectCollisionTestingSetup] = setup.rect_collision_test_setups
@@ -82,10 +82,10 @@ func test_adjust_rect_to_testing_size() -> void:
 
 func create_test_setups(p_container : Node) -> Array[CollisionTestSetup2D]:
 	var test_setups : Array[CollisionTestSetup2D] = []
-	
+
 	if(p_container is CollisionObject2D):
 		test_setups.append(CollisionTestSetup2D.new(p_container, Vector2(16,16)))
-	
+
 	for collision_object in p_container.find_children("", "CollisionObject2D"):
 		test_setups.append(CollisionTestSetup2D.new(collision_object, Vector2(16,16)))
 

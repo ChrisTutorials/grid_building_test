@@ -31,39 +31,39 @@ var test_category_tags: Array[CategoricalTag] = []
 func before_test() -> void:
 	# Create test UI component with auto_free
 	selection_ui = auto_free(PlaceableSelectionUI.new())
-	
+
 	# Create the expected node structure: Panel/Margin/TabContainer
 	var panel: PanelContainer = auto_free(PanelContainer.new())
 	panel.name = "Panel"
 	selection_ui.add_child(panel)
-	
+
 	var margin: MarginContainer = auto_free(MarginContainer.new())
 	margin.name = "Margin"
 	panel.add_child(margin)
-	
+
 	var tab_container: TabContainer = auto_free(TabContainer.new())
 	tab_container.name = "TabContainer"
 	margin.add_child(tab_container)
-	
+
 	# Set up node references to match template structure
 	selection_ui.ui_root = selection_ui
 	selection_ui.tab_container = tab_container
-	
+
 	add_child(selection_ui)
 	await get_tree().process_frame
-	
+
 	# Create test dependency container using tested composition container
 	test_container = auto_free(GBTestConstants.TEST_COMPOSITION_CONTAINER.duplicate(true))
 	test_systems_context = test_container.get_systems_context()
 	test_mode_state = test_container.get_mode_state()
-	
+
 	# Create test building system and add to context
 	test_building_system = auto_free(BuildingSystem.new())
 	test_systems_context.set_system(test_building_system)
-	
+
 	# Create test content
 	_create_test_content()
-	
+
 	# Configure UI templates (mock template scenes)
 	selection_ui.grid_columns = 3
 	selection_ui.placeable_entry_template = _create_mock_placeable_entry_template()
@@ -86,18 +86,18 @@ func test_mixed_content_initialization() -> void:
 	selection_ui.placeables = test_placeables
 	selection_ui.sequences = test_sequences
 	selection_ui.category_tags = test_category_tags
-	
+
 	# Act: Initialize dependencies and rebuild UI
 	selection_ui.resolve_gb_dependencies(test_container)
 	selection_ui.rebuild()
 	await get_tree().process_frame
-	
+
 	# Assert: UI correctly configured for mixed content
 	var tab_container: TabContainer = selection_ui.tab_container
 	assert_object(tab_container).append_failure_message(
 		"TabContainer should be configured after initialization"
 	).is_not_null()
-	
+
 	assert_int(tab_container.get_tab_count()).append_failure_message(
 		"Should have tabs for categories with content"
 	).is_greater_equal(1)
@@ -111,25 +111,25 @@ func test_mixed_grid_structure_creation() -> void:
 	selection_ui.placeables = test_placeables
 	selection_ui.sequences = test_sequences
 	selection_ui.category_tags = test_category_tags
-	
+
 	# Act: Rebuild UI with mixed content
 	selection_ui.resolve_gb_dependencies(test_container)
 	selection_ui.rebuild()
 	await get_tree().process_frame
-	
+
 	# Assert: Grid structure accommodates both content types
 	var tab_container: TabContainer = selection_ui.tab_container
 	assert_int(tab_container.get_tab_count()).append_failure_message(
 		"Should have at least one tab for mixed content"
 	).is_greater_equal(1)
-	
+
 	# Check first tab has mixed grid content
 	if tab_container.get_tab_count() > 0:
 		var first_tab: GridContainer = tab_container.get_child(0) as GridContainer
 		assert_object(first_tab).append_failure_message(
 			"First tab should be a GridContainer for mixed content"
 		).is_not_null()
-		
+
 		# Grid columns are now configured via template, not script property
 		assert_int(first_tab.columns).append_failure_message(
 			"Grid columns should be configured via template"
@@ -148,27 +148,27 @@ func test_sequences_mixed_content_functionality() -> void:
 	selection_ui.placeables = []
 	selection_ui.sequences = test_sequences
 	selection_ui.category_tags = test_category_tags
-	
+
 	# Debug: Check that sequences have proper tags
 	for sequence in test_sequences:
 		assert_object(sequence).append_failure_message("Sequence should not be null").is_not_null()
 		assert_array(sequence.placeables).append_failure_message("Sequence should have placeable variants").is_not_empty()
-		
+
 		# Check first placeable in sequence has tags
 		var first_placeable: Placeable = sequence.placeables[0]
 		assert_array(first_placeable.tags).append_failure_message("Sequence placeable should have tags").is_not_empty()
-	
+
 	# Act: Initialize and rebuild
 	selection_ui.resolve_gb_dependencies(test_container)
 	selection_ui.rebuild()
 	await get_tree().process_frame
-	
+
 	# Assert: UI configured for sequences within mixed content
 	var tab_container: TabContainer = selection_ui.tab_container
 	assert_int(tab_container.get_tab_count()).append_failure_message(
 		"Should have exactly one tab for sequences content when placeables is empty"
 	).is_equal(1)
-	
+
 	# Verify the single tab is for sequences
 	if tab_container.get_tab_count() > 0:
 		var first_tab: GridContainer = tab_container.get_child(0) as GridContainer
@@ -185,24 +185,24 @@ func test_sequences_grid_structure_with_variant_cycling() -> void:
 	selection_ui.placeables = []  # No placeables for sequence-focused test
 	selection_ui.sequences = test_sequences
 	selection_ui.category_tags = test_category_tags
-	
+
 	# Act: Initialize and rebuild
 	selection_ui.resolve_gb_dependencies(test_container)
 	selection_ui.rebuild()
 	await get_tree().process_frame
-	
+
 	# Assert: Verify sequence grid structure
 	var tab_container: TabContainer = selection_ui.tab_container
 	assert_int(tab_container.get_tab_count()).append_failure_message(
 		"Tab container should have exactly one tab for sequences-only content"
 	).is_equal(1)
-	
+
 	# Check first tab has grid container
 	var first_tab: Control = tab_container.get_tab_control(0)
 	assert_object(first_tab).append_failure_message(
 		"First sequences tab should exist"
 	).is_not_null()
-	
+
 	# Verify tab is a GridContainer (unified approach for sequences)
 	assert_bool(first_tab is GridContainer).append_failure_message(
 		"Sequences tab should use GridContainer for unified approach, got %s" % str(first_tab.get_class())
@@ -223,15 +223,15 @@ func test_sequences_grid_structure_with_variant_cycling() -> void:
 func test_dynamic_building_system_retrieval() -> void:
 	# Setup: Configure UI with systems context
 	selection_ui.resolve_gb_dependencies(test_container)
-	
+
 	# Act: Access building system through dynamic retrieval
 	var retrieved_system: BuildingSystem = selection_ui._get_building_system()
-	
+
 	# Assert: System retrieved correctly
 	assert_object(retrieved_system).append_failure_message(
 		"Building system should be retrieved dynamically from systems context"
 	).is_not_null()
-	
+
 	assert_object(retrieved_system).append_failure_message(
 		"Retrieved building system should match the one in systems context"
 	).is_same(test_building_system)
@@ -245,10 +245,10 @@ func test_missing_building_system_handling() -> void:
 	var empty_container: GBCompositionContainer = auto_free(GBTestConstants.TEST_COMPOSITION_CONTAINER.duplicate(true))
 	# Don't add any building system - let it remain null
 	selection_ui.resolve_gb_dependencies(empty_container)
-	
+
 	# Act: Attempt to retrieve building system
 	var retrieved_system: BuildingSystem = selection_ui._get_building_system()
-	
+
 	# Assert: Handles null gracefully
 	assert_object(retrieved_system).append_failure_message(
 		"Missing building system should return null without crashing"
@@ -265,18 +265,18 @@ func test_missing_building_system_handling() -> void:
 func test_mode_state_change_handling() -> void:
 	# Setup: UI with mode state
 	selection_ui.resolve_gb_dependencies(test_container)
-	
+
 	# Track signal connections
 	var signal_data: Array[bool] = [false]  # [signal_received]
-	
+
 	# Connect to mode state to verify signal handling
 	if test_mode_state.has_signal("mode_changed"):
 		test_mode_state.mode_changed.connect(func() -> void: signal_data[0] = true)
-	
+
 	# Act: Trigger mode change
 	if test_mode_state.has_method("set_mode"):
 		test_mode_state.set_mode(1)  # Change to different mode
-	
+
 	# Assert: UI should be connected to mode state changes
 	assert_object(selection_ui._mode_state).append_failure_message(
 		"Mode state should be assigned to UI"
@@ -294,23 +294,23 @@ func test_content_loading_and_validation() -> void:
 	# Setup: Use only valid placeables for positive validation test
 	selection_ui.placeables = test_placeables  # Only valid placeables
 	selection_ui.category_tags = test_category_tags
-	
+
 	# Act: Load and validate content
 	selection_ui.resolve_gb_dependencies(test_container)
 	selection_ui.rebuild()
 	await get_tree().process_frame
-	
+
 	# Assert: Valid content loaded properly
 	assert_int(selection_ui.placeables.size()).append_failure_message(
 		"Placeables should contain all valid entries"
 	).is_equal(test_placeables.size())
-	
+
 	# Verify UI created successfully with valid content
 	var tab_container: TabContainer = selection_ui.tab_container
 	assert_object(tab_container).append_failure_message(
 		"Tab container should be created with valid content"
 	).is_not_null()
-	
+
 	# Verify that valid placeables created proper tabs
 	assert_int(tab_container.get_tab_count()).append_failure_message(
 		"Should have at least one tab for valid category content"
@@ -324,26 +324,26 @@ func test_null_placeable_validation_handling() -> void:
 	# Setup: Add null entries to test validation
 	var mixed_placeables: Array[Placeable] = test_placeables.duplicate()
 	mixed_placeables.append(null)  # Add invalid entry
-	
+
 	selection_ui.placeables = mixed_placeables
 	selection_ui.category_tags = test_category_tags
-	
+
 	# Act: Load content - this will generate validation errors for null entries
 	selection_ui.resolve_gb_dependencies(test_container)
 	selection_ui.rebuild()
 	await get_tree().process_frame
-	
+
 	# Assert: UI still functions despite validation errors
 	var tab_container: TabContainer = selection_ui.tab_container
 	assert_object(tab_container).append_failure_message(
 		"Tab container should be created despite null entries"
 	).is_not_null()
-	
+
 	# Verify original array unchanged (nulls not removed from source)
 	assert_int(selection_ui.placeables.size()).append_failure_message(
 		"Original placeables array should be unchanged"
 	).is_equal(mixed_placeables.size())
-	
+
 	# Verify UI still creates tabs for valid content (nulls skipped during processing)
 	assert_int(tab_container.get_tab_count()).append_failure_message(
 		"Should have tabs for valid content even with null entries present"
@@ -360,7 +360,7 @@ func _create_test_placeables() -> void:
 	smithy_placeable.display_name = TEST_PLACEABLE_NAME_1
 	smithy_placeable.tags = [test_category_tags[0]]  # Use buildings category tag
 	test_placeables.append(smithy_placeable)
-	
+
 	# Create rectangular test placeable
 	var rect_placeable: Placeable = GBTestConstants.PLACEABLE_RECT_4X2.duplicate(true)
 	rect_placeable.display_name = TEST_PLACEABLE_NAME_2
@@ -372,7 +372,7 @@ func _create_test_sequences() -> void:
 	# Create test tower sequence with variants
 	var tower_sequence: PlaceableSequence = auto_free(PlaceableSequence.new())
 	tower_sequence.display_name = TEST_SEQUENCE_NAME_1
-	
+
 	# Add variant placeables to sequence with tags
 	for i in range(TEST_SEQUENCE_VARIANT_COUNT):
 		var variant: Placeable = GBTestConstants.PLACEABLE_RECT_4X2.duplicate(true)
@@ -380,7 +380,7 @@ func _create_test_sequences() -> void:
 		# Add the test category tag to each variant so sequences can be found
 		variant.tags = [test_category_tags[1]]  # Use sequences category tag
 		tower_sequence.placeables.append(variant)
-	
+
 	test_sequences.append(tower_sequence)
 
 ## Creates test category tags for organizing content
@@ -389,8 +389,8 @@ func _create_test_category_tags() -> void:
 	var buildings_tag: CategoricalTag = auto_free(CategoricalTag.new())
 	buildings_tag.display_name = TEST_DISPLAY_NAME_PLACEABLES
 	test_category_tags.append(buildings_tag)
-	
-	# Create sequences category  
+
+	# Create sequences category
 	var sequences_tag: CategoricalTag = auto_free(CategoricalTag.new())
 	sequences_tag.display_name = TEST_DISPLAY_NAME_SEQUENCES
 	test_category_tags.append(sequences_tag)

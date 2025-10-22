@@ -16,7 +16,7 @@ func after_test() -> void:
 ## Test: Core systems from GBTestEnvironment are present
 func test_core_systems_present() -> void:
 	assert_that(test_env.injector).is_not_null().append_failure_message("GBInjectorSystem should be present")
-	assert_that(test_env.grid_targeting_system).is_not_null().append_failure_message("GridTargetingSystem should be present") 
+	assert_that(test_env.grid_targeting_system).is_not_null().append_failure_message("GridTargetingSystem should be present")
 	assert_that(test_env.positioner).is_not_null().append_failure_message("GridPositioner2D should be present")
 	assert_that(test_env.world).is_not_null().append_failure_message("World node should be present")
 	assert_that(test_env.level).is_not_null().append_failure_message("Level node should be present")
@@ -25,7 +25,7 @@ func test_core_systems_present() -> void:
 	assert_that(test_env.objects_parent).is_not_null().append_failure_message("Objects parent should be present")
 	assert_that(test_env.placer).is_not_null().append_failure_message("Placer should be present")
 
-## Test: Building-specific systems are present  
+## Test: Building-specific systems are present
 func test_building_systems_present() -> void:
 	assert_that(test_env.building_system).is_not_null().append_failure_message("BuildingSystem should be present")
 	assert_that(test_env.gb_owner).is_not_null().append_failure_message("GBOwner should be present")
@@ -41,7 +41,7 @@ func test_environment_has_no_issues() -> void:
 func test_dependency_injection_setup() -> void:
 	var injector_issues: Array[String] = test_env.injector.get_runtime_issues()
 	assert_array(injector_issues).is_empty().append_failure_message("Injector should have no runtime issues: " + str(injector_issues))
-	
+
 	var container: GBCompositionContainer = test_env.get_container()
 	assert_that(container).is_not_null().append_failure_message("Composition container should exist")
 
@@ -54,7 +54,7 @@ func test_building_system_connectivity() -> void:
 func test_indicator_manager_registration() -> void:
 	# IndicatorManager should be accessible directly
 	assert_that(test_env.indicator_manager).is_not_null().append_failure_message("IndicatorManager should be accessible")
-	
+
 	# IndicatorManager should be registered with BuildingSystem's context
 	var indicator_context: Variant = test_env.building_system._indicator_context
 	if indicator_context != null:
@@ -72,7 +72,7 @@ func test_scene_node_structure() -> void:
 func test_grid_targeting_system_setup() -> void:
 	var targeting_issues: Array[String] = test_env.grid_targeting_system.get_runtime_issues()
 	assert_array(targeting_issues).is_empty().append_failure_message("GridTargetingSystem should have no runtime issues: " + str(targeting_issues))
-	
+
 	# The positioner should be available for targeting system
 	assert_that(test_env.positioner).is_not_null().append_failure_message("Positioner should be available for targeting system")
 

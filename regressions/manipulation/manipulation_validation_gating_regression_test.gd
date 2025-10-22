@@ -21,7 +21,7 @@
 ##
 ## IMPORTANT: Architecture Pattern (v5.x)
 ## As of v5.x, GridTargetingState is the single source of truth for the target node.
-## 
+##
 ## The correct pattern for manipulation tests:
 ## 1. Create a manipulatable object
 ## 2. Set targeting_state to target that manipulatable (before calling try_move)
@@ -49,14 +49,14 @@ func before_test() -> void:
 	# Use scene_runner for proper frame control
 	runner = scene_runner(GBTestConstants.ALL_SYSTEMS_ENV_UID)
 	env = runner.scene() as AllSystemsTestEnvironment
-	
+
 	# Get systems from test environment properties
 	manipulation_system = env.manipulation_system
 	_container = env.get_container()
-	
+
 	# Wait for systems to initialize
 	runner.simulate_frames(2)
-	
+
 	# Set up targeting state for manipulation tests
 	_setup_targeting_state()
 
@@ -81,7 +81,7 @@ func _create_test_manipulatable_with_collision_rules() -> Manipulatable:
 		Vector2(32, 32),
 		true  # with_move_rules = true
 	)
-	
+
 	return manipulatable
 
 func _create_collision_obstacle_at_position(position: Vector2) -> StaticBody2D:
@@ -89,27 +89,27 @@ func _create_collision_obstacle_at_position(position: Vector2) -> StaticBody2D:
 	var obstacle: StaticBody2D = auto_free(StaticBody2D.new())
 	add_child(obstacle)
 	obstacle.global_position = position
-	
+
 	# Add collision shape
 	var collision_shape: CollisionShape2D = auto_free(CollisionShape2D.new())
 	var rect_shape: RectangleShape2D = auto_free(RectangleShape2D.new())
 	rect_shape.size = Vector2(32, 32)
 	collision_shape.shape = rect_shape
 	obstacle.add_child(collision_shape)
-	
+
 	# Set collision layer to trigger rule violations
 	obstacle.collision_layer = 1  # Default layer that should cause conflicts
-	
+
 	return obstacle
 #endregion
 
 #region Regression Tests
 
 ## CRITICAL REGRESSION TEST: Validation failure must prevent object movement
-## 
+##
 ## Bug: When try_placement() validation fails due to collision rules,
 ## the source object is still moved to the target position despite the failure.
-## 
+##
 ## Expected: Object should remain at original position when validation fails.
 ##
 ## SETUP PATTERN (v5.x Architecture):
@@ -128,12 +128,12 @@ func test_validation_failure_prevents_object_movement() -> void:
 		true  # with_move_rules = true
 	)
 	var original_position: Vector2 = manipulatable.root.global_position
-	
+
 	# CRITICAL: Update targeting_state BEFORE calling try_move()
 	# targeting_state is now the single source of truth for which node is being manipulated
 	var targeting_state: GridTargetingState = _container.get_states().targeting
 	targeting_state.set_manual_target(manipulatable.root)
-	
+
 	# Setup: Create collision obstacle at target position to cause validation failure
 	var target_position: Vector2 = Vector2(96, 96)
 	collision_body = ManipulationHelpers.create_collision_obstacle(
@@ -142,74 +142,74 @@ func test_validation_failure_prevents_object_movement() -> void:
 		Vector2(32, 32),
 		1  # Same collision layer as manipulatable body
 	)
-	
+
 	# CRITICAL: Wait for physics to register the obstacle
 	runner.simulate_frames(2, 60)  # 2 physics frames
-	
+
 	# Verify obstacle is in scene tree with proper setup
 	assert_bool(collision_body.is_inside_tree()).append_failure_message("Obstacle should be in scene tree").is_true()
 	assert_int(collision_body.get_child_count()).append_failure_message("Obstacle should have CollisionShape2D child").is_greater(0)
-	
+
 	if collision_body.get_child_count() > 0:
 		var shape_node: CollisionShape2D = collision_body.get_child(0) as CollisionShape2D
 		if shape_node:
 			assert_object(shape_node.shape).append_failure_message("CollisionShape2D should have a shape").is_not_null()
-	
+
 	# Act: Start move operation
 	var move_data: ManipulationData = manipulation_system.try_move(manipulatable.root)
 	assert_that(move_data).append_failure_message(
 		"Move should start successfully"
 	).is_not_null()
-	
+
 	assert_int(move_data.status).append_failure_message(
 		"Move should be in STARTED status, got: %s" % ManipulationHelpers.format_status(move_data.status)
 	).is_equal(GBEnums.Status.STARTED)
-	
+
 	# Act: Move positioner to collision position (this moves preview AND indicators together)
 	# The manipulation system parents the target to ManipulationParent, and indicators
 	# are positioned relative to the target. Moving the positioner updates everything.
 	targeting_state.positioner.global_position = target_position
-	
+
 	# Force indicators to regenerate at new position with collision detection
 	var indicator_manager: IndicatorManager = env.indicator_manager
 	var move_rules: Array[PlacementRule] = []
 	move_rules.assign(move_data.source.get_move_rules())
 	var setup_report := indicator_manager.try_setup(move_rules, targeting_state)
-	
+
 	assert_bool(setup_report.is_successful()).append_failure_message(
 		"Indicator setup should succeed: %s" % str(setup_report.get_issues())
 	).is_true()
-	
+
 	# Force validity evaluation at new position
 	var updated_count := indicator_manager.force_indicators_validity_evaluation()
 	assert_int(updated_count).append_failure_message(
 		"Expected at least one indicator to be updated"
 	).is_greater(0)
-	
+
 	# Act: Try placement (should fail validation due to collision)
 	var validation_results: ValidationResults = manipulation_system.try_placement(move_data)
-	
+
 	# Assert: Validation should fail
 	assert_that(validation_results).append_failure_message(
 		"Validation results should not be null"
 	).is_not_null()
-	
+
 	assert_bool(validation_results.is_successful()).append_failure_message(
-		"Validation should fail due to collision at target position. Issues: %s" % 
+		"Validation should fail due to collision at target position. Issues: %s" %
 		str(validation_results.get_issues())
 	).is_false()
-	
+
 	# Assert: Move status should remain STARTED (to allow retry)
 	# System keeps manipulation active so user can try placing elsewhere
 	assert_int(move_data.status).append_failure_message(
 		"Move status should remain STARTED after validation failure to allow retry, got: %s" % ManipulationHelpers.format_status(move_data.status)
 	).is_equal(GBEnums.Status.STARTED)
-	
+
 	# CRITICAL ASSERTION: Source object should NOT have moved
 	assert_vector(manipulatable.root.global_position).append_failure_message(
 		"CRITICAL BUG: Source object moved despite validation failure! " +
 		"Original: %s, Current: %s, Target: %s. " % [
-			str(original_position), 
+			str(original_position),
 			str(manipulatable.root.global_position),
 			str(target_position)
 		] +
@@ -237,37 +237,37 @@ func test_validation_success_allows_object_movement() -> void:
 		Vector2(32, 32),
 		false  # with_move_rules = false - no validation rules
 	)
-	
+
 	# CRITICAL: Update targeting_state BEFORE calling try_move()
 	# targeting_state is now the single source of truth for which node is being manipulated
 	var targeting_state: GridTargetingState = _container.get_states().targeting
 	targeting_state.set_manual_target(manipulatable.root)
-	
+
 	var original_position: Vector2 = manipulatable.root.global_position
 	var target_position: Vector2 = Vector2(256, 256)
-	
+
 	# Act: Start move operation
 	var move_data: ManipulationData = manipulation_system.try_move(manipulatable.root)
 	assert_that(move_data).append_failure_message(
 		"Move should start successfully"
 	).is_not_null()
-	
+
 	# Act: Move to target and attempt placement
 	move_data.move_copy.root.global_position = target_position
 	var validation_results: ValidationResults = manipulation_system.try_placement(move_data)
-	
+
 	# Assert: Validation should succeed (no rules to fail)
 	assert_bool(validation_results.is_successful()).append_failure_message(
-		"Validation should succeed with no rules. Issues: %s" % 
+		"Validation should succeed with no rules. Issues: %s" %
 		str(validation_results.get_issues())
 	).is_true()
-	
+
 	# Assert: Object should have moved to target position
 	assert_vector(manipulatable.root.global_position).append_failure_message(
 		"Object should move to target position when validation succeeds. " +
 		"Original: %s, Expected: %s, Actual: %s" % [
 			str(original_position),
-			str(target_position), 
+			str(target_position),
 			str(manipulatable.root.global_position)
 		]
 	).is_equal(target_position)

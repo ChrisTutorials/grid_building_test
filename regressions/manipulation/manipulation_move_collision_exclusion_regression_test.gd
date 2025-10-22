@@ -1,12 +1,12 @@
 ## Regression test for collision exclusion bug during manipulation move.
-## 
+##
 ## BUG: When moving an object, collision indicators incorrectly show collision
 ## with the original object ONLY when the grid positioner (targeting ShapeCast2D)
 ## moves outside the bounds of the original object's collision area.
-## 
+##
 ## EXPECTED: Indicators should ALWAYS ignore the original object during move,
 ## regardless of where the grid positioner is located.
-## 
+##
 ## Test Scenario:
 ## 1. Start moving an object (e.g., Smithy)
 ## 2. Move preview so grid positioner is INSIDE original bounds -> indicators GREEN ✅
@@ -24,18 +24,18 @@ func before_test() -> void:
 	# Use scene_runner with ALL_SYSTEMS_ENV_UID for complete system setup
 	_runner = scene_runner(GBTestConstants.ALL_SYSTEMS_ENV_UID)
 	_runner.simulate_frames(2)  # Initial setup frames
-	
+
 	_env = _runner.scene() as AllSystemsTestEnvironment
 	assert_object(_env).append_failure_message(
 		"Failed to load AllSystemsTestEnvironment via scene_runner"
 	).is_not_null()
-	
+
 	# Get systems through systems context
 	var container := _env.get_container()
 	var systems_context := container.get_systems_context()
 	_manipulation_system = systems_context.get_manipulation_system()
 	_targeting_state = container.get_states().targeting
-	
+
 	# Verify systems are properly initialized
 	assert_object(_manipulation_system).append_failure_message(
 		"ManipulationSystem should be initialized in AllSystemsTestEnvironment"
@@ -61,20 +61,20 @@ func test_indicators_ignore_original_when_positioner_inside_bounds() -> void:
 	var original: Node2D = manipulatable.root
 	assert_object(original).append_failure_message("Manipulatable root should not be null").is_not_null()
 	_runner.simulate_frames(1)
-	
+
 	# GIVEN: Start manipulation move
 	_manipulation_system.try_move(original)
 	_runner.simulate_frames(1)
-	
+
 	# GIVEN: Move the preview so positioner is INSIDE original bounds (e.g., 108, 100)
 	# This should be within the 32x32 area centered at (100, 100)
 	_env.positioner.position = Vector2(108, 100)
 	_runner.simulate_frames(2)
-	
+
 	# WHEN: Check indicator validity
 	var indicators := _get_active_indicators()
 	var all_valid := _all_indicators_valid(indicators)
-	
+
 	# THEN: All indicators should be valid (no collision with self)
 	assert_bool(all_valid).append_failure_message(
 		"Indicators should ignore original object when positioner is INSIDE bounds. " +
@@ -92,20 +92,20 @@ func test_indicators_ignore_original_when_positioner_outside_bounds() -> void:
 	var original: Node2D = manipulatable.root
 	assert_object(original).append_failure_message("Manipulatable root should not be null").is_not_null()
 	_runner.simulate_frames(1)
-	
+
 	# GIVEN: Start manipulation move
 	_manipulation_system.try_move(original)
 	_runner.simulate_frames(1)
-	
+
 	# GIVEN: Move the preview so positioner is OUTSIDE original bounds (e.g., 150, 100)
 	# This is clearly outside the 32x32 area centered at (100, 100)
 	_env.positioner.position = Vector2(150, 100)
 	_runner.simulate_frames(2)
-	
+
 	# WHEN: Check indicator validity
 	var indicators := _get_active_indicators()
 	var all_valid := _all_indicators_valid(indicators)
-	
+
 	# THEN: All indicators should be valid (no collision with self)
 	# THIS IS THE BUG: Indicators incorrectly detect collision with original
 	assert_bool(all_valid).append_failure_message(
@@ -124,11 +124,11 @@ func test_indicators_remain_valid_across_position_transitions() -> void:
 	var original: Node2D = manipulatable.root
 	assert_object(original).append_failure_message("Manipulatable root should not be null").is_not_null()
 	_runner.simulate_frames(1)
-	
+
 	# GIVEN: Start manipulation move
 	_manipulation_system.try_move(original)
 	_runner.simulate_frames(1)
-	
+
 	# WHEN: Move from inside → outside → inside bounds
 	var test_positions := [
 		Vector2(100, 100),  # Center (inside)
@@ -137,20 +137,20 @@ func test_indicators_remain_valid_across_position_transitions() -> void:
 		Vector2(132, 100),  # Just outside
 		Vector2(108, 100),  # Back inside
 	]
-	
+
 	var results: Array[bool] = []
 	for pos: Vector2 in test_positions:
 		_env.positioner.position = pos
 		_runner.simulate_frames(2)
-		
+
 		var indicators := _get_active_indicators()
 		var all_valid := _all_indicators_valid(indicators)
 		results.append(all_valid)
-	
+
 	# THEN: All positions should show valid indicators (no collision with self)
 	for i in range(results.size()):
 		assert_bool(results[i]).append_failure_message(
-			"Position %d (%s) failed: indicators should ignore original object at all positions" % 
+			"Position %d (%s) failed: indicators should ignore original object at all positions" %
 			[i, str(test_positions[i])]
 		).is_true()
 
@@ -164,11 +164,11 @@ func test_exclusion_list_contains_original_during_move() -> void:
 	var original: Node2D = manipulatable.root
 	assert_object(original).append_failure_message("Manipulatable root should not be null").is_not_null()
 	_runner.simulate_frames(1)
-	
+
 	# WHEN: Start manipulation move
 	_manipulation_system.try_move(original)
 	_runner.simulate_frames(1)
-	
+
 	# THEN: Exclusion list should contain the original object
 	var exclusions := _targeting_state.collision_exclusions
 	assert_int(exclusions.size()).append_failure_message(
@@ -188,19 +188,19 @@ func test_exclusion_list_persists_across_positioner_movement() -> void:
 	var original: Node2D = manipulatable.root
 	assert_object(original).append_failure_message("Manipulatable root should not be null").is_not_null()
 	_runner.simulate_frames(1)
-	
+
 	_manipulation_system.try_move(original)
 	_runner.simulate_frames(1)
-	
+
 	# WHEN: Move positioner to different positions
 	_env.positioner.position = Vector2(100, 100)
 	_runner.simulate_frames(1)
 	var exclusions_inside := _targeting_state.collision_exclusions.duplicate()
-	
+
 	_env.positioner.position = Vector2(150, 100)
 	_runner.simulate_frames(1)
 	var exclusions_outside := _targeting_state.collision_exclusions.duplicate()
-	
+
 	# THEN: Exclusion list should remain the same (contain original)
 	assert_int(exclusions_inside.size()).append_failure_message("Collision exclusions should contain exactly 1 item when positioner is inside bounds").is_equal(1)
 	assert_int(exclusions_outside.size()).append_failure_message("Collision exclusions should contain exactly 1 item when positioner is outside bounds").is_equal(1)
@@ -212,7 +212,7 @@ func _get_active_indicators() -> Array[RuleCheckIndicator]:
 	var indicator_manager := _env.indicator_manager
 	if not indicator_manager:
 		return []
-	
+
 	var indicators: Array[RuleCheckIndicator] = []
 	for child in indicator_manager.get_children():
 		if child is RuleCheckIndicator:
@@ -223,7 +223,7 @@ func _get_active_indicators() -> Array[RuleCheckIndicator]:
 func _all_indicators_valid(indicators: Array[RuleCheckIndicator]) -> bool:
 	if indicators.is_empty():
 		return true
-	
+
 	for indicator in indicators:
 		if not indicator.valid:
 			return false

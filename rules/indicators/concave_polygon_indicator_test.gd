@@ -17,10 +17,10 @@ var _manager : IndicatorManager
 func before_test() -> void:
 	# Use the shared test container (injected resource) and its targeting state so internal systems see configured maps
 	_container = GBTestConstants.TEST_COMPOSITION_CONTAINER.duplicate(true)
-	
-	# Acquire container states and configure targeting FIRST (positioner, target map, maps) 
+
+	# Acquire container states and configure targeting FIRST (positioner, target map, maps)
 	_targeting = _container.get_states().targeting
-	
+
 	# Create tilemap with cells covering the concave polygon's bounding box
 	# Concave polygon spans from (-32, -16) to (32, 16), which at 16x16 tile size covers:
 	# tile coords: (-2, -1) to (2, 1) - a 5x3 grid centered around origin
@@ -32,34 +32,34 @@ func before_test() -> void:
 	)
 	_targeting.target_map = _map
 	_targeting.maps = [_map]
-	
+
 	# Create proper GridPositioner2D with TargetingShapeCast2D child (matching template scene configuration)
 	if _targeting.positioner == null:
 		var grid_positioner: GridPositioner2D = auto_free(GridPositioner2D.new())
 		add_child(grid_positioner)
-		
+
 		# Add TargetingShapeCast2D child with proper RectangleShape2D (matching grid_positioner_stack_2d.tscn)
 		var targeting_shapecast: TargetingShapeCast2D = auto_free(TargetingShapeCast2D.new())
 		var rect_shape: RectangleShape2D = RectangleShape2D.new()
 		rect_shape.size = Vector2(16, 16)  # Match template scene configuration
 		targeting_shapecast.shape = rect_shape
-		targeting_shapecast.collision_mask = 4294967295  # Match template scene configuration 
+		targeting_shapecast.collision_mask = 4294967295  # Match template scene configuration
 		grid_positioner.add_child(targeting_shapecast)
-		
+
 		# Resolve dependencies
 		targeting_shapecast.resolve_gb_dependencies(_container)
-		
+
 		_targeting.positioner = grid_positioner
 
 	# Set up manipulation parent - required for IndicatorManager to have a parent node
 	var manipulation_parent: ManipulationParent = auto_free(ManipulationParent.new())
 	_targeting.positioner.add_child(manipulation_parent)
 	_container.get_states().manipulation.parent = manipulation_parent
-	
+
 	# Basic placer/owner context (building state not needed for indicator setup)
 	_placer = auto_free(Node2D.new())
 	add_child(_placer)
-	
+
 	# NOW create the IndicatorManager after targeting is set up
 	_manager = IndicatorManager.create_with_injection(_container)
 	add_child(auto_free(_manager))

@@ -41,7 +41,7 @@ func _run_polygon_test(
 	position: Vector2 = DEFAULT_TEST_POSITION
 ) -> void:
 	var test_map: TileMapLayer
-	
+
 	if tile_type == "isometric":
 		test_map = _create_test_tile_map()
 	else:
@@ -49,7 +49,7 @@ func _run_polygon_test(
 
 	# Create a StaticBody2D parent for proper collision hierarchy
 	var static_body: StaticBody2D = _create_static_body(position)
-	
+
 	var polygon: CollisionPolygon2D = _create_collision_polygon(points, static_body)
 
 	var result: Array = PolygonTileMapper.compute_tile_offsets(polygon, test_map)
@@ -110,7 +110,7 @@ func test_compute_tile_offsets_null_polygon() -> void:
 func test_compute_tile_offsets_null_map() -> void:
 	# Create a StaticBody2D parent for proper collision hierarchy
 	var static_body: StaticBody2D = _create_static_body()
-	
+
 	var triangle_polygon: CollisionPolygon2D = _create_collision_polygon(PackedVector2Array([
 		Vector2(0, 0),
 		Vector2(32, 0),
@@ -126,10 +126,10 @@ func test_compute_tile_offsets_no_tile_set() -> void:
 	var test_map: TileMapLayer = TileMapLayer.new()  # No tile set
 	test_map = auto_free(test_map)
 	add_child(test_map)
-	
+
 	# Create a StaticBody2D parent for proper collision hierarchy
 	var static_body: StaticBody2D = _create_static_body()
-	
+
 	var triangle_polygon: CollisionPolygon2D = _create_collision_polygon(PackedVector2Array([
 		Vector2(0, 0),
 		Vector2(32, 0),
@@ -153,10 +153,10 @@ func test_compute_tile_offsets_degenerate_polygons(
 	]
 ) -> void:
 	var test_map: TileMapLayer = _create_test_tile_map()
-	
+
 	# Create a StaticBody2D parent for proper collision hierarchy
 	var static_body: StaticBody2D = _create_static_body()
-	
+
 	var poly: CollisionPolygon2D = _create_collision_polygon(points, static_body)
 	var result: Array = PolygonTileMapper.compute_tile_offsets(poly, test_map)
 	if expected_max == 0:
@@ -292,29 +292,29 @@ func test_tile_property_detection_diagnostics() -> void:
 	polygon = auto_free(polygon)
 	add_child(polygon)
 	polygon.position = DEFAULT_TEST_POSITION
-	
+
 	# Test tile set existence
 	assert_that(test_map.tile_set).append_failure_message("TileMapLayer should have a tile_set").is_not_null()
-	
+
 	# Test tile_shape property detection
 	var tile_set_ref: TileSet = test_map.tile_set
 	var has_tile_shape: bool = false
 	var property_names: Array = []
-	
+
 	for property: Dictionary in tile_set_ref.get_property_list():
 		property_names.append(property.name)
 		if property.name == "tile_shape":
 			has_tile_shape = true
 			break
-	
+
 	var prop_list_msg: String = "TileSet properties: " + str(property_names)
 	assert_that(has_tile_shape).append_failure_message("tile_shape property not found. " + prop_list_msg).is_true()
-	
+
 	# Test actual tile_shape value
 	if has_tile_shape:
 		var tile_shape_value: int = tile_set_ref.tile_shape
 		assert_that(tile_shape_value).append_failure_message("tile_shape should be valid enum value").is_not_equal(-1)
-	
+
 	# Use the full processing pipeline to gather diagnostics
 	var diag: PolygonTileMapper.ProcessingResult = PolygonTileMapper.process_polygon_with_diagnostics(polygon, test_map)
 
@@ -502,12 +502,12 @@ func test_polygon_tile_overlap_area_complex() -> void:
 func test_concave_polygon_tile_distribution() -> void:
 	var test_map: TileMapLayer = _create_test_tile_map()
 	var static_body: StaticBody2D = _create_static_body()
-	
+
 	# Create the same concave polygon from the failing integration test
 	# This creates a shape that should have a "hole" in the middle
 	var concave_points: PackedVector2Array = PackedVector2Array([
 		Vector2(-32, -16),  # Top-left
-		Vector2(32, -16),   # Top-right  
+		Vector2(32, -16),   # Top-right
 		Vector2(32, 0),     # Right-middle
 		Vector2(8, 0),      # Inner-right
 		Vector2(8, 8),      # Inner-bottom-right
@@ -515,32 +515,32 @@ func test_concave_polygon_tile_distribution() -> void:
 		Vector2(-8, 0),     # Inner-left
 		Vector2(-32, 0),    # Left-middle
 	])
-	
+
 	var polygon: CollisionPolygon2D = _create_collision_polygon(concave_points, static_body)
-	
+
 	var result: PolygonTileMapper.ProcessingResult = PolygonTileMapper.process_polygon_with_diagnostics(polygon, test_map)
-	
+
 	# Verify this is correctly detected as concave
 	assert_that(result.was_convex).append_failure_message("Expected U-shaped polygon to be detected as concave").is_false()
-	
+
 	# The key test: concave polygon should NOT fill the complete bounding rectangle
 	# Convert offsets to tile coordinates for analysis
 	var tile_positions: Array[Vector2i] = []
 	for offset: Vector2i in result.offsets:
 		tile_positions.append(offset)
-	
+
 	# This concave shape should NOT include the center tiles that fall in the "indent"
 	var center_tiles_that_should_be_empty: Array[Vector2i] = [
 		Vector2i(0, 0),  # Center tile should be empty due to concave indent
 		Vector2i(-1, 0), # Left-center should be empty
 		Vector2i(1, 0),  # Right-center should be empty
 	]
-	
+
 	for empty_tile: Vector2i in center_tiles_that_should_be_empty:
 		assert_bool(tile_positions.has(empty_tile)).append_failure_message(
 			"Concave polygon incorrectly filled center tile %s. Actual tiles: %s" % [empty_tile, str(tile_positions)]
 		).is_false()
-	
+
 	# Verify no center tiles were filled (with diagnostic context)
 	GBTestDiagnostics.buffer("Concave polygon test - filled tiles: %s" % str(tile_positions))
 	assert_bool(true).append_failure_message(

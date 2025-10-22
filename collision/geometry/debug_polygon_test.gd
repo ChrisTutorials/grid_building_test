@@ -60,7 +60,7 @@ func test_debug_polygon_bounds() -> void:
 	var tiles: Array[Vector2i] = CollisionGeometryCalculator.calculate_tile_overlap(
 		polygon, tile_size, TileSet.TILE_SHAPE_SQUARE, _test_tile_map_layer, COLLISION_TOLERANCE, COLLISION_TOLERANCE
 	)
-	
+
 	# Verify polygon overlap detection
 	assert_array(tiles).append_failure_message(
 		"Polygon overlap detection should work. Polygon: %s, Bounds: %s, Tiles checked: %d, Actual overlapping tiles: %s" % [

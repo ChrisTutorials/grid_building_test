@@ -48,7 +48,7 @@ func test_indicator_generation_from_container_rules() -> void:
 	diag.append("[RULE_TRACE] === CONTAINER RULE ANALYSIS ===")
 	diag.append("[RULE_TRACE] container placement_rules size = %s" % [_container.get_placement_rules().size()])
 	diag.append("[RULE_TRACE] using rules size = %s" % [rules.size()])
-	
+
 	for i in range(rules.size()):
 		var r: PlacementRule = rules[i]
 		diag.append("[RULE_TRACE] rule[%d] IDENTITY: object_id=%s, class=%s" % [i, str(r.get_instance_id()), r.get_class()])
@@ -101,7 +101,7 @@ func test_indicators_are_freed_on_reset() -> void:
 	shape_scene.global_position = DEFAULT_POSITION
 	var col_checking_rules: Array[TileCheckRule] = [GBTestConstants.COLLISIONS_CHECK_RULE]
 	_manager.setup_indicators(shape_scene, col_checking_rules)
-	
+
 	assert_array(_manager.get_indicators())\
 		.append_failure_message("No indicators generated before reset (unit test)")\
 		.is_not_empty()

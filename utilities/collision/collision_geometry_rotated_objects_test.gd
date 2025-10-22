@@ -1,11 +1,11 @@
 ## Unit tests for CollisionGeometryUtils with rotated objects
-## 
+##
 ## PURPOSE: Isolate and test the root cause of indicator multiplication bug when objects are rotated.
-## 
+##
 ## CRITICAL BUG: When moving a rotated object, indicators are multiplied (26 → 52 → 78).
 ## Root cause hypothesis: Rotated shapes generate larger axis-aligned bounding boxes, causing
 ## more tiles to be detected than the actual shape occupies.
-## 
+##
 ## Test strategy:
 ## 1. Test build_shape_transform() with rotation to verify transform composition
 ## 2. Test that rotated shapes produce correct polygon representations
@@ -46,20 +46,20 @@ func test_build_shape_transform_no_rotation() -> void:
 	var obj := _create_test_object(0.0)
 	obj.global_position = Vector2(100, 200)
 	var shape_owner := _create_shape_owner(obj)
-	
+
 	var transform := CollisionGeometryUtils.build_shape_transform(obj, shape_owner)
-	
+
 	# Transform should have object's position as origin
 	assert_vector(transform.origin).append_failure_message(
-		"Transform origin should match object position. Expected %s, got %s" % 
+		"Transform origin should match object position. Expected %s, got %s" %
 		[str(obj.global_position), str(transform.origin)]
 	).is_equal(obj.global_position)
-	
+
 	# Transform should have no rotation (basis is identity)
 	var expected_rotation := 0.0
 	var actual_rotation := transform.get_rotation()
 	assert_float(actual_rotation).append_failure_message(
-		"Transform should have no rotation. Expected %.2f°, got %.2f°" % 
+		"Transform should have no rotation. Expected %.2f°, got %.2f°" %
 		[rad_to_deg(expected_rotation), rad_to_deg(actual_rotation)]
 	).is_equal_approx(expected_rotation, 0.01)
 
@@ -71,13 +71,13 @@ func test_build_shape_transform_90_degree_rotation() -> void:
 	var obj := _create_test_object(ROTATION_90_DEG)
 	obj.global_position = Vector2(100, 200)
 	var shape_owner := _create_shape_owner(obj)
-	
+
 	var transform := CollisionGeometryUtils.build_shape_transform(obj, shape_owner)
-	
+
 	# Transform should have 90° rotation
 	var actual_rotation := transform.get_rotation()
 	assert_float(actual_rotation).append_failure_message(
-		"Transform should have 90° rotation. Expected %.2f°, got %.2f°" % 
+		"Transform should have 90° rotation. Expected %.2f°, got %.2f°" %
 		[rad_to_deg(ROTATION_90_DEG), rad_to_deg(actual_rotation)]
 	).is_equal_approx(ROTATION_90_DEG, 0.01)
 
@@ -89,13 +89,13 @@ func test_build_shape_transform_45_degree_rotation() -> void:
 	var obj := _create_test_object(ROTATION_45_DEG)
 	obj.global_position = Vector2(100, 200)
 	var shape_owner := _create_shape_owner(obj)
-	
+
 	var transform := CollisionGeometryUtils.build_shape_transform(obj, shape_owner)
-	
+
 	# Transform should have 45° rotation
 	var actual_rotation := transform.get_rotation()
 	assert_float(actual_rotation).append_failure_message(
-		"Transform should have 45° rotation. Expected %.2f°, got %.2f°" % 
+		"Transform should have 45° rotation. Expected %.2f°, got %.2f°" %
 		[rad_to_deg(ROTATION_45_DEG), rad_to_deg(actual_rotation)]
 	).is_equal_approx(ROTATION_45_DEG, 0.01)
 
@@ -107,14 +107,14 @@ func test_build_shape_transform_with_shape_owner_offset_rotated() -> void:
 	var obj := _create_test_object(ROTATION_90_DEG)
 	obj.global_position = Vector2(100, 200)
 	var shape_owner := _create_shape_owner(obj, Vector2(16, 0))  # Offset in local space
-	
+
 	var transform := CollisionGeometryUtils.build_shape_transform(obj, shape_owner)
-	
+
 	# With 90° rotation, local offset (16, 0) becomes world offset (0, 16)
 	# So final origin should be (100, 200) + (0, 16) = (100, 216)
 	var expected_origin := Vector2(100, 216)
 	assert_vector(transform.origin).append_failure_message(
-		"Transform origin should include rotated shape owner offset. Expected %s, got %s" % 
+		"Transform origin should include rotated shape owner offset. Expected %s, got %s" %
 		[str(expected_origin), str(transform.origin)]
 	).is_equal_approx(expected_origin, Vector2(0.1, 0.1))
 
@@ -129,17 +129,17 @@ func test_build_shape_transform_with_shape_owner_offset_rotated() -> void:
 func test_rectangle_to_polygon_no_rotation() -> void:
 	var shape := RectangleShape2D.new()
 	shape.size = SHAPE_SIZE
-	
+
 	var transform := Transform2D()
 	transform.origin = ORIGIN
-	
+
 	var polygon := GBGeometryMath.convert_shape_to_polygon(shape, transform)
-	
+
 	# Should have 4 vertices for rectangle
 	assert_int(polygon.size()).append_failure_message(
 		"Rectangle polygon should have 4 vertices, got %d" % polygon.size()
 	).is_equal(4)
-	
+
 	# Calculate bounding box of polygon
 	var min_point := Vector2(INF, INF)
 	var max_point := Vector2(-INF, -INF)
@@ -148,9 +148,9 @@ func test_rectangle_to_polygon_no_rotation() -> void:
 		min_point.y = min(min_point.y, point.y)
 		max_point.x = max(max_point.x, point.x)
 		max_point.y = max(max_point.y, point.y)
-	
+
 	var polygon_size := max_point - min_point
-	
+
 	# Polygon should cover 32x32 area
 	assert_vector(polygon_size).append_failure_message(
 		"Unrotated rectangle polygon should be 32x32. Got %s" % str(polygon_size)
@@ -163,18 +163,18 @@ func test_rectangle_to_polygon_no_rotation() -> void:
 func test_rectangle_to_polygon_45_degree_rotation() -> void:
 	var shape := RectangleShape2D.new()
 	shape.size = SHAPE_SIZE
-	
+
 	var transform := Transform2D()
 	transform = transform.rotated(ROTATION_45_DEG)
 	transform.origin = ORIGIN
-	
+
 	var polygon := GBGeometryMath.convert_shape_to_polygon(shape, transform)
-	
+
 	# Should have 4 vertices for rectangle
 	assert_int(polygon.size()).append_failure_message(
 		"Rectangle polygon should have 4 vertices, got %d" % polygon.size()
 	).is_equal(4)
-	
+
 	# Calculate bounding box of rotated polygon
 	var min_point := Vector2(INF, INF)
 	var max_point := Vector2(-INF, -INF)
@@ -183,21 +183,21 @@ func test_rectangle_to_polygon_45_degree_rotation() -> void:
 		min_point.y = min(min_point.y, point.y)
 		max_point.x = max(max_point.x, point.x)
 		max_point.y = max(max_point.y, point.y)
-	
+
 	var polygon_bounds_size := max_point - min_point
-	
+
 	# CRITICAL: Rotated 45° rectangle has larger axis-aligned bounding box
 	# For a 32x32 square rotated 45°, diagonal = 32 * sqrt(2) ≈ 45.25
 	var expected_bounds_diagonal := SHAPE_SIZE.x * sqrt(2.0)
-	
+
 	# Both width and height of bounds should be approximately the diagonal
 	assert_float(polygon_bounds_size.x).append_failure_message(
-		"Rotated 45° rectangle bounding box width should be ~%.2f (diagonal). Got %.2f" % 
+		"Rotated 45° rectangle bounding box width should be ~%.2f (diagonal). Got %.2f" %
 		[expected_bounds_diagonal, polygon_bounds_size.x]
 	).is_equal_approx(expected_bounds_diagonal, 1.0)
-	
+
 	assert_float(polygon_bounds_size.y).append_failure_message(
-		"Rotated 45° rectangle bounding box height should be ~%.2f (diagonal). Got %.2f" % 
+		"Rotated 45° rectangle bounding box height should be ~%.2f (diagonal). Got %.2f" %
 		[expected_bounds_diagonal, polygon_bounds_size.y]
 	).is_equal_approx(expected_bounds_diagonal, 1.0)
 
@@ -208,18 +208,18 @@ func test_rectangle_to_polygon_45_degree_rotation() -> void:
 func test_rectangle_to_polygon_90_degree_rotation() -> void:
 	var shape := RectangleShape2D.new()
 	shape.size = SHAPE_SIZE
-	
+
 	var transform := Transform2D()
 	transform = transform.rotated(ROTATION_90_DEG)
 	transform.origin = ORIGIN
-	
+
 	var polygon := GBGeometryMath.convert_shape_to_polygon(shape, transform)
-	
+
 	# Should have 4 vertices for rectangle
 	assert_int(polygon.size()).append_failure_message(
 		"Rectangle polygon should have 4 vertices, got %d" % polygon.size()
 	).is_equal(4)
-	
+
 	# Calculate bounding box of rotated polygon
 	var min_point := Vector2(INF, INF)
 	var max_point := Vector2(-INF, -INF)
@@ -228,9 +228,9 @@ func test_rectangle_to_polygon_90_degree_rotation() -> void:
 		min_point.y = min(min_point.y, point.y)
 		max_point.x = max(max_point.x, point.x)
 		max_point.y = max(max_point.y, point.y)
-	
+
 	var polygon_bounds_size := max_point - min_point
-	
+
 	# For a SQUARE rotated 90°, bounding box should be same size (32x32)
 	assert_vector(polygon_bounds_size).append_failure_message(
 		"Square rotated 90° should have same bounding box (32x32). Got %s" % str(polygon_bounds_size)
@@ -244,7 +244,7 @@ func test_rectangle_to_polygon_90_degree_rotation() -> void:
 ## Setup: 32x32 rectangle at tile (0,0), 16x16 tiles, no rotation
 ## Act: Calculate which tiles the shape overlaps
 ## Expected: Exactly 4 tiles (2x2 grid)
-## 
+##
 ## This establishes the baseline: unrotated shape = 4 tiles
 func test_unrotated_rectangle_covers_4_tiles() -> void:
 	# This test will need TileMapLayer - add TODO for now
@@ -255,7 +255,7 @@ func test_unrotated_rectangle_covers_4_tiles() -> void:
 ## Setup: 32x32 rectangle at tile (0,0), 16x16 tiles, rotated 45°
 ## Act: Calculate which tiles the shape overlaps
 ## Expected: ~4-6 tiles (actual shape coverage, not bounding box)
-## 
+##
 ## BUG HYPOTHESIS: Current implementation uses axis-aligned bounding box which is 45x45,
 ## causing it to detect 3x3 = 9 tiles instead of the actual ~4-6 tiles the shape covers
 func test_rotated_45_degree_rectangle_covers_similar_tiles() -> void:
@@ -267,7 +267,7 @@ func test_rotated_45_degree_rectangle_covers_similar_tiles() -> void:
 ## Setup: 32x32 square at tile (0,0), 16x16 tiles, rotated 90°
 ## Act: Calculate which tiles the shape overlaps
 ## Expected: Exactly 4 tiles (rotation doesn't change coverage for a square)
-## 
+##
 ## This verifies that 90° rotation of a SQUARE should produce identical tile coverage
 func test_rotated_90_degree_square_covers_4_tiles() -> void:
 	# This test will need TileMapLayer - add TODO for now
@@ -290,7 +290,7 @@ func _format_transform(transform: Transform2D) -> String:
 func _format_polygon_bounds(polygon: PackedVector2Array) -> String:
 	if polygon.size() == 0:
 		return "empty"
-	
+
 	var min_point := Vector2(INF, INF)
 	var max_point := Vector2(-INF, -INF)
 	for point in polygon:
@@ -298,7 +298,7 @@ func _format_polygon_bounds(polygon: PackedVector2Array) -> String:
 		min_point.y = min(min_point.y, point.y)
 		max_point.x = max(max_point.x, point.x)
 		max_point.y = max(max_point.y, point.y)
-	
+
 	var size := max_point - min_point
 	return "min=%s max=%s size=%s" % [str(min_point), str(max_point), str(size)]
 

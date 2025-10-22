@@ -3,7 +3,7 @@ extends GdUnitTestSuite
 @warning_ignore("unused_parameter")
 @warning_ignore("return_value_discarded")
 
-# Test Constants  
+# Test Constants
 const DEFAULT_RECT_SIZE: Vector2 = Vector2(32, 32)  # API changed from extents to size (double the old values)
 const CUSTOM_RECT_EXTENTS: Vector2 = Vector2(10, 20)  # Input extents parameter to factory
 const CUSTOM_RECT_SIZE: Vector2 = Vector2(20, 40)     # Expected size output (extents * 2)
@@ -26,7 +26,7 @@ func before_test() -> void:
 	var env: AllSystemsTestEnvironment = env_scene.instantiate()
 	add_child(env)
 	auto_free(env)
-	
+
 	_injector = env.injector
 
 
@@ -75,14 +75,14 @@ func test_create_empty_tile_map_layer() -> void:
 
 func test_create_static_body_with_rect_shape_default() -> void:
 	var body: StaticBody2D = GodotTestFactory.create_static_body_with_rect_shape(self)
-	
+
 	# Validate body setup
 	_assert_static_body_valid(body, "static_body_with_rect_shape_default")
-	
-	# Validate shape configuration 
+
+	# Validate shape configuration
 	var rect_shape: RectangleShape2D = _get_rect_shape_from_body(body)
 	assert_that(rect_shape.size).append_failure_message(
-		"Default rectangle shape size mismatch - Expected: %s, Actual: %s, Shape extents may have changed to size API" % 
+		"Default rectangle shape size mismatch - Expected: %s, Actual: %s, Shape extents may have changed to size API" %
 		[str(DEFAULT_RECT_SIZE), str(rect_shape.size)]
 	).is_equal(DEFAULT_RECT_SIZE)
 
@@ -96,7 +96,7 @@ func test_create_static_body_with_rect_shape_custom() -> void:
 
 	var rect_shape: RectangleShape2D = _get_rect_shape_from_body(body)
 	assert_that(rect_shape.size).append_failure_message(
-		"Custom rectangle shape size mismatch - Expected: %s, Actual: %s, Input extents: %s, Factory doubles extents to get size" % 
+		"Custom rectangle shape size mismatch - Expected: %s, Actual: %s, Input extents: %s, Factory doubles extents to get size" %
 		[str(CUSTOM_RECT_SIZE), str(rect_shape.size), str(CUSTOM_RECT_EXTENTS)]
 	).is_equal(CUSTOM_RECT_SIZE)
 
@@ -108,7 +108,7 @@ func test_create_area2d_with_circle_shape() -> void:
 
 	var circle_shape: CircleShape2D = _get_circle_shape_from_area(area)
 	assert_that(circle_shape.radius).append_failure_message(
-		"Area2D circle shape radius mismatch - Expected: %s, Actual: %s, Input radius: %s" % 
+		"Area2D circle shape radius mismatch - Expected: %s, Actual: %s, Input radius: %s" %
 		[str(DEFAULT_CIRCLE_RADIUS), str(circle_shape.radius), str(DEFAULT_CIRCLE_RADIUS)]
 	).is_equal(DEFAULT_CIRCLE_RADIUS)
 
@@ -228,11 +228,11 @@ func _assert_static_body_valid(body: StaticBody2D, context: String) -> void:
 	assert_object(body).append_failure_message(
 		"StaticBody2D should not be null for context: %s" % context
 	).is_not_null()
-	
+
 	assert_object(body.get_parent()).append_failure_message(
 		"StaticBody2D should be parented to test instance for context: %s, parent: %s" % [context, str(body.get_parent())]
 	).is_same(self)
-	
+
 	assert_int(body.get_child_count()).append_failure_message(
 		"StaticBody2D should have %d children for context: %s, actual count: %d" % [EXPECTED_PARENT_CHILDREN, context, body.get_child_count()]
 	).is_equal(EXPECTED_PARENT_CHILDREN)
@@ -242,15 +242,15 @@ func _assert_area2d_valid(area: Area2D, context: String) -> void:
 	assert_object(area).append_failure_message(
 		"Area2D should not be null for context: %s" % context
 	).is_not_null()
-	
+
 	assert_object(area.get_parent()).append_failure_message(
 		"Area2D should be parented to test instance for context: %s, parent: %s" % [context, str(area.get_parent())]
 	).is_same(self)
-	
+
 	assert_int(area.get_child_count()).append_failure_message(
 		"Area2D should have %d children for context: %s, actual count: %d" % [EXPECTED_PARENT_CHILDREN, context, area.get_child_count()]
 	).is_equal(EXPECTED_PARENT_CHILDREN)
-	
+
 	assert_int(area.collision_layer).append_failure_message(
 		"Area2D collision layer should be %d for context: %s, actual: %d" % [DEFAULT_COLLISION_LAYER, context, area.collision_layer]
 	).is_equal(DEFAULT_COLLISION_LAYER)
@@ -261,11 +261,11 @@ func _get_rect_shape_from_body(body: StaticBody2D) -> RectangleShape2D:
 	assert_object(collision_shape).append_failure_message(
 		"StaticBody2D should have CollisionShape2D as first child, got: %s" % str(collision_shape)
 	).is_not_null()
-	
+
 	assert_object(collision_shape.shape).append_failure_message(
 		"CollisionShape2D should have RectangleShape2D shape, got: %s" % str(collision_shape.shape)
 	).is_instanceof(RectangleShape2D)
-	
+
 	return collision_shape.shape as RectangleShape2D
 
 func _get_circle_shape_from_body(body: StaticBody2D) -> CircleShape2D:
@@ -274,11 +274,11 @@ func _get_circle_shape_from_body(body: StaticBody2D) -> CircleShape2D:
 	assert_object(collision_shape).append_failure_message(
 		"StaticBody2D should have CollisionShape2D as first child, got: %s" % str(collision_shape)
 	).is_not_null()
-	
+
 	assert_object(collision_shape.shape).append_failure_message(
 		"CollisionShape2D should have CircleShape2D shape, got: %s" % str(collision_shape.shape)
 	).is_instanceof(CircleShape2D)
-	
+
 	return collision_shape.shape as CircleShape2D
 
 func _get_circle_shape_from_area(area: Area2D) -> CircleShape2D:
@@ -287,40 +287,40 @@ func _get_circle_shape_from_area(area: Area2D) -> CircleShape2D:
 	assert_object(collision_shape).append_failure_message(
 		"Area2D should have CollisionShape2D as first child, got: %s" % str(collision_shape)
 	).is_not_null()
-	
+
 	assert_object(collision_shape.shape).append_failure_message(
 		"CollisionShape2D should have CircleShape2D shape, got: %s" % str(collision_shape.shape)
 	).is_instanceof(CircleShape2D)
-	
+
 	return collision_shape.shape as CircleShape2D
 
 func _calculate_polygon_bounds(polygon: PackedVector2Array) -> Rect2:
 	"""Calculates bounding rectangle for polygon"""
 	if polygon.is_empty():
 		return Rect2()
-	
+
 	var min_point: Vector2 = polygon[0]
 	var max_point: Vector2 = polygon[0]
-	
+
 	for point in polygon:
 		min_point = Vector2(min(min_point.x, point.x), min(min_point.y, point.y))
 		max_point = Vector2(max(max_point.x, point.x), max(max_point.y, point.y))
-	
+
 	return Rect2(min_point, max_point - min_point)
 
 func _calculate_polygon_area(polygon: PackedVector2Array) -> float:
 	"""Calculates area of polygon using shoelace formula"""
 	if polygon.size() < 3:
 		return 0.0
-	
+
 	var area: float = 0.0
 	var n: int = polygon.size()
-	
+
 	for i in range(n):
 		var j: int = (i + 1) % n
 		area += polygon[i].x * polygon[j].y
 		area -= polygon[j].x * polygon[i].y
-	
+
 	return abs(area) / 2.0
 
 #endregion

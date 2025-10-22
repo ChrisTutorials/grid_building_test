@@ -31,15 +31,15 @@ func test_environment_scene_loading() -> void:
 	# Test that GBTestConstants can load each environment type
 	var env_types: Array = [
 		[GBTestConstants.EnvironmentType.ALL_SYSTEMS, "ALL_SYSTEMS"],
-		[GBTestConstants.EnvironmentType.BUILDING_TEST, "BUILDING_TEST"],  
+		[GBTestConstants.EnvironmentType.BUILDING_TEST, "BUILDING_TEST"],
 		[GBTestConstants.EnvironmentType.COLLISION_TEST, "COLLISION_TEST"],
 		[GBTestConstants.EnvironmentType.ISOMETRIC_TEST, "ISOMETRIC_TEST"]
 	]
-	
+
 	for env_data: Array in env_types:
 		var environment_type: GBTestConstants.EnvironmentType = env_data[0]
 		var type_name: String = env_data[1]
-		
+
 		var env_scene: PackedScene = GBTestConstants.get_environment_scene(environment_type)
 		assert_that(env_scene).append_failure_message("%s environment scene should load successfully" % type_name).is_not_null()
 
@@ -47,15 +47,15 @@ func test_environment_scene_instantiation() -> void:
 	# Test that the loaded scene can be instantiated
 	var env_types: Array = [
 		[GBTestConstants.EnvironmentType.ALL_SYSTEMS, "ALL_SYSTEMS"],
-		[GBTestConstants.EnvironmentType.BUILDING_TEST, "BUILDING_TEST"],  
+		[GBTestConstants.EnvironmentType.BUILDING_TEST, "BUILDING_TEST"],
 		[GBTestConstants.EnvironmentType.COLLISION_TEST, "COLLISION_TEST"],
 		[GBTestConstants.EnvironmentType.ISOMETRIC_TEST, "ISOMETRIC_TEST"]
 	]
-	
+
 	for env_data: Array in env_types:
 		var environment_type: GBTestConstants.EnvironmentType = env_data[0]
 		var type_name: String = env_data[1]
-		
+
 		var env_scene: PackedScene = GBTestConstants.get_environment_scene(environment_type)
 		assert_that(env_scene).append_failure_message("%s environment scene should be available" % type_name).is_not_null()
 
@@ -68,15 +68,15 @@ func test_environment_uses_same_test_container() -> void:
 	# Note: ISOMETRIC_TEST may use a different container (isometric-specific)
 	var env_types: Array = [
 		[GBTestConstants.EnvironmentType.ALL_SYSTEMS, "ALL_SYSTEMS"],
-		[GBTestConstants.EnvironmentType.BUILDING_TEST, "BUILDING_TEST"],  
+		[GBTestConstants.EnvironmentType.BUILDING_TEST, "BUILDING_TEST"],
 		[GBTestConstants.EnvironmentType.COLLISION_TEST, "COLLISION_TEST"],
 		[GBTestConstants.EnvironmentType.ISOMETRIC_TEST, "ISOMETRIC_TEST"]
 	]
-	
+
 	for env_data: Array in env_types:
 		var environment_type: GBTestConstants.EnvironmentType = env_data[0]
 		var type_name: String = env_data[1]
-		
+
 		var env_scene: PackedScene = GBTestConstants.get_environment_scene(environment_type)
 		assert_that(env_scene).append_failure_message("%s environment scene should be available" % type_name).is_not_null()
 
@@ -108,7 +108,7 @@ func test_environment_uses_same_test_container() -> void:
 			# Verify placement rules are consistent (single source of truth)
 			var placement_rules: Array[PlacementRule] = container.get_placement_rules()
 			GBTestDiagnostics.buffer("[CONTAINER_TEST] %s environment placement_rules count: %d" % [type_name, placement_rules.size()])
-			
+
 			# All test environments should have the same placement rules from the shared container
 			var expected_rules: Array[PlacementRule] = expected_container.get_placement_rules()
 			var context := GBTestDiagnostics.flush_for_assert()
@@ -133,7 +133,7 @@ func test_environment_tilemaps_have_correct_dimensions() -> void:
 	for env_data: Array in env_types:
 		var environment_type: GBTestConstants.EnvironmentType = env_data[0]
 		var type_name: String = env_data[1]
-		
+
 		var env_scene: PackedScene = GBTestConstants.get_environment_scene(environment_type)
 		assert_that(env_scene).is_not_null().append_failure_message("%s environment scene should be available" % type_name)
 
@@ -149,22 +149,22 @@ func test_environment_tilemaps_have_correct_dimensions() -> void:
 
 		var tile_map: TileMapLayer = env.tile_map_layer
 		var used_rect: Rect2i = tile_map.get_used_rect()
-		
+
 		# Expected dimensions: 31x31 tiles from (-15, -15) to (15, 15) inclusive
 		# This gives us used_rect.position = (-15, -15) and used_rect.size = (31, 31)
 		var expected_position: Vector2i = Vector2i(-15, -15)
 		var expected_size: Vector2i = Vector2i(31, 31)
 		var expected_end: Vector2i = Vector2i(15, 15)  # position + size - 1
 		var actual_end: Vector2i = used_rect.position + used_rect.size - Vector2i(1, 1)
-		
+
 		assert_vector(Vector2(used_rect.position)).is_equal(Vector2(expected_position)).append_failure_message(
 			"%s tilemap used_rect.position should be %s but was %s" % [type_name, expected_position, used_rect.position]
 		)
-		
+
 		assert_vector(Vector2(used_rect.size)).is_equal(Vector2(expected_size)).append_failure_message(
 			"%s tilemap used_rect.size should be %s (31x31) but was %s" % [type_name, expected_size, used_rect.size]
 		)
-		
+
 		assert_vector(Vector2(actual_end)).is_equal(Vector2(expected_end)).append_failure_message(
 			"%s tilemap should end at %s but ends at %s (used_rect=%s)" % [type_name, expected_end, actual_end, used_rect]
 		)
@@ -189,7 +189,7 @@ func test_environment_tilemaps_have_correct_dimensions() -> void:
 			Vector2i(15, 15),   # Bottom-right corner
 			Vector2i(-10, -12), # Conservative safe zone position
 		]
-		
+
 		for test_pos: Vector2i in test_positions:
 			var tile_data: TileData = tile_map.get_cell_tile_data(test_pos)
 			assert_object(tile_data).is_not_null().append_failure_message(

@@ -31,7 +31,7 @@ func before_test() -> void:
 	env = runner.scene() as AllSystemsTestEnvironment
 	_container = env.get_container()
 	system = env.building_system
-	
+
 	# Access shared states from the pre-configured test container
 	var states := _container.get_states()
 	assert_object(states).append_failure_message(
@@ -42,7 +42,7 @@ func before_test() -> void:
 
 	# Assign placed_parent so built instances have a parent
 	states.building.placed_parent = env
-	
+
 	# Create a placeable with rules for testing
 	placeable_with_rules = _create_test_placeable_with_rules()
 	assert_object(placeable_with_rules).append_failure_message(
@@ -130,7 +130,7 @@ func _assert_preview_valid_and_named(preview: Node2D, expected_name: String) -> 
 	assert_object(preview).append_failure_message(
 		"Building system preview should not be null after enter_build_mode"
 	).is_not_null()
-	
+
 	if preview != null:
 		assert_str(preview.name).append_failure_message(
 			"Preview name should be '%s' but was '%s'" % [expected_name, preview.name]
@@ -141,7 +141,7 @@ func _create_test_placeable_with_rules() -> Placeable:
 	var placeable: Placeable = Placeable.new()
 	placeable.packed_scene = placeable_2d_test.packed_scene
 	placeable.display_name = "Test Placeable With Rules"
-	
+
 	# Create properly configured collision rule
 	var collision_rule: CollisionsCheckRule = CollisionsCheckRule.new()
 	collision_rule.apply_to_objects_mask = 1
@@ -150,11 +150,11 @@ func _create_test_placeable_with_rules() -> Placeable:
 	# Initialize messages to prevent setup issues
 	if collision_rule.messages == null:
 		collision_rule.messages = CollisionRuleSettings.new()
-	
+
 	# Create tile rule with proper configuration
 	var tile_rule: ValidPlacementTileRule = ValidPlacementTileRule.new()
 	tile_rule.expected_tile_custom_data = {"buildable": true}
-	
+
 	placeable.placement_rules = [collision_rule, tile_rule]
 	return placeable
 
@@ -163,7 +163,7 @@ func _create_different_test_placeable_with_rules() -> Placeable:
 	var placeable: Placeable = Placeable.new()
 	placeable.packed_scene = GBTestConstants.eclipse_scene  # Use a different scene
 	placeable.display_name = "Different Test Placeable"
-	
+
 	# Create properly configured collision rule
 	var collision_rule: CollisionsCheckRule = CollisionsCheckRule.new()
 	collision_rule.apply_to_objects_mask = 1
@@ -172,11 +172,11 @@ func _create_different_test_placeable_with_rules() -> Placeable:
 	# Initialize messages to prevent setup issues
 	if collision_rule.messages == null:
 		collision_rule.messages = CollisionRuleSettings.new()
-	
+
 	# Create tile rule with proper configuration
 	var tile_rule: ValidPlacementTileRule = ValidPlacementTileRule.new()
 	tile_rule.expected_tile_custom_data = {"buildable": true}
-	
+
 	placeable.placement_rules = [collision_rule, tile_rule]
 	return placeable
 #endregion

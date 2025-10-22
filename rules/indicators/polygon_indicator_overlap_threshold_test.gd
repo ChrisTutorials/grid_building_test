@@ -62,11 +62,11 @@ func test_polygon_preview_indicators_respect_min_overlap_ratio() -> void:
 	# Use collision rule from constants
 	var rule: CollisionsCheckRule = GBTestConstants.COLLISIONS_CHECK_RULE
 	var rules: Array[PlacementRule] = [rule]
-	
+
 	# Setup the rule
 	var setup_issues: Array[String] = rule.setup(_state)
 	assert_array(setup_issues).is_empty()
-	
+
 	var setup_ok: PlacementReport = _manager.try_setup(rules, _state, true)
 	assert_bool(setup_ok.is_successful()).append_failure_message("IndicatorManager.try_setup failed for polygon preview").is_true()
 

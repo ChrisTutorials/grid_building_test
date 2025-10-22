@@ -6,7 +6,7 @@ extends GdUnitTestSuite
 ##
 ## THRESHOLD DOCUMENTATION (Critical for Test Design):
 ## - CollisionGeometryUtils uses 5% minimum area overlap threshold
-## - Polygons < 5% of tile area return zero tiles (prevents spurious micro-detections)  
+## - Polygons < 5% of tile area return zero tiles (prevents spurious micro-detections)
 ## - For 16×16 tiles: minimum overlap = 12.8 square units
 ## - For 32×32 tiles: minimum overlap = 51.2 square units
 ## - Test polygons should be ≥25% of tile area for reliable positive results
@@ -20,7 +20,7 @@ extends GdUnitTestSuite
 ## - test_polygon_convexity: 11 test cases for shape classification
 ## - test_isometric_transformations: 12 test cases for coordinate transformations
 ## - test_polygon_overlaps_rect: 17 test cases covering overlap detection scenarios
-## - test_isometric_transformations: 12 test cases covering different transformation types  
+## - test_isometric_transformations: 12 test cases covering different transformation types
 ## - test_edge_cases_and_boundaries: 11 test cases covering degenerate and boundary conditions
 ## - test_polygon_convexity: 11 test cases covering convexity detection
 ## Total: 65+ individual test cases with centralized logic and maintainable parameters
@@ -44,7 +44,7 @@ class PolygonTestFactory:
 			center + Vector2(half_size, half_size),
 			center + Vector2(-half_size, half_size)
 		])
-	
+
 	static func create_rectangle(width: float, height: float, center: Vector2 = Vector2.ZERO) -> PackedVector2Array:
 		var half_w: float = width / 2.0
 		var half_h: float = height / 2.0
@@ -54,14 +54,14 @@ class PolygonTestFactory:
 			center + Vector2(half_w, half_h),
 			center + Vector2(-half_w, half_h)
 		])
-	
+
 	static func create_triangle(size: float = 20.0, center: Vector2 = Vector2.ZERO) -> PackedVector2Array:
 		return PackedVector2Array([
 			center + Vector2(0, -size/2),
 			center + Vector2(-size/2, size/2),
 			center + Vector2(size/2, size/2)
 		])
-	
+
 	static func create_l_shape(size: float = 16.0, center: Vector2 = Vector2.ZERO) -> PackedVector2Array:
 		var s: float = size / 4.0  # Scale factor
 		return PackedVector2Array([
@@ -72,12 +72,12 @@ class PolygonTestFactory:
 			center + Vector2(3*s, 3*s),    # Bottom-right
 			center + Vector2(-3*s, 3*s)    # Bottom-left
 		])
-	
+
 	static func create_u_shape(size: float = 32.0, center: Vector2 = Vector2.ZERO) -> PackedVector2Array:
 		var s: float = size / 4.0
 		return PackedVector2Array([
 			center + Vector2(-2*s, -s),    # Top-left
-			center + Vector2(2*s, -s),     # Top-right  
+			center + Vector2(2*s, -s),     # Top-right
 			center + Vector2(2*s, 0),      # Right-middle
 			center + Vector2(s/2, 0),      # Inner-right
 			center + Vector2(s/2, s/2),    # Inner-bottom-right
@@ -85,13 +85,13 @@ class PolygonTestFactory:
 			center + Vector2(-s/2, 0),     # Inner-left
 			center + Vector2(-2*s, 0),     # Left-middle
 		])
-	
+
 	static func create_concave_chevron(size: float = 24.0, center: Vector2 = Vector2.ZERO) -> PackedVector2Array:
 		var s: float = size / 4.0
 		return PackedVector2Array([
 			center + Vector2(-2*s, -s),    # Left outer
 			center + Vector2(0, s),        # Center point (creates indent)
-			center + Vector2(2*s, -s),     # Right outer  
+			center + Vector2(2*s, -s),     # Right outer
 			center + Vector2(s, -2*s),     # Right inner
 			center + Vector2(-s, -2*s)     # Left inner
 		])
@@ -100,9 +100,9 @@ class PolygonTestFactory:
 		# Matches the "SimpleTrapezoid" from runtime_scene_analysis.txt
 		# Polygon: [(-32.0, 12.0), (-16.0, -12.0), (17.0, -12.0), (32.0, 12.0)]
 		return PackedVector2Array([
-			Vector2(-32, 12), 
-			Vector2(-16, -12), 
-			Vector2(17, -12), 
+			Vector2(-32, 12),
+			Vector2(-16, -12),
+			Vector2(17, -12),
 			Vector2(32, 12)
 		])
 
@@ -110,7 +110,7 @@ class PolygonTestFactory:
 class TileRectFactory:
 	static func create_tile_rect(tile_x: int, tile_y: int, tile_size: Vector2 = DEFAULT_TILE_SIZE) -> Rect2:
 		return Rect2(Vector2(tile_x * tile_size.x, tile_y * tile_size.y), tile_size)
-	
+
 	static func create_centered_tile_rect(tile_size: Vector2 = DEFAULT_TILE_SIZE) -> Rect2:
 		return Rect2(-tile_size / 2, tile_size)
 
@@ -163,11 +163,11 @@ func test_trapezoid_world_transform_and_tile_offsets() -> void:
 ## Parameterized test for comprehensive polygon tile offset computation
 @warning_ignore("unused_parameter")
 func test_compute_polygon_tile_offsets(
-	test_name: String, 
-	polygon_points: PackedVector2Array, 
-	world_position: Vector2, 
-	tile_size: Vector2, 
-	expected_min_offsets: int, 
+	test_name: String,
+	polygon_points: PackedVector2Array,
+	world_position: Vector2,
+	tile_size: Vector2,
+	expected_min_offsets: int,
 	description: String,
 	test_parameters := [
 		# Basic geometric shapes
@@ -181,7 +181,7 @@ func test_compute_polygon_tile_offsets(
 		# Triangle shapes
 		["triangle_single_tile", PackedVector2Array([Vector2(0,-10), Vector2(-8,8), Vector2(8,8)]), Vector2(20,20), Vector2(16,16), 1, "Triangle within single tile"],
 		["triangle_multi_tile", PackedVector2Array([Vector2(0,-20), Vector2(-16,16), Vector2(16,16)]), Vector2(32,32), Vector2(16,16), 2, "Triangle spanning multiple tiles"],
-		# Diamond/rhombus shapes  
+		# Diamond/rhombus shapes
 		["diamond_shape", PackedVector2Array([Vector2(0,-12), Vector2(12,0), Vector2(0,12), Vector2(-12,0)]), Vector2(32,32), Vector2(16,16), 1, "Diamond shape centered in tile"],
 		["trapezoid_from_runtime", PolygonTestFactory.create_trapezoid_from_runtime(), Vector2(440, 552), Vector2(16,16), 2, "Trapezoid from runtime should cover at least 2 tiles"],
 		# Different tile sizes
@@ -197,25 +197,25 @@ func test_compute_polygon_tile_offsets(
 	var world_points: PackedVector2Array = []
 	for point: Vector2 in polygon_points:
 		world_points.append(world_position + point)
-	
+
 	# Calculate center tile position
 	var center_tile := Vector2i(int(world_position.x / tile_size.x), int(world_position.y / tile_size.y))
-	
+
 	# Act - compute tile offsets
 	var offsets := CollisionGeometryUtils.compute_polygon_tile_offsets(world_points, tile_size, center_tile, TileSet.TILE_SHAPE_SQUARE)
-	
+
 	# Assert - check that we get expected number of offsets
 	var actual_count := offsets.size()
 	assert_bool(actual_count >= expected_min_offsets).override_failure_message(
-		"Test '%s': %s. Expected at least %d tile offsets, got %d. World points: %s, Center tile: %s, Offsets: %s" % 
+		"Test '%s': %s. Expected at least %d tile offsets, got %d. World points: %s, Center tile: %s, Offsets: %s" %
 		[test_name, description, expected_min_offsets, actual_count, str(world_points), str(center_tile), str(offsets)]
 	)
-	
+
 	# Additional validation - offsets should be reasonable (not too far from center)
 	for offset in offsets:
 		var distance := offset.length()
 		assert_bool(distance <= 10).override_failure_message(
-			"Test '%s': Offset %s is unreasonably far from center tile (distance: %f)" % 
+			"Test '%s': Offset %s is unreasonably far from center tile (distance: %f)" %
 			[test_name, str(offset), distance]
 		)
 
@@ -235,25 +235,25 @@ func test_edge_cases_and_boundaries(
 		["single_point", PackedVector2Array([Vector2(32, 32)]), Vector2(16, 16), Vector2i(2, 2), 0, true, "Single point should return empty offsets"],
 		["two_points_line", PackedVector2Array([Vector2(32, 32), Vector2(48, 32)]), Vector2(16, 16), Vector2i(2, 2), 0, true, "Line segment should return empty offsets"],
 		["collinear_points", PackedVector2Array([Vector2(0, 0), Vector2(10, 0), Vector2(20, 0)]), Vector2(16, 16), Vector2i(0, 0), 0, true, "Collinear points should return empty offsets"],
-		
+
 		# Boundary alignment cases
 		["tile_aligned_square", PackedVector2Array([Vector2(0, 0), Vector2(16, 0), Vector2(16, 16), Vector2(0, 16)]), Vector2(16, 16), Vector2i(0, 0), 1, true, "Tile-aligned square should cover exactly 1 tile"],
 		["half_tile_offset", PackedVector2Array([Vector2(8, 8), Vector2(24, 8), Vector2(24, 24), Vector2(8, 24)]), Vector2(16, 16), Vector2i(1, 1), 4, true, "Half-tile offset should cover 4 tiles"],
-		
+
 		# Micro polygons - sized to meet the 5% area threshold (minimum 12.8 square units for 16x16 tile)
 		["micro_square", PackedVector2Array([Vector2(17, 17), Vector2(25, 17), Vector2(25, 25), Vector2(17, 25)]), Vector2(16, 16), Vector2i(1, 1), 1, true, "Micro square (8x8=64 units, 25% of tile) should register 1 tile"],
 		["sub_pixel_triangle", PackedVector2Array([Vector2(16.1, 16.1), Vector2(23.9, 16.1), Vector2(20, 23.9)]), Vector2(16, 16), Vector2i(1, 1), 1, true, "Sub-pixel triangle with sufficient area should register 1 tile"],
 		["floating_precision_square", PackedVector2Array([Vector2(16.1, 16.1), Vector2(23.9, 16.1), Vector2(23.9, 23.9), Vector2(16.1, 23.9)]), Vector2(16, 16), Vector2i(1, 1), 1, true, "Floating point precision square with sufficient area"],
-		
+
 		# Large tile sizes vs small polygons - ensure meeting 5% threshold
 		["small_in_large_tile", PackedVector2Array([Vector2(16, 16), Vector2(24, 16), Vector2(24, 24), Vector2(16, 24)]), Vector2(32, 32), Vector2i(0, 0), 1, true, "Small polygon (8x8=64 units, 6.25% of 32x32 tile) should register"],
-		
+
 		# Very large polygons - corrected expectation based on actual calculation
 		["massive_square", PackedVector2Array([Vector2(-100, -100), Vector2(100, -100), Vector2(100, 100), Vector2(-100, 100)]), Vector2(16, 16), Vector2i(0, 0), 196, true, "Massive polygon (200x200 units) covers 14x14=196 tiles"],
-		
+
 		# Precision edge cases - corrected to document actual behavior of very small polygons
 		["floating_precision", PackedVector2Array([Vector2(15.999, 15.999), Vector2(16.001, 15.999), Vector2(16.001, 16.001), Vector2(15.999, 16.001)]), Vector2(16, 16), Vector2i(1, 0), 0, true, "Tiny floating point precision polygon (0.002x0.002 units) returns 0 tiles due to 5% area threshold"],
-		
+
 		# Very small polygons below 5% threshold - should return 0 tiles
 		["truly_micro_square", PackedVector2Array([Vector2(17, 17), Vector2(19, 17), Vector2(19, 19), Vector2(17, 19)]), Vector2(16, 16), Vector2i(1, 1), 0, true, "Truly micro square (2x2=4 units, 1.56% of tile) should return 0 tiles due to 5% threshold"],
 	]
@@ -262,19 +262,19 @@ func test_edge_cases_and_boundaries(
 	var offsets := CollisionGeometryUtils.compute_polygon_tile_offsets(
 		polygon_points, tile_size, center_tile, TileSet.TILE_SHAPE_SQUARE
 	)
-	
+
 	if should_succeed:
 		# Assert expected number of results
 		assert_int(offsets.size()).append_failure_message(
 			"Test '%s': %s. Expected %d offsets, got %d. Polygon: %s, Tile size: %s, Center: %s, Offsets: %s" %
 			[test_name, description, expected_result_size, offsets.size(), str(polygon_points), str(tile_size), str(center_tile), str(offsets)]
 		).is_equal(expected_result_size)
-		
+
 		# Validate that offsets are reasonable (not extremely far from center)
 		for offset in offsets:
 			var distance := offset.length()
 			assert_bool(distance <= 50).append_failure_message(
-				"Test '%s': Offset %s is unreasonably far from center (distance: %f)" % 
+				"Test '%s': Offset %s is unreasonably far from center (distance: %f)" %
 				[test_name, str(offset), distance]
 			).is_true()
 	else:
@@ -292,23 +292,23 @@ func test_failing_mapper_case() -> void:
 	])
 	var tile_size := Vector2(40, 40)
 	var center_tile := Vector2i(8, 8)  # 320/40 = 8
-	
+
 	var offsets := CollisionGeometryUtils.compute_polygon_tile_offsets(world_points, tile_size, center_tile, TileSet.TILE_SHAPE_SQUARE)
-	
+
 	# This should definitely return at least 1 offset since the polygon overlaps the center tile
 	assert_bool(offsets.size() > 0).override_failure_message(
 		"Failing mapper case: 40x40 square at (300,300)-(340,340) should overlap tiles. " +
-		"Center tile: %s, World points: %s, Got offsets: %s" % 
+		"Center tile: %s, World points: %s, Got offsets: %s" %
 		[str(center_tile), str(world_points), str(offsets)]
 	)
-	
+
 	# The polygon should overlap the center tile (0,0 offset) at minimum
 	var has_center_offset := false
 	for offset in offsets:
 		if offset == Vector2i(0, 0):
 			has_center_offset = true
 			break
-	
+
 	assert_bool(has_center_offset).override_failure_message(
 		"Failing mapper case: Should include center tile offset (0,0). Got offsets: %s" % str(offsets)
 	)
@@ -328,20 +328,20 @@ func test_polygon_convexity(
 		["triangle_convex", "create_triangle", [20.0, Vector2.ZERO], true, "Triangle should be convex"],
 		["regular_hexagon", "create_regular_polygon", [6, 20.0, Vector2.ZERO], true, "Regular hexagon should be convex"],
 		["diamond_convex", "create_diamond", [16.0, Vector2.ZERO], true, "Diamond should be convex"],
-		
+
 		# Non-convex/concave shapes
 		["l_shape_concave", "create_l_shape", [24.0, Vector2.ZERO], false, "L-shape should be non-convex"],
 		["u_shape_concave", "create_u_shape", [32.0, Vector2.ZERO], false, "U-shape should be non-convex"],
 		["chevron_convex", "create_concave_chevron", [24.0, Vector2.ZERO], true, "Chevron shape is actually convex"],
 		["star_concave", "create_star", [5, 20.0, 10.0, Vector2.ZERO], false, "Star shape should be non-convex"],
-		
+
 		# Edge cases - degenerate cases may be considered convex by the algorithm
 		["triangle_degenerate", "create_triangle_degenerate", [], true, "Degenerate triangle (collinear) is considered convex"],
 		["self_intersecting", "create_self_intersecting", [], false, "Self-intersecting polygon should not be convex"],
 	]
 ) -> void:
 	var polygon: PackedVector2Array
-	
+
 	# Create polygon using factory or manual creation
 	match polygon_factory:
 		"create_square":
@@ -384,10 +384,10 @@ func test_polygon_convexity(
 			])
 		_:
 			polygon = PolygonTestFactory.create_square(16.0, Vector2.ZERO)  # fallback
-	
+
 	# Test convexity
 	var is_convex := CollisionGeometryUtils.is_polygon_convex(polygon)
-	
+
 	assert_bool(is_convex).append_failure_message(
 		"Test '%s': %s. Polygon: %s, Expected convex: %s, Got: %s" %
 		[test_name, description, str(polygon), str(expected_convex), str(is_convex)]
@@ -397,11 +397,11 @@ func test_polygon_convexity(
 func test_collision_geometry_calculator_concave_tile_overlap() -> void:
 	# This test verifies that CollisionGeometryCalculator correctly handles concave polygons
 	# by properly detecting tile intersections even in concave areas
-	
+
 	# Create a U-shaped concave polygon
 	var concave_u_shape: PackedVector2Array = PackedVector2Array([
 		Vector2(-32, -16),  # Top-left
-		Vector2(32, -16),   # Top-right  
+		Vector2(32, -16),   # Top-right
 		Vector2(32, 0),     # Right-middle
 		Vector2(8, 0),      # Inner-right
 		Vector2(8, 8),      # Inner-bottom-right
@@ -409,33 +409,33 @@ func test_collision_geometry_calculator_concave_tile_overlap() -> void:
 		Vector2(-8, 0),     # Inner-left
 		Vector2(-32, 0),    # Left-middle
 	])
-	
+
 	var tile_size: Vector2 = Vector2(16, 16)
 	var tile_type: TileSet.TileShape = TileSet.TILE_SHAPE_SQUARE
 	var min_overlap_ratio: float = 0.05  # 5% minimum overlap (standard threshold)
-	
+
 	# Call the CollisionGeometryCalculator directly to test concave polygon handling
 	var overlapped_tiles: Array[Vector2i] = CollisionGeometryCalculator.calculate_tile_overlap(
 		concave_u_shape, tile_size, tile_type, GodotTestFactory.create_empty_tile_map_layer(self), 0.01, min_overlap_ratio
 	)
-	
+
 	GBTestDiagnostics.buffer("CollisionGeometryCalculator test - overlapped tiles: %s" % str(overlapped_tiles))
 	var context := GBTestDiagnostics.flush_for_assert()
-	
+
 	# Convert to center-relative coordinates for analysis (assuming center at origin)
-	var center_tile: Vector2i = Vector2i(0, 0)  # Origin tile 
+	var center_tile: Vector2i = Vector2i(0, 0)  # Origin tile
 	var relative_tiles: Array[Vector2i] = []
 	for tile: Vector2i in overlapped_tiles:
 		relative_tiles.append(tile - center_tile)
-	
+
 	# Test that important tiles ARE included (the bottom of the U does intersect these tiles)
-	# For this U-shape, tiles (0,0) and (-1,0) DO intersect because the bottom edge 
+	# For this U-shape, tiles (0,0) and (-1,0) DO intersect because the bottom edge
 	# of the U extends from (-8,8) to (8,8), which overlaps these tile areas
 	var expected_tiles: Array[Vector2i] = [
 		Vector2i(0, 0),   # Center tile - SHOULD be included (bottom of U intersects this tile)
 		Vector2i(-1, 0),  # Left-center - SHOULD be included (bottom of U intersects this tile)
 	]
-	
+
 	# Verify that the algorithm correctly includes tiles that intersect the concave polygon
 	for expected_tile: Vector2i in expected_tiles:
 		var tile_found: bool = false
@@ -443,15 +443,15 @@ func test_collision_geometry_calculator_concave_tile_overlap() -> void:
 			if overlapped_tile == expected_tile:
 				tile_found = true
 				break
-		
+
 		assert_bool(tile_found).append_failure_message(
 			"CollisionGeometryCalculator should include tile %s which intersects the concave polygon. Tiles found: %s\nContext: %s" % [expected_tile, str(overlapped_tiles), context]
 		).is_true()
-	
+
 	# Verify minimum expected tile count (U-shape should intersect multiple tiles)
 	assert_int(overlapped_tiles.size()).append_failure_message(
 		"U-shaped concave polygon should intersect multiple tiles, got %d: %s%s%s" % [
-			overlapped_tiles.size(), str(overlapped_tiles), 
+			overlapped_tiles.size(), str(overlapped_tiles),
 			"\n" if relative_tiles.size() > 0 else "",
 			"Relative tiles: %s" % str(relative_tiles) if relative_tiles.size() > 0 else ""
 		]
@@ -473,33 +473,33 @@ func test_polygon_overlaps_rect(
 		["large_square", "create_square", [20.0, Vector2.ZERO], Vector2.ZERO, DEFAULT_MIN_OVERLAP, true, "20x20 square should overlap centered tile"],
 		["centered_rectangle", "create_rectangle", [16.0, 10.0, Vector2.ZERO], Vector2.ZERO, DEFAULT_MIN_OVERLAP, true, "16x10 rectangle should overlap centered tile"],
 		["centered_triangle", "create_triangle", [20.0, Vector2.ZERO], Vector2.ZERO, DEFAULT_MIN_OVERLAP, true, "Triangle should overlap centered tile"],
-		
+
 		# No overlap cases
 		["distant_square", "create_square", [8.0, Vector2.ZERO], Vector2(100, 100), DEFAULT_MIN_OVERLAP, false, "Distant square should not overlap centered tile"],
 		["far_triangle", "create_triangle", [10.0, Vector2.ZERO], Vector2(50, 50), DEFAULT_MIN_OVERLAP, false, "Far triangle should not overlap centered tile"],
-		
+
 		# Threshold sensitivity tests
 		["small_square_loose", "create_square", [6.0, Vector2.ZERO], Vector2.ZERO, DEFAULT_MIN_OVERLAP, true, "Small square should pass 5% overlap threshold"],
 		["small_square_strict", "create_square", [6.0, Vector2.ZERO], Vector2.ZERO, STRICT_MIN_OVERLAP, false, "Small square should fail 15% overlap threshold"],
 		["tiny_square_loose", "create_square", [4.0, Vector2.ZERO], Vector2.ZERO, DEFAULT_MIN_OVERLAP, true, "Tiny square should pass 5% threshold"],
 		["tiny_square_strict", "create_square", [4.0, Vector2.ZERO], Vector2.ZERO, STRICT_MIN_OVERLAP, false, "Tiny square should fail 15% threshold"],
-		
+
 		# Complex/concave shapes
 		["l_shape_center", "create_l_shape", [24.0, Vector2.ZERO], Vector2.ZERO, DEFAULT_MIN_OVERLAP, true, "L-shape should overlap center tile"],
 		["u_shape_center_loose", "create_u_shape", [32.0, Vector2.ZERO], Vector2.ZERO, DEFAULT_MIN_OVERLAP, true, "U-shape center overlap with 5% threshold"],
-		["u_shape_center_strict", "create_u_shape", [32.0, Vector2.ZERO], Vector2.ZERO, STRICT_MIN_OVERLAP, true, "U-shape center overlap with 15% threshold"], 
+		["u_shape_center_strict", "create_u_shape", [32.0, Vector2.ZERO], Vector2.ZERO, STRICT_MIN_OVERLAP, true, "U-shape center overlap with 15% threshold"],
 		["u_shape_center_very_strict", "create_u_shape", [32.0, Vector2.ZERO], Vector2.ZERO, VERY_STRICT_MIN_OVERLAP, true, "U-shape center overlap with 25% threshold"],
 		["concave_chevron", "create_concave_chevron", [24.0, Vector2.ZERO], Vector2.ZERO, DEFAULT_MIN_OVERLAP, true, "Concave chevron should overlap center"],
-		
+
 		# Edge cases - should not overlap
 		["empty_polygon", "", [], Vector2.ZERO, DEFAULT_MIN_OVERLAP, false, "Empty polygon should not overlap"],
-		["single_point", "", [], Vector2.ZERO, DEFAULT_MIN_OVERLAP, false, "Single point should not overlap"],  
+		["single_point", "", [], Vector2.ZERO, DEFAULT_MIN_OVERLAP, false, "Single point should not overlap"],
 		["line_segment", "", [], Vector2.ZERO, DEFAULT_MIN_OVERLAP, false, "Line segment should not overlap"],
 	]
 ) -> void:
 	var tile_rect: Rect2 = TileRectFactory.create_centered_tile_rect()
 	var polygon: PackedVector2Array
-	
+
 	# Handle edge cases with custom polygon creation
 	if test_name == "empty_polygon":
 		polygon = PackedVector2Array()
@@ -524,22 +524,22 @@ func test_polygon_overlaps_rect(
 				polygon = PolygonTestFactory.create_concave_chevron(factory_params[0], factory_params[1])
 			_:
 				polygon = PackedVector2Array()  # fallback
-		
+
 		# Apply offset if specified
 		if polygon_offset != Vector2.ZERO:
 			var offset_polygon: PackedVector2Array = []
 			for point in polygon:
 				offset_polygon.append(point + polygon_offset)
 			polygon = offset_polygon
-	
+
 	# Test the overlap
 	var actual_overlap: bool = CollisionGeometryCalculator.polygon_overlaps_rect(
 		polygon, tile_rect, DEFAULT_EPSILON, overlap_threshold
 	)
-	
+
 	# Assert the result
 	assert_bool(actual_overlap).append_failure_message(
-		"Test '%s': %s. Polygon: %s, Threshold: %.2f, Expected: %s, Got: %s" % 
+		"Test '%s': %s. Polygon: %s, Threshold: %.2f, Expected: %s, Got: %s" %
 		[test_name, description, str(polygon), overlap_threshold, str(expected_overlap), str(actual_overlap)]
 	).is_equal(expected_overlap)
 
@@ -576,8 +576,8 @@ func test_polygon_overlaps_rect(
 ## - rotate_30_square / rotate_60_rectangle (expected 3..4): Moderate rotations increase bounding box and
 ##   commonly touch multiple tiles; 30° rotation of 32×32 typically touches 4 tiles, while a 60° rectangle
 ##   (40×20) often touches 3 tiles.
-## - rotate_45_square / combined_45_square (expected 3): 45° rotation creates diamond with vertices 
-##   at distance 22.627 from center. Geometric analysis shows this diamond intersects exactly 
+## - rotate_45_square / combined_45_square (expected 3): 45° rotation creates diamond with vertices
+##   at distance 22.627 from center. Geometric analysis shows this diamond intersects exactly
 ##   3 tiles [(-1,-1), (0,-1), (0,0)], not 4. The rotated diamond doesn't extend far enough
 ##   into corner tiles to achieve 4-tile coverage.
 ##   sanitization this is one of the historically fragile cases — the test ensures we get at least 4 tiles.
@@ -596,18 +596,18 @@ func test_isometric_transformations(
 		["skew_30_square", "skew", 30.0, "create_square", [32.0, Vector2.ZERO], 4, "30° skewed square should cover 4+ tiles"],
 		["skew_45_square", "skew", 45.0, "create_square", [32.0, Vector2.ZERO], 3, "45° skewed square should cover 3+ tiles (geometric analysis confirmed)"],
 		["skew_30_trapezoid", "skew", 30.0, "create_trapezoid_from_runtime", [], 2, "30° skewed trapezoid should cover 2+ tiles"],
-		
+
 		# Rotation transformations
 		["rotate_30_square", "rotation", 30.0, "create_square", [32.0, Vector2.ZERO], 4, "30° rotated square should cover 4+ tiles"],
 		["rotate_45_square", "rotation", 45.0, "create_square", [32.0, Vector2.ZERO], 3, "45° rotated square should cover 3+ tiles (geometric analysis confirmed)"],
 		["rotate_30_trapezoid", "rotation", 30.0, "create_trapezoid_from_runtime", [], 2, "30° rotated trapezoid should cover 2+ tiles"],
 		["rotate_60_rectangle", "rotation", 60.0, "create_rectangle", [40.0, 20.0, Vector2.ZERO], 3, "60° rotated rectangle should cover 3+ tiles"],
-		
+
 		# Combined transformations - adjusted expectations based on actual geometry
 		["combined_30_square", "combined", 30.0, "create_square", [32.0, Vector2.ZERO], 4, "30° combined transform square should cover 4+ tiles"],
 		["combined_45_square", "combined", 45.0, "create_square", [32.0, Vector2.ZERO], 4, "45° combined transform square should cover 4+ tiles"],
 		["combined_30_trapezoid", "combined", 30.0, "create_trapezoid_from_runtime", [], 3, "30° combined transform trapezoid should cover 3+ tiles"],
-		
+
 		# Complex shapes with transformations
 		["rotate_30_triangle", "rotation", 30.0, "create_triangle", [24.0, Vector2.ZERO], 2, "30° rotated triangle should cover 2+ tiles"],
 		["skew_30_l_shape", "skew", 30.0, "create_l_shape", [32.0, Vector2.ZERO], 3, "30° skewed L-shape should cover 3+ tiles"],
@@ -618,7 +618,7 @@ func test_isometric_transformations(
 	var _CalcScript := preload("res://addons/grid_building/placement/manager/components/collision_geometry_calculator.gd")
 	_CalcScript.debug_polygon_overlap = true
 	var tile_size := Vector2(32, 32)
-	
+
 	# Create base polygon
 	var base_polygon: PackedVector2Array
 	match polygon_factory:
@@ -634,11 +634,11 @@ func test_isometric_transformations(
 			base_polygon = PolygonTestFactory.create_trapezoid_from_runtime()
 		_:
 			base_polygon = PolygonTestFactory.create_square(32.0, Vector2.ZERO)  # fallback
-	
+
 	# Create transformation matrix
 	var transform: Transform2D
 	var angle_rad := deg_to_rad(angle_degrees)
-	
+
 	match transform_type:
 		"skew":
 			transform = Transform2D(Vector2(1, tan(angle_rad)), Vector2(0, 1), Vector2.ZERO)
@@ -650,32 +650,32 @@ func test_isometric_transformations(
 			transform = rotation_transform * skew_transform
 		_:
 			transform = Transform2D.IDENTITY  # fallback
-	
+
 	# Apply transformation
 	var transformed_polygon: PackedVector2Array = []
 	for point in base_polygon:
 		transformed_polygon.append(transform * point)
-	
+
 	# Calculate tile offsets
 	var offsets: Array[Vector2i] = CollisionGeometryUtils.compute_polygon_tile_offsets(
 		transformed_polygon, tile_size, Vector2i.ZERO
 	)
-	
+
 	# Assert minimum number of tiles covered
 	assert_int(offsets.size()).append_failure_message(
-		"Test '%s': %s. Transform: %s %s°, Base polygon: %s, Transformed: %s, Expected min: %d, Got: %d offsets: %s" % 
+		"Test '%s': %s. Transform: %s %s°, Base polygon: %s, Transformed: %s, Expected min: %d, Got: %d offsets: %s" %
 		[test_name, description, transform_type, str(angle_degrees), str(base_polygon), str(transformed_polygon), expected_min_offsets, offsets.size(), str(offsets)]
 	).is_greater_equal(expected_min_offsets)
-	
+
 	# Verify that we get some reasonable results (not empty and not too many)
 	assert_int(offsets.size()).append_failure_message(
 		"Test '%s': No tile offsets calculated for transformed polygon" % test_name
 	).is_greater(0)
-	
+
 	assert_int(offsets.size()).append_failure_message(
 		"Test '%s': Too many tile offsets (%d), possible calculation error" % [test_name, offsets.size()]
 	).is_less_equal(20)  # Reasonable upper bound
-	
+
 	# Check that the center tile (0,0) is included for most cases
 	var has_center := offsets.has(Vector2i(0, 0))
 	if expected_min_offsets >= 1:
@@ -695,12 +695,12 @@ func test_isometric_diamond_single_tile_collision() -> void:
 	var tile_map: TileMapLayer = TileMapLayer.new()
 	add_child(tile_map)
 	auto_free(tile_map)
-	
+
 	var tile_set: TileSet = TileSet.new()
 	tile_set.tile_shape = TileSet.TILE_SHAPE_ISOMETRIC
 	tile_set.tile_size = Vector2i(90, 50)  # Isometric demo tile size
 	tile_map.tile_set = tile_set
-	
+
 	# Blacksmith Blue collision polygon (from diagnostic output)
 	# This is a diamond shape centered at origin that should occupy ONE tile
 	var diamond_polygon: PackedVector2Array = PackedVector2Array([
@@ -709,13 +709,13 @@ func test_isometric_diamond_single_tile_collision() -> void:
 		Vector2(42.0, 0.0),    # Right point
 		Vector2(0.0, 24.0)     # Bottom point
 	])
-	
+
 	# Transform polygon to world space at position (90, 50) to match test scenario
 	var building_position: Vector2 = Vector2(90.0, 50.0)
 	var world_polygon: PackedVector2Array = PackedVector2Array()
 	for point in diamond_polygon:
 		world_polygon.append(point + building_position)
-	
+
 	# Calculate tile overlap using the actual collision geometry calculator
 	var overlapped_tiles: Array[Vector2i] = CollisionGeometryCalculator.calculate_tile_overlap(
 		world_polygon,
@@ -725,7 +725,7 @@ func test_isometric_diamond_single_tile_collision() -> void:
 		0.01,   # epsilon
 		0.05    # min_overlap_ratio (5%)
 	)
-	
+
 	# The diamond should only overlap ONE tile (the center tile at 1,0 based on the global position)
 	assert_int(overlapped_tiles.size()).append_failure_message(
 		"Isometric diamond (single-tile building) should generate 1 tile overlap, got %d tiles: %s\nDiamond polygon: %s\nWorld polygon: %s\nBuilding position: %s\nTile size: %s" % [

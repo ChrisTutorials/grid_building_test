@@ -37,10 +37,10 @@ func _create_collision_test_setup(collision_obj: CollisionObject2D) -> Collision
 ## Helper method to verify basic collision processing results (DRY principle)
 func _verify_collision_result(result: Dictionary, expected_min_tiles: int, expected_max_tiles: int, test_description: String) -> void:
 	assert_that(result.size()).append_failure_message("Expected collision processing to return tile offsets for %s, got empty result" % test_description).is_greater(0)
-	
+
 	# Verify the center tile is included
 	assert_that(result.has(_test_env.center_tile)).append_failure_message("Expected center tile %s to be included in collision results for %s" % [_test_env.center_tile, test_description]).is_true()
-	
+
 	# Verify tile count is in expected range
 	assert_that(result.size()).append_failure_message("Expected %d-%d tiles for %s, got %d tiles" % [expected_min_tiles, expected_max_tiles, test_description, result.size()]).is_between(expected_min_tiles, expected_max_tiles)
 
@@ -62,7 +62,7 @@ func test_collision_processor_shapes_square_tiles(
 		collision_obj = CollisionObjectTestFactory.create_static_body_with_rect(self, shape_size)
 	elif shape_type == "circle":
 		collision_obj = CollisionObjectTestFactory.create_static_body_with_circle(self, shape_size.x)  # Use x as radius
-	
+
 	collision_obj.position = _test_env.test_position
 	var test_data: CollisionTestSetup2D = _create_collision_test_setup(collision_obj)
 
@@ -110,14 +110,14 @@ func test_collision_processor_error_handling(
 	var collision_obj : CollisionObject2D= null
 	var test_data : CollisionTestSetup2D = null
 	var test_map : TileMapLayer = null
-	
+
 	if collision_obj_valid:
 		collision_obj = CollisionObjectTestFactory.create_static_body_with_rect(self, Vector2(16, 16))
 		# Don't add_child - factory already handles parenting
-	
+
 	if test_data_valid and collision_obj != null:
 		test_data = _create_collision_test_setup(collision_obj)
-	
+
 	if map_valid:
 		test_map = _test_env.top_down_map
 
@@ -210,12 +210,12 @@ func test_calculate_tile_range_shapes(
 	expected_height_span: int,
 	test_parameters := [
 		["rectangle", 32.0, 2, 2],  # 32x32 rectangle should span >1 tile in both dimensions
-		["circle", 20.0, 2, 2]      # radius 20 circle should span >1 tile in both dimensions  
+		["circle", 20.0, 2, 2]      # radius 20 circle should span >1 tile in both dimensions
 	]
 ) -> void:
 	var shape: Shape2D
 	var bounds: Rect2
-	
+
 	if shape_type == "rectangle":
 		shape = RectangleShape2D.new()
 		shape.size = Vector2(shape_param, shape_param)
@@ -224,13 +224,13 @@ func test_calculate_tile_range_shapes(
 		shape = CircleShape2D.new()
 		shape.radius = shape_param
 		bounds = Rect2(Vector2(840 - shape_param, 680 - shape_param), Vector2(shape_param * 2, shape_param * 2))
-	
+
 	var shape_transform: Transform2D = Transform2D()
 	shape_transform.origin = _test_env.test_position
-	
+
 	# Act
 	var result: Dictionary = _processor.calculate_tile_range(shape, bounds, _test_env.top_down_map, _test_env.tile_size, shape_transform)
-	
+
 	# Assert
 	assert_that(result).append_failure_message(
 		"calculate_tile_range should return a non-null result"
@@ -241,10 +241,10 @@ func test_calculate_tile_range_shapes(
 	assert_that(result.has("end_exclusive")).append_failure_message(
 		"calculate_tile_range result should contain 'end_exclusive' key"
 	).is_true()
-	
+
 	var start_tile: Vector2i = result["start"]
 	var end_exclusive: Vector2i = result["end_exclusive"]
-	
+
 	assert_that(end_exclusive.x - start_tile.x).append_failure_message("Expected width span >= %d for %s, got %d" % [expected_width_span, shape_type, end_exclusive.x - start_tile.x]).is_greater_equal(expected_width_span)
 	assert_that(end_exclusive.y - start_tile.y).append_failure_message("Expected height span >= %d for %s, got %d" % [expected_height_span, shape_type, end_exclusive.y - start_tile.y]).is_greater_equal(expected_height_span)
 
@@ -252,15 +252,15 @@ func test_calculate_tile_range_shapes(
 func test_process_shape_offsets_rectangle() -> void:
 	var collision_obj: CollisionObject2D = CollisionObjectTestFactory.create_static_body_with_rect(self, Vector2(32, 32))
 	collision_obj.position = _test_env.test_position
-	
+
 	var test_data: CollisionTestSetup2D = _create_collision_test_setup(collision_obj)
 	var rect_test_setup: RectCollisionTestingSetup = test_data.rect_collision_test_setups[0] as RectCollisionTestingSetup
-	
+
 	var shape_epsilon: float = 0.1
-	
+
 	# Act
 	var result: Dictionary = _processor.process_shape_offsets(rect_test_setup, test_data, _test_env.top_down_map, _test_env.center_tile, _test_env.tile_size, shape_epsilon, collision_obj)
-	
+
 	# Assert - result is a Dictionary[Vector2i, Array[Node2D]]
 	assert_that(result).append_failure_message(
 		"process_shape_offsets should return a non-null result for rectangle shape"
@@ -270,26 +270,26 @@ func test_process_shape_offsets_rectangle() -> void:
 	var expected_relative_offset: Vector2i = Vector2i(0, 0)
 	assert_that(result.has(expected_relative_offset)).append_failure_message("Expected relative offset %s to be included in shape offsets for collision object at center position" % expected_relative_offset).is_true()
 
-## Unit test for compute_shape_tile_offsets method  
+## Unit test for compute_shape_tile_offsets method
 func test_compute_shape_tile_offsets_rectangle() -> void:
 	var shape: RectangleShape2D = RectangleShape2D.new()
 	shape.size = Vector2(32, 32)
-	
+
 	var shape_transform: Transform2D = Transform2D()
 	shape_transform.origin = _test_env.test_position
-	
+
 	var shape_polygon: PackedVector2Array = GBGeometryMath.convert_shape_to_polygon(shape, shape_transform)
 	var start_tile: Vector2i = Vector2i(50, 40)
 	var end_exclusive: Vector2i = Vector2i(55, 45)
 	var shape_epsilon: float = 0.1
-	
+
 	# Act
 	var result: Array = _processor.compute_shape_tile_offsets(shape, shape_transform, _test_env.top_down_map, _test_env.tile_size, shape_epsilon, start_tile, end_exclusive, _test_env.center_tile, shape_polygon)
-	
+
 	# Assert
 	assert_that(result).is_not_null()
 	assert_that(result.size()).append_failure_message("Expected tile offsets to be calculated for rectangle shape, got %d results" % result.size()).is_greater(0)
-	
+
 	# Verify result contains Vector2i offsets
 	for offset: Variant in result:
 		assert_that(offset is Vector2i).append_failure_message("Expected all results to be Vector2i offsets, got %s" % type_string(typeof(offset))).is_true()

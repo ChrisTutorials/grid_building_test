@@ -128,7 +128,7 @@ func test_polygon_test_object_indicator_collision_filtering() -> void:
 			diag_logger.log_debug( "setup_report success=%s, indicators=%d" % [str(setup_report.is_successful()), setup_report.indicators_report.indicators.size() if setup_report.indicators_report != null else 0])
 		else:
 			GBTestDiagnostics.buffer("setup_report success=%s, indicators=%d" % [str(setup_report.is_successful()), setup_report.indicators_report.indicators.size() if setup_report.indicators_report != null else 0])
-	
+
 	var context := GBTestDiagnostics.flush_for_assert()
 	assert_object(setup_report).append_failure_message("IndicatorManager.try_setup returned null. Context: %s" % context).is_not_null()
 	assert_bool(setup_report.is_successful()).append_failure_message("IndicatorManager.try_setup failed. Context: %s" % context).is_true()
@@ -192,7 +192,7 @@ func test_indicator_rule_assignment_during_creation() -> void:
 	# Verify rules are properly assigned
 	var assigned_rules: Array[TileCheckRule] = indicator.get_rules()
 	assert_array(assigned_rules).has_size(1)
-	
+
 	assert_object(assigned_rules.get(0)).is_same(collision_rule).append_failure_message("First assigned rule should be the collision rule")
 
 	# Verify bidirectional relationship - rule should have indicator in its indicators array

@@ -1,7 +1,7 @@
 extends GdUnitTestSuite
 
 ## Comprehensive tests for GridPositionerLogic static methods and GridPositioner2D visibility behavior
-## 
+##
 ## **Consolidated from 5 test files to reduce maintenance overhead:**
 ## - grid_positioner_reconcile_and_recenter_test.gd (52 lines, 7 tests)
 ## - grid_positioner_end_of_frame_logging_test.gd (63 lines, 1 test)
@@ -56,7 +56,7 @@ func test_should_be_visible_off_mode_active_when_off() -> void:
 	var settings := _make_settings(true, true, true)
 	var last_mouse := GBMouseInputStatus.new()
 	var has_mouse := false
-	
+
 	var result := GridPositionerLogic.should_be_visible(GBEnums.Mode.OFF, settings, last_mouse, has_mouse)
 	assert_bool(result).append_failure_message("should_be_visible: OFF mode with active_when_off=true should be visible").is_true()
 
@@ -64,7 +64,7 @@ func test_should_be_visible_off_mode_not_active_when_off() -> void:
 	var settings := _make_settings(false, true, true)
 	var last_mouse := GBMouseInputStatus.new()
 	var has_mouse := false
-	
+
 	var result := GridPositionerLogic.should_be_visible(GBEnums.Mode.OFF, settings, last_mouse, has_mouse)
 	assert_bool(result).append_failure_message("should_be_visible: OFF mode with active_when_off=false should not be visible").is_false()
 
@@ -72,7 +72,7 @@ func test_should_be_visible_info_mode() -> void:
 	var settings := GridTargetingSettings.new()
 	var last_mouse := GBMouseInputStatus.new()
 	var has_mouse := false
-	
+
 	var result := GridPositionerLogic.should_be_visible(GBEnums.Mode.INFO, settings, last_mouse, has_mouse)
 	assert_bool(result).append_failure_message("should_be_visible: INFO mode should not be visible").is_false()
 
@@ -81,7 +81,7 @@ func test_should_be_visible_active_mode_with_last_mouse_allowed() -> void:
 	var last_mouse := GBMouseInputStatus.new()
 	last_mouse.allowed = true
 	var has_mouse := false
-	
+
 	var result := GridPositionerLogic.should_be_visible(GBEnums.Mode.MOVE, settings, last_mouse, has_mouse)
 	assert_bool(result).append_failure_message("should_be_visible: MOVE mode with allowed last mouse should be visible").is_true()
 
@@ -91,10 +91,10 @@ func test_should_be_visible_active_mode_with_mouse_world_and_enabled() -> void:
 	var last_mouse := GBMouseInputStatus.new()
 	last_mouse.allowed = false
 	var has_mouse := true
-	
+
 	var result := GridPositionerLogic.should_be_visible(GBEnums.Mode.MOVE, settings, last_mouse, has_mouse)
 	assert_bool(result).append_failure_message(
-		"Expected positioner to be visible with cached mouse world. Settings: mouse_enabled=%s, has_mouse_world=%s, last_mouse_allowed=%s, hide_on_handled=%s" % 
+		"Expected positioner to be visible with cached mouse world. Settings: mouse_enabled=%s, has_mouse_world=%s, last_mouse_allowed=%s, hide_on_handled=%s" %
 		[str(settings.enable_mouse_input), str(has_mouse), str(last_mouse.allowed), str(settings.hide_on_handled)]
 	).is_true()
 
@@ -104,31 +104,31 @@ func test_should_be_visible_active_mode_default() -> void:
 	var last_mouse := GBMouseInputStatus.new()
 	last_mouse.allowed = false
 	var has_mouse := false
-	
+
 	var result := GridPositionerLogic.should_be_visible(GBEnums.Mode.MOVE, settings, last_mouse, has_mouse)
 	assert_bool(result).append_failure_message("should_be_visible: MOVE mode default should be visible").is_true()
 
 func test_should_be_visible_for_mode_off_active() -> void:
 	var settings := _make_settings(true, true, true)
-	
+
 	var result := GridPositionerLogic.should_be_visible_for_mode(GBEnums.Mode.OFF, settings)
 	assert_bool(result).append_failure_message("should_be_visible_for_mode: OFF mode active should be visible").is_true()
 
 func test_should_be_visible_for_mode_off_not_active() -> void:
 	var settings := _make_settings(false, true, true)
-	
+
 	var result := GridPositionerLogic.should_be_visible_for_mode(GBEnums.Mode.OFF, settings)
 	assert_bool(result).append_failure_message("should_be_visible_for_mode: OFF mode not active should not be visible").is_false()
 
 func test_should_be_visible_for_mode_info() -> void:
 	var settings := GridTargetingSettings.new()
-	
+
 	var result := GridPositionerLogic.should_be_visible_for_mode(GBEnums.Mode.INFO, settings)
 	assert_bool(result).append_failure_message("should_be_visible_for_mode: INFO mode should not be visible").is_false()
 
 func test_should_be_visible_for_mode_active() -> void:
 	var settings := GridTargetingSettings.new()
-	
+
 	var result := GridPositionerLogic.should_be_visible_for_mode(GBEnums.Mode.MOVE, settings)
 	assert_bool(result).append_failure_message("should_be_visible_for_mode: MOVE mode should be visible").is_true()
 
@@ -159,12 +159,12 @@ func test_hide_on_handled_ignored_when_mouse_disabled() -> void:
 	var settings := _make_settings(true, true, false)
 	var blocked_mouse_status := GBMouseInputStatus.new()
 	blocked_mouse_status.set_from_values(false, Vector2.ZERO, 0, "blocked", Vector2.ZERO)
-	
+
 	var result := GridPositionerLogic.should_be_visible(GBEnums.Mode.BUILD, settings, blocked_mouse_status, false)
-	
+
 	assert_bool(result).is_true().append_failure_message(
 		"When mouse input is disabled, hide_on_handled should not apply even with blocked mouse input status. " +
-		"Settings: hide_on_handled=%s, mouse_enabled=%s, mouse_status.allowed=%s" % 
+		"Settings: hide_on_handled=%s, mouse_enabled=%s, mouse_status.allowed=%s" %
 		[str(settings.hide_on_handled), str(settings.enable_mouse_input), str(blocked_mouse_status.allowed)]
 	)
 
@@ -172,12 +172,12 @@ func test_hide_on_handled_applies_when_mouse_enabled() -> void:
 	var settings := _make_settings(true, true, true)
 	var blocked_mouse_status := GBMouseInputStatus.new()
 	blocked_mouse_status.set_from_values(false, Vector2.ZERO, 0, "blocked", Vector2.ZERO)
-	
+
 	var result := GridPositionerLogic.should_be_visible(GBEnums.Mode.BUILD, settings, blocked_mouse_status, false)
-	
+
 	assert_bool(result).is_false().append_failure_message(
 		"When mouse input is enabled, hide_on_handled should still apply with blocked mouse input status. " +
-		"Settings: hide_on_handled=%s, mouse_enabled=%s, mouse_status.allowed=%s" % 
+		"Settings: hide_on_handled=%s, mouse_enabled=%s, mouse_status.allowed=%s" %
 		[str(settings.hide_on_handled), str(settings.enable_mouse_input), str(blocked_mouse_status.allowed)]
 	)
 
@@ -293,7 +293,7 @@ func test_visibility_decision_trace() -> void:
 	var last_mouse := GBMouseInputStatus.new()
 	last_mouse.allowed = true
 	var has_mouse := true
-	
+
 	var trace := GridPositionerLogic.visibility_decision_trace(mode_state, settings, last_mouse, has_mouse)
 	assert_str(trace).append_failure_message("visibility_decision_trace: should contain mode=MOVE").contains("mode=MOVE")
 	assert_str(trace).append_failure_message("visibility_decision_trace: should contain last_mouse_allowed=true").contains("last_mouse_allowed=true")
@@ -305,7 +305,7 @@ func test_visibility_decision_trace_null_mode_state() -> void:
 	var settings := GridTargetingSettings.new()
 	var last_mouse := GBMouseInputStatus.new()
 	var has_mouse := false
-	
+
 	var trace := GridPositionerLogic.visibility_decision_trace(null, settings, last_mouse, has_mouse)
 	assert_str(trace).append_failure_message("visibility_decision_trace: null mode_state should contain mode=<none>").contains("mode=<none>")
 
@@ -314,7 +314,7 @@ func test_visibility_decision_trace_null_settings() -> void:
 	mode_state.current = GBEnums.Mode.OFF
 	var last_mouse := GBMouseInputStatus.new()
 	var has_mouse := false
-	
+
 	var trace := GridPositionerLogic.visibility_decision_trace(mode_state, null, last_mouse, has_mouse)
 	assert_str(trace).append_failure_message("visibility_decision_trace: null settings should contain mouse_enabled=<n/a>").contains("mouse_enabled=<n/a>")
 

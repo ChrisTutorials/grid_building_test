@@ -22,7 +22,7 @@ class CollisionResolutionTestData:
 	var expected_collision_obj: CollisionObject2D
 	var expected_test_setup: CollisionTestSetup2D
 	var cleanup_objects: Array[Node]
-	
+
 	func _init(p_collision_node: Node2D, p_test_setups: Array[CollisionTestSetup2D], p_expected_collision_obj: CollisionObject2D, p_expected_test_setup: CollisionTestSetup2D, p_cleanup_objects: Array[Node]) -> void:
 		collision_node = p_collision_node
 		test_setups = p_test_setups
@@ -60,10 +60,10 @@ func test_collision_object_resolution(test_name: String, setup_func: Callable, e
 	var test_setups: Array[CollisionTestSetup2D] = test_data.test_setups
 	var expected_collision_obj: CollisionObject2D = test_data.expected_collision_obj
 	var expected_test_setup: CollisionTestSetup2D = test_data.expected_test_setup
-	
+
 	# Resolve
 	var result: Variant = _resolver.resolve_collision_object(collision_node, test_setups)
-	
+
 	# Assert
 	assert_that(result.is_valid).append_failure_message("Resolution validity should match expected").is_equal(expected_valid)
 	if expected_valid:
@@ -74,7 +74,7 @@ func test_collision_object_resolution(test_name: String, setup_func: Callable, e
 		assert_that(result.collision_object).append_failure_message("Invalid resolution should return expected collision object").is_same(expected_collision_obj)
 		assert_that(result.test_setup).append_failure_message("Invalid resolution should return expected test setup").is_same(expected_test_setup)
 		assert_that(result.error_message).append_failure_message("Invalid resolution should contain expected error text").contains(expected_error_contains)
-	
+
 	# Cleanup
 	for obj: Node in test_data.cleanup_objects:
 		if is_instance_valid(obj):
@@ -84,15 +84,15 @@ func test_collision_object_resolution(test_name: String, setup_func: Callable, e
 func test_object_matches_layer_mask() -> void:
 	var collision_obj: CollisionObject2D = StaticBody2D.new()
 	collision_obj.collision_layer = 5  # Binary: 101
-	
+
 	# Test matching masks
 	assert_that(_resolver.object_matches_layer_mask(collision_obj, 1)).append_failure_message("Layer 1 should match collision object on layer 5").is_true()   # 001 & 101 = 001
 	assert_that(_resolver.object_matches_layer_mask(collision_obj, 4)).append_failure_message("Layer 4 should match collision object on layer 5").is_true()   # 100 & 101 = 100
 	assert_that(_resolver.object_matches_layer_mask(collision_obj, 2)).append_failure_message("Layer 2 should NOT match collision object on layer 5").is_false()  # 010 & 101 = 000
-	
+
 	# Test null object
 	assert_that(_resolver.object_matches_layer_mask(null, 1)).append_failure_message("Null object should not match any layer mask").is_false()
-	
+
 	# Cleanup
 	collision_obj.queue_free()
 
@@ -103,35 +103,35 @@ func _setup_direct_collision_object() -> CollisionResolutionTestData:
 	collision_obj.collision_layer = 1
 	var test_setup := CollisionTestSetup2D.new(collision_obj, Vector2(32, 32))
 	var test_setups: Array[CollisionTestSetup2D] = [test_setup]
-	
+
 	return CollisionResolutionTestData.new(collision_obj, test_setups, collision_obj, test_setup, [collision_obj])
 
 func _setup_collision_shape_with_parent() -> CollisionResolutionTestData:
 	var parent_obj: CollisionObject2D = StaticBody2D.new()
 	parent_obj.collision_layer = 2
-	
+
 	var shape := CollisionShape2D.new()
 	var rect_shape := RectangleShape2D.new()
 	rect_shape.size = Vector2(32, 32)
 	shape.shape = rect_shape
 	parent_obj.add_child(shape)
-	
+
 	var test_setup := CollisionTestSetup2D.new(parent_obj, Vector2(32, 32))
 	var test_setups: Array[CollisionTestSetup2D] = [test_setup]
-	
+
 	return CollisionResolutionTestData.new(shape, test_setups, parent_obj, test_setup, [parent_obj])
 
 func _setup_collision_polygon_with_parent() -> CollisionResolutionTestData:
 	var parent_obj: CollisionObject2D = StaticBody2D.new()
 	parent_obj.collision_layer = 4
-	
+
 	var polygon := CollisionPolygon2D.new()
 	polygon.polygon = [Vector2(-16, -16), Vector2(16, -16), Vector2(0, 16)]
 	parent_obj.add_child(polygon)
-	
+
 	var test_setup := CollisionTestSetup2D.new(parent_obj, Vector2(32, 32))
 	var test_setups: Array[CollisionTestSetup2D] = [test_setup]
-	
+
 	return CollisionResolutionTestData.new(polygon, test_setups, parent_obj, test_setup, [parent_obj])
 
 func _setup_collision_shape_without_parent() -> CollisionResolutionTestData:
@@ -139,34 +139,34 @@ func _setup_collision_shape_without_parent() -> CollisionResolutionTestData:
 	var circle_shape := CircleShape2D.new()
 	circle_shape.radius = 16
 	shape.shape = circle_shape
-	
+
 	var test_setups: Array[CollisionTestSetup2D] = []
-	
+
 	return CollisionResolutionTestData.new(shape, test_setups, null, null, [shape])
 
 func _setup_collision_polygon_without_parent() -> CollisionResolutionTestData:
 	var polygon := CollisionPolygon2D.new()
 	polygon.polygon = [Vector2(-8, -8), Vector2(8, -8), Vector2(0, 8)]
-	
+
 	var test_setups: Array[CollisionTestSetup2D] = []
-	
+
 	return CollisionResolutionTestData.new(polygon, test_setups, null, null, [polygon])
 
 func _setup_unsupported_node() -> CollisionResolutionTestData:
 	var node := Node2D.new()
 	var test_setups: Array[CollisionTestSetup2D] = []
-	
+
 	return CollisionResolutionTestData.new(node, test_setups, null, null, [node])
 
 func _setup_null_node() -> CollisionResolutionTestData:
 	var test_setups: Array[CollisionTestSetup2D] = []
-	
+
 	return CollisionResolutionTestData.new(null, test_setups, null, null, [])
 
 func _setup_collision_object_without_test_setup() -> CollisionResolutionTestData:
 	var collision_obj: CollisionObject2D = StaticBody2D.new()
 	collision_obj.collision_layer = 1
-	
+
 	var test_setups: Array[CollisionTestSetup2D] = []  # Empty test setups
-	
+
 	return CollisionResolutionTestData.new(collision_obj, test_setups, collision_obj, null, [collision_obj])

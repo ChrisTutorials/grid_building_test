@@ -12,45 +12,45 @@ var positioner: Node2D
 
 func before_test() -> void:
 	composition_container = GBTestConstants.TEST_COMPOSITION_CONTAINER
-	
+
 	# Create minimal tile map setup for testing
 	test_map = auto_free(TileMapLayer.new())
 	add_child(test_map)
 	var tile_set := TileSet.new()
 	tile_set.tile_size = Vector2i(GBTestConstants.DEFAULT_TILE_SIZE.x, GBTestConstants.DEFAULT_TILE_SIZE.y)
 	test_map.tile_set = tile_set
-	
+
 	# Create positioner for positioning tests
 	positioner = auto_free(Node2D.new())
 	add_child(positioner)
 	positioner.global_position = Vector2.ZERO
-	
+
 	# Create and configure targeting state with required properties
 	targeting_state = GridTargetingState.new(GBOwnerContext.new())
 	targeting_state.target_map = test_map
 	targeting_state.maps = [test_map]
 	targeting_state.positioner = positioner
-	
+
 	# Set up composition container with proper targeting state
 	var container_targeting_state: GridTargetingState = composition_container.get_targeting_state()
 	container_targeting_state.target_map = test_map
 	container_targeting_state.maps = [test_map]
 	container_targeting_state.positioner = positioner
-	
+
 	# Create IndicatorManager with dependency injection
 	indicator_manager = auto_free(IndicatorManager.create_with_injection(composition_container, positioner))
-	
+
 	# Create a basic test object with collision shape
 	test_object = Node2D.new()
 	test_object.position = GBTestConstants.OFF_GRID  # Set a specific non-zero position
 	add_child(auto_free(test_object))  # Add to scene tree and auto_free it
-	
+
 	var area: Area2D = Area2D.new()
 	auto_free(area)
 	area.collision_layer = GBTestConstants.TEST_COLLISION_LAYER
 	area.collision_mask = GBTestConstants.TEST_COLLISION_MASK
 	test_object.add_child(area)
-	
+
 	var collision_shape: CollisionShape2D = CollisionShape2D.new()
 	auto_free(collision_shape)
 	var rectangle_shape: RectangleShape2D = RectangleShape2D.new()
@@ -67,33 +67,33 @@ func after_test() -> void:
 
 func test_indicator_positions_are_relative_to_parent() -> void:
 	"""Test that indicators are positioned relative to their parent, not globally"""
-	
+
 	# Create a placement rule
 	var placement_rule: CollisionsCheckRule = CollisionsCheckRule.new()
 	placement_rule.apply_to_objects_mask = GBTestConstants.TEST_COLLISION_MASK
-	
+
 	# Set up the rule with targeting state - THIS IS CRITICAL!
 	var rule_setup_issues: Array[String] = placement_rule.setup(targeting_state)
 	if not rule_setup_issues.is_empty():
 		push_warning("Rule setup issues: %s" % str(rule_setup_issues))
-	
+
 	var rules: Array[TileCheckRule] = [placement_rule]
-	
+
 	# Set up indicators - this should create indicators relative to test_object position
 	indicator_manager.setup_indicators(test_object, rules)
-	
+
 	# Get the created indicators
 	var indicators: Array[RuleCheckIndicator] = indicator_manager.get_indicators()
-	
+
 	assert_that(indicators).append_failure_message(
 		"Should have created at least one indicator"
 	).is_not_empty()
-	
+
 	# Check that indicators are positioned relative to test_object, not globally
 	var test_object_global_pos: Vector2 = test_object.global_position
 	var diag: PackedStringArray = PackedStringArray()
 	diag.append("Test object global position: %s" % [test_object_global_pos])
-    
+
 	# DEBUG: Let's see what collision positions were detected (buffered)
 	diag.append("DEBUG: Number of indicators created: %d" % [indicators.size()])
 
@@ -108,8 +108,8 @@ func test_indicator_positions_are_relative_to_parent() -> void:
 		if indicator.get_parent():
 			parent_name = indicator.get_parent().name
 		diag.append("Indicator parent: %s" % [parent_name])
-        
-	# If positioned correctly relative to parent, the indicator's global position 
+
+	# If positioned correctly relative to parent, the indicator's global position
 	# should be near the test_object's global position (within tile bounds)
 		var distance_from_test_object: float = indicator_global_pos.distance_to(test_object_global_pos)
 
@@ -118,7 +118,7 @@ func test_indicator_positions_are_relative_to_parent() -> void:
 
 		var context := "\n".join(diag)
 		assert_that(distance_from_test_object).append_failure_message(
-			"Indicator at %s is too far from test object at %s (distance: %f). This suggests global positioning instead of relative positioning.\nContext: %s" % 
+			"Indicator at %s is too far from test object at %s (distance: %f). This suggests global positioning instead of relative positioning.\nContext: %s" %
 			[indicator_global_pos, test_object_global_pos, distance_from_test_object, context]
 		).is_less_equal(max_expected_distance)
 
@@ -129,26 +129,26 @@ func test_indicator_positions_are_relative_to_parent() -> void:
 
 func test_indicator_parent_hierarchy() -> void:
 	"""Test that indicators have correct parent hierarchy"""
-	
+
 	var placement_rule: CollisionsCheckRule = CollisionsCheckRule.new()
 	placement_rule.apply_to_objects_mask = GBTestConstants.TEST_COLLISION_MASK
-	
+
 	# Set up the rule with targeting state - THIS IS CRITICAL!
 	var rule_setup_issues: Array[String] = placement_rule.setup(targeting_state)
 	if not rule_setup_issues.is_empty():
 		push_warning("Rule setup issues: %s" % str(rule_setup_issues))
-	
+
 	var rules : Array[TileCheckRule] = [placement_rule]
-	
+
 	indicator_manager.setup_indicators(test_object, rules)
-	
+
 	# Check indicator parenting
 	var indicators: Array[RuleCheckIndicator] = indicator_manager.get_indicators()
-	
+
 	assert_that(indicators).append_failure_message(
 		"Should have created indicators"
 	).is_not_empty()
-	
+
 	var diag: PackedStringArray = PackedStringArray()
 	for indicator : RuleCheckIndicator in indicators:
 		var parent_name: String = "null"
@@ -156,7 +156,7 @@ func test_indicator_parent_hierarchy() -> void:
 			parent_name = indicator.get_parent().name
 		diag.append("Indicator parent: %s" % parent_name)
 		diag.append("Expected parent: IndicatorManager")
-        
+
 		# Indicators should be children of IndicatorManager
 		var context := "\n".join(diag)
 		assert_that(indicator.get_parent()).append_failure_message(
@@ -170,17 +170,17 @@ func test_indicator_parent_hierarchy() -> void:
 
 func test_multiple_positions_show_relative_behavior() -> void:
 	"""Test that indicators created at different test_object positions are positioned appropriately for collision detection"""
-	
+
 	var placement_rule: CollisionsCheckRule = CollisionsCheckRule.new()
 	placement_rule.apply_to_objects_mask = GBTestConstants.TEST_COLLISION_MASK
-	
+
 	# Set up the rule with targeting state - THIS IS CRITICAL!
 	var rule_setup_issues: Array[String] = placement_rule.setup(targeting_state)
 	if not rule_setup_issues.is_empty():
 		push_warning("Rule setup issues: %s" % str(rule_setup_issues))
-	
+
 	var rules : Array[TileCheckRule] = [placement_rule]
-	
+
 	# Position 1: Initial setup
 	test_object.position = Vector2(50, 50)
 	indicator_manager.setup_indicators(test_object, rules)
@@ -192,15 +192,15 @@ func test_multiple_positions_show_relative_behavior() -> void:
 			"global_pos": indicator.global_position,
 			"local_pos": indicator.position
 		})
-	
+
 	assert_that(initial_indicators_data).append_failure_message(
 		"Should have created indicators at first position"
 	).is_not_empty()
-	
+
 	# Clear indicators and move test object
 	indicator_manager.tear_down()
 	test_object.position = Vector2(200, 300)  # Move significantly
-	
+
 	# Position 2: Setup again at new position
 	indicator_manager.setup_indicators(test_object, rules)
 
@@ -211,39 +211,39 @@ func test_multiple_positions_show_relative_behavior() -> void:
 			"global_pos": indicator.global_position,
 			"local_pos": indicator.position
 		})
-	
+
 	# The collision system should generate different indicator positions when test_object moves
 	var test_object_movement := Vector2(200, 300) - Vector2(50, 50)  # (150, 250)
 	var diag: PackedStringArray = PackedStringArray()
 	diag.append("Test object movement: %s" % [test_object_movement])
 	diag.append("Test object moved from (50,50) to (200,300)")
-	
+
 	assert_that(moved_indicators_data).is_not_empty().append_failure_message(
 		"Should have created indicators at second position\nContext: %s" % "\n".join(diag)
 	)
-	
+
 	# Verify that some indicators have moved (basic sanity check)
 	var indicators_moved: bool = false
 	var min_count : int = min(initial_indicators_data.size(), moved_indicators_data.size())
-	
+
 	for i : int in range(min_count):
 		var initial_pos : Vector2 = initial_indicators_data[i]["global_pos"]
 		var moved_pos : Vector2 = moved_indicators_data[i]["global_pos"]
 		var actual_offset : Vector2 = moved_pos - initial_pos
 
 		diag.append("Indicator %d: initial=%s, moved=%s, actual_offset=%s" % [i, initial_pos, moved_pos, actual_offset])
-		
+
 		# Check if indicator moved at all (not necessarily by exact test_object movement)
 		if actual_offset.length() > 1.0:  # Moved by more than 1 pixel
 			indicators_moved = true
-		
+
 		# Verify indicators are positioned reasonably (within the map bounds)
 		var max_reasonable_distance: float = 1000.0  # Max reasonable distance from origin
 		assert_that(moved_pos.length()).append_failure_message(
 			"Indicator position seems unreasonable: %s (distance from origin: %f)" %
 			[moved_pos, moved_pos.length()]
 		).is_less_equal(max_reasonable_distance)
-	
+
 	# At minimum, verify that the indicator creation system responds to test_object position changes
 	# (This is a weaker assertion but more aligned with actual system behavior)
 	diag.append("Indicators moved: %s" % [indicators_moved])

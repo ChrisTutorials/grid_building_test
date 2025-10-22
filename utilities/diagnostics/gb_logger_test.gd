@@ -23,7 +23,7 @@ func before_test() -> void:
 	var debug_settings := GBDebugSettings.new()
 	debug_settings.level = DBG_LEVEL.DEBUG
 	_logger = GBLogger.new(debug_settings)
-	
+
 	_received_logs = []
 	var sink: Callable = func(level: int, context: String, message: String) -> void:
 		_received_logs.append({"level": level, "context": context, "message": message})
@@ -92,7 +92,7 @@ func test_context_from_get_stack() -> void:
 
 	assert_that(_received_logs[0]["context"]).append_failure_message("Context should not be null. Received logs: %s" % str(_received_logs)).is_not_null()
 	assert_that(_received_logs[0]["context"]).append_failure_message("Context should not be empty. Actual context: '%s' | Received: %s" % [_received_logs[0]["context"], str(_received_logs)]).is_not_empty()
-	
+
 	# Create detailed diagnostic information
 	var context: String = _received_logs[0]["context"]
 	var stack: Array = get_stack()
@@ -100,15 +100,15 @@ func test_context_from_get_stack() -> void:
 	for i in range(min(6, stack.size())):
 		var frame: Dictionary = stack[i] if i < stack.size() else {}
 		stack_info += " [%d]:%s:%s" % [i, frame.get("source", ""), frame.get("function", "")]
-	
+
 	# The context should either contain the filename and function name (if stack works)
 	# or indicate it's a test environment (if stack is empty)
 	var diagnostic: String = "Test: test_context_from_get_stack | Debug level: %s | Received logs: %s | %s" % [_logger.get_debug_settings().level, str(_received_logs), stack_info]
-	
+
 	# Accept either proper context or test environment fallback
 	var has_proper_context: bool = context.contains("gb_logger_test") and context.contains("test_context_from_get_stack")
 	var has_test_fallback: bool = context == "test_environment"
-	
+
 	assert_bool(has_proper_context or has_test_fallback).append_failure_message("Context '%s' should either contain test info or be 'test_environment'. %s" % [context, diagnostic]).is_true()
 
 func test_context_from_convenience_methods() -> void:
@@ -128,14 +128,14 @@ func test_context_from_convenience_methods() -> void:
 	for i in range(min(6, stack.size())):
 		var frame: Dictionary = stack[i] if i < stack.size() else {}
 		stack_info += " [%d]:%s:%s" % [i, frame.get("source", ""), frame.get("function", "")]
-	
+
 	# The context should still point to this test method, not the logger internals
 	# Accept either proper context or test environment fallback
 	var diagnostic2: String = "Test: test_context_from_convenience_methods | Debug level: %s | Received logs: %s | %s" % [_logger.get_debug_settings().level, str(_received_logs), stack_info]
-	
+
 	var has_proper_context2: bool = context.contains("gb_logger_test") and context.contains("test_context_from_convenience_methods")
 	var has_test_fallback2: bool = context == "test_environment"
-	
+
 	assert_bool(has_proper_context2 or has_test_fallback2).append_failure_message("Context '%s' should either contain test info or be 'test_environment'. %s" % [context, diagnostic2]).is_true()
 
 func _call_me() -> void:
@@ -179,7 +179,7 @@ func test_set_log_sink_works_for_errors() -> void:
 
 func test_default_emission_without_sink_calls_provider_and_does_not_crash() -> void:
 	_logger.set_log_sink(Callable())
-	
+
 	var called_container: Dictionary = {"v": false}
 	var provider: Callable = func() -> String:
 		called_container["v"] = true

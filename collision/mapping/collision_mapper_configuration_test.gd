@@ -28,7 +28,7 @@ func before_test() -> void:
 	_collision_mapper = _env.indicator_manager.get_collision_mapper()
 	_targeting_state = _env.grid_targeting_system.get_state()
 	_indicator_manager = _env.indicator_manager
-	
+
 	# Validate basic environment setup
 	assert_object(_collision_mapper).is_not_null().append_failure_message("CollisionMapper should not be null")
 	assert_object(_targeting_state).is_not_null().append_failure_message("GridTargetingState should not be null")
@@ -40,16 +40,16 @@ func _create_minimal_test_object() -> StaticBody2D:
 	test_object.name = MINIMAL_TEST_OBJECT_NAME
 	test_object.global_position = TEST_POSITION_MINIMAL
 	test_object.collision_layer = COLLISION_LAYER_DEFAULT
-	
+
 	var collision_shape: CollisionShape2D = CollisionShape2D.new()
 	var shape: RectangleShape2D = RectangleShape2D.new()
 	shape.size = SHAPE_SIZE_SQUARE
 	collision_shape.shape = shape
 	test_object.add_child(collision_shape)
-	
+
 	_env.objects_parent.add_child(test_object)
 	auto_free(test_object)
-	
+
 	return test_object
 
 # Helper method to create trapezoid test object
@@ -57,16 +57,16 @@ func _create_trapezoid_test_object() -> StaticBody2D:
 	var test_object: StaticBody2D = StaticBody2D.new()
 	test_object.name = PROPER_TEST_OBJECT_NAME
 	test_object.global_position = TEST_POSITION_TRAPEZOID
-	
+
 	var collision_shape: CollisionShape2D = CollisionShape2D.new()
 	var shape: ConvexPolygonShape2D = ConvexPolygonShape2D.new()
 	shape.points = _trapezoid_points
 	collision_shape.shape = shape
 	test_object.add_child(collision_shape)
-	
+
 	_env.add_child(test_object)
 	auto_free(test_object)
-	
+
 	return test_object
 
 # Helper method to create mock indicator
@@ -77,7 +77,7 @@ func _create_mock_indicator(indicator_name: String, collision_mask: int) -> Rule
 	mock_indicator.shape = RectangleShape2D.new()
 	auto_free(mock_indicator)
 	_env.add_child(mock_indicator)
-	
+
 	return mock_indicator
 
 # Helper method to setup targeting state for a target object
@@ -95,11 +95,11 @@ func _compute_expected_trapezoid_offsets(test_object: StaticBody2D) -> Array[Vec
 		int(test_object.global_position.x / TILE_SIZE.x),
 		int(test_object.global_position.y / TILE_SIZE.y)
 	)
-	
+
 	var world_polygon: PackedVector2Array = PackedVector2Array()
 	for point: Vector2 in _trapezoid_points:
 		world_polygon.append(point + test_object.global_position)
-	
+
 	return CollisionGeometryUtils.compute_polygon_tile_offsets(
 		world_polygon, TILE_SIZE, center_tile
 	)
@@ -109,19 +109,19 @@ func test_collision_mapper_minimal_setup() -> void:
 	# Arrange
 	var test_object: StaticBody2D = _create_minimal_test_object()
 	_setup_targeting_state(test_object)
-	
+
 	var mock_indicator: RuleCheckIndicator = _create_mock_indicator(MOCK_INDICATOR_NAME, COLLISION_LAYER_DEFAULT)
-	
+
 	var setup_list: Array[CollisionTestSetup2D] = CollisionTestSetup2D.create_test_setups_from_test_node(test_object, _targeting_state)
 	assert_that(setup_list.size()).append_failure_message("Expected create_test_setups_from_test_node to produce at least one setup for the test object").is_not_equal(0)
-	
+
 	_collision_mapper.setup(mock_indicator, setup_list)
-	
+
 	# Act
 	var col_objects: Array[Node2D] = [test_object]
 	var tile_check_rules: Array[TileCheckRule] = []
 	var positions_to_rules: Dictionary[Vector2i, Array] = _collision_mapper.map_collision_positions_to_rules(col_objects, tile_check_rules)
-	
+
 	# Assert
 	var positions: Array[Vector2i] = positions_to_rules.keys()
 	assert_int(positions_to_rules.size()).append_failure_message(
@@ -145,7 +145,7 @@ func test_collision_mapper_configuration_requirements() -> void:
 	var mock_indicator: RuleCheckIndicator = _create_mock_indicator("MockTestIndicator", COLLISION_LAYER_DEFAULT)
 	var mock_setups: Array[CollisionTestSetup2D] = []
 	_collision_mapper.setup(mock_indicator, mock_setups)
-	
+
 	assert_object(_collision_mapper.get("test_indicator")).is_same(mock_indicator).append_failure_message(
 		"CollisionMapper.setup(...) should set the test_indicator reference provided."
 	)
@@ -159,12 +159,12 @@ func test_proper_collision_mapper_setup() -> void:
 	# Arrange
 	var test_object: StaticBody2D = _create_trapezoid_test_object()
 	_setup_targeting_state(test_object)
-	
+
 	var expected_offsets: Array[Vector2i] = _compute_expected_trapezoid_offsets(test_object)
 	assert_int(expected_offsets.size()).append_failure_message(
 		"CollisionGeometryUtils should compute at least one tile offset for the trapezoid."
 	).is_not_equal(0)
-	
+
 	# Act: proper setup of collision mapper before mapping
 	var setups: Array[CollisionTestSetup2D] = CollisionTestSetup2D.create_test_setups_from_test_node(test_object, _targeting_state)
 	assert_int(setups.size()).append_failure_message("Expected at least one test setup for trapezoid owner").is_greater(0)
@@ -174,7 +174,7 @@ func test_proper_collision_mapper_setup() -> void:
 	var col_objects: Array[Node2D] = [test_object]
 	var tile_check_rules: Array[TileCheckRule] = []
 	var position_rules: Dictionary = _collision_mapper.map_collision_positions_to_rules(col_objects, tile_check_rules)
-	
+
 	# Assert
 	assert_bool(position_rules is Dictionary).is_true().append_failure_message("map_collision_positions_to_rules should return a Dictionary.")
 	assert_int(position_rules.size()).append_failure_message(
@@ -193,23 +193,23 @@ func test_proper_collision_mapper_setup() -> void:
 
 	for pos: Vector2i in keys_typed:
 		mapped_positions.append(pos)
-	
+
 	# Compare collision mapper results vs expected
 	var missing_positions: Array[Vector2i] = []
 	var expected_positions: Array[Vector2i] = []
-	
+
 	var center_tile: Vector2i = Vector2i(
 		int(test_object.global_position.x / TILE_SIZE.x),
 		int(test_object.global_position.y / TILE_SIZE.y)
 	)
-	
+
 	for offset in expected_offsets:
 		expected_positions.append(center_tile + offset)
-	
+
 	for expected_pos in expected_positions:
 		if not mapped_positions.has(expected_pos):
 			missing_positions.append(expected_pos)
-	
+
 	var failure_msg := "CollisionMapper should map all %d expected positions but is missing %d: %s. Expected: %s, Mapped: %s" % [
 		expected_positions.size(),
 		missing_positions.size(),

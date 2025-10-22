@@ -68,7 +68,7 @@ func test_indicator_collision_test_setup_empty_body() -> void:
 func test_create_test_setups_for_collision_owners_with_valid_object() -> void:
 	var body := _create_body_with_rectangle_shape()
 	var targeting_state := GridTargetingState.new(GBOwnerContext.new())
-	
+
 	# Set up the targeting state with the premade 31x31 test tilemap
 	var test_map_scene: PackedScene = GBTestConstants.TEST_TILE_MAP_LAYER_BUILDABLE
 	var test_map := test_map_scene.instantiate() as TileMapLayer
@@ -95,7 +95,7 @@ func test_create_test_setups_for_collision_owners_with_valid_object() -> void:
 # Test: create_test_setups_for_collision_owners with empty dictionary
 func test_create_test_setups_for_collision_owners_empty() -> void:
 	var targeting_state := GridTargetingState.new(GBOwnerContext.new())
-	
+
 	# Set up the targeting state with the premade 31x31 test tilemap
 	var test_map_scene: PackedScene = GBTestConstants.TEST_TILE_MAP_LAYER_BUILDABLE
 	var test_map := test_map_scene.instantiate() as TileMapLayer
@@ -103,7 +103,7 @@ func test_create_test_setups_for_collision_owners_empty() -> void:
 	auto_free(test_map)
 	targeting_state.target_map = test_map
 	targeting_state.maps = [test_map]
-	
+
 	var owner_shapes: Dictionary[Node2D, Array] = {}
 
 	var owner_collision_setups: Dictionary[Node2D, CollisionTestSetup2D] = CollisionTestSetup2D.create_test_setups_for_collision_owners(owner_shapes, targeting_state)
@@ -114,7 +114,7 @@ func test_create_test_setups_for_collision_owners_empty() -> void:
 func test_create_test_setups_from_test_node_with_valid_object() -> void:
 	var body := _create_body_with_rectangle_shape()
 	var targeting_state := GridTargetingState.new(GBOwnerContext.new())
-	
+
 	# Set up the targeting state with the premade 31x31 test tilemap
 	var test_map_scene: PackedScene = GBTestConstants.TEST_TILE_MAP_LAYER_BUILDABLE
 	var test_map := test_map_scene.instantiate() as TileMapLayer
@@ -138,7 +138,7 @@ func test_create_test_setups_from_test_node_with_valid_object() -> void:
 func test_create_test_setups_from_test_node_empty_body() -> void:
 	var body := _create_empty_body()
 	var targeting_state := GridTargetingState.new(GBOwnerContext.new())
-	
+
 	# Set up the targeting state with the premade 31x31 test tilemap
 	var test_map_scene: PackedScene = GBTestConstants.TEST_TILE_MAP_LAYER_BUILDABLE
 	var test_map := test_map_scene.instantiate() as TileMapLayer
@@ -155,7 +155,7 @@ func test_create_test_setups_from_test_node_empty_body() -> void:
 # Test: create_test_setups_from_test_node with null node (should handle gracefully)
 func test_create_test_setups_from_test_node_null_input() -> void:
 	var targeting_state := GridTargetingState.new(GBOwnerContext.new())
-	
+
 	# Set up the targeting state with a tile map
 	# Set up the targeting state with the canonical premade 31x31 test tilemap
 	var test_map_scene: PackedScene = GBTestConstants.TEST_TILE_MAP_LAYER_BUILDABLE

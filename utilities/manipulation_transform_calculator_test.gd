@@ -32,10 +32,10 @@ func test_calculate_final_transform_basic() -> void:
 	# ManipulationParent follows the grid positioner, so its position is the final placement position
 	var preview := _create_mock_node(Vector2.ZERO, deg_to_rad(45), Vector2(1.5, 1.5))
 	var parent := _create_mock_node(Vector2(100, 200), deg_to_rad(45), Vector2(1.5, 1.5))
-	
+
 	# Act: Calculate final transform
 	var result := ManipulationTransformCalculator.calculate_final_transform(preview, parent)
-	
+
 	# Assert: Position should match parent position (where ManipulationParent is located)
 	assert_vector(result["position"]).is_equal(Vector2(100, 200)).append_failure_message(
 		"Position should be read from parent: expected (100, 200), got (%s)" % str(result["position"])
@@ -46,10 +46,10 @@ func test_calculate_final_transform_horizontal_flip() -> void:
 	# Arrange: Parent has negative scale.x (horizontal flip)
 	var preview := _create_mock_node(Vector2(100, 200), 0.0, Vector2.ONE)
 	var parent := _create_mock_node(Vector2.ZERO, 0.0, Vector2(-1, 1))
-	
+
 	# Act
 	var result := ManipulationTransformCalculator.calculate_final_transform(preview, parent)
-	
+
 	# Assert: Negative scale should be preserved
 	assert_vector(result["scale"]).is_equal(Vector2(-1, 1)).append_failure_message(
 		"Horizontal flip should preserve negative scale.x: expected (-1, 1), got (%s)" % str(result["scale"])
@@ -60,10 +60,10 @@ func test_calculate_final_transform_vertical_flip() -> void:
 	# Arrange: Parent has negative scale.y (vertical flip)
 	var preview := _create_mock_node(Vector2(100, 200), 0.0, Vector2.ONE)
 	var parent := _create_mock_node(Vector2.ZERO, 0.0, Vector2(1, -1))
-	
+
 	# Act
 	var result := ManipulationTransformCalculator.calculate_final_transform(preview, parent)
-	
+
 	# Assert: Negative scale should be preserved
 	assert_vector(result["scale"]).is_equal(Vector2(1, -1)).append_failure_message(
 		"Vertical flip should preserve negative scale.y: expected (1, -1), got (%s)" % str(result["scale"])
@@ -74,10 +74,10 @@ func test_calculate_final_transform_both_flips() -> void:
 	# Arrange: Parent has both flips
 	var preview := _create_mock_node(Vector2(100, 200), 0.0, Vector2.ONE)
 	var parent := _create_mock_node(Vector2.ZERO, 0.0, Vector2(-1, -1))
-	
+
 	# Act
 	var result := ManipulationTransformCalculator.calculate_final_transform(preview, parent)
-	
+
 	# Assert: Both negative scales should be preserved
 	assert_vector(result["scale"]).is_equal(Vector2(-1, -1)).append_failure_message(
 		"Both flips should preserve negative scale: expected (-1, -1), got (%s)" % str(result["scale"])
@@ -88,10 +88,10 @@ func test_calculate_final_transform_rotation_and_flip() -> void:
 	# Arrange: Parent has rotation AND horizontal flip
 	var preview := _create_mock_node(Vector2(100, 200), deg_to_rad(90), Vector2.ONE)
 	var parent := _create_mock_node(Vector2.ZERO, deg_to_rad(90), Vector2(-1, 1))
-	
+
 	# Act
 	var result := ManipulationTransformCalculator.calculate_final_transform(preview, parent)
-	
+
 	# Assert: Both rotation and flip should be preserved
 	assert_float(result["rotation"]).is_equal_approx(deg_to_rad(90), 0.01).append_failure_message(
 		"Rotation should be preserved: expected 90°, got %.2f°" % rad_to_deg(result["rotation"])
@@ -104,10 +104,10 @@ func test_calculate_final_transform_rotation_and_flip() -> void:
 func test_calculate_final_transform_null_preview() -> void:
 	# Arrange
 	var parent := _create_mock_node(Vector2.ZERO, 0.0, Vector2.ONE)
-	
+
 	# Act: Call with null preview (will log error internally)
 	var result := ManipulationTransformCalculator.calculate_final_transform(null, parent)
-	
+
 	# Assert: Should return safe default values
 	assert_vector(result["position"]).is_equal(Vector2.ZERO).append_failure_message(
 		"Null preview should return ZERO position, got %s" % str(result["position"])
@@ -123,10 +123,10 @@ func test_calculate_final_transform_null_preview() -> void:
 func test_calculate_final_transform_null_parent() -> void:
 	# Arrange
 	var preview := _create_mock_node(Vector2(100, 200), 0.0, Vector2.ONE)
-	
+
 	# Act: Call with null parent (will log error internally)
 	var result := ManipulationTransformCalculator.calculate_final_transform(preview, null)
-	
+
 	# Assert: Should return safe default values
 	assert_vector(result["position"]).is_equal(Vector2.ZERO).append_failure_message(
 		"Null parent should return ZERO position, got %s" % str(result["position"])
@@ -150,10 +150,10 @@ func test_validate_transform_preservation_valid() -> void:
 		"rotation": deg_to_rad(45),
 		"scale": Vector2(1.5, 1.5)
 	}
-	
+
 	# Act
 	var result := ManipulationTransformCalculator.validate_transform_preservation(transforms)
-	
+
 	# Assert
 	assert_bool(result["is_valid"]).is_true().append_failure_message(
 		"Valid transforms should pass validation. Issues: %s" % str(result["issues"])
@@ -170,10 +170,10 @@ func test_validate_transform_preservation_negative_scale_valid() -> void:
 		"rotation": 0.0,
 		"scale": Vector2(-1, 1)
 	}
-	
+
 	# Act
 	var result := ManipulationTransformCalculator.validate_transform_preservation(transforms)
-	
+
 	# Assert: Negative scale should be VALID (it's a flip, not an error)
 	assert_bool(result["is_valid"]).is_true().append_failure_message(
 		"Negative scale (flip) should be valid. Issues: %s" % str(result["issues"])
@@ -187,10 +187,10 @@ func test_validate_transform_preservation_zero_scale_invalid() -> void:
 		"rotation": 0.0,
 		"scale": Vector2(0.001, 0.001)
 	}
-	
+
 	# Act
 	var result := ManipulationTransformCalculator.validate_transform_preservation(transforms)
-	
+
 	# Assert: Near-zero scale should fail validation
 	assert_bool(result["is_valid"]).is_false().append_failure_message(
 		"Near-zero scale should fail validation"
@@ -206,10 +206,10 @@ func test_validate_transform_preservation_missing_keys() -> void:
 		"position": Vector2(100, 200),
 		"scale": Vector2(1, 1)
 	}
-	
+
 	# Act
 	var result := ManipulationTransformCalculator.validate_transform_preservation(transforms)
-	
+
 	# Assert
 	assert_bool(result["is_valid"]).is_false().append_failure_message(
 		"Missing keys should fail validation"
@@ -235,10 +235,10 @@ func test_compare_transforms_identical() -> void:
 		"rotation": deg_to_rad(45),
 		"scale": Vector2(1.5, 1.5)
 	}
-	
+
 	# Act
 	var result := ManipulationTransformCalculator.compare_transforms(expected, actual)
-	
+
 	# Assert
 	assert_bool(result["matches"]).is_true().append_failure_message(
 		"Identical transforms should match. Differences: %s" % str(result["differences"])
@@ -260,10 +260,10 @@ func test_compare_transforms_within_tolerance() -> void:
 		"rotation": deg_to_rad(45.005),        # 0.005 rad difference (within 0.01 tolerance)
 		"scale": Vector2(1.505, 1.505)         # 0.005 difference (within 0.01 tolerance)
 	}
-	
+
 	# Act
 	var result := ManipulationTransformCalculator.compare_transforms(expected, actual)
-	
+
 	# Assert
 	assert_bool(result["matches"]).is_true().append_failure_message(
 		"Transforms within tolerance should match. Differences: %s" % str(result["differences"])
@@ -282,10 +282,10 @@ func test_compare_transforms_beyond_tolerance() -> void:
 		"rotation": deg_to_rad(50.0),       # 5° difference (beyond 0.01 rad tolerance)
 		"scale": Vector2(2.0, 2.0)          # 0.5 difference (beyond 0.01 tolerance)
 	}
-	
+
 	# Act
 	var result := ManipulationTransformCalculator.compare_transforms(expected, actual)
-	
+
 	# Assert
 	assert_bool(result["matches"]).is_false().append_failure_message(
 		"Transforms beyond tolerance should not match"
@@ -315,10 +315,10 @@ func test_format_transforms_debug() -> void:
 		"rotation": deg_to_rad(45),
 		"scale": Vector2(-1, 1.5)  # Horizontal flip + vertical scale
 	}
-	
+
 	# Act
 	var formatted := ManipulationTransformCalculator.format_transforms_debug(transforms)
-	
+
 	# Assert: Should contain all components in readable format
 	assert_str(formatted).append_failure_message(
 		"Formatted debug string should contain 'Position' label"

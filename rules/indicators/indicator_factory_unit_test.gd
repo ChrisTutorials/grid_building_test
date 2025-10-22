@@ -13,15 +13,15 @@ func test_indicator_factory_creates_indicators_from_position_map() -> void:
 	var env: AllSystemsTestEnvironment = env_scene.instantiate()
 	add_child(env)
 	auto_free(env)
-	
+
 	var template := GBTestConstants.TEST_INDICATOR_TD_PLATFORMER.instantiate()
 	auto_free(template)
 	add_child(template)
-	
+
 	var parent := Node2D.new()
 	auto_free(parent)
 	add_child(parent)
-	
+
 	# Create test object for positioning
 	var test_object := Node2D.new()
 	auto_free(test_object)
@@ -48,15 +48,15 @@ func test_indicator_factory_handles_empty_position_map() -> void:
 	var env: AllSystemsTestEnvironment = env_scene.instantiate()
 	add_child(env)
 	auto_free(env)
-	
+
 	var template := GBTestConstants.TEST_INDICATOR_TD_PLATFORMER.instantiate()
 	auto_free(template)
 	add_child(template)
-	
+
 	var parent := Node2D.new()
 	auto_free(parent)
 	add_child(parent)
-	
+
 	# Create test object for positioning
 	var test_object := Node2D.new()
 	auto_free(test_object)
@@ -76,15 +76,15 @@ func test_indicator_factory_handles_multiple_rules_per_position() -> void:
 	var env: AllSystemsTestEnvironment = env_scene.instantiate()
 	add_child(env)
 	auto_free(env)
-	
+
 	var template := GBTestConstants.TEST_INDICATOR_TD_PLATFORMER.instantiate()
 	auto_free(template)
 	add_child(template)
-	
+
 	var parent := Node2D.new()
 	auto_free(parent)
 	add_child(parent)
-	
+
 	# Create test object for positioning
 	var test_object := Node2D.new()
 	auto_free(test_object)

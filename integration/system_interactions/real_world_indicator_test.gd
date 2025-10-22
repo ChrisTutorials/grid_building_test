@@ -229,13 +229,13 @@ func test_real_world_indicator_positioning() -> void:
 	var tile_check_rule := CollisionsCheckRule.new()
 	tile_check_rule.apply_to_objects_mask = GBTestConstants.TEST_COLLISION_MASK
 	tile_check_rule.collision_mask = GBTestConstants.TEST_COLLISION_MASK
-	
+
 	# Set up the rule with the targeting state
 	var rule_issues: Array[String] = tile_check_rule.setup(targeting_state)
 	assert_array(rule_issues).append_failure_message(
 		"Rule setup should not have issues: %s" % str(rule_issues)
 	).is_empty()
-	
+
 	var has_matching_layer: bool = false
 	var physics_body_details: Array[String] = []
 
@@ -262,18 +262,18 @@ func test_real_world_indicator_positioning() -> void:
 	var tile_check_rules: Array[TileCheckRule] = [tile_check_rule]
 	var report: IndicatorSetupReport = indicator_manager.setup_indicators(preview, tile_check_rules)
 	var _indicators: Array[RuleCheckIndicator] = report.indicators
-	
+
 	# NOTE: Indicator generation is currently not working due to systemic issues in the collision mapping pipeline
 	# This test currently validates the setup process and component access patterns
 	# TODO: Re-enable indicator generation assertions once collision mapping issues are resolved
 	assert_object(report).append_failure_message(
 		"IndicatorManager.setup_indicators should return a valid report"
 	).is_not_null()
-	
+
 	# For now, just verify the setup process works (report is created, no crashes)
 	# When indicator generation is fixed, uncomment the assertions below:
 	# assert_int(indicators.size()).append_failure_message(
 	#     "No indicators generated for preview"
 	# ).is_greater(0)
-	# 
+	#
 	# _validate_indicator_positions(indicators, preview)

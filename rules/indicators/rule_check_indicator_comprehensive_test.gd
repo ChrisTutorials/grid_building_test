@@ -14,11 +14,11 @@ var env : CollisionTestEnvironment
 func before_test() -> void:
 	runner = scene_runner(GBTestConstants.COLLISION_TEST_ENV_UID)
 	env = runner.scene() as CollisionTestEnvironment
-	
+
 	assert_object(env).append_failure_message(
 		"Failed to load CollisionTestEnvironment scene"
 	).is_not_null()
-	
+
 	test_container = env.container
 
 func after_test() -> void:

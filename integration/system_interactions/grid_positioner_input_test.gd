@@ -3,7 +3,7 @@
 ## These tests validate GridPositioner2D positioning logic by calling methods directly
 ## rather than simulating input events. This approach ensures:
 ## - Zero user input interference during test execution
-## - Deterministic, repeatable test results  
+## - Deterministic, repeatable test results
 ## - Fast execution without await/frame simulation overhead
 ## - Clear test intent (testing positioning logic, not input handling)
 extends GdUnitTestSuite
@@ -19,22 +19,22 @@ func before_test() -> void:
 	runner = scene_runner(GBTestConstants.COLLISION_TEST_ENV_UID)
 	runner.simulate_frames(2)
 	env = runner.scene() as CollisionTestEnvironment
-	
+
 	# Cache frequently used references
 	positioner = env.positioner
 	tile_map = env.tile_map_layer
-	
+
 	# Configure settings for positioning tests
 	var container: GBCompositionContainer = env.get_container()
 	container.config.settings.targeting.enable_mouse_input = true
 	container.config.settings.targeting.enable_keyboard_input = true
 	container.config.settings.targeting.restrict_to_map_area = false
 	container.config.settings.targeting.limit_to_adjacent = false
-	
+
 	# Ensure positioner is ready for testing
 	positioner.set_input_processing_enabled(true)
 	positioner.process_mode = Node.PROCESS_MODE_INHERIT
-	
+
 	runner.simulate_frames(1)
 
 func after_test() -> void:
@@ -75,17 +75,17 @@ func _assert_at_tile(expected_tile: Vector2i, context: String) -> void:
 func test_injector_injects_positioner_and_settings() -> void:
 	var injector: GBInjectorSystem = env.injector
 	var container: GBCompositionContainer = env.get_container()
-	
+
 	assert_object(env).append_failure_message("Environment missing").is_not_null()
 	assert_object(injector).append_failure_message("GBInjectorSystem missing").is_not_null()
 	assert_object(container).append_failure_message("GBCompositionContainer missing").is_not_null()
 	assert_object(positioner).append_failure_message("GridPositioner2D missing").is_not_null()
-	
+
 	var meta_present := positioner.has_meta(GBInjectorSystem.INJECTION_META_KEY)
 	assert_bool(meta_present).append_failure_message(
 		"Positioner must have injector meta after injection"
 	).is_true()
-	
+
 	if meta_present:
 		var meta: Dictionary = positioner.get_meta(GBInjectorSystem.INJECTION_META_KEY)
 		var expected_id: int = int(injector.get_instance_id())
@@ -95,7 +95,7 @@ func test_injector_injects_positioner_and_settings() -> void:
 				expected_id, actual_id, str(meta.keys())
 			]
 		).is_equal(expected_id)
-	
+
 	var issues: Array[String] = positioner.get_runtime_issues()
 	assert_array(issues).append_failure_message(
 		"GridPositioner2D should have no runtime issues post-injection, got: %s" % str(issues)
@@ -111,16 +111,16 @@ func test_positioner_moves_to_specific_tile() -> void:
 func test_keyboard_tile_movement() -> void:
 	var start_tile := Vector2i(5, 5)
 	GBPositioning2DUtils.move_to_tile_center(positioner, start_tile, tile_map)
-	
+
 	positioner._move_positioner_by_tile(Vector2i(0, -1))
 	_assert_at_tile(Vector2i(5, 4), "After UP")
-	
+
 	positioner._move_positioner_by_tile(Vector2i(0, 1))
 	_assert_at_tile(Vector2i(5, 5), "After DOWN")
-	
+
 	positioner._move_positioner_by_tile(Vector2i(-1, 0))
 	_assert_at_tile(Vector2i(4, 5), "After LEFT")
-	
+
 	positioner._move_positioner_by_tile(Vector2i(1, 0))
 	_assert_at_tile(Vector2i(5, 5), "After RIGHT")
 
@@ -143,13 +143,13 @@ func test_move_to_viewport_center() -> void:
 func test_combined_movements() -> void:
 	GBPositioning2DUtils.move_to_tile_center(positioner, Vector2i(10, 10), tile_map)
 	_assert_at_tile(Vector2i(10, 10), "Initial position")
-	
+
 	positioner._move_positioner_by_tile(Vector2i(2, 0))
 	_assert_at_tile(Vector2i(12, 10), "After keyboard RIGHT 2")
-	
+
 	GBPositioning2DUtils.move_to_tile_center(positioner, Vector2i(5, 5), tile_map)
 	_assert_at_tile(Vector2i(5, 5), "After direct position")
-	
+
 	var center_tile := positioner.move_to_viewport_center_tile()
 	_assert_at_tile(center_tile, "After viewport center")
 
@@ -159,7 +159,7 @@ func test_combined_movements() -> void:
 
 func test_coordinate_conversions() -> void:
 	var test_tiles: Array[Vector2i] = [Vector2i(0, 0), Vector2i(5, 5), Vector2i(10, 10), Vector2i(15, 15)]
-	
+
 	for tile in test_tiles:
 		GBPositioning2DUtils.move_to_tile_center(positioner, tile, tile_map)
 		var result_tile := _get_current_tile()
@@ -180,14 +180,14 @@ func test_runtime_issues_when_dependencies_missing() -> void:
 	var test_positioner: GridPositioner2D = GridPositioner2D.new()
 	isolated_scene.add_child(test_positioner)
 	auto_free(isolated_scene)
-	
+
 	var issues: Array[String] = test_positioner.get_runtime_issues()
 	var issue_count: int = issues.size()
-	
+
 	assert_array(issues).append_failure_message(
 		"Positioner without dependencies should report issues, got %d: %s" % [issue_count, str(issues)]
 	).is_not_empty()
-	
+
 	var min_expected: int = 3
 	assert_int(issue_count).append_failure_message(
 		"Expected >= %d dependency issues, got %d: %s" % [min_expected, issue_count, str(issues)]

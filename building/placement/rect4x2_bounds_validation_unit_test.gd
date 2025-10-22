@@ -28,9 +28,9 @@ func before_test() -> void:
 	# MIGRATION: Use scene_runner WITHOUT frame simulation
 	runner = scene_runner(GBTestConstants.BUILDING_TEST_ENV_UID)
 	env = runner.scene() as BuildingTestEnvironment
-	
+
 	assert_object(env).append_failure_message("Failed to load BuildingTestEnvironment scene").is_not_null()
-	
+
 	# Direct property access - type-safe
 	_container = env.get_container()
 	_building_system = env.building_system
@@ -40,7 +40,7 @@ func before_test() -> void:
 	_positioner = env.positioner
 	var targeting_system: GridTargetingSystem = env.grid_targeting_system
 	_targeting_state = targeting_system.get_state()
-	
+
 	# Set up targeting state
 	if _targeting_state.target_map == null:
 		_targeting_state.target_map = _map
@@ -54,7 +54,7 @@ func before_test() -> void:
 	# instead of creating a duplicate. Call `setup()` so the rules receive the GridTargetingState
 	# and are bound to the correct `TileMapLayer` used by the test environment.
 	var placement_rules: Array[PlacementRule] = _container.get_placement_rules()
-	
+
 	## Collisions Check Rule + Within Tilemaps Bound Rule
 	assert_int(placement_rules.size()).append_failure_message("[TEST_DEBUG] before_test: placement_rules.size()=%d" % placement_rules.size()).is_equal(2)
 
@@ -70,7 +70,7 @@ func before_test() -> void:
 
 	## Ensure tile map layer meets expectations
 	GBTestConstants.assert_tile_map_size(self, env, 31, 31)
-	
+
 	# Set up test isolation to prevent mouse interference
 	_isolation_state = TestIsolation.setup_building_test_isolation(_positioner, _map, _container.get_logger())
 
@@ -149,13 +149,13 @@ func test_pre_validation_is_successful_for_rect4x2_start_tile() -> void:
 	# Reset positions to ensure consistent testing regardless of scene layout
 	_map.global_position = Vector2(0, 0)
 	_positioner.global_position = Vector2(0, 0)
-	
+
 	var start_tile: Vector2i = SAFE_START_TILE
 	_move_positioner_to_tile(start_tile)
-	
+
 	# Use actual runtime path: enter build mode to ensure indicators are created
 	var placeable: Placeable = PLACEABLE_RECT_4X2
-	
+
 	# Replace raw prints with assert chains so failure reports include these diagnostics
 	assert_object(_positioner).append_failure_message(
 		"start_tile=%s positioner.global_position=%s before_build" % [str(start_tile), str(_positioner.global_position)]).is_not_null()
@@ -163,12 +163,12 @@ func test_pre_validation_is_successful_for_rect4x2_start_tile() -> void:
 		"targeting_state.positioner.global_position=%s" % str(_targeting_state.positioner.global_position)).is_not_null()
 	assert_bool(_positioner == _targeting_state.positioner).append_failure_message(
 		"Are they the same object? %s" % str(_positioner == _targeting_state.positioner)).is_true()
-	
+
 	# Ensure the building system uses the correct targeting state
 	var targeting_system: GridTargetingSystem = env.grid_targeting_system
 	assert_object(targeting_system.get_state().positioner).append_failure_message(
 		"targeting_system.get_state().positioner.global_position=%s" % str(targeting_system.get_state().positioner.global_position)).is_not_null()
-	
+
 	var _setup_report: PlacementReport = _enter_build_mode_for_placeable(placeable)
 
 	# Guard: Some runtime flows may recenter/snap the positioner on entering build mode (e.g., via input).
@@ -180,10 +180,10 @@ func test_pre_validation_is_successful_for_rect4x2_start_tile() -> void:
 	assert_bool(positioner_tile_after == start_tile).append_failure_message(
 		"Positioner must be on start_tile after setup; positioner_tile_after=%s global_pos=%s start_tile=%s" % [str(positioner_tile_after), str(_positioner.global_position), str(start_tile)]
 	).is_true()
-	
+
 	# Act
 	var result: ValidationResults = _validate_placement()
-	
+
 	# Assert
 	_assert_validation_success(result, "Pre-validation should pass at start_tile " + str(start_tile))
 
@@ -199,7 +199,7 @@ func test_pre_validation_out_of_bounds_outside_used_rect() -> void:
 	# Reset positions to ensure consistent testing regardless of scene layout
 	_map.global_position = Vector2(0, 0)
 	_positioner.global_position = Vector2(0, 0)
-	
+
 	var ur: Rect2i = _map.get_used_rect()
 	# Compute an outside tile clearly to the left of used rect
 	var outside_tile: Vector2i = Vector2i(ur.position.x - OUTSIDE_OFFSET, ur.position.y)

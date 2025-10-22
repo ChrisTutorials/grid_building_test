@@ -21,7 +21,7 @@ func before_test() -> void:
 	add_child(test_node)
 	project_name_num_seperator = ProjectSettings.get_setting("editor/naming/node_name_num_separator")
 	ProjectSettings.set_setting("editor/naming/node_name_num_separator", NODE_NAME_NUM_SEPARATOR)
-	
+
 	# Initialize container for composition/configuration tests
 	container = GBCompositionContainer.new()
 	container.config = GBConfig.new()

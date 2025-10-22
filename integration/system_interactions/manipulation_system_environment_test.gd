@@ -36,7 +36,7 @@ func before_test() -> void:
 	# Scene is ready immediately - no async waits needed
 	runner = scene_runner(GBTestConstants.ALL_SYSTEMS_ENV_UID)
 	test_environment = runner.scene() as AllSystemsTestEnvironment
-	
+
 	assert_object(test_environment).append_failure_message(
 		"Failed to load AllSystemsTestEnvironment scene"
 	).is_not_null()
@@ -45,7 +45,7 @@ func before_test() -> void:
 	container = test_environment.injector.composition_container
 	manipulation_system = test_environment.manipulation_system
 	manipulation_state = container.get_states().manipulation  # Access state through container
-	
+
 	# Create a test manipulatable object since it's not provided by the environment
 	test_manipulatable = auto_free(Manipulatable.new())
 
@@ -145,12 +145,12 @@ func test_manipulation_system_scene_runner_pattern() -> void:
 	assert_bool(scene_system.is_inside_tree()).append_failure_message(
 		"Scene runner system should be in scene tree"
 	).is_true()
-	
+
 	# System should have access to all dependencies
 	assert_object(manipulation_state).append_failure_message(
 		"System should have access to manipulation state"
 	).is_not_null()
-	
+
 	assert_object(container).append_failure_message(
 		"System should have access to composition container"
 	).is_not_null()
