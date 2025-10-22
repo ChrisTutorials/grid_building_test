@@ -68,10 +68,12 @@ func test_polygon_preview_indicators_respect_min_overlap_ratio() -> void:
 	assert_array(setup_issues).is_empty()
 
 	var setup_ok: PlacementReport = _manager.try_setup(rules, _state, true)
-	assert_bool(setup_ok.is_successful()).append_failure_message("IndicatorManager.try_setup failed for polygon preview").is_true()
+	assert_bool(setup_ok.is_successful())
+  .append_failure_message("IndicatorManager.try_setup failed for polygon preview").is_true()
 
 	var indicators: Array[RuleCheckIndicator] = _collect_indicators(_manager)
-	assert_array(indicators).append_failure_message("No indicators generated for polygon preview").is_not_empty()
+	assert_array(indicators)
+  .append_failure_message("No indicators generated for polygon preview").is_not_empty()
 
 	# Compute expected allowed tiles using a minimum overlap ratio
 	var poly: CollisionPolygon2D = _find_child_polygon(preview)

@@ -101,7 +101,8 @@ func test_collision_utilities_invalid_tile_map() -> void:
 
 	var result: Array[Vector2i] = CollisionUtilities.get_rect_tile_positions(_targeting_state.target_map, center_pos, rect_size)
 	assert_array_not_null_and_type(result, "Should handle invalid tile map gracefully")
-	assert_that(result.is_empty()).append_failure_message("Should return empty array for invalid tile map").is_true()
+	assert_that(result.is_empty())
+  .append_failure_message("Should return empty array for invalid tile map").is_true()
 
 # Test catches: CollisionUtilities indicator-shape overlap detection
 func test_collision_utilities_indicator_overlap() -> void:
@@ -120,4 +121,5 @@ func test_collision_utilities_indicator_overlap() -> void:
 
 	# Test with null shapes (should not crash)
 	var null_result: bool = CollisionUtilities.does_indicator_overlap_shape(indicator, null, shape_owner)
-	assert_that(null_result is bool).append_failure_message("Should handle null target shape gracefully").is_true()
+	assert_that(null_result is bool)
+  .append_failure_message("Should handle null target shape gracefully").is_true()

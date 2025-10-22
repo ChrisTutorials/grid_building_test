@@ -127,8 +127,10 @@ func test_start_move(
 	_container.get_states().targeting.positioner.global_position = TEST_POSITION
 
 	var source_manipulatable: Manipulatable = _create_test_manipulatable(p_settings)
-	assert_that(source_manipulatable).append_failure_message("Source manipulatable should not be null").is_not_null()
-	assert_that(source_manipulatable.root).append_failure_message("Source manipulatable root should not be null").is_not_null()
+	assert_that(source_manipulatable)
+  .append_failure_message("Source manipulatable should not be null").is_not_null()
+	assert_that(source_manipulatable.root)
+  .append_failure_message("Source manipulatable root should not be null").is_not_null()
 
 	# Set the targeting state to target this manipulatable's root
 	_container.get_states().targeting.set_manual_target(source_manipulatable.root)
@@ -163,7 +165,8 @@ func test_cancel() -> void:
 
 	if move_result != null:
 		var valid_move: bool = move_result.status == GBEnums.Status.STARTED
-		assert_bool(valid_move).append_failure_message("Move should be successfully started for cancel test").is_true()
+		assert_bool(valid_move)
+   .append_failure_message("Move should be successfully started for cancel test").is_true()
 
 		# Get active manipulation data
 		var active_data: ManipulationData = _container.get_states().manipulation.data
@@ -177,7 +180,8 @@ func test_cancel() -> void:
 			assert_float(origin.y).append_failure_message("Origin y position should be approximately %f" % TEST_POSITION.y).is_equal_approx(TEST_POSITION.y, POSITION_PRECISION)
 
 			system.cancel()
-			assert_object(_container.get_states().manipulation.data).append_failure_message("Manipulation data should be null after cancel").is_null()
+			assert_object(_container.get_states().manipulation.data)
+    .append_failure_message("Manipulation data should be null after cancel").is_null()
 			assert_vector(active_data.source.root.global_position).append_failure_message("Source position should return to original after cancel").is_equal(TEST_POSITION)
 
 @warning_ignore("unused_parameter")
@@ -227,7 +231,8 @@ func test_demolish(
 		p_settings = manipulatable_settings_all_allowed
 		p_expected = true
 	var target_manipulatable: Manipulatable = _create_test_manipulatable(p_settings) if p_settings != null else all_manipulatable
-	assert_that(target_manipulatable).append_failure_message("Target manipulatable should not be null for demolish test").is_not_null()
+	assert_that(target_manipulatable)
+  .append_failure_message("Target manipulatable should not be null for demolish test").is_not_null()
 
 	monitor_signals(manipulation_state)
 
@@ -246,7 +251,8 @@ func test_try_placement(
 	test_parameters := [[manipulatable_settings_all_allowed, true]]  # Changed: Expect TRUE because factory creates collision shapes
 ) -> void:
 	var source: Manipulatable = _create_test_manipulatable(p_settings)
-	assert_that(source).append_failure_message("Source manipulatable should not be null for placement test").is_not_null()
+	assert_that(source)
+  .append_failure_message("Source manipulatable should not be null for placement test").is_not_null()
 
 	# Set the targeting state to target this manipulatable's root
 	_container.get_states().targeting.set_manual_target(source.root)
@@ -258,7 +264,8 @@ func test_try_placement(
 
 	if move_result != null:
 		var started: bool = move_result.status == GBEnums.Status.STARTED
-		assert_bool(started).append_failure_message("Move should be successfully started for placement test").is_true()
+		assert_bool(started)
+   .append_failure_message("Move should be successfully started for placement test").is_true()
 
 		var move_data: ManipulationData = _container.get_states().manipulation.data
 		_validate_manipulation_data(move_data, "manipulation data for placement")
@@ -268,7 +275,8 @@ func test_try_placement(
 			move_data.move_copy.root.global_position = test_location
 
 			var placement_results: ValidationResults = system.try_placement(move_data)
-			assert_that(placement_results).append_failure_message("Placement results should not be null").is_not_null()
+			assert_that(placement_results)
+    .append_failure_message("Placement results should not be null").is_not_null()
 
 			if placement_results != null:
 				# Enhanced diagnostic: Show why placement succeeded/failed
@@ -285,7 +293,8 @@ func test_try_placement(
 
 				# After successful placement, verify state changes
 				if success_status:
-					assert_object(move_data.move_copy).append_failure_message("Move copy should be null after successful placement").is_null()
+					assert_object(move_data.move_copy)
+      .append_failure_message("Move copy should be null after successful placement").is_null()
 					assert_vector(source.root.global_position).append_failure_message("Source position should match test location after placement").is_equal(test_location)
 
 ## Test: Failed placement due to collision should NOT execute move and should clean up target
@@ -411,7 +420,8 @@ func test_rotate_node2d_target_rotates_correctly(
 
 	for i in range(ROTATION_ITERATIONS):
 		var success: bool = system.rotate(target, ROTATION_INCREMENT)
-		assert_bool(success).append_failure_message("Rotate operation should succeed on iteration %d" % i).is_true()
+		assert_bool(success)
+   .append_failure_message("Rotate operation should succeed on iteration %d" % i).is_true()
 
 		expected_rotation_degrees += ROTATION_INCREMENT
 		var normalized_expected: float = _normalize_rotation(expected_rotation_degrees)
@@ -477,17 +487,21 @@ func _create_test_manipulatable(p_settings: ManipulatableSettings) -> Manipulata
 
 ## Creates move data for testing - replaces _create_move_data with better validation
 func _create_test_move_data(p_settings: ManipulatableSettings) -> ManipulationData:
-	assert_that(_container).append_failure_message("Container should not be null when creating test move data").is_not_null()
+	assert_that(_container)
+  .append_failure_message("Container should not be null when creating test move data").is_not_null()
 
 	var source_obj: Manipulatable = _create_test_manipulatable(p_settings)
 	assert_that(source_obj).append_failure_message("Source object should not be null").is_not_null()
-	assert_that(source_obj.root).append_failure_message("Source object root should not be null").is_not_null()
+	assert_that(source_obj.root)
+  .append_failure_message("Source object root should not be null").is_not_null()
 
 	var target_duplicate: Manipulatable = auto_free(source_obj.duplicate())
-	assert_that(target_duplicate).append_failure_message("Target duplicate should not be null").is_not_null()
+	assert_that(target_duplicate)
+  .append_failure_message("Target duplicate should not be null").is_not_null()
 
 	var manipulator_node: Node = manipulation_state.get_manipulator()
-	assert_that(manipulator_node).append_failure_message("Manipulator node should not be null").is_not_null()
+	assert_that(manipulator_node)
+  .append_failure_message("Manipulator node should not be null").is_not_null()
 
 	var data: ManipulationData = ManipulationData.new(
 		manipulator_node,
@@ -495,7 +509,8 @@ func _create_test_move_data(p_settings: ManipulatableSettings) -> ManipulationDa
 		target_duplicate,
 		GBEnums.Action.MOVE
 	)
-	assert_that(data).append_failure_message("Manipulation data should not be null after creation").is_not_null()
+	assert_that(data)
+  .append_failure_message("Manipulation data should not be null after creation").is_not_null()
 	add_child(data.move_copy)
 	return data
 

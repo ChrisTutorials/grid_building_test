@@ -17,9 +17,11 @@ func before_test() -> void:
 	_manager = _env.indicator_manager
 	_container = _env.get_container()
 	_state = _env.grid_targeting_system.get_state()
-	assert_object(_manager).append_failure_message("IndicatorManager should be available in test environment").is_not_null()
+	assert_object(_manager)
+  .append_failure_message("IndicatorManager should be available in test environment").is_not_null()
 	assert_object(_container).append_failure_message("CompositionContainer should be available in test environment").is_not_null()
-	assert_object(_state).append_failure_message("GridTargetingState should be available in test environment").is_not_null()
+	assert_object(_state)
+  .append_failure_message("GridTargetingState should be available in test environment").is_not_null()
 
 func test_indicator_generation_from_container_rules() -> void:
 	# Arrange: create a polygon preview like integration tests do
@@ -68,17 +70,20 @@ func test_indicator_generation_from_container_rules() -> void:
 			diag.append("[RULE_TRACE] rule[%d] SETUP_BEFORE: apply_to_objects_mask=%s, collision_mask=%s" % [idx, collisions_rule.apply_to_objects_mask, collisions_rule.collision_mask])
 			var setup_issues: Array[String] = collisions_rule.setup(_state)
 			diag.append("[RULE_TRACE] rule[%d] SETUP_RESULT: issues_count=%s, issues=%s" % [idx, setup_issues.size(), str(setup_issues)])
-			assert_array(setup_issues).append_failure_message("Rule setup failed for rule %d\n%s" % [idx, "\n".join(diag)]).is_empty()
+			assert_array(setup_issues)
+    .append_failure_message("Rule setup failed for rule %d\n%s" % [idx, "\n".join(diag)]).is_empty()
 			diag.append("[RULE_TRACE] rule[%d] SETUP_AFTER: still_same_id=%s, still_CollisionsCheckRule=%s" % [idx, str(rule.get_instance_id()), str(rule is CollisionsCheckRule)])
 		elif rule is TileCheckRule:
 			var tile_rule: TileCheckRule = rule as TileCheckRule
 			var setup_issues: Array[String] = tile_rule.setup(_state)
 			diag.append("[RULE_TRACE] rule[%d] TILE_SETUP_RESULT: issues_count=%s" % [idx, setup_issues.size()])
-			assert_array(setup_issues).append_failure_message("Rule setup failed for rule %d\n%s" % [idx, "\n".join(diag)]).is_empty()
+			assert_array(setup_issues)
+    .append_failure_message("Rule setup failed for rule %d\n%s" % [idx, "\n".join(diag)]).is_empty()
 
 	# Act: Run try_setup
 	var report: PlacementReport = _manager.try_setup(rules, _state, true)
-	assert_object(report).append_failure_message("IndicatorManager.try_setup returned null").is_not_null()
+	assert_object(report)
+  .append_failure_message("IndicatorManager.try_setup returned null").is_not_null()
 
 	# Diagnostics: dump report details
 	if report:
@@ -94,7 +99,8 @@ func test_indicator_generation_from_container_rules() -> void:
 		fail("try_setup reported failure: %s - %s" % [str(report.get_issues()), "\n".join(diag)])
 
 	var indicators: Array[RuleCheckIndicator] = report.indicators_report.indicators
-	assert_array(indicators).append_failure_message("No indicators generated (unit test)\n%s" % "\n".join(diag)).is_not_empty()
+	assert_array(indicators)
+  .append_failure_message("No indicators generated (unit test)\n%s" % "\n".join(diag)).is_not_empty()
 
 func test_indicators_are_freed_on_reset() -> void:
 	var shape_scene: Node2D = CollisionObjectTestFactory.create_polygon_test_object(self, self)

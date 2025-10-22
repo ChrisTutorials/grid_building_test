@@ -18,9 +18,12 @@ func after_test() -> void:
 
 func test_debug_tile_centering_issue() -> void:
 	# Use the manually created components
-	assert_object(grid_positioner).append_failure_message("GridPositioner2D should exist after factory creation").is_not_null()
-	assert_object(target_map).append_failure_message("Target map should exist after factory creation").is_not_null()
-	assert_object(target_map.tile_set).append_failure_message("TileSet should exist on target map after factory creation").is_not_null()
+	assert_object(grid_positioner)
+  .append_failure_message("GridPositioner2D should exist after factory creation").is_not_null()
+	assert_object(target_map)
+  .append_failure_message("Target map should exist after factory creation").is_not_null()
+	assert_object(target_map.tile_set)
+  .append_failure_message("TileSet should exist on target map after factory creation").is_not_null()
 
 	# Check tile size - should be 16x16 for standard Grid Building
 	var tile_size: Vector2i = target_map.tile_set.tile_size

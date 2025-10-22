@@ -66,7 +66,8 @@ func test_should_be_visible_active_mode_default() -> void:
 	var has_mouse := false
 
 	var result := GridPositionerLogic.should_be_visible(GBEnums.Mode.MOVE, settings, last_mouse, has_mouse)
-	assert_bool(result).append_failure_message("Positioner should be visible in MOVE mode by default").is_true()
+	assert_bool(result)
+  .append_failure_message("Positioner should be visible in MOVE mode by default").is_true()
 
 func test_should_be_visible_for_mode_off_active() -> void:
 	var settings := GridTargetingSettings.new()
@@ -104,7 +105,8 @@ func test_visibility_decision_trace() -> void:
 	var has_mouse := true
 
 	var trace := GridPositionerLogic.visibility_decision_trace(mode_state, settings, last_mouse, has_mouse)
-	assert_str(trace).append_failure_message("Visibility trace should contain current mode").contains("mode=MOVE")
+	assert_str(trace)
+  .append_failure_message("Visibility trace should contain current mode").contains("mode=MOVE")
 	assert_str(trace).append_failure_message("Visibility trace should contain last_mouse_allowed status").contains("last_mouse_allowed=true")
 	assert_str(trace).append_failure_message("Visibility trace should contain has_mouse_world status").contains("has_mouse_world=true")
 	assert_str(trace).append_failure_message("Visibility trace should contain mouse_enabled status").contains("mouse_enabled=true")

@@ -74,7 +74,8 @@ func test_should_be_visible_info_mode() -> void:
 	var has_mouse := false
 
 	var result := GridPositionerLogic.should_be_visible(GBEnums.Mode.INFO, settings, last_mouse, has_mouse)
-	assert_bool(result).append_failure_message("should_be_visible: INFO mode should not be visible").is_false()
+	assert_bool(result)
+  .append_failure_message("should_be_visible: INFO mode should not be visible").is_false()
 
 func test_should_be_visible_active_mode_with_last_mouse_allowed() -> void:
 	var settings := GridTargetingSettings.new()
@@ -106,13 +107,15 @@ func test_should_be_visible_active_mode_default() -> void:
 	var has_mouse := false
 
 	var result := GridPositionerLogic.should_be_visible(GBEnums.Mode.MOVE, settings, last_mouse, has_mouse)
-	assert_bool(result).append_failure_message("should_be_visible: MOVE mode default should be visible").is_true()
+	assert_bool(result)
+  .append_failure_message("should_be_visible: MOVE mode default should be visible").is_true()
 
 func test_should_be_visible_for_mode_off_active() -> void:
 	var settings := _make_settings(true, true, true)
 
 	var result := GridPositionerLogic.should_be_visible_for_mode(GBEnums.Mode.OFF, settings)
-	assert_bool(result).append_failure_message("should_be_visible_for_mode: OFF mode active should be visible").is_true()
+	assert_bool(result)
+  .append_failure_message("should_be_visible_for_mode: OFF mode active should be visible").is_true()
 
 func test_should_be_visible_for_mode_off_not_active() -> void:
 	var settings := _make_settings(false, true, true)
@@ -124,13 +127,15 @@ func test_should_be_visible_for_mode_info() -> void:
 	var settings := GridTargetingSettings.new()
 
 	var result := GridPositionerLogic.should_be_visible_for_mode(GBEnums.Mode.INFO, settings)
-	assert_bool(result).append_failure_message("should_be_visible_for_mode: INFO mode should not be visible").is_false()
+	assert_bool(result)
+  .append_failure_message("should_be_visible_for_mode: INFO mode should not be visible").is_false()
 
 func test_should_be_visible_for_mode_active() -> void:
 	var settings := GridTargetingSettings.new()
 
 	var result := GridPositionerLogic.should_be_visible_for_mode(GBEnums.Mode.MOVE, settings)
-	assert_bool(result).append_failure_message("should_be_visible_for_mode: MOVE mode should be visible").is_true()
+	assert_bool(result)
+  .append_failure_message("should_be_visible_for_mode: MOVE mode should be visible").is_true()
 
 #endregion
 
@@ -163,7 +168,8 @@ func test_hide_on_handled_ignored_when_mouse_disabled() -> void:
 	var result := GridPositionerLogic.should_be_visible(GBEnums.Mode.BUILD, settings, blocked_mouse_status, false)
 
  assert_bool(result).append_failure_message( "When mouse input is disabled, hide_on_handled should not apply even with blocked mouse input status. " + "Settings: hide_on_handled=%s, mouse_enabled=%s, mouse_status.allowed=%s" % [str(settings.hide_on_handled), str(settings.enable_mouse_input), str(blocked_mouse_status.allowed)] ) func test_hide_on_handled_applies_when_mouse_enabled() -> void: var settings := _make_settings(true, true, true) var blocked_mouse_status := GBMouseInputStatus.new() blocked_mouse_status.set_from_values(false, Vector2.ZERO, 0, "blocked", Vector2.ZERO) var result := GridPositionerLogic.should_be_visible(GBEnums.Mode.BUILD, settings, blocked_mouse_status, false) assert_bool(result).is_false().append_failure_message( "When mouse input is enabled, hide_on_handled should still apply with blocked mouse input status. " + "Settings: hide_on_handled=%s, mouse_enabled=%s, mouse_status.allowed=%s" % [str(settings.hide_on_handled), str(settings.enable_mouse_input), str(blocked_mouse_status.allowed)] ) #endregion #region Reconciliation & Recentering Tests (from grid_positioner_reconcile_and_recenter_test.gd) func test_visibility_reconcile_applies_when_differs() -> void: var targeting_settings := _make_settings() var mouse_input_status := GBMouseInputStatus.new() mouse_input_status.allowed = true var result: Variant = GridPositionerLogic.visibility_reconcile(GBEnums.Mode.MOVE, targeting_settings, false, mouse_input_status, false) assert_bool(result.apply).append_failure_message("visibility_reconcile: should apply when visibility differs").is_true().is_true()
-	assert_bool(result.visible).append_failure_message("visibility_reconcile: should be visible when differs").is_true()
+	assert_bool(result.visible)
+  .append_failure_message("visibility_reconcile: should be visible when differs").is_true()
 	assert_str(result.reason).append_failure_message("visibility_reconcile: reason should be 'reconcile_should_be_visible'").is_equal("reconcile_should_be_visible")
 
 func test_visibility_reconcile_noop_when_same() -> void:
@@ -171,7 +177,8 @@ func test_visibility_reconcile_noop_when_same() -> void:
 	var mouse_input_status := GBMouseInputStatus.new()
 	mouse_input_status.allowed = true
 	var result: Variant = GridPositionerLogic.visibility_reconcile(GBEnums.Mode.MOVE, targeting_settings, true, mouse_input_status, false)
-	assert_bool(result.apply).append_failure_message("visibility_reconcile: should not apply when visibility same").is_false()
+	assert_bool(result.apply)
+  .append_failure_message("visibility_reconcile: should not apply when visibility same").is_false()
 
 func test_recenter_decision_none() -> void:
 	var recenter_decision := GridPositionerLogic.recenter_on_enable_decision(GridTargetingSettings.RecenterOnEnablePolicy.NONE, false, true, true)
@@ -208,8 +215,10 @@ func test_visibility_on_mouse_event_gate_blocked_mode_off_inactive() -> void:
 	settings.enable_mouse_input = true
 	settings.hide_on_handled = true
 	var res: Variant = GridPositionerLogic.visibility_on_mouse_event(GBEnums.Mode.OFF, settings, false)
-	assert_bool(res.apply).append_failure_message("Expected apply=true when mouse event blocked in OFF mode").is_true()
-	assert_bool(res.visible).append_failure_message("Expected visible=false when mouse event blocked in OFF mode").is_false()
+	assert_bool(res.apply)
+  .append_failure_message("Expected apply=true when mouse event blocked in OFF mode").is_true()
+	assert_bool(res.visible)
+  .append_failure_message("Expected visible=false when mouse event blocked in OFF mode").is_false()
 	assert_str(res.reason).append_failure_message("Expected reason to contain 'blocked' when mouse event blocked").contains("blocked")
 
 func test_visibility_on_mouse_event_gate_allowed() -> void:
@@ -217,13 +226,16 @@ func test_visibility_on_mouse_event_gate_allowed() -> void:
 	settings.enable_mouse_input = true
 	settings.hide_on_handled = true
 	var res: Variant = GridPositionerLogic.visibility_on_mouse_event(GBEnums.Mode.MOVE, settings, true)
-	assert_bool(res.apply).append_failure_message("Expected apply=true when mouse event allowed in MOVE mode").is_true()
-	assert_bool(res.visible).append_failure_message("Expected visible=true when mouse event allowed in MOVE mode").is_true()
+	assert_bool(res.apply)
+  .append_failure_message("Expected apply=true when mouse event allowed in MOVE mode").is_true()
+	assert_bool(res.visible)
+  .append_failure_message("Expected visible=true when mouse event allowed in MOVE mode").is_true()
 	assert_str(res.reason).append_failure_message("Expected reason to contain 'allowed' when mouse event allowed").contains("allowed")
 
 func test_visibility_on_mouse_event_no_settings_noop() -> void:
 	var res: Variant = GridPositionerLogic.visibility_on_mouse_event(GBEnums.Mode.MOVE, null, true)
-	assert_bool(res.apply).append_failure_message("Expected apply=false when no settings provided").is_false()
+	assert_bool(res.apply)
+  .append_failure_message("Expected apply=false when no settings provided").is_false()
 
 func test_process_tick_retain_after_allowed_mouse() -> void:
 	var targeting_settings := _make_settings(true, true)
@@ -237,21 +249,25 @@ func test_process_tick_retain_from_cached_mouse() -> void:
 	var targeting_settings := _make_settings(true, true)
 	var mouse_input_status := _make_last_mouse(false)
 	var result: Variant = GridPositionerLogic.visibility_on_process_tick(GBEnums.Mode.MOVE, targeting_settings, true, mouse_input_status, true)
-	assert_bool(result.apply).append_failure_message("Expected process tick to apply visibility for cached mouse.").is_true()
-	assert_bool(result.visible).append_failure_message("Expected process tick to show positioner for cached mouse.").is_true()
+	assert_bool(result.apply)
+  .append_failure_message("Expected process tick to apply visibility for cached mouse.").is_true()
+	assert_bool(result.visible)
+  .append_failure_message("Expected process tick to show positioner for cached mouse.").is_true()
 	assert_str(result.reason).append_failure_message("visibility_on_process_tick: reason should be 'retain_from_cached_mouse_world'").is_equal("retain_from_cached_mouse_world")
 
 func test_process_tick_noop_when_hide_on_handled_false() -> void:
 	var targeting_settings := _make_settings(true, false)
 	var mouse_input_status := _make_last_mouse(true)
 	var result: Variant = GridPositionerLogic.visibility_on_process_tick(GBEnums.Mode.MOVE, targeting_settings, true, mouse_input_status, true)
-	assert_bool(result.apply).append_failure_message("Expected apply=false when mouse input disabled").is_false()
+	assert_bool(result.apply)
+  .append_failure_message("Expected apply=false when mouse input disabled").is_false()
 
 func test_process_tick_noop_when_input_not_ready() -> void:
 	var targeting_settings := _make_settings(true, true)
 	var mouse_input_status := _make_last_mouse(true)
 	var result: Variant = GridPositionerLogic.visibility_on_process_tick(GBEnums.Mode.MOVE, targeting_settings, false, mouse_input_status, true)
-	assert_bool(result.apply).append_failure_message("Expected apply=false when input not ready").is_false()
+	assert_bool(result.apply)
+  .append_failure_message("Expected apply=false when input not ready").is_false()
 
 #endregion
 
@@ -267,7 +283,8 @@ func test_visibility_decision_trace() -> void:
 	var has_mouse := true
 
 	var trace := GridPositionerLogic.visibility_decision_trace(mode_state, settings, last_mouse, has_mouse)
-	assert_str(trace).append_failure_message("visibility_decision_trace: should contain mode=MOVE").contains("mode=MOVE")
+	assert_str(trace)
+  .append_failure_message("visibility_decision_trace: should contain mode=MOVE").contains("mode=MOVE")
 	assert_str(trace).append_failure_message("visibility_decision_trace: should contain last_mouse_allowed=true").contains("last_mouse_allowed=true")
 	assert_str(trace).append_failure_message("visibility_decision_trace: should contain has_mouse_world=true").contains("has_mouse_world=true")
 	assert_str(trace).append_failure_message("visibility_decision_trace: should contain mouse_enabled=true").contains("mouse_enabled=true")

@@ -229,7 +229,8 @@ func test_script_name_scenarios(
 	var script_name: String = NodeSearchLogic.get_script_name(node)
 
 	if expected_empty:
-		assert_str(script_name).append_failure_message("Script name should be empty for node at index %d" % node_index).is_empty()
+		assert_str(script_name)
+   .append_failure_message("Script name should be empty for node at index %d" % node_index).is_empty()
 	else:
 		assert_str(script_name).append_failure_message("Script name should not be empty for node at index %d" % node_index).is_not_empty()
 		assert_str(script_name).append_failure_message("Script name should contain '%s' for node at index %d" % [expected_contains, node_index]).contains(expected_contains)
@@ -264,16 +265,20 @@ func test_combine_search_results() -> void:
 	var combined: Array[Node] = NodeSearchLogic.combine_search_results([result1, result2])
 
 	assert_int(combined.size()).append_failure_message("Combine search expected 3 got %d -> %s" % [combined.size(), combined]).is_equal(3)  # Should have all unique nodes
-	assert_bool(combined.has(test_nodes[0])).append_failure_message("Combined results should contain test_nodes[0]").is_true()
-	assert_bool(combined.has(test_nodes[1])).append_failure_message("Combined results should contain test_nodes[1]").is_true()
-	assert_bool(combined.has(test_nodes[2])).append_failure_message("Combined results should contain test_nodes[2]").is_true()
+	assert_bool(combined.has(test_nodes[0]))
+  .append_failure_message("Combined results should contain test_nodes[0]").is_true()
+	assert_bool(combined.has(test_nodes[1]))
+  .append_failure_message("Combined results should contain test_nodes[1]").is_true()
+	assert_bool(combined.has(test_nodes[2]))
+  .append_failure_message("Combined results should contain test_nodes[2]").is_true()
 
 func test_filter_search_results() -> void:
 	var filter_func: Callable = func(node: Node) -> bool: return node.name.begins_with(TEST_NODE_PREFIX)
 
 	var filtered: Array[Node] = NodeSearchLogic.filter_search_results(test_nodes, filter_func)
 
-	assert_int(filtered.size()).append_failure_message("Filter expected 3 got %d" % filtered.size()).is_equal(3)
+	assert_int(filtered.size())
+  .append_failure_message("Filter expected 3 got %d" % filtered.size()).is_equal(3)
 	for node: Node in filtered:
 		assert_str(node.name).contains(TEST_NODE_PREFIX)
 

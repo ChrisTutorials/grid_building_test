@@ -191,10 +191,12 @@ func test_is_region_valid_scenarios() -> void:
 	assert_bool(GBPositioning2DUtils.is_region_valid(zero_region)).is_false().append_failure_message(
 		"Zero region should return false"
 	)
-	assert_bool(GBPositioning2DUtils.is_region_valid(negative_size_region)).is_false().append_failure_message(
+	assert_bool(GBPositioning2DUtils.is_region_valid(negative_size_region)).is_false()
+  .append_failure_message(
 		"Negative size region should return false"
 	)
-	assert_bool(GBPositioning2DUtils.is_region_valid(zero_width_region)).is_false().append_failure_message(
+	assert_bool(GBPositioning2DUtils.is_region_valid(zero_width_region)).is_false()
+  .append_failure_message(
 		"Zero width region should return false"
 	)
 
@@ -375,9 +377,12 @@ func test_positioning_utilities_dry_compliance() -> void:
 	var snapped_tile: Vector2i = GBPositioning2DUtils.snap_tile_to_region(TEST_TILE_COORD, TEST_REGION)
 
 	# Verify functions return expected types (should not crash if properly refactored)
-assert_object(tile_coord).append_failure_message("get_tile_from_node_position should return Vector2i").is_not_null()
- assert_object(world_pos).append_failure_message("viewport_center_to_world_position should return Vector2").is_not_null()
+assert_object(tile_coord)
+ .append_failure_message("get_tile_from_node_position should return Vector2i").is_not_null()
+ assert_object(world_pos)
+  .append_failure_message("viewport_center_to_world_position should return Vector2").is_not_null()
 assert_bool(region_valid).append_failure_message("is_region_valid should return bool").is_true()
- assert_object(snapped_tile).append_failure_message("snap_tile_to_region should return Vector2i").is_not_null()
+ assert_object(snapped_tile)
+  .append_failure_message("snap_tile_to_region should return Vector2i").is_not_null()
 
 #endregion

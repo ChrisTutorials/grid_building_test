@@ -17,19 +17,24 @@ func test_debug_enter_build_mode_failure() -> void:
 	var smithy_placeable: Resource = load("uid://dirh6mcrgdm3w")
 
 	# Check preconditions first
-	assert_that(building_system).append_failure_message("BuildingSystem should be initialized").is_not_null()
-	assert_that(smithy_placeable).append_failure_message("Smithy placeable should load successfully").is_not_null()
+	assert_that(building_system)
+  .append_failure_message("BuildingSystem should be initialized").is_not_null()
+	assert_that(smithy_placeable)
+  .append_failure_message("Smithy placeable should load successfully").is_not_null()
 
 	# Check if IndicatorManager is properly registered
 	var container: GBCompositionContainer = test_env.get_container()
 	assert_that(container).append_failure_message("Composition container should exist").is_not_null()
 
 	var indicator_context: IndicatorContext = container.get_contexts().indicator
-	assert_that(indicator_context).append_failure_message("Indicator context should be available").is_not_null()
-	assert_that(indicator_context.has_manager()).append_failure_message("Indicator manager should be registered").is_true()
+	assert_that(indicator_context)
+  .append_failure_message("Indicator context should be available").is_not_null()
+	assert_that(indicator_context.has_manager())
+  .append_failure_message("Indicator manager should be registered").is_true()
 
 	var indicator_manager: IndicatorManager = indicator_context.get_manager()
-	assert_that(indicator_manager).append_failure_message("Indicator manager instance should exist").is_not_null()
+	assert_that(indicator_manager)
+  .append_failure_message("Indicator manager instance should exist").is_not_null()
 
 	# Check building system runtime issues
 	var building_issues: Array[String] = building_system.get_runtime_issues()

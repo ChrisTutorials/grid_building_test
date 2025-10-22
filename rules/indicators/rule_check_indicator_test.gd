@@ -253,7 +253,8 @@ func test_validity_sprite_texture_switches_on_validity_change() -> void:
 func test_indicator_starts_valid_with_no_rules() -> void:
 	# Wait for physics frame to allow _physics_process to run and update validity
 	runner.simulate_frames(1)
-	assert_bool(indicator.valid).append_failure_message(_diag("Indicator should start valid with no rules")).is_true()
+	assert_bool(indicator.valid)
+  .append_failure_message(_diag("Indicator should start valid with no rules")).is_true()
 	# Allow deferred post-ready visual application to run
 	runner.simulate_frames(1)
 	assert_object(indicator.current_display_settings).append_failure_message(_diag("current_display_settings should be valid_settings when no rules present")).is_equal(indicator.valid_settings)
@@ -386,7 +387,8 @@ func test_visual_settings_update_on_validity_change() -> void:
 	# Wait for physics process to run
 	runner.simulate_frames(2)
 
-	assert_bool(indicator.valid).append_failure_message("The indicator should be invalid after adding a failing rule.").is_false()
+	assert_bool(indicator.valid)
+  .append_failure_message("The indicator should be invalid after adding a failing rule.").is_false()
 
 	# Verify visual settings changed to invalid
 	assert_object(indicator.current_display_settings).append_failure_message("The current display is expected to be the invalid settings.").is_equal(indicator.invalid_settings)
@@ -458,7 +460,8 @@ func test_rules_added_after_ready() -> void:
 	runner.simulate_frames(2)
 
 	# Verify the indicator is now invalid
-	assert_bool(indicator.valid).append_failure_message(_diag("Indicator should be invalid after adding failing rule")).is_false()
+	assert_bool(indicator.valid)
+  .append_failure_message(_diag("Indicator should be invalid after adding failing rule")).is_false()
 	assert_object(indicator.current_display_settings).append_failure_message(_diag("Display settings did not switch to invalid settings after failing rule")).is_equal(indicator.invalid_settings)
 
 ## Test that indicators properly handle rules being removed

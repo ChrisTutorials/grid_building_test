@@ -14,10 +14,12 @@ func before_test() -> void:
 	runner.simulate_frames(2)  # Initial setup frames
 
 	env = runner.scene() as CollisionTestEnvironment
-	assert_object(env).append_failure_message("Failed to load CollisionTestEnvironment scene").is_not_null()
+	assert_object(env)
+  .append_failure_message("Failed to load CollisionTestEnvironment scene").is_not_null()
 
 	targeter = env.targeter
-	assert_object(targeter).append_failure_message("CollisionTestEnvironment should have targeter").is_not_null()
+	assert_object(targeter)
+  .append_failure_message("CollisionTestEnvironment should have targeter").is_not_null()
 
 	# Clear any residual targeting state from previous tests
 	var gts: GridTargetingState = env.get_container().get_states().targeting
@@ -39,7 +41,8 @@ func after_test() -> void:
 func test_env_injection_wires_targeting_state() -> void:
 	# Acquire targeting state from environment container
 	var gts: GridTargetingState = env.get_container().get_states().targeting
-	assert_object(gts).append_failure_message("GridTargetingState should be available from container").is_not_null()
+	assert_object(gts)
+  .append_failure_message("GridTargetingState should be available from container").is_not_null()
 
 	# Ensure manual targeting is not active initially
 	gts.is_manual_targeting_active = false

@@ -36,11 +36,16 @@ func test_sequence_creation_and_properties() -> void:
 	sequence.placeables = [test_placeable_1, test_placeable_2, test_placeable_3]
 
 	# Basic property validation
-	assert_str(sequence.display_name).append_failure_message("Sequence display_name should be set correctly").is_equal("Tower Variants")
-	assert_int(sequence.placeables.size()).append_failure_message("Sequence should contain 3 placeables").is_equal(3)
-	assert_object(sequence.placeables[0]).append_failure_message("First placeable should be test_placeable_1").is_same(test_placeable_1)
-	assert_object(sequence.placeables[1]).append_failure_message("Second placeable should be test_placeable_2").is_same(test_placeable_2)
-	assert_object(sequence.placeables[2]).append_failure_message("Third placeable should be test_placeable_3").is_same(test_placeable_3)
+	assert_str(sequence.display_name)
+  .append_failure_message("Sequence display_name should be set correctly").is_equal("Tower Variants")
+	assert_int(sequence.placeables.size())
+  .append_failure_message("Sequence should contain 3 placeables").is_equal(3)
+	assert_object(sequence.placeables[0])
+  .append_failure_message("First placeable should be test_placeable_1").is_same(test_placeable_1)
+	assert_object(sequence.placeables[1])
+  .append_failure_message("Second placeable should be test_placeable_2").is_same(test_placeable_2)
+	assert_object(sequence.placeables[2])
+  .append_failure_message("Third placeable should be test_placeable_3").is_same(test_placeable_3)
 
 func test_count_method() -> void:
 	var sequence: PlaceableSequence = PlaceableSequence.new()
@@ -228,18 +233,22 @@ func test_empty_sequence_edge_cases() -> void:
 	sequence.placeables = []
 
 	# Count should be 0
-	assert_int(sequence.count()).append_failure_message("Empty sequence should have count 0").is_equal(0)
+	assert_int(sequence.count())
+  .append_failure_message("Empty sequence should have count 0").is_equal(0)
 
 	# get_variant should return null for any index
-	assert_object(sequence.get_variant(0)).append_failure_message("Empty sequence get_variant(0) should return null").is_null()
-	assert_object(sequence.get_variant(-1)).append_failure_message("Empty sequence get_variant(-1) should return null").is_null()
+	assert_object(sequence.get_variant(0))
+  .append_failure_message("Empty sequence get_variant(0) should return null").is_null()
+	assert_object(sequence.get_variant(-1))
+  .append_failure_message("Empty sequence get_variant(-1) should return null").is_null()
 
 	# variant_display_name should return <Unknown> for any index
 	assert_str(sequence.variant_display_name(0)).append_failure_message("Empty sequence variant_display_name(0) should return '<Unknown>'").is_equal("<Unknown>")
 
 	# Should have validation issues
 	var issues: Array[String] = sequence.get_editor_issues()
-	assert_int(issues.size()).append_failure_message("Empty sequence should have validation issues").is_greater(0)
+	assert_int(issues.size())
+  .append_failure_message("Empty sequence should have validation issues").is_greater(0)
 
 func test_null_placeables_handling() -> void:
 	var sequence: PlaceableSequence = PlaceableSequence.new()

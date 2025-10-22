@@ -50,7 +50,8 @@ func test_search_by_name() -> void:
 	var found_nodes: Array[Node] = NodeSearchLogic.find_nodes_by_name(all_nodes, search_owner_name)
 
 	assert_int(found_nodes.size()).append_failure_message("find_nodes_by_name('%s') expected 2 (owner + target) got %d -> %s" % [search_owner_name, found_nodes.size(), found_nodes]).is_equal(2)
-	assert_object(found_nodes[0]).append_failure_message("First found node should not be null").is_not_null()
+	assert_object(found_nodes[0])
+  .append_failure_message("First found node should not be null").is_not_null()
 
 
 func test_search_by_script_name_with_extension() -> void:
@@ -62,8 +63,10 @@ func test_search_by_script_name_with_extension() -> void:
 	var found_nodes: Array[Node] = NodeSearchLogic.find_nodes_by_script(all_nodes, expected_script_name)
 	assert_int(found_nodes.size()).append_failure_message("find_nodes_by_script('%s') expected 1 got %d -> %s (available=%s)" % [expected_script_name, found_nodes.size(), found_nodes, all_nodes]).is_equal(1)
 	if found_nodes.size() == 1:
-		assert_object(found_nodes[0]).append_failure_message("Result node was null despite size==1").is_not_null()
-		assert_object(found_nodes[0].get_script()).append_failure_message("Result node script should not be null").is_not_null()
+		assert_object(found_nodes[0])
+   .append_failure_message("Result node was null despite size==1").is_not_null()
+		assert_object(found_nodes[0].get_script())
+   .append_failure_message("Result node script should not be null").is_not_null()
 
 
 @warning_ignore("unused_parameter")
@@ -86,4 +89,5 @@ func test_search_by_is_in_group() -> void:
 		membership.append("%s:%s" % [n.name, n.is_in_group(owner_group)])
 	assert_int(found_nodes.size()).append_failure_message("find_nodes_by_group('%s') expected 2 (owner + child) got %d -> %s memberships=%s" % [owner_group, found_nodes.size(), found_nodes, membership]).is_equal(2)
 	if found_nodes.size() == 2:
-		assert_object(found_nodes[0]).append_failure_message("First found node should not be null").is_not_null()
+		assert_object(found_nodes[0])
+   .append_failure_message("First found node should not be null").is_not_null()

@@ -31,7 +31,8 @@ func test_is_colliding_and_get_collider_behavior() -> void:
 	sc.shape = shape
 	add_child(sc)
 	# By default, no colliders present
-	assert_bool(sc.is_colliding()).append_failure_message("New TargetingShapeCast2D should not be colliding by default").is_false()
+	assert_bool(sc.is_colliding())
+  .append_failure_message("New TargetingShapeCast2D should not be colliding by default").is_false()
 	# Do not call get_collider() when not colliding; engine raises 'No collider found'
 	# This assertion is sufficient for default behavior
 

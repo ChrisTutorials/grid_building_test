@@ -106,7 +106,8 @@ func _validate_indicator_positions(indicators: Array[RuleCheckIndicator], previe
 			var tile_size: Vector2i = map.tile_set.tile_size
 			var tile_origin: Vector2 = map.map_to_local(map.local_to_map(map.to_local(position)))
 			var offset: Vector2 = position - tile_origin
-			assert_bool(abs(offset.x) <= tile_size.x and abs(offset.y) <= tile_size.y).append_failure_message(
+			assert_bool(abs(offset.x) <= tile_size.x and abs(offset.y) <= tile_size.y)
+    .append_failure_message(
 				"Indicator %d not within tile bounds. pos=%s origin=%s tile_size=%s" %
 				[i, str(position), str(tile_origin), str(tile_size)]
 			).is_true()

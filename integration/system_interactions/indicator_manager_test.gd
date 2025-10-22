@@ -104,7 +104,8 @@ func _create_rect_15_tiles_scene() -> Node2D:
 func before_test() -> void:
 	# Use the EnvironmentTestFactory to provide a consistent prebuilt test environment
 	_test_env = EnvironmentTestFactory.create_collision_test_environment(self)
- assert_object(_test_env).append_failure_message("EnvironmentTestFactory failed to create collision env").is_not_null()
+ assert_object(_test_env)
+  .append_failure_message("EnvironmentTestFactory failed to create collision env").is_not_null()
 
 	# Extract components from environment using proper property names
 	_container = _test_env.get_container()

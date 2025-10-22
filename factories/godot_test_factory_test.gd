@@ -34,20 +34,23 @@ func test_create_node2d() -> void:
 	var node: Node2D = GodotTestFactory.create_node2d(self)
 
 	assert_object(node).append_failure_message("create_node2d: node should not be null").is_not_null()
-	assert_object(node.get_parent()).append_failure_message("create_node2d: node should be parented to test instance").is_equal(self)
+	assert_object(node.get_parent())
+  .append_failure_message("create_node2d: node should be parented to test instance").is_equal(self)
 
 
 func test_create_node() -> void:
 	var node: Node = GodotTestFactory.create_node(self)
 
 	assert_object(node).append_failure_message("create_node: node should not be null").is_not_null()
-	assert_object(node.get_parent()).append_failure_message("create_node: node should be parented to test instance").is_equal(self)
+	assert_object(node.get_parent())
+  .append_failure_message("create_node: node should be parented to test instance").is_equal(self)
 
 
 func test_create_canvas_item() -> void:
 	var item: CanvasItem = GodotTestFactory.create_canvas_item(self)
 
-	assert_object(item).append_failure_message("create_canvas_item: item should not be null").is_not_null()
+	assert_object(item)
+  .append_failure_message("create_canvas_item: item should not be null").is_not_null()
 	assert_object(item.get_parent()).append_failure_message("create_canvas_item: item should be parented to test instance").is_equal(self)
 
 
@@ -58,18 +61,21 @@ func test_create_tile_map_layer_with_grid() -> void:
 	add_child(layer)
 	auto_free(layer)
 
-	assert_object(layer).append_failure_message("create_tile_map_layer_with_grid: layer should not be null").is_not_null()
+	assert_object(layer)
+  .append_failure_message("create_tile_map_layer_with_grid: layer should not be null").is_not_null()
 	assert_object(layer.get_parent()).append_failure_message("create_tile_map_layer_with_grid: layer should be parented to test instance").is_equal(self)
 	assert_object(layer.tile_set).append_failure_message("create_tile_map_layer_with_grid: layer.tile_set should not be null").is_not_null()
 	# Verify expected used rect matches 31x31 dimensions used in environments
 	var used_rect: Rect2i = layer.get_used_rect()
-	assert_vector(Vector2(used_rect.size)).append_failure_message("Packed test tilemap should be 31x31").is_equal(Vector2(31, 31))
+	assert_vector(Vector2(used_rect.size))
+  .append_failure_message("Packed test tilemap should be 31x31").is_equal(Vector2(31, 31))
 
 
 func test_create_empty_tile_map_layer() -> void:
 	var layer: TileMapLayer = GodotTestFactory.create_empty_tile_map_layer(self)
 
-	assert_object(layer).append_failure_message("create_empty_tile_map_layer: layer should not be null").is_not_null()
+	assert_object(layer)
+  .append_failure_message("create_empty_tile_map_layer: layer should not be null").is_not_null()
 	assert_object(layer.get_parent()).append_failure_message("create_empty_tile_map_layer: layer should be parented to test instance").is_equal(self)
 	assert_object(layer.tile_set).append_failure_message("create_empty_tile_map_layer: layer.tile_set should not be null").is_not_null()
 
@@ -189,17 +195,21 @@ func test_create_parent_with_body_and_polygon() -> void:
 func test_create_rectangle_shape() -> void:
 	var shape: RectangleShape2D = GodotTestFactory.create_rectangle_shape(Vector2(50, 60))
 
-	assert_object(shape).append_failure_message("create_rectangle_shape: shape should not be null").is_not_null()
+	assert_object(shape)
+  .append_failure_message("create_rectangle_shape: shape should not be null").is_not_null()
 	assert_object(shape).append_failure_message("create_rectangle_shape: shape should be RectangleShape2D").is_instanceof(RectangleShape2D)
-	assert_that(shape.size).append_failure_message("create_rectangle_shape: shape size mismatch").is_equal(Vector2(50, 60))
+	assert_that(shape.size)
+  .append_failure_message("create_rectangle_shape: shape size mismatch").is_equal(Vector2(50, 60))
 
 
 func test_create_circle_shape() -> void:
 	var shape: CircleShape2D = GodotTestFactory.create_circle_shape(25.0)
 
-	assert_object(shape).append_failure_message("create_circle_shape: shape should not be null").is_not_null()
+	assert_object(shape)
+  .append_failure_message("create_circle_shape: shape should not be null").is_not_null()
 	assert_object(shape).append_failure_message("create_circle_shape: shape should be CircleShape2D").is_instanceof(CircleShape2D)
-	assert_that(shape.radius).append_failure_message("create_circle_shape: radius mismatch").is_equal(25.0)
+	assert_that(shape.radius)
+  .append_failure_message("create_circle_shape: radius mismatch").is_equal(25.0)
 
 
 func test_create_rule_check_indicator() -> void:
@@ -214,7 +224,8 @@ func test_create_rule_check_indicator() -> void:
 	if indicator.shape is RectangleShape2D:
 		(indicator.shape as RectangleShape2D).size = Vector2(32, 32)
 
-	assert_object(indicator).append_failure_message("create_rule_check_indicator: indicator should not be null").is_not_null()
+	assert_object(indicator)
+  .append_failure_message("create_rule_check_indicator: indicator should not be null").is_not_null()
 	assert_object(indicator.shape).append_failure_message("create_rule_check_indicator: indicator.shape should not be null").is_not_null()
 	assert_object(indicator.shape).append_failure_message("create_rule_check_indicator: indicator.shape should be RectangleShape2D").is_instanceof(RectangleShape2D)
 

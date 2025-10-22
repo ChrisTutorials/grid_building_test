@@ -59,7 +59,8 @@ func _run_polygon_test(
 
 	if expected_max != -1:
 		var between_message: String = "Expected %s to produce %d-%d tiles, got %d" % [description, expected_min, expected_max, result.size()]
-		assert_that(result.size()).append_failure_message(between_message).is_between(expected_min, expected_max)
+		assert_that(result.size())
+   .append_failure_message(between_message).is_between(expected_min, expected_max)
 
 ## Parameterized test for different polygon shapes on square tiles
 @warning_ignore("unused_parameter")
@@ -104,7 +105,8 @@ func test_compute_tile_offsets_null_polygon() -> void:
 
 	var result: Array = PolygonTileMapper.compute_tile_offsets(null, test_map)
 
-	assert_that(result.size()).append_failure_message("Expected null polygon to return empty result").is_equal(0)
+	assert_that(result.size())
+  .append_failure_message("Expected null polygon to return empty result").is_equal(0)
 
 ## Test null map handling
 func test_compute_tile_offsets_null_map() -> void:
@@ -119,7 +121,8 @@ func test_compute_tile_offsets_null_map() -> void:
 
 	var result: Array = PolygonTileMapper.compute_tile_offsets(triangle_polygon, null)
 
-	assert_that(result.size()).append_failure_message("Expected null map to return empty result").is_equal(0)
+	assert_that(result.size())
+  .append_failure_message("Expected null map to return empty result").is_equal(0)
 
 ## Test map without tile set
 func test_compute_tile_offsets_no_tile_set() -> void:
@@ -138,7 +141,8 @@ func test_compute_tile_offsets_no_tile_set() -> void:
 
 	var result: Array = PolygonTileMapper.compute_tile_offsets(triangle_polygon, test_map)
 
-	assert_that(result.size()).append_failure_message("Expected map without tile set to return empty result").is_equal(0)
+	assert_that(result.size())
+  .append_failure_message("Expected map without tile set to return empty result").is_equal(0)
 
 ## Parameterized: degenerate polygons
 @warning_ignore("unused_parameter")
@@ -160,7 +164,8 @@ func test_compute_tile_offsets_degenerate_polygons(
 	var poly: CollisionPolygon2D = _create_collision_polygon(points, static_body)
 	var result: Array = PolygonTileMapper.compute_tile_offsets(poly, test_map)
 	if expected_max == 0:
-		assert_that(result.size()).append_failure_message("Expected %s polygon to return empty result" % case_name).is_equal(0)
+		assert_that(result.size())
+   .append_failure_message("Expected %s polygon to return empty result" % case_name).is_equal(0)
 	else:
 		assert_that(result.size()).append_failure_message("Expected %s polygon to return empty or minimal result" % case_name).is_less_equal(expected_max)
 
@@ -200,8 +205,10 @@ func test_process_polygon_with_diagnostics_convex() -> void:
 
 	var result: PolygonTileMapper.ProcessingResult = PolygonTileMapper.process_polygon_with_diagnostics(convex_polygon, test_map)
 
-	assert_that(result.was_convex).append_failure_message("Expected rectangle polygon to be detected as convex").is_true()
-	assert_that(result.offsets.size()).append_failure_message("Expected convex polygon diagnostic to return offsets").is_greater(0)
+	assert_that(result.was_convex)
+  .append_failure_message("Expected rectangle polygon to be detected as convex").is_true()
+	assert_that(result.offsets.size())
+  .append_failure_message("Expected convex polygon diagnostic to return offsets").is_greater(0)
 
 ## Test diagnostic information for concave polygon
 func test_process_polygon_with_diagnostics_concave() -> void:
@@ -220,8 +227,10 @@ func test_process_polygon_with_diagnostics_concave() -> void:
 
 	var result: PolygonTileMapper.ProcessingResult = PolygonTileMapper.process_polygon_with_diagnostics(concave_polygon, test_map)
 
-	assert_that(result.was_convex).append_failure_message("Expected indented polygon to be detected as concave").is_false()
-	assert_that(result.offsets.size()).append_failure_message("Expected concave polygon diagnostic to return offsets").is_greater(0)
+	assert_that(result.was_convex)
+  .append_failure_message("Expected indented polygon to be detected as concave").is_false()
+	assert_that(result.offsets.size())
+  .append_failure_message("Expected concave polygon diagnostic to return offsets").is_greater(0)
 
 ## Parameterized: diagnostic information for convex/concave
 @warning_ignore("unused_parameter")
@@ -242,10 +251,13 @@ func test_process_polygon_with_diagnostics_cases(
 	poly.position = DEFAULT_TEST_POSITION
 	var result: PolygonTileMapper.ProcessingResult = PolygonTileMapper.process_polygon_with_diagnostics(poly, test_map)
 	if expected_convex:
-		assert_that(result.was_convex).append_failure_message("Expected %s to be detected as convex" % case_name).is_true()
+		assert_that(result.was_convex)
+   .append_failure_message("Expected %s to be detected as convex" % case_name).is_true()
 	else:
-		assert_that(result.was_convex).append_failure_message("Expected %s to be detected as concave" % case_name).is_false()
-	assert_that(result.offsets.size()).append_failure_message("Expected %s diagnostic to return offsets" % case_name).is_greater(0)
+		assert_that(result.was_convex)
+   .append_failure_message("Expected %s to be detected as concave" % case_name).is_false()
+	assert_that(result.offsets.size())
+  .append_failure_message("Expected %s diagnostic to return offsets" % case_name).is_greater(0)
 
 ## Test polygon processing with different tile sizes
 func test_compute_tile_offsets_different_tile_sizes() -> void:
@@ -294,7 +306,8 @@ func test_tile_property_detection_diagnostics() -> void:
 	polygon.position = DEFAULT_TEST_POSITION
 
 	# Test tile set existence
-	assert_that(test_map.tile_set).append_failure_message("TileMapLayer should have a tile_set").is_not_null()
+	assert_that(test_map.tile_set)
+  .append_failure_message("TileMapLayer should have a tile_set").is_not_null()
 
 	# Test tile_shape property detection
 	var tile_set_ref: TileSet = test_map.tile_set
@@ -308,12 +321,14 @@ func test_tile_property_detection_diagnostics() -> void:
 			break
 
 	var prop_list_msg: String = "TileSet properties: " + str(property_names)
-	assert_that(has_tile_shape).append_failure_message("tile_shape property not found. " + prop_list_msg).is_true()
+	assert_that(has_tile_shape)
+  .append_failure_message("tile_shape property not found. " + prop_list_msg).is_true()
 
 	# Test actual tile_shape value
 	if has_tile_shape:
 		var tile_shape_value: int = tile_set_ref.tile_shape
-		assert_that(tile_shape_value).append_failure_message("tile_shape should be valid enum value").is_not_equal(-1)
+		assert_that(tile_shape_value)
+   .append_failure_message("tile_shape should be valid enum value").is_not_equal(-1)
 
 	# Use the full processing pipeline to gather diagnostics
 	var diag: PolygonTileMapper.ProcessingResult = PolygonTileMapper.process_polygon_with_diagnostics(polygon, test_map)
@@ -360,7 +375,8 @@ func test_compute_tile_offsets_consistency() -> void:
 	var result2: Array = PolygonTileMapper.compute_tile_offsets(triangle_polygon, test_map)
 
 	# Results should be identical
-	assert_that(result1).append_failure_message("Expected multiple calls to produce identical results").is_equal(result2)
+	assert_that(result1)
+  .append_failure_message("Expected multiple calls to produce identical results").is_equal(result2)
 
 
 ## Diagnostic: Per-offset area inspection to debug final filtering
@@ -415,7 +431,8 @@ func test_filter_area_diagnostics() -> void:
 			any_ok = true
 			break
 
-	assert_bool(any_ok).append_failure_message("No offset met expanded threshold.\n" + failure_msg).is_true()
+	assert_bool(any_ok)
+  .append_failure_message("No offset met expanded threshold.\n" + failure_msg).is_true()
 
 ## Unit tests for get_polygon_tile_overlap_area
 @warning_ignore("unused_parameter")
@@ -451,7 +468,8 @@ func test_polygon_tile_overlap_area_outside() -> void:
 	var rect := Rect2(0, 0, 16, 16)
 	var outside_polygon := PackedVector2Array([Vector2(20, 20), Vector2(30, 20), Vector2(30, 30), Vector2(20, 30)])
 	var area := PolygonTileMapper.get_polygon_tile_overlap_area(outside_polygon, rect)
-	assert_float(area).append_failure_message("Expected polygon outside rect to have 0 area").is_equal(0.0)
+	assert_float(area)
+  .append_failure_message("Expected polygon outside rect to have 0 area").is_equal(0.0)
 
 ## Test polygon completely inside rect
 func test_polygon_tile_overlap_area_completely_inside() -> void:
@@ -465,14 +483,16 @@ func test_polygon_tile_overlap_area_exact_match() -> void:
 	var rect: Rect2 = Rect2(0, 0, 16, 16)
 	var matching_polygon: PackedVector2Array = PackedVector2Array([Vector2(0, 0), Vector2(16, 0), Vector2(16, 16), Vector2(0, 16)])
 	var area: float = PolygonTileMapper.get_polygon_tile_overlap_area(matching_polygon, rect)
-	assert_float(area).append_failure_message("Expected polygon matching rect bounds to have 256 area").is_equal(256.0)
+	assert_float(area)
+  .append_failure_message("Expected polygon matching rect bounds to have 256 area").is_equal(256.0)
 
 ## Test polygon completely containing rect
 func test_polygon_tile_overlap_area_contains_rect() -> void:
 	var rect: Rect2 = Rect2(4, 4, 8, 8)
 	var containing_polygon: PackedVector2Array = PackedVector2Array([Vector2(0, 0), Vector2(16, 0), Vector2(16, 16), Vector2(0, 16)])
 	var area: float = PolygonTileMapper.get_polygon_tile_overlap_area(containing_polygon, rect)
-	assert_float(area).append_failure_message("Expected polygon containing 8x8 rect to have 64 area").is_equal(64.0)
+	assert_float(area)
+  .append_failure_message("Expected polygon containing 8x8 rect to have 64 area").is_equal(64.0)
 
 ## Test partial overlap
 func test_polygon_tile_overlap_area_partial_overlap() -> void:
@@ -521,7 +541,8 @@ func test_concave_polygon_tile_distribution() -> void:
 	var result: PolygonTileMapper.ProcessingResult = PolygonTileMapper.process_polygon_with_diagnostics(polygon, test_map)
 
 	# Verify this is correctly detected as concave
-	assert_that(result.was_convex).append_failure_message("Expected U-shaped polygon to be detected as concave").is_false()
+	assert_that(result.was_convex)
+  .append_failure_message("Expected U-shaped polygon to be detected as concave").is_false()
 
 	# The key test: concave polygon should NOT fill the complete bounding rectangle
 	# Convert offsets to tile coordinates for analysis

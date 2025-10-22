@@ -168,9 +168,12 @@ func test_indicator_visual_state_updates() -> void:
 	var diag: String = "\n".join(diag_parts)
 
 	# Ensure sprite exists and then assert the assigned texture is not null, with diagnostics
- assert_object(indicator.validity_sprite).append_failure_message("Validity sprite node missing. " + diag).is_not_null()
- assert_object(indicator.current_display_settings).append_failure_message("Current display settings missing. " + diag).is_not_null()
- assert_object(indicator.validity_sprite.texture).append_failure_message("Validity sprite should have a texture assigned. " + diag).is_not_null()
+ assert_object(indicator.validity_sprite)
+  .append_failure_message("Validity sprite node missing. " + diag).is_not_null()
+ assert_object(indicator.current_display_settings)
+  .append_failure_message("Current display settings missing. " + diag).is_not_null()
+ assert_object(indicator.validity_sprite.texture)
+  .append_failure_message("Validity sprite should have a texture assigned. " + diag).is_not_null()
 
 # Test indicator position and transform handling
 @warning_ignore("unused_parameter")

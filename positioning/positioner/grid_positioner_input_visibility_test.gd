@@ -10,29 +10,35 @@ func _make_settings(active_when_off:=true, hide_on_handled:=true, mouse_enabled:
 func test_off_mode_active_should_be_visible() -> void:
 	var s := _make_settings(true, true, true)
 	var last := GBMouseInputStatus.new(); last.set_from_values(false, Vector2.ZERO, 0, "", Vector2.ZERO)
-	assert_bool(GridPositionerLogic.should_be_visible(GBEnums.Mode.OFF, s, last, false)).append_failure_message("OFF mode with active_when_off=true should be visible").is_true()
+	assert_bool(GridPositionerLogic.should_be_visible(GBEnums.Mode.OFF, s, last, false))
+  .append_failure_message("OFF mode with active_when_off=true should be visible").is_true()
 	assert_bool(GridPositionerLogic.should_be_visible_for_mode(GBEnums.Mode.OFF, s)).append_failure_message("OFF mode with active_when_off=true should be visible for mode only").is_true()
 
 func test_off_mode_inactive_should_be_hidden() -> void:
 	var s := _make_settings(false, true, true)
 	var last := GBMouseInputStatus.new(); last.set_from_values(false, Vector2.ZERO, 0, "", Vector2.ZERO)
-	assert_bool(GridPositionerLogic.should_be_visible(GBEnums.Mode.OFF, s, last, false)).append_failure_message("OFF mode with active_when_off=false should be hidden").is_false()
+	assert_bool(GridPositionerLogic.should_be_visible(GBEnums.Mode.OFF, s, last, false))
+  .append_failure_message("OFF mode with active_when_off=false should be hidden").is_false()
 	assert_bool(GridPositionerLogic.should_be_visible_for_mode(GBEnums.Mode.OFF, s)).append_failure_message("OFF mode with active_when_off=false should be hidden for mode only").is_false()
 
 func test_mouse_event_gate_allowed_off_active_shows() -> void:
 	var s := _make_settings(true, true, true)
 	# Test allowed input
 	var res: Variant = GridPositionerLogic.visibility_on_mouse_event(GBEnums.Mode.OFF, s, true)
-	assert_bool(res.apply).append_failure_message("Allowed mouse event in OFF mode should apply visibility change").is_true()
-	assert_bool(res.visible).append_failure_message("Allowed mouse event in OFF mode should show positioner").is_true()
+	assert_bool(res.apply)
+  .append_failure_message("Allowed mouse event in OFF mode should apply visibility change").is_true()
+	assert_bool(res.visible)
+  .append_failure_message("Allowed mouse event in OFF mode should show positioner").is_true()
 	assert_str(res.reason).contains("allowed")
 
 func test_mouse_event_gate_blocked_off_inactive_hides() -> void:
 	var s := _make_settings(false, true, true)
 	# Test blocked input
 	var res: Variant = GridPositionerLogic.visibility_on_mouse_event(GBEnums.Mode.OFF, s, false)
-	assert_bool(res.apply).append_failure_message("Blocked mouse event in OFF mode should apply visibility change").is_true()
-	assert_bool(res.visible).append_failure_message("Blocked mouse event in OFF mode should hide positioner").is_false()
+	assert_bool(res.apply)
+  .append_failure_message("Blocked mouse event in OFF mode should apply visibility change").is_true()
+	assert_bool(res.visible)
+  .append_failure_message("Blocked mouse event in OFF mode should hide positioner").is_false()
 	assert_str(res.reason).contains("blocked")
 
 func test_mouse_event_noop_when_hide_on_handled_false() -> void:

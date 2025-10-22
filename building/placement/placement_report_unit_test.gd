@@ -16,10 +16,13 @@ func after_test() -> void:
 func test_rule_result_backward_compatibility_is_empty() -> void:
 	var rr := RuleResult.new(_dummy_rule)
 	assert_that(rr.is_empty()).append_failure_message("RuleResult should be empty initially").is_true()
-	assert_that(rr.get_issues()).append_failure_message("RuleResult should have no issues initially").is_empty()
+	assert_that(rr.get_issues())
+  .append_failure_message("RuleResult should have no issues initially").is_empty()
 	rr.add_issue("failure A")
-	assert_that(rr.is_empty()).append_failure_message("RuleResult should not be empty after adding issue").is_false()
-	assert_array(rr.get_issues()).append_failure_message("RuleResult should have exactly one issue").has_size(1)
+	assert_that(rr.is_empty())
+  .append_failure_message("RuleResult should not be empty after adding issue").is_false()
+	assert_array(rr.get_issues())
+  .append_failure_message("RuleResult should have exactly one issue").has_size(1)
 
 func test_validation_results_mixed_api_support() -> void:
 	var rr1 := RuleResult.new(_dummy_rule) # empty success
@@ -32,7 +35,8 @@ func test_validation_results_mixed_api_support() -> void:
 	# Re-add failing
 	vr.add_rule_result(_dummy_rule, rr2)
 	assert_that(vr.has_failing_rules()).append_failure_message("ValidationResults should have failing rules after adding failing result").is_true()
-	assert_array(vr.get_issues()).append_failure_message("ValidationResults should have exactly one issue").has_size(1)
+	assert_array(vr.get_issues())
+  .append_failure_message("ValidationResults should have exactly one issue").has_size(1)
 
 func test_placement_report_aggregates_indicator_and_primary_issues() -> void:
 	var rr := RuleResult.new(_dummy_rule)

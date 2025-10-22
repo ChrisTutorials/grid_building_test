@@ -58,7 +58,8 @@ func test_indicator_positioning_at_multiple_offsets() -> void:
 		if rule is TileCheckRule:
 			test_rule = rule
 			break
- assert_that(test_rule).append_failure_message("Should find a TileCheckRule in the test setup").is_not_null()
+ assert_that(test_rule)
+  .append_failure_message("Should find a TileCheckRule in the test setup").is_not_null()
 
 	# Add indicators at different offsets
 	position_rules_map[Vector2i(0, 0)] = [test_rule]
@@ -76,7 +77,8 @@ func test_indicator_positioning_at_multiple_offsets() -> void:
 	)
 
 	# Verify we got the expected number of indicators
-	assert_that(indicators.size()).is_equal(4).append_failure_message("Should generate 4 indicators for 4 positions")
+	assert_that(indicators.size()).is_equal(4)
+  .append_failure_message("Should generate 4 indicators for 4 positions")
 
 	# Verify each indicator is positioned correctly
 	var positioner_tile_pos: Vector2i = test_tile_map.local_to_map(test_tile_map.to_local(test_targeting_state.positioner.global_position))
@@ -132,7 +134,8 @@ func test_null_targeting_state_components_handled_gracefully() -> void:
 		if rule is TileCheckRule:
 			test_rule = rule
 			break
- assert_that(test_rule).append_failure_message("Should find a TileCheckRule in the test setup").is_not_null()
+ assert_that(test_rule)
+  .append_failure_message("Should find a TileCheckRule in the test setup").is_not_null()
 	position_rules_map[Vector2i(1, 1)] = [test_rule]
 
 	# This should not crash and should position at (0,0)
@@ -144,7 +147,8 @@ func test_null_targeting_state_components_handled_gracefully() -> void:
 		test_object
 	)
 
-	assert_that(indicators.size()).is_equal(1).append_failure_message("Should generate 1 indicator despite null components")
+	assert_that(indicators.size()).is_equal(1)
+  .append_failure_message("Should generate 1 indicator despite null components")
 
 	var indicator: RuleCheckIndicator = indicators[0]
 	assert_that(indicator.global_position).is_equal(Vector2(0, 0)).append_failure_message(

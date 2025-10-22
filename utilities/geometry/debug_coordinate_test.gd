@@ -31,12 +31,17 @@ func test_debug_coordinate_transformation() -> void:
 	polygon.position = POLYGON_POSITION
 
 	# Validate basic setup
- assert_that(polygon.position).append_failure_message("Polygon position should be set correctly").is_equal(POLYGON_POSITION)
+ assert_that(polygon.position)
+  .append_failure_message("Polygon position should be set correctly").is_equal(POLYGON_POSITION)
  assert_that(polygon.global_position).append_failure_message("Polygon global_position should match position when no parent transform").is_equal(POLYGON_POSITION)
- assert_that(polygon.polygon).append_failure_message("Polygon points should match input").is_equal(polygon_points)
- assert_that(test_map.tile_set.tile_size).append_failure_message("Tilemap should have 16x16 tile size").is_equal(TILE_SIZE)
- assert_that(test_map.position).append_failure_message("Tilemap should be at origin").is_equal(Vector2.ZERO)
- assert_that(test_map.global_position).append_failure_message("Tilemap global_position should be at origin").is_equal(Vector2.ZERO)
+ assert_that(polygon.polygon)
+  .append_failure_message("Polygon points should match input").is_equal(polygon_points)
+ assert_that(test_map.tile_set.tile_size)
+  .append_failure_message("Tilemap should have 16x16 tile size").is_equal(TILE_SIZE)
+ assert_that(test_map.position)
+  .append_failure_message("Tilemap should be at origin").is_equal(Vector2.ZERO)
+ assert_that(test_map.global_position)
+  .append_failure_message("Tilemap global_position should be at origin").is_equal(Vector2.ZERO)
 
 	# Test coordinate transformations
 	var center_tile: Vector2i = test_map.local_to_map(test_map.to_local(polygon.global_position))

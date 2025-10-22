@@ -52,12 +52,14 @@ func create_test_preview_object() -> Node2D:
 
 func assert_color_equal(actual: Color, expected: Color, context: String = "") -> void:
 	"""Assert that two colors are equal with optional context."""
-	assert_that(actual).append_failure_message("Color assertion failed: %s" % context).is_equal(expected)
+	assert_that(actual)
+  .append_failure_message("Color assertion failed: %s" % context).is_equal(expected)
 
 func setup_mode_and_assert_initial_state(mode_value: GBEnums.Mode, canvas: Node2D) -> void:
 	"""Set the mode and assert initial canvas state."""
 	highlighter.mode_state.current = mode_value
-	assert_that(highlighter.mode_state.current).append_failure_message("Mode should be set to %s" % mode_value).is_equal(mode_value)
+	assert_that(highlighter.mode_state.current)
+  .append_failure_message("Mode should be set to %s" % mode_value).is_equal(mode_value)
 	assert_color_equal(canvas.modulate, Color.WHITE, "Initial canvas modulate should be white")
 
 
@@ -265,7 +267,8 @@ func test_should_highlight(
 		t = p_target_builder.call()
 
 	# Run assertion
-	assert_bool(highlighter.should_highlight(d, t)).append_failure_message("should_highlight failed - %s" % p_desc).is_equal(p_expected)
+	assert_bool(highlighter.should_highlight(d, t))
+  .append_failure_message("should_highlight failed - %s" % p_desc).is_equal(p_expected)
 
 	# Cleanup: free dynamically created targets that are not owned elsewhere
 	if t != null:

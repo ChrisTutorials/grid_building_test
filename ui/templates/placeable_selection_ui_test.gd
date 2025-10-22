@@ -152,11 +152,13 @@ func test_sequences_mixed_content_functionality() -> void:
 	# Debug: Check that sequences have proper tags
 	for sequence in test_sequences:
 		assert_object(sequence).append_failure_message("Sequence should not be null").is_not_null()
-		assert_array(sequence.placeables).append_failure_message("Sequence should have placeable variants").is_not_empty()
+		assert_array(sequence.placeables)
+   .append_failure_message("Sequence should have placeable variants").is_not_empty()
 
 		# Check first placeable in sequence has tags
 		var first_placeable: Placeable = sequence.placeables[0]
-		assert_array(first_placeable.tags).append_failure_message("Sequence placeable should have tags").is_not_empty()
+		assert_array(first_placeable.tags)
+   .append_failure_message("Sequence placeable should have tags").is_not_empty()
 
 	# Act: Initialize and rebuild
 	selection_ui.resolve_gb_dependencies(test_container)

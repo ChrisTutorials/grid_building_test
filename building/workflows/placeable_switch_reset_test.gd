@@ -39,9 +39,12 @@ func before_test() -> void:
 	_container = env.get_container()
 
 	# Validate required components
-	assert_object(_building_system).append_failure_message("BuildingSystem not available").is_not_null()
-	assert_object(_indicator_manager).append_failure_message("IndicatorManager not available").is_not_null()
-	assert_object(_manipulation_parent).append_failure_message("ManipulationParent not available").is_not_null()
+	assert_object(_building_system)
+  .append_failure_message("BuildingSystem not available").is_not_null()
+	assert_object(_indicator_manager)
+  .append_failure_message("IndicatorManager not available").is_not_null()
+	assert_object(_manipulation_parent)
+  .append_failure_message("ManipulationParent not available").is_not_null()
 
 func after_test() -> void:
 	if _building_system and _building_system.is_in_build_mode():

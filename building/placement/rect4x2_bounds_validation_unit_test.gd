@@ -29,7 +29,8 @@ func before_test() -> void:
 	runner = scene_runner(GBTestConstants.BUILDING_TEST_ENV_UID)
 	env = runner.scene() as BuildingTestEnvironment
 
-	assert_object(env).append_failure_message("Failed to load BuildingTestEnvironment scene").is_not_null()
+	assert_object(env)
+  .append_failure_message("Failed to load BuildingTestEnvironment scene").is_not_null()
 
 	# Direct property access - type-safe
 	_container = env.get_container()

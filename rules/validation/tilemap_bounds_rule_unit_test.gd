@@ -64,7 +64,8 @@ func test_preloaded_tilemap_has_valid_tile_data() -> void:
 
 	# Verify basic tilemap properties
 	assert_object(tile_map).append_failure_message("TileMapLayer should instantiate successfully from packed scene").is_not_null()
-	assert_object(tile_map.tile_set).append_failure_message("TileMapLayer should have a valid tile_set").is_not_null()
+	assert_object(tile_map.tile_set)
+  .append_failure_message("TileMapLayer should have a valid tile_set").is_not_null()
 
 	var used_rect: Rect2i = tile_map.get_used_rect()
 	var expected_rect: Rect2i = Rect2i(-15, -15, 31, 31)
@@ -81,7 +82,8 @@ func test_preloaded_tilemap_has_valid_tile_data() -> void:
 
 	# This should be tile (0, 0) based on 16x16 tiles and 8.0 world position
 	var expected_tile: Vector2i = Vector2i(0, 0)
-	assert_vector(Vector2(integration_test_tile)).is_equal(Vector2(expected_tile)).append_failure_message(
+	assert_vector(Vector2(integration_test_tile)).is_equal(Vector2(expected_tile))
+  .append_failure_message(
 		"Integration test position %s should map to tile %s, got %s" % [integration_test_world_pos, expected_tile, integration_test_tile]
 	)
 

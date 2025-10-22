@@ -191,7 +191,8 @@ func test_last_attempted_tile_prevents_duplicate_requests() -> void:
 	_drag_manager.update_drag_state(0.016)
 
 	var requests_after_move: int = drag_data.build_requests
-	assert_int(requests_after_move).append_failure_message("Should make build request after moving to new tile").is_greater(0)
+	assert_int(requests_after_move)
+  .append_failure_message("Should make build request after moving to new tile").is_greater(0)
 
 	# Now call update again WITHOUT moving (stays on same tile)
 	_drag_manager.update_drag_state(0.016)
@@ -209,7 +210,8 @@ func test_drag_session_isolation() -> void:
 	_targeting_state.positioner.global_position += Vector2(32, 0)
 	_drag_manager.update_drag_state(0.016)
 	var drag1_requests: int = drag1.build_requests
-	assert_int(drag1_requests).append_failure_message("First drag session should make build requests after moving").is_greater(0)
+	assert_int(drag1_requests)
+  .append_failure_message("First drag session should make build requests after moving").is_greater(0)
 
 	# Stop first drag
 	_drag_manager.stop_drag()
@@ -280,29 +282,34 @@ func test_build_requests_counts_only_successful_gate_passes() -> void:
 	# 5. Preview exists
 
 	var drag_data: DragPathData = _drag_manager.start_drag()
-	assert_int(drag_data.build_requests).append_failure_message("Build requests should start at 0 for new drag session").is_equal(0)
+	assert_int(drag_data.build_requests)
+  .append_failure_message("Build requests should start at 0 for new drag session").is_equal(0)
 
 	# Condition: All requirements met
 	_targeting_state.positioner.global_position += Vector2(16, 0)
 	_drag_manager.update_drag_state(0.016)
 	_drag_manager._last_signal_physics_frame = -1  # Reset gate for next call
-	assert_int(drag_data.build_requests).append_failure_message("Should count when all conditions met").is_equal(1)
+	assert_int(drag_data.build_requests)
+  .append_failure_message("Should count when all conditions met").is_equal(1)
 
 	# Condition: Tile unchanged - should NOT count
 	_drag_manager.update_drag_state(0.016)
 	_drag_manager._last_signal_physics_frame = -1  # Reset gate for next call
-	assert_int(drag_data.build_requests).append_failure_message("Should NOT count when tile unchanged").is_equal(1)
+	assert_int(drag_data.build_requests)
+  .append_failure_message("Should NOT count when tile unchanged").is_equal(1)
 
 	# Condition: Same tile again - should NOT count (duplicate prevention)
 	drag_data.target_tile = drag_data.last_attempted_tile
 	_drag_manager.update_drag_state(0.016)
 	_drag_manager._last_signal_physics_frame = -1  # Reset gate for next call
-	assert_int(drag_data.build_requests).append_failure_message("Should NOT count duplicate tile").is_equal(1)
+	assert_int(drag_data.build_requests)
+  .append_failure_message("Should NOT count duplicate tile").is_equal(1)
 
 	# Condition: New tile, all good - should count
 	_targeting_state.positioner.global_position += Vector2(16, 0)
 	_drag_manager.update_drag_state(0.016)
 	_drag_manager._last_signal_physics_frame = -1  # Reset gate for next call
-	assert_int(drag_data.build_requests).append_failure_message("Should count new tile with all conditions met").is_equal(2)
+	assert_int(drag_data.build_requests)
+  .append_failure_message("Should count new tile with all conditions met").is_equal(2)
 
 #endregion

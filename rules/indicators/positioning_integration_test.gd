@@ -41,4 +41,5 @@ func test_collision_mapping_produces_relative_offsets() -> void:
 
 	var context := GBTestDiagnostics.flush_for_assert()
 	assert_that(test_env.positioner.global_position).append_failure_message("Expected positioner at correct coordinates. Context: %s" % context).is_equal(Vector2(456.0, 552.0))
-	assert_that(collision_mapper).append_failure_message("Expected collision mapper to be available").is_not_null()
+	assert_that(collision_mapper)
+  .append_failure_message("Expected collision mapper to be available").is_not_null()

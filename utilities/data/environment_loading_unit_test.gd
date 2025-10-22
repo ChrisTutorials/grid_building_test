@@ -41,7 +41,8 @@ func test_environment_scene_loading() -> void:
 		var type_name: String = env_data[1]
 
 		var env_scene: PackedScene = GBTestConstants.get_environment_scene(environment_type)
-		assert_that(env_scene).append_failure_message("%s environment scene should load successfully" % type_name).is_not_null()
+		assert_that(env_scene)
+   .append_failure_message("%s environment scene should load successfully" % type_name).is_not_null()
 
 func test_environment_scene_instantiation() -> void:
 	# Test that the loaded scene can be instantiated
@@ -57,7 +58,8 @@ func test_environment_scene_instantiation() -> void:
 		var type_name: String = env_data[1]
 
 		var env_scene: PackedScene = GBTestConstants.get_environment_scene(environment_type)
-		assert_that(env_scene).append_failure_message("%s environment scene should be available" % type_name).is_not_null()
+		assert_that(env_scene)
+   .append_failure_message("%s environment scene should be available" % type_name).is_not_null()
 
 		var env: Node = env_scene.instantiate()
 		assert_that(env).append_failure_message("%s environment scene should instantiate successfully" % type_name).is_not_null()
@@ -78,14 +80,16 @@ func test_environment_uses_same_test_container() -> void:
 		var type_name: String = env_data[1]
 
 		var env_scene: PackedScene = GBTestConstants.get_environment_scene(environment_type)
-		assert_that(env_scene).append_failure_message("%s environment scene should be available" % type_name).is_not_null()
+		assert_that(env_scene)
+   .append_failure_message("%s environment scene should be available" % type_name).is_not_null()
 
 		var env: GBTestEnvironment = env_scene.instantiate() as GBTestEnvironment
 		assert_that(env).append_failure_message("%s environment should instantiate as GBTestEnvironment" % type_name).is_not_null()
 
 		# Get the container from the environment
 		var container: GBCompositionContainer = env.get_container()
-		assert_that(container).append_failure_message("%s environment should have a container" % type_name).is_not_null()
+		assert_that(container)
+   .append_failure_message("%s environment should have a container" % type_name).is_not_null()
 
 		# Verify it's the same test composition container instance/resource (except for ISOMETRIC_TEST)
 		var expected_container: GBCompositionContainer = auto_free(GBTestConstants.TEST_COMPOSITION_CONTAINER.duplicate(true))
@@ -135,7 +139,8 @@ func test_environment_tilemaps_have_correct_dimensions() -> void:
 		var type_name: String = env_data[1]
 
 		var env_scene: PackedScene = GBTestConstants.get_environment_scene(environment_type)
-  assert_that(env_scene).append_failure_message("%s environment scene should be available" % type_name).is_not_null()
+  assert_that(env_scene)
+   .append_failure_message("%s environment scene should be available" % type_name).is_not_null()
 
 		var env: GBTestEnvironment = env_scene.instantiate() as GBTestEnvironment
   assert_that(env).append_failure_message("%s environment should instantiate as GBTestEnvironment" % type_name).is_not_null()

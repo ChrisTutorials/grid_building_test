@@ -19,7 +19,8 @@ var _manipulation_parent: Node2D
 func before_test() -> void:
 	# Use the premade CollisionTestEnvironment for collision and indicator testing
 	test_env = EnvironmentTestFactory.create_all_systems_env(self, GBTestConstants.ALL_SYSTEMS_ENV_UID)
-	assert_object(test_env).append_failure_message("AllSystemsTestEnvironment should be created successfully").is_not_null()
+	assert_object(test_env)
+  .append_failure_message("AllSystemsTestEnvironment should be created successfully").is_not_null()
 
 	# Extract commonly used components using exported properties
 	_indicator_manager = test_env.indicator_manager
@@ -28,10 +29,13 @@ func before_test() -> void:
 	_manipulation_parent = test_env.manipulation_parent
 
 	# Validate essential components
-	assert_object(_indicator_manager).append_failure_message("IndicatorManager should be available").is_not_null()
-	assert_object(_targeting_state).append_failure_message("TargetingState should be available").is_not_null()
+	assert_object(_indicator_manager)
+  .append_failure_message("IndicatorManager should be available").is_not_null()
+	assert_object(_targeting_state)
+  .append_failure_message("TargetingState should be available").is_not_null()
 	assert_object(_map).append_failure_message("TileMapLayer should be available").is_not_null()
-	assert_object(_manipulation_parent).append_failure_message("ManipulationParent should be available").is_not_null()
+	assert_object(_manipulation_parent)
+  .append_failure_message("ManipulationParent should be available").is_not_null()
 
 func test_polygon_test_object_no_indicator_at_origin_when_centered() -> void:
 	"""Regression test: Polygon test object should not generate an indicator at (0,0) when centered on the positioner."""

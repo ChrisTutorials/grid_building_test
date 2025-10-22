@@ -137,7 +137,8 @@ func test_rotation_disabled_when_settings_disabled() -> void:
 	manipulation_parent._unhandled_input(input_map_action)
 
 	# Verify rotation was NOT applied
-	assert_float(manipulation_parent.rotation).append_failure_message("Rotation should be ignored when enable_rotate is false") \
+	assert_float(manipulation_parent.rotation)
+  .append_failure_message("Rotation should be ignored when enable_rotate is false") \
 		.is_equal(initial_rotation)
 
 ## Test grid-aware rotation methods directly

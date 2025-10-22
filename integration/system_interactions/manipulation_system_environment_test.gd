@@ -50,8 +50,10 @@ func before_test() -> void:
 	test_manipulatable = auto_free(Manipulatable.new())
 
 	# Validate environment is properly set up
-	assert_object(manipulation_system).append_failure_message("ManipulationSystem should be available").is_not_null()
-	assert_object(manipulation_state).append_failure_message("ManipulationState should be available").is_not_null()
+	assert_object(manipulation_system)
+  .append_failure_message("ManipulationSystem should be available").is_not_null()
+	assert_object(manipulation_state)
+  .append_failure_message("ManipulationState should be available").is_not_null()
 	assert_object(container).append_failure_message("Container should be available").is_not_null()
 
 func after_test() -> void:
@@ -103,14 +105,16 @@ func test_manipulation_system_container_validation() -> void:
 	"""Test manipulation system container integration and validation"""
 	# Test that container provides required services
 	var logger: Object = container.get_logger()
-	assert_object(logger).append_failure_message("Container should provide logger service").is_not_null()
+	assert_object(logger)
+  .append_failure_message("Container should provide logger service").is_not_null()
 
 	var contexts: Object = container.get_contexts()
 	assert_object(contexts).append_failure_message("Container should provide contexts").is_not_null()
 
 	# Test owner context is properly configured
 	var owner_context: GBOwnerContext = contexts.owner
-	assert_object(owner_context).append_failure_message("Container should have owner context").is_not_null()
+	assert_object(owner_context)
+  .append_failure_message("Container should have owner context").is_not_null()
 
 func test_manipulation_system_result_objects_not_null() -> void:
 	"""Test that manipulation system operations return valid result objects"""
@@ -139,7 +143,8 @@ func test_manipulation_system_scene_runner_pattern() -> void:
 	var scene_system: ManipulationSystem = manipulation_system
 
 	# System should exist and be properly integrated
-	assert_object(scene_system).append_failure_message("Scene runner system should exist").is_not_null()
+	assert_object(scene_system)
+  .append_failure_message("Scene runner system should exist").is_not_null()
 
 	# System should be in scene tree (passive initialization)
 	assert_bool(scene_system.is_inside_tree()).append_failure_message(
