@@ -251,7 +251,7 @@ func test_360_degree_wraparound() -> void:
 	if normalized < 0:
 		normalized += 360.0
 	
-	assert_float(normalized).is_equal_approx(0.0, 0.1).append_failure_message(
+	assert_float(normalized).is_equal_approx(GBTestConstants.ROTATION_NORTH, 0.1).append_failure_message(
 		"360° should normalize to 0°, got %0.1f°" % normalized
 	)
 	
@@ -261,7 +261,7 @@ func test_360_degree_wraparound() -> void:
 	if normalized < 0:
 		normalized += 360.0
 	
-	assert_float(normalized).is_equal_approx(0.0, 0.1).append_failure_message(
+	assert_float(normalized).is_equal_approx(GBTestConstants.ROTATION_NORTH, 0.1).append_failure_message(
 		"720° should normalize to 0°, got %0.1f°" % normalized
 	)
 
@@ -273,7 +273,7 @@ func test_negative_angles() -> void:
 	if normalized < 0:
 		normalized += 360.0
 	
-	assert_float(normalized).is_equal_approx(270.0, 0.1).append_failure_message(
+	assert_float(normalized).is_equal_approx(GBTestConstants.ROTATION_WEST, 0.1).append_failure_message(
 		"-90° should normalize to 270°, got %0.1f°" % normalized
 	)
 	
@@ -283,7 +283,7 @@ func test_negative_angles() -> void:
 	if normalized < 0:
 		normalized += 360.0
 	
-	assert_float(normalized).is_equal_approx(180.0, 0.1).append_failure_message(
+	assert_float(normalized).is_equal_approx(GBTestConstants.ROTATION_SOUTH, 0.1).append_failure_message(
 		"-180° should normalize to 180°, got %0.1f°" % normalized
 	)
 	
