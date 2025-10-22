@@ -195,27 +195,16 @@ func test_opposite_directions() -> void:
 ## Test horizontal/vertical direction classification
 func test_direction_classification() -> void:
 	# Test horizontal directions
-	assert_bool(GridRotationUtils.is_horizontal(GridRotationUtils.CardinalDirection.EAST))\
-		.append_failure_message("EAST should be horizontal")\
-		.is_true()
-	assert_bool(GridRotationUtils.is_horizontal(GridRotationUtils.CardinalDirection.WEST))\
-		.append_failure_message("WEST should be horizontal")\
-		.is_true()
-	assert_bool(GridRotationUtils.is_horizontal(GridRotationUtils.CardinalDirection.NORTH))\
-		.append_failure_message("NORTH should NOT be horizontal")\
-		.is_false()
-	assert_bool(GridRotationUtils.is_horizontal(GridRotationUtils.CardinalDirection.SOUTH))
-  .append_failure_message("SOUTH should NOT be horizontal").is_false()
+	assert_bool(GridRotationUtils.is_horizontal(GridRotationUtils.CardinalDirection.EAST)).append_failure_message("EAST should be horizontal").is_true()
+	assert_bool(GridRotationUtils.is_horizontal(GridRotationUtils.CardinalDirection.WEST)).append_failure_message("WEST should be horizontal").is_true()
+	assert_bool(GridRotationUtils.is_horizontal(GridRotationUtils.CardinalDirection.NORTH)).append_failure_message("NORTH should NOT be horizontal").is_false()
+	assert_bool(GridRotationUtils.is_horizontal(GridRotationUtils.CardinalDirection.SOUTH)).append_failure_message("SOUTH should NOT be horizontal").is_false()
 
 	# Test vertical directions
-	assert_bool(GridRotationUtils.is_vertical(GridRotationUtils.CardinalDirection.NORTH))
-  .append_failure_message("NORTH should be vertical").is_true()
-	assert_bool(GridRotationUtils.is_vertical(GridRotationUtils.CardinalDirection.SOUTH))
-  .append_failure_message("SOUTH should be vertical").is_true()
-	assert_bool(GridRotationUtils.is_vertical(GridRotationUtils.CardinalDirection.EAST))
-  .append_failure_message("EAST should NOT be vertical").is_false()
-	assert_bool(GridRotationUtils.is_vertical(GridRotationUtils.CardinalDirection.WEST))
-  .append_failure_message("WEST should NOT be vertical").is_false()
+	assert_bool(GridRotationUtils.is_vertical(GridRotationUtils.CardinalDirection.NORTH)).append_failure_message("NORTH should be vertical").is_true()
+	assert_bool(GridRotationUtils.is_vertical(GridRotationUtils.CardinalDirection.SOUTH)).append_failure_message("SOUTH should be vertical").is_true()
+	assert_bool(GridRotationUtils.is_vertical(GridRotationUtils.CardinalDirection.EAST)).append_failure_message("EAST should NOT be vertical").is_false()
+	assert_bool(GridRotationUtils.is_vertical(GridRotationUtils.CardinalDirection.WEST)).append_failure_message("WEST should NOT be vertical").is_false()
 
 ## Test string representation of directions
 func test_direction_to_string() -> void:

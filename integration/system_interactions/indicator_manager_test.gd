@@ -347,9 +347,9 @@ func _assert_collision_layer_overlaps(root: Node, tile_rules: Array[TileCheckRul
 				if (layer_bits & mask) != 0:
 					overlapping = true
 	(
-		assert_bool(overlapping)
-		.append_failure_message("No physics body with collision_layer overlapping TileCheckRule mask=%d in scene=%s bodies=%s" % [mask, scene_label, ", ".join(body_layers)])
-		.is_true()
+		assert_bool(overlapping) \
+			.append_failure_message("No physics body with collision_layer overlapping TileCheckRule mask=%d in scene=%s bodies=%s" % [mask, scene_label, ", ".join(body_layers)]) \
+			.is_true()
 	)
 
 # Non-asserting overlap check used for optional prerequisite logic.

@@ -27,7 +27,7 @@ func before_test() -> void:
 	_rule.pass_on_collision = false  # Fail when collision detected
 	_rule.collision_mask = 1  # Check layer 0
 	var setup_issues := _rule.setup(_env.targeting_state)
-	assert_array(setup_issues).is_empty() \
+	assert_array(setup_issues).append_failure_message("Array assertion failed").is_empty() \
 		.append_failure_message("Rule setup should succeed with no issues")
 
 func after_test() -> void:
@@ -88,7 +88,7 @@ func test_exclusion_prevents_collision_with_single_body() -> void:
 	# THEN: Indicator detects collision (fails)
 	assert_int(failing_without_exclusion.size()).is_equal(1) \
 		.append_failure_message("Indicator should detect collision without exclusions")
-	assert_that(failing_without_exclusion[0]).is_equal(indicator) \
+	assert_that(failing_without_exclusion[0]).append_failure_message("That assertion failed").is_equal(indicator) \
 		.append_failure_message("Failing indicator should be our test indicator")
 
 	# WHEN: Excluded body is added to exclusion list
@@ -97,7 +97,7 @@ func test_exclusion_prevents_collision_with_single_body() -> void:
 
 	# THEN: Indicator no longer detects collision (passes)
 	var failing_with_exclusion := _rule.get_failing_indicators([indicator])
-	assert_array(failing_with_exclusion).is_empty() \
+	assert_array(failing_with_exclusion).append_failure_message("Array assertion failed").is_empty() \
 		.append_failure_message("Indicator should not detect collision when body is excluded")
 
 func test_exclusion_applies_to_all_children() -> void:
@@ -153,7 +153,7 @@ func test_exclusion_applies_to_all_children() -> void:
 
 	# THEN: Both indicators pass (all children excluded)
 	var failing_with := _rule.get_failing_indicators([indicator1, indicator2])
-	assert_array(failing_with).is_empty() \
+	assert_array(failing_with).append_failure_message("Array assertion failed").is_empty() \
 		.append_failure_message("No indicators should fail when parent is excluded (children should be excluded too)")
 
 func test_exclusion_only_affects_specified_objects() -> void:
@@ -176,7 +176,7 @@ func test_exclusion_only_affects_specified_objects() -> void:
 	var failing := _rule.get_failing_indicators([indicator1, indicator2])
 	assert_int(failing.size()).is_equal(1) \
 		.append_failure_message("Only one indicator should fail (non-excluded body)")
-	assert_that(failing[0]).is_equal(indicator2) \
+	assert_that(failing[0]).append_failure_message("That assertion failed").is_equal(indicator2) \
 		.append_failure_message("The failing indicator should be indicator2 (non-excluded body)")
 
 func test_exclusion_persists_across_multiple_checks() -> void:
@@ -193,11 +193,11 @@ func test_exclusion_persists_across_multiple_checks() -> void:
 	var check3 := _rule.get_failing_indicators([indicator])
 
 	# THEN: All checks respect exclusion (no failures)
-	assert_array(check1).is_empty() \
+	assert_array(check1).append_failure_message("Array assertion failed").is_empty() \
 		.append_failure_message("First check should respect exclusion")
-	assert_array(check2).is_empty() \
+	assert_array(check2).append_failure_message("Array assertion failed").is_empty() \
 		.append_failure_message("Second check should respect exclusion")
-	assert_array(check3).is_empty() \
+	assert_array(check3).append_failure_message("Array assertion failed").is_empty() \
 		.append_failure_message("Third check should respect exclusion (persistence verified)")
 
 func test_exclusion_cleared_when_target_changes() -> void:
@@ -267,7 +267,7 @@ func test_multiple_exclusions() -> void:
 	var failing := _rule.get_failing_indicators([indicator1, indicator2, indicator3])
 	assert_int(failing.size()).is_equal(1) \
 		.append_failure_message("Only one indicator should fail (non-excluded body)")
-	assert_that(failing[0]).is_equal(indicator3) \
+	assert_that(failing[0]).append_failure_message("That assertion failed").is_equal(indicator3) \
 		.append_failure_message("The failing indicator should be indicator3 (non-excluded body)")
 
 func test_exclusion_with_nested_hierarchy() -> void:
@@ -305,5 +305,5 @@ func test_exclusion_with_nested_hierarchy() -> void:
 
 	# THEN: Deep nested collision is excluded
 	var failing := _rule.get_failing_indicators([indicator])
-	assert_array(failing).is_empty() \
+	assert_array(failing).append_failure_message("Array assertion failed").is_empty() \
 		.append_failure_message("Deep nested collision should be excluded when root ancestor is in exclusion list")

@@ -165,8 +165,8 @@ func test_cancel() -> void:
 
 	if move_result != null:
 		var valid_move: bool = move_result.status == GBEnums.Status.STARTED
-		assert_bool(valid_move)
-   .append_failure_message("Move should be successfully started for cancel test").is_true()
+		assert_bool(valid_move) \
+			.append_failure_message("Move should be successfully started for cancel test").is_true()
 
 		# Get active manipulation data
 		var active_data: ManipulationData = _container.get_states().manipulation.data
@@ -264,8 +264,8 @@ func test_try_placement(
 
 	if move_result != null:
 		var started: bool = move_result.status == GBEnums.Status.STARTED
-		assert_bool(started)
-   .append_failure_message("Move should be successfully started for placement test").is_true()
+		assert_bool(started) \
+			.append_failure_message("Move should be successfully started for placement test").is_true()
 
 		var move_data: ManipulationData = _container.get_states().manipulation.data
 		_validate_manipulation_data(move_data, "manipulation data for placement")
@@ -420,8 +420,8 @@ func test_rotate_node2d_target_rotates_correctly(
 
 	for i in range(ROTATION_ITERATIONS):
 		var success: bool = system.rotate(target, ROTATION_INCREMENT)
-		assert_bool(success)
-   .append_failure_message("Rotate operation should succeed on iteration %d" % i).is_true()
+		assert_bool(success) \
+			.append_failure_message("Rotate operation should succeed on iteration %d" % i).is_true()
 
 		expected_rotation_degrees += ROTATION_INCREMENT
 		var normalized_expected: float = _normalize_rotation(expected_rotation_degrees)

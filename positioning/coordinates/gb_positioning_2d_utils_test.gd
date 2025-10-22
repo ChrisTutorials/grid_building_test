@@ -191,14 +191,12 @@ func test_is_region_valid_scenarios() -> void:
 	assert_bool(GBPositioning2DUtils.is_region_valid(zero_region)).is_false().append_failure_message(
 		"Zero region should return false"
 	)
-	assert_bool(GBPositioning2DUtils.is_region_valid(negative_size_region)).is_false()
-  .append_failure_message(
+	assert_bool(GBPositioning2DUtils.is_region_valid(negative_size_region)).append_failure_message(
 		"Negative size region should return false"
-	)
-	assert_bool(GBPositioning2DUtils.is_region_valid(zero_width_region)).is_false()
-  .append_failure_message(
+	).is_false()
+	assert_bool(GBPositioning2DUtils.is_region_valid(zero_width_region)).append_failure_message(
 		"Zero width region should return false"
-	)
+	).is_false()
 
 func test_snap_tile_to_region_basic() -> void:
 	# Test: Snap tile coordinates to region bounds

@@ -274,8 +274,8 @@ func test_injectable_factory_create_collision_mapper() -> void:
 	container.config.settings = GBSettings.new()
 	var mapper: CollisionMapper = GBInjectableFactory.create_collision_mapper(container)
 	assert_object(mapper).append_failure_message("Collision mapper should be created").is_not_null()
-	assert_bool(mapper is CollisionMapper)
-  .append_failure_message("Created object should be CollisionMapper type").is_true()
+	assert_bool(mapper is CollisionMapper) \
+		.append_failure_message("Created object should be CollisionMapper type").is_true()
 	var issues: Array[String] = mapper.get_runtime_issues()
 	assert_int(issues.size()).append_failure_message("Validation issues: %s" % str(issues)).is_equal(0)
 

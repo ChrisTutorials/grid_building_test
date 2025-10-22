@@ -188,8 +188,8 @@ func test_create_parent_with_body_and_polygon() -> void:
 	var has_body: bool = child1 is StaticBody2D or child2 is StaticBody2D
 	var has_polygon: bool = child1 is CollisionPolygon2D or child2 is CollisionPolygon2D
 
-	assert_bool(has_body).is_true()
-	assert_bool(has_polygon).is_true()
+	assert_bool(has_body).append_failure_message("StaticBody2D child should be present").is_true()
+	assert_bool(has_polygon).append_failure_message("CollisionPolygon2D child should be present").is_true()
 
 
 func test_create_rectangle_shape() -> void:
