@@ -29,9 +29,9 @@ func test_initialization_order_analysis() -> void:
 	# 6. So positioner is still null when validation runs
 
 	# Verify the environment loaded successfully despite the warning
-	assert_that(test_env).is_not_null().append_failure_message("Environment should load despite timing warning")
-	assert_that(test_env.positioner).is_not_null().append_failure_message("Positioner should exist after full initialization")
-	assert_that(test_env.level_context).is_not_null().append_failure_message("Level context should exist")
+ assert_that(test_env).append_failure_message("Environment should load despite timing warning").is_not_null()
+ assert_that(test_env.positioner).append_failure_message("Positioner should exist after full initialization").is_not_null()
+ assert_that(test_env.level_context).append_failure_message("Level context should exist").is_not_null()
 
 ## Test: Verify positioner gets set correctly after initialization completes
 func test_positioner_eventually_connected() -> void:
@@ -39,8 +39,8 @@ func test_positioner_eventually_connected() -> void:
 	var targeting_state: GridTargetingState = test_env.get_container().get_targeting_state()
 
 	# The positioner should be set by now (after full initialization)
-	assert_that(targeting_state.positioner).is_not_null().append_failure_message("Positioner should be connected after initialization")
-	assert_that(targeting_state.positioner).is_equal(test_env.positioner).append_failure_message("Positioner should be the same instance")
+ assert_that(targeting_state.positioner).append_failure_message("Positioner should be connected after initialization").is_not_null()
+ assert_that(targeting_state.positioner).append_failure_message("Positioner should be the same instance").is_equal(test_env.positioner)
 
 ## Test: Verify all runtime issues are resolved after initialization
 func test_final_state_has_no_issues() -> void:
@@ -60,15 +60,15 @@ func test_positioner_timing_sequence() -> void:
 
 	# 1. Verify scene structure exists
 	var positioner_node : GridPositioner2D = test_env.get_node_or_null("World/GridPositioner2D")
-	assert_that(positioner_node).is_not_null().append_failure_message("GridPositioner2D node should exist in scene")
+ assert_that(positioner_node).append_failure_message("GridPositioner2D node should exist in scene").is_not_null()
 
 	# 2. Verify it's accessible through the environment
-	assert_that(test_env.positioner).is_equal(positioner_node).append_failure_message("Environment should reference the correct positioner node")
+ assert_that(test_env.positioner).append_failure_message("Environment should reference the correct positioner node").is_equal(positioner_node)
 
 	# 3. Verify the targeting state has the positioner connected
 	var container : GBCompositionContainer = test_env.get_container()
 	var targeting_state : GridTargetingState = container.get_targeting_state()
-	assert_that(targeting_state.positioner).is_equal(positioner_node).append_failure_message("Targeting state should reference the positioner")
+ assert_that(targeting_state.positioner).append_failure_message("Targeting state should reference the positioner").is_equal(positioner_node)
 
 ## Test: Verify that the warning is just a timing issue and not a real problem
 func test_warning_is_harmless_timing_issue() -> void:
@@ -78,19 +78,19 @@ func test_warning_is_harmless_timing_issue() -> void:
 	# Verify that despite the warning, everything works correctly:
 
 	# 1. All required systems exist
-	assert_that(test_env.injector).is_not_null().append_failure_message("Injector system should exist")
-	assert_that(test_env.building_system).is_not_null().append_failure_message("Building system should exist")
-	assert_that(test_env.grid_targeting_system).is_not_null().append_failure_message("Grid targeting system should exist")
+ assert_that(test_env.injector).append_failure_message("Injector system should exist").is_not_null()
+ assert_that(test_env.building_system).append_failure_message("Building system should exist").is_not_null()
+ assert_that(test_env.grid_targeting_system).append_failure_message("Grid targeting system should exist").is_not_null()
 
 	# 2. Dependency injection completed successfully
 	var container : GBCompositionContainer = test_env.get_container()
-	assert_that(container).is_not_null().append_failure_message("Container should exist")
+ assert_that(container).append_failure_message("Container should exist").is_not_null()
 
 	# 3. All states are properly configured
 	var targeting_state : GridTargetingState = container.get_targeting_state()
-	assert_that(targeting_state).is_not_null().append_failure_message("Targeting state should exist")
-	assert_that(targeting_state.target_map).is_not_null().append_failure_message("Target map should be set")
-	assert_that(targeting_state.positioner).is_not_null().append_failure_message("Positioner should be set")
+ assert_that(targeting_state).append_failure_message("Targeting state should exist").is_not_null()
+ assert_that(targeting_state.target_map).append_failure_message("Target map should be set").is_not_null()
+ assert_that(targeting_state.positioner).append_failure_message("Positioner should be set").is_not_null()
 
 	# The warning appears because GBLevelContext.apply_to() calls get_runtime_issues()
 	# before GridPositioner2D.resolve_gb_dependencies() has run to set the positioner
@@ -111,13 +111,13 @@ func test_no_positioner_warnings_during_initialization() -> void:
 	# The key fix: GBLevelContext.apply_to() no longer calls get_runtime_issues() immediately
 	# Instead, validation happens in _ready() after all dependency injection is complete
 
-	assert_that(fresh_env).is_not_null().append_failure_message("Environment should initialize successfully")
-	assert_that(fresh_env.positioner).is_not_null().append_failure_message("Positioner should be properly connected")
+ assert_that(fresh_env).append_failure_message("Environment should initialize successfully").is_not_null()
+ assert_that(fresh_env.positioner).append_failure_message("Positioner should be properly connected").is_not_null()
 
 	# Verify the targeting state is properly configured after initialization
 	var targeting_state : GridTargetingState = fresh_env.get_container().get_targeting_state()
-	assert_that(targeting_state.positioner).is_not_null().append_failure_message("Targeting state should have positioner after init")
-	assert_that(targeting_state.target_map).is_not_null().append_failure_message("Targeting state should have target_map after init")
+ assert_that(targeting_state.positioner).append_failure_message("Targeting state should have positioner after init").is_not_null()
+ assert_that(targeting_state.target_map).append_failure_message("Targeting state should have target_map after init").is_not_null()
 
 	# Clean up
 	fresh_env.queue_free()
@@ -136,15 +136,15 @@ func test_initialization_order_fixed() -> void:
 	# 6. GBLevelContext._ready() runs and does validation (no warnings!)
 
 	# Verify all systems are properly initialized
-	assert_that(test_env.injector).is_not_null().append_failure_message("Injector should be initialized")
-	assert_that(test_env.level_context).is_not_null().append_failure_message("Level context should exist")
-	assert_that(test_env.positioner).is_not_null().append_failure_message("Positioner should be initialized")
+ assert_that(test_env.injector).append_failure_message("Injector should be initialized").is_not_null()
+ assert_that(test_env.level_context).append_failure_message("Level context should exist").is_not_null()
+ assert_that(test_env.positioner).append_failure_message("Positioner should be initialized").is_not_null()
 
 	# Verify dependency injection completed successfully
 	var container : GBCompositionContainer = test_env.get_container()
 	var targeting_state : GridTargetingState = container.get_targeting_state()
 
 	# All dependencies should be properly connected after initialization
-	assert_that(targeting_state.positioner).is_equal(test_env.positioner).append_failure_message("Positioner dependency should be connected")
-	assert_that(targeting_state.target_map).is_not_null().append_failure_message("Target map should be set")
-	assert_that(targeting_state.maps).is_not_empty().append_failure_message("Maps array should be populated")
+ assert_that(targeting_state.positioner).append_failure_message("Positioner dependency should be connected").is_equal(test_env.positioner)
+ assert_that(targeting_state.target_map).append_failure_message("Target map should be set").is_not_null()
+ assert_that(targeting_state.maps).append_failure_message("Maps array should be populated").is_not_empty()

@@ -376,8 +376,8 @@ func test_positioning_utilities_dry_compliance() -> void:
 
 	# Verify functions return expected types (should not crash if properly refactored)
 assert_object(tile_coord).append_failure_message("get_tile_from_node_position should return Vector2i").is_not_null()
-	assert_object(world_pos).is_not_null().append_failure_message("viewport_center_to_world_position should return Vector2")
+ assert_object(world_pos).append_failure_message("viewport_center_to_world_position should return Vector2").is_not_null()
 assert_bool(region_valid).append_failure_message("is_region_valid should return bool").is_true()
-	assert_object(snapped_tile).is_not_null().append_failure_message("snap_tile_to_region should return Vector2i")
+ assert_object(snapped_tile).append_failure_message("snap_tile_to_region should return Vector2i").is_not_null()
 
 #endregion

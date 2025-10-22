@@ -104,7 +104,7 @@ func _create_rect_15_tiles_scene() -> Node2D:
 func before_test() -> void:
 	# Use the EnvironmentTestFactory to provide a consistent prebuilt test environment
 	_test_env = EnvironmentTestFactory.create_collision_test_environment(self)
-	assert_object(_test_env).is_not_null().append_failure_message("EnvironmentTestFactory failed to create collision env")
+ assert_object(_test_env).append_failure_message("EnvironmentTestFactory failed to create collision env").is_not_null()
 
 	# Extract components from environment using proper property names
 	_container = _test_env.get_container()
@@ -113,10 +113,10 @@ func before_test() -> void:
 	map_layer = _test_env.tile_map_layer
 
 	# Verify all required components are available
-	assert_object(_container).is_not_null().append_failure_message("Container is null")
-	assert_object(_positioner).is_not_null().append_failure_message("Positioner is null")
-	assert_object(indicator_manager).is_not_null().append_failure_message("IndicatorManager is null")
-	assert_object(map_layer).is_not_null().append_failure_message("TileMapLayer is null")
+ assert_object(_container).append_failure_message("Container is null").is_not_null()
+ assert_object(_positioner).append_failure_message("Positioner is null").is_not_null()
+ assert_object(indicator_manager).append_failure_message("IndicatorManager is null").is_not_null()
+ assert_object(map_layer).append_failure_message("TileMapLayer is null").is_not_null()
 
 	# Set up test constants
 	global_snap_pos = map_layer.map_to_local(Vector2i(0,0))

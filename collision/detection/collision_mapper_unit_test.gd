@@ -267,8 +267,8 @@ func test_basic_collision_detection() -> void:
 	mapper.setup(test_indicator, setups)
 
 	# Validate setup first
-	assert_that(mapper.test_indicator).is_not_null().append_failure_message("Test indicator should be set after setup")
-	assert_that(mapper.test_setups).is_not_null().append_failure_message("Collision setups should be initialized")
+ assert_that(mapper.test_indicator).append_failure_message("Test indicator should be set after setup").is_not_null()
+ assert_that(mapper.test_setups).append_failure_message("Collision setups should be initialized").is_not_null()
 	assert_that(_get_test_setup_for_body(mapper, body)).is_not_null().append_failure_message("Setup should contain the body")
 
 	# Test the test_setup validation
@@ -440,7 +440,7 @@ func test_position_rules_mapping_produces_results() -> void:
 	rule.apply_to_objects_mask = 1  # bit 0
 
 	# Verify rule mask matches collision layer
-	assert_that(rule.apply_to_objects_mask).is_equal(1).append_failure_message("Rule mask should be 1")
+ assert_that(rule.apply_to_objects_mask).append_failure_message("Rule mask should be 1").is_equal(1)
 	var layer_matches : bool = (body.collision_layer & rule.apply_to_objects_mask) != 0
 	assert_bool(layer_matches).append_failure_message("Layer %d should match mask %d (bitwise AND should be non-zero)" % [body.collision_layer, rule.apply_to_objects_mask]).is_true()
 

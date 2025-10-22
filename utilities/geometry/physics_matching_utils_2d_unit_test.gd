@@ -7,16 +7,16 @@ func test_get_layers_from_bitmask_single_bit() -> void:
 	for i in range(32):
 		var mask: int = 1 << i
 		var layers: Array[int] = PhysicsUtils.get_layers_from_bitmask(mask)
-		assert_that(layers).contains_exactly([i]).append_failure_message("Layer %d mask %d should return [%d]" % [i, mask, i])
+  assert_that(layers).append_failure_message("Layer %d mask %d should return [%d]" % [i, mask, i]).contains_exactly([i])
 
 func test_get_layers_from_bitmask_multiple_bits() -> void:
 	# Test layer 513 (bits 0 and 9 set)
 	var layers: Array[int] = PhysicsUtils.get_layers_from_bitmask(513)
-	assert_that(layers).contains_exactly([0, 9]).append_failure_message("Mask 513 should return layers [0, 9]")
+ assert_that(layers).append_failure_message("Mask 513 should return layers [0, 9]").contains_exactly([0, 9])
 
 	# Test layer 2561 (bits 0, 9, and 11 set)
 	layers = PhysicsUtils.get_layers_from_bitmask(2561)
-	assert_that(layers).contains_exactly([0, 9, 11]).append_failure_message("Mask 2561 should return layers [0, 9, 11]")
+ assert_that(layers).append_failure_message("Mask 2561 should return layers [0, 9, 11]").contains_exactly([0, 9, 11])
 
 	# Test all bits set (0-31)
 	var all_layers_mask: int = (1 << 32) - 1
@@ -24,24 +24,24 @@ func test_get_layers_from_bitmask_multiple_bits() -> void:
 	var expected_all: Array[int] = []
 	for i in range(32):
 		expected_all.append(i)
-	assert_that(layers).contains_exactly(expected_all).append_failure_message("All bits set should return layers [0-31]")
+ assert_that(layers).append_failure_message("All bits set should return layers [0-31]").contains_exactly(expected_all)
 
 func test_get_layers_from_bitmask_edge_cases() -> void:
 	# Test zero mask
 	var layers: Array[int] = PhysicsUtils.get_layers_from_bitmask(0)
-	assert_that(layers).contains_exactly([]).append_failure_message("Zero mask should return empty array")
+ assert_that(layers).append_failure_message("Zero mask should return empty array").contains_exactly([])
 
 	# Test layer 1 (just bit 0)
 	layers = PhysicsUtils.get_layers_from_bitmask(1)
-	assert_that(layers).contains_exactly([0]).append_failure_message("Mask 1 should return [0]")
+ assert_that(layers).append_failure_message("Mask 1 should return [0]").contains_exactly([0])
 
 	# Test layer 2 (just bit 1)
 	layers = PhysicsUtils.get_layers_from_bitmask(2)
-	assert_that(layers).contains_exactly([1]).append_failure_message("Mask 2 should return [1]")
+ assert_that(layers).append_failure_message("Mask 2 should return [1]").contains_exactly([1])
 
 	# Test highest layer (bit 31)
 	layers = PhysicsUtils.get_layers_from_bitmask(1 << 31)
-	assert_that(layers).contains_exactly([31]).append_failure_message("Highest layer mask should return [31]")
+ assert_that(layers).append_failure_message("Highest layer mask should return [31]").contains_exactly([31])
 
 func test_object_has_matching_layer() -> void:
 	# Create mock collision object

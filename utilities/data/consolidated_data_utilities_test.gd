@@ -123,16 +123,16 @@ func test_debug_setting_float_and_color_are_read() -> void:
 
 	# Call internal helper methods via call() to verify they read from settings
 	var f_val_float: float = float(indicator.call("_debug_setting_float_or", 1.0, "indicator_collision_point_min_radius"))
-	assert_float(f_val_float).is_equal_approx(7.5, 0.0001).append_failure_message("Expected float debug setting to be read from GBDebugSettings")
+ assert_float(f_val_float).append_failure_message("Expected float debug setting to be read from GBDebugSettings").is_equal_approx(7.5, 0.0001)
 
 	var c_val_color: Color = indicator.call("_debug_setting_color_or", Color.RED, "indicator_connection_line_color") as Color
-	assert_float(c_val_color.r).is_equal_approx(0.1, 0.0001).append_failure_message("Expected color.r to match setting")
-	assert_float(c_val_color.g).is_equal_approx(0.2, 0.0001).append_failure_message("Expected color.g to match setting")
-	assert_float(c_val_color.b).is_equal_approx(0.3, 0.0001).append_failure_message("Expected color.b to match setting")
+ assert_float(c_val_color.r).append_failure_message("Expected color.r to match setting").is_equal_approx(0.1, 0.0001)
+ assert_float(c_val_color.g).append_failure_message("Expected color.g to match setting").is_equal_approx(0.2, 0.0001)
+ assert_float(c_val_color.b).append_failure_message("Expected color.b to match setting").is_equal_approx(0.3, 0.0001)
 
 	# Also verify a fallback occurs when requesting a non-existent property
 	var fallback_val: float = float(indicator.call("_debug_setting_float_or", 2.25, "non_existent_property"))
-	assert_float(fallback_val).is_equal_approx(2.25, 0.0001).append_failure_message("Expected fallback default when setting missing")
+ assert_float(fallback_val).append_failure_message("Expected fallback default when setting missing").is_equal_approx(2.25, 0.0001)
 
 	# Clean up
 	if is_instance_valid(indicator):

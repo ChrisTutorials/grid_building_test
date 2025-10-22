@@ -33,10 +33,15 @@ const TEST_POSITION: Vector2 = Vector2(8.0, 8.0)
 const CANCEL_TEST_POSITION: Vector2i = Vector2i(100, -100)
 const ROTATION_ITERATIONS: int = 10
 
+# ManipulatableSettings UIDs extracted to local constants
+const MANIPULATABLE_SETTINGS_ALL_ALLOWED_UID: String = "uid://dn881lunp3lrm"
+const MANIPULATABLE_SETTINGS_NONE_ALLOWED_UID: String = "uid://jonw4f3w8ofn"
+const RULES_2_RULES_1_TILE_CHECK_UID: String = "uid://5u2sgj1wk4or"
+
 # Local constants for ManipulatableSettings (pulled from old TestSceneLibrary)
-var manipulatable_settings_all_allowed: ManipulatableSettings = load("uid://dn881lunp3lrm")
-var manipulatable_settings_none_allowed: ManipulatableSettings = load("uid://jonw4f3w8ofn")
-var rules_2_rules_1_tile_check: ManipulatableSettings = load("uid://5u2sgj1wk4or")
+var manipulatable_settings_all_allowed: ManipulatableSettings = load(MANIPULATABLE_SETTINGS_ALL_ALLOWED_UID)
+var manipulatable_settings_none_allowed: ManipulatableSettings = load(MANIPULATABLE_SETTINGS_NONE_ALLOWED_UID)
+var rules_2_rules_1_tile_check: ManipulatableSettings = load(RULES_2_RULES_1_TILE_CHECK_UID)
 #endregion
 
 #region Test Environment Variables

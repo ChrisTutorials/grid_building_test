@@ -12,7 +12,8 @@ extends GdUnitTestSuite
 ## These tests catch utility method failures that could cause issues in higher-level
 ## collision mapping and placement validation tests.
 
-const CollisionUtilities = preload("uid://842dmikaq7xu")
+const COLLISION_UTILITIES_UID: String = "uid://842dmikaq7xu"
+const CollisionUtilities = preload(COLLISION_UTILITIES_UID)
 
 # Constants for test values
 const TILE_SIZE: Vector2 = Vector2(32, 32)

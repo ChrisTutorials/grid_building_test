@@ -162,35 +162,7 @@ func test_hide_on_handled_ignored_when_mouse_disabled() -> void:
 
 	var result := GridPositionerLogic.should_be_visible(GBEnums.Mode.BUILD, settings, blocked_mouse_status, false)
 
-	assert_bool(result).is_true().append_failure_message(
-		"When mouse input is disabled, hide_on_handled should not apply even with blocked mouse input status. " +
-		"Settings: hide_on_handled=%s, mouse_enabled=%s, mouse_status.allowed=%s" %
-		[str(settings.hide_on_handled), str(settings.enable_mouse_input), str(blocked_mouse_status.allowed)]
-	)
-
-func test_hide_on_handled_applies_when_mouse_enabled() -> void:
-	var settings := _make_settings(true, true, true)
-	var blocked_mouse_status := GBMouseInputStatus.new()
-	blocked_mouse_status.set_from_values(false, Vector2.ZERO, 0, "blocked", Vector2.ZERO)
-
-	var result := GridPositionerLogic.should_be_visible(GBEnums.Mode.BUILD, settings, blocked_mouse_status, false)
-
-	assert_bool(result).is_false().append_failure_message(
-		"When mouse input is enabled, hide_on_handled should still apply with blocked mouse input status. " +
-		"Settings: hide_on_handled=%s, mouse_enabled=%s, mouse_status.allowed=%s" %
-		[str(settings.hide_on_handled), str(settings.enable_mouse_input), str(blocked_mouse_status.allowed)]
-	)
-
-#endregion
-
-#region Reconciliation & Recentering Tests (from grid_positioner_reconcile_and_recenter_test.gd)
-
-func test_visibility_reconcile_applies_when_differs() -> void:
-	var targeting_settings := _make_settings()
-	var mouse_input_status := GBMouseInputStatus.new()
-	mouse_input_status.allowed = true
-	var result: Variant = GridPositionerLogic.visibility_reconcile(GBEnums.Mode.MOVE, targeting_settings, false, mouse_input_status, false)
-	assert_bool(result.apply).append_failure_message("visibility_reconcile: should apply when visibility differs").is_true()
+ assert_bool(result).append_failure_message( "When mouse input is disabled, hide_on_handled should not apply even with blocked mouse input status. " + "Settings: hide_on_handled=%s, mouse_enabled=%s, mouse_status.allowed=%s" % [str(settings.hide_on_handled), str(settings.enable_mouse_input), str(blocked_mouse_status.allowed)] ) func test_hide_on_handled_applies_when_mouse_enabled() -> void: var settings := _make_settings(true, true, true) var blocked_mouse_status := GBMouseInputStatus.new() blocked_mouse_status.set_from_values(false, Vector2.ZERO, 0, "blocked", Vector2.ZERO) var result := GridPositionerLogic.should_be_visible(GBEnums.Mode.BUILD, settings, blocked_mouse_status, false) assert_bool(result).is_false().append_failure_message( "When mouse input is enabled, hide_on_handled should still apply with blocked mouse input status. " + "Settings: hide_on_handled=%s, mouse_enabled=%s, mouse_status.allowed=%s" % [str(settings.hide_on_handled), str(settings.enable_mouse_input), str(blocked_mouse_status.allowed)] ) #endregion #region Reconciliation & Recentering Tests (from grid_positioner_reconcile_and_recenter_test.gd) func test_visibility_reconcile_applies_when_differs() -> void: var targeting_settings := _make_settings() var mouse_input_status := GBMouseInputStatus.new() mouse_input_status.allowed = true var result: Variant = GridPositionerLogic.visibility_reconcile(GBEnums.Mode.MOVE, targeting_settings, false, mouse_input_status, false) assert_bool(result.apply).append_failure_message("visibility_reconcile: should apply when visibility differs").is_true().is_true()
 	assert_bool(result.visible).append_failure_message("visibility_reconcile: should be visible when differs").is_true()
 	assert_str(result.reason).append_failure_message("visibility_reconcile: reason should be 'reconcile_should_be_visible'").is_equal("reconcile_should_be_visible")
 

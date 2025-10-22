@@ -42,7 +42,7 @@ func after_test() -> void:
 #region Test Setup Helpers
 func _setup_test_environment() -> void:
 	var env_scene: PackedScene = GBTestConstants.get_environment_scene(GBTestConstants.EnvironmentType.ALL_SYSTEMS)
-	assert_that(env_scene).is_not_null().append_failure_message("Failed to load test environment scene")
+ assert_that(env_scene).append_failure_message("Failed to load test environment scene").is_not_null()
 
 	_test_env = env_scene.instantiate()
 	add_child(_test_env)
@@ -202,82 +202,7 @@ func test_indicator_positioning_regression_800_pixel_offset() -> void:
 		])
 
 		# This assertion should FAIL with current regression - indicators appearing 800+ pixels away
-		assert_that(distance).is_less(100.0).append_failure_message(
-			"Indicator at (%s) is %.1f pixels away from expected position (%s). " % [
-				indicator_pos, distance, expected_pos
-			] + "This indicates the 800+ pixel offset regression is present."
-		)
-
-#endregion
-
-#region FAILURE ISOLATION TESTS - Mirror Integration Test Failures
-
-# SUCCESS TEST: Verify that setup_indicators creates indicators when collision detection finds collision shapes
-# Expected success: setup_indicators returns indicators when collision detection finds collision shapes
-# This verifies that the core IndicatorService functionality works correctly
-func test_setup_indicators_creates_indicators_when_collision_shapes_detected() -> void:
-	_service = _create_test_service()
-
-	# Create a test object similar to integration test setup
-	var test_object := StaticBody2D.new()
-	test_object.name = "TestCollisionObject"
-	test_object.global_position = Vector2(64, 64)  # Center position within map
-	add_child(test_object)
-	auto_free(test_object)
-
-	# Add collision shape matching integration test pattern
-	var collision_shape := CollisionShape2D.new()
-	var rect_shape := RectangleShape2D.new()
-	rect_shape.size = Vector2(32, 32)  # 2x2 tiles similar to integration tests
-	collision_shape.shape = rect_shape
-	test_object.collision_layer = 1  # Basic collision layer
-	test_object.add_child(collision_shape)
-
-	# Create collision rule matching integration test
-	var rule := TileCheckRule.new()
-	rule.apply_to_objects_mask = 1
-	var rules: Array[TileCheckRule] = [rule]
-
-	# This should create indicators successfully
-	var report := _service.setup_indicators(test_object, rules)
-
-	# Enhanced diagnostic collection matching integration test pattern
-	var indicators_count := _service._indicators.size() if _service._indicators else 0
-	var collision_shapes_found := IndicatorSetupUtils.gather_collision_shapes(test_object).size()
-	var report_indicators_count := report.indicators.size() if report.indicators else 0
-	var report_issues_count := report.issues.size()
-
-	# Check collision mapper results
-	var collision_mapper_results := 0
-	var collision_mapper_available := _service._collision_mapper != null
-	if collision_mapper_available:
-		var collision_results := _service._collision_mapper.get_collision_tile_positions_with_mask([test_object] as Array[Node2D], 1)
-		collision_mapper_results = collision_results.size()
-
-	# This assertion should PASS - verifies core functionality works
-	assert_that(indicators_count).append_failure_message(
-		"Expected indicators to be created when collision shapes are detected. " +
-		"Service indicators: %d, report indicators: %d, " % [indicators_count, report_indicators_count] +
-		"collision shapes found: %d, collision mapper results: %d, " % [collision_shapes_found, collision_mapper_results] +
-		"collision mapper available: %s, report issues: %d (%s), " % [collision_mapper_available, report_issues_count, str(report.issues)] +
-		"test obj position: %s, collision layer: %d" % [test_object.global_position, test_object.collision_layer]
-	).is_greater(0)
-
-	# Verify collision detection is working (this should pass)
-	assert_that(collision_shapes_found).append_failure_message(
-		"Collision shape detection should work. Found shapes: %d, mapper available: %s, mapper results: %d" % [
-			collision_shapes_found, collision_mapper_available, collision_mapper_results
-		]
-	).is_greater(0)
-
-# SUCCESS TEST: Verify that Smithy object produces indicators when collision area is detected
-# Expected success: Smithy object produces indicators when it has collision area that should produce multiple tiles
-func test_smithy_object_produces_indicators_from_collision_area() -> void:
-	_service = _create_test_service()
-
-	# Load actual smithy object to match integration test exactly
-	var smithy_scene: PackedScene = load(GBTestConstants.SMITHY_PATH)
-	assert_object(smithy_scene).append_failure_message("Failed to load Smithy scene from path: %s" % GBTestConstants.SMITHY_PATH).is_not_null()
+  assert_that(distance).append_failure_message( "Indicator at (%s) is %.1f pixels away from expected position (%s). " % [ indicator_pos, distance, expected_pos ] + "This indicates the 800+ pixel offset regression is present." ) #endregion #region FAILURE ISOLATION TESTS - Mirror Integration Test Failures # SUCCESS TEST: Verify that setup_indicators creates indicators when collision detection finds collision shapes # Expected success: setup_indicators returns indicators when collision detection finds collision shapes # This verifies that the core IndicatorService functionality works correctly func test_setup_indicators_creates_indicators_when_collision_shapes_detected() -> void: _service = _create_test_service() # Create a test object similar to integration test setup var test_object := StaticBody2D.new() test_object.name = "TestCollisionObject" test_object.global_position = Vector2(64, 64) # Center position within map add_child(test_object) auto_free(test_object) # Add collision shape matching integration test pattern var collision_shape := CollisionShape2D.new() var rect_shape := RectangleShape2D.new() rect_shape.size = Vector2(32, 32) # 2x2 tiles similar to integration tests collision_shape.shape = rect_shape test_object.collision_layer = 1 # Basic collision layer test_object.add_child(collision_shape) # Create collision rule matching integration test var rule := TileCheckRule.new() rule.apply_to_objects_mask = 1 var rules: Array[TileCheckRule] = [rule] # This should create indicators successfully var report := _service.setup_indicators(test_object, rules) # Enhanced diagnostic collection matching integration test pattern var indicators_count := _service._indicators.size() if _service._indicators else 0 var collision_shapes_found := IndicatorSetupUtils.gather_collision_shapes(test_object).size() var report_indicators_count := report.indicators.size() if report.indicators else 0 var report_issues_count := report.issues.size() # Check collision mapper results var collision_mapper_results := 0 var collision_mapper_available := _service._collision_mapper != null if collision_mapper_available: var collision_results := _service._collision_mapper.get_collision_tile_positions_with_mask([test_object] as Array[Node2D], 1) collision_mapper_results = collision_results.size() # This assertion should PASS - verifies core functionality works assert_that(indicators_count).append_failure_message( "Expected indicators to be created when collision shapes are detected. " + "Service indicators: %d, report indicators: %d, " % [indicators_count, report_indicators_count] + "collision shapes found: %d, collision mapper results: %d, " % [collision_shapes_found, collision_mapper_results] + "collision mapper available: %s, report issues: %d (%s), " % [collision_mapper_available, report_issues_count, str(report.issues)] + "test obj position: %s, collision layer: %d" % [test_object.global_position, test_object.collision_layer] ).is_greater(0) # Verify collision detection is working (this should pass) assert_that(collision_shapes_found).append_failure_message( "Collision shape detection should work. Found shapes: %d, mapper available: %s, mapper results: %d" % [ collision_shapes_found, collision_mapper_available, collision_mapper_results ] ).is_greater(0) # SUCCESS TEST: Verify that Smithy object produces indicators when collision area is detected # Expected success: Smithy object produces indicators when it has collision area that should produce multiple tiles func test_smithy_object_produces_indicators_from_collision_area() -> void: _service = _create_test_service() # Load actual smithy object to match integration test exactly var smithy_scene: PackedScene = load(GBTestConstants.SMITHY_PATH) assert_object(smithy_scene).append_failure_message("Failed to load Smithy scene from path: %s" % GBTestConstants.SMITHY_PATH).is_not_null().is_less(100.0)
 
 	var smithy_obj: Node2D = smithy_scene.instantiate()
 	add_child(smithy_obj)

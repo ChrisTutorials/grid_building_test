@@ -158,7 +158,7 @@ func test_execute_indicator_setup_produces_zero_indicators_despite_collision_sha
 
 	# Get collision mapper from environment (direct property access)
 	var collision_mapper: CollisionMapper = env.collision_mapper
-	assert_object(collision_mapper).is_not_null().append_failure_message("CollisionMapper should be available in test environment")
+ assert_object(collision_mapper).append_failure_message("CollisionMapper should be available in test environment").is_not_null()
 
 	# CRITICAL: This should create indicators but returns empty result
 	# Create a proper Node2D parent for indicators
@@ -207,7 +207,7 @@ func test_collision_mapping_works_but_indicator_creation_fails() -> void:
 
 	# Test collision mapping directly (this should work)
 	var collision_mapper: CollisionMapper = env.collision_mapper
-	assert_object(collision_mapper).is_not_null().append_failure_message("CollisionMapper should be available")
+ assert_object(collision_mapper).append_failure_message("CollisionMapper should be available").is_not_null()
 
 	# CRITICAL FIX: Set up CollisionMapper with CollisionTestSetup2D for the test object
 	var test_setups: Array[CollisionTestSetup2D] = CollisionTestSetup2D.create_test_setups_from_test_node(test_object, _targeting_state)
@@ -628,7 +628,7 @@ func _create_mixed_collision_rules() -> Array[TileCheckRule]:
 ## Helper method to load and instantiate a test scene
 func _load_test_scene(scene_path: String, position: Vector2 = TEST_POSITION_CENTER) -> Node2D:
 	var scene: PackedScene = load(scene_path) as PackedScene
-	assert_object(scene).is_not_null().append_failure_message("Failed to load scene: " + scene_path)
+ assert_object(scene).append_failure_message("Failed to load scene: " + scene_path).is_not_null()
 
 	var instance: Node2D = scene.instantiate()
 	add_child(instance)
@@ -640,33 +640,12 @@ func _load_test_scene(scene_path: String, position: Vector2 = TEST_POSITION_CENT
 ## Helper method to validate collision mapping works for test objects
 func _validate_collision_mapping(test_objects: Array[Node2D], mask: int = COLLISION_MASK_SINGLE) -> int:
 	var collision_mapper: CollisionMapper = env.collision_mapper
-	assert_object(collision_mapper).is_not_null().append_failure_message("CollisionMapper should be available")
+ assert_object(collision_mapper).append_failure_message("CollisionMapper should be available").is_not_null()
 
 	var collision_results: Dictionary = collision_mapper.get_collision_tile_positions_with_mask(test_objects, mask)
 	var tiles_found: int = collision_results.size()
 
-	assert_that(tiles_found).is_greater(0).append_failure_message(
-		"Collision mapping should find tiles for mask %d" % mask
-	)
-
-	return tiles_found
-
-## Helper method to run indicator setup and validate basic success
-func _run_indicator_setup(test_object: Node2D, rules: Array[TileCheckRule], expected_success: bool = true) -> IndicatorSetupUtils.SetupResult:
-	var collision_mapper: CollisionMapper = env.collision_mapper
-	var indicator_parent := _create_indicator_parent()
-
-	var setup_result: IndicatorSetupUtils.SetupResult = IndicatorSetupUtils.execute_indicator_setup(
-		test_object,
-		rules,
-		collision_mapper,
-		_indicator_template,
-		indicator_parent,
-		_targeting_state
-	)
-
-	if expected_success:
-		assert_object(setup_result).is_not_null().append_failure_message("Setup result should not be null")
+ assert_that(tiles_found).append_failure_message( "Collision mapping should find tiles for mask %d" % mask ) return tiles_found ## Helper method to run indicator setup and validate basic success func _run_indicator_setup(test_object: Node2D, rules: Array[TileCheckRule], expected_success: bool = true) -> IndicatorSetupUtils.SetupResult: var collision_mapper: CollisionMapper = env.collision_mapper var indicator_parent := _create_indicator_parent() var setup_result: IndicatorSetupUtils.SetupResult = IndicatorSetupUtils.execute_indicator_setup( test_object, rules, collision_mapper, _indicator_template, indicator_parent, _targeting_state ) if expected_success: assert_object(setup_result).append_failure_message("Setup result should not be null").is_not_null().is_greater(0)
 		assert_that(setup_result.indicators.size()).is_greater(0).append_failure_message(
 			"Expected indicators to be created. Issues: %s" % str(setup_result.issues)
 		)

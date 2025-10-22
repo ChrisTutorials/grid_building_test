@@ -28,8 +28,8 @@ func after_test() -> void:
 
 func test_debug_viewport_center_calculation() -> void:
 	# Check viewport and camera setup
-	assert_object(viewport).is_not_null().append_failure_message("Viewport should exist")
-	assert_object(camera).is_not_null().append_failure_message("Camera should exist")
+ assert_object(viewport).append_failure_message("Viewport should exist").is_not_null()
+ assert_object(camera).append_failure_message("Camera should exist").is_not_null()
 
 	# Collect diagnostics for potential failures (use per-test local diag)
 	var cam_pos_str: String = str(camera.global_position) if camera != null else "null"
@@ -59,6 +59,4 @@ func test_debug_viewport_center_calculation() -> void:
 
 	var current_camera: Camera2D = viewport.get_camera_2d()
 	var diag_context := "\n".join(diag)
-	assert_object(current_camera).is_same(camera).append_failure_message(
-		"Camera should be current. Expected: %s, Got: %s%s%s" % [str(camera), str(current_camera), "\n" if diag_context != "" else "", diag_context]
-	)
+ assert_object(current_camera).append_failure_message( "Camera should be current. Expected: %s, Got: %s%s%s" % [str(camera), str(current_camera), "\n" if diag_context != "" else "", diag_context] ).is_same(camera)
