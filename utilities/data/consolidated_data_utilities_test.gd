@@ -54,20 +54,20 @@ func test_validate_test_composition_container_subcomponents() -> void:
 		# Try loading as PackedScene or instancing - fallback to loading resource path used by tests
 		container = ResourceLoader.load(GBTestConstants.TEST_PATH_COMPOSITION_CONTAINER_TEST_RESOURCE)
 
-	assert_that(container)
-  .append_failure_message("Test composition container not found or wrong type").is_not_null()
+	assert_that(container) \
+		.append_failure_message("Test composition container not found or wrong type").is_not_null()
 
 	# Assert GBConfig exists and its main subcomponents are present
 	var cfg: GBConfig = container.config
-	assert_that(cfg)
-  .append_failure_message("GBConfig is null on the test composition container").is_not_null()
+	assert_that(cfg) \
+		.append_failure_message("GBConfig is null on the test composition container").is_not_null()
 
 	# Check top-level exported subresources to isolate missing ext_resources
 	assert_that(cfg.settings).append_failure_message("GBConfig.settings is null").is_not_null()
 	assert_that(cfg.templates).append_failure_message("GBConfig.templates is null").is_not_null()
 	assert_that(cfg.actions).append_failure_message("GBConfig.actions is null").is_not_null()
-	assert_that(cfg.settings.visual)
-  .append_failure_message("GBConfig.settings.visual is null").is_not_null()
+	assert_that(cfg.settings.visual) \
+		.append_failure_message("GBConfig.settings.visual is null").is_not_null()
 
 	# Check placement rules are present in settings (this may load programmatic fallback)
 	var rules := container.get_placement_rules()
@@ -106,8 +106,8 @@ func test_building_node_get_display_name(p_name: String, p_ex: String, test_para
 	var building_node: Node = auto_free(building_node_script.new())
 	building_node.name = p_name
 	var display_name: String = GBObjectUtils.get_display_name(building_node)
-	assert_str(display_name)
-  .append_failure_message("Building node display name should match expected format").is_equal(p_ex)
+	assert_str(display_name) \
+		.append_failure_message("Building node display name should match expected format").is_equal(p_ex)
 
 #region Debug Settings Tests
 func test_debug_setting_float_and_color_are_read() -> void:
@@ -133,12 +133,12 @@ func test_debug_setting_float_and_color_are_read() -> void:
  assert_float(f_val_float).append_failure_message("Expected float debug setting to be read from GBDebugSettings").is_equal_approx(7.5, 0.0001)
 
 	var c_val_color: Color = indicator.call("_debug_setting_color_or", Color.RED, "indicator_connection_line_color") as Color
- assert_float(c_val_color.r)
-  .append_failure_message("Expected color.r to match setting").is_equal_approx(0.1, 0.0001)
- assert_float(c_val_color.g)
-  .append_failure_message("Expected color.g to match setting").is_equal_approx(0.2, 0.0001)
- assert_float(c_val_color.b)
-  .append_failure_message("Expected color.b to match setting").is_equal_approx(0.3, 0.0001)
+ assert_float(c_val_color.r) \
+		.append_failure_message("Expected color.r to match setting").is_equal_approx(0.1, 0.0001)
+ assert_float(c_val_color.g) \
+		.append_failure_message("Expected color.g to match setting").is_equal_approx(0.2, 0.0001)
+ assert_float(c_val_color.b) \
+		.append_failure_message("Expected color.b to match setting").is_equal_approx(0.3, 0.0001)
 
 	# Also verify a fallback occurs when requesting a non-existent property
 	var fallback_val: float = float(indicator.call("_debug_setting_float_or", 2.25, "non_existent_property"))
@@ -242,17 +242,17 @@ func test_test_composition_container_loads_and_has_placement_rules() -> void:
 	assert_object(dup).append_failure_message("Duplicated container should not be null").is_not_null()
 	var pr_dup: Array = dup.get_placement_rules()
 	var pr_dup_count: int = pr_dup.size() if pr_dup else 0
-	assert_int(pr_dup_count)
-  .append_failure_message("Duplicated container should retain placement rules").is_greater(0)
+	assert_int(pr_dup_count) \
+		.append_failure_message("Duplicated container should retain placement rules").is_greater(0)
 
 	var path: String = GBTestConstants.TEST_PATH_COMPOSITION_CONTAINER_TEST_RESOURCE
 	var loaded: Resource = ResourceLoader.load(path)
-	assert_object(loaded)
-  .append_failure_message("ResourceLoader failed to load %s" % path).is_not_null()
+	assert_object(loaded) \
+		.append_failure_message("ResourceLoader failed to load %s" % path).is_not_null()
 	var pr_loaded: Array = loaded.get_placement_rules() if loaded and loaded.has_method("get_placement_rules") else []
 	var pr_loaded_count: int = pr_loaded.size() if pr_loaded else 0
-	assert_int(pr_loaded_count)
-  .append_failure_message("Loaded resource should have placement rules").is_greater(0)
+	assert_int(pr_loaded_count) \
+		.append_failure_message("Loaded resource should have placement rules").is_greater(0)
 
 func test_validate_configuration_with_complete_config() -> void:
 	"""Test: Configuration validator with complete config"""

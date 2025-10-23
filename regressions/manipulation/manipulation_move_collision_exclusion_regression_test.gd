@@ -59,8 +59,8 @@ func test_indicators_ignore_original_when_positioner_inside_bounds() -> void:
 		Vector2(32, 32)
 	)
 	var original: Node2D = manipulatable.root
-	assert_object(original)
-  .append_failure_message("Manipulatable root should not be null").is_not_null()
+	assert_object(original) \
+		.append_failure_message("Manipulatable root should not be null").is_not_null()
 	_runner.simulate_frames(1)
 
 	# GIVEN: Start manipulation move
@@ -91,8 +91,8 @@ func test_indicators_ignore_original_when_positioner_outside_bounds() -> void:
 		Vector2(32, 32)
 	)
 	var original: Node2D = manipulatable.root
-	assert_object(original)
-  .append_failure_message("Manipulatable root should not be null").is_not_null()
+	assert_object(original) \
+		.append_failure_message("Manipulatable root should not be null").is_not_null()
 	_runner.simulate_frames(1)
 
 	# GIVEN: Start manipulation move
@@ -124,8 +124,8 @@ func test_indicators_remain_valid_across_position_transitions() -> void:
 		Vector2(32, 32)
 	)
 	var original: Node2D = manipulatable.root
-	assert_object(original)
-  .append_failure_message("Manipulatable root should not be null").is_not_null()
+	assert_object(original) \
+		.append_failure_message("Manipulatable root should not be null").is_not_null()
 	_runner.simulate_frames(1)
 
 	# GIVEN: Start manipulation move
@@ -165,8 +165,8 @@ func test_exclusion_list_contains_original_during_move() -> void:
 		Vector2(100, 100)
 	)
 	var original: Node2D = manipulatable.root
-	assert_object(original)
-  .append_failure_message("Manipulatable root should not be null").is_not_null()
+	assert_object(original) \
+		.append_failure_message("Manipulatable root should not be null").is_not_null()
 	_runner.simulate_frames(1)
 
 	# WHEN: Start manipulation move
@@ -190,8 +190,8 @@ func test_exclusion_list_persists_across_positioner_movement() -> void:
 		Vector2(100, 100)
 	)
 	var original: Node2D = manipulatable.root
-	assert_object(original)
-  .append_failure_message("Manipulatable root should not be null").is_not_null()
+	assert_object(original) \
+		.append_failure_message("Manipulatable root should not be null").is_not_null()
 	_runner.simulate_frames(1)
 
 	_manipulation_system.try_move(original)
