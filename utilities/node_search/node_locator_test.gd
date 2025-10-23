@@ -49,7 +49,9 @@ func test_search_by_name() -> void:
 	var all_nodes: Array[Node] = [owner_node, item_container, search_target]
 	var found_nodes: Array[Node] = NodeSearchLogic.find_nodes_by_name(all_nodes, search_owner_name)
 
-	assert_int(found_nodes.size()).append_failure_message("find_nodes_by_name('%s') expected 2 (owner + target) got %d -> %s" % [search_owner_name, found_nodes.size(), found_nodes]).is_equal(2)
+	assert_int(found_nodes.size())
+		.append_failure_message("find_nodes_by_name('%s') expected 2 (owner + target) got %d -> %s" % [search_owner_name, found_nodes.size(), found_nodes])
+		.is_equal(2)
 	assert_object(found_nodes[0])
   .append_failure_message("First found node should not be null").is_not_null()
 
@@ -61,7 +63,9 @@ func test_search_by_script_name_with_extension() -> void:
 	# Our in-memory script has no resource_path so expected synthetic fallback "<NodeName>.gd"
 	var expected_script_name := "%s.gd" % item_container.name
 	var found_nodes: Array[Node] = NodeSearchLogic.find_nodes_by_script(all_nodes, expected_script_name)
-	assert_int(found_nodes.size()).append_failure_message("find_nodes_by_script('%s') expected 1 got %d -> %s (available=%s)" % [expected_script_name, found_nodes.size(), found_nodes, all_nodes]).is_equal(1)
+	assert_int(found_nodes.size())
+		.append_failure_message("find_nodes_by_script('%s') expected 1 got %d -> %s (available=%s)" % [expected_script_name, found_nodes.size(), found_nodes, all_nodes])
+		.is_equal(1)
 	if found_nodes.size() == 1:
 		assert_object(found_nodes[0])
    .append_failure_message("Result node was null despite size==1").is_not_null()
@@ -77,7 +81,9 @@ func test_get_script_name(
 ) -> void:
 	# Use pure logic class for getting script name with contextual message on mismatch
 	var found: String = NodeSearchLogic.get_script_name(p_node)
-	assert_str(found).append_failure_message("Script name mismatch expected=%s got=%s" % [p_expected, found]).is_equal(p_expected)
+	assert_str(found)
+		.append_failure_message("Script name mismatch expected=%s got=%s" % [p_expected, found])
+		.is_equal(p_expected)
 
 
 func test_search_by_is_in_group() -> void:
@@ -87,7 +93,9 @@ func test_search_by_is_in_group() -> void:
 	var membership: Array[String] = []
 	for n in all_nodes:
 		membership.append("%s:%s" % [n.name, n.is_in_group(owner_group)])
-	assert_int(found_nodes.size()).append_failure_message("find_nodes_by_group('%s') expected 2 (owner + child) got %d -> %s memberships=%s" % [owner_group, found_nodes.size(), found_nodes, membership]).is_equal(2)
+	assert_int(found_nodes.size())
+		.append_failure_message("find_nodes_by_group('%s') expected 2 (owner + child) got %d -> %s memberships=%s" % [owner_group, found_nodes.size(), found_nodes, membership])
+		.is_equal(2)
 	if found_nodes.size() == 2:
 		assert_object(found_nodes[0])
    .append_failure_message("First found node should not be null").is_not_null()

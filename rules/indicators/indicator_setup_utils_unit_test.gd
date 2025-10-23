@@ -100,7 +100,9 @@ func test_gather_collision_shapes_parameterized() -> void:
 			var diag: PackedStringArray = PackedStringArray()
 			diag.append("Warning: Could not load scene at path: %s" % scene_path)
 			var context := "\n".join(diag)
-			assert_bool(scene != null).append_failure_message("Scene should load successfully: %s\nContext: %s" % [scene_path, context]).is_true()
+			assert_bool(scene != null)
+				.append_failure_message("Scene should load successfully: %s\nContext: %s" % [scene_path, context])
+				.is_true()
 			continue
 
 		var test_object: Node2D = scene.instantiate() as Node2D
@@ -378,7 +380,9 @@ func test_calculate_indicator_count_parameterized() -> void:
 			var diag: PackedStringArray = PackedStringArray()
 			diag.append("Warning: Could not load scene at path: %s" % scene_path)
 			var context := "\n".join(diag)
-			assert_bool(scene != null).append_failure_message("Scene should load successfully: %s\nContext: %s" % [scene_path, context]).is_true()
+			assert_bool(scene != null)
+				.append_failure_message("Scene should load successfully: %s\nContext: %s" % [scene_path, context])
+				.is_true()
 			continue
 
 		var test_object: Node2D = scene.instantiate() as Node2D

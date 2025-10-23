@@ -50,7 +50,9 @@ func test_dependency_injection_setup() -> void:
 ## Test: Grid targeting system setup (important for collision testing)
 func test_grid_targeting_system_setup() -> void:
 	var targeting_issues: Array[String] = test_env.grid_targeting_system.get_runtime_issues()
- assert_array(targeting_issues).append_failure_message("GridTargetingSystem should have no runtime issues: " + str(targeting_issues).is_empty()
+ assert_array(targeting_issues)
+ 	.append_failure_message("GridTargetingSystem should have no runtime issues: " + str(targeting_issues)
+ 	.is_empty()
 
 	# The positioner should be available for collision testing
  assert_that(test_env.positioner)
@@ -59,7 +61,9 @@ func test_grid_targeting_system_setup() -> void:
 ## Test: Level context validation
 func test_level_context_validation() -> void:
 	var level_issues: Array[String] = test_env.level_context.get_runtime_issues()
- assert_array(level_issues).append_failure_message("LevelContext should have no runtime issues: " + str(level_issues).is_empty()
+ assert_array(level_issues)
+ 	.append_failure_message("LevelContext should have no runtime issues: " + str(level_issues)
+ 	.is_empty()
 
 ## Test: Collision-specific functionality
 func test_collision_environment_specific() -> void:

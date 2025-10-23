@@ -34,7 +34,9 @@ func before_test() -> void:
 	# Validate environment setup
 	assert_object(_collision_mapper)
   .append_failure_message("CollisionMapper should be initialized in test environment").is_not_null()
-	assert_object(_targeting_state).append_failure_message("GridTargetingState should be initialized in test environment").is_not_null()
+	assert_object(_targeting_state)
+		.append_failure_message("GridTargetingState should be initialized in test environment")
+		.is_not_null()
 	assert_object(_indicator_manager)
   .append_failure_message("IndicatorManager should be initialized in test environment").is_not_null()
 
@@ -158,7 +160,9 @@ func test_collision_mapper_integration() -> void:
 
 	# Get collision shapes
 	var owner_shapes: Dictionary = GBGeometryUtils.get_all_collision_shapes_by_owner(test_object)
-	assert_int(owner_shapes.size()).append_failure_message("Collision shapes should be detected from trapezoid test object").is_greater(0)
+	assert_int(owner_shapes.size())
+		.append_failure_message("Collision shapes should be detected from trapezoid test object")
+		.is_greater(0)
 
 	# Create collision test rules
 	var collision_rule: CollisionsCheckRule = PlacementRuleTestFactory.create_default_collision_rule()

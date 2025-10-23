@@ -148,15 +148,15 @@ func test_validation_failure_prevents_object_movement() -> void:
 
 	# Verify obstacle is in scene tree with proper setup
 	assert_bool(collision_body.is_inside_tree())
-  .append_failure_message("Obstacle should be in scene tree").is_true()
+	.append_failure_message("Obstacle should be in scene tree").is_true()
 	assert_int(collision_body.get_child_count())
-  .append_failure_message("Obstacle should have CollisionShape2D child").is_greater(0)
+	.append_failure_message("Obstacle should have CollisionShape2D child").is_greater(0)
 
 	if collision_body.get_child_count() > 0:
 		var shape_node: CollisionShape2D = collision_body.get_child(0) as CollisionShape2D
 		if shape_node:
 			assert_object(shape_node.shape)
-    .append_failure_message("CollisionShape2D should have a shape").is_not_null()
+	.append_failure_message("CollisionShape2D should have a shape").is_not_null()
 
 	# Act: Start move operation
 	var move_data: ManipulationData = manipulation_system.try_move(manipulatable.root)

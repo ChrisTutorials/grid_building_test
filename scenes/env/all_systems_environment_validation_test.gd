@@ -62,7 +62,9 @@ func test_dependency_injection_setup() -> void:
 func test_grid_targeting_system_positioner_connection() -> void:
 	# This is the key test for the positioner issue we're debugging
 	var targeting_issues: Array[String] = test_env.grid_targeting_system.get_runtime_issues()
- assert_array(targeting_issues).append_failure_message("GridTargetingSystem should have no runtime issues: " + str(targeting_issues).is_empty()
+ assert_array(targeting_issues)
+ 	.append_failure_message("GridTargetingSystem should have no runtime issues: " + str(targeting_issues)
+ 	.is_empty()
 
 	# Test the positioner connection through proper public interface
 	# The positioner should be accessible and properly initialized
@@ -78,7 +80,9 @@ func test_grid_targeting_system_positioner_connection() -> void:
 func test_indicator_manager_registration() -> void:
 	# This tests the core issue from BuildingSystem.enter_build_mode()
 	var building_issues: Array[String] = test_env.building_system.get_runtime_issues()
- assert_array(building_issues).append_failure_message("BuildingSystem should have no runtime issues: " + str(building_issues).is_empty()
+ assert_array(building_issues)
+ 	.append_failure_message("BuildingSystem should have no runtime issues: " + str(building_issues)
+ 	.is_empty()
 
 	# Test that IndicatorManager is registered in the context
 	var indicator_context: Variant = test_env.building_system._indicator_context
@@ -89,7 +93,9 @@ func test_indicator_manager_registration() -> void:
 ## Test: Level context has no runtime issues
 func test_level_context_validation() -> void:
 	var level_issues: Array[String] = test_env.level_context.get_runtime_issues()
- assert_array(level_issues).append_failure_message("LevelContext should have no runtime issues: " + str(level_issues).is_empty()
+ assert_array(level_issues)
+ 	.append_failure_message("LevelContext should have no runtime issues: " + str(level_issues)
+ 	.is_empty()
 
 ## Test: Overall environment has no issues
 func test_environment_no_issues() -> void:

@@ -30,7 +30,9 @@ func before_test() -> void:
 	# Validate environment setup
 	assert_object(_collision_mapper)
   .append_failure_message("CollisionMapper should be initialized in test environment").is_not_null()
-	assert_object(_targeting_state).append_failure_message("GridTargetingState should be initialized in test environment").is_not_null()
+	assert_object(_targeting_state)
+		.append_failure_message("GridTargetingState should be initialized in test environment")
+		.is_not_null()
 	assert_object(_indicator_manager)
   .append_failure_message("IndicatorManager should be initialized in test environment").is_not_null()
 
@@ -93,7 +95,9 @@ func test_trapezoid_full_pipeline_integration() -> void:
 	GBTestDiagnostics.buffer("[TRAPEZOID] Running IndicatorManager.try_setup with %d placement rules" % placement_rules.size())
 	var report: PlacementReport = _indicator_manager.try_setup(placement_rules, _targeting_state, true)
 
-	assert_object(report).append_failure_message("PlacementReport is null\n%s" % GBTestDiagnostics.flush_for_assert()).is_not_null()
+	assert_object(report)
+		.append_failure_message("PlacementReport is null\n%s" % GBTestDiagnostics.flush_for_assert())
+		.is_not_null()
 
 	if not report.is_successful():
 		GBTestDiagnostics.buffer("[TRAPEZOID] Placement failed with issues: %s" % str(report.get_issues()))

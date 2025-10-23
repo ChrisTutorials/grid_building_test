@@ -19,7 +19,9 @@ func before_test() -> void:
 	_state = _env.grid_targeting_system.get_state()
 	assert_object(_manager)
   .append_failure_message("IndicatorManager should be available in test environment").is_not_null()
-	assert_object(_container).append_failure_message("CompositionContainer should be available in test environment").is_not_null()
+	assert_object(_container)
+		.append_failure_message("CompositionContainer should be available in test environment")
+		.is_not_null()
 	assert_object(_state)
   .append_failure_message("GridTargetingState should be available in test environment").is_not_null()
 

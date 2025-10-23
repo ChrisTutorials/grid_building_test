@@ -93,12 +93,12 @@ func test_get_display_name(p_name: String, p_method_name: String, p_ex: String, 
 	var display_name: String = GBObjectUtils.get_display_name(test_node, "<none>")
 	if p_ex_start_with:
 		assert_str(display_name)
-   .append_failure_message("Display name should start with expected prefix").starts_with(p_ex)
+	.append_failure_message("Display name should start with expected prefix").starts_with(p_ex)
 	else:
 		assert_str(display_name)
-   .append_failure_message("Display name should contain expected substring").contains(p_ex)
+	.append_failure_message("Display name should contain expected substring").contains(p_ex)
 		assert_int(display_name.length())
-   .append_failure_message("Account for the space in returned string").is_equal(p_ex.length())
+	.append_failure_message("Account for the space in returned string").is_equal(p_ex.length())
 
 @warning_ignore("unused_parameter")
 func test_building_node_get_display_name(p_name: String, p_ex: String, test_parameters := [["TestNode_500", "Test Node"]]) -> void:
@@ -130,7 +130,9 @@ func test_debug_setting_float_and_color_are_read() -> void:
 
 	# Call internal helper methods via call() to verify they read from settings
 	var f_val_float: float = float(indicator.call("_debug_setting_float_or", 1.0, "indicator_collision_point_min_radius"))
- assert_float(f_val_float).append_failure_message("Expected float debug setting to be read from GBDebugSettings").is_equal_approx(7.5, 0.0001)
+ assert_float(f_val_float)
+ 	.append_failure_message("Expected float debug setting to be read from GBDebugSettings")
+ 	.is_equal_approx(7.5, 0.0001)
 
 	var c_val_color: Color = indicator.call("_debug_setting_color_or", Color.RED, "indicator_connection_line_color") as Color
  assert_float(c_val_color.r) \
@@ -142,7 +144,9 @@ func test_debug_setting_float_and_color_are_read() -> void:
 
 	# Also verify a fallback occurs when requesting a non-existent property
 	var fallback_val: float = float(indicator.call("_debug_setting_float_or", 2.25, "non_existent_property"))
- assert_float(fallback_val).append_failure_message("Expected fallback default when setting missing").is_equal_approx(2.25, 0.0001)
+ assert_float(fallback_val)
+ 	.append_failure_message("Expected fallback default when setting missing")
+ 	.is_equal_approx(2.25, 0.0001)
 
 	# Clean up
 	if is_instance_valid(indicator):
@@ -233,10 +237,14 @@ func test_trapezoid_collision_calculation_diagnostic() -> void:
 func test_test_composition_container_loads_and_has_placement_rules() -> void:
 	"""Test: Composition container loading and placement rules"""
 	var repo_res: GBCompositionContainer = GBTestConstants.TEST_COMPOSITION_CONTAINER
-	assert_object(repo_res).append_failure_message("GBTestConstants.TEST_COMPOSITION_CONTAINER must be a valid resource").is_not_null()
+	assert_object(repo_res)
+		.append_failure_message("GBTestConstants.TEST_COMPOSITION_CONTAINER must be a valid resource")
+		.is_not_null()
 	var pr: Array = repo_res.get_placement_rules()
 	var pr_count: int = pr.size() if pr else 0
-	assert_int(pr_count).append_failure_message("Expected repo composition container to contain placement rules").is_greater(0)
+	assert_int(pr_count)
+		.append_failure_message("Expected repo composition container to contain placement rules")
+		.is_greater(0)
 
 	var dup: GBCompositionContainer = repo_res.duplicate(true)
 	assert_object(dup).append_failure_message("Duplicated container should not be null").is_not_null()
@@ -261,7 +269,7 @@ func test_validate_configuration_with_complete_config() -> void:
 	container.config.templates = GBTemplates.new()
 	var issues: Array[String] = container.get_editor_issues()
 	assert_int(issues.size())
-  .append_failure_message("Issues found: %s" % str(issues)).is_greater_equal(0)
+	.append_failure_message("Issues found: %s" % str(issues)).is_greater_equal(0)
 
 func test_validate_runtime_configuration_minimum() -> void:
 	"""Test: Runtime configuration validation minimum"""
@@ -290,9 +298,9 @@ func test_hierarchy_valid_when_root_is_ancestor() -> void:
 	child.add_child(m)
 	m.root = root
 	assert_bool(m.is_root_hierarchy_valid())
-  .append_failure_message("Hierarchy should be valid when root is ancestor").is_true()
+	.append_failure_message("Hierarchy should be valid when root is ancestor").is_true()
 	assert_array(m.get_issues())
-  .append_failure_message("No issues expected for valid hierarchy").is_empty()
+	.append_failure_message("No issues expected for valid hierarchy").is_empty()
 
 func test_hierarchy_invalid_when_root_not_ancestor() -> void:
 	"""Test: Manipulatable hierarchy validation when root is not ancestor"""
@@ -306,7 +314,7 @@ func test_hierarchy_invalid_when_root_not_ancestor() -> void:
 	child.add_child(m)
 	m.root = unrelated
 	assert_bool(m.is_root_hierarchy_valid())
-  .append_failure_message("Hierarchy should be invalid when root is not ancestor").is_false()
+	.append_failure_message("Hierarchy should be invalid when root is not ancestor").is_false()
 	assert_array(m.get_issues())
-  .append_failure_message("Issues expected for invalid hierarchy").is_not_empty()
+	.append_failure_message("Issues expected for invalid hierarchy").is_not_empty()
 #endregion

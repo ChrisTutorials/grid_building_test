@@ -150,7 +150,9 @@ func test__on_target_changed(
 	add_child(target)
 	highlighter._on_target_changed(target, null)
 
-	assert_object(highlighter.current_target).append_failure_message("Highlighter should have target set after _on_target_changed").is_equal(target)
+	assert_object(highlighter.current_target)
+		.append_failure_message("Highlighter should have target set after _on_target_changed")
+		.is_equal(target)
 	assert_color_equal(target.modulate, p_expected_invalid, "Target should have invalid color initially")
 
 	#region Add manipulatable to make it valid

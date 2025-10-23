@@ -55,7 +55,9 @@ func after_test() -> void:
 
 # Helper for asserting search result counts with descriptive messages
 func _assert_search_result_count(found_nodes: Array[Node], expected_count: int, search_description: String) -> void:
-	assert_int(found_nodes.size()).append_failure_message("%s expected %d got %d -> %s" % [search_description, expected_count, found_nodes.size(), found_nodes]).is_equal(expected_count)
+	assert_int(found_nodes.size())
+		.append_failure_message("%s expected %d got %d -> %s" % [search_description, expected_count, found_nodes.size(), found_nodes])
+		.is_equal(expected_count)
 
 # Helper for creating a test node with optional script
 func _create_test_node_with_script(node_name: String, add_script: bool = false) -> Node2D:
@@ -90,8 +92,12 @@ func test_name_search_scenarios(
 	_assert_search_result_count(found_nodes, expected_count, "Name search '%s'" % search_name)
 
 	if expected_count > 0:
-		assert_object(found_nodes[0]).append_failure_message("Name search should return valid node when expected_count > 0").is_not_null()
-		assert_str(found_nodes[0].name).append_failure_message("Found node name should match expected name '%s'" % expected_node_name).is_equal(expected_node_name)
+		assert_object(found_nodes[0])
+			.append_failure_message("Name search should return valid node when expected_count > 0")
+			.is_not_null()
+		assert_str(found_nodes[0].name)
+			.append_failure_message("Found node name should match expected name '%s'" % expected_node_name)
+			.is_equal(expected_node_name)
 
 #endregion
 
@@ -114,8 +120,12 @@ func test_script_search_scenarios(
 	_assert_search_result_count(found_nodes, expected_count, "Script search '%s'" % script_name)
 
 	if expected_count > 0:
-		assert_object(found_nodes[0]).append_failure_message("Script search should return valid node when expected_count > 0").is_not_null()
-		assert_bool(found_nodes[0].get_script() != null).append_failure_message("Script presence should match expected_has_script for script '%s'" % script_name).is_equal(expected_has_script)
+		assert_object(found_nodes[0])
+			.append_failure_message("Script search should return valid node when expected_count > 0")
+			.is_not_null()
+		assert_bool(found_nodes[0].get_script() != null)
+			.append_failure_message("Script presence should match expected_has_script for script '%s'" % script_name)
+			.is_equal(expected_has_script)
 
 #endregion
 
@@ -137,7 +147,9 @@ func test_group_search_scenarios(
 
 	# Verify expected nodes are found
 	for expected_index in expected_nodes:
-		assert_bool(found_nodes.has(test_nodes[expected_index])).append_failure_message("Group search for '%s' should include expected node at index %d" % [group_name, expected_index]).is_true()
+		assert_bool(found_nodes.has(test_nodes[expected_index]))
+			.append_failure_message("Group search for '%s' should include expected node at index %d" % [group_name, expected_index])
+			.is_true()
 
 ### Class Search Tests
 @warning_ignore("unused_parameter")
@@ -157,7 +169,9 @@ func test_class_search_scenarios(
 
 	if expected_count > 0:
 		for node: Node in found_nodes:
-			assert_str(node.get_class()).append_failure_message("Class search for '%s' should return nodes of correct class" % cls_name).is_equal(expected_class)
+			assert_str(node.get_class())
+				.append_failure_message("Class search for '%s' should return nodes of correct class" % cls_name)
+				.is_equal(expected_class)
 
 ### Property Search Tests
 @warning_ignore("unused_parameter")
@@ -180,7 +194,9 @@ func test_property_search_scenarios(
 	_assert_search_result_count(found_nodes, expected_count, "Property search '%s'" % property_name)
 
 	if expected_count > 0:
-		assert_object(found_nodes[0]).append_failure_message("Property search should return valid node when expected_count > 0").is_not_null()
+		assert_object(found_nodes[0])
+			.append_failure_message("Property search should return valid node when expected_count > 0")
+			.is_not_null()
 
 ### Method Result Search Tests
 @warning_ignore("unused_parameter")
@@ -211,7 +227,9 @@ func test_method_result_search_scenarios(
 	_assert_search_result_count(found_nodes, expected_count, "Method result search '%s'" % method_name)
 
 	if expected_count > 0:
-		assert_object(found_nodes[0]).append_failure_message("Method result search should return valid node when expected_count > 0").is_not_null()
+		assert_object(found_nodes[0])
+			.append_failure_message("Method result search should return valid node when expected_count > 0")
+			.is_not_null()
 
 ### Script Name Tests
 @warning_ignore("unused_parameter")
@@ -232,8 +250,11 @@ func test_script_name_scenarios(
 		assert_str(script_name)
    .append_failure_message("Script name should be empty for node at index %d" % node_index).is_empty()
 	else:
-		assert_str(script_name).append_failure_message("Script name should not be empty for node at index %d" % node_index).is_not_empty()
-		assert_str(script_name).append_failure_message("Script name should contain '%s' for node at index %d" % [expected_contains, node_index]).contains(expected_contains)
+		assert_str(script_name)
+			.append_failure_message("Script name should not be empty for node at index %d" % node_index)
+			.is_not_empty()
+		assert_str(script_name)
+			.append_failure_message("Script name should contain '%s' for node at index %d" % [expected_contains, node_index]).contains(expected_contains)
 
 ### Validation Tests
 @warning_ignore("unused_parameter")
@@ -251,10 +272,14 @@ func test_validation_scenarios(
 	]
 ) -> void:
 	var issues: Array[String] = NodeSearchLogic.validate_search_params(search_method, search_string)
-	assert_bool(issues.is_empty()).append_failure_message("Validation result should match expected_valid for method %d and string '%s'" % [search_method, search_string]).is_equal(expected_valid)
+	assert_bool(issues
+		.is_empty())
+		.append_failure_message("Validation result should match expected_valid for method %d and string '%s'" % [search_method, search_string])
+		.is_equal(expected_valid)
 
 	if not expected_valid:
-		assert_str(issues[0]).append_failure_message("Validation error should contain expected text").contains(expected_error_contains)
+		assert_str(issues[0])
+			.append_failure_message("Validation error should contain expected text").contains(expected_error_contains)
 
 ### Complex Operation Tests
 
@@ -264,7 +289,9 @@ func test_combine_search_results() -> void:
 
 	var combined: Array[Node] = NodeSearchLogic.combine_search_results([result1, result2])
 
-	assert_int(combined.size()).append_failure_message("Combine search expected 3 got %d -> %s" % [combined.size(), combined]).is_equal(3)  # Should have all unique nodes
+	assert_int(combined.size())
+		.append_failure_message("Combine search expected 3 got %d -> %s" % [combined.size(), combined])
+		.is_equal(3)  # Should have all unique nodes
 	assert_bool(combined.has(test_nodes[0]))
   .append_failure_message("Combined results should contain test_nodes[0]").is_true()
 	assert_bool(combined.has(test_nodes[1]))
@@ -293,11 +320,21 @@ func test_sort_search_results() -> void:
 	for n: Node in sorted:
 		sorted_names.append(String(n.name))
 
-	assert_int(sorted.size()).append_failure_message("Sort expected 3 got %d original=%s sorted=%s" % [sorted.size(), original_names, sorted_names]).is_equal(3)
+	assert_int(sorted.size())
+		.append_failure_message("Sort expected 3 got %d original=%s sorted=%s" % [sorted.size(), original_names, sorted_names])
+		.is_equal(3)
 	# Primary expectation order
-	assert_str(sorted[0].name).append_failure_message("Sorted names mismatch original=%s sorted=%s" % [original_names, sorted_names]).is_equal("TestNode1")
-	assert_str(sorted[1].name).append_failure_message("Sorted names mismatch original=%s sorted=%s" % [original_names, sorted_names]).is_equal("TestNode2")
-	assert_str(sorted[2].name).append_failure_message("Sorted names mismatch original=%s sorted=%s" % [original_names, sorted_names]).is_equal("TestNode3")
+	assert_str(sorted[0].name)
+		.append_failure_message("Sorted names mismatch original=%s sorted=%s" % [original_names, sorted_names])
+		.is_equal("TestNode1")
+	assert_str(sorted[1].name)
+		.append_failure_message("Sorted names mismatch original=%s sorted=%s" % [original_names, sorted_names])
+		.is_equal("TestNode2")
+	assert_str(sorted[2].name)
+		.append_failure_message("Sorted names mismatch original=%s sorted=%s" % [original_names, sorted_names])
+		.is_equal("TestNode3")
 	# Set equality guard to surface unexpected mutation (names should match originals set)
 	for expected: String in [TEST_NODE_1_NAME, TEST_NODE_2_NAME, TEST_NODE_3_NAME]:
-		assert_bool(sorted_names.has(expected)).append_failure_message("Expected name '%s' not present -> originals=%s sorted=%s" % [expected, original_names, sorted_names]).is_true()
+		assert_bool(sorted_names.has(expected))
+			.append_failure_message("Expected name '%s' not present -> originals=%s sorted=%s" % [expected, original_names, sorted_names])
+			.is_true()

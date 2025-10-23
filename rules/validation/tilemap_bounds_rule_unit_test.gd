@@ -63,7 +63,9 @@ func test_preloaded_tilemap_has_valid_tile_data() -> void:
 	auto_free(tile_map)
 
 	# Verify basic tilemap properties
-	assert_object(tile_map).append_failure_message("TileMapLayer should instantiate successfully from packed scene").is_not_null()
+	assert_object(tile_map)
+		.append_failure_message("TileMapLayer should instantiate successfully from packed scene")
+		.is_not_null()
 	assert_object(tile_map.tile_set)
   .append_failure_message("TileMapLayer should have a valid tile_set").is_not_null()
 

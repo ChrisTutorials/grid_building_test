@@ -241,7 +241,9 @@ func test_indicators_are_parented_and_inside_tree() -> void:
 		assert_object(ind.get_parent())
    .append_failure_message("Indicator has no parent: %s" % ind.name).is_not_null()
 		var expected_parent := env.indicator_manager
-		assert_object(ind.get_parent()).append_failure_message("Unexpected parent for indicator: %s Parent was %s but should be %s" % [ind.name, ind.get_parent(), expected_parent]).is_equal(expected_parent)
+		assert_object(ind.get_parent())
+			.append_failure_message("Unexpected parent for indicator: %s Parent was %s but should be %s" % [ind.name, ind.get_parent(), expected_parent])
+			.is_equal(expected_parent)
 
 #endregion
 

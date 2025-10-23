@@ -59,7 +59,9 @@ func test_dependency_injection_setup() -> void:
 ## Test: BuildingSystem is properly connected
 func test_building_system_connectivity() -> void:
 	var building_issues: Array[String] = test_env.building_system.get_runtime_issues()
- assert_array(building_issues).append_failure_message("BuildingSystem should have no runtime issues: " + str(building_issues).is_empty()
+ assert_array(building_issues)
+ 	.append_failure_message("BuildingSystem should have no runtime issues: " + str(building_issues)
+ 	.is_empty()
 
 ## Test: IndicatorManager is available and registered
 func test_indicator_manager_registration() -> void:
@@ -87,7 +89,9 @@ func test_scene_node_structure() -> void:
 ## Test: Grid targeting system has proper setup
 func test_grid_targeting_system_setup() -> void:
 	var targeting_issues: Array[String] = test_env.grid_targeting_system.get_runtime_issues()
- assert_array(targeting_issues).append_failure_message("GridTargetingSystem should have no runtime issues: " + str(targeting_issues).is_empty()
+ assert_array(targeting_issues)
+ 	.append_failure_message("GridTargetingSystem should have no runtime issues: " + str(targeting_issues)
+ 	.is_empty()
 
 	# The positioner should be available for targeting system
  assert_that(test_env.positioner)
@@ -96,7 +100,9 @@ func test_grid_targeting_system_setup() -> void:
 ## Test: Level context validation
 func test_level_context_validation() -> void:
 	var level_issues: Array[String] = test_env.level_context.get_runtime_issues()
- assert_array(level_issues).append_failure_message("LevelContext should have no runtime issues: " + str(level_issues).is_empty()
+ assert_array(level_issues)
+ 	.append_failure_message("LevelContext should have no runtime issues: " + str(level_issues)
+ 	.is_empty()
 
 ## Test: Owner root is accessible
 func test_owner_root_access() -> void:

@@ -279,7 +279,9 @@ func test_indicator_generation_distance(shape_scene_key: String, expected_distan
 	var indicator_0: RuleCheckIndicator = indicators.get(0)
 	var indicator_1: RuleCheckIndicator = indicators.get(1)
 
-	assert_bool(indicator_0 != null && indicator_1 != null).append_failure_message("Expected to generate 2 indicators for this test: [%s, %s]" % [indicator_0, indicator_1]).is_true()
+	assert_bool(indicator_0 != null && indicator_1 != null)
+		.append_failure_message("Expected to generate 2 indicators for this test: [%s, %s]" % [indicator_0, indicator_1])
+		.is_true()
 
 	if indicator_0 == null || indicator_1 == null:
 		fail("Cannot finish test if the two indicators did not generate")

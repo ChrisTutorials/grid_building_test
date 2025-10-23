@@ -69,4 +69,6 @@ func test_format_drag_state_helper() -> void:
 
 func test_format_drag_state_handles_null() -> void:
 	var formatted: String = DragManager.format_drag_state(null)
-	assert_str(formatted).append_failure_message("format_drag_state(null) should return graceful string").is_equal("[DragState: null]")
+	assert_str(formatted)
+		.append_failure_message("format_drag_state(null) should return graceful string")
+		.is_equal("[DragState: null]")

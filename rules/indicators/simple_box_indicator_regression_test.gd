@@ -38,7 +38,9 @@ func before_test() -> void:
 	# Create 5x5 tile map around origin
 	# Use pre-validated test tilemap from GBTestConstants to avoid missing atlas issues
 	var packed_tilemap: PackedScene = GBTestConstants.TEST_TILE_MAP_LAYER_BUILDABLE
-	assert_object(packed_tilemap).append_failure_message("GBTestConstants.TEST_TILE_MAP_LAYER_BUILDABLE must be defined and preloadable").is_not_null()
+	assert_object(packed_tilemap)
+		.append_failure_message("GBTestConstants.TEST_TILE_MAP_LAYER_BUILDABLE must be defined and preloadable")
+		.is_not_null()
 	tile_map_layer = auto_free(packed_tilemap.instantiate() as TileMapLayer)
 	# Ensure tilemap is parented for scene tree operations
 	add_child(tile_map_layer)

@@ -155,7 +155,9 @@ func _build_concave_failure_message(tiles: Array, indicators: Array[RuleCheckInd
 func test_concave_polygon_generates_expected_indicator_distribution() -> void:
 	var indicators: Array[RuleCheckIndicator] = _collect_indicators()
 
-	assert_array(indicators).append_failure_message("No indicators generated for concave polygon – investigate rule attach path. Indicators not generated; test pending implementation.").is_not_empty()
+	assert_array(indicators)
+		.append_failure_message("No indicators generated for concave polygon – investigate rule attach path. Indicators not generated; test pending implementation.")
+		.is_not_empty()
 
 	var tiles: Array[Vector2i] = []
 	for ind in indicators:

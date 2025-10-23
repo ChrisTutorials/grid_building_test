@@ -57,7 +57,9 @@ func before_test() -> void:
 	var placement_rules: Array[PlacementRule] = _container.get_placement_rules()
 
 	## Collisions Check Rule + Within Tilemaps Bound Rule
-	assert_int(placement_rules.size()).append_failure_message("[TEST_DEBUG] before_test: placement_rules.size()=%d" % placement_rules.size()).is_equal(2)
+	assert_int(placement_rules.size())
+		.append_failure_message("[TEST_DEBUG] before_test: placement_rules.size()=%d" % placement_rules.size())
+		.is_equal(2)
 
 	# Diagnostic: assert that all setup rules reference the same map instance as the test _map
 	for i in range(placement_rules.size()):
@@ -67,7 +69,9 @@ func before_test() -> void:
 		if r2.has_method("get_target_map"):
 			var rule_map: TileMapLayer = r2.call("get_target_map") as TileMapLayer
 			# If rule exposes the target_map, assert it's the same TileMapLayer instance used by the test
-			assert_bool(rule_map == _map).append_failure_message("PlacementRule at index %d is not bound to the test tilemap (_map)." % i).is_true()
+			assert_bool(rule_map == _map)
+				.append_failure_message("PlacementRule at index %d is not bound to the test tilemap (_map)." % i)
+				.is_true()
 
 	## Ensure tile map layer meets expectations
 	GBTestConstants.assert_tile_map_size(self, env, 31, 31)

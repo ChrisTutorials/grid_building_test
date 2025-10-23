@@ -457,7 +457,9 @@ func test_position_rules_mapping_produces_results() -> void:
 	# Verify rule mask matches collision layer
  assert_that(rule.apply_to_objects_mask).append_failure_message("Rule mask should be 1").is_equal(1)
 	var layer_matches : bool = (body.collision_layer & rule.apply_to_objects_mask) != 0
-	assert_bool(layer_matches).append_failure_message("Layer %d should match mask %d (bitwise AND should be non-zero)" % [body.collision_layer, rule.apply_to_objects_mask]).is_true()
+	assert_bool(layer_matches)
+		.append_failure_message("Layer %d should match mask %d (bitwise AND should be non-zero)" % [body.collision_layer, rule.apply_to_objects_mask])
+		.is_true()
 
 	var position_rules_map := mapper.map_collision_positions_to_rules([body], [rule])
 

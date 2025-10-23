@@ -107,7 +107,8 @@ func test_validate_setup_environment_collects_targeting_issues() -> void:
   .append_failure_message("Expected report to be created with null service components").is_not_null()
 	var issues := report.issues
 	assert_that(issues.size()).append_failure_message("Expected issues when template/targeting are missing, got %d issues: %s" % [issues.size(), str(issues)]).is_greater(0)
-	assert_array(issues).append_failure_message("Expected template missing issue present, but got issues: %s" % str(issues)).contains(["Indicator template is not set; cannot create indicators."])
+	assert_array(issues)
+		.append_failure_message("Expected template missing issue present, but got issues: %s" % str(issues)).contains(["Indicator template is not set; cannot create indicators."])
 
 # Test catches: Preview objects without collision shapes causing early abort
 func test_setup_indicators_reports_no_collision_shapes() -> void:
@@ -120,7 +121,8 @@ func test_setup_indicators_reports_no_collision_shapes() -> void:
 	var report := _service.setup_indicators(preview, _create_valid_tile_check_rules())
 
 	assert_that(report).append_failure_message("Expected report to be created for preview with no collision shapes").is_not_null()
-	assert_array(report.issues).append_failure_message("Should report no collision shapes found, got issues: %s" % str(report.issues)).contains(["setup_indicators: No collision shapes found on test object"])
+	assert_array(report.issues)
+		.append_failure_message("Should report no collision shapes found, got issues: %s" % str(report.issues)).contains(["setup_indicators: No collision shapes found on test object"])
 
 # Test catches: Missing collision mapper causing setup failure
 func test_setup_indicators_reports_missing_collision_mapper_when_nulled() -> void:
@@ -135,7 +137,8 @@ func test_setup_indicators_reports_missing_collision_mapper_when_nulled() -> voi
 
 	assert_that(report)
   .append_failure_message("Expected report to be created with null collision mapper").is_not_null()
-	assert_array(report.issues).append_failure_message("Should report missing collision mapper, got issues: %s" % str(report.issues)).contains(["setup_indicators: Collision mapper is not available"])
+	assert_array(report.issues)
+		.append_failure_message("Should report missing collision mapper, got issues: %s" % str(report.issues)).contains(["setup_indicators: Collision mapper is not available"])
 
 #endregion
 

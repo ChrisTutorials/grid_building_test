@@ -132,7 +132,9 @@ func test_polygon_test_object_indicator_collision_filtering() -> void:
 			GBTestDiagnostics.buffer("setup_report success=%s, indicators=%d" % [str(setup_report.is_successful()), setup_report.indicators_report.indicators.size() if setup_report.indicators_report != null else 0])
 
 	var context := GBTestDiagnostics.flush_for_assert()
-	assert_object(setup_report).append_failure_message("IndicatorManager.try_setup returned null. Context: %s" % context).is_not_null()
+	assert_object(setup_report)
+		.append_failure_message("IndicatorManager.try_setup returned null. Context: %s" % context)
+		.is_not_null()
 	assert_bool(setup_report.is_successful())
   .append_failure_message("IndicatorManager.try_setup failed. Context: %s" % context).is_true()
 
@@ -281,7 +283,9 @@ func test_polygon_test_object_center_tile_filtering() -> void:
 	for rule: PlacementRule in rules:
 		if rule is CollisionsCheckRule:
 			var setup_issues: Array[String] = rule.setup(_container.get_targeting_state())
-   assert_array(setup_issues).append_failure_message("Collision rule setup should complete without issues for rule: %s" % rule.get_class().is_empty()
+   assert_array(setup_issues)
+   	.append_failure_message("Collision rule setup should complete without issues for rule: %s" % rule.get_class()
+   	.is_empty()
 
 	# Call try_setup directly on the IndicatorManager
 	# Ensure the targeting state has the test instance as the current target
