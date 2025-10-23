@@ -12,7 +12,7 @@ func _get_test_container() -> GBCompositionContainer:
 			return base
 
 	# Fallback: load by known test path
-	var path := "res://test/grid_building_test/resources/composition_containers/test_composition_container.tres"
+	var path := GBTestConstants.TEST_PATH_COMPOSITION_CONTAINER_TEST_RESOURCE
 	var res := ResourceLoader.load(path)
 	if res and res is GBCompositionContainer:
 		return res

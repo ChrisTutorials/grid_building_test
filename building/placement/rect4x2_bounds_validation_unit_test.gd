@@ -11,7 +11,7 @@ extends GdUnitTestSuite
 const SAFE_START_TILE := GBTestConstants.DEFAULT_CENTER_TILE
 const OUTSIDE_OFFSET := 2
 const PLACEABLE_RECT_4X2 := GBTestConstants.PLACEABLE_RECT_4X2
-const TestIsolation = preload("res://test/helpers/gb_test_isolation.gd")
+const TestIsolation = preload(GBTestConstants.TEST_PATH_TEST_ISOLATION_HELPER)
 
 var runner: GdUnitSceneRunner
 var env: BuildingTestEnvironment

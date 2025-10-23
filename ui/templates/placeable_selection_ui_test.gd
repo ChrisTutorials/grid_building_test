@@ -405,7 +405,7 @@ func _create_test_content() -> void:
 
 ## Creates a mock placeable entry template for testing (simplified PanelContainer that works as PlaceableView)
 func _create_mock_placeable_entry_template() -> PackedScene:
-	var placeable_scene: PackedScene = load("res://templates/grid_building_templates/ui/placement_selection/placeable_view.tscn") as PackedScene
+	var placeable_scene: PackedScene = load(GBTestConstants.TEST_PATH_PLACEABLE_VIEW_UI) as PackedScene
 	assert_object(placeable_scene).append_failure_message(
 		"Expected placeable_view.tscn to be available for placeable entry template"
 	).is_not_null()
@@ -413,7 +413,7 @@ func _create_mock_placeable_entry_template() -> PackedScene:
 
 ## Creates a mock sequence entry template for testing (simplified PanelContainer that works as PlaceableListEntry)
 func _create_mock_sequence_entry_template() -> PackedScene:
-	var sequence_scene: PackedScene = load("res://templates/grid_building_templates/ui/placement_selection/placeable_list_entry.tscn") as PackedScene
+	var sequence_scene: PackedScene = load(GBTestConstants.TEST_PATH_PLACEABLE_LIST_ENTRY_UI) as PackedScene
 	assert_object(sequence_scene).append_failure_message(
 		"Expected placeable_list_entry.tscn to be available for sequence entry template"
 	).is_not_null()

@@ -5,7 +5,7 @@ extends GdUnitTestSuite
 ## Tests unified asset loading for placeables, category tags, and other Grid Building resources.
 ## Validates folder scanning, resource validation, and error handling.
 
-const TEST_ASSETS_FOLDER = "res://test/grid_building_test/resources/placeable/"
+const TEST_ASSETS_FOLDER = GBTestConstants.TEST_PATH_PLACEABLE_RESOURCES
 
 func test_load_placeables_from_folder() -> void:
 	# Test loading placeables from an existing folder using the detailed result method

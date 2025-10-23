@@ -44,6 +44,22 @@ const COLLISION_TEST_ENV_PATH: String = "res://test/grid_building_test/scenes/en
 const ISOMETRIC_TEST_ENV_PATH: String = "res://test/grid_building_test/scenes/env/isometric_test_environment.tscn"
 
 #endregion
+
+#region Hard-coded Resource Paths
+## Extracted hard-coded paths for centralized management
+
+const TEST_PATH_DEMOS := "res://demos/"
+const TEST_PATH_TEMPLATES := "res://templates/"
+const TEST_PATH_PLACEABLE_LIST_ENTRY_UI := "res://templates/grid_building_templates/ui/placement_selection/placeable_list_entry.tscn"
+const TEST_PATH_PLACEABLE_VIEW_UI := "res://templates/grid_building_templates/ui/placement_selection/placeable_view.tscn"
+const TEST_PATH_TEST := "res://test/"
+const TEST_PATH_MANIPULATION_TEST_HELPERS := "res://test/grid_building_test/regressions/manipulation/manipulation_test_helpers.gd"
+const TEST_PATH_COMPOSITION_CONTAINER_TEST_RESOURCE := "res://test/grid_building_test/resources/composition_containers/test_composition_container.tres"
+const TEST_PATH_PLACEABLE_RESOURCES := "res://test/grid_building_test/resources/placeable/"
+const TEST_PATH_PLACEABLE_INSTANCE_SCENE := "res://test/grid_building_test/scenes/objects/test_placeable_instance_scene_2d.tscn"
+const TEST_PATH_TEST_ISOLATION_HELPER := "res://test/helpers/gb_test_isolation.gd"
+
+#endregion
 ## Demo scenes used by demo tests
 static var TEST_DEMO_ISOMETRIC: PackedScene = preload("res://demos/isometric/demo_isometric_2d.tscn")
 #region Placement Rules

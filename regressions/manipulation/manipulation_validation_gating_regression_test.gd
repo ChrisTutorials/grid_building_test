@@ -34,7 +34,7 @@
 extends GdUnitTestSuite
 @warning_ignore("unused_parameter")
 
-const ManipulationHelpers := preload("res://test/grid_building_test/regressions/manipulation/manipulation_test_helpers.gd")
+const ManipulationHelpers := preload(GBTestConstants.TEST_PATH_MANIPULATION_TEST_HELPERS)
 
 #region Test Environment
 var runner: GdUnitSceneRunner

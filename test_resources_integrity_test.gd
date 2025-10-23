@@ -11,20 +11,20 @@
 
 extends GdUnitTestSuite
 
-const TEST_ROOT: String = "res://test/"
+const TEST_ROOT: String = GBTestConstants.TEST_PATH_TEST
 const PLUGIN_ROOT: String = "res://addons/grid_building/"
 
 # Allowed dependency prefixes for test resources
 const ALLOWED_DEPENDENCIES := [
-	"res://test/",
+	GBTestConstants.TEST_PATH_TEST,
 	"res://addons/grid_building/",
 	"res://",  # Built-in Godot resources
 ]
 
 # Disallowed dependency prefixes (external to test folder)
 const DISALLOWED_DEPENDENCIES := [
-	"res://templates/",
-	"res://demos/",
+	GBTestConstants.TEST_PATH_TEMPLATES,
+	GBTestConstants.TEST_PATH_DEMOS,
 ]
 
 
@@ -166,7 +166,7 @@ func test_test_folder_is_portable() -> void:
 		for dep_path in dependencies:
 			# Check if dependency is outside test/ and addons/grid_building/
 			var is_internal := false
-			for allowed in ["res://test/", "res://addons/grid_building/"]:
+			for allowed in [GBTestConstants.TEST_PATH_TEST, "res://addons/grid_building/"]:
 				if dep_path.begins_with(allowed):
 					is_internal = true
 					break

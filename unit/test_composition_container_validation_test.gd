@@ -20,24 +20,24 @@ func test_validate_test_composition_container_subcomponents() -> void:
 		container = _container
 	else:
 		# Try loading as PackedScene or instancing - fallback to loading resource path used by tests
-		container = ResourceLoader.load("res://test/grid_building_test/resources/composition_containers/test_composition_container.tres")
+		container = ResourceLoader.load(GBTestConstants.TEST_PATH_COMPOSITION_CONTAINER_TEST_RESOURCE)
 
-	assert_that(container)
-  .append_failure_message("Test composition container not found or wrong type").is_not_null()
+	assert_that(container) \
+		.append_failure_message("Test composition container not found or wrong type").is_not_null()
 
 	# Assert GBConfig exists and its main subcomponents are present
 	var cfg: GBConfig = container.config
-	assert_that(cfg)
-  .append_failure_message("GBConfig is null on the test composition container").is_not_null()
+	assert_that(cfg) \
+		.append_failure_message("GBConfig is null on the test composition container").is_not_null()
 
 	# Check top-level exported subresources to isolate missing ext_resources
 	assert_that(cfg.settings).append_failure_message("GBConfig.settings is null").is_not_null()
 	assert_that(cfg.templates).append_failure_message("GBConfig.templates is null").is_not_null()
 	assert_that(cfg.actions).append_failure_message("GBConfig.actions is null").is_not_null()
-	assert_that(cfg.settings.manipulation)
-  .append_failure_message("GBConfig.settings.manipulation is null").is_not_null()
-	assert_that(cfg.settings.visual)
-  .append_failure_message("GBConfig.settings.visual is null").is_not_null()
+	assert_that(cfg.settings.manipulation) \
+		.append_failure_message("GBConfig.settings.manipulation is null").is_not_null()
+	assert_that(cfg.settings.visual) \
+		.append_failure_message("GBConfig.settings.visual is null").is_not_null()
 
 	# Check placement rules are present in settings (this Yeah. may load programmatic fallback)
 	var rules := container.get_placement_rules()

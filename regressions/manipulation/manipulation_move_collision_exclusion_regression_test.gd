@@ -13,7 +13,7 @@
 ## 3. Move preview so grid positioner is OUTSIDE original bounds -> indicators RED ❌ BUG!
 extends GdUnitTestSuite
 
-const ManipulationHelpers := preload("res://test/grid_building_test/regressions/manipulation/manipulation_test_helpers.gd")
+const ManipulationHelpers := preload(GBTestConstants.TEST_PATH_MANIPULATION_TEST_HELPERS)
 
 var _runner: GdUnitSceneRunner
 var _env: AllSystemsTestEnvironment

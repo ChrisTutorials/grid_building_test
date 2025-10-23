@@ -52,7 +52,7 @@ func test_validate_test_composition_container_subcomponents() -> void:
 		container = _container
 	else:
 		# Try loading as PackedScene or instancing - fallback to loading resource path used by tests
-		container = ResourceLoader.load("res://test/grid_building_test/resources/composition_containers/test_composition_container.tres")
+		container = ResourceLoader.load(GBTestConstants.TEST_PATH_COMPOSITION_CONTAINER_TEST_RESOURCE)
 
 	assert_that(container)
   .append_failure_message("Test composition container not found or wrong type").is_not_null()
@@ -245,7 +245,7 @@ func test_test_composition_container_loads_and_has_placement_rules() -> void:
 	assert_int(pr_dup_count)
   .append_failure_message("Duplicated container should retain placement rules").is_greater(0)
 
-	var path: String = "res://test/grid_building_test/resources/composition_containers/test_composition_container.tres"
+	var path: String = GBTestConstants.TEST_PATH_COMPOSITION_CONTAINER_TEST_RESOURCE
 	var loaded: Resource = ResourceLoader.load(path)
 	assert_object(loaded)
   .append_failure_message("ResourceLoader failed to load %s" % path).is_not_null()
