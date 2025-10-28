@@ -25,7 +25,7 @@ var env: AllSystemsTestEnvironment
 
 func before_test() -> void:
 	# Use the premade AllSystemsTestEnvironment scene
-	runner = scene_runner(GBTestConstants.ALL_SYSTEMS_ENV_UID)
+	runner = scene_runner(GBTestConstants.ALL_SYSTEMS_ENV)
 	env = runner.scene() as AllSystemsTestEnvironment
 
 

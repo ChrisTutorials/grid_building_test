@@ -63,15 +63,17 @@ func test_preloaded_tilemap_has_valid_tile_data() -> void:
 	auto_free(tile_map)
 
 	# Verify basic tilemap properties
-	assert_object(tile_map)
-		.append_failure_message("TileMapLayer should instantiate successfully from packed scene")
+	assert_object(tile_map)\
+		.append_failure_message("TileMapLayer should instantiate successfully from packed scene")\
 		.is_not_null()
-	assert_object(tile_map.tile_set)
-  .append_failure_message("TileMapLayer should have a valid tile_set").is_not_null()
+	assert_object(tile_map.tile_set).append_failure_message(
+		"TileMapLayer should have a valid tile_set").is_not_null()
 
 	var used_rect: Rect2i = tile_map.get_used_rect()
 	var expected_rect: Rect2i = Rect2i(-15, -15, 31, 31)
- assert_that(used_rect).append_failure_message( "Preloaded tilemap should have expected bounds %s, got %s" % [expected_rect, used_rect] ) # Test specific positions that are failing in the boundary tests var test_positions: Array[Vector2i] = [ Vector2i(-15, -15), # Top-left corner (failing) Vector2i(15, 15), # Bottom-right corner (failing) Vector2i(0, 0), # Center (failing) Vector2i(8, 8), # Integration test position ] for test_pos: Vector2i in test_positions: # Check if position is within used_rect bounds var within_bounds: bool = used_rect.has_point(test_pos) assert_bool(within_bounds).append_failure_message( "Position %s should be within used_rect %s" % [test_pos, used_rect] ).is_true() # Check if TileData exists at this position var tile_data: TileData = tile_map.get_cell_tile_data(test_pos) assert_object(tile_data).append_failure_message( "Position %s should have valid TileData (not null). Used rect: %s, Source ID: %d, Atlas coords: %s" % [ test_pos, used_rect, tile_map.get_cell_source_id(test_pos), tile_map.get_cell_atlas_coords(test_pos) ] ).is_not_null() # If TileData exists, verify it's properly configured if tile_data != null: # The custom tileset should have "type" custom data (from custom_data_tileset_for_tests.tres) var custom_data: Variant = tile_data.get_custom_data_by_layer_id(0) if tile_data.get_custom_data_by_layer_id(0) != null else "none" # We don't assert custom data presence since it might be optional, # but we document what we found for debugging (buffered) GBTestDiagnostics.buffer("DEBUG: Position %s TileData custom_data_0: %s" % [test_pos, custom_data]) func test_preloaded_tilemap_matches_integration_test_setup() -> void: # This test ensures our preloaded tilemap matches the exact configuration # used by integration tests for WithinTilemapBoundsRule validation var packed_tilemap: PackedScene = GBTestConstants.TEST_TILE_MAP_LAYER_BUILDABLE var tile_map: TileMapLayer = packed_tilemap.instantiate() as TileMapLayer add_child(tile_map) auto_free(tile_map) # Verify tile_set properties match integration test expectations assert_object(tile_map.tile_set).append_failure_message("TileMapLayer should have a valid tile_set for tile size validation").is_not_null().is_equal(expected_rect)
+	assert_that(used_rect).append_failure_message(
+		"Tilemap used rect should match integration test: expected %s, got %s" % [expected_rect, used_rect]
+	).is_equal(expected_rect)
 	var tile_size: Vector2i = tile_map.tile_set.tile_size
 	var expected_tile_size: Vector2i = Vector2i(16, 16)
 	assert_vector(Vector2(tile_size)).is_equal(Vector2(expected_tile_size)).append_failure_message(
@@ -84,10 +86,9 @@ func test_preloaded_tilemap_has_valid_tile_data() -> void:
 
 	# This should be tile (0, 0) based on 16x16 tiles and 8.0 world position
 	var expected_tile: Vector2i = Vector2i(0, 0)
-	assert_vector(Vector2(integration_test_tile)).is_equal(Vector2(expected_tile))
-  .append_failure_message(
+	assert_vector(Vector2(integration_test_tile)).append_failure_message(
 		"Integration test position %s should map to tile %s, got %s" % [integration_test_world_pos, expected_tile, integration_test_tile]
-	)
+	).is_equal(Vector2(expected_tile))
 
 	# Verify that tile (0,0) has valid TileData
 	var tile_data: TileData = tile_map.get_cell_tile_data(expected_tile)

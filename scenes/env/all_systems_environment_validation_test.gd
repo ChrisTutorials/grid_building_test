@@ -15,15 +15,15 @@ func after_test() -> void:
 ## Test: Core systems from GBTestEnvironment are present
 func test_core_systems_present() -> void:
 	assert_that(test_env.injector).append_failure_message("GBInjectorSystem should be present").is_not_null()
-	assert_that(test_env.grid_targeting_system)
-		.append_failure_message("GridTargetingSystem should be present").is_not_null()
+	assert_that(test_env.grid_targeting_system).append_failure_message(
+		"GridTargetingSystem should be present").is_not_null()
 	assert_that(test_env.positioner).append_failure_message(
-		"GridPositioner2D should be present").is_not_null()
- 	assert_that(test_env.world).append_failure_message(
-		"World node should be present").is_not_null()
- 	assert_that(test_env.level).append_failure_message(
+		"GridPositioner2D should be present"
+		).is_not_null()
+	assert_that(test_env.world).append_failure_message("World node should be present").is_not_null()
+	assert_that(test_env.level).append_failure_message(
 		"Level node should be present").is_not_null()
- 	assert_that(test_env.level_context).append_failure_message(
+	assert_that(test_env.level_context).append_failure_message(
 		"GBLevelContext should be present").is_not_null()
 	assert_that(test_env.tile_map_layer).append_failure_message(
 		"TileMapLayer should be present").is_not_null()

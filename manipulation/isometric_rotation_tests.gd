@@ -214,11 +214,7 @@ func test_isometric_rotation_scenarios(
 			scenario = test_scenario
 			break
 
-	(
-		assert_bool(not scenario.is_empty())
-		. append_failure_message("Test scenario '%s' not found in TEST_SCENARIOS" % scenario_name)
-		. is_true()
-	)
+	assert_bool(not scenario.is_empty()).append_failure_message("Test scenario '%s' not found in TEST_SCENARIOS" % scenario_name).is_true()
 
 	# Setup: Apply base isometric transforms
 	_setup_isometric_base_transform(scenario)
@@ -247,37 +243,10 @@ func test_isometric_rotation_scenarios(
 	)
 
 	# Assert: Base transform node should be unchanged
-	(
-		assert_float(final_rotations.base_transform)
-		. append_failure_message(
-			(
-				"Base transform rotation should be unchanged - Scenario: %s, Expected: %.2f, Got: %.2f"
-				% [scenario_name, expected_rotations.base_transform, final_rotations.base_transform]
-			)
-		)
-		. is_equal_approx(expected_rotations.base_transform, ROTATION_TOLERANCE)
-	)
+	assert_float(final_rotations.base_transform).append_failure_message("Base transform rotation should be unchanged - Scenario: %s, Expected: %.2f, Got: %.2f" % [scenario_name, expected_rotations.base_transform, final_rotations.base_transform]).is_equal_approx(expected_rotations.base_transform, ROTATION_TOLERANCE)
 
 	# Assert: ManipulationParent should have applied rotation
-	(
-		assert_bool(
-			_angles_equivalent(
-				final_rotations.manipulation_parent, expected_rotations.manipulation_parent
-			)
-		)
-		. append_failure_message(
-			(
-				"ManipulationParent rotation mismatch - Scenario: %s, Applied: %.2f°, Expected: %.2f°, Got: %.2f°"
-				% [
-					scenario_name,
-					rotation_increment,
-					expected_rotations.manipulation_parent,
-					final_rotations.manipulation_parent
-				]
-			)
-		)
-		. is_true()
-	)
+	assert_bool(_angles_equivalent(final_rotations.manipulation_parent, expected_rotations.manipulation_parent)).append_failure_message("ManipulationParent rotation mismatch - Scenario: %s, Applied: %.2f°, Expected: %.2f°, Got: %.2f°" % [scenario_name, rotation_increment, expected_rotations.manipulation_parent, final_rotations.manipulation_parent]).is_true()
 
 	# Assert: IndicatorManager should inherit rotation from ManipulationParent
 	(
@@ -300,32 +269,22 @@ func test_isometric_rotation_scenarios(
 	)
 
 	# Assert: Test object should inherit rotation from ManipulationParent
-	(
-		assert_bool(_angles_equivalent(final_rotations.test_object, expected_rotations.test_object))
-		. append_failure_message(
-			(
-				"Test object should inherit rotation from ManipulationParent - Scenario: %s, Expected: %.2f°, Got: %.2f°"
-				% [scenario_name, expected_rotations.test_object, final_rotations.test_object]
-			)
-		)
-		. is_true()
-	)
+	assert_bool(_angles_equivalent(final_rotations.test_object, expected_rotations.test_object)) \
+		.append_failure_message( \
+			"Test object should inherit rotation from ManipulationParent - Scenario: %s, Expected: %.2f°, Got: %.2f°" \
+			% [scenario_name, expected_rotations.test_object, final_rotations.test_object]) \
+		.is_true()
 
 	# Assert: All indicators should inherit rotation from ManipulationParent
 	for i in range(indicators.size()):
 		var expected_indicator_rotation: float = expected_rotations.indicators[i]
 		var actual_indicator_rotation: float = final_rotations.indicators[i]
 
-		(
-			assert_bool(_angles_equivalent(actual_indicator_rotation, expected_indicator_rotation))
-			. append_failure_message(
-				(
-					"Indicator[%d] rotation mismatch - Scenario: %s, Expected: %.2f°, Got: %.2f°"
-					% [i, scenario_name, expected_indicator_rotation, actual_indicator_rotation]
-				)
-			)
-			. is_true()
-		)
+		assert_bool(_angles_equivalent(actual_indicator_rotation, expected_indicator_rotation)) \
+			.append_failure_message( \
+				"Indicator[%d] rotation mismatch - Scenario: %s, Expected: %.2f°, Got: %.2f°" \
+				% [i, scenario_name, expected_indicator_rotation, actual_indicator_rotation]) \
+			.is_true()
 
 
 ## Test: Cumulative rotation behavior in isometric contexts
@@ -376,23 +335,11 @@ func test_isometric_cumulative_rotation(
 	)
 
 	# Assert: Cumulative rotation is correct
-	(
-		assert_bool(
-			_angles_equivalent(final_rotations.manipulation_parent, expected_final_rotation)
-		)
-		. append_failure_message(
-			(
-				"Cumulative rotation failed - Scenario: %s, Total applied: %.2f°, Expected: %.2f°, Got: %.2f°"
-				% [
-					scenario_name,
-					total_rotation,
-					expected_final_rotation,
-					final_rotations.manipulation_parent
-				]
-			)
-		)
-		. is_true()
-	)
+	assert_bool(_angles_equivalent(final_rotations.manipulation_parent, expected_final_rotation)) \
+		.append_failure_message( \
+			"Cumulative rotation failed - Scenario: %s, Total applied: %.2f°, Expected: %.2f°, Got: %.2f°" \
+			% [scenario_name, total_rotation, expected_final_rotation, final_rotations.manipulation_parent]) \
+		.is_true()
 
 	# Assert: Indicators followed cumulative rotation
 	for i in range(indicators.size()):
@@ -401,16 +348,11 @@ func test_isometric_cumulative_rotation(
 		)
 		var actual_indicator_rotation: float = final_rotations.indicators[i]
 
-		(
-			assert_bool(_angles_equivalent(actual_indicator_rotation, expected_indicator_rotation))
-			. append_failure_message(
-				(
-					"Indicator[%d] cumulative rotation failed - Scenario: %s, Expected: %.2f°, Got: %.2f°"
-					% [i, scenario_name, expected_indicator_rotation, actual_indicator_rotation]
-				)
-			)
-			. is_true()
-		)  ## Test: Transform isolation - manipulation transforms should not affect base isometric setup
+		assert_bool(_angles_equivalent(actual_indicator_rotation, expected_indicator_rotation)) \
+			.append_failure_message( \
+				"Indicator[%d] cumulative rotation failed - Scenario: %s, Expected: %.2f°, Got: %.2f°" \
+				% [i, scenario_name, expected_indicator_rotation, actual_indicator_rotation]) \
+			.is_true()  ## Test: Transform isolation - manipulation transforms should not affect base isometric setup
 
 
 ## Setup: Apply base isometric transforms and manipulation transforms
@@ -462,51 +404,26 @@ func test_isometric_transform_isolation(
 	var base_global_rotation_final: float = _base_transform_node.global_rotation_degrees
 
 	# Assert: Base transform was never affected by manipulation operations
-	(
-		assert_bool(_transforms_equal(base_transform_after_manipulation, base_transform_initial))
-		. append_failure_message(
-			"Base transform should not be affected by manipulation - Scenario: %s" % scenario_name
-		)
-		. is_true()
-	)
+	assert_bool(_transforms_equal(base_transform_after_manipulation, base_transform_initial)) \
+		.append_failure_message("Base transform should not be affected by manipulation - Scenario: %s" % scenario_name) \
+		.is_true()
 
-	(
-		assert_bool(_transforms_equal(base_transform_final, base_transform_initial))
-		. append_failure_message(
-			(
-				"Base transform should remain unchanged after manipulation reset - Scenario: %s"
-				% scenario_name
-			)
-		)
-		. is_true()
-	)
+	assert_bool(_transforms_equal(base_transform_final, base_transform_initial)) \
+		.append_failure_message("Base transform should remain unchanged after manipulation reset - Scenario: %s" % scenario_name) \
+		.is_true()
 
 	# Assert: Base global rotation remains consistent
-	(
-		assert_float(base_global_rotation_after_manipulation)
-		. append_failure_message(
-			(
-				"Base global rotation should not change during manipulation - Scenario: %s, Expected: %.2f°, Got: %.2f°"
-				% [
-					scenario_name,
-					base_global_rotation_initial,
-					base_global_rotation_after_manipulation
-				]
-			)
-		)
-		. is_equal_approx(base_global_rotation_initial, ROTATION_TOLERANCE)
-	)
+	assert_float(base_global_rotation_after_manipulation) \
+		.append_failure_message( \
+			"Base global rotation should not change during manipulation - Scenario: %s, Expected: %.2f°, Got: %.2f°" \
+			% [scenario_name, base_global_rotation_initial, base_global_rotation_after_manipulation]) \
+		.is_equal_approx(base_global_rotation_initial, ROTATION_TOLERANCE)
 
-	(
-		assert_float(base_global_rotation_final)
-		. append_failure_message(
-			(
-				"Base global rotation should remain unchanged after reset - Scenario: %s, Expected: %.2f°, Got: %.2f°"
-				% [scenario_name, base_global_rotation_initial, base_global_rotation_final]
-			)
-		)
-		. is_equal_approx(base_global_rotation_initial, ROTATION_TOLERANCE)
-	)
+	assert_float(base_global_rotation_final) \
+		.append_failure_message( \
+			"Base global rotation should remain unchanged after reset - Scenario: %s, Expected: %.2f°, Got: %.2f°" \
+			% [scenario_name, base_global_rotation_initial, base_global_rotation_final]) \
+		.is_equal_approx(base_global_rotation_initial, ROTATION_TOLERANCE)
 
 
 #endregion
