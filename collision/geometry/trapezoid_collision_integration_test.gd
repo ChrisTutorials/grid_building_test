@@ -32,13 +32,13 @@ func before_test() -> void:
 	_indicator_manager = _env.indicator_manager
 
 	# Validate environment setup
-	assert_object(_collision_mapper)
-  .append_failure_message("CollisionMapper should be initialized in test environment").is_not_null()
-	assert_object(_targeting_state)
-		.append_failure_message("GridTargetingState should be initialized in test environment")
+	assert_object(_collision_mapper).append_failure_message(
+		"CollisionMapper should be initialized in test environment").is_not_null()
+	assert_object(_targeting_state)\
+		.append_failure_message("GridTargetingState should be initialized in test environment")\
 		.is_not_null()
-	assert_object(_indicator_manager)
-  .append_failure_message("IndicatorManager should be initialized in test environment").is_not_null()
+	assert_object(_indicator_manager).append_failure_message(
+		"IndicatorManager should be initialized in test environment").is_not_null()
 
 ## Test that focuses on the trapezoid collision detection integration
 func test_trapezoid_collision_detection_integration() -> void:
