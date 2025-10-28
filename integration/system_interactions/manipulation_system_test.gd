@@ -34,9 +34,9 @@ const CANCEL_TEST_POSITION: Vector2i = Vector2i(100, -100)
 const ROTATION_ITERATIONS: int = 10
 
 # ManipulatableSettings UIDs extracted to local constants
-const MANIPULATABLE_SETTINGS_ALL_ALLOWED_UID: String = "uid://dn881lunp3lrm"
-const MANIPULATABLE_SETTINGS_NONE_ALLOWED_UID: String = "uid://jonw4f3w8ofn"
-const RULES_2_RULES_1_TILE_CHECK_UID: String = "uid://5u2sgj1wk4or"
+const MANIPULATABLE_SETTINGS_ALL_ALLOWED_UID: String = GBTestConstants.MANIPULATABLE_SETTINGS_ALL_ALLOWED_UID
+const MANIPULATABLE_SETTINGS_NONE_ALLOWED_UID: String = GBTestConstants.MANIPULATABLE_SETTINGS_NONE_ALLOWED_UID
+const RULES_2_RULES_1_TILE_CHECK_UID: String = GBTestConstants.RULES_2_RULES_1_TILE_CHECK_UID
 
 # Local constants for ManipulatableSettings (pulled from old TestSceneLibrary)
 var manipulatable_settings_all_allowed: ManipulatableSettings = load(MANIPULATABLE_SETTINGS_ALL_ALLOWED_UID)

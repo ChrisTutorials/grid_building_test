@@ -93,8 +93,7 @@ func test_locations_close_to_zero_are_within_tile_map_bounds() -> void:
 	assert_array(setup_issues).is_empty()
 
 	# Create an indicator from test constants
-	var indicator_scene := GBTestConstants.TEST_INDICATOR_TD_PLATFORMER
-	var indicator_instance: RuleCheckIndicator = indicator_scene.instantiate()
+	var indicator_instance: RuleCheckIndicator = GBTestConstants.INDICATOR_SQUARE.instantiate()
 	test_env.positioner.add_child(indicator_instance)
 	auto_free(indicator_instance)
 
@@ -109,7 +108,7 @@ func test_locations_close_to_zero_are_within_tile_map_bounds() -> void:
 
 	# Test positions in 16 pixel increments from -3 tiles to +3 tiles on both X and Y
 	# This covers 7x7 = 49 positions total, ensuring comprehensive boundary testing
-	var tile_size := GBTestConstants.DEFAULT_TILE_SIZE.x  # 16 pixels
+	var tile_size := GBTestConstants.TILE_SIZE.x  # 16 pixels
 	var test_range := 3  # tiles
 
 	for x_offset in range(-test_range, test_range + 1):

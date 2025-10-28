@@ -12,7 +12,7 @@ extends GdUnitTestSuite
 ## These tests catch utility method failures that could cause issues in higher-level
 ## collision mapping and placement validation tests.
 
-const COLLISION_UTILITIES_UID: String = "uid://842dmikaq7xu"
+const COLLISION_UTILITIES_UID: String = GBTestConstants.COLLISION_UTILITIES_UID
 const CollisionUtilities = preload(COLLISION_UTILITIES_UID)
 
 # Constants for test values

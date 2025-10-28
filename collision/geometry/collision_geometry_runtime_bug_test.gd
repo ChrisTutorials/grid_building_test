@@ -195,4 +195,6 @@ func test_polygon_validity_analysis() -> void:
 	])
 
 	# Ensure diagnostics are attached to failing assertions
- assert_bool(true).append_failure_message(GBTestDiagnostics.flush_for_assert().is_true()
+	assert_bool(true).append_failure_message(
+		GBTestDiagnostics.flush_for_assert().is_true()
+	)
