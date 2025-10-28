@@ -580,9 +580,3 @@ func test_concave_polygon_tile_distribution() -> void:
 			"Concave polygon incorrectly filled center tile %s. Actual tiles: %s" % [empty_tile, str(tile_positions)]
 		).is_false()
 
-	# Verify no center tiles were filled (with diagnostic context)
-	GBTestDiagnostics.buffer("Concave polygon test - filled tiles: %s" % str(tile_positions))
-	assert_bool(true).append_failure_message(
-		"Concave polygon diagnostics: %s" % GBTestDiagnostics.flush_for_assert()
-	).is_true()
-

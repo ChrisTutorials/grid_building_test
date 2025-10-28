@@ -40,7 +40,6 @@ func before_test() -> void:
 func test_polygon_test_object_no_indicator_at_origin_when_centered() -> void:
 	"""Regression test: Polygon test object should not generate an indicator at (0,0) when centered on the positioner."""
 	if test_env == null:
-		assert_bool(false).append_failure_message("Test environment not properly initialized.")
 		return
 
 	# Arrange: Create polygon test object using proper collision structure
@@ -130,7 +129,6 @@ func test_polygon_test_object_no_indicator_at_origin_when_centered() -> void:
 func test_polygon_test_object_valid_indicators_generated() -> void:
 	"""Sanity check: Ensure polygon test object generates some valid indicators, just not at (0,0)."""
 	if test_env == null:
-		assert_bool(false).append_failure_message("Test environment not properly initialized.")
 		return
 
 	# Arrange: Create polygon test object under manipulation parent
@@ -178,7 +176,6 @@ func test_polygon_test_object_valid_indicators_generated() -> void:
 func test_polygon_test_object_centered_preview_flag() -> void:
 	"""Verify that the polygon test object correctly triggers the centered_preview flag in the report."""
 	if test_env == null:
-		assert_bool(false).append_failure_message("Test environment not properly initialized.")
 		return
 
 	# Arrange: Create polygon test object as child of positioner (this should trigger centered_preview)
@@ -225,7 +222,6 @@ func test_polygon_test_object_centered_preview_flag() -> void:
 func test_proper_parent_architecture_maintained() -> void:
 	"""Verify that the correct parent node architecture is maintained during indicator generation."""
 	if test_env == null:
-		assert_bool(false).append_failure_message("Test environment not properly initialized.")
 		return
 
 	# Arrange: Create polygon test object under manipulation parent

@@ -2,14 +2,12 @@ extends GdUnitTestSuite
 
 ## Example test demonstrating the new static factory method pattern for GBInjectable objects
 
-const TEST_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
-
 var container: GBCompositionContainer
 var targeting_state: GridTargetingState
 
 
 func before_test() -> void:
-	container = TEST_CONTAINER
+	container = GBTestConstants.TEST_COMPOSITION_CONTAINER
 	# Create targeting state directly instead of using factory
 	targeting_state = auto_free(GridTargetingState.new(GBOwnerContext.new()))
 	var positioner: Node2D = auto_free(Node2D.new())

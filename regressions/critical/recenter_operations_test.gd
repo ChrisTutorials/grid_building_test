@@ -141,6 +141,6 @@ func test_debug_recenter_operations() -> void:
 	diag.append("disabled_in_off_mode: %s" % [str(disabled_in_off_mode)])
 	diag.append("mouse_on_screen: %s" % [str(mouse_on_screen)])
 
-	# Attach diagnostics to a no-op assertion so failure messages include the collected data
-	# Correct chaining: attach failure message to the assertion object before calling the check
-	assert_bool(true).append_failure_message("%s" % "\n".join(diag)).is_true()
+	# Attach diagnostics to a meaningful assertion so failure messages include the collected data
+	# Assert that the positioner moved from the origin (sanity check for recenter operations)
+	assert_bool(positioner.global_position != Vector2.ZERO).append_failure_message("%s" % "\n".join(diag)).is_true()

@@ -114,27 +114,16 @@ func test_coordinate_system_analysis() -> void:
 			runtime_trapezoid, Vector2(16, 16), test_center_tile
 		)
 		diag.append("[COORD_ANALYSIS] Position %s: %d tiles" % [str(pos), offsets.size()])
+		# continue collecting diagnostics
 
-		if offsets.size() > 0:
-			# Find the bounds of calculated tiles
-			var min_x: int = offsets[0].x
-			var max_x: int = offsets[0].x
-			var min_y: int = offsets[0].y
-			var max_y: int = offsets[0].y
+	# After analyzing all positions, assert we observed at least one tile offset
+	var total_offsets: int = 0
+	for pos in test_positions:
+		var center_tile: Vector2i = Vector2i(int(pos.x / 16), int(pos.y / 16))
+		var offsets_here: Array[Vector2i] = CollisionGeometryUtils.compute_polygon_tile_offsets(runtime_trapezoid, Vector2(16, 16), center_tile)
+		total_offsets += offsets_here.size()
 
-			for offset in offsets:
-				min_x = min(min_x, offset.x)
-				max_x = max(max_x, offset.x)
-				min_y = min(min_y, offset.y)
-				max_y = max(max_y, offset.y)
-
-			diag.append("[COORD_ANALYSIS]   Tile bounds: x=[%d, %d], y=[%d, %d]" % [min_x, max_x, min_y, max_y])
-			diag.append("[COORD_ANALYSIS]   Expected missing tiles (-2,1), (2,1) in bounds? x_check=%s, y_check=%s" % [
-				str(min_x <= -2 and max_x >= 2),
-				str(min_y <= 1 and max_y >= 1)
-			])
-
-	assert_bool(true).append_failure_message("\n".join(diag)).is_true()
+	assert_int(total_offsets).append_failure_message("Coordinate system analysis produced no tile offsets.\nDiagnostics:\n%s" % "\n".join(diag)).is_greater(0)
 
 ## Test if the issue is polygon winding or shape validity
 func test_polygon_validity_analysis() -> void:
@@ -200,5 +189,6 @@ func test_polygon_validity_analysis() -> void:
 		expected_tiles_x, expected_tiles_y, expected_tiles_x * expected_tiles_y
 	])
 
-	# Diagnostics attached to assertion - safe to ignore the assert result
-	assert_bool(true).append_failure_message("\n".join(diag)).is_true()
+
+	# Final assertion: polygon area should be non-zero (sanity check) and include diagnostics on failure
+	assert_float(area).append_failure_message("Polygon validity analysis failed or produced unexpected area.\nDiagnostics:\n%s" % "\n".join(diag)).is_not_equal(0.0)

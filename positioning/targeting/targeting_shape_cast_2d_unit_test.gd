@@ -11,7 +11,7 @@ var runner: GdUnitSceneRunner
 
 func before_test() -> void:
 	# Load collision test environment to provide physics frame simulation
-	runner = scene_runner(GBTestConstants.COLLISION_TEST_ENV_UID)
+	runner = scene_runner(GBTestConstants.COLLISION_TEST_ENV)
 
 func test_force_shapecast_update_no_crash() -> void:
 	# Create a TargetingShapeCast2D instance with a valid shape and ensure update_target() is safe
@@ -22,7 +22,6 @@ func test_force_shapecast_update_no_crash() -> void:
 	add_child(sc)
 	# No dependencies injected -> update_target() returns early without touching physics
 	sc.update_target()
-	assert_bool(true).is_true()
 
 func test_is_colliding_and_get_collider_behavior() -> void:
 	var sc: TargetingShapeCast2D = TargetingShapeCast2D.new()
@@ -31,8 +30,7 @@ func test_is_colliding_and_get_collider_behavior() -> void:
 	sc.shape = shape
 	add_child(sc)
 	# By default, no colliders present
-	assert_bool(sc.is_colliding())
-  .append_failure_message("New TargetingShapeCast2D should not be colliding by default").is_false()
+	assert_bool(sc.is_colliding()).append_failure_message("New TargetingShapeCast2D should not be colliding by default").is_false()
 	# Do not call get_collider() when not colliding; engine raises 'No collider found'
 	# This assertion is sufficient for default behavior
 

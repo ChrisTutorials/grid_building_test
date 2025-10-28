@@ -366,14 +366,9 @@ func test_process_vs_physics_timing_analysis(
 
 	# Document the timing relationship - this test demonstrates the race condition exists
 	# In a real game, process calls can outpace physics frames, allowing multiple builds per physics update
-	if process_calls > physics_frames:
-		assert_bool(true)
-			.append_failure_message("Race condition window exists: %d process calls vs %d physics frames (ratio: %.2f). Multiple builds can occur per physics update!" % [process_calls, physics_frames, ratio])
-			.is_true()
-	else:
-		assert_bool(false)
-			.append_failure_message("Expected process calls > physics frames to demonstrate race window, but got %d process vs %d physics (ratio: %.2f)" % [process_calls, physics_frames, ratio])
-			.is_false()
+	assert_bool(process_calls > physics_frames)
+		.append_failure_message("Race condition window exists: %d process calls vs %d physics frames (ratio: %.2f). Multiple builds can occur per physics update!" % [process_calls, physics_frames, ratio])
+		.is_true()
 
 	_drag_manager.stop_drag()
 

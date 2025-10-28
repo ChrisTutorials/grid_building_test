@@ -11,8 +11,6 @@ extends GdUnitTestSuite
 ## - Indicator manager properly creates and manages rule check indicators
 ## - Build mode integration with collision detection works end-to-end
 
-const BASE_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
-
 # Test constants for collision layers and object dimensions
 const TEST_COLLISION_LAYER: int = 513  # Bits 0 and 9 (layers 0 and 9)
 const TEST_BOX_SIZE: Vector2 = Vector2(16, 16)  # Standard tile size
