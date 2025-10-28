@@ -132,7 +132,7 @@ func test_placement_rules_available() -> void:
 	# Check if there are placement rules available (the "0 base placement rules" issue)
 	var container: GBCompositionContainer = test_env.get_container()
 	if container != null:
-		var placement_rules: Array = container.get_placement_rules()
+		var placement_rules: Array[PlacementRule] = container.get_placement_rules()
 		# We don't necessarily need placement rules for the environment to work,
 		# but we should be able to check this without errors
 	assert_that(placement_rules).append_failure_message(

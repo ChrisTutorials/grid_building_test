@@ -173,7 +173,7 @@ func test_collision_mapper_polygon_edge_cases(
 	var col_objects: Array[Node2D] = [test_object]
 	var tile_check_rules: Array[TileCheckRule] = []  # Empty for now due to setup issues
 
-	var position_rules: Dictionary = _collision_mapper.map_collision_positions_to_rules(
+	var position_rules: Dictionary[Vector2i, Array] = _collision_mapper.map_collision_positions_to_rules(
 		col_objects, tile_check_rules
 	)
 
@@ -298,7 +298,7 @@ func test_collision_mapper_position_independence(
 	var col_objects: Array[Node2D] = [test_object]
 	var tile_check_rules: Array[TileCheckRule] = []
 
-	var position_rules: Dictionary = _collision_mapper.map_collision_positions_to_rules(
+	var position_rules: Dictionary[Vector2i, Array] = _collision_mapper.map_collision_positions_to_rules(
 		col_objects, tile_check_rules
 	)
 	var mapped_count: int = position_rules.size()

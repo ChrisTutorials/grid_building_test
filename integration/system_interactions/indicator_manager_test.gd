@@ -47,7 +47,7 @@ func assert_scene_has_collision_shapes(scene: Node2D, context: String = "") -> i
 	assert_int(count).append_failure_message("Scene lacks collision shapes%s" % context).is_greater(0)
 	return count
 
-func get_indicators_and_summary(report: IndicatorSetupReport) -> Dictionary:
+func get_indicators_and_summary(report: IndicatorSetupReport) -> Dictionary[String, Variant]:
 	"""Extract indicators and summary from a report."""
 	return {
 		"indicators": report.indicators,
@@ -151,7 +151,7 @@ func test_indicator_manager_dependencies_initialized() -> void:
 		GBTestDiagnostics.buffer("[TEST][indicator_manager] WARNING: No physics body layer overlap for eclipse_scene; proceeding (shape-only scene)")
 
 	var indicators_report : IndicatorSetupReport = setup_scene_with_indicators(shape_scene)
-	var data: Dictionary = get_indicators_and_summary(indicators_report)
+	var data: Dictionary[String, Variant] = get_indicators_and_summary(indicators_report)
 	var indicators: Array[RuleCheckIndicator] = data.indicators
 	var summary: String = data.summary
 
@@ -199,7 +199,7 @@ func test_indicator_count_for_shapes(shape_scene_key: String, expected: int, tes
 
 	var _overlap_ok: bool = _collision_layer_overlaps(shape_scene, col_checking_rules)
 	var report : IndicatorSetupReport = setup_scene_with_indicators(shape_scene)
-	var data: Dictionary = get_indicators_and_summary(report)
+	var data: Dictionary[String, Variant] = get_indicators_and_summary(report)
 	var indicators: Array[RuleCheckIndicator] = data.indicators
 	var summary: String = data.summary
 
@@ -215,7 +215,7 @@ func test_indicator_positions_are_unique() -> void:
 	assert_scene_has_collision_shapes(shape_scene, " for uniqueness test")
 
 	var report : IndicatorSetupReport = setup_scene_with_indicators(shape_scene)
-	var data: Dictionary = get_indicators_and_summary(report)
+	var data: Dictionary[String, Variant] = get_indicators_and_summary(report)
 	var indicators: Array[RuleCheckIndicator] = data.indicators
 	var summary: String = data.summary
 
@@ -243,7 +243,7 @@ func test_no_indicators_for_empty_scene() -> void:
 	var empty_node: Node = auto_free(Node2D.new())
 	add_child(empty_node)
 	var report : IndicatorSetupReport = setup_scene_with_indicators(empty_node)
-	var data: Dictionary = get_indicators_and_summary(report)
+	var data: Dictionary[String, Variant] = get_indicators_and_summary(report)
 	var indicators: Array[RuleCheckIndicator] = data.indicators
 	var summary: String = data.summary
 
@@ -267,7 +267,7 @@ func test_indicator_generation_distance(shape_scene_key: String, expected_distan
 
 	shape_scene.global_position = global_snap_pos
 	var report : IndicatorSetupReport = setup_scene_with_indicators(shape_scene)
-	var data: Dictionary = get_indicators_and_summary(report)
+	var data: Dictionary[String, Variant] = get_indicators_and_summary(report)
 	var indicators: Array[RuleCheckIndicator] = data.indicators
 	var summary: String = data.summary
 
@@ -298,7 +298,7 @@ func test_indicators_are_freed_on_reset() -> void:
 	var shape_scene: Node2D = CollisionObjectTestFactory.create_polygon_test_object(self, self)
 	shape_scene.global_position = global_snap_pos
 	var report : IndicatorSetupReport = setup_scene_with_indicators(shape_scene)
-	var data: Dictionary = get_indicators_and_summary(report)
+	var data: Dictionary[String, Variant] = get_indicators_and_summary(report)
 	var indicators: Array[RuleCheckIndicator] = data.indicators
 	var summary: String = data.summary
 

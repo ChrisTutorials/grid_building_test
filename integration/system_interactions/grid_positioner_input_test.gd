@@ -107,7 +107,7 @@ func test_injector_injects_positioner_and_settings() -> void:
 	)
 
 	if meta_present:
-		var meta: Dictionary = positioner.get_meta(GBInjectorSystem.INJECTION_META_KEY)
+		var meta: Dictionary[String, Variant] = positioner.get_meta(GBInjectorSystem.INJECTION_META_KEY)
 		var expected_id: int = int(injector.get_instance_id())
 		var actual_id: int = meta.get("injector_id", -1)
 		(

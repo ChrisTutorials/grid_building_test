@@ -67,7 +67,7 @@ func test_tilemap_offset_affects_tile_overlap() -> void:
 	]
 
 	# Convert returned offsets to a set for easy membership checking
-	var offsets_set: Dictionary = {}
+	var offsets_set: Dictionary[Vector2i, bool] = {}
 	for i in offsets:
 		var off: Vector2i = i
 		offsets_set[off] = true

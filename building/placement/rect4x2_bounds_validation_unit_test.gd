@@ -114,7 +114,7 @@ func _validate_placement() -> ValidationResults:
 
 # Helper method to get indicator positions as tile coordinates (relative to tile map)
 func _get_indicator_tile_positions_as_strings() -> Array[String]:
-	var indicators: Array = _indicator_manager.get_indicators()
+	var indicators: Array[RuleCheckIndicator] = _indicator_manager.get_indicators()
 	var indicator_tile_positions: Array[String] = []
 	for indicator: Object in indicators:
 		if indicator != null:

@@ -73,7 +73,7 @@ func test_trapezoid_collision_detection_integration() -> void:
 	GBTestDiagnostics.buffer("[TRAPEZOID_TRACE] Positioner position: %s" % str(_targeting_state.positioner.global_position))
 
 	# 4) Test collision shape detection
-	var owner_shapes: Dictionary = GBGeometryUtils.get_all_collision_shapes_by_owner(test_object)
+	var owner_shapes: Dictionary[Node2D, Array] = GBGeometryUtils.get_all_collision_shapes_by_owner(test_object)
 	GBTestDiagnostics.buffer("[TRAPEZOID_TRACE] Owner shapes found: %d" % owner_shapes.size())
 
 	assert_int(owner_shapes.size()).append_failure_message(
@@ -81,7 +81,7 @@ func test_trapezoid_collision_detection_integration() -> void:
 	).is_greater(0)
 
 	for shape_owner: Node in owner_shapes.keys():
-		var shapes: Array = owner_shapes[shape_owner]
+		var shapes: Array[Dictionary] = owner_shapes[shape_owner]
 		GBTestDiagnostics.buffer("[TRAPEZOID_TRACE] Owner '%s' has %d shapes" % [shape_owner.name, shapes.size()])
 		for i in range(shapes.size()):
 			var shape_info: Variant = shapes[i]  # Use Variant to handle any type returned
@@ -159,7 +159,7 @@ func test_collision_mapper_integration() -> void:
 	auto_free(test_object)
 
 	# Get collision shapes
-	var owner_shapes: Dictionary = GBGeometryUtils.get_all_collision_shapes_by_owner(test_object)
+	var owner_shapes: Dictionary[Node2D, Array] = GBGeometryUtils.get_all_collision_shapes_by_owner(test_object)
 	assert_int(owner_shapes.size())
 		.append_failure_message("Collision shapes should be detected from trapezoid test object")
 		.is_greater(0)
@@ -177,12 +177,12 @@ func test_collision_mapper_integration() -> void:
 		if shape_owner is Node2D:
 			col_objects.append(shape_owner as Node2D)
 
-	var position_rules_map: Dictionary = _collision_mapper.map_collision_positions_to_rules(
+	var position_rules_map: Dictionary[Vector2i, Array] = _collision_mapper.map_collision_positions_to_rules(
 		col_objects, tile_check_rules
 	)
 
 	GBTestDiagnostics.buffer("[MAPPER_TRACE] Position rules map size: %d" % position_rules_map.size())
-	var positions: Array = position_rules_map.keys()
+	var positions: Array[Vector2i] = position_rules_map.keys()
 	positions.sort()  # Sort for consistent output
 	GBTestDiagnostics.buffer("[MAPPER_TRACE] Mapped positions: %s" % str(positions))
 

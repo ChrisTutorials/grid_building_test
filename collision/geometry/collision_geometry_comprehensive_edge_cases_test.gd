@@ -253,8 +253,8 @@ func test_position_independence_edge_cases(
 	# Assert consistent pattern (relative positions should be the same)
 	if expected_pattern_consistency:
 		# Calculate the pattern bounds for comparison
-		var pattern_bounds_current: Dictionary = _calculate_pattern_bounds(tile_offsets)
-		var pattern_bounds_origin: Dictionary = _calculate_pattern_bounds(origin_offsets)
+		var pattern_bounds_current: Dictionary[String, int] = _calculate_pattern_bounds(tile_offsets)
+		var pattern_bounds_origin: Dictionary[String, int] = _calculate_pattern_bounds(origin_offsets)
 
 		(
 			assert_int(pattern_bounds_current["width"])

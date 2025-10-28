@@ -52,7 +52,7 @@ func _run_polygon_test(
 
 	var polygon: CollisionPolygon2D = _create_collision_polygon(points, static_body)
 
-	var result: Array = PolygonTileMapper.compute_tile_offsets(polygon, test_map)
+	var result: Array[Vector2i] = PolygonTileMapper.compute_tile_offsets(polygon, test_map)
 
 	var failure_message: String = "Expected %s to produce tile offsets, got %d" % [description, result.size()]
 	assert_that(result.size()).append_failure_message(failure_message).is_greater_equal(expected_min)
@@ -103,7 +103,7 @@ func test_process_polygon_with_diagnostics() -> void:
 func test_compute_tile_offsets_null_polygon() -> void:
 	var test_map: TileMapLayer = _create_test_tile_map()
 
-	var result: Array = PolygonTileMapper.compute_tile_offsets(null, test_map)
+	var result: Array[Vector2i] = PolygonTileMapper.compute_tile_offsets(null, test_map)
 
 	assert_that(result.size())
   .append_failure_message("Expected null polygon to return empty result").is_equal(0)
@@ -119,7 +119,7 @@ func test_compute_tile_offsets_null_map() -> void:
 		Vector2(16, 32)
 	]), static_body)
 
-	var result: Array = PolygonTileMapper.compute_tile_offsets(triangle_polygon, null)
+	var result: Array[Vector2i] = PolygonTileMapper.compute_tile_offsets(triangle_polygon, null)
 
 	assert_that(result.size())
   .append_failure_message("Expected null map to return empty result").is_equal(0)
@@ -139,7 +139,7 @@ func test_compute_tile_offsets_no_tile_set() -> void:
 		Vector2(16, 32)
 	]), static_body)
 
-	var result: Array = PolygonTileMapper.compute_tile_offsets(triangle_polygon, test_map)
+	var result: Array[Vector2i] = PolygonTileMapper.compute_tile_offsets(triangle_polygon, test_map)
 
 	assert_that(result.size())
   .append_failure_message("Expected map without tile set to return empty result").is_equal(0)
@@ -162,7 +162,7 @@ func test_compute_tile_offsets_degenerate_polygons(
 	var static_body: StaticBody2D = _create_static_body()
 
 	var poly: CollisionPolygon2D = _create_collision_polygon(points, static_body)
-	var result: Array = PolygonTileMapper.compute_tile_offsets(poly, test_map)
+	var result: Array[Vector2i] = PolygonTileMapper.compute_tile_offsets(poly, test_map)
 	if expected_max == 0:
 		assert_that(result.size())
    .append_failure_message("Expected %s polygon to return empty result" % case_name).is_equal(0)
@@ -277,7 +277,7 @@ func test_compute_tile_offsets_outside_bounds() -> void:
 	])
 	triangle_polygon.position = Vector2(1000, 1000)  # Way outside the tilemap
 
-	var result: Array = PolygonTileMapper.compute_tile_offsets(triangle_polygon, test_map)
+	var result: Array[Vector2i] = PolygonTileMapper.compute_tile_offsets(triangle_polygon, test_map)
 
 	# Should still return some offsets if polygon overlaps any tiles
 	# (depending on implementation, might be empty or have some coverage)
@@ -312,7 +312,7 @@ func test_tile_property_detection_diagnostics() -> void:
 	# Test tile_shape property detection
 	var tile_set_ref: TileSet = test_map.tile_set
 	var has_tile_shape: bool = false
-	var property_names: Array = []
+	var property_names: Array[String] = []
 
 	for property: Dictionary in tile_set_ref.get_property_list():
 		property_names.append(property.name)
@@ -342,13 +342,13 @@ func test_tile_property_detection_diagnostics() -> void:
 	var world_points: PackedVector2Array = CollisionGeometryUtils.to_world_polygon(polygon)
 	var center_tile: Vector2i = test_map.local_to_map(test_map.to_local(polygon.global_position))
 	var tile_size: Vector2 = test_map.tile_set.tile_size
-	var initial_offsets: Array = CollisionGeometryUtils.compute_polygon_tile_offsets(world_points, tile_size, center_tile, test_map.tile_set.tile_shape, test_map)
+	var initial_offsets: Array[Vector2i] = CollisionGeometryUtils.compute_polygon_tile_offsets(world_points, tile_size, center_tile, test_map.tile_set.tile_shape, test_map)
 	var thresholds: PolygonTileMapper.AreaThresholds = PolygonTileMapper.AreaThresholds.new()
 	var tile_area: float = tile_size.x * tile_size.y
 	var min_ratio: float = thresholds.expanded_trapezoid_ratio if diag.did_expand_trapezoid else (thresholds.convex_ratio if diag.was_convex else thresholds.default_ratio)
 	var min_area: float = tile_area * min_ratio
 
-	var area_details: Array = []
+	var area_details: Array[Variant] = []
 	for off: Vector2i in initial_offsets:
 		var abs_tile: Vector2i = center_tile + off
 		var tile_rect: Rect2 = PolygonTileMapper._compute_tile_rect(abs_tile, test_map, tile_size)
@@ -375,8 +375,8 @@ func test_compute_tile_offsets_consistency() -> void:
 	])
 	triangle_polygon.position = DEFAULT_TEST_POSITION
 
-	var result1: Array = PolygonTileMapper.compute_tile_offsets(triangle_polygon, test_map)
-	var result2: Array = PolygonTileMapper.compute_tile_offsets(triangle_polygon, test_map)
+	var result1: Array[Vector2i] = PolygonTileMapper.compute_tile_offsets(triangle_polygon, test_map)
+	var result2: Array[Vector2i] = PolygonTileMapper.compute_tile_offsets(triangle_polygon, test_map)
 
 	# Results should be identical
 	assert_that(result1)
@@ -398,7 +398,7 @@ func test_filter_area_diagnostics() -> void:
 	var center_tile: Vector2i = test_map.local_to_map(test_map.to_local(poly.global_position))
 	var tile_size: Vector2 = test_map.tile_set.tile_size
 
-	var initial_offsets: Array = CollisionGeometryUtils.compute_polygon_tile_offsets(world_points, tile_size, center_tile, test_map.tile_set.tile_shape, test_map)
+	var initial_offsets: Array[Vector2i] = CollisionGeometryUtils.compute_polygon_tile_offsets(world_points, tile_size, center_tile, test_map.tile_set.tile_shape, test_map)
 	assert_int(initial_offsets.size())
 		.append_failure_message("Expected initial offsets from CollisionGeometryUtils, got %d" % initial_offsets.size())
 		.is_greater_equal(1)
@@ -406,14 +406,14 @@ func test_filter_area_diagnostics() -> void:
 	# Gather per-offset areas and compare against multiple thresholds to see what fails
 	var thresholds: PolygonTileMapper.AreaThresholds = PolygonTileMapper.AreaThresholds.new()
 	var tile_area: float = tile_size.x * tile_size.y
-	var ratios: Dictionary = {
+	var ratios: Dictionary[String, float] = {
 		"default": thresholds.default_ratio,
 		"convex": thresholds.convex_ratio,
 		"expanded": thresholds.expanded_trapezoid_ratio,
 		"expansion_candidate": thresholds.expansion_candidate_ratio
 	}
 
-	var area_results: Array = []
+	var area_results: Array[Dictionary] = []
 
 	for off: Vector2i in initial_offsets:
 		var abs_tile: Vector2i = center_tile + off
@@ -422,7 +422,7 @@ func test_filter_area_diagnostics() -> void:
 		area_results.append({"offset": off, "area": area})
 
 	# Build a readable failure message
-	var msg_lines: Array = []
+	var msg_lines: Array[String] = []
 	msg_lines.append("Tile area diagnostics (tile_area=%.2f):" % tile_area)
 	for ar: Dictionary in area_results:
 		msg_lines.append(" offset=%s area=%.3f ratios: default=%.3f convex=%.3f expanded=%.3f" % [str(ar.offset), ar.area, ratios.default, ratios.convex, ratios.expanded])

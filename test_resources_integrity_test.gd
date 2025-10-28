@@ -141,7 +141,7 @@ func test_test_folder_is_portable() -> void:
 	# Verify test folder only needs plugin to function
 	var all_files: Array[String] = _list_test_files(TEST_ROOT)
 
-	var external_deps: Dictionary = {}  # Path -> Array[String] of external deps
+	var external_deps: Dictionary[String, Array] = {}  # Path -> Array of external deps
 
 	for file_path: String in all_files:
 		var dependencies: PackedStringArray = ResourceLoader.get_dependencies(file_path)

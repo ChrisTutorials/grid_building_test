@@ -96,7 +96,7 @@ func _test_single_collision_object_scenario(
 	var shapes_from_owner: Array[Shape2D] = GBGeometryUtils.get_shapes_from_owner(collision_obj)
 	GBTestDiagnostics.buffer("6. get_shapes_from_owner result: %d shapes" % shapes_from_owner.size())
 
-	var all_shapes: Dictionary = GBGeometryUtils.get_all_collision_shapes_by_owner(collision_obj)
+	var all_shapes: Dictionary[Node2D, Array] = GBGeometryUtils.get_all_collision_shapes_by_owner(collision_obj)
 	GBTestDiagnostics.buffer("7. get_all_collision_shapes_by_owner result: %d owners" % all_shapes.size())
 
 	# Assertions

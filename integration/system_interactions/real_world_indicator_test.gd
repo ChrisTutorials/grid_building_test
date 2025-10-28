@@ -88,7 +88,7 @@ func _find_physics_body_ancestor(node: Node) -> Node:
 func _validate_indicator_positions(indicators: Array[RuleCheckIndicator], preview: Node2D) -> void:
 	## Helper method to validate indicator positioning using DRY patterns
 	var sample_count: int = min(5, indicators.size())
-	var seen_positions: Dictionary = {}
+	var seen_positions: Dictionary[Vector2, bool] = {}
 
 	for i: int in range(sample_count):
 		var indicator: RuleCheckIndicator = indicators[i]
@@ -254,7 +254,7 @@ func test_real_world_indicator_positioning() -> void:
 	).is_true()
 
 	# Validate targeting state using DRY pattern
-	var targeting_issues: Array = targeting_state.get_runtime_issues()
+	var targeting_issues: Array[String] = targeting_state.get_runtime_issues()
 	assert_array(targeting_issues).append_failure_message(
 		"Targeting state issues: %s" % str(targeting_issues)
 	).is_empty()

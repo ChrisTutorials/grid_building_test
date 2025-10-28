@@ -27,7 +27,7 @@ func before_test() -> void:
 
 	# Validate environment setup
 	assert_object(env).append_failure_message("Failed to create test environment").is_not_null()
-	var issues: Array = env.get_issues()
+	var issues: Array[String] = env.get_issues()
 	assert_array(issues).append_failure_message(
 		"Environment has issues: %s" % str(issues)
 	).is_empty()
@@ -64,7 +64,7 @@ func test_indicators_cleared_when_switching_placeables() -> void:
 	).is_true()
 
 	# Get initial indicators
-	var initial_indicators: Array = _indicator_manager.get_indicators()
+	var initial_indicators: Array[RuleCheckIndicator] = _indicator_manager.get_indicators()
 	var initial_count: int = initial_indicators.size()
 
 	assert_int(initial_count).append_failure_message(
@@ -86,7 +86,7 @@ func test_indicators_cleared_when_switching_placeables() -> void:
 	).is_true()
 
 	# Step 3: Verify old indicators were cleared
-	var new_indicators: Array = _indicator_manager.get_indicators()
+	var new_indicators: Array[RuleCheckIndicator] = _indicator_manager.get_indicators()
 
 	# Check that old indicator instances are no longer valid
 	var old_indicators_still_valid: int = 0
@@ -165,7 +165,7 @@ func test_rotation_reset_and_indicators_cleared_together() -> void:
 	).is_true()
 
 	# Get initial state
-	var initial_indicators: Array = _indicator_manager.get_indicators()
+	var initial_indicators: Array[RuleCheckIndicator] = _indicator_manager.get_indicators()
 	var initial_indicator_count: int = initial_indicators.size()
 	assert_int(initial_indicator_count).append_failure_message(
 		"Expected indicators to be created for pillar placeable"
@@ -209,7 +209,7 @@ func test_rotation_reset_and_indicators_cleared_together() -> void:
 	).is_equal(0)
 
 	# Check new indicators created
-	var new_indicators: Array = _indicator_manager.get_indicators()
+	var new_indicators: Array[RuleCheckIndicator] = _indicator_manager.get_indicators()
 	assert_int(new_indicators.size()).append_failure_message(
 		"New indicators should be created for new placeable"
 	).is_greater(0)
@@ -243,7 +243,7 @@ func test_multiple_placeable_switches_maintain_reset_behavior() -> void:
 		).is_equal_approx(0.0, 0.01)
 
 		# Verify indicators exist
-		var indicators: Array = _indicator_manager.get_indicators()
+		var indicators: Array[RuleCheckIndicator] = _indicator_manager.get_indicators()
 		assert_int(indicators.size()).append_failure_message(
 			"Expected indicators after switch %d" % i
 		).is_greater(0)
@@ -290,7 +290,7 @@ func test_exit_build_mode_clears_indicators() -> void:
 	).is_true()
 
 	# Verify indicators exist
-	var indicators_before: Array = _indicator_manager.get_indicators()
+	var indicators_before: Array[RuleCheckIndicator] = _indicator_manager.get_indicators()
 	assert_int(indicators_before.size()).append_failure_message(
 		"Expected indicators to exist before exiting build mode"
 	).is_greater(0)
@@ -299,7 +299,7 @@ func test_exit_build_mode_clears_indicators() -> void:
 	_building_system.exit_build_mode()
 
 	# Verify indicators cleared
-	var indicators_after: Array = _indicator_manager.get_indicators()
+	var indicators_after: Array[RuleCheckIndicator] = _indicator_manager.get_indicators()
 	assert_int(indicators_after.size()).append_failure_message(
 		"Indicators should be cleared after exiting build mode, found: %d" % indicators_after.size()
 	).is_equal(0)

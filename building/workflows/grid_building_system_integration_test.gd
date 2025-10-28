@@ -45,7 +45,7 @@ func _validate_environment_setup() -> void:
 	).is_not_null()
 
 	# Use environment's get_issues method for validation
-	var issues: Array = env.get_issues()
+	var issues: Array[String] = env.get_issues()
 	assert_array(issues).append_failure_message(
 		"Environment setup has issues: %s" % str(issues)
 	).is_empty()
@@ -61,7 +61,7 @@ func _initialize_test_components() -> void:
 
 ## Validate all required dependencies are available
 func _validate_required_dependencies() -> void:
-	var dependencies: Dictionary = {
+	var dependencies: Dictionary[String, Variant] = {
 		"container": _container,
 		"building_system": _building_system,
 		"indicator_manager": _indicator_manager,
@@ -187,7 +187,7 @@ func test_multi_rule_indicator_attachment() -> void:
 	_assert_placement_report_success(setup_result, "Multi-rule setup")
 
 	# Verify indicators are created for multiple rules
-	var indicators: Array = _indicator_manager.get_indicators()
+	var indicators: Array[RuleCheckIndicator] = _indicator_manager.get_indicators()
 	assert_int(indicators.size()).append_failure_message(
 		"Should have indicators for multiple rules, got %d" % indicators.size()
 	).is_greater_equal(MIN_EXPECTED_INDICATORS)
@@ -232,7 +232,7 @@ func test_indicators_are_parented_and_inside_tree() -> void:
 	_assert_placement_report_success(setup_results, "IndicatorManager.try_setup")
 
 	# Validate indicator creation and parenting
-	var indicators: Array = _indicator_manager.get_indicators()
+	var indicators: Array[RuleCheckIndicator] = _indicator_manager.get_indicators()
 	assert_array(indicators).append_failure_message("No indicators created").is_not_empty()
 
 	for ind: RuleCheckIndicator in indicators:
@@ -277,7 +277,7 @@ func test_smithy_collision_detection() -> void:
 
 	# Either smithy has collision objects, or we skip collision detection test
 	if not collision_objects.is_empty():
-		var collision_results: Dictionary = collision_mapper.get_collision_tile_positions_with_mask(collision_objects, DEFAULT_COLLISION_LAYER)
+		var collision_results: Dictionary[Vector2i, Array] = collision_mapper.get_collision_tile_positions_with_mask(collision_objects, DEFAULT_COLLISION_LAYER)
 		_assert_collision_results_valid(collision_results, "Smithy collision detection")
 
 #endregion
@@ -334,7 +334,7 @@ func test_polygon_collision_integration() -> void:
 
 	# Only test collision detection if polygon has collision objects
 	if not collision_objects.is_empty():
-		var collision_tiles: Dictionary = collision_mapper.get_collision_tile_positions_with_mask(collision_objects, DEFAULT_COLLISION_LAYER)
+		var collision_tiles: Dictionary[Vector2i, Array] = collision_mapper.get_collision_tile_positions_with_mask(collision_objects, DEFAULT_COLLISION_LAYER)
 		_assert_collision_results_valid(collision_tiles, "Polygon collision integration")
 
 		# Verify polygon spans multiple coordinates if collision tiles exist
@@ -343,8 +343,8 @@ func test_polygon_collision_integration() -> void:
 
 ## Helper to validate polygon collision pattern
 func _assert_polygon_spans_coordinates(collision_tiles: Dictionary) -> void:
-	var unique_x_coords: Dictionary = {}
-	var unique_y_coords: Dictionary = {}
+	var unique_x_coords: Dictionary[int, bool] = {}
+	var unique_y_coords: Dictionary[int, bool] = {}
 
 	for tile_pos: Variant in collision_tiles.keys():
 		var tile_coord: Vector2i = tile_pos as Vector2i

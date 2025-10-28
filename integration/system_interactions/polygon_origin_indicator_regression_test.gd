@@ -113,7 +113,7 @@ func test_polygon_test_object_no_indicator_at_origin_when_centered() -> void:
 	# ).is_true()
 
 	# Collect all indicator tile positions
-	var indicator_tiles: Array = []
+	var indicator_tiles: Array[Vector2i] = []
 	for indicator in report.indicators:
 		var tile_pos: Vector2i = _map.local_to_map(_map.to_local(indicator.global_position))
 		indicator_tiles.append(tile_pos)

@@ -70,7 +70,7 @@ func _generate_mapper_setup_diagnostics(mapper: CollisionMapper, body: Node2D) -
 	return diagnostics
 
 # Helper function to generate trapezoid collision debug diagnostics
-func _generate_trapezoid_debug_diagnostics(trapezoid_points: PackedVector2Array, body: Node2D, mapper: CollisionMapper, tile_check_rule: TileCheckRule, collision_positions: Dictionary) -> String:
+func _generate_trapezoid_debug_diagnostics(trapezoid_points: PackedVector2Array, body: Node2D, mapper: CollisionMapper, tile_check_rule: TileCheckRule, collision_positions: Dictionary[Vector2i, Array]) -> String:
 	var diagnostics: String = "=== TRAPEZOID COLLISION MAPPER DEBUG ===\n"
 	diagnostics += "Trapezoid points: %s\n" % str(trapezoid_points)
 	diagnostics += "Body position: %s\n" % str(body.global_position)
@@ -280,7 +280,7 @@ func test_basic_collision_detection() -> void:
   .append_failure_message("Test setup should be valid")
 
 	# Test basic collision detection
-	var result: Dictionary = mapper.get_collision_tile_positions_with_mask([body], 1)
+	var result: Dictionary[Vector2i, Array] = mapper.get_collision_tile_positions_with_mask([body], 1)
 
 	# Simple assertion with basic debug info
 	var debug_msg: String = "Basic collision test failed - expected > 0 collisions, got %d" % result.size()
@@ -596,7 +596,7 @@ func test_trapezoid_collision_mapper_setup_debug() -> void:
 	tile_check_rule.apply_to_objects_mask = 1
 
 	var bodies: Array[Node2D] = [body]  # Create bodies array for collision detection
-	var collision_positions: Dictionary = mapper.get_collision_tile_positions_with_mask(bodies, 1)
+	var collision_positions: Dictionary[Vector2i, Array] = mapper.get_collision_tile_positions_with_mask(bodies, 1)
 
 	# Generate diagnostic information for test failure analysis
 	var trapezoid_diagnostics: String = _generate_trapezoid_debug_diagnostics(trapezoid_points, body, mapper, tile_check_rule, collision_positions)
@@ -656,7 +656,7 @@ func test_rectangle_collision_coverage_48x64_pixels() -> void:
 
 	# Setup the mapper like other unit tests do
 	mapper.setup(test_indicator, [collision_setup])
-	var collision_positions: Dictionary = mapper.get_collision_tile_positions_with_mask([rect_body], 1)
+	var collision_positions: Dictionary[Vector2i, Array] = mapper.get_collision_tile_positions_with_mask([rect_body], 1)
 
 	# Generate detailed diagnostics for failure analysis using helper
 	var rect_diagnostics: String = _generate_rectangle_coverage_diagnostics(mapper, rect_body, expected_total_tiles_direct, collision_positions.size())
@@ -683,7 +683,7 @@ func test_rectangle_collision_coverage_48x64_pixels() -> void:
 			expected_tiles.append(Vector2i(x, y))
 
 	# Verify all expected tiles are found and no extra tiles exist
-	var found_tiles: Dictionary = {}
+	var found_tiles: Dictionary[Vector2i, bool] = {}
 	for tile_pos in tile_positions:
 		found_tiles[tile_pos] = true
 

@@ -39,7 +39,7 @@ func after_test() -> void:
 	_resolver = null
 
 ## Test data for parameterized collision object resolution tests
-func collision_resolution_test_data() -> Array:
+func collision_resolution_test_data() -> Array[Array]:
 	return [
 		# [test_name, setup_func, expected_valid, expected_error_contains]
 		["direct_collision_object_2d", func() -> CollisionResolutionTestData: return _setup_direct_collision_object(), true, ""],

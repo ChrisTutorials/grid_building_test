@@ -16,8 +16,8 @@ static func create_minimal_test_environment(
 ## Helper to create and validate an indicator manager with proper error reporting
 static func create_indicator_manager_with_validation(
 	test_suite: GdUnitTestSuite, env: AllSystemsTestEnvironment
-) -> Dictionary:
-	var result: Dictionary = {}
+) -> Dictionary[String, Variant]:
+	var result: Dictionary[String, Variant] = {}
 
 	# Set up targeting state with default target if none exists
 	_setup_targeting_state_for_tests(test_suite, env)
@@ -70,8 +70,8 @@ static func create_basic_collision_rule(collision_layer: int = 1) -> CollisionsC
 ## Helper to validate indicator setup with detailed reporting
 static func validate_indicator_setup(
 	manager: IndicatorManager, test_object: Node2D, rules: Array[TileCheckRule]
-) -> Dictionary:
-	var result: Dictionary = {}
+) -> Dictionary[String, Variant]:
+	var result: Dictionary[String, Variant] = {}
 
 	# Attempt setup
 	var report: IndicatorSetupReport = manager.setup_indicators(test_object, rules)
@@ -111,8 +111,8 @@ static func _create_setup_summary(validation_result: Dictionary) -> String:
 ## Helper to verify building system can enter build mode
 static func validate_building_system_entry(
 	test_suite: GdUnitTestSuite, env: AllSystemsTestEnvironment, placeable: Placeable
-) -> Dictionary:
-	var result: Dictionary = {}
+) -> Dictionary[String, Variant]:
+	var result: Dictionary[String, Variant] = {}
 
 	# Create building system
 	var building_system: BuildingSystem = BuildingSystem.create_with_injection(

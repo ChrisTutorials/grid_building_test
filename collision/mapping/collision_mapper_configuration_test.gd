@@ -139,7 +139,7 @@ func test_collision_mapper_configuration_requirements() -> void:
 	assert_object(_collision_mapper.get("test_indicator")).append_failure_message(
 		"Expected test_indicator to be null before setup"
 	).is_null()
-	var pre_setups: Array = _collision_mapper.get("test_setups")
+	var pre_setups: Array[CollisionTestSetup2D] = _collision_mapper.get("test_setups")
 	assert_array(pre_setups).append_failure_message(
 		"Expected test_setups to be empty before setup, got: %s" % str(pre_setups)
 	).is_empty()
@@ -178,7 +178,7 @@ func test_proper_collision_mapper_setup() -> void:
 
 	var col_objects: Array[Node2D] = [test_object]
 	var tile_check_rules: Array[TileCheckRule] = []
-	var position_rules: Dictionary = _collision_mapper.map_collision_positions_to_rules(col_objects, tile_check_rules)
+	var position_rules: Dictionary[Vector2i, Array] = _collision_mapper.map_collision_positions_to_rules(col_objects, tile_check_rules)
 
 	# Assert
  assert_bool(position_rules is Dictionary)
