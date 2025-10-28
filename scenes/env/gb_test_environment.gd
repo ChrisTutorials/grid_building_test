@@ -58,6 +58,7 @@ extends Node
 @export var placer: Node2D
 #endregion
 
+
 #region Validation Helpers
 ## Validates a required component and appends issue if null.
 ## [param component] Component to validate
@@ -66,6 +67,7 @@ extends Node
 func _validate_required(component: Variant, name: String, issues: Array[String]) -> void:
 	if component == null:
 		issues.append("Missing %s" % name)
+
 
 ## Validates a component with runtime issues method.
 ## [param component] Component to validate (must have get_runtime_issues())
@@ -77,24 +79,28 @@ func _validate_with_runtime_issues(component: Variant, name: String, issues: Arr
 	else:
 		issues.append_array(component.get_runtime_issues())
 
+
 ## Validates scene hierarchy relationships.
 ## [param issues] Array to append errors to
 func _validate_scene_structure(issues: Array[String]) -> void:
 	if level != null and world != null and level.get_parent() != world:
 		issues.append("Level should be the direct child of the World Node2D")
+
+
 #endregion
+
 
 #region Public API
 ## Validates all test environment dependencies and returns list of issues.
 ## [return] Array of validation error strings (empty if valid)
 func get_issues() -> Array[String]:
 	var issues: Array[String] = []
-	
+
 	# Core systems with runtime validation
 	_validate_with_runtime_issues(injector, "GBInjectorSystem", issues)
 	_validate_with_runtime_issues(grid_targeting_system, "GridTargetingSystem", issues)
 	_validate_with_runtime_issues(level_context, "LevelContext", issues)
-	
+
 	# Required nodes
 	_validate_required(positioner, "Positioner", issues)
 	_validate_required(world, "World", issues)
@@ -102,32 +108,40 @@ func get_issues() -> Array[String]:
 	_validate_required(tile_map_layer, "TileMapLayer", issues)
 	_validate_required(objects_parent, "ObjectsParent", issues)
 	_validate_required(placer, "Placer", issues)
-	
+
 	# Targeter with shape validation
 	if targeter == null:
 		issues.append("TargetingShapeCast2D missing")
 	elif targeter.shape == null:
-		issues.append("TargetingShapeCast2D has no shape attached. This will error and be unable to target anything.")
-	
+		(
+			issues
+			. append(
+				"TargetingShapeCast2D has no shape attached. This will error and be unable to target anything."
+			)
+		)
+
 	# TileMapLayer specific validation
 	if tile_map_layer != null and tile_map_layer.tile_set == null:
 		issues.append("Missing TileSet in TileMapLayer")
-	
+
 	# Scene structure validation
 	_validate_scene_structure(issues)
-	
+
 	return issues
+
 
 ## Gets the composition container from the injector system.
 ## [return] Container instance or null if injector not set
 func get_container() -> GBCompositionContainer:
 	return injector.composition_container if injector else null
 
+
 ## Gets the logger from the composition container.
 ## [return] Logger instance or null if container not available
 func get_logger() -> GBLogger:
 	var container: GBCompositionContainer = get_container()
 	return container.get_logger() if container else null
+
 
 ## Returns the number of tiles that actually exist on the tile map layer.
 ## Useful for validating test setup and tilemap population.
@@ -136,7 +150,10 @@ func get_tile_count() -> int:
 	if tile_map_layer == null:
 		return 0
 	return tile_map_layer.get_used_cells().size()
+
+
 #endregion
+
 
 #region Initialization
 ## Initializes test environment and resets state for test isolation.
@@ -152,20 +169,21 @@ func get_tile_count() -> int:
 func _ready() -> void:
 	_initialize_targeting_state()
 
+
 ## Initializes targeting state for test isolation.
 ## Clears any stale state and configures the target tilemap.
 func _initialize_targeting_state() -> void:
 	if grid_targeting_system == null:
 		return
-	
+
 	var targeting_state := grid_targeting_system.get_state()
 	if targeting_state == null:
 		push_warning("[GBTestEnvironment] GridTargetingSystem has null state")
 		return
-	
+
 	# Clear any stale target/collider state from previous test runs
 	targeting_state.clear()
-	
+
 	# Set target_map on the STATE, not the system
 	# This follows the System/State separation pattern where:
 	# - System (GridTargetingSystem) manages behavior

@@ -32,19 +32,18 @@ func test_no_test_resources_depend_on_templates_or_demos() -> void:
 	# Scan all test resources and scenes for external dependencies
 	var test_files: Array[String] = _list_test_files(TEST_ROOT)
 
-	assert_int(test_files.size()).append_failure_message(
-		"No test files found under %s" % TEST_ROOT
-	).is_greater(0)
+	(
+		assert_int(test_files.size())
+		. append_failure_message("No test files found under %s" % TEST_ROOT)
+		. is_greater(0)
+	)
 
 	var violations: Array[Dictionary] = []
 
 	for file_path in test_files:
 		var resource: Resource = load(file_path)
 		if resource == null:
-			violations.append({
-				"file": file_path,
-				"issue": "Failed to load resource"
-			})
+			violations.append({"file": file_path, "issue": "Failed to load resource"})
 			continue
 
 		# Get all dependencies for this resource
@@ -54,11 +53,13 @@ func test_no_test_resources_depend_on_templates_or_demos() -> void:
 			# Check if dependency is in disallowed location
 			for disallowed in DISALLOWED_DEPENDENCIES:
 				if dep_path.begins_with(disallowed):
-					violations.append({
-						"file": file_path,
-						"dependency": dep_path,
-						"issue": "Test resource depends on external folder: %s" % disallowed
-					})
+					violations.append(
+						{
+							"file": file_path,
+							"dependency": dep_path,
+							"issue": "Test resource depends on external folder: %s" % disallowed
+						}
+					)
 
 	# Report all violations
 	if violations.size() > 0:
@@ -72,37 +73,39 @@ func test_no_test_resources_depend_on_templates_or_demos() -> void:
 		assert_bool(false).append_failure_message(error_msg).is_true()
 
 	# Pass if no violations
-	assert_int(violations.size()).append_failure_message(
-		"Resource integrity check should pass with no violations - Found %d violations" % \
-		violations.size()
-	).is_equal(0)
+	(
+		assert_int(violations.size())
+		. append_failure_message(
+			(
+				"Resource integrity check should pass with no violations - Found %d violations"
+				% violations.size()
+			)
+		)
+		. is_equal(0)
+	)
 
 
 func test_all_test_scenes_instantiate_without_errors() -> void:
 	var scene_files: Array[String] = _list_files_by_extension(TEST_ROOT, ".tscn")
 
-	assert_int(scene_files.size()).append_failure_message(
-		"No .tscn files found under %s" % TEST_ROOT
-	).is_greater(0)
+	(
+		assert_int(scene_files.size())
+		. append_failure_message("No .tscn files found under %s" % TEST_ROOT)
+		. is_greater(0)
+	)
 
 	var failures: Array[Dictionary] = []
 
 	for scene_path in scene_files:
 		var packed_scene: PackedScene = load(scene_path)
 		if packed_scene == null:
-			failures.append({
-				"scene": scene_path,
-				"error": "Failed to load PackedScene"
-			})
+			failures.append({"scene": scene_path, "error": "Failed to load PackedScene"})
 			continue
 
 		# Try to instantiate
 		var instance: Node = packed_scene.instantiate()
 		if instance == null:
-			failures.append({
-				"scene": scene_path,
-				"error": "Failed to instantiate scene"
-			})
+			failures.append({"scene": scene_path, "error": "Failed to instantiate scene"})
 			continue
 
 		# Cleanup
@@ -117,27 +120,33 @@ func test_all_test_scenes_instantiate_without_errors() -> void:
 
 		assert_bool(false).append_failure_message(error_msg).is_true()
 
-	assert_int(failures.size()).append_failure_message(
-		"All test scenes should instantiate without errors - Found %d failures" % failures.size()
-	).is_equal(0)
+	(
+		assert_int(failures.size())
+		. append_failure_message(
+			(
+				"All test scenes should instantiate without errors - Found %d failures"
+				% failures.size()
+			)
+		)
+		. is_equal(0)
+	)
 
 
 func test_all_test_resources_load_successfully() -> void:
 	var resource_files: Array[String] = _list_files_by_extension(TEST_ROOT, ".tres")
 
-	assert_int(resource_files.size()).append_failure_message(
-		"No .tres files found under %s" % TEST_ROOT
-	).is_greater(0)
+	(
+		assert_int(resource_files.size())
+		. append_failure_message("No .tres files found under %s" % TEST_ROOT)
+		. is_greater(0)
+	)
 
 	var failures: Array[Dictionary] = []
 
 	for res_path in resource_files:
 		var resource: Resource = load(res_path)
 		if resource == null:
-			failures.append({
-				"resource": res_path,
-				"error": "Failed to load resource"
-			})
+			failures.append({"resource": res_path, "error": "Failed to load resource"})
 
 	# Report failures
 	if failures.size() > 0:
@@ -148,9 +157,13 @@ func test_all_test_resources_load_successfully() -> void:
 
 		assert_bool(false).append_failure_message(error_msg).is_true()
 
-	assert_int(failures.size()).append_failure_message(
-		"All test resources should load successfully - Found %d failures" % failures.size()
-	).is_equal(0)
+	(
+		assert_int(failures.size())
+		. append_failure_message(
+			"All test resources should load successfully - Found %d failures" % failures.size()
+		)
+		. is_equal(0)
+	)
 
 
 func test_test_folder_is_portable() -> void:
@@ -196,10 +209,16 @@ func test_test_folder_is_portable() -> void:
 
 		assert_bool(false).append_failure_message(error_msg).is_true()
 
-	assert_int(external_deps.size()).append_failure_message(
-		"Test folder should be portable with no external dependencies - Found %d external deps" % \
-		external_deps.size()
-	).is_equal(0)
+	(
+		assert_int(external_deps.size())
+		. append_failure_message(
+			(
+				"Test folder should be portable with no external dependencies - Found %d external deps"
+				% external_deps.size()
+			)
+		)
+		. is_equal(0)
+	)
 
 
 ## Helper: List all .tscn and .tres files under a root path
@@ -218,7 +237,9 @@ func _list_files_by_extension(root_path: String, extension: String) -> Array[Str
 
 
 ## Helper: Recursively scan directory for files with extension
-func _scan_directory_recursive(dir_path: String, extension: String, out_files: Array[String]) -> void:
+func _scan_directory_recursive(
+	dir_path: String, extension: String, out_files: Array[String]
+) -> void:
 	var dir: DirAccess = DirAccess.open(dir_path)
 	if dir == null:
 		return

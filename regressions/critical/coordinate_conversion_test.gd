@@ -5,6 +5,7 @@ var tile_map: TileMapLayer
 var camera: Camera2D
 var viewport: Viewport
 
+
 func before_test() -> void:
 	tile_map = GodotTestFactory.create_tile_map_layer(self)
 	viewport = get_viewport()
@@ -17,19 +18,31 @@ func before_test() -> void:
 
 	await get_tree().process_frame
 
+
 func after_test() -> void:
 	if camera:
 		camera.queue_free()
+
 
 func test_coordinate_conversion_comparison() -> void:
 	# Test the specific screen position from the failing test
 	var screen_pos := Vector2(224, 176)
 
 	# Use a single-line formatted diagnostic attached to assertion failures
-	var diag := "COORD_CONV: camera=%s zoom=%s viewport=%s screen=%s" % [str(camera.global_position), str(camera.zoom), str(viewport.get_visible_rect().size), str(screen_pos)]
+	var diag := (
+		"COORD_CONV: camera=%s zoom=%s viewport=%s screen=%s"
+		% [
+			str(camera.global_position),
+			str(camera.zoom),
+			str(viewport.get_visible_rect().size),
+			str(screen_pos)
+		]
+	)
 
 	# Method 1: GBPositioning2DUtils (used by tests)
-	var world_pos_gb: Vector2 = GBPositioning2DUtils.convert_screen_to_world_position(screen_pos, viewport)
+	var world_pos_gb: Vector2 = GBPositioning2DUtils.convert_screen_to_world_position(
+		screen_pos, viewport
+	)
 	diag += " | gb=%s" % str(world_pos_gb)
 
 	# Method 2: Direct canvas transform (what GBPositioning2DUtils actually does)
@@ -39,7 +52,9 @@ func test_coordinate_conversion_comparison() -> void:
 
 	# Method 3: Camera projection (what I expected)
 	var camera_global_transform: Transform2D = camera.get_global_transform()
-	var world_pos_camera: Vector2 = camera_global_transform * (screen_pos - viewport.get_visible_rect().size / 2.0)
+	var world_pos_camera: Vector2 = (
+		camera_global_transform * (screen_pos - viewport.get_visible_rect().size / 2.0)
+	)
 	diag += " | camera=%s" % str(world_pos_camera)
 
 	# Method 4: Simple offset from camera (basic calculation)
@@ -48,13 +63,21 @@ func test_coordinate_conversion_comparison() -> void:
 	var world_pos_offset: Vector2 = camera.global_position + screen_offset
 	diag += " | offset=%s" % str(world_pos_offset)
 
-	diag += " | canvas_origin=%s x=%s y=%s" % [str(canvas_transform.origin), str(canvas_transform.x), str(canvas_transform.y)]
+	diag += (
+		" | canvas_origin=%s x=%s y=%s"
+		% [str(canvas_transform.origin), str(canvas_transform.x), str(canvas_transform.y)]
+	)
 
 	# Convert to tile coordinates and check what we get
-	var tile_gb: Vector2i = GBPositioning2DUtils.get_tile_from_global_position(world_pos_gb, tile_map)
+	var tile_gb: Vector2i = GBPositioning2DUtils.get_tile_from_global_position(
+		world_pos_gb, tile_map
+	)
 	var tile_expected: Vector2i = Vector2i(-26, -12)  # From test failure
 
-	diag += " | tile_gb=%s expected=%s diff=%s" % [str(tile_gb), str(tile_expected), str(tile_gb - tile_expected)]
+	diag += (
+		" | tile_gb=%s expected=%s diff=%s"
+		% [str(tile_gb), str(tile_expected), str(tile_gb - tile_expected)]
+	)
 
 	# Check if there's a discrepancy
 	if tile_gb != tile_expected:

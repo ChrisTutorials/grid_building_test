@@ -21,6 +21,7 @@ var _gts: GridTargetingState
 var _container: GBCompositionContainer
 var _positioner: Node2D
 
+
 func before_test() -> void:
 	# Use scene_runner for reliable frame simulation
 	runner = scene_runner(GBTestConstants.BUILDING_TEST_ENV_UID)
@@ -52,10 +53,13 @@ func before_test() -> void:
 
 	runner.simulate_frames(1)
 
+
 func after_test() -> void:
 	runner = null
 
+
 #region UNIT TEST CASES
+
 
 ## Test: Preview object is added to collision_exclusions when entering build mode
 ## Setup: Create placeable with collision shapes
@@ -66,15 +70,19 @@ func test_preview_added_to_collision_exclusions_on_enter_build_mode() -> void:
 	var placeable: Placeable = GBTestConstants.PLACEABLE_RECT_4X2
 
 	# Verify collision_exclusions is initially empty
-	assert_array(_gts.collision_exclusions).append_failure_message(
-		"collision_exclusions should start empty"
-	).is_empty()
+	(
+		assert_array(_gts.collision_exclusions)
+		. append_failure_message("collision_exclusions should start empty")
+		. is_empty()
+	)
 
 	# Enter build mode
 	var report: PlacementReport = _building_system.enter_build_mode(placeable)
-	assert_bool(report.is_successful()).append_failure_message(
-		"enter_build_mode should succeed: %s" % str(report.get_issues())
-	).is_true()
+	(
+		assert_bool(report.is_successful())
+		. append_failure_message("enter_build_mode should succeed: %s" % str(report.get_issues()))
+		. is_true()
+	)
 
 	# Simulate frames for preview creation and physics setup
 	runner.simulate_frames(3)
@@ -87,9 +95,11 @@ func test_preview_added_to_collision_exclusions_on_enter_build_mode() -> void:
 	var diagnostic: String = _format_preview_diagnostic(preview_from_target, preview_from_state)
 
 	# ASSERT: Preview must be created
-	assert_object(preview_from_state).append_failure_message(
-		"%s\nPreview must be created after enter_build_mode" % diagnostic
-	).is_not_null()
+	(
+		assert_object(preview_from_state)
+		. append_failure_message("%s\nPreview must be created after enter_build_mode" % diagnostic)
+		. is_not_null()
+	)
 
 	var preview: Node2D = preview_from_state
 
@@ -97,9 +107,14 @@ func test_preview_added_to_collision_exclusions_on_enter_build_mode() -> void:
 	var is_excluded: bool = _gts.collision_exclusions.has(preview)
 	var exclusion_diagnostic: String = _format_exclusion_diagnostic(preview, is_excluded)
 
-	assert_bool(is_excluded).append_failure_message(
-		"%s\nPreview MUST be in collision_exclusions" % exclusion_diagnostic
-	).is_true()
+	(
+		assert_bool(is_excluded)
+		. append_failure_message(
+			"%s\nPreview MUST be in collision_exclusions" % exclusion_diagnostic
+		)
+		. is_true()
+	)
+
 
 ## Test: Indicators do not detect collision with preview itself
 ## Setup: Enter build mode, wait for indicator setup
@@ -111,9 +126,11 @@ func test_indicators_do_not_collide_with_preview() -> void:
 
 	# Enter build mode
 	var report: PlacementReport = _building_system.enter_build_mode(placeable)
-	assert_bool(report.is_successful()).append_failure_message(
-		"enter_build_mode failed: %s" % str(report.get_issues())
-	).is_true()
+	(
+		assert_bool(report.is_successful())
+		. append_failure_message("enter_build_mode failed: %s" % str(report.get_issues()))
+		. is_true()
+	)
 
 	# Simulate frames for preview and indicator setup
 	runner.simulate_frames(3)
@@ -122,12 +139,16 @@ func test_indicators_do_not_collide_with_preview() -> void:
 	var preview: Node2D = _container.get_states().building.preview
 	var indicators: Array[RuleCheckIndicator] = _indicator_manager.get_indicators()
 
-	assert_object(preview).append_failure_message(
-		"Preview should be created when entering build mode"
-	).is_not_null()
-	assert_int(indicators.size()).append_failure_message(
-		"Should have created indicators for placeable"
-	).is_greater(0)
+	(
+		assert_object(preview)
+		. append_failure_message("Preview should be created when entering build mode")
+		. is_not_null()
+	)
+	(
+		assert_int(indicators.size())
+		. append_failure_message("Should have created indicators for placeable")
+		. is_greater(0)
+	)
 
 	# Check if preview is excluded (should be)
 	var is_preview_excluded: bool = _gts.collision_exclusions.has(preview)
@@ -159,28 +180,43 @@ func test_indicators_do_not_collide_with_preview() -> void:
 				# Check if this is the preview itself
 				if collider_root == preview:
 					self_colliding_count += 1
-					indicator_details.append(
-						"  Indicator at %s: SELF-COLLISION detected with preview (collider: %s, type: %s)" % [
-							str(indicator.global_position),
-							str(collider.name),
-							collider.get_class()
-						]
+					(
+						indicator_details
+						. append(
+							(
+								"  Indicator at %s: SELF-COLLISION detected with preview (collider: %s, type: %s)"
+								% [
+									str(indicator.global_position),
+									str(collider.name),
+									collider.get_class()
+								]
+							)
+						)
 					)
 				else:
 					var root_name: String = "null"
 					if collider_root and is_instance_valid(collider_root):
 						root_name = str(collider_root.name)
 					indicator_details.append(
-						"  Indicator at %s: collision with OTHER object: %s (root: %s)" % [
-							str(indicator.global_position),
-							(collider.name if collider and is_instance_valid(collider) else "null"),
-							root_name
-						]
+						(
+							"  Indicator at %s: collision with OTHER object: %s (root: %s)"
+							% [
+								str(indicator.global_position),
+								(
+									collider.name
+									if collider and is_instance_valid(collider)
+									else "null"
+								),
+								root_name
+							]
+						)
 					)
 
 	# Build diagnostic
 	var diagnostic: String = "Indicator Self-Collision Check:\n"
-	var preview_name_diag: String = "null" if not (preview and is_instance_valid(preview)) else str(preview.name)
+	var preview_name_diag: String = (
+		"null" if not (preview and is_instance_valid(preview)) else str(preview.name)
+	)
 	diagnostic += "  Preview: %s\n" % preview_name_diag
 	diagnostic += "  Preview excluded: %s\n" % str(is_preview_excluded)
 	diagnostic += "  Total indicators: %d\n" % indicators.size()
@@ -194,14 +230,21 @@ func test_indicators_do_not_collide_with_preview() -> void:
 		diagnostic += "\nCollision Details:\n" + "\n".join(indicator_details)
 
 	# ASSERT: Preview must be excluded
-	assert_bool(is_preview_excluded).append_failure_message(
-		"%s\n\nPreview must be in collision_exclusions" % diagnostic
-	).is_true()
+	(
+		assert_bool(is_preview_excluded)
+		. append_failure_message("%s\n\nPreview must be in collision_exclusions" % diagnostic)
+		. is_true()
+	)
 
 	# ASSERT: No self-collision detected
-	assert_int(self_colliding_count).append_failure_message(
-		"%s\n\nIndicators must NOT detect collision with preview itself" % diagnostic
-	).is_equal(0)
+	(
+		assert_int(self_colliding_count)
+		. append_failure_message(
+			"%s\n\nIndicators must NOT detect collision with preview itself" % diagnostic
+		)
+		. is_equal(0)
+	)
+
 
 ## Test: Multiple placeables all properly exclude their previews
 ## Setup: Test with different placeable types
@@ -217,34 +260,44 @@ func test_multiple_placeables_all_exclude_previews(
 ) -> void:
 	# Enter build mode
 	var report: PlacementReport = _building_system.enter_build_mode(placeable)
-	assert_bool(report.is_successful()).append_failure_message(
-		"enter_build_mode failed for %s: %s" % [placeable_name, str(report.get_issues())]
-	).is_true()
+	(
+		assert_bool(report.is_successful())
+		. append_failure_message(
+			"enter_build_mode failed for %s: %s" % [placeable_name, str(report.get_issues())]
+		)
+		. is_true()
+	)
 
 	# Simulate frames for preview creation and physics setup
 	runner.simulate_frames(4)
 
 	# Get preview from building_state (source of truth)
 	var preview: Node2D = _container.get_states().building.preview
-	assert_object(preview).append_failure_message(
-		"Preview should be set for %s" % placeable_name
-	).is_not_null()
+	(
+		assert_object(preview)
+		. append_failure_message("Preview should be set for %s" % placeable_name)
+		. is_not_null()
+	)
 
 	# Check exclusion
 	var is_excluded: bool = _gts.collision_exclusions.has(preview)
 	var preview_name_for_msg: String = "NULL" if not preview else str(preview.name)
-	assert_bool(is_excluded).append_failure_message(
-		"Preview for %s must be in collision_exclusions. Exclusions: %d, Preview: %s" % [
-			placeable_name,
-			_gts.collision_exclusions.size(),
-			preview_name_for_msg
-		]
-	).is_true()
+	(
+		assert_bool(is_excluded)
+		. append_failure_message(
+			(
+				"Preview for %s must be in collision_exclusions. Exclusions: %d, Preview: %s"
+				% [placeable_name, _gts.collision_exclusions.size(), preview_name_for_msg]
+			)
+		)
+		. is_true()
+	)
 
 	# Exit build mode for next iteration
 	_building_system.exit_build_mode()
 	runner.simulate_frames(1)
 	await get_tree().process_frame
+
 
 ## Test: Exiting build mode clears collision_exclusions
 ## Setup: Enter build mode (adds preview to exclusions)
@@ -255,32 +308,47 @@ func test_exit_build_mode_clears_collision_exclusions() -> void:
 
 	# Enter build mode
 	var report: PlacementReport = _building_system.enter_build_mode(placeable)
-	assert_bool(report.is_successful()).append_failure_message(
-		"Should successfully enter build mode with valid placeable"
-	).is_true()
+	(
+		assert_bool(report.is_successful())
+		. append_failure_message("Should successfully enter build mode with valid placeable")
+		. is_true()
+	)
 	runner.simulate_frames(2)
 
 	# Verify preview is excluded - use building_state
 	var preview: Node2D = _container.get_states().building.preview
-	assert_object(preview).append_failure_message(
-		"Preview should exist after entering build mode"
-	).is_not_null()
-	assert_bool(_gts.collision_exclusions.has(preview)).append_failure_message(
-		"Preview should be excluded after entering build mode"
-	).is_true()
+	(
+		assert_object(preview)
+		. append_failure_message("Preview should exist after entering build mode")
+		. is_not_null()
+	)
+	(
+		assert_bool(_gts.collision_exclusions.has(preview))
+		. append_failure_message("Preview should be excluded after entering build mode")
+		. is_true()
+	)
 
 	# Exit build mode
 	_building_system.exit_build_mode()
 	runner.simulate_frames(1)
 
 	# ASSERT: collision_exclusions should be cleared
-	assert_array(_gts.collision_exclusions).append_failure_message(
-		"collision_exclusions should be cleared after exiting build mode. Current size: %d" % _gts.collision_exclusions.size()
-	).is_empty()
+	(
+		assert_array(_gts.collision_exclusions)
+		. append_failure_message(
+			(
+				"collision_exclusions should be cleared after exiting build mode. Current size: %d"
+				% _gts.collision_exclusions.size()
+			)
+		)
+		. is_empty()
+	)
+
 
 #endregion
 
 #region DIAGNOSTIC HELPERS - DRY Pattern
+
 
 ## Format preview diagnostic information showing both preview sources
 func _format_preview_diagnostic(preview_from_target: Node2D, preview_from_state: Node2D) -> String:
@@ -294,11 +362,14 @@ func _format_preview_diagnostic(preview_from_target: Node2D, preview_from_state:
 	lines.append("  Building system in build mode: %s" % str(_building_system.is_in_build_mode()))
 	return "\n".join(lines)
 
+
 ## Format collision exclusion diagnostic information
 func _format_exclusion_diagnostic(preview: Node2D, is_excluded: bool) -> String:
 	var lines: Array[String] = []
 	lines.append("Collision Exclusion Check:")
-	var preview_name: String = "NULL" if not (preview and is_instance_valid(preview)) else str(preview.name)
+	var preview_name: String = (
+		"NULL" if not (preview and is_instance_valid(preview)) else str(preview.name)
+	)
 	lines.append("  Preview: %s" % preview_name)
 	lines.append("  Preview excluded: %s" % str(is_excluded))
 	lines.append("  Exclusions count: %d" % _gts.collision_exclusions.size())

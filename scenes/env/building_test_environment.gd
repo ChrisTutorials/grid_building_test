@@ -1,22 +1,23 @@
 class_name BuildingTestEnvironment
 extends GBTestEnvironment
 
-@export var building_system : BuildingSystem
-@export var gb_owner : GBOwner
-@export var manipulation_parent : ManipulationParent
-@export var indicator_manager : IndicatorManager
-@export var drag_manager : DragManager
+@export var building_system: BuildingSystem
+@export var gb_owner: GBOwner
+@export var manipulation_parent: ManipulationParent
+@export var indicator_manager: IndicatorManager
+@export var drag_manager: DragManager
+
 
 func get_issues() -> Array[String]:
-	var issues : Array[String] = []
+	var issues: Array[String] = []
 	issues.append_array(super())
-	
+
 	## We evaluate at this level because a positioner stack is set here so it should be fully valid now.
 	issues.append_array(grid_targeting_system.get_runtime_issues())
-	
+
 	if building_system == null:
 		issues.append("Missing BuildingSystem")
-		
+
 	if drag_manager == null:
 		issues.append("No drag manager. Drag multi build functionality will not work.")
 
@@ -41,31 +42,35 @@ func get_issues() -> Array[String]:
 
 	return issues
 
+
 func _ready() -> void:
 	# Call parent _ready() first to handle base environment setup
 	super._ready()
-	
+
 	# Note: Container duplication for test isolation is now automatic via GBTestInjectorSystem
 	# No manual duplication needed - the injector handles it when the container is assigned
-	
+
 	# Ensure indicator_manager references the injected manager from context
 	if get_container():
 		var indicator_context: IndicatorContext = get_container().get_indicator_context()
 		if indicator_context and indicator_context.has_manager():
 			# Use the injected manager from the context instead of any scene export
 			indicator_manager = indicator_context.get_manager()
-		
+
 		# Configure runtime checks - BuildingTestEnvironment intentionally has no manipulation system
 		var runtime_checks: GBRuntimeChecks = get_container().get_runtime_checks()
 		if runtime_checks:
 			runtime_checks.manipulation_system = false
 
+
 func get_container() -> GBCompositionContainer:
 	return injector.composition_container
-	
+
+
 ## Returns the collision mapper used by the indicator manager
 func get_collision_mapper() -> CollisionMapper:
 	return indicator_manager.get_collision_mapper() if indicator_manager else null
+
 
 func get_owner_root() -> Node:
 	return gb_owner.owner_root

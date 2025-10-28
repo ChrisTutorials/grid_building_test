@@ -14,10 +14,16 @@ func test_get_display_name_uses_gb_display_name_metadata_when_present() -> void:
 	var display_name: String = GBObjectUtils.get_display_name(test_node)
 
 	# Assert: Should use metadata value
-	assert_str(display_name).append_failure_message(
-		"get_display_name() should use gb_display_name metadata when present. " +
-		"Expected: 'User-Friendly Display Name', Got: '%s'" % display_name
-	).is_equal("User-Friendly Display Name")
+	(
+		assert_str(display_name)
+		. append_failure_message(
+			(
+				"get_display_name() should use gb_display_name metadata when present. "
+				+ "Expected: 'User-Friendly Display Name', Got: '%s'" % display_name
+			)
+		)
+		. is_equal("User-Friendly Display Name")
+	)
 
 
 func test_get_display_name_fallback_to_node_name_when_no_metadata() -> void:
@@ -29,19 +35,27 @@ func test_get_display_name_fallback_to_node_name_when_no_metadata() -> void:
 	var display_name: String = GBObjectUtils.get_display_name(test_node)
 
 	# Assert: Should use node name (converted to readable)
-	assert_str(display_name).append_failure_message(
-		"get_display_name() should fallback to node.name when no metadata. " +
-		"Expected: 'My Node', Got: '%s'" % display_name
-	).is_equal("My Node")
+	(
+		assert_str(display_name)
+		. append_failure_message(
+			(
+				"get_display_name() should fallback to node.name when no metadata. "
+				+ "Expected: 'My Node', Got: '%s'" % display_name
+			)
+		)
+		. is_equal("My Node")
+	)
 
 
 func test_get_display_name_with_null_node() -> void:
 	# Test: Null node should return missing_name parameter
 	var display_name: String = GBObjectUtils.get_display_name(null, "<no target>")
 
-	assert_str(display_name).append_failure_message(
-		"Null node should return missing_name parameter"
-	).is_equal("<no target>")
+	(
+		assert_str(display_name)
+		. append_failure_message("Null node should return missing_name parameter")
+		. is_equal("<no target>")
+	)
 
 
 func test_get_display_name_with_empty_metadata() -> void:
@@ -53,10 +67,16 @@ func test_get_display_name_with_empty_metadata() -> void:
 	var display_name: String = GBObjectUtils.get_display_name(test_node)
 
 	# Assert: Should fallback to node name when metadata is empty
-	assert_str(display_name).append_failure_message(
-		"Empty metadata should fallback to node name. " +
-		"Expected: 'Node With Empty Meta', Got: '%s'" % display_name
-	).is_equal("Node With Empty Meta")
+	(
+		assert_str(display_name)
+		. append_failure_message(
+			(
+				"Empty metadata should fallback to node name. "
+				+ "Expected: 'Node With Empty Meta', Got: '%s'" % display_name
+			)
+		)
+		. is_equal("Node With Empty Meta")
+	)
 
 
 func test_get_display_name_with_invalid_metadata_type() -> void:
@@ -68,10 +88,16 @@ func test_get_display_name_with_invalid_metadata_type() -> void:
 	var display_name: String = GBObjectUtils.get_display_name(test_node)
 
 	# Assert: Should fallback to node name when metadata is wrong type
-	assert_str(display_name).append_failure_message(
-		"Invalid metadata type should fallback to node name. " +
-		"Expected: 'Node With Bad Meta', Got: '%s'" % display_name
-	).is_equal("Node With Bad Meta")
+	(
+		assert_str(display_name)
+		. append_failure_message(
+			(
+				"Invalid metadata type should fallback to node name. "
+				+ "Expected: 'Node With Bad Meta', Got: '%s'" % display_name
+			)
+		)
+		. is_equal("Node With Bad Meta")
+	)
 
 
 func test_get_display_name_special_characters_in_metadata() -> void:
@@ -83,9 +109,11 @@ func test_get_display_name_special_characters_in_metadata() -> void:
 	var display_name: String = GBObjectUtils.get_display_name(test_node)
 
 	# Assert: Special characters in metadata should be preserved
-	assert_str(display_name).append_failure_message(
-		"Metadata with special characters should be preserved exactly"
-	).is_equal("Smithy (Level 2) [Active]")
+	(
+		assert_str(display_name)
+		. append_failure_message("Metadata with special characters should be preserved exactly")
+		. is_equal("Smithy (Level 2) [Active]")
+	)
 
 
 func test_get_display_name_prioritizes_metadata_over_to_string() -> void:
@@ -98,9 +126,11 @@ func test_get_display_name_prioritizes_metadata_over_to_string() -> void:
 	var display_name: String = GBObjectUtils.get_display_name(test_node)
 
 	# Assert: Metadata should be used
-	assert_str(display_name).append_failure_message(
-		"Metadata should take priority over other naming methods"
-	).is_equal("Metadata Name")
+	(
+		assert_str(display_name)
+		. append_failure_message("Metadata should take priority over other naming methods")
+		. is_equal("Metadata Name")
+	)
 
 
 func test_get_display_name_unicode_support() -> void:
@@ -112,9 +142,11 @@ func test_get_display_name_unicode_support() -> void:
 	var display_name: String = GBObjectUtils.get_display_name(test_node)
 
 	# Assert: Unicode should be preserved
-	assert_str(display_name).append_failure_message(
-		"Unicode characters should be supported in display name metadata"
-	).is_equal("建築物 (Building) 🏗️")
+	(
+		assert_str(display_name)
+		. append_failure_message("Unicode characters should be supported in display name metadata")
+		. is_equal("建築物 (Building) 🏗️")
+	)
 
 
 func test_get_display_name_backward_compatibility() -> void:
@@ -126,6 +158,10 @@ func test_get_display_name_backward_compatibility() -> void:
 	var display_name: String = GBObjectUtils.get_display_name(test_node)
 
 	# Assert: Should use node name conversion (backward compatible behavior)
-	assert_str(display_name).append_failure_message(
-		"Backward compatibility: nodes without metadata should work as before"
-	).is_equal("Backward Compat Node")
+	(
+		assert_str(display_name)
+		. append_failure_message(
+			"Backward compatibility: nodes without metadata should work as before"
+		)
+		. is_equal("Backward Compat Node")
+	)

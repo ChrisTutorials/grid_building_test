@@ -2,60 +2,65 @@
 class_name CollisionTestEnvironment
 extends GBTestEnvironment
 
-@export var indicator_manager : IndicatorManager
+@export var indicator_manager: IndicatorManager
 
 ## Diagnostics reporting for currently targeted object
-@export var target_informer : TargetInformer
+@export var target_informer: TargetInformer
 
-var collision_mapper : CollisionMapper
-var logger : GBLogger
+var collision_mapper: CollisionMapper
+var logger: GBLogger
 
-var rule_validation_parameters : Dictionary
-var targeting_state : GridTargetingState
-var container : GBCompositionContainer
+var rule_validation_parameters: Dictionary
+var targeting_state: GridTargetingState
+var container: GBCompositionContainer
+
 
 func _ready() -> void:
 	# Container duplication is now automatic via GBTestInjectorSystem
 	# When composition_container is assigned, it's automatically duplicated for test isolation
-	
+
 	# Initialize container reference for convenience
 	container = get_container()
-	
+
 	# Configure runtime checks for collision test environment (no building/manipulation systems)
-	if container and container.config and container.config.settings and container.config.settings.runtime_checks:
+	if (
+		container
+		and container.config
+		and container.config.settings
+		and container.config.settings.runtime_checks
+	):
 		var runtime_checks: GBRuntimeChecks = container.config.settings.runtime_checks
 		runtime_checks.building_system = false
 		runtime_checks.manipulation_system = false
 		runtime_checks.targeting_system = true
-	
+
 	# Initialize logger from container
 	if container:
 		logger = container.get_logger()
-	
+
 	# Initialize rule validation parameters directly
 	rule_validation_parameters = {
-		"validation_container": container,
-		"rule_context": GBOwnerContext.new(),
-		"rules": []
+		"validation_container": container, "rule_context": GBOwnerContext.new(), "rules": []
 	}
-	
+
 	# Initialize targeting state
 	if container and container.get_states():
 		targeting_state = container.get_states().targeting
-		
+
 		# Initialize collision mapper if we have the required components
 		if targeting_state and logger:
 			collision_mapper = CollisionMapper.new(targeting_state, logger)
-	
+
 	# Set up level context with proper targeting state configuration
 	_setup_level_context()
-	
+
 	# Ensure indicator_manager references the injected manager from context
 	if container:
 		var indicator_context: IndicatorContext = container.get_indicator_context()
 		if indicator_context and indicator_context.has_manager():
 			# Use the injected manager from the context instead of any scene export
 			indicator_manager = indicator_context.get_manager()
+
 
 ## Set up the level context with target map and apply to targeting state
 func _setup_level_context() -> void:
@@ -64,30 +69,50 @@ func _setup_level_context() -> void:
 		level_context.target_map = tile_map_layer
 	if level_context.maps.is_empty():
 		level_context.maps = [tile_map_layer]
-	
+
 	# Apply level context settings to targeting state
 	if container and container.get_states():
 		var states: GBStates = container.get_states()
 		if states.targeting and states.building:
 			level_context.apply_to(states.targeting, states.building)
 
+
 func get_issues() -> Array[String]:
-	var issues : Array[String] = super()
-	
+	var issues: Array[String] = super()
+
 	if indicator_manager == null:
 		issues.append("Missing IndicatorManager")
-		
+
 	var expects_zero_position := true
-	if container and container.config and container.config.settings and container.config.settings.targeting:
-		expects_zero_position = container.config.settings.targeting.position_on_enable_policy == GridTargetingSettings.RecenterOnEnablePolicy.NONE
+	if (
+		container
+		and container.config
+		and container.config.settings
+		and container.config.settings.targeting
+	):
+		expects_zero_position = (
+			container.config.settings.targeting.position_on_enable_policy
+			== GridTargetingSettings.RecenterOnEnablePolicy.NONE
+		)
 
 	if expects_zero_position:
 		if not positioner.global_position.is_equal_approx(Vector2.ZERO):
-			issues.append("Global positioner is at unexpected location for test setup. Actual: %s Expected: %s" % [Vector2.ZERO, positioner.global_position])
-	
+			(
+				issues
+				. append(
+					(
+						"Global positioner is at unexpected location for test setup. Actual: %s Expected: %s"
+						% [Vector2.ZERO, positioner.global_position]
+					)
+				)
+			)
+
 	return issues
+
 
 func get_container() -> GBCompositionContainer:
 	# Use get_node instead of export because exports aren't resolved until after _ready
-	var inj: GBTestInjectorSystem = get_node("../GBInjectorSystem") if has_node("../GBInjectorSystem") else injector
+	var inj: GBTestInjectorSystem = (
+		get_node("../GBInjectorSystem") if has_node("../GBInjectorSystem") else injector
+	)
 	return inj.composition_container if inj else null

@@ -6,16 +6,14 @@ extends GdUnitTestSuite
 const TRAPEZOID_POSITION: Vector2 = Vector2(440, 552)
 const TILE_SIZE: Vector2 = Vector2(16, 16)
 
+
 func test_trapezoid_coordinate_calculation() -> void:
 	GBTestDiagnostics.buffer("=== TRAPEZOID COORDINATE DEBUG TEST ===")
 
 	# The trapezoid polygon from runtime analysis
-	var trapezoid_polygon: PackedVector2Array = PackedVector2Array([
-		Vector2(-32, 12),   # Bottom left vertex
-		Vector2(-16, -12),  # Top left vertex
-		Vector2(17, -12),   # Top right vertex
-		Vector2(32, 12)     # Bottom right vertex
-	])
+	var trapezoid_polygon: PackedVector2Array = PackedVector2Array(
+		[Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)]  # Bottom left vertex  # Top left vertex  # Top right vertex  # Bottom right vertex
+	)
 
 	GBTestDiagnostics.buffer("Trapezoid polygon (local space): %s" % str(trapezoid_polygon))
 	GBTestDiagnostics.buffer("Position: %s" % str(TRAPEZOID_POSITION))
@@ -23,11 +21,10 @@ func test_trapezoid_coordinate_calculation() -> void:
 
 	# Calculate center tile manually
 	var center_tile: Vector2i = Vector2i(
-		int(TRAPEZOID_POSITION.x / TILE_SIZE.x),
-		int(TRAPEZOID_POSITION.y / TILE_SIZE.y)
+		int(TRAPEZOID_POSITION.x / TILE_SIZE.x), int(TRAPEZOID_POSITION.y / TILE_SIZE.y)
 	)
 	GBTestDiagnostics.buffer("Calculated center tile: %s" % str(center_tile))
-	GBTestDiagnostics.buffer("Should be around: (%d, %d)" % [440.0/16.0, 552.0/16.0])  # ~(27, 34)
+	GBTestDiagnostics.buffer("Should be around: (%d, %d)" % [440.0 / 16.0, 552.0 / 16.0])  # ~(27, 34)
 
 	# Convert polygon to world space manually
 	var world_polygon: PackedVector2Array = PackedVector2Array()
@@ -49,13 +46,27 @@ func test_trapezoid_coordinate_calculation() -> void:
 		GBTestDiagnostics.buffer("  Offset %s -> Tile %s" % [offset, actual_tile])
 
 		# Offsets should be small relative to center (within reasonable range)
-		assert_int(abs(offset.x)).append_failure_message(
-			"X offset %d is too large - suggests coordinate calculation error\n%s" % [offset.x, GBTestDiagnostics.flush_for_assert()]
-		).is_less_equal(5)
+		(
+			assert_int(abs(offset.x))
+			. append_failure_message(
+				(
+					"X offset %d is too large - suggests coordinate calculation error\n%s"
+					% [offset.x, GBTestDiagnostics.flush_for_assert()]
+				)
+			)
+			. is_less_equal(5)
+		)
 
-		assert_int(abs(offset.y)).append_failure_message(
-			"Y offset %d is too large - suggests coordinate calculation error\n%s" % [offset.y, GBTestDiagnostics.flush_for_assert()]
-		).is_less_equal(5)
+		(
+			assert_int(abs(offset.y))
+			. append_failure_message(
+				(
+					"Y offset %d is too large - suggests coordinate calculation error\n%s"
+					% [offset.y, GBTestDiagnostics.flush_for_assert()]
+				)
+			)
+			. is_less_equal(5)
+		)
 
 	GBTestDiagnostics.buffer("=== Expected trapezoid coverage pattern ===")
 	# For a trapezoid at position (440, 552) with local points [(-32,12), (-16,-12), (17,-12), (32,12)]
@@ -68,8 +79,13 @@ func test_trapezoid_coordinate_calculation() -> void:
 	for i in range(trapezoid_polygon.size()):
 		var local_point: Vector2 = trapezoid_polygon[i]
 		var world_point: Vector2 = local_point + TRAPEZOID_POSITION
-		var tile_coord: Vector2i = Vector2i(int(world_point.x / TILE_SIZE.x), int(world_point.y / TILE_SIZE.y))
+		var tile_coord: Vector2i = Vector2i(
+			int(world_point.x / TILE_SIZE.x), int(world_point.y / TILE_SIZE.y)
+		)
 		var offset_from_center: Vector2i = tile_coord - center_tile
-		GBTestDiagnostics.buffer("  Vertex %d: Local %s -> World %s -> Tile %s -> Offset %s" % [
-			i, local_point, world_point, tile_coord, offset_from_center
-		])
+		GBTestDiagnostics.buffer(
+			(
+				"  Vertex %d: Local %s -> World %s -> Tile %s -> Offset %s"
+				% [i, local_point, world_point, tile_coord, offset_from_center]
+			)
+		)

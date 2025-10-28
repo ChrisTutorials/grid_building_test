@@ -48,40 +48,58 @@
 class_name GodotTestFactory
 extends RefCounted
 
+
 #region Collision Validation Helpers
 ## Validates that a collision shape has a proper CollisionObject2D parent
 ## @param collision_node: The CollisionShape2D or CollisionPolygon2D to validate
 ## @param method_name: Name of the calling method for error messages
 static func _validate_collision_parent(collision_node: Node, method_name: String) -> void:
 	assert(collision_node != null, "%s: collision_node cannot be null" % method_name)
-	
+
 	var parent: Node = collision_node.get_parent()
 	assert(parent != null, "%s: Collision node must have a parent" % method_name)
-	assert(parent is CollisionObject2D, "%s: Collision shapes must be children of CollisionObject2D (StaticBody2D, RigidBody2D, CharacterBody2D, or Area2D). Found parent type: %s" % [method_name, parent.get_class()])
+	assert(
+		parent is CollisionObject2D,
+		(
+			"%s: Collision shapes must be children of CollisionObject2D (StaticBody2D, RigidBody2D, CharacterBody2D, or Area2D). Found parent type: %s"
+			% [method_name, parent.get_class()]
+		)
+	)
+
 
 ## Ensures a collision shape is properly parented to a CollisionObject2D
 ## @param collision_node: The CollisionShape2D or CollisionPolygon2D to parent
 ## @param parent: The CollisionObject2D to parent to
 ## @param test: Test suite for auto_free management
 ## @param method_name: Name of the calling method for error messages
-static func _ensure_collision_parent(collision_node: Node, parent: CollisionObject2D, test: GdUnitTestSuite, method_name: String) -> void:
+static func _ensure_collision_parent(
+	collision_node: Node, parent: CollisionObject2D, test: GdUnitTestSuite, method_name: String
+) -> void:
 	assert(collision_node != null, "%s: collision_node cannot be null" % method_name)
 	assert(parent != null, "%s: parent cannot be null" % method_name)
-	assert(parent is CollisionObject2D, "%s: Parent must be a CollisionObject2D (StaticBody2D, RigidBody2D, CharacterBody2D, or Area2D). Found type: %s" % [method_name, parent.get_class()])
-	
+	assert(
+		parent is CollisionObject2D,
+		(
+			"%s: Parent must be a CollisionObject2D (StaticBody2D, RigidBody2D, CharacterBody2D, or Area2D). Found type: %s"
+			% [method_name, parent.get_class()]
+		)
+	)
+
 	# If collision_node is already in the scene tree, remove it
 	if collision_node.get_parent() != null:
 		collision_node.get_parent().remove_child(collision_node)
-	
+
 	# Add to the proper parent
 	parent.add_child(collision_node)
-	
+
 	# Ensure parent is auto-freed and in test scene
 	if parent.get_parent() == null:
 		test.add_child(parent)
 
+
 #endregion
 #region Capsule and Transform Factories
+
 
 ## Creates a CapsuleShape2D with specified radius and height
 static func create_capsule_shape(radius: float = 48.0, height: float = 128.0) -> CapsuleShape2D:
@@ -102,16 +120,19 @@ static func create_transform2d(origin: Vector2 = Vector2.ZERO) -> Transform2D:
 static func create_tile_size(size: int = 16) -> Vector2:
 	return Vector2(size, size)
 
+
 #endregion
 #region Node Creation
 
+
 ## Creates a basic Node2D for testing with proper auto_free setup
-static func create_node2d(test: GdUnitTestSuite, p_name : String = "TestNode2D") -> Node2D:
+static func create_node2d(test: GdUnitTestSuite, p_name: String = "TestNode2D") -> Node2D:
 	var node: Node2D = test.auto_free(Node2D.new())
 	node.name = p_name
 	if node.get_parent() == null:
 		test.add_child(node)
 	return node as Node2D
+
 
 ## Creates a Node with auto_free setup
 static func create_node(test: GdUnitTestSuite) -> Node:
@@ -121,6 +142,7 @@ static func create_node(test: GdUnitTestSuite) -> Node:
 		test.add_child(node)
 	return node
 
+
 ## Creates a CanvasItem with auto_free setup
 static func create_canvas_item(test: GdUnitTestSuite) -> CanvasItem:
 	var item: CanvasItem = test.auto_free(Node2D.new())  # Use Node2D as concrete CanvasItem
@@ -129,8 +151,10 @@ static func create_canvas_item(test: GdUnitTestSuite) -> CanvasItem:
 		test.add_child(item)
 	return item
 
+
 #endregion
 #region TileMap Objects
+
 
 ## Creates a TileMapLayer with basic tile set and populated grid for testing.
 ## grid_size: overall width/height in tiles (square). Reduced default for faster unit tests.
@@ -139,29 +163,32 @@ static func create_canvas_item(test: GdUnitTestSuite) -> CanvasItem:
 static func create_tile_map_layer(test: GdUnitTestSuite, grid_size: int = 40) -> TileMapLayer:
 	# Reverted: create a programmatic square TileMapLayer to preserve previous behavior
 	# Delegate to create_tile_map_layer_with_shape which builds a populated tileset grid
-	var map_layer: TileMapLayer = create_tile_map_layer_with_shape(test, grid_size, TileSet.TILE_SHAPE_SQUARE)
+	var map_layer: TileMapLayer = create_tile_map_layer_with_shape(
+		test, grid_size, TileSet.TILE_SHAPE_SQUARE
+	)
 	# Ensure test owns the node for teardown
 	if map_layer.get_parent() == null:
 		test.add_child(map_layer)
 	return map_layer
 
+
 ## Creates a TileMapLayer with specified tile shape (square, isometric, or half-offset)
 static func create_tile_map_layer_with_shape(
-	test: GdUnitTestSuite, 
-	grid_size: int = 40, 
+	test: GdUnitTestSuite,
+	grid_size: int = 40,
 	tile_shape: TileSet.TileShape = TileSet.TILE_SHAPE_SQUARE
 ) -> TileMapLayer:
 	var map_layer: TileMapLayer = test.auto_free(TileMapLayer.new())
 	var tile_set := TileSet.new()
 	tile_set.tile_shape = tile_shape
 	tile_set.tile_size = Vector2i(16, 16)
-	
+
 	var atlas := TileSetAtlasSource.new()
 	var img := Image.create(16, 16, false, Image.FORMAT_RGBA8)
 	img.fill(Color.WHITE)
 	var tex := ImageTexture.create_from_image(img)
 	atlas.texture = tex
-	atlas.create_tile(Vector2i(0,0))
+	atlas.create_tile(Vector2i(0, 0))
 	tile_set.add_source(atlas)
 	map_layer.tile_set = tile_set
 
@@ -178,7 +205,7 @@ static func create_tile_map_layer_with_shape(
 		img2.fill(Color.BLUE)
 		var tex2 := ImageTexture.create_from_image(img2)
 		atlas2.texture = tex2
-		atlas2.create_tile(Vector2i(0,0))
+		atlas2.create_tile(Vector2i(0, 0))
 		ts.add_source(atlas2)
 		map_layer.tile_set = ts
 		map_layer.clear()
@@ -186,26 +213,40 @@ static func create_tile_map_layer_with_shape(
 		populate_tilemap_cells(map_layer, Rect2i(0, 0, grid_size, grid_size), 0, Vector2i(0, 0))
 
 	var actual_populated_cells := map_layer.get_used_cells().size()
-	assert(actual_populated_cells == (grid_size * grid_size), "Expected: %s Actual: %s" % [grid_size * grid_size, actual_populated_cells])
-	var map_size_px : Vector2 = map_layer.get_used_rect().size * map_layer.tile_set.tile_size
-	test.assert_vector(map_size_px).append_failure_message("GodotTestFactory Math Incorrect").is_equal(Vector2(grid_size * 16, grid_size * 16))
-	
+	assert(
+		actual_populated_cells == (grid_size * grid_size),
+		"Expected: %s Actual: %s" % [grid_size * grid_size, actual_populated_cells]
+	)
+	var map_size_px: Vector2 = map_layer.get_used_rect().size * map_layer.tile_set.tile_size
+	(
+		test
+		. assert_vector(map_size_px)
+		. append_failure_message("GodotTestFactory Math Incorrect")
+		. is_equal(Vector2(grid_size * 16, grid_size * 16))
+	)
+
 	test.add_child(map_layer)
 	return map_layer as TileMapLayer
 
 
 ## Creates an isometric TileMapLayer for isometric tile-based games
-static func create_isometric_tile_map_layer(test: GdUnitTestSuite, grid_size: int = 40) -> TileMapLayer:
+static func create_isometric_tile_map_layer(
+	test: GdUnitTestSuite, grid_size: int = 40
+) -> TileMapLayer:
 	return create_tile_map_layer_with_shape(test, grid_size, TileSet.TILE_SHAPE_ISOMETRIC)
 
 
 ## Creates a top-down TileMapLayer for top-down perspective games
-static func create_top_down_tile_map_layer(test: GdUnitTestSuite, grid_size: int = 40) -> TileMapLayer:
+static func create_top_down_tile_map_layer(
+	test: GdUnitTestSuite, grid_size: int = 40
+) -> TileMapLayer:
 	return create_tile_map_layer_with_shape(test, grid_size, TileSet.TILE_SHAPE_SQUARE)
 
 
 ## Creates a platformer TileMapLayer for side-scrolling platformer games
-static func create_platformer_tile_map_layer(test: GdUnitTestSuite, grid_size: int = 40) -> TileMapLayer:
+static func create_platformer_tile_map_layer(
+	test: GdUnitTestSuite, grid_size: int = 40
+) -> TileMapLayer:
 	return create_tile_map_layer_with_shape(test, grid_size, TileSet.TILE_SHAPE_SQUARE)
 
 
@@ -218,7 +259,7 @@ static func create_empty_tile_map_layer(test: GdUnitTestSuite) -> TileMapLayer:
 	img.fill(Color.WHITE)
 	var tex := ImageTexture.create_from_image(img)
 	atlas.texture = tex
-	atlas.create_tile(Vector2i(0,0))
+	atlas.create_tile(Vector2i(0, 0))
 	tile_set.add_source(atlas)
 	map_layer.tile_set = tile_set
 	if map_layer.get_parent() == null:
@@ -232,14 +273,13 @@ static func create_empty_tile_map_layer(test: GdUnitTestSuite) -> TileMapLayer:
 ## @param tile_id: The tile source ID to use (default: 0)
 ## @param atlas_coords: The atlas coordinates to use (default: Vector2i(0, 0))
 static func populate_tilemap_cells(
-	tilemap: TileMapLayer,
-	rect: Rect2i,
-	tile_id: int = 0,
-	atlas_coords: Vector2i = Vector2i(0, 0)
+	tilemap: TileMapLayer, rect: Rect2i, tile_id: int = 0, atlas_coords: Vector2i = Vector2i(0, 0)
 ) -> void:
 	assert(tilemap != null, "populate_tilemap_cells: tilemap cannot be null")
-	assert(tilemap.tile_set != null, "populate_tilemap_cells: tilemap must have a tile_set assigned")
-	
+	assert(
+		tilemap.tile_set != null, "populate_tilemap_cells: tilemap must have a tile_set assigned"
+	)
+
 	for x in range(rect.position.x, rect.position.x + rect.size.x):
 		for y in range(rect.position.y, rect.position.y + rect.size.y):
 			tilemap.set_cell(Vector2i(x, y), tile_id, atlas_coords)
@@ -278,11 +318,16 @@ static func create_static_body_with_rect_shape(
 	test.add_child(body)
 	body.add_child(shape)
 	body.collision_layer = 1  # Set collision layer to match test expectations
-	test.assert_object(shape.shape).append_failure_message("GodotTestFactory: Bad Generated Shape").is_not_null()
-	
+	(
+		test
+		. assert_object(shape.shape)
+		. append_failure_message("GodotTestFactory: Bad Generated Shape")
+		. is_not_null()
+	)
+
 	# Validate collision hierarchy
 	_validate_collision_parent(shape, "create_static_body_with_rect_shape")
-	
+
 	return body
 
 
@@ -296,19 +341,19 @@ static func create_area2d_with_circle_shape(test: GdUnitTestSuite, radius: float
 	area.add_child(shape)
 	area.collision_layer = 1
 	test.add_child(area)
-	
+
 	# Validate collision hierarchy
 	_validate_collision_parent(shape, "create_area2d_with_circle_shape")
-	
+
 	return area
 
 
 ## Creates a CollisionPolygon2D with triangle shape
-## @param test: Test suite for auto_free management  
+## @param test: Test suite for auto_free management
 ## @param polygon: Optional polygon points (defaults to triangle)
 ## @param parent: Optional CollisionObject2D parent for proper collision hierarchy
 static func create_collision_polygon(
-	test: GdUnitTestSuite, 
+	test: GdUnitTestSuite,
 	polygon: PackedVector2Array = PackedVector2Array(),
 	parent: CollisionObject2D = null
 ) -> CollisionPolygon2D:
@@ -318,13 +363,13 @@ static func create_collision_polygon(
 		poly.polygon = PackedVector2Array([Vector2(0, 0), Vector2(16, 0), Vector2(8, 16)])
 	else:
 		poly.polygon = polygon
-	
+
 	if parent != null:
 		_ensure_collision_parent(poly, parent, test, "create_collision_polygon")
 	else:
 		# Add to test by default but validate later if parent changes
 		test.add_child(poly)
-	
+
 	return poly
 
 
@@ -338,10 +383,10 @@ static func create_object_with_circle_shape(test: GdUnitTestSuite) -> Node2D:
 	body.add_child(collision_shape)
 	body.collision_layer = 1
 	test.add_child(test_object)
-	
+
 	# Validate collision hierarchy
 	_validate_collision_parent(collision_shape, "create_object_with_circle_shape")
-	
+
 	return test_object
 
 
@@ -385,11 +430,13 @@ static func create_circle_shape(radius: float = 8.0) -> CircleShape2D:
 	circle.radius = radius
 	return circle
 
+
 #region Grid Building Specific Nodes
 
 ## (Removed) RuleCheckIndicator factory relocated
 ## This factory only handles Godot base class objects. Grid-building specific
 ## Factories for plugin-provided objects (e.g., RuleCheckIndicator) live in plugin-aware factory modules such as `PlaceableTestFactory`.
+
 
 ## Attaches a script (by resource path) to a node if the script file exists.
 ## This is a convenience for tests that create core Node2D stubs and then

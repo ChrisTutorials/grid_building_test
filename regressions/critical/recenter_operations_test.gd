@@ -5,6 +5,7 @@ var container: GBCompositionContainer
 var positioner: GridPositioner2D
 var tile_map: TileMapLayer
 
+
 func before_test() -> void:
 	container = GBTestConstants.TEST_COMPOSITION_CONTAINER.duplicate(true)
 	positioner = GridPositioner2D.new()
@@ -23,13 +24,25 @@ func before_test() -> void:
 
 	await get_tree().process_frame
 
+
 func test_debug_recenter_operations() -> void:
 	var diag: PackedStringArray = PackedStringArray()
 	diag.append("=== RECENTER DEBUG TEST ===")
 
 	# Check initial state
 	diag.append("Initial positioner position: %s" % [str(positioner.global_position)])
-	diag.append("Initial tile: %s" % [str(GBPositioning2DUtils.get_tile_from_global_position(positioner.global_position, tile_map))])
+	diag.append(
+		(
+			"Initial tile: %s"
+			% [
+				str(
+					GBPositioning2DUtils.get_tile_from_global_position(
+						positioner.global_position, tile_map
+					)
+				)
+			]
+		)
+	)
 
 	# Check dependencies
 	diag.append("\n=== DEPENDENCY CHECK ===")
@@ -57,7 +70,9 @@ func test_debug_recenter_operations() -> void:
 	# Test viewport center calculation
 	diag.append("\n=== VIEWPORT CENTER TEST ===")
 	var viewport_center_world: Vector2 = GBPositioning2DUtils.viewport_center_to_world_position(vp)
-	var viewport_center_tile: Vector2i = GBPositioning2DUtils.get_tile_from_global_position(viewport_center_world, tile_map)
+	var viewport_center_tile: Vector2i = GBPositioning2DUtils.get_tile_from_global_position(
+		viewport_center_world, tile_map
+	)
 	diag.append("viewport center world: %s" % [str(viewport_center_world)])
 	diag.append("viewport center tile: %s" % [str(viewport_center_tile)])
 
@@ -71,8 +86,12 @@ func test_debug_recenter_operations() -> void:
 	# Test cursor move with specific screen position
 	diag.append("\n=== CURSOR MOVE TEST ===")
 	var screen_pos: Vector2 = Vector2(224, 176)
-	var cursor_world: Vector2 = GBPositioning2DUtils.convert_screen_to_world_position(screen_pos, vp)
-	var cursor_tile: Vector2i = GBPositioning2DUtils.get_tile_from_global_position(cursor_world, tile_map)
+	var cursor_world: Vector2 = GBPositioning2DUtils.convert_screen_to_world_position(
+		screen_pos, vp
+	)
+	var cursor_tile: Vector2i = GBPositioning2DUtils.get_tile_from_global_position(
+		cursor_world, tile_map
+	)
 	diag.append("Screen pos: %s" % [str(screen_pos)])
 	diag.append("Cursor world: %s" % [str(cursor_world)])
 	diag.append("Cursor tile: %s" % [str(cursor_tile)])
@@ -98,7 +117,9 @@ func test_debug_recenter_operations() -> void:
 
 	diag.append("Settings - mouse enabled: %s" % [str(settings.enable_mouse_input)])
 	diag.append("Settings - manual recenter mode: %s" % [str(settings.manual_recenter_mode)])
-	diag.append("Settings - position on enable policy: %s" % [str(settings.position_on_enable_policy)])
+	diag.append(
+		"Settings - position on enable policy: %s" % [str(settings.position_on_enable_policy)]
+	)
 
 	# Test _apply_recenter_on_enable
 	diag.append("Before _apply_recenter_on_enable: %s" % [str(positioner.global_position)])
@@ -107,8 +128,16 @@ func test_debug_recenter_operations() -> void:
 
 	# Check for any issues that might cause fallback
 	diag.append("\n=== DIAGNOSTIC CHECKS ===")
-	var disabled_in_off_mode: bool = positioner._is_disabled_in_off_mode() if positioner.has_method("_is_disabled_in_off_mode") else false
-	var mouse_on_screen: bool = positioner._is_mouse_cursor_on_screen() if positioner.has_method("_is_mouse_cursor_on_screen") else false
+	var disabled_in_off_mode: bool = (
+		positioner._is_disabled_in_off_mode()
+		if positioner.has_method("_is_disabled_in_off_mode")
+		else false
+	)
+	var mouse_on_screen: bool = (
+		positioner._is_mouse_cursor_on_screen()
+		if positioner.has_method("_is_mouse_cursor_on_screen")
+		else false
+	)
 	diag.append("disabled_in_off_mode: %s" % [str(disabled_in_off_mode)])
 	diag.append("mouse_on_screen: %s" % [str(mouse_on_screen)])
 

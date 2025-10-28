@@ -3,6 +3,7 @@ extends GdUnitTestSuite
 
 const PhysicsUtils = preload("res://addons/grid_building/utils/physics_matching_utils_2d.gd")
 
+
 func test_layer_mask_2561_matches_collision_layer_513() -> void:
 	# Test the specific layer combination from the failing integration tests
 	var layer_mask: int = 2561  # Layers [0, 9, 11]
@@ -10,10 +11,18 @@ func test_layer_mask_2561_matches_collision_layer_513() -> void:
 
 	# Verify our conversion logic - order doesn't matter for our use case
 	var layers_from_mask: Array[int] = PhysicsUtils.get_layers_from_bitmask(layer_mask)
-	assert_that(layers_from_mask).contains_exactly_in_any_order([0, 9, 11]).override_failure_message("Layer mask 2561 should contain layers [0, 9, 11]")
+	(
+		assert_that(layers_from_mask)
+		. contains_exactly_in_any_order([0, 9, 11])
+		. override_failure_message("Layer mask 2561 should contain layers [0, 9, 11]")
+	)
 
 	var layers_from_collision: Array[int] = PhysicsUtils.get_layers_from_bitmask(collision_layer)
-	assert_that(layers_from_collision).contains_exactly_in_any_order([0, 9]).override_failure_message("Collision layer 513 should contain layers [0, 9]")
+	(
+		assert_that(layers_from_collision)
+		. contains_exactly_in_any_order([0, 9])
+		. override_failure_message("Collision layer 513 should contain layers [0, 9]")
+	)
 
 	# Create a test collision object with layer 513
 	var area: Area2D = Area2D.new()
@@ -23,9 +32,12 @@ func test_layer_mask_2561_matches_collision_layer_513() -> void:
 	# Test the matching logic
 	var matches: bool = PhysicsUtils.object_has_matching_layer(area, layer_mask)
 	assert_bool(matches).is_true().override_failure_message(
-		"Area2D with collision layer 513 should match layer mask 2561. " +
-		"Mask layers: %s, Object layers: %s" % [layers_from_mask, layers_from_collision]
+		(
+			"Area2D with collision layer 513 should match layer mask 2561. "
+			+ "Mask layers: %s, Object layers: %s" % [layers_from_mask, layers_from_collision]
+		)
 	)
+
 
 func test_regression_collision_layer_513_mask_2561_debug() -> void:
 	# This test reproduces the exact scenario from the failing integration tests
@@ -37,10 +49,9 @@ func test_regression_collision_layer_513_mask_2561_debug() -> void:
 
 	# Add collision shape
 	var collision_polygon: CollisionPolygon2D = CollisionPolygon2D.new()
-	collision_polygon.polygon = PackedVector2Array([
-		Vector2(-16, -16), Vector2(16, -16),
-		Vector2(16, 16), Vector2(-16, 16)
-	])
+	collision_polygon.polygon = PackedVector2Array(
+		[Vector2(-16, -16), Vector2(16, -16), Vector2(16, 16), Vector2(-16, 16)]
+	)
 	test_area.add_child(collision_polygon)
 
 	# Position it
@@ -51,9 +62,17 @@ func test_regression_collision_layer_513_mask_2561_debug() -> void:
 	var direct_match: bool = PhysicsUtils.object_has_matching_layer(test_area, 2561)
 
 	# Validate regression test success
-	assert_bool(direct_match).append_failure_message(
-		"Collision layer 513 should properly match mask 2561. Layer value: %d, Mask value: %d, Intersection: %d" % [513, 2561, 513 & 2561]
-	).is_true()
+	(
+		assert_bool(direct_match)
+		. append_failure_message(
+			(
+				"Collision layer 513 should properly match mask 2561. Layer value: %d, Mask value: %d, Intersection: %d"
+				% [513, 2561, 513 & 2561]
+			)
+		)
+		. is_true()
+	)
+
 
 func test_debug_layer_conversion_consistency() -> void:
 	# Test that our layer conversion is consistent with Godot's bit operations
@@ -74,8 +93,12 @@ func test_debug_layer_conversion_consistency() -> void:
 			var bit_set: bool = (mask & (1 << i)) != 0
 			var layer_in_result: bool = layers.has(i)
 			assert_bool(bit_set == layer_in_result).is_true().override_failure_message(
-				"Layer %d presence mismatch in mask %d: bit_set=%s, in_result=%s" % [i, mask, bit_set, layer_in_result]
+				(
+					"Layer %d presence mismatch in mask %d: bit_set=%s, in_result=%s"
+					% [i, mask, bit_set, layer_in_result]
+				)
 			)
+
 
 func test_specific_integration_error_scenario() -> void:
 	# Reproduce the exact error: "Collision object IndicatorSetupTestingArea does not match layer mask 2561"
@@ -95,12 +118,25 @@ func test_specific_integration_error_scenario() -> void:
 
 	# This should return true - no "does not match" error
 	var should_match: bool = PhysicsUtils.object_has_matching_layer(setup_area, 2561)
-	assert_bool(should_match).is_true().override_failure_message(
-		"CRITICAL: IndicatorSetupTestingArea with collision layer 513 must match layer mask 2561. " +
-		"This is the exact error from integration tests."
+	(
+		assert_bool(should_match)
+		. is_true()
+		. override_failure_message(
+			(
+				"CRITICAL: IndicatorSetupTestingArea with collision layer 513 must match layer mask 2561. "
+				+ "This is the exact error from integration tests."
+			)
+		)
 	)
 
 	# Additional verification: check the binary representation
-	assert_that(513 & 2561).append_failure_message(
-		"Binary intersection of collision layer 513 and mask 2561 must be non-zero. Layer: %d, Mask: %d, Intersection: %d" % [513, 2561, 513 & 2561]
-	).is_greater(0)
+	(
+		assert_that(513 & 2561)
+		. append_failure_message(
+			(
+				"Binary intersection of collision layer 513 and mask 2561 must be non-zero. Layer: %d, Mask: %d, Intersection: %d"
+				% [513, 2561, 513 & 2561]
+			)
+		)
+		. is_greater(0)
+	)

@@ -1,0 +1,20 @@
+[gd_scene load_steps=1 format=3 uid="uid://cdrtd538vrmun"]
+
+[ext_resource type="Script" path="res://test/grid_building_test/environments/collision_test_environment.gd" id="1_script"]
+
+[node name="CollisionTestEnvironment" type="Node2D"]
+script = ExtResource("1_script")
+
+[node name="TileMapLayer" type="TileMapLayer" parent="."]
+
+[node name="StaticBody2D" type="StaticBody2D" parent="."]
+collision_layer = 2048
+collision_mask = 0
+
+[node name="CharacterBody2D" type="CharacterBody2D" parent="."]
+collision_layer = 2048
+collision_mask = 0
+
+[node name="Area2D" type="Area2D" parent="."]
+collision_layer = 2048
+collision_mask = 0

@@ -16,27 +16,124 @@ func test_polygon_shape_edge_cases(
 	description: String,
 	test_parameters := [
 		# Basic shapes
-		["square", PackedVector2Array([Vector2(-16, -16), Vector2(16, -16), Vector2(16, 16), Vector2(-16, 16)]), TILE_SIZE_16, 4, "Simple square should cover 4 tiles"],
-		["rectangle", PackedVector2Array([Vector2(-32, -16), Vector2(32, -16), Vector2(32, 16), Vector2(-32, 16)]), TILE_SIZE_16, 8, "Rectangle should cover multiple tiles"],
-		["triangle", PackedVector2Array([Vector2(0, -24), Vector2(24, 24), Vector2(-24, 24)]), TILE_SIZE_16, 3, "Triangle should cover expected tiles"],
-
+		[
+			"square",
+			PackedVector2Array(
+				[Vector2(-16, -16), Vector2(16, -16), Vector2(16, 16), Vector2(-16, 16)]
+			),
+			TILE_SIZE_16,
+			4,
+			"Simple square should cover 4 tiles"
+		],
+		[
+			"rectangle",
+			PackedVector2Array(
+				[Vector2(-32, -16), Vector2(32, -16), Vector2(32, 16), Vector2(-32, 16)]
+			),
+			TILE_SIZE_16,
+			8,
+			"Rectangle should cover multiple tiles"
+		],
+		[
+			"triangle",
+			PackedVector2Array([Vector2(0, -24), Vector2(24, 24), Vector2(-24, 24)]),
+			TILE_SIZE_16,
+			3,
+			"Triangle should cover expected tiles"
+		],
 		# Trapezoids and irregular shapes
-		["trapezoid_wide", PackedVector2Array([Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)]), TILE_SIZE_16, 6, "Wide trapezoid should cover sufficient tiles"],
-		["trapezoid_narrow", PackedVector2Array([Vector2(-16, 8), Vector2(-8, -8), Vector2(8, -8), Vector2(16, 8)]), TILE_SIZE_16, 2, "Narrow trapezoid should cover minimum tiles"],
-
+		[
+			"trapezoid_wide",
+			PackedVector2Array(
+				[Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)]
+			),
+			TILE_SIZE_16,
+			6,
+			"Wide trapezoid should cover sufficient tiles"
+		],
+		[
+			"trapezoid_narrow",
+			PackedVector2Array([Vector2(-16, 8), Vector2(-8, -8), Vector2(8, -8), Vector2(16, 8)]),
+			TILE_SIZE_16,
+			2,
+			"Narrow trapezoid should cover minimum tiles"
+		],
 		# Complex polygons
-		["pentagon", PackedVector2Array([Vector2(0, -20), Vector2(19, -6), Vector2(12, 16), Vector2(-12, 16), Vector2(-19, -6)]), TILE_SIZE_16, 4, "Pentagon should be detected properly"],
-		["hexagon", PackedVector2Array([Vector2(20, 0), Vector2(10, 17), Vector2(-10, 17), Vector2(-20, 0), Vector2(-10, -17), Vector2(10, -17)]), TILE_SIZE_16, 6, "Hexagon should cover expected area"],
-
+		[
+			"pentagon",
+			PackedVector2Array(
+				[
+					Vector2(0, -20),
+					Vector2(19, -6),
+					Vector2(12, 16),
+					Vector2(-12, 16),
+					Vector2(-19, -6)
+				]
+			),
+			TILE_SIZE_16,
+			4,
+			"Pentagon should be detected properly"
+		],
+		[
+			"hexagon",
+			PackedVector2Array(
+				[
+					Vector2(20, 0),
+					Vector2(10, 17),
+					Vector2(-10, 17),
+					Vector2(-20, 0),
+					Vector2(-10, -17),
+					Vector2(10, -17)
+				]
+			),
+			TILE_SIZE_16,
+			6,
+			"Hexagon should cover expected area"
+		],
 		# L-shaped and concave
-		["l_shape", PackedVector2Array([Vector2(-24, -24), Vector2(24, -24), Vector2(24, 0), Vector2(0, 0), Vector2(0, 24), Vector2(-24, 24)]), TILE_SIZE_16, 8, "L-shape should handle concave geometry"],
-
+		[
+			"l_shape",
+			PackedVector2Array(
+				[
+					Vector2(-24, -24),
+					Vector2(24, -24),
+					Vector2(24, 0),
+					Vector2(0, 0),
+					Vector2(0, 24),
+					Vector2(-24, 24)
+				]
+			),
+			TILE_SIZE_16,
+			8,
+			"L-shape should handle concave geometry"
+		],
 		# Edge cases - very small polygons
-		["micro_square", PackedVector2Array([Vector2(-8, -8), Vector2(8, -8), Vector2(8, 8), Vector2(-8, 8)]), TILE_SIZE_16, 1, "Small square should still be detected"],
-
+		[
+			"micro_square",
+			PackedVector2Array([Vector2(-8, -8), Vector2(8, -8), Vector2(8, 8), Vector2(-8, 8)]),
+			TILE_SIZE_16,
+			1,
+			"Small square should still be detected"
+		],
 		# Edge cases - large polygons with different tile sizes
-		["large_square_small_tiles", PackedVector2Array([Vector2(-64, -64), Vector2(64, -64), Vector2(64, 64), Vector2(-64, 64)]), TILE_SIZE_16, 60, "Large square with small tiles"],
-		["large_square_large_tiles", PackedVector2Array([Vector2(-64, -64), Vector2(64, -64), Vector2(64, 64), Vector2(-64, 64)]), TILE_SIZE_32, 15, "Large square with large tiles"],
+		[
+			"large_square_small_tiles",
+			PackedVector2Array(
+				[Vector2(-64, -64), Vector2(64, -64), Vector2(64, 64), Vector2(-64, 64)]
+			),
+			TILE_SIZE_16,
+			60,
+			"Large square with small tiles"
+		],
+		[
+			"large_square_large_tiles",
+			PackedVector2Array(
+				[Vector2(-64, -64), Vector2(64, -64), Vector2(64, 64), Vector2(-64, 64)]
+			),
+			TILE_SIZE_32,
+			15,
+			"Large square with large tiles"
+		],
 	]
 ) -> void:
 	GBTestDiagnostics.buffer("=== TESTING POLYGON SHAPE: %s ===" % test_name)
@@ -50,13 +147,27 @@ func test_polygon_shape_edge_cases(
 	)
 
 	GBTestDiagnostics.buffer("Calculated tile offsets: %s" % str(tile_offsets))
-	GBTestDiagnostics.buffer("Number of tiles found: %d (expected >= %d)" % [tile_offsets.size(), expected_min_tiles])
+	GBTestDiagnostics.buffer(
+		"Number of tiles found: %d (expected >= %d)" % [tile_offsets.size(), expected_min_tiles]
+	)
 
 	# Assert minimum expected tiles
-	assert_int(tile_offsets.size()).append_failure_message(
-		"Polygon shape '%s' should generate at least %d tiles but got %d. Description: %s\n%s" %
-		[test_name, expected_min_tiles, tile_offsets.size(), description, GBTestDiagnostics.flush_for_assert()]
-	).is_greater_equal(expected_min_tiles)
+	(
+		assert_int(tile_offsets.size())
+		. append_failure_message(
+			(
+				"Polygon shape '%s' should generate at least %d tiles but got %d. Description: %s\n%s"
+				% [
+					test_name,
+					expected_min_tiles,
+					tile_offsets.size(),
+					description,
+					GBTestDiagnostics.flush_for_assert()
+				]
+			)
+		)
+		. is_greater_equal(expected_min_tiles)
+	)
 
 	# Additional validation: ensure no duplicate offsets
 	var unique_offsets: Array[Vector2i] = []
@@ -64,10 +175,22 @@ func test_polygon_shape_edge_cases(
 		if not unique_offsets.has(offset):
 			unique_offsets.append(offset)
 
-	assert_int(unique_offsets.size()).append_failure_message(
-		"Polygon shape '%s' generated duplicate tile offsets. Original: %d, Unique: %d\n%s" %
-		[test_name, tile_offsets.size(), unique_offsets.size(), GBTestDiagnostics.flush_for_assert()]
-	).is_equal(tile_offsets.size())
+	(
+		assert_int(unique_offsets.size())
+		. append_failure_message(
+			(
+				"Polygon shape '%s' generated duplicate tile offsets. Original: %d, Unique: %d\n%s"
+				% [
+					test_name,
+					tile_offsets.size(),
+					unique_offsets.size(),
+					GBTestDiagnostics.flush_for_assert()
+				]
+			)
+		)
+		. is_equal(tile_offsets.size())
+	)
+
 
 ## Test collision geometry with various positioning scenarios
 @warning_ignore("unused_parameter")
@@ -90,9 +213,9 @@ func test_position_independence_edge_cases(
 	GBTestDiagnostics.buffer("Center tile: %s" % str(center_tile))
 
 	# Use consistent test polygon (the problematic trapezoid)
-	var test_polygon: PackedVector2Array = PackedVector2Array([
-		Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)
-	])
+	var test_polygon: PackedVector2Array = PackedVector2Array(
+		[Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)]
+	)
 
 	# Get tile offsets for this position
 	var tile_offsets: Array[Vector2i] = CollisionGeometryUtils.compute_polygon_tile_offsets(
@@ -106,13 +229,26 @@ func test_position_independence_edge_cases(
 
 	GBTestDiagnostics.buffer("Tile offsets at position: %s" % str(tile_offsets))
 	GBTestDiagnostics.buffer("Reference offsets at origin: %s" % str(origin_offsets))
-	GBTestDiagnostics.buffer("Offset count: %d (reference: %d)" % [tile_offsets.size(), origin_offsets.size()])
+	GBTestDiagnostics.buffer(
+		"Offset count: %d (reference: %d)" % [tile_offsets.size(), origin_offsets.size()]
+	)
 
 	# Assert same number of tiles regardless of position
-	assert_int(tile_offsets.size()).append_failure_message(
-		"Position independence failed for '%s'. Got %d tiles, expected %d (same as origin)\n%s" %
-		[test_name, tile_offsets.size(), origin_offsets.size(), GBTestDiagnostics.flush_for_assert()]
-	).is_equal(origin_offsets.size())
+	(
+		assert_int(tile_offsets.size())
+		. append_failure_message(
+			(
+				"Position independence failed for '%s'. Got %d tiles, expected %d (same as origin)\n%s"
+				% [
+					test_name,
+					tile_offsets.size(),
+					origin_offsets.size(),
+					GBTestDiagnostics.flush_for_assert()
+				]
+			)
+		)
+		. is_equal(origin_offsets.size())
+	)
 
 	# Assert consistent pattern (relative positions should be the same)
 	if expected_pattern_consistency:
@@ -120,72 +256,109 @@ func test_position_independence_edge_cases(
 		var pattern_bounds_current: Dictionary = _calculate_pattern_bounds(tile_offsets)
 		var pattern_bounds_origin: Dictionary = _calculate_pattern_bounds(origin_offsets)
 
-		assert_int(pattern_bounds_current["width"]).append_failure_message(
-			"Pattern width changed with position. Current: %d, Origin: %d" %
-			[pattern_bounds_current["width"], pattern_bounds_origin["width"]]
-		).is_equal(pattern_bounds_origin["width"])
+		(
+			assert_int(pattern_bounds_current["width"])
+			. append_failure_message(
+				(
+					"Pattern width changed with position. Current: %d, Origin: %d"
+					% [pattern_bounds_current["width"], pattern_bounds_origin["width"]]
+				)
+			)
+			. is_equal(pattern_bounds_origin["width"])
+		)
 
-		assert_int(pattern_bounds_current["height"]).append_failure_message(
-			"Pattern height changed with position. Current: %d, Origin: %d" %
-			[pattern_bounds_current["height"], pattern_bounds_origin["height"]]
-		).is_equal(pattern_bounds_origin["height"])
+		(
+			assert_int(pattern_bounds_current["height"])
+			. append_failure_message(
+				(
+					"Pattern height changed with position. Current: %d, Origin: %d"
+					% [pattern_bounds_current["height"], pattern_bounds_origin["height"]]
+				)
+			)
+			. is_equal(pattern_bounds_origin["height"])
+		)
+
 
 ## Test boundary conditions that could cause edge case failures
 func test_boundary_condition_edge_cases() -> void:
 	GBTestDiagnostics.buffer("=== TESTING BOUNDARY CONDITIONS ===")
 
 	# Test 1: Polygon exactly on tile boundaries
-	var boundary_polygon: PackedVector2Array = PackedVector2Array([
-		Vector2(-16, -16), Vector2(16, -16), Vector2(16, 16), Vector2(-16, 16)
-	])
+	var boundary_polygon: PackedVector2Array = PackedVector2Array(
+		[Vector2(-16, -16), Vector2(16, -16), Vector2(16, 16), Vector2(-16, 16)]
+	)
 	GBTestDiagnostics.buffer("Testing polygon exactly on tile boundaries...")
 	var boundary_offsets: Array[Vector2i] = CollisionGeometryUtils.compute_polygon_tile_offsets(
 		boundary_polygon, TILE_SIZE_16, CENTER_TILE
 	)
-	GBTestDiagnostics.buffer("Boundary polygon offsets: %s (%d tiles)" % [str(boundary_offsets), boundary_offsets.size()])
+	GBTestDiagnostics.buffer(
+		"Boundary polygon offsets: %s (%d tiles)" % [str(boundary_offsets), boundary_offsets.size()]
+	)
 
-	assert_int(boundary_offsets.size()).append_failure_message(
-		"Boundary-aligned polygon should generate tiles but got %d\n%s" % [boundary_offsets.size(), GBTestDiagnostics.flush_for_assert()]
-	).is_greater(0)
+	(
+		assert_int(boundary_offsets.size())
+		. append_failure_message(
+			(
+				"Boundary-aligned polygon should generate tiles but got %d\n%s"
+				% [boundary_offsets.size(), GBTestDiagnostics.flush_for_assert()]
+			)
+		)
+		. is_greater(0)
+	)
 
 	# Test 2: Polygon crossing tile boundaries at fractional positions
-	var fractional_polygon: PackedVector2Array = PackedVector2Array([
-		Vector2(-15.5, -15.5), Vector2(15.5, -15.5), Vector2(15.5, 15.5), Vector2(-15.5, 15.5)
-	])
+	var fractional_polygon: PackedVector2Array = PackedVector2Array(
+		[Vector2(-15.5, -15.5), Vector2(15.5, -15.5), Vector2(15.5, 15.5), Vector2(-15.5, 15.5)]
+	)
 	GBTestDiagnostics.buffer("Testing polygon at fractional tile boundaries...")
 	var fractional_offsets: Array[Vector2i] = CollisionGeometryUtils.compute_polygon_tile_offsets(
 		fractional_polygon, TILE_SIZE_16, CENTER_TILE
 	)
-	GBTestDiagnostics.buffer("Fractional polygon offsets: %s (%d tiles)" % [str(fractional_offsets), fractional_offsets.size()])
+	GBTestDiagnostics.buffer(
+		(
+			"Fractional polygon offsets: %s (%d tiles)"
+			% [str(fractional_offsets), fractional_offsets.size()]
+		)
+	)
 
-	assert_int(fractional_offsets.size()).append_failure_message(
-		"Fractional boundary polygon should generate tiles but got %d\n%s" % [fractional_offsets.size(), GBTestDiagnostics.flush_for_assert()]
-	).is_greater(0)
+	(
+		assert_int(fractional_offsets.size())
+		. append_failure_message(
+			(
+				"Fractional boundary polygon should generate tiles but got %d\n%s"
+				% [fractional_offsets.size(), GBTestDiagnostics.flush_for_assert()]
+			)
+		)
+		. is_greater(0)
+	)
 
 	# Test 3: Very thin polygons (edge case for area calculations)
-	var thin_polygon: PackedVector2Array = PackedVector2Array([
-		Vector2(-32, -1), Vector2(32, -1), Vector2(32, 1), Vector2(-32, 1)
-	])
+	var thin_polygon: PackedVector2Array = PackedVector2Array(
+		[Vector2(-32, -1), Vector2(32, -1), Vector2(32, 1), Vector2(-32, 1)]
+	)
 	GBTestDiagnostics.buffer("Testing very thin polygon...")
 	var thin_offsets: Array[Vector2i] = CollisionGeometryUtils.compute_polygon_tile_offsets(
 		thin_polygon, TILE_SIZE_16, CENTER_TILE
 	)
-	GBTestDiagnostics.buffer("Thin polygon offsets: %s (%d tiles)" % [str(thin_offsets), thin_offsets.size()])
+	GBTestDiagnostics.buffer(
+		"Thin polygon offsets: %s (%d tiles)" % [str(thin_offsets), thin_offsets.size()]
+	)
 	# Note: This might return 0 tiles due to 5% area threshold - that's acceptable
+
 
 ## Test winding order independence
 func test_winding_order_edge_cases() -> void:
 	GBTestDiagnostics.buffer("=== TESTING WINDING ORDER INDEPENDENCE ===")
 
 	# Original polygon (counter-clockwise)
-	var ccw_polygon: PackedVector2Array = PackedVector2Array([
-		Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)
-	])
+	var ccw_polygon: PackedVector2Array = PackedVector2Array(
+		[Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)]
+	)
 
 	# Reversed polygon (clockwise)
-	var cw_polygon: PackedVector2Array = PackedVector2Array([
-		Vector2(32, 12), Vector2(17, -12), Vector2(-16, -12), Vector2(-32, 12)
-	])
+	var cw_polygon: PackedVector2Array = PackedVector2Array(
+		[Vector2(32, 12), Vector2(17, -12), Vector2(-16, -12), Vector2(-32, 12)]
+	)
 
 	GBTestDiagnostics.buffer("Testing counter-clockwise polygon...")
 	var ccw_offsets: Array[Vector2i] = CollisionGeometryUtils.compute_polygon_tile_offsets(
@@ -200,10 +373,17 @@ func test_winding_order_edge_cases() -> void:
 	GBTestDiagnostics.buffer("CW offsets: %s (%d tiles)" % [str(cw_offsets), cw_offsets.size()])
 
 	# Both should produce the same result
-	assert_int(cw_offsets.size()).append_failure_message(
-		"Winding order should not affect tile count. CCW: %d tiles, CW: %d tiles\n%s" %
-		[ccw_offsets.size(), cw_offsets.size(), GBTestDiagnostics.flush_for_assert()]
-	).is_equal(ccw_offsets.size())
+	(
+		assert_int(cw_offsets.size())
+		. append_failure_message(
+			(
+				"Winding order should not affect tile count. CCW: %d tiles, CW: %d tiles\n%s"
+				% [ccw_offsets.size(), cw_offsets.size(), GBTestDiagnostics.flush_for_assert()]
+			)
+		)
+		. is_equal(ccw_offsets.size())
+	)
+
 
 ## Helper function to calculate pattern bounds for consistency checking
 func _calculate_pattern_bounds(offsets: Array[Vector2i]) -> Dictionary:

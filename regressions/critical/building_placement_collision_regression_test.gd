@@ -26,19 +26,22 @@ var user_node: Node2D
 var container: GBCompositionContainer
 var logger: GBLogger
 
+
 func before_test() -> void:
 	# Use scene_runner for reliable frame simulation
 	runner = scene_runner(GBTestConstants.ALL_SYSTEMS_ENV_UID)
 	runner.simulate_frames(2)  # Initial setup frames
 
 	env = runner.scene() as AllSystemsTestEnvironment
-	assert_that(env).is_not_null() \
-		.append_failure_message("All Systems environment must instantiate successfully")
+	assert_that(env).is_not_null().append_failure_message(
+		"All Systems environment must instantiate successfully"
+	)
 
 	# Validate environment setup
 	var issues: Array[String] = env.get_issues()
-	assert_array(issues).is_empty() \
-		.append_failure_message("Environment setup has issues: %s" % str(issues))
+	assert_array(issues).is_empty().append_failure_message(
+		"Environment setup has issues: %s" % str(issues)
+	)
 
 	building_system = env.building_system
 	targeting_state = env.grid_targeting_system.get_state()
@@ -51,10 +54,12 @@ func before_test() -> void:
 	user_node = auto_free(Node2D.new())
 	env.add_child(user_node)  # Add to env, not test suite
 
+
 func after_test() -> void:
 	if building_system and building_system.is_in_build_mode():
 		building_system.exit_build_mode()
 	runner = null
+
 
 func test_smithy_placement_in_clear_area_should_not_report_collision() -> void:
 	# REGRESSION: Building placement was reporting "Colliding on 1 tile(s)" in clear areas
@@ -70,20 +75,28 @@ func test_smithy_placement_in_clear_area_should_not_report_collision() -> void:
 	runner.simulate_frames(2)  # Let position settle and physics update
 
 	# Act: Enter build mode with smithy (standard test placeable)
-	var enter_report: PlacementReport = building_system.enter_build_mode(GBTestConstants.PLACEABLE_SMITHY)
+	var enter_report: PlacementReport = building_system.enter_build_mode(
+		GBTestConstants.PLACEABLE_SMITHY
+	)
 
 	# Assert: Should enter build mode successfully
-	assert_bool(enter_report.is_successful()).append_failure_message(
-		"Enter build mode failed - issues: %s" % str(enter_report.get_issues())
-	).is_true()
+	(
+		assert_bool(enter_report.is_successful())
+		. append_failure_message(
+			"Enter build mode failed - issues: %s" % str(enter_report.get_issues())
+		)
+		. is_true()
+	)
 
 	# Act: Attempt to build at the clear position
 	var placement_report: PlacementReport = building_system.try_build()
 
 	# Assert: CRITICAL - Should NOT report any collisions in clear area
-	assert_object(placement_report).append_failure_message(
-		"try_build() returned null - indicates system failure"
-	).is_not_null()
+	(
+		assert_object(placement_report)
+		. append_failure_message("try_build() returned null - indicates system failure")
+		. is_not_null()
+	)
 
 	var issues: Array[String] = placement_report.get_issues()
 	var has_collision_issue: bool = false
@@ -92,14 +105,26 @@ func test_smithy_placement_in_clear_area_should_not_report_collision() -> void:
 			has_collision_issue = true
 			break
 
-	assert_bool(has_collision_issue).append_failure_message(
-		"REGRESSION: False collision detected in clear area - issues: %s. This breaks basic building functionality." % str(issues)
-	).is_false()
+	(
+		assert_bool(has_collision_issue)
+		. append_failure_message(
+			(
+				"REGRESSION: False collision detected in clear area - issues: %s. This breaks basic building functionality."
+				% str(issues)
+			)
+		)
+		. is_false()
+	)
 
 	# Assert: Placement should succeed
-	assert_bool(placement_report.is_successful()).append_failure_message(
-		"Placement should succeed in clear area - issues: %s" % str(issues)
-	).is_true()
+	(
+		assert_bool(placement_report.is_successful())
+		. append_failure_message(
+			"Placement should succeed in clear area - issues: %s" % str(issues)
+		)
+		. is_true()
+	)
+
 
 func test_collision_rule_configuration_validity() -> void:
 	# REGRESSION: Validate that collision rules are properly configured
@@ -112,31 +137,48 @@ func test_collision_rule_configuration_validity() -> void:
 	runner.simulate_frames(2)  # Let position settle and physics update
 
 	# Validate that the container is available
-	assert_object(container).append_failure_message(
-		"GBCompositionContainer not available in environment"
-	).is_not_null()
+	(
+		assert_object(container)
+		. append_failure_message("GBCompositionContainer not available in environment")
+		. is_not_null()
+	)
 
 	# Enter build mode to trigger rule setup
-	var enter_report: PlacementReport = building_system.enter_build_mode(GBTestConstants.PLACEABLE_SMITHY)
+	var enter_report: PlacementReport = building_system.enter_build_mode(
+		GBTestConstants.PLACEABLE_SMITHY
+	)
 	assert_bool(enter_report.is_successful()).is_true()
 
 	# Validate that collision detection is working as expected in clear area
 	var collision_mapper: CollisionMapper = env.indicator_manager.get_collision_mapper()
-	assert_object(collision_mapper).append_failure_message(
-		"CollisionMapper not available for validation"
-	).is_not_null()
+	(
+		assert_object(collision_mapper)
+		. append_failure_message("CollisionMapper not available for validation")
+		. is_not_null()
+	)
 
 	# Check if collision detection is working as expected in clear area
 	var test_nodes: Array[Node2D] = [user_node as Node2D]
-	var collision_results: Dictionary = collision_mapper.get_collision_tile_positions_with_mask(test_nodes, 1)
+	var collision_results: Dictionary = collision_mapper.get_collision_tile_positions_with_mask(
+		test_nodes, 1
+	)
 
 	# In a clear area, collision detection should find no blocking objects
 	var blocking_tiles: int = collision_results.size()
-	assert_int(blocking_tiles).append_failure_message(
-		"REGRESSION: Collision detection finding blocking objects in clear area - found %d blocking tiles" % blocking_tiles
-	).is_equal(0)
+	(
+		assert_int(blocking_tiles)
+		. append_failure_message(
+			(
+				"REGRESSION: Collision detection finding blocking objects in clear area - found %d blocking tiles"
+				% blocking_tiles
+			)
+		)
+		. is_equal(0)
+	)
+
 
 #region HELPER METHODS
+
 
 func _position_target_at_tile(tile_coords: Vector2i) -> void:
 	## Position the target node at the center of the specified tile
@@ -145,7 +187,10 @@ func _position_target_at_tile(tile_coords: Vector2i) -> void:
 	user_node.global_position = world_position
 	targeting_state.set_manual_target(user_node)
 
-	logger.log_debug("Positioned target at tile %s (world: %s)" % [str(tile_coords), str(world_position)])
+	logger.log_debug(
+		"Positioned target at tile %s (world: %s)" % [str(tile_coords), str(world_position)]
+	)
+
 
 func _setup_minimal_collision_shape_on_target() -> void:
 	## Add minimal collision shape to target for indicator generation

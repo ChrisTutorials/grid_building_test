@@ -14,21 +14,27 @@ var runner: GdUnitSceneRunner
 var _rule: CollisionsCheckRule
 var _env: CollisionTestEnvironment
 
+
 func before_test() -> void:
 	# Use scene_runner for test environment setup
 	runner = scene_runner(GBTestConstants.COLLISION_TEST_ENV_UID)
 
 	_env = runner.scene() as CollisionTestEnvironment
 	# Container is already duplicated by environment's _ready() for test isolation
-	_env.container.config.settings.targeting.enable_mouse_input = false # Explicitly disable mouse input to avoid interference
+	_env.container.config.settings.targeting.enable_mouse_input = false  # Explicitly disable mouse input to avoid interference
 
 	# Create collision rule
 	_rule = CollisionsCheckRule.new()
 	_rule.pass_on_collision = false  # Fail when collision detected
 	_rule.collision_mask = 1  # Check layer 0
 	var setup_issues := _rule.setup(_env.targeting_state)
-	assert_array(setup_issues).append_failure_message("Array assertion failed").is_empty() \
-		.append_failure_message("Rule setup should succeed with no issues")
+	(
+		assert_array(setup_issues)
+		. append_failure_message("Array assertion failed")
+		. is_empty()
+		. append_failure_message("Rule setup should succeed with no issues")
+	)
+
 
 func after_test() -> void:
 	# Clear collision exclusions to prevent test isolation issues
@@ -37,8 +43,11 @@ func after_test() -> void:
 	_rule = null
 	runner = null
 
+
 ## Helper to create a collision object at a position
-func _create_collision_body(p_name: String, p_position: Vector2, p_layer: int = 1) -> CharacterBody2D:
+func _create_collision_body(
+	p_name: String, p_position: Vector2, p_layer: int = 1
+) -> CharacterBody2D:
 	var body := CharacterBody2D.new()
 	body.name = p_name
 	body.position = p_position
@@ -54,6 +63,7 @@ func _create_collision_body(p_name: String, p_position: Vector2, p_layer: int = 
 
 	_env.add_child(body)
 	return body
+
 
 ## Helper to create an indicator at a position
 func _create_indicator(p_position: Vector2) -> RuleCheckIndicator:
@@ -71,6 +81,7 @@ func _create_indicator(p_position: Vector2) -> RuleCheckIndicator:
 
 	return indicator
 
+
 func test_exclusion_prevents_collision_with_single_body() -> void:
 	# GIVEN: A collision body at (100, 100)
 	var excluded_body := _create_collision_body("ExcludedBody", Vector2(100, 100))
@@ -86,10 +97,15 @@ func test_exclusion_prevents_collision_with_single_body() -> void:
 	var failing_without_exclusion := _rule.get_failing_indicators([indicator])
 
 	# THEN: Indicator detects collision (fails)
-	assert_int(failing_without_exclusion.size()).is_equal(1) \
-		.append_failure_message("Indicator should detect collision without exclusions")
-	assert_that(failing_without_exclusion[0]).append_failure_message("That assertion failed").is_equal(indicator) \
-		.append_failure_message("Failing indicator should be our test indicator")
+	assert_int(failing_without_exclusion.size()).is_equal(1).append_failure_message(
+		"Indicator should detect collision without exclusions"
+	)
+	(
+		assert_that(failing_without_exclusion[0])
+		. append_failure_message("That assertion failed")
+		. is_equal(indicator)
+		. append_failure_message("Failing indicator should be our test indicator")
+	)
 
 	# WHEN: Excluded body is added to exclusion list
 	_env.targeting_state.collision_exclusions = [excluded_body]
@@ -97,8 +113,13 @@ func test_exclusion_prevents_collision_with_single_body() -> void:
 
 	# THEN: Indicator no longer detects collision (passes)
 	var failing_with_exclusion := _rule.get_failing_indicators([indicator])
-	assert_array(failing_with_exclusion).append_failure_message("Array assertion failed").is_empty() \
-		.append_failure_message("Indicator should not detect collision when body is excluded")
+	(
+		assert_array(failing_with_exclusion)
+		. append_failure_message("Array assertion failed")
+		. is_empty()
+		. append_failure_message("Indicator should not detect collision when body is excluded")
+	)
+
 
 func test_exclusion_applies_to_all_children() -> void:
 	# GIVEN: A parent body with multiple collision children
@@ -143,8 +164,9 @@ func test_exclusion_applies_to_all_children() -> void:
 	var failing_without := _rule.get_failing_indicators([indicator1, indicator2])
 
 	# THEN: Both indicators detect collisions
-	assert_int(failing_without.size()).is_equal(2) \
-		.append_failure_message("Both indicators should detect collisions without exclusions")
+	assert_int(failing_without.size()).is_equal(2).append_failure_message(
+		"Both indicators should detect collisions without exclusions"
+	)
 
 	# WHEN: Parent is excluded
 	_env.targeting_state.collision_exclusions = [parent_body]
@@ -153,8 +175,15 @@ func test_exclusion_applies_to_all_children() -> void:
 
 	# THEN: Both indicators pass (all children excluded)
 	var failing_with := _rule.get_failing_indicators([indicator1, indicator2])
-	assert_array(failing_with).append_failure_message("Array assertion failed").is_empty() \
-		.append_failure_message("No indicators should fail when parent is excluded (children should be excluded too)")
+	(
+		assert_array(failing_with)
+		. append_failure_message("Array assertion failed")
+		. is_empty()
+		. append_failure_message(
+			"No indicators should fail when parent is excluded (children should be excluded too)"
+		)
+	)
+
 
 func test_exclusion_only_affects_specified_objects() -> void:
 	# GIVEN: Two separate bodies
@@ -174,10 +203,16 @@ func test_exclusion_only_affects_specified_objects() -> void:
 
 	# THEN: First indicator passes, second fails
 	var failing := _rule.get_failing_indicators([indicator1, indicator2])
-	assert_int(failing.size()).is_equal(1) \
-		.append_failure_message("Only one indicator should fail (non-excluded body)")
-	assert_that(failing[0]).append_failure_message("That assertion failed").is_equal(indicator2) \
-		.append_failure_message("The failing indicator should be indicator2 (non-excluded body)")
+	assert_int(failing.size()).is_equal(1).append_failure_message(
+		"Only one indicator should fail (non-excluded body)"
+	)
+	(
+		assert_that(failing[0])
+		. append_failure_message("That assertion failed")
+		. is_equal(indicator2)
+		. append_failure_message("The failing indicator should be indicator2 (non-excluded body)")
+	)
+
 
 func test_exclusion_persists_across_multiple_checks() -> void:
 	# GIVEN: Excluded body and indicator
@@ -193,12 +228,25 @@ func test_exclusion_persists_across_multiple_checks() -> void:
 	var check3 := _rule.get_failing_indicators([indicator])
 
 	# THEN: All checks respect exclusion (no failures)
-	assert_array(check1).append_failure_message("Array assertion failed").is_empty() \
-		.append_failure_message("First check should respect exclusion")
-	assert_array(check2).append_failure_message("Array assertion failed").is_empty() \
-		.append_failure_message("Second check should respect exclusion")
-	assert_array(check3).append_failure_message("Array assertion failed").is_empty() \
-		.append_failure_message("Third check should respect exclusion (persistence verified)")
+	(
+		assert_array(check1)
+		. append_failure_message("Array assertion failed")
+		. is_empty()
+		. append_failure_message("First check should respect exclusion")
+	)
+	(
+		assert_array(check2)
+		. append_failure_message("Array assertion failed")
+		. is_empty()
+		. append_failure_message("Second check should respect exclusion")
+	)
+	(
+		assert_array(check3)
+		. append_failure_message("Array assertion failed")
+		. is_empty()
+		. append_failure_message("Third check should respect exclusion (persistence verified)")
+	)
+
 
 func test_exclusion_cleared_when_target_changes() -> void:
 	# GIVEN: Excluded body and indicator
@@ -210,12 +258,16 @@ func test_exclusion_cleared_when_target_changes() -> void:
 
 	# WHEN: Exclusion is set
 	var failing_with_exclusion := _rule.get_failing_indicators([indicator])
-	assert_array(failing_with_exclusion).append_failure_message(
-		"Indicator should not fail when body is excluded - collisions=%d exclusions=%s" % [
-			indicator.get_collision_count(),
-			str(_env.targeting_state.collision_exclusions)
-		]
-	).is_empty()
+	(
+		assert_array(failing_with_exclusion)
+		. append_failure_message(
+			(
+				"Indicator should not fail when body is excluded - collisions=%d exclusions=%s"
+				% [indicator.get_collision_count(), str(_env.targeting_state.collision_exclusions)]
+			)
+		)
+		. is_empty()
+	)
 
 	# WHEN: Target changes (manually clear exclusions for test)
 	var dummy_target := Node2D.new()
@@ -229,19 +281,33 @@ func test_exclusion_cleared_when_target_changes() -> void:
 	# THEN: Exclusions are cleared, collision detected again
 	var failing_after_clear := _rule.get_failing_indicators([indicator])
 	var exclusions_after_clear := _env.targeting_state.collision_exclusions
-	var exclusions_state := "null" if exclusions_after_clear == null else ("empty" if exclusions_after_clear.is_empty() else str(exclusions_after_clear.size()))
-	var body_pos := "invalid" if not is_instance_valid(excluded_body) else str(excluded_body.global_position)
-	assert_int(failing_after_clear.size()).append_failure_message(
-		"Indicator should fail after target change clears exclusions - collisions=%d exclusions_state=%s body_valid=%s indicator_pos=%s body_pos=%s" % [
-			indicator.get_collision_count(),
-			exclusions_state,
-			str(is_instance_valid(excluded_body)),
-			str(indicator.global_position),
-			body_pos
-		]
-	).is_equal(1)
+	var exclusions_state := (
+		"null"
+		if exclusions_after_clear == null
+		else ("empty" if exclusions_after_clear.is_empty() else str(exclusions_after_clear.size()))
+	)
+	var body_pos := (
+		"invalid" if not is_instance_valid(excluded_body) else str(excluded_body.global_position)
+	)
+	(
+		assert_int(failing_after_clear.size())
+		. append_failure_message(
+			(
+				"Indicator should fail after target change clears exclusions - collisions=%d exclusions_state=%s body_valid=%s indicator_pos=%s body_pos=%s"
+				% [
+					indicator.get_collision_count(),
+					exclusions_state,
+					str(is_instance_valid(excluded_body)),
+					str(indicator.global_position),
+					body_pos
+				]
+			)
+		)
+		. is_equal(1)
+	)
 
 	dummy_target.free()
+
 
 func test_multiple_exclusions() -> void:
 	# GIVEN: Multiple bodies to exclude
@@ -265,10 +331,16 @@ func test_multiple_exclusions() -> void:
 
 	# THEN: Only third indicator fails
 	var failing := _rule.get_failing_indicators([indicator1, indicator2, indicator3])
-	assert_int(failing.size()).is_equal(1) \
-		.append_failure_message("Only one indicator should fail (non-excluded body)")
-	assert_that(failing[0]).append_failure_message("That assertion failed").is_equal(indicator3) \
-		.append_failure_message("The failing indicator should be indicator3 (non-excluded body)")
+	assert_int(failing.size()).is_equal(1).append_failure_message(
+		"Only one indicator should fail (non-excluded body)"
+	)
+	(
+		assert_that(failing[0])
+		. append_failure_message("That assertion failed")
+		. is_equal(indicator3)
+		. append_failure_message("The failing indicator should be indicator3 (non-excluded body)")
+	)
+
 
 func test_exclusion_with_nested_hierarchy() -> void:
 	# GIVEN: Deep hierarchy - root > parent > child > collision_shape
@@ -305,5 +377,11 @@ func test_exclusion_with_nested_hierarchy() -> void:
 
 	# THEN: Deep nested collision is excluded
 	var failing := _rule.get_failing_indicators([indicator])
-	assert_array(failing).append_failure_message("Array assertion failed").is_empty() \
-		.append_failure_message("Deep nested collision should be excluded when root ancestor is in exclusion list")
+	(
+		assert_array(failing)
+		. append_failure_message("Array assertion failed")
+		. is_empty()
+		. append_failure_message(
+			"Deep nested collision should be excluded when root ancestor is in exclusion list"
+		)
+	)

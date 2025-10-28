@@ -7,7 +7,7 @@ func _run() -> void:
 	)
 
 	# Test a few specific tile positions
-	var test_positions : Array[Vector2] = [
+	var test_positions: Array[Vector2] = [
 		Vector2(-16, 0),  # Should overlap (center-left)
 		Vector2(0, 0),  # Should overlap (center)
 		Vector2(16, 0),  # Should overlap (center-right)
@@ -18,6 +18,8 @@ func _run() -> void:
 		Vector2(48, 0),  # Should NOT overlap (far right)
 	]
 
-	for pos : Vector2 in test_positions:
-		var _area : float = GBGeometryMath.intersection_area_with_tile(trapezoid, pos, Vector2(16.0, 16.0), TileSet.TileShape.TILE_SHAPE_SQUARE)
+	for pos: Vector2 in test_positions:
+		var _area: float = GBGeometryMath.intersection_area_with_tile(
+			trapezoid, pos, Vector2(16.0, 16.0), TileSet.TileShape.TILE_SHAPE_SQUARE
+		)
 		# Debug output removed - use test failure messages for debugging instead

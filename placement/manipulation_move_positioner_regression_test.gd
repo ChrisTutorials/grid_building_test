@@ -13,6 +13,7 @@ var runner: GdUnitSceneRunner
 var _env: AllSystemsTestEnvironment
 var _manipulation_system: ManipulationSystem
 
+
 func before_test() -> void:
 	runner = scene_runner(GBTestConstants.ALL_SYSTEMS_ENV_UID)
 	runner.simulate_frames(2)
@@ -20,16 +21,27 @@ func before_test() -> void:
 	_manipulation_system = _env.manipulation_system
 
 	# Validate manipulation system exists with diagnostic
-	assert_object(_manipulation_system).append_failure_message(
-		"ManipulationSystem must exist in test environment - Container: %s" % str(_env.get_container())
-	).is_not_null()
+	(
+		assert_object(_manipulation_system)
+		. append_failure_message(
+			(
+				"ManipulationSystem must exist in test environment - Container: %s"
+				% str(_env.get_container())
+			)
+		)
+		. is_not_null()
+	)
+
 
 func after_test() -> void:
 	_manipulation_system = null
 	runner = null
 
+
 ## Helper to create a manipulatable object
-func _create_manipulatable_object(p_name: String, p_position: Vector2, p_size: Vector2i = Vector2i(48, 32)) -> Node2D:
+func _create_manipulatable_object(
+	p_name: String, p_position: Vector2, p_size: Vector2i = Vector2i(48, 32)
+) -> Node2D:
 	var root := Node2D.new()
 	root.name = p_name
 	root.position = p_position
@@ -59,6 +71,7 @@ func _create_manipulatable_object(p_name: String, p_position: Vector2, p_size: V
 	_env.add_child(root)
 	return root
 
+
 ## Helper to get indicator validity at a specific positioner position (sync version with scene_runner)
 func _check_indicators_at_position_sync(p_position: Vector2) -> Dictionary:
 	# Move positioner to test position
@@ -82,10 +95,7 @@ func _check_indicators_at_position_sync(p_position: Vector2) -> Dictionary:
 	}
 
 	for indicator: RuleCheckIndicator in indicators:
-		var info := {
-			"position": indicator.global_position,
-			"valid": indicator.valid
-		}
+		var info := {"position": indicator.global_position, "valid": indicator.valid}
 		result.indicators.append(info)
 
 		if indicator.valid:
@@ -96,7 +106,9 @@ func _check_indicators_at_position_sync(p_position: Vector2) -> Dictionary:
 
 	return result
 
+
 #region DIAGNOSTIC HELPERS - DRY Pattern
+
 
 ## Format manipulation system diagnostic information
 func _format_manipulation_diagnostic() -> String:
@@ -104,6 +116,7 @@ func _format_manipulation_diagnostic() -> String:
 	lines.append("Manipulation System State:")
 	lines.append("  System exists: %s" % str(_manipulation_system != null))
 	return "\n".join(lines)
+
 
 ## Format indicator check result diagnostic
 func _format_result_diagnostic(result: Dictionary) -> String:
@@ -116,7 +129,9 @@ func _format_result_diagnostic(result: Dictionary) -> String:
 	lines.append("  All valid: %s" % str(result.all_valid))
 	return "\n".join(lines)
 
+
 #endregion
+
 
 func test_move_exclusion_works_when_positioner_inside_original_bounds() -> void:
 	# GIVEN: A manipulatable object at (200, 200) with 48x32 size
@@ -125,12 +140,20 @@ func test_move_exclusion_works_when_positioner_inside_original_bounds() -> void:
 
 	# GIVEN: Start manipulation move with try_move API
 	var move_result: ManipulationData = _manipulation_system.try_move(original)
-	assert_object(move_result).append_failure_message(
-		"try_move should return ManipulationData - %s" % _format_manipulation_diagnostic()
-	).is_not_null()
-	assert_bool(move_result.status == GBEnums.Status.STARTED).append_failure_message(
-		"Move should start successfully - %s" % _format_manipulation_diagnostic()
-	).is_true()
+	(
+		assert_object(move_result)
+		. append_failure_message(
+			"try_move should return ManipulationData - %s" % _format_manipulation_diagnostic()
+		)
+		. is_not_null()
+	)
+	(
+		assert_bool(move_result.status == GBEnums.Status.STARTED)
+		. append_failure_message(
+			"Move should start successfully - %s" % _format_manipulation_diagnostic()
+		)
+		. is_true()
+	)
 
 	runner.simulate_frames(2)
 
@@ -138,12 +161,24 @@ func test_move_exclusion_works_when_positioner_inside_original_bounds() -> void:
 	var result_inside := _check_indicators_at_position_sync(Vector2(200, 200))
 
 	# THEN: All indicators should be valid (no collision with original)
-	assert_bool(result_inside.all_valid).append_failure_message(
-		"Indicators should be valid when positioner inside bounds - %s" % _format_result_diagnostic(result_inside)
-	).is_true()
-	assert_int(result_inside.invalid_count).append_failure_message(
-		"Should have 0 invalid indicators - %s" % _format_result_diagnostic(result_inside)
-	).is_equal(0)
+	(
+		assert_bool(result_inside.all_valid)
+		. append_failure_message(
+			(
+				"Indicators should be valid when positioner inside bounds - %s"
+				% _format_result_diagnostic(result_inside)
+			)
+		)
+		. is_true()
+	)
+	(
+		assert_int(result_inside.invalid_count)
+		. append_failure_message(
+			"Should have 0 invalid indicators - %s" % _format_result_diagnostic(result_inside)
+		)
+		. is_equal(0)
+	)
+
 
 func test_move_exclusion_fails_when_positioner_outside_original_bounds() -> void:
 	# GIVEN: A manipulatable object at (200, 200) with 48x32 size
@@ -152,12 +187,20 @@ func test_move_exclusion_fails_when_positioner_outside_original_bounds() -> void
 
 	# GIVEN: Start manipulation move with try_move API
 	var move_result: ManipulationData = _manipulation_system.try_move(original)
-	assert_object(move_result).append_failure_message(
-		"try_move should return ManipulationData - %s" % _format_manipulation_diagnostic()
-	).is_not_null()
-	assert_bool(move_result.status == GBEnums.Status.STARTED).append_failure_message(
-		"Move should start successfully - %s" % _format_manipulation_diagnostic()
-	).is_true()
+	(
+		assert_object(move_result)
+		. append_failure_message(
+			"try_move should return ManipulationData - %s" % _format_manipulation_diagnostic()
+		)
+		. is_not_null()
+	)
+	(
+		assert_bool(move_result.status == GBEnums.Status.STARTED)
+		. append_failure_message(
+			"Move should start successfully - %s" % _format_manipulation_diagnostic()
+		)
+		. is_true()
+	)
 
 	runner.simulate_frames(2)
 
@@ -171,6 +214,7 @@ func test_move_exclusion_fails_when_positioner_outside_original_bounds() -> void
 	assert_bool(result_outside.all_valid).is_true()
 	assert_int(result_outside.invalid_count).is_equal(0)
 
+
 func test_move_exclusion_consistent_across_multiple_positions() -> void:
 	# GIVEN: A manipulatable object
 	var original := _create_manipulatable_object("Original", Vector2(200, 200), Vector2i(48, 32))
@@ -178,12 +222,20 @@ func test_move_exclusion_consistent_across_multiple_positions() -> void:
 
 	# GIVEN: Start manipulation move with try_move API
 	var move_result: ManipulationData = _manipulation_system.try_move(original)
-	assert_object(move_result).append_failure_message(
-		"try_move should return ManipulationData - %s" % _format_manipulation_diagnostic()
-	).is_not_null()
-	assert_bool(move_result.status == GBEnums.Status.STARTED).append_failure_message(
-		"Move should start successfully - %s" % _format_manipulation_diagnostic()
-	).is_true()
+	(
+		assert_object(move_result)
+		. append_failure_message(
+			"try_move should return ManipulationData - %s" % _format_manipulation_diagnostic()
+		)
+		. is_not_null()
+	)
+	(
+		assert_bool(move_result.status == GBEnums.Status.STARTED)
+		. append_failure_message(
+			"Move should start successfully - %s" % _format_manipulation_diagnostic()
+		)
+		. is_true()
+	)
 	runner.simulate_frames(2)
 
 	# WHEN: Testing multiple positioner positions
@@ -206,9 +258,17 @@ func test_move_exclusion_consistent_across_multiple_positions() -> void:
 	for i in range(results.size()):
 		var result: Dictionary = results[i]
 		var pos: Vector2 = positions[i]
-		assert_bool(result.all_valid).append_failure_message(
-			"Position %s should have valid indicators - %s" % [str(pos), _format_result_diagnostic(result)]
-		).is_true()
+		(
+			assert_bool(result.all_valid)
+			. append_failure_message(
+				(
+					"Position %s should have valid indicators - %s"
+					% [str(pos), _format_result_diagnostic(result)]
+				)
+			)
+			. is_true()
+		)
+
 
 func test_move_exclusion_with_overlapping_indicators() -> void:
 	# GIVEN: A manipulatable object
@@ -217,9 +277,13 @@ func test_move_exclusion_with_overlapping_indicators() -> void:
 
 	# GIVEN: Start manipulation move with try_move API
 	var move_result: ManipulationData = _manipulation_system.try_move(original)
-	assert_bool(move_result.status == GBEnums.Status.STARTED).append_failure_message(
-		"Move should start successfully - %s" % _format_manipulation_diagnostic()
-	).is_true()
+	(
+		assert_bool(move_result.status == GBEnums.Status.STARTED)
+		. append_failure_message(
+			"Move should start successfully - %s" % _format_manipulation_diagnostic()
+		)
+		. is_true()
+	)
 	runner.simulate_frames(2)
 
 	# WHEN: Positioner positioned so indicators overlap original AND empty space
@@ -227,6 +291,13 @@ func test_move_exclusion_with_overlapping_indicators() -> void:
 	var result_overlap: Dictionary = _check_indicators_at_position_sync(Vector2(230, 200))
 
 	# THEN: All indicators should be valid (those over original excluded, those over empty valid)
-	assert_bool(result_overlap.all_valid).append_failure_message(
-		"Overlapping indicators should all be valid - %s" % _format_result_diagnostic(result_overlap)
-	).is_true()
+	(
+		assert_bool(result_overlap.all_valid)
+		. append_failure_message(
+			(
+				"Overlapping indicators should all be valid - %s"
+				% _format_result_diagnostic(result_overlap)
+			)
+		)
+		. is_true()
+	)

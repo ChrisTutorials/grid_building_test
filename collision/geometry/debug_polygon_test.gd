@@ -17,13 +17,9 @@ extends GdUnitTestSuite
 # Test constants to eliminate magic numbers
 const TEST_TILE_SIZE := Vector2(16, 16)
 const COLLISION_TOLERANCE := 0.01
-const TEST_POLYGON_VERTICES := [
-	Vector2(1, 1),
-	Vector2(17, 1),
-	Vector2(17, 17),
-	Vector2(1, 17)
-]
+const TEST_POLYGON_VERTICES := [Vector2(1, 1), Vector2(17, 1), Vector2(17, 17), Vector2(1, 17)]
 #endregion
+
 
 #region Polygon Bounds Validation
 func test_debug_polygon_bounds() -> void:
@@ -46,8 +42,13 @@ func test_debug_polygon_bounds() -> void:
 
 		bounds = Rect2(min_x, min_y, max_x - min_x, max_y - min_y)
 
-	var start_tile: Vector2i = Vector2i(floor(bounds.position.x / tile_size.x), floor(bounds.position.y / tile_size.y))
-	var end_tile: Vector2i = Vector2i(ceil((bounds.position.x + bounds.size.x) / tile_size.x), ceil((bounds.position.y + bounds.size.y) / tile_size.y))
+	var start_tile: Vector2i = Vector2i(
+		floor(bounds.position.x / tile_size.x), floor(bounds.position.y / tile_size.y)
+	)
+	var end_tile: Vector2i = Vector2i(
+		ceil((bounds.position.x + bounds.size.x) / tile_size.x),
+		ceil((bounds.position.y + bounds.size.y) / tile_size.y)
+	)
 
 	var tiles_checked: Array[Vector2i] = []
 	for x: int in range(start_tile.x, end_tile.x):
@@ -58,13 +59,23 @@ func test_debug_polygon_bounds() -> void:
 	# Create a temporary tile map layer for map-aware calculations
 	var _test_tile_map_layer: TileMapLayer = GodotTestFactory.create_empty_tile_map_layer(self)
 	var tiles: Array[Vector2i] = CollisionGeometryCalculator.calculate_tile_overlap(
-		polygon, tile_size, TileSet.TILE_SHAPE_SQUARE, _test_tile_map_layer, COLLISION_TOLERANCE, COLLISION_TOLERANCE
+		polygon,
+		tile_size,
+		TileSet.TILE_SHAPE_SQUARE,
+		_test_tile_map_layer,
+		COLLISION_TOLERANCE,
+		COLLISION_TOLERANCE
 	)
 
 	# Verify polygon overlap detection
-	assert_array(tiles).append_failure_message(
-		"Polygon overlap detection should work. Polygon: %s, Bounds: %s, Tiles checked: %d, Actual overlapping tiles: %s" % [
-			str(polygon), str(bounds), tiles_checked.size(), str(tiles)
-		]
-	).is_not_empty()
+	(
+		assert_array(tiles)
+		. append_failure_message(
+			(
+				"Polygon overlap detection should work. Polygon: %s, Bounds: %s, Tiles checked: %d, Actual overlapping tiles: %s"
+				% [str(polygon), str(bounds), tiles_checked.size(), str(tiles)]
+			)
+		)
+		. is_not_empty()
+	)
 #endregion

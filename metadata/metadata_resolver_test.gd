@@ -4,6 +4,7 @@ extends GdUnitTestSuite
 
 #region Helper Methods
 
+
 ## Creates a Node2D with specified name, adds to tree, and marks for auto_free
 func _create_node(p_name: String, p_type: Variant = Node2D) -> Node:
 	var node: Node = auto_free(p_type.new())
@@ -11,9 +12,12 @@ func _create_node(p_name: String, p_type: Variant = Node2D) -> Node:
 	add_child(node)
 	return node
 
+
 ## Creates a basic hierarchy: root → collision area
 ## Returns dictionary with 'root' and 'collision' keys
-func _create_basic_collision_hierarchy(p_root_name: String = "Root", p_collision_name: String = "Collision") -> Dictionary:
+func _create_basic_collision_hierarchy(
+	p_root_name: String = "Root", p_collision_name: String = "Collision"
+) -> Dictionary:
 	var root: Node2D = auto_free(Node2D.new())
 	root.name = p_root_name
 	add_child(root)
@@ -23,6 +27,7 @@ func _create_basic_collision_hierarchy(p_root_name: String = "Root", p_collision
 	root.add_child(collision)
 
 	return {"root": root, "collision": collision}
+
 
 ## Creates hierarchy with Manipulatable: root → collision → manipulatable
 ## Returns dictionary with 'root', 'collision', 'manipulatable' keys
@@ -36,21 +41,27 @@ func _create_manipulatable_hierarchy(p_root_name: String = "Root") -> Dictionary
 	result.manipulatable = manipulatable
 	return result
 
+
 ## Sets metadata on a node with optional value
 func _set_node_metadata(p_node: Node, p_key: String, p_value: Variant) -> void:
 	p_node.set_meta(p_key, p_value)
+
 
 ## Asserts that resolved node matches expected node with formatted failure message
 func _assert_resolved_root(p_actual: Node2D, p_expected: Node2D, p_context: String = "") -> void:
 	var message: String = "Should resolve to expected root"
 	if p_context:
 		message += ": " + p_context
-	message += ". Got: %s, Expected: %s" % [
-		GBDiagnostics.format_node_label(p_actual) if p_actual else "null",
-		GBDiagnostics.format_node_label(p_expected) if p_expected else "null"
-	]
+	message += (
+		". Got: %s, Expected: %s"
+		% [
+			GBDiagnostics.format_node_label(p_actual) if p_actual else "null",
+			GBDiagnostics.format_node_label(p_expected) if p_expected else "null"
+		]
+	)
 
 	assert_object(p_actual).append_failure_message(message).is_same(p_expected)
+
 
 ## Asserts display name matches expected value
 func _assert_display_name(p_actual: String, p_expected: String, p_context: String = "") -> void:
@@ -61,14 +72,18 @@ func _assert_display_name(p_actual: String, p_expected: String, p_context: Strin
 
 	assert_str(p_actual).append_failure_message(message).is_equal(p_expected)
 
+
 #endregion
+
 
 func test_resolve_root_node_with_metadata_node_path() -> void:
 	# Setup: Create scene structure matching Smithy
 	# THISISROOTSMITHY-Node2D
 	#   └─ Smithy (Area2D with metadata/root_node = NodePath(".."))
 
-	var hierarchy: Dictionary = _create_basic_collision_hierarchy("THISISROOTSMITHY-Node2D", "Smithy")
+	var hierarchy: Dictionary = _create_basic_collision_hierarchy(
+		"THISISROOTSMITHY-Node2D", "Smithy"
+	)
 	var root: Node2D = hierarchy.root
 	var collision: Area2D = hierarchy.collision
 
@@ -80,9 +95,11 @@ func test_resolve_root_node_with_metadata_node_path() -> void:
 
 	# Assert: Should resolve to root_node (THISISROOTSMITHY-Node2D)
 	_assert_resolved_root(resolved, root, "via metadata/root_node")
-	assert_str(resolved.name).append_failure_message(
-		"Resolved node name should be 'THISISROOTSMITHY-Node2D'"
-	).is_equal("THISISROOTSMITHY-Node2D")
+	(
+		assert_str(resolved.name)
+		. append_failure_message("Resolved node name should be 'THISISROOTSMITHY-Node2D'")
+		. is_equal("THISISROOTSMITHY-Node2D")
+	)
 
 
 func test_resolve_root_node_with_metadata_direct_node() -> void:
@@ -149,10 +166,16 @@ func test_resolve_root_node_with_manipulatable_child() -> void:
 	var resolved: Node2D = GBMetadataResolver.resolve_root_node(collision_area)
 
 	# Assert: Should resolve to Manipulatable.root
-	assert_object(resolved).append_failure_message(
-		"Should resolve to Manipulatable.root from child search. Got: %s" %
-		(resolved.name if resolved else "null")
-	).is_same(root_node)
+	(
+		assert_object(resolved)
+		. append_failure_message(
+			(
+				"Should resolve to Manipulatable.root from child search. Got: %s"
+				% (resolved.name if resolved else "null")
+			)
+		)
+		. is_same(root_node)
+	)
 
 
 func test_metadata_priority_over_manipulatable() -> void:
@@ -181,10 +204,16 @@ func test_metadata_priority_over_manipulatable() -> void:
 	var resolved: Node2D = GBMetadataResolver.resolve_root_node(collision_area)
 
 	# Assert: Metadata should take priority
-	assert_object(resolved).append_failure_message(
-		"Metadata should have priority over Manipulatable. Got: %s, Expected: %s" %
-		[resolved.name if resolved else "null", metadata_root.name]
-	).is_same(metadata_root)
+	(
+		assert_object(resolved)
+		. append_failure_message(
+			(
+				"Metadata should have priority over Manipulatable. Got: %s, Expected: %s"
+				% [resolved.name if resolved else "null", metadata_root.name]
+			)
+		)
+		. is_same(metadata_root)
+	)
 
 
 func test_nodepath_metadata_resolves_at_runtime_not_design_time() -> void:
@@ -222,19 +251,29 @@ func test_nodepath_metadata_resolves_at_runtime_not_design_time() -> void:
 	var resolved: Node2D = GBMetadataResolver.resolve_root_node(collision_area)
 
 	# Assert: NodePath("..") correctly resolves to parent at runtime
-	assert_object(resolved).append_failure_message(
-		"NodePath metadata should resolve to parent node at runtime. Got: %s" %
-		GBDiagnostics.format_node_label(resolved)
-	).is_same(root_node)
+	(
+		assert_object(resolved)
+		. append_failure_message(
+			(
+				"NodePath metadata should resolve to parent node at runtime. Got: %s"
+				% GBDiagnostics.format_node_label(resolved)
+			)
+		)
+		. is_same(root_node)
+	)
 
 	# Assert: Both nodes have same name (this is the ambiguity problem!)
-	assert_str(resolved.name).append_failure_message(
-		"Root node name should be 'Smithy' (renamed from scene root)"
-	).is_equal("Smithy")
+	(
+		assert_str(resolved.name)
+		. append_failure_message("Root node name should be 'Smithy' (renamed from scene root)")
+		. is_equal("Smithy")
+	)
 
-	assert_str(collision_area.name).append_failure_message(
-		"Collision area name should also be 'Smithy'"
-	).is_equal("Smithy")
+	(
+		assert_str(collision_area.name)
+		. append_failure_message("Collision area name should also be 'Smithy'")
+		. is_equal("Smithy")
+	)
 
 	# Critical observation: NodePath resolves CORRECTLY, but name ambiguity makes debugging hard!
 	# The real bug is not NodePath metadata - it's the Manipulatable root path configuration.
@@ -268,14 +307,22 @@ func test_nodepath_metadata_with_multiple_parent_levels() -> void:
 	var resolved: Node2D = GBMetadataResolver.resolve_root_node(collision_area)
 
 	# Assert: Should resolve to grandparent (two levels up)
-	assert_object(resolved).append_failure_message(
-		"NodePath('../..') should resolve to grandparent. Got: %s, Expected: %s" %
-		[GBDiagnostics.format_node_label(resolved), grandparent.name]
-	).is_same(grandparent)
+	(
+		assert_object(resolved)
+		. append_failure_message(
+			(
+				"NodePath('../..') should resolve to grandparent. Got: %s, Expected: %s"
+				% [GBDiagnostics.format_node_label(resolved), grandparent.name]
+			)
+		)
+		. is_same(grandparent)
+	)
 
-	assert_str(resolved.name).append_failure_message(
-		"Resolved node should be GrandParent"
-	).is_equal("GrandParent")
+	(
+		assert_str(resolved.name)
+		. append_failure_message("Resolved node should be GrandParent")
+		. is_equal("GrandParent")
+	)
 
 
 func test_nodepath_metadata_with_absolute_path() -> void:
@@ -300,10 +347,16 @@ func test_nodepath_metadata_with_absolute_path() -> void:
 	var resolved: Node2D = GBMetadataResolver.resolve_root_node(collision_area)
 
 	# Assert: Should resolve to root_node via absolute path
-	assert_object(resolved).append_failure_message(
-		"Absolute NodePath should resolve correctly. Got: %s" %
-		GBDiagnostics.format_node_label(resolved)
-	).is_same(root_node)
+	(
+		assert_object(resolved)
+		. append_failure_message(
+			(
+				"Absolute NodePath should resolve correctly. Got: %s"
+				% GBDiagnostics.format_node_label(resolved)
+			)
+		)
+		. is_same(root_node)
+	)
 
 
 func test_nodepath_metadata_with_invalid_path() -> void:
@@ -322,10 +375,16 @@ func test_nodepath_metadata_with_invalid_path() -> void:
 	var resolved: Node2D = GBMetadataResolver.resolve_root_node(collision_area)
 
 	# Assert: Should fallback to collision object when path invalid
-	assert_object(resolved).append_failure_message(
-		"Invalid NodePath should fallback to collision object. Got: %s" %
-		GBDiagnostics.format_node_label(resolved)
-	).is_same(collision_area)
+	(
+		assert_object(resolved)
+		. append_failure_message(
+			(
+				"Invalid NodePath should fallback to collision object. Got: %s"
+				% GBDiagnostics.format_node_label(resolved)
+			)
+		)
+		. is_same(collision_area)
+	)
 
 
 func test_nodepath_metadata_resolves_to_non_node2d() -> void:
@@ -348,10 +407,16 @@ func test_nodepath_metadata_resolves_to_non_node2d() -> void:
 	var resolved: Node2D = GBMetadataResolver.resolve_root_node(collision_area)
 
 	# Assert: Should fallback to collision object when resolved node is not Node2D
-	assert_object(resolved).append_failure_message(
-		"NodePath resolving to non-Node2D should fallback. Got: %s" %
-		GBDiagnostics.format_node_label(resolved)
-	).is_same(collision_area)
+	(
+		assert_object(resolved)
+		. append_failure_message(
+			(
+				"NodePath resolving to non-Node2D should fallback. Got: %s"
+				% GBDiagnostics.format_node_label(resolved)
+			)
+		)
+		. is_same(collision_area)
+	)
 
 
 func test_manipulatable_root_nodepath_configuration() -> void:
@@ -380,26 +445,38 @@ func test_manipulatable_root_nodepath_configuration() -> void:
 	var one_level_up_path: NodePath = NodePath("..")
 	var incorrectly_resolved: Node = manipulatable.get_node(one_level_up_path)
 
-	assert_object(incorrectly_resolved).append_failure_message(
-		"BUG DEMONSTRATION: NodePath('..') only resolves to Area2D, not scene root!"
-	).is_same(collision_area)  # ← This shows the BUG in smithy.tscn!
+	(
+		assert_object(incorrectly_resolved)
+		. append_failure_message(
+			"BUG DEMONSTRATION: NodePath('..') only resolves to Area2D, not scene root!"
+		)
+		. is_same(collision_area)
+	)  # ← This shows the BUG in smithy.tscn!
 
 	# Test CORRECT configuration: NodePath("../..") reaches scene root
 	var two_levels_up_path: NodePath = NodePath("../..")
 	var correctly_resolved: Node = manipulatable.get_node(two_levels_up_path)
 
-	assert_object(correctly_resolved).append_failure_message(
-		"CORRECT: NodePath('../..') should resolve to scene root. Got: %s" %
-		GBDiagnostics.format_node_label(correctly_resolved)
-	).is_same(scene_root)
+	(
+		assert_object(correctly_resolved)
+		. append_failure_message(
+			(
+				"CORRECT: NodePath('../..') should resolve to scene root. Got: %s"
+				% GBDiagnostics.format_node_label(correctly_resolved)
+			)
+		)
+		. is_same(scene_root)
+	)
 
 	# Now assign the CORRECT root to Manipulatable
 	manipulatable.root = scene_root
 
 	# Verify Manipulatable now has correct root
-	assert_object(manipulatable.root).append_failure_message(
-		"Manipulatable.root should be scene root after correct assignment"
-	).is_same(scene_root)
+	(
+		assert_object(manipulatable.root)
+		. append_failure_message("Manipulatable.root should be scene root after correct assignment")
+		. is_same(scene_root)
+	)
 
 
 ## Tests display name resolution priority chain
@@ -416,12 +493,60 @@ func test_display_name_resolution_priority_chain(
 	p_description: String = "",
 	test_parameters := [
 		# [priority_level, expected_name, has_method, has_property, has_metadata, node_name, description]
-		["method", "MethodDisplayName", true, true, true, "NodeName", "Method has highest priority"],
-		["property", "PropertyDisplayName", false, true, true, "NodeName", "Property is priority 2"],
-		["metadata_string", "MetadataDisplayName", false, false, true, "NodeName", "Metadata string is priority 3"],
-		["metadata_stringname", "StringNameDisplayName", false, false, true, "NodeName", "StringName metadata works"],
-		["node_name", "FallbackNodeName", false, false, false, "FallbackNodeName", "Node name is priority 4"],
-		["empty_strings", "ActualNodeName", false, false, false, "ActualNodeName", "Empty strings are skipped"],
+		[
+			"method",
+			"MethodDisplayName",
+			true,
+			true,
+			true,
+			"NodeName",
+			"Method has highest priority"
+		],
+		[
+			"property",
+			"PropertyDisplayName",
+			false,
+			true,
+			true,
+			"NodeName",
+			"Property is priority 2"
+		],
+		[
+			"metadata_string",
+			"MetadataDisplayName",
+			false,
+			false,
+			true,
+			"NodeName",
+			"Metadata string is priority 3"
+		],
+		[
+			"metadata_stringname",
+			"StringNameDisplayName",
+			false,
+			false,
+			true,
+			"NodeName",
+			"StringName metadata works"
+		],
+		[
+			"node_name",
+			"FallbackNodeName",
+			false,
+			false,
+			false,
+			"FallbackNodeName",
+			"Node name is priority 4"
+		],
+		[
+			"empty_strings",
+			"ActualNodeName",
+			false,
+			false,
+			false,
+			"ActualNodeName",
+			"Empty strings are skipped"
+		],
 	]
 ) -> void:
 	# Build script dynamically based on parameters
@@ -429,16 +554,16 @@ func test_display_name_resolution_priority_chain(
 
 	if p_has_property:
 		if p_priority_level == "empty_strings":
-			script_source += "var display_name: String = \"\"\n"  # Empty property
+			script_source += 'var display_name: String = ""\n'  # Empty property
 		else:
-			script_source += "var display_name: String = \"PropertyDisplayName\"\n"
+			script_source += 'var display_name: String = "PropertyDisplayName"\n'
 
 	if p_has_method:
 		script_source += "func get_display_name() -> String:\n"
 		if p_priority_level == "empty_strings":
-			script_source += "\treturn \"\"\n"  # Empty method
+			script_source += '\treturn ""\n'  # Empty method
 		else:
-			script_source += "\treturn \"MethodDisplayName\"\n"
+			script_source += '\treturn "MethodDisplayName"\n'
 
 	# Create node with script
 	var test_node: Node2D = auto_free(Node2D.new())
@@ -482,6 +607,7 @@ func test_display_name_resolution_null_fallback() -> void:
 
 #region MANIPULATABLE HIERARCHY INDEPENDENCE TESTS
 
+
 func test_manipulatable_under_scene_root_with_collision_on_child() -> void:
 	## Tests that Manipulatable works when placed under scene root
 	## with collision object as a sibling (separate child of root)
@@ -513,11 +639,19 @@ func test_manipulatable_under_scene_root_with_collision_on_child() -> void:
 	var resolved: Node2D = GBMetadataResolver.resolve_root_node(collision_body)
 
 	# Assert: Should find Manipulatable and return scene root
-	assert_object(resolved).append_failure_message(
-		"Should resolve to SceneRoot via Manipulatable sibling search. " +
-		"Got: %s, Expected: %s (SceneRoot)" %
-		[GBDiagnostics.format_node_label(resolved), scene_root.name]
-	).is_same(scene_root)
+	(
+		assert_object(resolved)
+		. append_failure_message(
+			(
+				"Should resolve to SceneRoot via Manipulatable sibling search. "
+				+ (
+					"Got: %s, Expected: %s (SceneRoot)"
+					% [GBDiagnostics.format_node_label(resolved), scene_root.name]
+				)
+			)
+		)
+		. is_same(scene_root)
+	)
 
 
 func test_manipulatable_under_area2d_with_collision_on_sibling() -> void:
@@ -561,11 +695,19 @@ func test_manipulatable_under_area2d_with_collision_on_sibling() -> void:
 	var resolved: Node2D = GBMetadataResolver.resolve_root_node(collision_body)
 
 	# Assert: Should find Manipulatable in scene tree and return scene root
-	assert_object(resolved).append_failure_message(
-		"Should resolve to SceneRoot via scene tree search for Manipulatable. " +
-		"Got: %s, Expected: %s (SceneRoot)" %
-		[GBDiagnostics.format_node_label(resolved), scene_root.name]
-	).is_same(scene_root)
+	(
+		assert_object(resolved)
+		. append_failure_message(
+			(
+				"Should resolve to SceneRoot via scene tree search for Manipulatable. "
+				+ (
+					"Got: %s, Expected: %s (SceneRoot)"
+					% [GBDiagnostics.format_node_label(resolved), scene_root.name]
+				)
+			)
+		)
+		. is_same(scene_root)
+	)
 
 
 func test_manipulatable_under_collision_object_still_works() -> void:
@@ -597,11 +739,19 @@ func test_manipulatable_under_collision_object_still_works() -> void:
 	var resolved: Node2D = GBMetadataResolver.resolve_root_node(collision_body)
 
 	# Assert: Should find Manipulatable as child and return scene root
-	assert_object(resolved).append_failure_message(
-		"Should resolve to SceneRoot via child search (existing behavior). " +
-		"Got: %s, Expected: %s (SceneRoot)" %
-		[GBDiagnostics.format_node_label(resolved), scene_root.name]
-	).is_same(scene_root)
+	(
+		assert_object(resolved)
+		. append_failure_message(
+			(
+				"Should resolve to SceneRoot via child search (existing behavior). "
+				+ (
+					"Got: %s, Expected: %s (SceneRoot)"
+					% [GBDiagnostics.format_node_label(resolved), scene_root.name]
+				)
+			)
+		)
+		. is_same(scene_root)
+	)
 
 
 func test_manipulatable_deep_in_hierarchy_found_via_tree_search() -> void:
@@ -644,10 +794,18 @@ func test_manipulatable_deep_in_hierarchy_found_via_tree_search() -> void:
 	var resolved: Node2D = GBMetadataResolver.resolve_root_node(collision_body)
 
 	# Assert: Should find Manipulatable anywhere in scene tree
-	assert_object(resolved).append_failure_message(
-		"Should find Manipulatable via scene tree search, even when deeply nested. " +
-		"Got: %s, Expected: %s (SceneRoot)" %
-		[GBDiagnostics.format_node_label(resolved), scene_root.name]
-	).is_same(scene_root)
+	(
+		assert_object(resolved)
+		. append_failure_message(
+			(
+				"Should find Manipulatable via scene tree search, even when deeply nested. "
+				+ (
+					"Got: %s, Expected: %s (SceneRoot)"
+					% [GBDiagnostics.format_node_label(resolved), scene_root.name]
+				)
+			)
+		)
+		. is_same(scene_root)
+	)
 
 #endregion

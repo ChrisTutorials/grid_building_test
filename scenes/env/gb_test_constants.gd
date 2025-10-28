@@ -7,12 +7,7 @@ extends RefCounted
 
 #region Environment Types
 ## Enum for environment types to avoid string-based matching
-enum EnvironmentType {
-	ALL_SYSTEMS,
-	BUILDING_TEST,
-	COLLISION_TEST,
-	ISOMETRIC_TEST
-}
+enum EnvironmentType { ALL_SYSTEMS, BUILDING_TEST, COLLISION_TEST, ISOMETRIC_TEST }
 #endregion
 
 #region Environment Scene UIDs
@@ -61,10 +56,12 @@ const TEST_PATH_TEST_ISOLATION_HELPER := "res://test/helpers/gb_test_isolation.g
 
 #endregion
 ## Demo scenes used by demo tests
-static var TEST_DEMO_ISOMETRIC: PackedScene = preload("res://demos/isometric/demo_isometric_2d.tscn")
+static var TEST_DEMO_ISOMETRIC: PackedScene = preload(
+	"res://demos/isometric/demo_isometric_2d.tscn"
+)
 #region Placement Rules
 
-const COLLISIONS_CHECK_RULE : CollisionsCheckRule = preload("uid://du7xu07247202")
+const COLLISIONS_CHECK_RULE: CollisionsCheckRule = preload("uid://du7xu07247202")
 
 #endregion
 #region Test Object Scene UIDs
@@ -83,7 +80,7 @@ const PILLAR_UID: String = "uid://enlg28ry7lxk"
 const ELLIPSE_UID: String = "uid://j5837ml5dduu"
 
 ## Eclipse test scene (alias for ellipse) - uses ELLIPSE_UID constant
-static var eclipse_scene : PackedScene = preload(ELLIPSE_UID)
+static var eclipse_scene: PackedScene = preload(ELLIPSE_UID)
 
 #endregion
 #region Placeables
@@ -92,13 +89,15 @@ static var eclipse_scene : PackedScene = preload(ELLIPSE_UID)
 const PLACEABLE_SMITHY: Placeable = preload("uid://dirh6mcrgdm3w")
 
 ## Good placeable test for polygon
-const PLACEABLE_TRAPEZOID : Placeable = preload("uid://c8i072rgno71t")
+const PLACEABLE_TRAPEZOID: Placeable = preload("uid://c8i072rgno71t")
 
 ## Small 2D test placeable (single tile) - IMPORTANT: has no CollisionObject2D so will not collide with anything.
 const PLACEABLE_NO_COL_TEST_2D: Placeable = preload("uid://jgmywi04ib7c")
 
 ## Small rectangular test placeable (4x2 tiles - 64x32 px)
-const PLACEABLE_RECT_4X2: Placeable = preload("res://test/grid_building_test/resources/placeable/test_placeable_rect_4x2.tres")
+const PLACEABLE_RECT_4X2: Placeable = preload(
+	"res://test/grid_building_test/resources/placeable/test_placeable_rect_4x2.tres"
+)
 
 ## Top-down demo pillar placeable - used for rotation indicator testing
 const PLACEABLE_PILLAR_TD: Placeable = preload("uid://dratv0oi76yl5")
@@ -129,16 +128,20 @@ const SCRIPT_KEEP_SCENE_PATH: String = "res://test/grid_building_test/scenes/obj
 #region Test Indicators
 
 ## Top down platformer square indicator for placement rule testing
-static var TEST_INDICATOR_TD_PLATFORMER : PackedScene = preload("uid://dhox8mb8kuaxa")
+static var TEST_INDICATOR_TD_PLATFORMER: PackedScene = preload("uid://dhox8mb8kuaxa")
 
 ## Isometric indicator for placement rule testing
-static var TEST_INDICATOR_ISOMETRIC : PackedScene = preload("uid://bas7hdwotyoiy")
+static var TEST_INDICATOR_ISOMETRIC: PackedScene = preload("uid://bas7hdwotyoiy")
 
 ## Small 16x16 rule-check indicator template used by many unit tests
-static var TEST_INDICATOR_16X16: PackedScene = preload("res://templates/grid_building_templates/indicator/rule_check_indicator_16x16.tscn")
+static var TEST_INDICATOR_16X16: PackedScene = preload(
+	"res://templates/grid_building_templates/indicator/rule_check_indicator_16x16.tscn"
+)
 
 # Gigantic egg scene and placeable central constants
-static var GIGANTIC_EGG_SCENE: PackedScene = preload("res://test/grid_building_test/scenes/objects/test_gigantic_egg.tscn")
+static var GIGANTIC_EGG_SCENE: PackedScene = preload(
+	"res://test/grid_building_test/scenes/objects/test_gigantic_egg.tscn"
+)
 static var GIGANTIC_EGG_PLACEABLE: Placeable = preload("uid://cier8t1gci00a")
 
 # Commonly-used scripts
@@ -178,7 +181,7 @@ const TEST_COLLISION_MASK: int = 1
 const TEST_COMPOSITION_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
 
 ## Default isometric composition container for isometric-game specific tests
-const ISO_COMPOSITION_CONTAINER : GBCompositionContainer = preload("uid://kxdod6rj5icx")
+const ISO_COMPOSITION_CONTAINER: GBCompositionContainer = preload("uid://kxdod6rj5icx")
 
 #endregion
 #region Cardinal Rotation Angles
@@ -209,13 +212,16 @@ const DEFAULT_TEST_POSITION: Vector2 = Vector2(320, 320)
 #region Test Tile Maps and Sets
 
 ## Buildable tile map layer for testing
-static var TEST_TILE_MAP_LAYER_BUILDABLE : PackedScene = preload("res://test/grid_building_test/scenes/tile_map/TEST_buildable_31x31_tile_map.tscn")
+static var TEST_TILE_MAP_LAYER_BUILDABLE: PackedScene = preload(
+	"res://test/grid_building_test/scenes/tile_map/TEST_buildable_31x31_tile_map.tscn"
+)
 
 ## Tileset with "type", "color", "height" custom data properties for tiles
-static var TEST_CUSTOM_DATA_TILE_SET : TileSet = preload("uid://b0shp63l248fm")
+static var TEST_CUSTOM_DATA_TILE_SET: TileSet = preload("uid://b0shp63l248fm")
 
 #endregion
 ## Static methods for validating test constants and scenes
+
 
 ## Validate that all environment scenes exist and can be loaded
 static func validate_environment_scenes() -> Array[String]:
@@ -230,6 +236,7 @@ static func validate_environment_scenes() -> Array[String]:
 			issues.append("All Systems environment scene not found: " + ALL_SYSTEMS_ENV_PATH)
 
 	return issues
+
 
 ## Get the best available scene reference (UID first, then path fallback)
 static func get_environment_scene(environment_type: EnvironmentType) -> PackedScene:
@@ -255,31 +262,50 @@ static func get_environment_scene(environment_type: EnvironmentType) -> PackedSc
 
 	return scene
 
+
 ## Returns an array of test placeables for use as test parameters
 static func get_placeables() -> Array[Placeable]:
-	var placeables : Array[Placeable] = [
-		PLACEABLE_SMITHY,
-		PLACEABLE_TRAPEZOID
-	]
+	var placeables: Array[Placeable] = [PLACEABLE_SMITHY, PLACEABLE_TRAPEZOID]
 	return placeables
+
 
 ## Check if a test object scene exists
 static func validate_test_object_scene(object_uid: String) -> bool:
 	var scene := load(object_uid)
 	return scene != null
 
+
 ## Assert that the tile map in the given environment has the expected number of tiles
 ## test_suite: The GdUnitTestSuite instance for making assertions
 ## environment: The test environment containing the tile map
 ## expected_width: Expected width of the tile grid
 ## expected_height: Expected height of the tile grid
-static func assert_tile_map_size(test_suite: GdUnitTestSuite, environment: GBTestEnvironment, expected_width: int, expected_height: int) -> void:
+static func assert_tile_map_size(
+	test_suite: GdUnitTestSuite,
+	environment: GBTestEnvironment,
+	expected_width: int,
+	expected_height: int
+) -> void:
 	var expected_count: int = expected_width * expected_height
-	
-	test_suite.assert_object(environment.tile_map_layer).append_failure_message("Tile map layer should be available").is_not_null()
-	test_suite.assert_int(environment.get_tile_count()).append_failure_message(
-		"Tile map should have expected number of tiles for %dx%d grid (%d tiles)" % [expected_width, expected_height, expected_count]
-	).is_equal(expected_count)
+
+	(
+		test_suite
+		. assert_object(environment.tile_map_layer)
+		. append_failure_message("Tile map layer should be available")
+		. is_not_null()
+	)
+	(
+		test_suite
+		. assert_int(environment.get_tile_count())
+		. append_failure_message(
+			(
+				"Tile map should have expected number of tiles for %dx%d grid (%d tiles)"
+				% [expected_width, expected_height, expected_count]
+			)
+		)
+		. is_equal(expected_count)
+	)
+
 
 ## Duplicate a GBCompositionContainer for safe modification in tests.
 ##
@@ -297,7 +323,7 @@ static func duplicate_container(container: GBCompositionContainer) -> GBComposit
 	if container == null:
 		push_error("GBTestConstants.duplicate_container: Cannot duplicate null container")
 		return null
-	
+
 	# Use Godot's built-in duplicate() with DUPLICATE_USE_INSTANTIATION flag
 	# This creates a deep copy including all sub-resources
 	return container.duplicate(true) as GBCompositionContainer

@@ -51,14 +51,17 @@ var _test_env: AllSystemsTestEnvironment
 var _service: IndicatorService
 var _indicators_parent: Node2D
 
+
 func before_test() -> void:
 	# Setup for comprehensive tests using CollisionTestEnvironment
 	runner = scene_runner(GBTestConstants.COLLISION_TEST_ENV_UID)
 	env = runner.scene() as CollisionTestEnvironment
 
-	assert_object(env).append_failure_message(
-		"Failed to load CollisionTestEnvironment scene"
-	).is_not_null()
+	(
+		assert_object(env)
+		. append_failure_message("Failed to load CollisionTestEnvironment scene")
+		. is_not_null()
+	)
 
 	test_container = env.container
 
@@ -67,25 +70,34 @@ func before_test() -> void:
 	_setup_test_environment()
 	_create_indicators_parent()
 
+
 func after_test() -> void:
 	# Cleanup handled by auto_free in factory methods
 	_cleanup_test_environment()
 
+
 #endregion
 #region Helper Methods
 
+
 func _setup_test_environment() -> void:
-	var env_scene: PackedScene = GBTestConstants.get_environment_scene(GBTestConstants.EnvironmentType.ALL_SYSTEMS)
-	assert_that(env_scene).is_not_null().append_failure_message("Failed to load test environment scene")
+	var env_scene: PackedScene = GBTestConstants.get_environment_scene(
+		GBTestConstants.EnvironmentType.ALL_SYSTEMS
+	)
+	assert_that(env_scene).is_not_null().append_failure_message(
+		"Failed to load test environment scene"
+	)
 
 	_test_env = env_scene.instantiate()
 	add_child(_test_env)
 	auto_free(_test_env)
 
+
 func _create_indicators_parent() -> void:
 	_indicators_parent = Node2D.new()
 	add_child(_indicators_parent)
 	auto_free(_indicators_parent)
+
 
 func _cleanup_test_environment() -> void:
 	if _service:
@@ -93,10 +105,12 @@ func _cleanup_test_environment() -> void:
 	if _indicators_parent:
 		_indicators_parent = null
 
+
 func _create_test_service() -> IndicatorService:
 	var gts: GridTargetingState = _test_env.grid_targeting_system.get_state()
 	var template: PackedScene = GBTestConstants.TEST_INDICATOR_TD_PLATFORMER
 	return IndicatorService.new(_indicators_parent, gts, template, _logger)
+
 
 func _create_test_indicator(shape_type: String, shape_data: Dictionary) -> RuleCheckIndicator:
 	var indicator: RuleCheckIndicator = RuleCheckIndicator.new()
@@ -121,8 +135,10 @@ func _create_test_indicator(shape_type: String, shape_data: Dictionary) -> RuleC
 
 	return indicator
 
+
 #endregion
 #region Indicator Factory Tests
+
 
 # Test catches: IndicatorFactory failing to create indicators from valid position maps
 func test_indicator_factory_creates_indicators_from_position_map() -> void:
@@ -146,12 +162,27 @@ func test_indicator_factory_creates_indicators_from_position_map() -> void:
 	position_rules_map[Vector2i(0, 0)] = [rule]
 	position_rules_map[Vector2i(1, 0)] = [rule]
 
-	var indicators := IndicatorFactory.generate_indicators(position_rules_map, GBTestConstants.TEST_INDICATOR_TD_PLATFORMER, parent, test_container.get_states().targeting, test_object)
-	assert_that(indicators.size() == 2).append_failure_message("Expected 2 indicators for 2 positions in map").is_true()
+	var indicators := IndicatorFactory.generate_indicators(
+		position_rules_map,
+		GBTestConstants.TEST_INDICATOR_TD_PLATFORMER,
+		parent,
+		test_container.get_states().targeting,
+		test_object
+	)
+	(
+		assert_that(indicators.size() == 2)
+		. append_failure_message("Expected 2 indicators for 2 positions in map")
+		. is_true()
+	)
 
 	# Verify indicators have rules assigned
 	for indicator in indicators:
-		assert_that(indicator.get_rules().size() > 0).append_failure_message("Expected indicators to have rules assigned").is_true()
+		(
+			assert_that(indicator.get_rules().size() > 0)
+			. append_failure_message("Expected indicators to have rules assigned")
+			. is_true()
+		)
+
 
 # Test catches: IndicatorFactory handling empty position maps gracefully
 func test_indicator_factory_handles_empty_position_map() -> void:
@@ -168,38 +199,61 @@ func test_indicator_factory_handles_empty_position_map() -> void:
 	add_child(test_object)
 
 	var empty_map: Dictionary[Vector2i, Array] = {}
-	var indicators := IndicatorFactory.generate_indicators(empty_map, GBTestConstants.TEST_INDICATOR_TD_PLATFORMER, parent, test_container.get_states().targeting, test_object)
+	var indicators := IndicatorFactory.generate_indicators(
+		empty_map,
+		GBTestConstants.TEST_INDICATOR_TD_PLATFORMER,
+		parent,
+		test_container.get_states().targeting,
+		test_object
+	)
 
-	assert_that(indicators.size() == 0).append_failure_message("Expected 0 indicators for empty position map").is_true()
+	(
+		assert_that(indicators.size() == 0)
+		. append_failure_message("Expected 0 indicators for empty position map")
+		. is_true()
+	)
+
 
 #endregion
 #region RULE CHECK INDICATOR TESTS
 
 # Test basic indicator setup and configuration
 @warning_ignore("unused_parameter")
-func test_indicator_basic_setup(shape_type: String, shape_data: Dictionary, test_parameters := [
+func test_indicator_basic_setup(
+	shape_type: String,
+	shape_data: Dictionary,
+	test_parameters := [
 		["rectangle", {"size": Vector2(16, 16)}],
 		["circle", {"radius": 8.0}],
 		["rectangle_large", {"size": Vector2(32, 32)}],
 		["rectangle_tiny", {"size": Vector2(1, 1)}]
-]) -> void:
+	]
+) -> void:
 	var indicator: RuleCheckIndicator = _create_test_indicator(shape_type, shape_data)
 
 	# Verify basic setup
-	assert_object(indicator).append_failure_message(
-		"Indicator should be created for shape type: %s" % shape_type
-	).is_not_null()
+	(
+		assert_object(indicator)
+		. append_failure_message("Indicator should be created for shape type: %s" % shape_type)
+		. is_not_null()
+	)
 
-	assert_object(indicator.shape).append_failure_message(
-		"Indicator shape should be set for type: %s" % shape_type
-	).is_not_null()
+	(
+		assert_object(indicator.shape)
+		. append_failure_message("Indicator shape should be set for type: %s" % shape_type)
+		. is_not_null()
+	)
 
-	assert_vector(indicator.global_position).append_failure_message(
-		"Indicator should have zero global position initially"
-	).is_equal(Vector2.ZERO)
+	(
+		assert_vector(indicator.global_position)
+		. append_failure_message("Indicator should have zero global position initially")
+		. is_equal(Vector2.ZERO)
+	)
+
 
 #endregion
 #region INDICATOR SERVICE TESTS
+
 
 func test_indicator_service_setup_with_collision_shapes() -> void:
 	_service = _create_test_service()
@@ -238,6 +292,7 @@ func test_indicator_service_setup_with_collision_shapes() -> void:
 		"Should create indicators for collision shapes. Diagnostics:\n  %s" % "\n  ".join(diag)
 	)
 
+
 func test_indicator_service_handles_missing_collision_shapes() -> void:
 	_service = _create_test_service()
 
@@ -257,7 +312,9 @@ func test_indicator_service_handles_missing_collision_shapes() -> void:
 		"Should create no indicators when no collision shapes"
 	)
 
+
 # ===== COORDINATE TRANSFORMATION TESTS =====
+
 
 func test_coordinate_transformation_tile_to_world() -> void:
 	var tile_coords := Vector2i(5, 3)
@@ -268,11 +325,14 @@ func test_coordinate_transformation_tile_to_world() -> void:
 	var expected_world_pos := tilemap_position + Vector2(tile_coords) * tile_size
 
 	# Test the transformation (this would be in the actual coordinate transformation logic)
-	var world_pos := tilemap_position + Vector2(tile_coords.x * tile_size.x, tile_coords.y * tile_size.y)
+	var world_pos := (
+		tilemap_position + Vector2(tile_coords.x * tile_size.x, tile_coords.y * tile_size.y)
+	)
 
 	assert_vector(world_pos).is_equal(expected_world_pos).append_failure_message(
 		"Tile to world coordinate transformation should be correct"
 	)
+
 
 func test_coordinate_transformation_world_to_tile() -> void:
 	var world_pos := Vector2(164, 146)  # Should map to tile (2, 3) with tilemap at (100, 50) and 32px tiles
@@ -289,21 +349,25 @@ func test_coordinate_transformation_world_to_tile() -> void:
 		"World to tile coordinate transformation should be correct"
 	)
 
+
 # ===== POLYGON INDICATOR TESTS =====
+
 
 func test_polygon_indicator_concave_shape_handling() -> void:
 	# Create a concave polygon shape
 	var polygon_shape := ConcavePolygonShape2D.new()
 
 	# Define a concave polygon (bowtie shape)
-	var points := PackedVector2Array([
-		Vector2(0, 0),
-		Vector2(10, 0),
-		Vector2(5, 5),  # Concave point
-		Vector2(10, 10),
-		Vector2(0, 10),
-		Vector2(5, 5)   # Back to concave point
-	])
+	var points := PackedVector2Array(
+		[
+			Vector2(0, 0),
+			Vector2(10, 0),
+			Vector2(5, 5),  # Concave point
+			Vector2(10, 10),
+			Vector2(0, 10),
+			Vector2(5, 5)  # Back to concave point
+		]
+	)
 
 	polygon_shape.segments = points
 
@@ -334,10 +398,15 @@ func test_polygon_indicator_concave_shape_handling() -> void:
 
 	# Should handle concave shapes without crashing
 	assert_bool(result.has_issues()).is_false().append_failure_message(
-		"Should handle concave polygon shapes without issues. Diagnostics:\n  %s" % "\n  ".join(diag)
+		(
+			"Should handle concave polygon shapes without issues. Diagnostics:\n  %s"
+			% "\n  ".join(diag)
+		)
 	)
 
+
 # ===== POSITIONING INTEGRATION TESTS =====
+
 
 func test_positioning_integration_with_tilemap() -> void:
 	var tilemap := TileMapLayer.new()
@@ -386,10 +455,15 @@ func test_positioning_integration_with_tilemap() -> void:
 	diag.append("Tilemap Cells: %d" % tilemap.get_used_cells().size())
 
 	assert_that(result.indicators.size()).is_greater(0).append_failure_message(
-		"Should create indicators when positioned over tilemap tiles. Diagnostics:\n  %s" % "\n  ".join(diag)
+		(
+			"Should create indicators when positioned over tilemap tiles. Diagnostics:\n  %s"
+			% "\n  ".join(diag)
+		)
 	)
 
+
 # ===== REGRESSION TESTS =====
+
 
 func test_indicator_positioning_regression_tile_alignment() -> void:
 	var test_object := StaticBody2D.new()
@@ -423,7 +497,10 @@ func test_indicator_positioning_regression_tile_alignment() -> void:
 	diag.append("Service Indicators: %d" % _service._indicators.size())
 
 	assert_that(result.indicators.size()).is_greater(0).append_failure_message(
-		"Should create indicators for circle shape at tile center. Diagnostics:\n  %s" % "\n  ".join(diag)
+		(
+			"Should create indicators for circle shape at tile center. Diagnostics:\n  %s"
+			% "\n  ".join(diag)
+		)
 	)
 
 	# Verify indicators are positioned correctly (not at origin)
@@ -432,7 +509,9 @@ func test_indicator_positioning_regression_tile_alignment() -> void:
 			"Indicators should not be positioned at origin"
 		)
 
+
 # ===== GRID TARGETING STATE DEBUG TESTS =====
+
 
 func test_grid_targeting_state_debug_functionality() -> void:
 	var targeting_state := _test_env.grid_targeting_system.get_state()
@@ -457,6 +536,7 @@ func test_grid_targeting_state_debug_functionality() -> void:
 		"Targeting state should return the assigned target"
 	)
 
+
 # ===== INDICATOR RECONCILE TESTS =====
 
 # Note: IndicatorReconcile functionality is tested through IndicatorService integration
@@ -467,15 +547,12 @@ func test_grid_targeting_state_debug_functionality() -> void:
 
 # ===== POLYGON OVERLAP THRESHOLD TESTS =====
 
+
 func test_polygon_overlap_threshold_calculation() -> void:
 	var polygon_shape := ConvexPolygonShape2D.new()
 
 	# Create a triangle
-	var points := PackedVector2Array([
-		Vector2(0, 0),
-		Vector2(10, 0),
-		Vector2(5, 10)
-	])
+	var points := PackedVector2Array([Vector2(0, 0), Vector2(10, 0), Vector2(5, 10)])
 	polygon_shape.points = points
 
 	var collision_shape := CollisionShape2D.new()
@@ -512,7 +589,9 @@ func test_polygon_overlap_threshold_calculation() -> void:
 		"Should not create excessive indicators for small polygon"
 	)
 
+
 # ===== SIMPLE BOX INDICATOR REGRESSION TESTS =====
+
 
 func test_simple_box_indicator_regression() -> void:
 	var test_object := StaticBody2D.new()
@@ -544,10 +623,16 @@ func test_simple_box_indicator_regression() -> void:
 	diag.append("Service Indicators: %d" % _service._indicators.size())
 
 	assert_that(result.indicators.size()).is_greater(0).append_failure_message(
-		"Should create indicators for rectangular collision shapes. Diagnostics:\n  %s" % "\n  ".join(diag)
+		(
+			"Should create indicators for rectangular collision shapes. Diagnostics:\n  %s"
+			% "\n  ".join(diag)
+		)
 	)
 
 	# For a 16x16 rectangle centered at origin, indicators should cover multiple tiles (at least 1, likely 4)
 	assert_that(result.indicators.size()).is_greater_equal(1).append_failure_message(
-		"16x16 rectangle should create at least 1 indicator (got %d). Diagnostics:\n  %s" % [result.indicators.size(), "\n  ".join(diag)]
+		(
+			"16x16 rectangle should create at least 1 indicator (got %d). Diagnostics:\n  %s"
+			% [result.indicators.size(), "\n  ".join(diag)]
+		)
 	)
