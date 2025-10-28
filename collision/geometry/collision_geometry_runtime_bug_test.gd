@@ -13,6 +13,8 @@ func after_test() -> void:
 
 ## Test the exact runtime trapezoid issue in isolation
 func test_runtime_trapezoid_collision_calculation_bug() -> void:
+	var diag: PackedStringArray = PackedStringArray()
+
 	# These are the EXACT values from the runtime that are failing
 	var runtime_trapezoid: PackedVector2Array = PackedVector2Array([
 		Vector2(-32, 12),
@@ -29,41 +31,41 @@ func test_runtime_trapezoid_collision_calculation_bug() -> void:
 		int(runtime_position.y / tile_size.y)
 	)
 
-	GBTestDiagnostics.buffer("[BUG_REPRODUCTION] === RUNTIME TRAPEZOID CALCULATION BUG ===")
-	GBTestDiagnostics.buffer("[BUG_REPRODUCTION] Trapezoid polygon: %s" % [str(runtime_trapezoid)])
-	GBTestDiagnostics.buffer("[BUG_REPRODUCTION] Position: %s" % [str(runtime_position)])
-	GBTestDiagnostics.buffer("[BUG_REPRODUCTION] Tile size: %s" % [str(tile_size)])
-	GBTestDiagnostics.buffer("[BUG_REPRODUCTION] Center tile: %s" % [str(center_tile)])
+	diag.append("[BUG_REPRODUCTION] === RUNTIME TRAPEZOID CALCULATION BUG ===")
+	diag.append("[BUG_REPRODUCTION] Trapezoid polygon: %s" % [str(runtime_trapezoid)])
+	diag.append("[BUG_REPRODUCTION] Position: %s" % [str(runtime_position)])
+	diag.append("[BUG_REPRODUCTION] Tile size: %s" % [str(tile_size)])
+	diag.append("[BUG_REPRODUCTION] Center tile: %s" % [str(center_tile)])
 
 	# This is the call that's failing in the runtime integration - FIXED parameter order
 	var tile_offsets: Array[Vector2i] = CollisionGeometryUtils.compute_polygon_tile_offsets(
 		runtime_trapezoid, tile_size, center_tile
 	)
 
-	GBTestDiagnostics.buffer("[BUG_REPRODUCTION] Calculated tile offsets: %s" % [str(tile_offsets)])
-	GBTestDiagnostics.buffer("[BUG_REPRODUCTION] Number of offsets: %d" % [tile_offsets.size()])
+	diag.append("[BUG_REPRODUCTION] Calculated tile offsets: %s" % [str(tile_offsets)])
+	diag.append("[BUG_REPRODUCTION] Number of offsets: %d" % [tile_offsets.size()])
 
 	# The bug: This should return > 0 tiles but currently returns 0
 	if tile_offsets.size() == 0:
-		GBTestDiagnostics.buffer("[BUG_REPRODUCTION] >>> BUG CONFIRMED: No tile offsets calculated!")
-		GBTestDiagnostics.buffer("[BUG_REPRODUCTION] >>> This explains why bottom corner indicators are missing")
+		diag.append("[BUG_REPRODUCTION] >>> BUG CONFIRMED: No tile offsets calculated!")
+		diag.append("[BUG_REPRODUCTION] >>> This explains why bottom corner indicators are missing")
 	else:
-		GBTestDiagnostics.buffer("[BUG_REPRODUCTION] >>> Tile offsets found, checking for missing extensions:")
+		diag.append("[BUG_REPRODUCTION] >>> Tile offsets found, checking for missing extensions:")
 		var expected_missing: Array[Vector2i] = [Vector2i(-2, 1), Vector2i(2, 1)]
 		for missing_tile in expected_missing:
 			if not tile_offsets.has(missing_tile):
-				GBTestDiagnostics.buffer("[BUG_REPRODUCTION] >>> Missing expected tile: %s" % [str(missing_tile)])
+				diag.append("[BUG_REPRODUCTION] >>> Missing expected tile: %s" % [str(missing_tile)])
 
 	# Let's also test with position at origin to see if it's a position offset issue
-	GBTestDiagnostics.buffer("[BUG_REPRODUCTION] Testing with origin position...")
+	diag.append("[BUG_REPRODUCTION] Testing with origin position...")
 	var origin_offsets: Array[Vector2i] = CollisionGeometryUtils.compute_polygon_tile_offsets(
 		runtime_trapezoid, tile_size, Vector2i.ZERO
 	)
-	GBTestDiagnostics.buffer("[BUG_REPRODUCTION] Origin position offsets: %s" % [str(origin_offsets)])
-	GBTestDiagnostics.buffer("[BUG_REPRODUCTION] Origin position count: %d" % [origin_offsets.size()])
+	diag.append("[BUG_REPRODUCTION] Origin position offsets: %s" % [str(origin_offsets)])
+	diag.append("[BUG_REPRODUCTION] Origin position count: %d" % [origin_offsets.size()])
 
 	# Test with different tile sizes
-	GBTestDiagnostics.buffer("[BUG_REPRODUCTION] Testing with different tile sizes...")
+	diag.append("[BUG_REPRODUCTION] Testing with different tile sizes...")
 	var different_tile_sizes: Array[Vector2] = [
 		Vector2(8, 8),    # Smaller tiles
 		Vector2(32, 32),  # Larger tiles
@@ -74,17 +76,18 @@ func test_runtime_trapezoid_collision_calculation_bug() -> void:
 		var size_test_offsets: Array[Vector2i] = CollisionGeometryUtils.compute_polygon_tile_offsets(
 			runtime_trapezoid, test_tile_size, Vector2i.ZERO
 		)
-		GBTestDiagnostics.buffer("[BUG_REPRODUCTION] Tile size %s: %d offsets" % [str(test_tile_size), size_test_offsets.size()])
+		diag.append("[BUG_REPRODUCTION] Tile size %s: %d offsets" % [str(test_tile_size), size_test_offsets.size()])
 
 	# This test should expose the root cause of the runtime issue
 	assert_int(tile_offsets.size()).append_failure_message(
 		"Runtime trapezoid should generate tile offsets but returned 0. " +
-		"This is the root cause of missing bottom corner indicators in the demo."
+		"This is the root cause of missing bottom corner indicators in the demo.\n\nDiagnostics:\n%s" % "\n".join(diag)
 	).is_greater(0)
 
 ## Test if the issue is coordinate system or transformation related
 func test_coordinate_system_analysis() -> void:
-	GBTestDiagnostics.buffer("[COORD_ANALYSIS] === COORDINATE SYSTEM ANALYSIS ===")
+	var diag: PackedStringArray = PackedStringArray()
+	diag.append("[COORD_ANALYSIS] === COORDINATE SYSTEM ANALYSIS ===")
 
 	# Test with the exact runtime trapezoid
 	var runtime_trapezoid: PackedVector2Array = PackedVector2Array([
@@ -110,7 +113,7 @@ func test_coordinate_system_analysis() -> void:
 		var offsets: Array[Vector2i] = CollisionGeometryUtils.compute_polygon_tile_offsets(
 			runtime_trapezoid, Vector2(16, 16), test_center_tile
 		)
-		GBTestDiagnostics.buffer("[COORD_ANALYSIS] Position %s: %d tiles" % [str(pos), offsets.size()])
+		diag.append("[COORD_ANALYSIS] Position %s: %d tiles" % [str(pos), offsets.size()])
 
 		if offsets.size() > 0:
 			# Find the bounds of calculated tiles
@@ -125,15 +128,18 @@ func test_coordinate_system_analysis() -> void:
 				min_y = min(min_y, offset.y)
 				max_y = max(max_y, offset.y)
 
-				GBTestDiagnostics.buffer("[COORD_ANALYSIS]   Tile bounds: x=[%d, %d], y=[%d, %d]" % [min_x, max_x, min_y, max_y])
-				GBTestDiagnostics.buffer("[COORD_ANALYSIS]   Expected missing tiles (-2,1), (2,1) in bounds? x_check=%s, y_check=%s" % [
-					str(min_x <= -2 and max_x >= 2),
-					str(min_y <= 1 and max_y >= 1)
-				])
+			diag.append("[COORD_ANALYSIS]   Tile bounds: x=[%d, %d], y=[%d, %d]" % [min_x, max_x, min_y, max_y])
+			diag.append("[COORD_ANALYSIS]   Expected missing tiles (-2,1), (2,1) in bounds? x_check=%s, y_check=%s" % [
+				str(min_x <= -2 and max_x >= 2),
+				str(min_y <= 1 and max_y >= 1)
+			])
+
+	assert_bool(true).append_failure_message("\n".join(diag)).is_true()
 
 ## Test if the issue is polygon winding or shape validity
 func test_polygon_validity_analysis() -> void:
-	GBTestDiagnostics.buffer("[POLYGON_ANALYSIS] === POLYGON VALIDITY ANALYSIS ===")
+	var diag: PackedStringArray = PackedStringArray()
+	diag.append("[POLYGON_ANALYSIS] === POLYGON VALIDITY ANALYSIS ===")
 
 	var runtime_trapezoid: PackedVector2Array = PackedVector2Array([
 		Vector2(-32, 12),
@@ -142,7 +148,7 @@ func test_polygon_validity_analysis() -> void:
 		Vector2(32, 12)
 	])
 
-	GBTestDiagnostics.buffer("[POLYGON_ANALYSIS] Polygon points: %s" % [str(runtime_trapezoid)])
+	diag.append("[POLYGON_ANALYSIS] Polygon points: %s" % [str(runtime_trapezoid)])
 
 	# Check polygon winding order
 	var area: float = 0.0
@@ -153,26 +159,26 @@ func test_polygon_validity_analysis() -> void:
 		area -= runtime_trapezoid[j].x * runtime_trapezoid[i].y
 	area /= 2.0
 
-	GBTestDiagnostics.buffer("[POLYGON_ANALYSIS] Polygon area: %f" % [area])
-	GBTestDiagnostics.buffer("[POLYGON_ANALYSIS] Winding order: %s" % [("counter-clockwise" if area > 0 else "clockwise")])
+	diag.append("[POLYGON_ANALYSIS] Polygon area: %f" % [area])
+	diag.append("[POLYGON_ANALYSIS] Winding order: %s" % [("counter-clockwise" if area > 0 else "clockwise")])
 
 	# Test if reversing winding fixes the issue
 	var reversed_trapezoid: PackedVector2Array = PackedVector2Array()
 	for i in range(runtime_trapezoid.size() - 1, -1, -1):
 		reversed_trapezoid.append(runtime_trapezoid[i])
 
-	GBTestDiagnostics.buffer("[POLYGON_ANALYSIS] Testing reversed winding: %s" % [str(reversed_trapezoid)])
+	diag.append("[POLYGON_ANALYSIS] Testing reversed winding: %s" % [str(reversed_trapezoid)])
 	var reversed_offsets: Array[Vector2i] = CollisionGeometryUtils.compute_polygon_tile_offsets(
 		reversed_trapezoid, Vector2(16, 16), Vector2i.ZERO
 	)
-	GBTestDiagnostics.buffer("[POLYGON_ANALYSIS] Reversed polygon offsets: %d tiles" % [reversed_offsets.size()])
+	diag.append("[POLYGON_ANALYSIS] Reversed polygon offsets: %d tiles" % [reversed_offsets.size()])
 
 	if reversed_offsets.size() > 0:
-		GBTestDiagnostics.buffer("[POLYGON_ANALYSIS] >>> WINDING ORDER ISSUE: Reversed polygon works!")
-		GBTestDiagnostics.buffer("[POLYGON_ANALYSIS] Reversed tiles: %s" % [str(reversed_offsets)])
+		diag.append("[POLYGON_ANALYSIS] >>> WINDING ORDER ISSUE: Reversed polygon works!")
+		diag.append("[POLYGON_ANALYSIS] Reversed tiles: %s" % [str(reversed_offsets)])
 
 	# Check if the polygon is self-intersecting or malformed
-	GBTestDiagnostics.buffer("[POLYGON_ANALYSIS] Checking polygon bounds...")
+	diag.append("[POLYGON_ANALYSIS] Checking polygon bounds...")
 	var min_x: float = runtime_trapezoid[0].x
 	var max_x: float = runtime_trapezoid[0].x
 	var min_y: float = runtime_trapezoid[0].y
@@ -184,17 +190,15 @@ func test_polygon_validity_analysis() -> void:
 		min_y = min(min_y, point.y)
 		max_y = max(max_y, point.y)
 
-	GBTestDiagnostics.buffer("[POLYGON_ANALYSIS] Polygon bounds: x=[%f, %f], y=[%f, %f]" % [min_x, max_x, min_y, max_y])
-	GBTestDiagnostics.buffer("[POLYGON_ANALYSIS] Polygon dimensions: %f x %f" % [max_x - min_x, max_y - min_y])
+	diag.append("[POLYGON_ANALYSIS] Polygon bounds: x=[%f, %f], y=[%f, %f]" % [min_x, max_x, min_y, max_y])
+	diag.append("[POLYGON_ANALYSIS] Polygon dimensions: %f x %f" % [max_x - min_x, max_y - min_y])
 
 	# Expected tile coverage with 16x16 tiles
 	var expected_tiles_x: int = int((max_x - min_x) / 16.0) + 1
 	var expected_tiles_y: int = int((max_y - min_y) / 16.0) + 1
-	GBTestDiagnostics.buffer("[POLYGON_ANALYSIS] Expected tile coverage: ~%d x %d = %d tiles" % [
+	diag.append("[POLYGON_ANALYSIS] Expected tile coverage: ~%d x %d = %d tiles" % [
 		expected_tiles_x, expected_tiles_y, expected_tiles_x * expected_tiles_y
 	])
 
-	# Ensure diagnostics are attached to failing assertions
-	assert_bool(true).append_failure_message(
-		GBTestDiagnostics.flush_for_assert().is_true()
-	)
+	# Diagnostics attached to assertion - safe to ignore the assert result
+	assert_bool(true).append_failure_message("\n".join(diag)).is_true()
