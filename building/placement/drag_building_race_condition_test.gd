@@ -319,11 +319,16 @@ func test_collision_state_synchronized_with_builds() -> void:
 			"success" if second_build_report.is_successful() else "failed"
 		]
 		# This test documents the issue - we expect this to happen (race condition exists)
-  assert_bool(race_detected)
-  	.append_failure_message( "Race condition test - documents that builds can occur in same physics frame before collision updates. %s" % diagnostic ) else: # Build waited for physics frame - good! This means fix is working var diagnostic := "Builds occurred in different physics frames: %d vs %d" % [pre_physics_frame, post_physics_frame] assert_bool(pre_physics_frame != post_physics_frame)
-  	.append_failure_message(diagnostic)
-  	.is_true()
-  	.is_true()
+		assert_bool(race_detected) \
+			.append_failure_message( \
+				"Race condition test - documents that builds can occur in same physics frame before collision updates. %s" % diagnostic \
+			)
+	else:
+		# Build waited for physics frame - good! This means fix is working
+		var diagnostic := "Builds occurred in different physics frames: %d vs %d" % [pre_physics_frame, post_physics_frame]
+		assert_bool(pre_physics_frame != post_physics_frame) \
+			.append_failure_message(diagnostic) \
+			.is_true()
 
 	_drag_manager.stop_drag()
 
@@ -366,8 +371,8 @@ func test_process_vs_physics_timing_analysis(
 
 	# Document the timing relationship - this test demonstrates the race condition exists
 	# In a real game, process calls can outpace physics frames, allowing multiple builds per physics update
-	assert_bool(process_calls > physics_frames)
-		.append_failure_message("Race condition window exists: %d process calls vs %d physics frames (ratio: %.2f). Multiple builds can occur per physics update!" % [process_calls, physics_frames, ratio])
+	assert_bool(process_calls > physics_frames) \
+		.append_failure_message("Race condition window exists: %d process calls vs %d physics frames (ratio: %.2f). Multiple builds can occur per physics update!" % [process_calls, physics_frames, ratio]) \
 		.is_true()
 
 	_drag_manager.stop_drag()
@@ -390,22 +395,56 @@ func test_drag_tile_deduplication_prevents_same_tile_rebuild() -> void:
 
 	var report: PlacementReport = _building_system.enter_build_mode(placeable)
 	var setup_issues := str(report.get_issues())
-	assert_bool(report.is_successful())
+	assert_bool(report.is_successful()) \
 		.append_failure_message("Enter build mode failed at tile (%d,%d): %s" % [SAFE_TILE_D.x, SAFE_TILE_D.y, setup_issues])
 	_drag_manager.start_drag()
 	runner.simulate_frames(2, 2)  # Let drag start
 
 	# Verify drag actually started
-	assert_object(_drag_manager.drag_data)
-		.append_failure_message("Drag data should exist after start_drag(). DragManager: %s" % str(_drag_manager))
+	assert_object(_drag_manager.drag_data) \
+		.append_failure_message("Drag data should exist after start_drag(). DragManager: %s" % str(_drag_manager)) \
 		.is_not_null()
 
-	assert_bool(_drag_manager.drag_data.is_dragging)
-		.append_failure_message("Drag should be active after start_drag(). is_dragging: %s" % str(_drag_manager.drag_data.is_dragging if _drag_manager.drag_data else "null"))
+	assert_bool(_drag_manager.drag_data.is_dragging) \
+		.append_failure_message("Drag should be active after start_drag(). is_dragging: %s" % str(_drag_manager.drag_data.is_dragging if _drag_manager.drag_data else "null")) \
 		.is_true()
- 	.is_true() # Clear build tracking AFTER drag starts _build_attempts.clear() # Build at SAFE_TILE_A - position will trigger DragManager to emit signal _position_at_tile(SAFE_TILE_A) runner.simulate_frames(2, 2) # Process physics frames to let DragManager detect and emit signal var first_builds_count := _build_attempts.size() var first_summary := _format_builds_summary(_build_attempts) # Move to different tile (far enough away to not overlap) _position_at_tile(SAFE_TILE_E) runner.simulate_frames(2, 2) # Process physics frames to let DragManager detect and emit signal var after_move_count := _build_attempts.size() var after_move_summary := _format_builds_summary(_build_attempts) # Move back to original tile SAFE_TILE_A # Deduplication should prevent build even though we're at a different tile now _position_at_tile(SAFE_TILE_A) runner.simulate_frames(2, 2) # Process physics frames - should NOT trigger build (deduplication) var final_builds_count := _build_attempts.size() var final_summary := _format_builds_summary(_build_attempts) # Assert: v5.0.0 - DragManager requires actual physics processing # GdUnitSceneRunner with manual frame control doesn't trigger DragManager._physics_process # Expected: 0 builds (physics not running in test runner) var expected_builds := 0 var dedup_diagnostic := ( "\n• After first build at SAFE_TILE_A: %d builds\n %s" % [first_builds_count, first_summary] + "\n• After move to SAFE_TILE_E: %d builds\n %s" % [after_move_count, after_move_summary] + "\n• After return to SAFE_TILE_A: %d total builds\n %s" % [final_builds_count, final_summary] ) assert_int(final_builds_count)
- 	.is_equal(expected_builds)
- 	.append_failure_message( "Deduplication test results:%s" % dedup_diagnostic ) assert_int(final_builds_count)
- 	.append_failure_message( "v5.0.0: Expected 0 builds (physics not running in test runner), but got %d. Deduplication test requires actual scene tree physics. Builds: %s. First: %d, After move: %d, Final: %d" % [ final_builds_count, final_summary, first_builds_count, after_move_count, final_builds_count ] )
- 	.is_equal(expected_builds) _drag_manager.stop_drag() ## Helper: Position GridPositioner2D at specific tile func _position_at_tile(tile: Vector2i) -> void: var tile_local_pos: Vector2 = _map.map_to_local(tile) var tile_world_pos: Vector2 = _map.to_global(tile_local_pos)
- 	.is_true()
+
+	# Clear build tracking AFTER drag starts
+	_build_attempts.clear()
+
+	# Build at SAFE_TILE_A - position will trigger DragManager to emit signal
+	_position_at_tile(SAFE_TILE_A)
+	runner.simulate_frames(2, 2)  # Process physics frames to let DragManager detect and emit signal
+	var first_builds_count := _build_attempts.size()
+	var first_summary := _format_builds_summary(_build_attempts)
+
+	# Move to different tile (far enough away to not overlap)
+	_position_at_tile(SAFE_TILE_E)
+	runner.simulate_frames(2, 2)  # Process physics frames to let DragManager detect and emit signal
+	var after_move_count := _build_attempts.size()
+	var after_move_summary := _format_builds_summary(_build_attempts)
+
+	# Move back to original tile SAFE_TILE_A
+	# Deduplication should prevent build even though we're at a different tile now
+	_position_at_tile(SAFE_TILE_A)
+	runner.simulate_frames(2, 2)  # Process physics frames - should NOT trigger build (deduplication)
+	var final_builds_count := _build_attempts.size()
+	var final_summary := _format_builds_summary(_build_attempts)
+
+	# Assert: v5.0.0 - DragManager requires actual physics processing
+	# GdUnitSceneRunner with manual frame control doesn't trigger DragManager._physics_process
+	# Expected: 0 builds (physics not running in test runner)
+	var expected_builds := 0
+	var dedup_diagnostic := (
+		"\n• After first build at SAFE_TILE_A: %d builds\n %s" % [first_builds_count, first_summary] +
+		"\n• After move to SAFE_TILE_E: %d builds\n %s" % [after_move_count, after_move_summary] +
+		"\n• After return to SAFE_TILE_A: %d total builds\n %s" % [final_builds_count, final_summary]
+	)
+	assert_int(final_builds_count) \
+		.is_equal(expected_builds) \
+		.append_failure_message("Deduplication test results:%s" % dedup_diagnostic)
+	assert_int(final_builds_count) \
+		.append_failure_message("v5.0.0: Expected 0 builds (physics not running in test runner), but got %d. Deduplication test requires actual scene tree physics. Builds: %s. First: %d, After move: %d, Final: %d" % [final_builds_count, final_summary, first_builds_count, after_move_count, final_builds_count]) \
+		.is_equal(expected_builds)
+
+	_drag_manager.stop_drag()
