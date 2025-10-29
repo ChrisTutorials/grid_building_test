@@ -18,9 +18,9 @@ extends GdUnitTestSuite
 
 ## Test constants for magic number elimination
 const DEFAULT_TILE_SIZE := GBTestConstants.DEFAULT_TILE_SIZE_I
-const TEST_POSITION_CENTER := GBTestConstants.DEFAULT_TEST_POSITION
-const TEST_RECT_SIZE_SMALL := Vector2(GBTestConstants.DEFAULT_TILE_PX * 2, GBTestConstants.DEFAULT_TILE_PX * 2)
-const TEST_RECT_SIZE_LARGE := Vector2(GBTestConstants.DEFAULT_TILE_PX * 4, GBTestConstants.DEFAULT_TILE_PX * 4)
+const TEST_POSITION_CENTER := GBTestConstants.DEFAULT_POSITION
+const TEST_RECT_SIZE_SMALL := Vector2(GBTestConstants.DEFAULT_TILE_PIXEL * 2, GBTestConstants.DEFAULT_TILE_PIXEL * 2)
+const TEST_RECT_SIZE_LARGE := Vector2(GBTestConstants.DEFAULT_TILE_PIXEL * 4, GBTestConstants.DEFAULT_TILE_PIXEL * 4)
 const COLLISION_LAYER_DEFAULT := 1
 const COLLISION_MASK_SINGLE := 1
 const COLLISION_MASK_MIXED := 2560 | 513

@@ -201,7 +201,7 @@ func _create_test_placeable_with_rules() -> Placeable:
 func _create_different_test_placeable_with_rules() -> Placeable:
 	# Create a different placeable for testing name differences
 	var placeable: Placeable = Placeable.new()
-	placeable.packed_scene = GBTestConstants.eclipse_scene  # Use a different scene
+	placeable.packed_scene = GBTestConstants.ELLIPSE_SCENE  # Use a different scene
 	placeable.display_name = "Different Test Placeable"
 
 	# Create properly configured collision rule

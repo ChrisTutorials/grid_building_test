@@ -43,11 +43,16 @@ class_name EnvironmentTestFactory
 ## @deprecated Use scene_runner for frame simulation tests, keep EnvironmentTestFactory for validation tests
 ## Creates an AllSystemsTestEnvironment (extracted from the legacy unified factory implementation) [br]
 ## [param test]: Test instance for node management [br]
-## [param scene_uid]: Scene UID for environment setup
+## [param scene_resource]: PackedScene or Scene UID string for environment setup
 static func create_all_systems_env(
-	test: GdUnitTestSuite, scene_uid: String = GBTestConstants.ALL_SYSTEMS_ENV_UID
+	test: GdUnitTestSuite, scene_resource: Variant = GBTestConstants.ALL_SYSTEMS_ENV
 ) -> AllSystemsTestEnvironment:
-	var env: AllSystemsTestEnvironment = load(scene_uid).instantiate()
+	var scene: PackedScene
+	if scene_resource is PackedScene:
+		scene = scene_resource
+	else:
+		scene = load(scene_resource)
+	var env: AllSystemsTestEnvironment = scene.instantiate()
 	_prepare_test_environment_sync(test, env)
 	return env
 
@@ -55,24 +60,24 @@ static func create_all_systems_env(
 ## @deprecated Use scene_runner for frame simulation tests, keep EnvironmentTestFactory for validation tests
 ## Creates a basic building system test environment
 ## [param test]: Test instance for node management
-## [param scene_uid]: Scene UID for environment setup
+## [param scene]: Preloaded scene for environment setup
 static func create_building_system_test_environment(
-	test: GdUnitTestSuite, scene_uid: String = GBTestConstants.BUILDING_TEST_ENV_PATH
+	test: GdUnitTestSuite, scene: PackedScene = GBTestConstants.BUILDING_TEST_ENV
 ) -> BuildingTestEnvironment:
-	var env: BuildingTestEnvironment = load(scene_uid).instantiate()
+	var env: BuildingTestEnvironment = scene.instantiate()
 	# Pass the environment directly; it already extends GBTestEnvironment.
 	_prepare_test_environment_sync(test, env)
 	return env
 
 
-## @deprecated Use scene_runner(GBTestConstants.COLLISION_TEST_ENV_UID) instead
+## @deprecated Use scene_runner(GBTestConstants.COLLISION_TEST_ENV) instead
 ## Creates an indicator manager test environment
 ## [param test]: Test instance for node management
-## [param scene_uid]: Scene UID for environment setup
+## [param scene]: Preloaded scene for environment setup
 static func create_collision_test_environment(
-	test: GdUnitTestSuite, scene_uid: String = GBTestConstants.COLLISION_TEST_ENV_PATH
+	test: GdUnitTestSuite, scene: PackedScene = GBTestConstants.COLLISION_TEST_ENV
 ) -> CollisionTestEnvironment:
-	var env: CollisionTestEnvironment = load(scene_uid).instantiate()
+	var env: CollisionTestEnvironment = scene.instantiate()
 	_prepare_test_environment_sync(test, env)
 	return env
 

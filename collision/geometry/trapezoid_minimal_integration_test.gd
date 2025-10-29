@@ -38,7 +38,7 @@ func before_test() -> void:
 
 ## Test that focuses on isolating the trapezoid indicator generation issue
 func test_trapezoid_full_pipeline_integration() -> void:
-	GBTestDiagnostics.buffer("[TRAPEZOID] === FULL PIPELINE TEST ===")
+	GBTestDiagnostics.log_verbose("[TRAPEZOID] === FULL PIPELINE TEST ===")
 
 	# 1) Create the trapezoid test object
 	var trapezoid_polygon: PackedVector2Array = create_trapezoid_from_runtime()
@@ -60,20 +60,20 @@ func test_trapezoid_full_pipeline_integration() -> void:
 	_targeting_state.set_manual_target(test_object)
 	_targeting_state.positioner.global_position = TRAPEZOID_POSITION
 
-	GBTestDiagnostics.buffer("[TRAPEZOID] Test object created at position: %s" % str(test_object.global_position))
+	GBTestDiagnostics.log_verbose("[TRAPEZOID] Test object created at position: %s" % str(test_object.global_position))
 
 	# 3) Test collision geometry calculation directly first
 	var tile_size: Vector2 = Vector2(16, 16)
 	var tile_offsets: Array[Vector2i] = CollisionGeometryUtils.compute_polygon_tile_offsets(
 		trapezoid_polygon, TRAPEZOID_POSITION, tile_size
 	)
-	GBTestDiagnostics.buffer("[TRAPEZOID] Direct collision calculation found %d tile offsets:" % tile_offsets.size())
+	GBTestDiagnostics.log_verbose("[TRAPEZOID] Direct collision calculation found %d tile offsets:" % tile_offsets.size())
 
 	# Sort for consistent output
 	var sorted_offsets: Array[Vector2i] = tile_offsets.duplicate()
 	sorted_offsets.sort()
 	for offset in sorted_offsets:
-			GBTestDiagnostics.buffer("[TRAPEZOID]   tile offset: %s" % str(offset))
+			GBTestDiagnostics.log_verbose("[TRAPEZOID]   tile offset: %s" % str(offset))
 
 	# 4) Expected missing tiles from runtime analysis
 	var expected_missing_tiles: Array[Vector2i] = [
@@ -81,31 +81,31 @@ func test_trapezoid_full_pipeline_integration() -> void:
 		Vector2i(2, 1)    # Bottom right extension
 	]
 
-	GBTestDiagnostics.buffer("[TRAPEZOID] Checking for expected missing tiles:")
+	GBTestDiagnostics.log_verbose("[TRAPEZOID] Checking for expected missing tiles:")
 	for tile: Vector2i in expected_missing_tiles:
 		var is_present: bool = tile_offsets.has(tile)
-		GBTestDiagnostics.buffer("[TRAPEZOID]   tile %s present in calculations: %s" % [str(tile), is_present])
+		GBTestDiagnostics.log_verbose("[TRAPEZOID]   tile %s present in calculations: %s" % [str(tile), is_present])
 		if not is_present:
-			GBTestDiagnostics.buffer("[TRAPEZOID]   >>> COLLISION CALCULATION ISSUE: Tile %s missing from direct calculations!" % str(tile))
+			GBTestDiagnostics.log_verbose("[TRAPEZOID]   >>> COLLISION CALCULATION ISSUE: Tile %s missing from direct calculations!" % str(tile))
 
 	# 5) Now test the full indicator generation pipeline
 	var collision_rule: CollisionsCheckRule = PlacementRuleTestFactory.create_default_collision_rule()
 	var placement_rules: Array[PlacementRule] = [collision_rule]
 
-	GBTestDiagnostics.buffer("[TRAPEZOID] Running IndicatorManager.try_setup with %d placement rules" % placement_rules.size())
+	GBTestDiagnostics.log_verbose("[TRAPEZOID] Running IndicatorManager.try_setup with %d placement rules" % placement_rules.size())
 	var report: PlacementReport = _indicator_manager.try_setup(placement_rules, _targeting_state, true)
 
 	assert_object(report)
-		.append_failure_message("PlacementReport is null\n%s" % GBTestDiagnostics.flush_for_assert())
+		.append_failure_message("PlacementReport is null\n%s" % "diagnostic context")
 		.is_not_null()
 
 	if not report.is_successful():
-		GBTestDiagnostics.buffer("[TRAPEZOID] Placement failed with issues: %s" % str(report.get_issues()))
-		fail("Placement report indicates failure - %s" % GBTestDiagnostics.flush_for_assert())
+		GBTestDiagnostics.log_verbose("[TRAPEZOID] Placement failed with issues: %s" % str(report.get_issues()))
+		fail("Placement report indicates failure - %s" % "diagnostic context")
 
 	# 6) Extract generated indicators
 	var indicators: Array[RuleCheckIndicator] = report.indicators_report.indicators
-	GBTestDiagnostics.buffer("[TRAPEZOID] Generated indicators count: %d" % indicators.size())
+	GBTestDiagnostics.log_verbose("[TRAPEZOID] Generated indicators count: %d" % indicators.size())
 
 	# Extract indicator positions from their names (format: "RuleCheckIndicator-Offset(X,Y)")
 	var indicator_positions: Array[Vector2i] = []
@@ -121,35 +121,35 @@ func test_trapezoid_full_pipeline_integration() -> void:
 				indicator_positions.append(offset)
 
 	indicator_positions.sort()  # Sort for consistent output
-	GBTestDiagnostics.buffer("[TRAPEZOID] Generated indicator positions:")
+	GBTestDiagnostics.log_verbose("[TRAPEZOID] Generated indicator positions:")
 	for pos in indicator_positions:
-		GBTestDiagnostics.buffer("[TRAPEZOID]   indicator position: %s" % str(pos))
+		GBTestDiagnostics.log_verbose("[TRAPEZOID]   indicator position: %s" % str(pos))
 
 	# 7) Check for the missing positions from runtime
-	GBTestDiagnostics.buffer("[TRAPEZOID] Checking if missing positions are generated:")
+	GBTestDiagnostics.log_verbose("[TRAPEZOID] Checking if missing positions are generated:")
 	for pos: Vector2i in expected_missing_tiles:
 		var has_indicator: bool = indicator_positions.has(pos)
-		GBTestDiagnostics.buffer("[TRAPEZOID]   position %s has indicator: %s" % [str(pos), has_indicator])
+		GBTestDiagnostics.log_verbose("[TRAPEZOID]   position %s has indicator: %s" % [str(pos), has_indicator])
 
 		if not has_indicator:
-			GBTestDiagnostics.buffer("[TRAPEZOID]   >>> ISSUE CONFIRMED: Position %s missing from indicators!" % str(pos))
+			GBTestDiagnostics.log_verbose("[TRAPEZOID]   >>> ISSUE CONFIRMED: Position %s missing from indicators!" % str(pos))
 		else:
-			GBTestDiagnostics.buffer("[TRAPEZOID]   >>> SUCCESS: Position %s correctly generated!" % str(pos))
+			GBTestDiagnostics.log_verbose("[TRAPEZOID]   >>> SUCCESS: Position %s correctly generated!" % str(pos))
 
 	# 8) Compare collision calculations to indicator generation
-	GBTestDiagnostics.buffer("[TRAPEZOID] COMPARISON:")
-	GBTestDiagnostics.buffer("[TRAPEZOID]   Direct collision calculation tiles: %d" % tile_offsets.size())
-	GBTestDiagnostics.buffer("[TRAPEZOID]   Generated indicators: %d" % indicators.size())
+	GBTestDiagnostics.log_verbose("[TRAPEZOID] COMPARISON:")
+	GBTestDiagnostics.log_verbose("[TRAPEZOID]   Direct collision calculation tiles: %d" % tile_offsets.size())
+	GBTestDiagnostics.log_verbose("[TRAPEZOID]   Generated indicators: %d" % indicators.size())
 
 	if tile_offsets.size() != indicators.size():
-		GBTestDiagnostics.buffer("[TRAPEZOID]   >>> MISMATCH: Different count between calculations and indicators!")
+		GBTestDiagnostics.log_verbose("[TRAPEZOID]   >>> MISMATCH: Different count between calculations and indicators!")
 
 		# Find missing tiles
 		for calc_tile in sorted_offsets:
 			if not indicator_positions.has(calc_tile):
-				GBTestDiagnostics.buffer("[TRAPEZOID]   >>> LOST IN PIPELINE: Tile %s calculated but no indicator generated" % str(calc_tile))
+				GBTestDiagnostics.log_verbose("[TRAPEZOID]   >>> LOST IN PIPELINE: Tile %s calculated but no indicator generated" % str(calc_tile))
 	else:
-		GBTestDiagnostics.buffer("[TRAPEZOID]   >>> COUNTS MATCH: Same number of calculations and indicators")
+		GBTestDiagnostics.log_verbose("[TRAPEZOID]   >>> COUNTS MATCH: Same number of calculations and indicators")
 
 	# This test helps us identify exactly where in the pipeline the issue occurs
 	assert_array(indicators).append_failure_message(
@@ -157,6 +157,6 @@ func test_trapezoid_full_pipeline_integration() -> void:
 			tile_offsets.size(),
 			indicators.size(),
 			"YES" if tile_offsets.size() == indicators.size() else "NO - Lost in pipeline",
-			GBTestDiagnostics.flush_for_assert()
+			"diagnostic context"
 		]
 	).is_not_empty()

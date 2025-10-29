@@ -3,7 +3,7 @@ extends GdUnitTestSuite
 
 ## DRY Constants - use canonical GBTestConstants where possible
 const DEFAULT_TILE_SIZE: Vector2i = Vector2i(int(GBTestConstants.DEFAULT_TILE_SIZE.x), int(GBTestConstants.DEFAULT_TILE_SIZE.y))
-const DEFAULT_TEST_POSITION: Vector2 = GBTestConstants.DEFAULT_TEST_POSITION
+const DEFAULT_TEST_POSITION: Vector2 = GBTestConstants.DEFAULT_POSITION
 const TEST_MAP_SIZE: int = 40
 
 ## DRY Helper: Create a properly configured TileMapLayer for testing
@@ -70,10 +70,10 @@ func test_compute_tile_offsets_polygon_shapes(
 	description: String,
 	expected_range: Array,
 	test_parameters := [
-		["triangle", PackedVector2Array([Vector2(0, 0), Vector2(GBTestConstants.DOUBLE_TILE_PX, 0), Vector2(GBTestConstants.DEFAULT_TILE_PX, GBTestConstants.DOUBLE_TILE_PX)]), "basic triangle polygon", []],
-		["rectangle", PackedVector2Array([Vector2(-GBTestConstants.DEFAULT_TILE_PX, -GBTestConstants.DEFAULT_TILE_PX), Vector2(GBTestConstants.DEFAULT_TILE_PX, -GBTestConstants.DEFAULT_TILE_PX), Vector2(GBTestConstants.DEFAULT_TILE_PX, GBTestConstants.DEFAULT_TILE_PX), Vector2(-GBTestConstants.DEFAULT_TILE_PX, GBTestConstants.DEFAULT_TILE_PX)]), "32x32 rectangle polygon", [1, 9]],
-		["convex", PackedVector2Array([Vector2(0, 0), Vector2(24, -8), Vector2(GBTestConstants.DOUBLE_TILE_PX, GBTestConstants.DEFAULT_TILE_PX), Vector2(GBTestConstants.DEFAULT_TILE_PX, GBTestConstants.DOUBLE_TILE_PX), Vector2(-8, 24)]), "complex convex polygon", []],
-		["concave", PackedVector2Array([Vector2(0, 0), Vector2(GBTestConstants.DOUBLE_TILE_PX, 0), Vector2(GBTestConstants.DEFAULT_TILE_PX, GBTestConstants.DEFAULT_TILE_PX), Vector2(GBTestConstants.DOUBLE_TILE_PX, GBTestConstants.DOUBLE_TILE_PX), Vector2(0, GBTestConstants.DOUBLE_TILE_PX)]), "concave polygon with indent", []]
+		["triangle", PackedVector2Array([Vector2(0, 0), Vector2(GBTestConstants.DOUBLE_TILE_PX, 0), Vector2(GBTestConstants.DEFAULT_TILE_PIXEL, GBTestConstants.DOUBLE_TILE_PX)]), "basic triangle polygon", []],
+		["rectangle", PackedVector2Array([Vector2(-GBTestConstants.DEFAULT_TILE_PIXEL, -GBTestConstants.DEFAULT_TILE_PIXEL), Vector2(GBTestConstants.DEFAULT_TILE_PIXEL, -GBTestConstants.DEFAULT_TILE_PIXEL), Vector2(GBTestConstants.DEFAULT_TILE_PIXEL, GBTestConstants.DEFAULT_TILE_PIXEL), Vector2(-GBTestConstants.DEFAULT_TILE_PIXEL, GBTestConstants.DEFAULT_TILE_PIXEL)]), "32x32 rectangle polygon", [1, 9]],
+		["convex", PackedVector2Array([Vector2(0, 0), Vector2(24, -8), Vector2(GBTestConstants.DOUBLE_TILE_PX, GBTestConstants.DEFAULT_TILE_PIXEL), Vector2(GBTestConstants.DEFAULT_TILE_PIXEL, GBTestConstants.DOUBLE_TILE_PX), Vector2(-8, 24)]), "complex convex polygon", []],
+		["concave", PackedVector2Array([Vector2(0, 0), Vector2(GBTestConstants.DOUBLE_TILE_PX, 0), Vector2(GBTestConstants.DEFAULT_TILE_PIXEL, GBTestConstants.DEFAULT_TILE_PIXEL), Vector2(GBTestConstants.DOUBLE_TILE_PX, GBTestConstants.DOUBLE_TILE_PX), Vector2(0, GBTestConstants.DOUBLE_TILE_PX)]), "concave polygon with indent", []]
 	]
 ) -> void:
 	_run_polygon_test(points, description, "square", 1, -1, Vector2(320, 320))
@@ -89,14 +89,14 @@ func test_compute_tile_offsets_tile_types(
 		["isometric", "isometric", "isometric tiles"]
 	]
 ) -> void:
-	var points := PackedVector2Array([Vector2(0, 0), Vector2(GBTestConstants.DOUBLE_TILE_PX, 0), Vector2(GBTestConstants.DEFAULT_TILE_PX, GBTestConstants.DOUBLE_TILE_PX)])
+	var points := PackedVector2Array([Vector2(0, 0), Vector2(GBTestConstants.DOUBLE_TILE_PX, 0), Vector2(GBTestConstants.DEFAULT_TILE_PIXEL, GBTestConstants.DOUBLE_TILE_PX)])
 	_run_polygon_test(points, "triangle on " + description, tile_type)
 
 ## DRY: Covered by parameterized shape/tile tests above
 
 ## Test diagnostic processing functionality
 func test_process_polygon_with_diagnostics() -> void:
-	var points := PackedVector2Array([Vector2(0, 0), Vector2(GBTestConstants.DOUBLE_TILE_PX, 0), Vector2(GBTestConstants.DEFAULT_TILE_PX, GBTestConstants.DOUBLE_TILE_PX)])
+	var points := PackedVector2Array([Vector2(0, 0), Vector2(GBTestConstants.DOUBLE_TILE_PX, 0), Vector2(GBTestConstants.DEFAULT_TILE_PIXEL, GBTestConstants.DOUBLE_TILE_PX)])
 	_run_polygon_test(points, "diagnostic processing")
 
 ## Test null polygon handling
@@ -219,7 +219,7 @@ func test_process_polygon_with_diagnostics_concave() -> void:
 	concave_polygon.polygon = PackedVector2Array([
 		Vector2(0, 0),
 		Vector2(GBTestConstants.DOUBLE_TILE_PX, 0),
-		Vector2(GBTestConstants.DEFAULT_TILE_PX, GBTestConstants.DEFAULT_TILE_PX),  # Indent creates concave shape
+		Vector2(GBTestConstants.DEFAULT_TILE_PIXEL, GBTestConstants.DEFAULT_TILE_PIXEL),  # Indent creates concave shape
 		Vector2(GBTestConstants.DOUBLE_TILE_PX, GBTestConstants.DOUBLE_TILE_PX),
 		Vector2(0, GBTestConstants.DOUBLE_TILE_PX)
 	])
@@ -261,7 +261,7 @@ func test_process_polygon_with_diagnostics_cases(
 
 ## Test polygon processing with different tile sizes
 func test_compute_tile_offsets_different_tile_sizes() -> void:
-	var points := PackedVector2Array([Vector2(0, 0), Vector2(GBTestConstants.DOUBLE_TILE_PX, 0), Vector2(GBTestConstants.DEFAULT_TILE_PX, GBTestConstants.DOUBLE_TILE_PX)])
+	var points := PackedVector2Array([Vector2(0, 0), Vector2(GBTestConstants.DOUBLE_TILE_PX, 0), Vector2(GBTestConstants.DEFAULT_TILE_PIXEL, GBTestConstants.DOUBLE_TILE_PX)])
 	_run_polygon_test(points, "polygon on map with 32x32 tiles")
 
 ## Test polygon completely outside tilemap bounds
@@ -273,7 +273,7 @@ func test_compute_tile_offsets_outside_bounds() -> void:
 	triangle_polygon.polygon = PackedVector2Array([
 		Vector2(0, 0),
 		Vector2(GBTestConstants.DOUBLE_TILE_PX, 0),
-		Vector2(GBTestConstants.DEFAULT_TILE_PX, GBTestConstants.DOUBLE_TILE_PX)
+		Vector2(GBTestConstants.DEFAULT_TILE_PIXEL, GBTestConstants.DOUBLE_TILE_PX)
 	])
 	triangle_polygon.position = Vector2(1000, 1000)  # Way outside the tilemap
 
@@ -306,8 +306,7 @@ func test_tile_property_detection_diagnostics() -> void:
 	polygon.position = DEFAULT_TEST_POSITION
 
 	# Test tile set existence
-	assert_that(test_map.tile_set)
-  .append_failure_message("TileMapLayer should have a tile_set").is_not_null()
+	assert_that(test_map.tile_set).append_failure_message("TileMapLayer should have a tile_set").is_not_null()
 
 	# Test tile_shape property detection
 	var tile_set_ref: TileSet = test_map.tile_set
@@ -334,9 +333,7 @@ func test_tile_property_detection_diagnostics() -> void:
 	var diag: PolygonTileMapper.ProcessingResult = PolygonTileMapper.process_polygon_with_diagnostics(polygon, test_map)
 
 	# Ensure the mapper attempted initial coverage
-	assert_int(diag.initial_offset_count)
-		.append_failure_message("Expected initial offsets to be discovered; diagnostics: tile_set=%s tile_shape=%s initial_count=%d" % [str(test_map.tile_set != null), str(has_tile_shape), diag.initial_offset_count])
-		.is_greater_equal(1)
+	assert_int(diag.initial_offset_count).append_failure_message("Expected initial offsets to be discovered; diagnostics: tile_set=%s tile_shape=%s initial_count=%d" % [str(test_map.tile_set != null), str(has_tile_shape), diag.initial_offset_count]).is_greater_equal(1)
 
 	# Compute areas for initial offsets to debug filtering
 	var world_points: PackedVector2Array = CollisionGeometryUtils.to_world_polygon(polygon)
@@ -379,8 +376,7 @@ func test_compute_tile_offsets_consistency() -> void:
 	var result2: Array[Vector2i] = PolygonTileMapper.compute_tile_offsets(triangle_polygon, test_map)
 
 	# Results should be identical
-	assert_that(result1)
-  .append_failure_message("Expected multiple calls to produce identical results").is_equal(result2)
+	assert_that(result1).append_failure_message("Expected multiple calls to produce identical results").is_equal(result2)
 
 
 ## Diagnostic: Per-offset area inspection to debug final filtering
@@ -437,8 +433,7 @@ func test_filter_area_diagnostics() -> void:
 			any_ok = true
 			break
 
-	assert_bool(any_ok)
-  .append_failure_message("No offset met expanded threshold.\n" + failure_msg).is_true()
+	assert_bool(any_ok).append_failure_message("No offset met expanded threshold.\n" + failure_msg).is_true()
 
 ## Unit tests for get_polygon_tile_overlap_area
 @warning_ignore("unused_parameter")
@@ -484,45 +479,35 @@ func test_polygon_tile_overlap_area_completely_inside() -> void:
 	var rect: Rect2 = Rect2(0, 0, 16, 16)
 	var inside_polygon: PackedVector2Array = PackedVector2Array([Vector2(4, 4), Vector2(12, 4), Vector2(12, 12), Vector2(4, 12)])
 	var area: float = PolygonTileMapper.get_polygon_tile_overlap_area(inside_polygon, rect)
-	assert_float(area)
-		.append_failure_message("Expected 8x8 polygon inside 16x16 rect to have 64 area")
-		.is_equal(64.0)  # 8x8 square = 64
+	assert_float(area).append_failure_message("Expected 8x8 polygon inside 16x16 rect to have 64 area").is_equal(64.0)  # 8x8 square = 64
 
 ## Test polygon exactly matching rect bounds
 func test_polygon_tile_overlap_area_exact_match() -> void:
 	var rect: Rect2 = Rect2(0, 0, 16, 16)
 	var matching_polygon: PackedVector2Array = PackedVector2Array([Vector2(0, 0), Vector2(16, 0), Vector2(16, 16), Vector2(0, 16)])
 	var area: float = PolygonTileMapper.get_polygon_tile_overlap_area(matching_polygon, rect)
-	assert_float(area)
-  .append_failure_message("Expected polygon matching rect bounds to have 256 area").is_equal(256.0)
+	assert_float(area).append_failure_message("Expected polygon matching rect bounds to have 256 area").is_equal(256.0)
 
 ## Test polygon completely containing rect
 func test_polygon_tile_overlap_area_contains_rect() -> void:
 	var rect: Rect2 = Rect2(4, 4, 8, 8)
 	var containing_polygon: PackedVector2Array = PackedVector2Array([Vector2(0, 0), Vector2(16, 0), Vector2(16, 16), Vector2(0, 16)])
 	var area: float = PolygonTileMapper.get_polygon_tile_overlap_area(containing_polygon, rect)
-	assert_float(area)
-  .append_failure_message("Expected polygon containing 8x8 rect to have 64 area").is_equal(64.0)
+	assert_float(area).append_failure_message("Expected polygon containing 8x8 rect to have 64 area").is_equal(64.0)
 
 ## Test partial overlap
 func test_polygon_tile_overlap_area_partial_overlap() -> void:
 	var rect: Rect2 = Rect2(0, 0, 16, 16)
 	var partial_polygon: PackedVector2Array = PackedVector2Array([Vector2(-8, -8), Vector2(8, -8), Vector2(8, 8), Vector2(-8, 8)])
 	var area: float = PolygonTileMapper.get_polygon_tile_overlap_area(partial_polygon, rect)
-	assert_float(area)
-		.append_failure_message("Expected partial overlap to be around 64 area")
-		.is_greater(30.0)
-		.is_less(70.0)  # Should be around 64
+	assert_float(area).append_failure_message("Expected partial overlap to be around 64 area").is_greater(30.0).is_less(70.0)  # Should be around 64
 
 ## Test triangle overlap
 func test_polygon_tile_overlap_area_triangle() -> void:
 	var rect: Rect2 = Rect2(0, 0, 16, 16)
 	var triangle: PackedVector2Array = PackedVector2Array([Vector2(0, 0), Vector2(16, 0), Vector2(8, 16)])
 	var area: float = PolygonTileMapper.get_polygon_tile_overlap_area(triangle, rect)
-	assert_float(area)
-		.append_failure_message("Expected triangle overlap to be around 128 area")
-		.is_greater(120.0)
-		.is_less(140.0)  # Should be around 128
+	assert_float(area).append_failure_message("Expected triangle overlap to be around 128 area").is_greater(120.0).is_less(140.0)  # Should be around 128
 
 ## Test complex polygon
 func test_polygon_tile_overlap_area_complex() -> void:
@@ -559,8 +544,7 @@ func test_concave_polygon_tile_distribution() -> void:
 	var result: PolygonTileMapper.ProcessingResult = PolygonTileMapper.process_polygon_with_diagnostics(polygon, test_map)
 
 	# Verify this is correctly detected as concave
-	assert_that(result.was_convex)
-  .append_failure_message("Expected U-shaped polygon to be detected as concave").is_false()
+	assert_that(result.was_convex).append_failure_message("Expected U-shaped polygon to be detected as concave").is_false()
 
 	# The key test: concave polygon should NOT fill the complete bounding rectangle
 	# Convert offsets to tile coordinates for analysis

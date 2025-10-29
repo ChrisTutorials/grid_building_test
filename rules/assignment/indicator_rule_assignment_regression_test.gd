@@ -98,7 +98,7 @@ func test_polygon_test_object_indicator_collision_filtering() -> void:
 	if logger != null:
 		logger.log_debug( "indicator_rule_assignment: rules count=%d" % [rules.size()])
 	else:
-		GBTestDiagnostics.buffer("indicator_rule_assignment: rules count=%d" % [rules.size()])
+		GBTestDiagnostics.log_verbose("indicator_rule_assignment: rules count=%d" % [rules.size()])
 
 	# Set up rule validation parameters
 	var targeting_state : GridTargetingState = _container.get_states().targeting
@@ -119,7 +119,7 @@ func test_polygon_test_object_indicator_collision_filtering() -> void:
 		if logger != null:
 			logger.log_debug( "  rule[%d] class=%s, is_Collisions=%s, is_TileCheck=%s, is_valid=%s" % [i, r.get_class(), str(r is CollisionsCheckRule), str(r is TileCheckRule), str(is_instance_valid(r))])
 		else:
-			GBTestDiagnostics.buffer("rule[%d] class=%s, is_Collisions=%s, is_TileCheck=%s, is_valid=%s" % [i, r.get_class(), str(r is CollisionsCheckRule), str(r is TileCheckRule), str(is_instance_valid(r))])
+			GBTestDiagnostics.log_verbose("rule[%d] class=%s, is_Collisions=%s, is_TileCheck=%s, is_valid=%s" % [i, r.get_class(), str(r is CollisionsCheckRule), str(r is TileCheckRule), str(is_instance_valid(r))])
 
 	var setup_report : PlacementReport = indicator_manager.try_setup(rules, targeting_state, true)
 
@@ -129,19 +129,20 @@ func test_polygon_test_object_indicator_collision_filtering() -> void:
 		if diag_logger != null:
 			diag_logger.log_debug( "setup_report success=%s, indicators=%d" % [str(setup_report.is_successful()), setup_report.indicators_report.indicators.size() if setup_report.indicators_report != null else 0])
 		else:
-			GBTestDiagnostics.buffer("setup_report success=%s, indicators=%d" % [str(setup_report.is_successful()), setup_report.indicators_report.indicators.size() if setup_report.indicators_report != null else 0])
+			GBTestDiagnostics.log_verbose("setup_report success=%s, indicators=%d" % [str(setup_report.is_successful()), setup_report.indicators_report.indicators.size() if setup_report.indicators_report != null else 0])
 
-	var context := GBTestDiagnostics.flush_for_assert()
+	var diag: PackedStringArray = PackedStringArray()
+	diag.append("Setup report context")
 	assert_object(setup_report)
-		.append_failure_message("IndicatorManager.try_setup returned null. Context: %s" % context)
+		.append_failure_message("IndicatorManager.try_setup returned null. Context: %s" % "\n".join(diag))
 		.is_not_null()
 	assert_bool(setup_report.is_successful())
-  .append_failure_message("IndicatorManager.try_setup failed. Context: %s" % context).is_true()
+		.append_failure_message("IndicatorManager.try_setup failed. Context: %s" % "\n".join(diag)).is_true()
 
 	# Get indicators from the setup report
 	var indicators : Array[RuleCheckIndicator] = setup_report.indicators_report.indicators
- assert_array(indicators)
-  .append_failure_message("Setup should generate at least one indicator").is_not_empty()
+	assert_array(indicators)
+		.append_failure_message("Setup should generate at least one indicator").is_not_empty()
 
 	# Find the indicator at offset (0,0) - this should be filtered out due to collision
 	var center_indicator: RuleCheckIndicator = find_center_indicator(indicators)

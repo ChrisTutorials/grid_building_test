@@ -21,8 +21,7 @@ func _get_test_container() -> GBCompositionContainer:
 
 func test_settings_subresource() -> void:
 	var container := _get_test_container()
-	assert_that(container)
-  .append_failure_message("Test composition container not available via UID or path").is_not_null()
+	assert_that(container).append_failure_message("Test composition container not available via UID or path").is_not_null()
 	if container == null:
 		return
 	var cfg: GBConfig = container.config
@@ -33,8 +32,7 @@ func test_settings_subresource() -> void:
 
 func test_templates_subresource() -> void:
 	var container := _get_test_container()
-	assert_that(container)
-  .append_failure_message("Test composition container not available via UID or path").is_not_null()
+	assert_that(container).append_failure_message("Test composition container not available via UID or path").is_not_null()
 	if container == null:
 		return
 	var cfg: GBConfig = container.config
@@ -45,8 +43,7 @@ func test_templates_subresource() -> void:
 
 func test_actions_subresource() -> void:
 	var container := _get_test_container()
-	assert_that(container)
-  .append_failure_message("Test composition container not available via UID or path").is_not_null()
+	assert_that(container).append_failure_message("Test composition container not available via UID or path").is_not_null()
 	if container == null:
 		return
 	var cfg: GBConfig = container.config
@@ -57,8 +54,7 @@ func test_actions_subresource() -> void:
 
 func test_messages_subresource() -> void:
 	var container := _get_test_container()
-	assert_that(container)
-  .append_failure_message("Test composition container not available via UID or path").is_not_null()
+	assert_that(container).append_failure_message("Test composition container not available via UID or path").is_not_null()
 	if container == null:
 		return
 	var cfg: GBConfig = container.config
@@ -84,16 +80,13 @@ func test_messages_subresource() -> void:
 	]
 	for p: String in message_props:
 		var value: Variant = ms.get(p)
-		assert_that(value)
-   .append_failure_message("ManipulationSettings message %s missing" % p).is_not_null()
+		assert_that(value).append_failure_message("ManipulationSettings message %s missing" % p).is_not_null()
 		if typeof(value) == TYPE_STRING:
-			assert_that((value as String).is_empty())
-    .append_failure_message("ManipulationSettings message %s is empty" % p).is_false()
+			assert_that((value as String).is_empty()).append_failure_message("ManipulationSettings message %s is empty" % p).is_false()
 
 func test_visual_subresource() -> void:
 	var container := _get_test_container()
-	assert_that(container)
-  .append_failure_message("Test composition container not available via UID or path").is_not_null()
+	assert_that(container).append_failure_message("Test composition container not available via UID or path").is_not_null()
 	if container == null:
 		return
 	var cfg: GBConfig = container.config
@@ -104,13 +97,11 @@ func test_visual_subresource() -> void:
 
 func test_runtime_checks_subresource() -> void:
 	var container := _get_test_container()
-	assert_that(container)
-  .append_failure_message("Test composition container not available via UID or path").is_not_null()
+	assert_that(container).append_failure_message("Test composition container not available via UID or path").is_not_null()
 	if container == null:
 		return
 	var cfg: GBConfig = container.config
 	assert_that(cfg).append_failure_message("GBConfig null on container").is_not_null()
 	if cfg == null:
 		return
-	assert_that(cfg.settings.runtime_checks)
-  .append_failure_message("GBConfig.runtime_checks missing").is_not_null()
+	assert_that(cfg.settings.runtime_checks).append_failure_message("GBConfig.runtime_checks missing").is_not_null()

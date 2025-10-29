@@ -136,18 +136,18 @@ func test_polygon_shape_edge_cases(
 		],
 	]
 ) -> void:
-	GBTestDiagnostics.buffer("=== TESTING POLYGON SHAPE: %s ===" % test_name)
-	GBTestDiagnostics.buffer("Description: %s" % description)
-	GBTestDiagnostics.buffer("Polygon points: %s" % str(polygon_points))
-	GBTestDiagnostics.buffer("Tile size: %s" % str(tile_size))
+	GBTestDiagnostics.log_verbose("=== TESTING POLYGON SHAPE: %s ===" % test_name)
+	GBTestDiagnostics.log_verbose("Description: %s" % description)
+	GBTestDiagnostics.log_verbose("Polygon points: %s" % str(polygon_points))
+	GBTestDiagnostics.log_verbose("Tile size: %s" % str(tile_size))
 
 	# Test the collision geometry calculation
 	var tile_offsets: Array[Vector2i] = CollisionGeometryUtils.compute_polygon_tile_offsets(
 		polygon_points, tile_size, CENTER_TILE
 	)
 
-	GBTestDiagnostics.buffer("Calculated tile offsets: %s" % str(tile_offsets))
-	GBTestDiagnostics.buffer(
+	GBTestDiagnostics.log_verbose("Calculated tile offsets: %s" % str(tile_offsets))
+	GBTestDiagnostics.log_verbose(
 		"Number of tiles found: %d (expected >= %d)" % [tile_offsets.size(), expected_min_tiles]
 	)
 
@@ -162,7 +162,7 @@ func test_polygon_shape_edge_cases(
 					expected_min_tiles,
 					tile_offsets.size(),
 					description,
-					GBTestDiagnostics.flush_for_assert()
+					"\"Context: diagnostic test\""
 				]
 			)
 		)
@@ -184,7 +184,7 @@ func test_polygon_shape_edge_cases(
 					test_name,
 					tile_offsets.size(),
 					unique_offsets.size(),
-					GBTestDiagnostics.flush_for_assert()
+					"\"Context: diagnostic test\""
 				]
 			)
 		)
@@ -208,9 +208,9 @@ func test_position_independence_edge_cases(
 		["large_negative", Vector2i(-100, -100), true, "Center at large negative coordinates"],
 	]
 ) -> void:
-	GBTestDiagnostics.buffer("=== TESTING POSITION INDEPENDENCE: %s ===" % test_name)
-	GBTestDiagnostics.buffer("Description: %s" % description)
-	GBTestDiagnostics.buffer("Center tile: %s" % str(center_tile))
+	GBTestDiagnostics.log_verbose("=== TESTING POSITION INDEPENDENCE: %s ===" % test_name)
+	GBTestDiagnostics.log_verbose("Description: %s" % description)
+	GBTestDiagnostics.log_verbose("Center tile: %s" % str(center_tile))
 
 	# Use consistent test polygon (the problematic trapezoid)
 	var test_polygon: PackedVector2Array = PackedVector2Array(
@@ -227,9 +227,9 @@ func test_position_independence_edge_cases(
 		test_polygon, TILE_SIZE_16, Vector2i.ZERO
 	)
 
-	GBTestDiagnostics.buffer("Tile offsets at position: %s" % str(tile_offsets))
-	GBTestDiagnostics.buffer("Reference offsets at origin: %s" % str(origin_offsets))
-	GBTestDiagnostics.buffer(
+	GBTestDiagnostics.log_verbose("Tile offsets at position: %s" % str(tile_offsets))
+	GBTestDiagnostics.log_verbose("Reference offsets at origin: %s" % str(origin_offsets))
+	GBTestDiagnostics.log_verbose(
 		"Offset count: %d (reference: %d)" % [tile_offsets.size(), origin_offsets.size()]
 	)
 
@@ -243,7 +243,7 @@ func test_position_independence_edge_cases(
 					test_name,
 					tile_offsets.size(),
 					origin_offsets.size(),
-					GBTestDiagnostics.flush_for_assert()
+					"\"Context: diagnostic test\""
 				]
 			)
 		)
@@ -281,17 +281,17 @@ func test_position_independence_edge_cases(
 
 ## Test boundary conditions that could cause edge case failures
 func test_boundary_condition_edge_cases() -> void:
-	GBTestDiagnostics.buffer("=== TESTING BOUNDARY CONDITIONS ===")
+	GBTestDiagnostics.log_verbose("=== TESTING BOUNDARY CONDITIONS ===")
 
 	# Test 1: Polygon exactly on tile boundaries
 	var boundary_polygon: PackedVector2Array = PackedVector2Array(
 		[Vector2(-16, -16), Vector2(16, -16), Vector2(16, 16), Vector2(-16, 16)]
 	)
-	GBTestDiagnostics.buffer("Testing polygon exactly on tile boundaries...")
+	GBTestDiagnostics.log_verbose("Testing polygon exactly on tile boundaries...")
 	var boundary_offsets: Array[Vector2i] = CollisionGeometryUtils.compute_polygon_tile_offsets(
 		boundary_polygon, TILE_SIZE_16, CENTER_TILE
 	)
-	GBTestDiagnostics.buffer(
+	GBTestDiagnostics.log_verbose(
 		"Boundary polygon offsets: %s (%d tiles)" % [str(boundary_offsets), boundary_offsets.size()]
 	)
 
@@ -300,7 +300,7 @@ func test_boundary_condition_edge_cases() -> void:
 		. append_failure_message(
 			(
 				"Boundary-aligned polygon should generate tiles but got %d\n%s"
-				% [boundary_offsets.size(), GBTestDiagnostics.flush_for_assert()]
+				% [boundary_offsets.size(), "\"Context: diagnostic test\""]
 			)
 		)
 		. is_greater(0)
@@ -310,11 +310,11 @@ func test_boundary_condition_edge_cases() -> void:
 	var fractional_polygon: PackedVector2Array = PackedVector2Array(
 		[Vector2(-15.5, -15.5), Vector2(15.5, -15.5), Vector2(15.5, 15.5), Vector2(-15.5, 15.5)]
 	)
-	GBTestDiagnostics.buffer("Testing polygon at fractional tile boundaries...")
+	GBTestDiagnostics.log_verbose("Testing polygon at fractional tile boundaries...")
 	var fractional_offsets: Array[Vector2i] = CollisionGeometryUtils.compute_polygon_tile_offsets(
 		fractional_polygon, TILE_SIZE_16, CENTER_TILE
 	)
-	GBTestDiagnostics.buffer(
+	GBTestDiagnostics.log_verbose(
 		(
 			"Fractional polygon offsets: %s (%d tiles)"
 			% [str(fractional_offsets), fractional_offsets.size()]
@@ -326,7 +326,7 @@ func test_boundary_condition_edge_cases() -> void:
 		. append_failure_message(
 			(
 				"Fractional boundary polygon should generate tiles but got %d\n%s"
-				% [fractional_offsets.size(), GBTestDiagnostics.flush_for_assert()]
+				% [fractional_offsets.size(), "\"Context: diagnostic test\""]
 			)
 		)
 		. is_greater(0)
@@ -336,11 +336,11 @@ func test_boundary_condition_edge_cases() -> void:
 	var thin_polygon: PackedVector2Array = PackedVector2Array(
 		[Vector2(-32, -1), Vector2(32, -1), Vector2(32, 1), Vector2(-32, 1)]
 	)
-	GBTestDiagnostics.buffer("Testing very thin polygon...")
+	GBTestDiagnostics.log_verbose("Testing very thin polygon...")
 	var thin_offsets: Array[Vector2i] = CollisionGeometryUtils.compute_polygon_tile_offsets(
 		thin_polygon, TILE_SIZE_16, CENTER_TILE
 	)
-	GBTestDiagnostics.buffer(
+	GBTestDiagnostics.log_verbose(
 		"Thin polygon offsets: %s (%d tiles)" % [str(thin_offsets), thin_offsets.size()]
 	)
 	# Note: This might return 0 tiles due to 5% area threshold - that's acceptable
@@ -348,7 +348,7 @@ func test_boundary_condition_edge_cases() -> void:
 
 ## Test winding order independence
 func test_winding_order_edge_cases() -> void:
-	GBTestDiagnostics.buffer("=== TESTING WINDING ORDER INDEPENDENCE ===")
+	GBTestDiagnostics.log_verbose("=== TESTING WINDING ORDER INDEPENDENCE ===")
 
 	# Original polygon (counter-clockwise)
 	var ccw_polygon: PackedVector2Array = PackedVector2Array(
@@ -360,17 +360,17 @@ func test_winding_order_edge_cases() -> void:
 		[Vector2(32, 12), Vector2(17, -12), Vector2(-16, -12), Vector2(-32, 12)]
 	)
 
-	GBTestDiagnostics.buffer("Testing counter-clockwise polygon...")
+	GBTestDiagnostics.log_verbose("Testing counter-clockwise polygon...")
 	var ccw_offsets: Array[Vector2i] = CollisionGeometryUtils.compute_polygon_tile_offsets(
 		ccw_polygon, TILE_SIZE_16, CENTER_TILE
 	)
-	GBTestDiagnostics.buffer("CCW offsets: %s (%d tiles)" % [str(ccw_offsets), ccw_offsets.size()])
+	GBTestDiagnostics.log_verbose("CCW offsets: %s (%d tiles)" % [str(ccw_offsets), ccw_offsets.size()])
 
-	GBTestDiagnostics.buffer("Testing clockwise polygon...")
+	GBTestDiagnostics.log_verbose("Testing clockwise polygon...")
 	var cw_offsets: Array[Vector2i] = CollisionGeometryUtils.compute_polygon_tile_offsets(
 		cw_polygon, TILE_SIZE_16, CENTER_TILE
 	)
-	GBTestDiagnostics.buffer("CW offsets: %s (%d tiles)" % [str(cw_offsets), cw_offsets.size()])
+	GBTestDiagnostics.log_verbose("CW offsets: %s (%d tiles)" % [str(cw_offsets), cw_offsets.size()])
 
 	# Both should produce the same result
 	(
@@ -378,7 +378,7 @@ func test_winding_order_edge_cases() -> void:
 		. append_failure_message(
 			(
 				"Winding order should not affect tile count. CCW: %d tiles, CW: %d tiles\n%s"
-				% [ccw_offsets.size(), cw_offsets.size(), GBTestDiagnostics.flush_for_assert()]
+				% [ccw_offsets.size(), cw_offsets.size(), "\"Context: diagnostic test\""]
 			)
 		)
 		. is_equal(ccw_offsets.size())

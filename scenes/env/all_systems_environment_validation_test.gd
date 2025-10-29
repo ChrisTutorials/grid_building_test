@@ -6,7 +6,7 @@ var test_env: AllSystemsTestEnvironment
 
 func before_test() -> void:
 	# Load the AllSystemsTestEnvironment scene directly
-	test_env = EnvironmentTestFactory.create_all_systems_env(self, GBTestConstants.ALL_SYSTEMS_ENV_UID)
+	test_env = EnvironmentTestFactory.create_all_systems_env(self, GBTestConstants.ALL_SYSTEMS_ENV)
 
 func after_test() -> void:
 	if test_env != null:

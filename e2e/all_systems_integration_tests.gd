@@ -155,7 +155,7 @@ func _log_conditional_message(message: String) -> void:
 	"""Centralized conditional logging that respects test verbosity settings"""
 	# Always buffer diagnostics so they attach to failures instead of polluting stdout.
 	# GBTestDiagnostics.buffer respects GB_VERBOSE_TESTS environment variable for immediate output.
-	GBTestDiagnostics.buffer(message)
+	GBTestDiagnostics.log_verbose(message)
 
 
 func _format_system_state_debug(
@@ -1375,25 +1375,25 @@ func test_performance_regression_prevention() -> void:
 	)
 
 	# Log performance results with breakdown
-	GBTestDiagnostics.buffer("Performance Results:")
-	GBTestDiagnostics.buffer("  Build Mode Entry: %d ms" % build_mode_time)
-	GBTestDiagnostics.buffer("  Validation Setup (collision processing): %d ms" % setup_time)
-	GBTestDiagnostics.buffer("  Validation Only (indicator evaluation): %d ms" % validation_time)
-	GBTestDiagnostics.buffer("  Placement Operation: %d ms" % placement_time)
+	GBTestDiagnostics.log_verbose("Performance Results:")
+	GBTestDiagnostics.log_verbose("  Build Mode Entry: %d ms" % build_mode_time)
+	GBTestDiagnostics.log_verbose("  Validation Setup (collision processing): %d ms" % setup_time)
+	GBTestDiagnostics.log_verbose("  Validation Only (indicator evaluation): %d ms" % validation_time)
+	GBTestDiagnostics.log_verbose("  Placement Operation: %d ms" % placement_time)
 
 	# Explain performance characteristics
 	if setup_time > validation_time * 5:
-		GBTestDiagnostics.buffer(
+		GBTestDiagnostics.log_verbose(
 			"  ✓ Performance profile is correct: setup includes expensive collision processing"
 		)
 	else:
-		GBTestDiagnostics.buffer("  ⚠ Unexpected: validation should be much faster than setup")
+		GBTestDiagnostics.log_verbose("  ⚠ Unexpected: validation should be much faster than setup")
 
 	# Total workflow should be reasonable (using separated setup + validation)
 	var total_time: int = build_mode_time + setup_time + validation_time + placement_time
 	var perf_summary: String = (
 		"Total workflow time %d ms under performance threshold %d ms. Diagnostics: %s"
-		% [total_time, PERFORMANCE_THRESHOLD_MS * 4, GBTestDiagnostics.flush_for_assert()]
+		% [total_time, PERFORMANCE_THRESHOLD_MS * 4, "diagnostic context"]
 	)
 	assert_int(total_time).append_failure_message(perf_summary).is_less(
 		PERFORMANCE_THRESHOLD_MS * 4

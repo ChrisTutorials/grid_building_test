@@ -27,7 +27,9 @@ func _create_test_rule_setup() -> Dictionary:
 	# Verify the tilemap has the expected dimensions and TileData
 	var used_rect: Rect2i = tile_map.get_used_rect()
 	var expected_rect: Rect2i = Rect2i(-15, -15, 31, 31)  # From (-15, -15) to (15, 15) inclusive
-	assert(used_rect == expected_rect, "Preloaded tilemap should have expected dimensions: %s, got: %s" % [expected_rect, used_rect])
+	assert(used_rect == expected_rect,
+		"Preloaded tilemap should have expected dimensions: %s, got: %s" %
+		[expected_rect, used_rect])
 
 	setup["tile_map"] = tile_map
 	setup["tile_set"] = tile_map.tile_set
@@ -72,43 +74,48 @@ func test_preloaded_tilemap_has_valid_tile_data() -> void:
 	var used_rect: Rect2i = tile_map.get_used_rect()
 	var expected_rect: Rect2i = Rect2i(-15, -15, 31, 31)
 	assert_that(used_rect).append_failure_message(
-		"Tilemap used rect should match integration test: expected %s, got %s" % [expected_rect, used_rect]
+		"Tilemap used rect should match integration test: expected %s, got %s" %
+		[expected_rect, used_rect]
 	).is_equal(expected_rect)
 	var tile_size: Vector2i = tile_map.tile_set.tile_size
 	var expected_tile_size: Vector2i = Vector2i(16, 16)
 	assert_vector(Vector2(tile_size)).is_equal(Vector2(expected_tile_size)).append_failure_message(
-		"Tilemap tile_size should match integration test: expected %s, got %s" % [expected_tile_size, tile_size]
+		"Tilemap tile_size should match integration test: expected %s, got %s" %
+		[expected_tile_size, tile_size]
 	)
 
 	# Test the exact position from the failing integration test
 	var integration_test_world_pos: Vector2 = Vector2(8.0, 8.0)  # "Positioner position: (8.0, 8.0)"
-	var integration_test_tile: Vector2i = tile_map.local_to_map(tile_map.to_local(integration_test_world_pos))
+	var integration_test_tile: Vector2i = tile_map.local_to_map(
+		tile_map.to_local(integration_test_world_pos)
+	)
 
 	# This should be tile (0, 0) based on 16x16 tiles and 8.0 world position
 	var expected_tile: Vector2i = Vector2i(0, 0)
 	assert_vector(Vector2(integration_test_tile)).append_failure_message(
-		"Integration test position %s should map to tile %s, got %s" % [integration_test_world_pos, expected_tile, integration_test_tile]
+		"Integration test position should map to expected tile"
 	).is_equal(Vector2(expected_tile))
 
 	# Verify that tile (0,0) has valid TileData
 	var tile_data: TileData = tile_map.get_cell_tile_data(expected_tile)
 	assert_object(tile_data).append_failure_message(
-		"Integration test tile position %s should have valid TileData for WithinTilemapBoundsRule to pass" % expected_tile
+		"Integration test tile position %s should have valid TileData for " +
+		"WithinTilemapBoundsRule to pass" % expected_tile
 	).is_not_null()
 
 # UNIT TEST TO REPRODUCE INTEGRATION FAILURE: WithinTilemapBoundsRule
 # This reproduces the template_rule_pass failure where rule fails even when position is within bounds
-# Integration test shows: Positioner position: (8.0, 8.0), Map used rect: [P: (-15, -15), S: (31, 31)], Position within bounds: true
+# Integration test shows: Positioner position: (8.0, 8.0), Map used rect: [P: (-15, -15), S: (31, 31)],
+# Position within bounds: true
 func test_within_tilemap_bounds_rule_at_valid_position() -> void:
 	var setup: Dictionary = _create_test_rule_setup()
-	var tile_map: TileMapLayer = setup["tile_map"]
 	var targeting_state: GridTargetingState = setup["targeting_state"]
 	var positioner: Node2D = setup["positioner"]
 	var target: Node2D = setup["target"]
 
 	# Set positions exactly like the failing integration test
-	positioner.global_position = Vector2(8.0, 8.0)  # Same as integration test "Positioner position: (8.0, 8.0)"
-	target.global_position = Vector2(0.0, 0.0)      # Same as integration test "Target position: (0.0, 0.0)"
+	positioner.global_position = Vector2(8.0, 8.0)  # Same as integration test
+	target.global_position = Vector2(0.0, 0.0)      # Same as integration test
 
 	# Create the rule
 	var rule: WithinTilemapBoundsRule = WithinTilemapBoundsRule.new()
@@ -140,14 +147,9 @@ func test_within_tilemap_bounds_rule_at_valid_position() -> void:
 	var failing_indicators: Array[RuleCheckIndicator] = rule.get_failing_indicators([test_indicator])
 	var is_valid: bool = failing_indicators.size() == 0
 
-	# Generate detailed diagnostics for failure analysis using helper
-	var diagnostics: String = _generate_bounds_rule_diagnostics(rule, test_indicator, tile_map, positioner, target)
-	diagnostics += "- Failing indicators count: %d\n" % failing_indicators.size()
-	diagnostics += "- Indicator.valid after force_validity_evaluation(): %s\n" % str(test_indicator.valid)
-
-	# This should pass since position (8,8) -> tile (0,0) is within bounds (-15,-15) to (15,15)
 	assert_bool(is_valid).append_failure_message(
-		"WITHIN TILEMAP BOUNDS RULE UNIT TEST FAILURE:\n%s\nThis reproduces the integration test failure in template_rule_pass. Position (8.0, 8.0) should be within tilemap bounds but rule is failing." % diagnostics
+		"WITHIN TILEMAP BOUNDS RULE UNIT TEST FAILURE:\nThis reproduces the integration test failure. " +
+		"Position should be within tilemap bounds but rule is failing."
 	).is_true()
 
 # Test rule with position outside bounds to verify it correctly fails
@@ -181,23 +183,19 @@ func test_within_tilemap_bounds_rule_at_invalid_position() -> void:
 
 	# Debug ValidationResults directly (buffered)
 	var validation_results: ValidationResults = rule._is_over_valid_tile(test_indicator, tile_map)
-	GBTestDiagnostics.buffer("DEBUG ValidationResults:")
-	GBTestDiagnostics.buffer("  is_successful(): %s" % [validation_results.is_successful()])
-	GBTestDiagnostics.buffer("  has_errors(): %s" % [validation_results.has_errors()])
-	GBTestDiagnostics.buffer("  get_errors(): %s" % [validation_results.get_errors()])
-	GBTestDiagnostics.buffer("  has_failing_rules(): %s" % [validation_results.has_failing_rules()])
+	GBTestDiagnostics.log_verbose("DEBUG ValidationResults:")
+	GBTestDiagnostics.log_verbose("  is_successful(): %s" % [validation_results.is_successful()])
+	GBTestDiagnostics.log_verbose("  has_errors(): %s" % [validation_results.has_errors()])
+	GBTestDiagnostics.log_verbose("  get_errors(): %s" % [validation_results.get_errors()])
+	GBTestDiagnostics.log_verbose("  has_failing_rules(): %s" % [validation_results.has_failing_rules()])
 
 	# Test the rule - should fail for out of bounds position
 	var failing_indicators: Array[RuleCheckIndicator] = rule.get_failing_indicators([test_indicator])
 	var is_valid: bool = failing_indicators.size() == 0
 
-	var indicator_tile: Vector2i = tile_map.local_to_map(tile_map.to_local(test_indicator.global_position))
-	var used_rect: Rect2i = tile_map.get_used_rect()
-
 	# This should fail since position is outside bounds
-	var context := GBTestDiagnostics.flush_for_assert()
 	assert_bool(is_valid).append_failure_message(
-		"WithinTilemapBoundsRule should fail for out-of-bounds position. Indicator tile: %s, Used rect: %s, Within bounds: %s. ValidationResults.is_successful(): %s\nContext: %s" % [str(indicator_tile), str(used_rect), str(used_rect.has_point(indicator_tile)), str(validation_results.is_successful()), context]
+		"WithinTilemapBoundsRule should fail for out-of-bounds position"
 	).is_false()
 
 # Test edge case: position exactly on boundary
@@ -243,10 +241,10 @@ func test_within_tilemap_bounds_rule_boundary_positions(
 	# Debug ValidationResults for failing cases (buffered)
 	if not expected_valid:
 		var validation_results: ValidationResults = rule._is_over_valid_tile(test_indicator, tile_map)
-		GBTestDiagnostics.buffer("DEBUG ValidationResults for '%s' at %s:" % [boundary_description, str(tile_position)])
-		GBTestDiagnostics.buffer("  is_successful(): %s" % [validation_results.is_successful()])
-		GBTestDiagnostics.buffer("  has_errors(): %s" % [validation_results.has_errors()])
-		GBTestDiagnostics.buffer("  get_errors(): %s" % [validation_results.get_errors()])
+		GBTestDiagnostics.log_verbose("DEBUG ValidationResults for '%s' at %s:" % [boundary_description, str(tile_position)])
+		GBTestDiagnostics.log_verbose("  is_successful(): %s" % [validation_results.is_successful()])
+		GBTestDiagnostics.log_verbose("  has_errors(): %s" % [validation_results.has_errors()])
+		GBTestDiagnostics.log_verbose("  get_errors(): %s" % [validation_results.get_errors()])
 
 	var failing_indicators: Array[RuleCheckIndicator] = rule.get_failing_indicators([test_indicator])
 	var is_valid: bool = failing_indicators.size() == 0
@@ -264,7 +262,6 @@ func test_within_tilemap_bounds_rule_boundary_positions(
 # Integration test shows: 4 indicators with valid=true and colliding=false, but overall validation fails
 func test_multiple_rules_validation_combination() -> void:
 	var setup: Dictionary = _create_test_rule_setup()
-	var _tile_map: TileMapLayer = setup["tile_map"]
 	var targeting_state: GridTargetingState = setup["targeting_state"]
 	var positioner: Node2D = setup["positioner"]
 	var target: Node2D = setup["target"]
@@ -308,7 +305,9 @@ func test_multiple_rules_validation_combination() -> void:
 	var bounds_failing: Array[RuleCheckIndicator] = bounds_rule.get_failing_indicators([test_indicator])
 	var bounds_valid: bool = bounds_failing.size() == 0
 
-	var collision_failing: Array[RuleCheckIndicator] = collision_rule.get_failing_indicators([test_indicator])
+	var collision_failing: Array[RuleCheckIndicator] = collision_rule.get_failing_indicators(
+		[test_indicator]
+	)
 	var collision_valid: bool = collision_failing.size() == 0
 
 	# Test combined validation (both rules must pass)
@@ -338,7 +337,8 @@ func test_multiple_rules_validation_combination() -> void:
 
 	# Combined validation should also pass (this is where integration test fails)
 	assert_bool(combined_valid).append_failure_message(
-		"MULTIPLE RULES VALIDATION UNIT TEST FAILURE:\n%s\nThis reproduces the integration test failure in multiple_rules_pass. Individual rules pass but combined validation fails." % diagnostics
+		"MULTIPLE RULES VALIDATION UNIT TEST FAILURE:\n%s\nThis reproduces the integration test " +
+		"failure in multiple_rules_pass. Individual rules pass but combined validation fails." % diagnostics
 	).is_true()
 
 # DIAGNOSTIC HELPERS for rule validation testing
@@ -358,28 +358,44 @@ func _generate_bounds_rule_diagnostics(rule: WithinTilemapBoundsRule, indicator:
 	var indicator_tile: Vector2i = tile_map.local_to_map(tile_map.to_local(indicator.global_position))
 	var used_rect: Rect2i = tile_map.get_used_rect()
 
-	diagnostics += "- Positioner tile: %s (within bounds: %s)\n" % [str(positioner_tile), str(used_rect.has_point(positioner_tile))]
-	diagnostics += "- Target tile: %s (within bounds: %s)\n" % [str(target_tile), str(used_rect.has_point(target_tile))]
-	diagnostics += "- Indicator tile: %s (within bounds: %s)\n" % [str(indicator_tile), str(used_rect.has_point(indicator_tile))]
+	diagnostics += "- Positioner tile: %s (within bounds: %s)\n" % [
+		str(positioner_tile), str(used_rect.has_point(positioner_tile))
+	]
+	diagnostics += "- Target tile: %s (within bounds: %s)\n" % [
+		str(target_tile), str(used_rect.has_point(target_tile))
+	]
+	diagnostics += "- Indicator tile: %s (within bounds: %s)\n" % [
+		str(indicator_tile), str(used_rect.has_point(indicator_tile))
+	]
 	diagnostics += "- Used rect bounds: %s\n" % str(used_rect)
-	diagnostics += "- Rule setup successful: %s\n" % (str(rule._ready) if rule.has_method("_ready") else "unknown")
+	diagnostics += "- Rule setup successful: %s\n" % (
+		str(rule._ready) if rule.has_method("_ready") else "unknown"
+	)
 
 	# Check actual TileData at indicator position to diagnose WithinTilemapBoundsRule issue
 	var tile_data: TileData = tile_map.get_cell_tile_data(indicator_tile)
-	diagnostics += "- TileData at indicator position: %s (null means no tile set)\n" % ("valid" if tile_data != null else "null")
+	diagnostics += "- TileData at indicator position: %s (null means no tile set)\n" % (
+		"valid" if tile_data != null else "null"
+	)
 	if tile_data != null:
 		diagnostics += "- TileData properties: source_id=%d\n" % tile_map.get_cell_source_id(indicator_tile)
 	else:
 		# If TileData is null, check if we can manually set the tile
 		var cell_source_id: int = tile_map.get_cell_source_id(indicator_tile)
 		var cell_atlas_coords: Vector2i = tile_map.get_cell_atlas_coords(indicator_tile)
-		diagnostics += "- Cell source_id: %d, atlas_coords: %s\n" % [cell_source_id, str(cell_atlas_coords)]
+		diagnostics += "- Cell source_id: %d, atlas_coords: %s\n" % [
+			cell_source_id, str(cell_atlas_coords)
+		]
 
 	# CRITICAL: Check indicator runtime issues - this might be the real problem!
 	var indicator_issues: Array[String] = indicator.get_runtime_issues()
-	diagnostics += "- Indicator runtime issues: %s (empty = valid indicator)\n" % ("none" if indicator_issues.is_empty() else str(indicator_issues))
+	diagnostics += "- Indicator runtime issues: %s (empty = valid indicator)\n" % (
+		"none" if indicator_issues.is_empty() else str(indicator_issues)
+	)
 	diagnostics += "- Indicator has shape: %s\n" % ("yes" if indicator.shape != null else "no")
-	diagnostics += "- Indicator shape type: %s\n" % (indicator.shape.get_class() if indicator.shape != null else "none")
+	diagnostics += "- Indicator shape type: %s\n" % (
+		indicator.shape.get_class() if indicator.shape != null else "none"
+	)
 	if indicator.shape != null and indicator.shape is RectangleShape2D:
 		diagnostics += "- Rectangle shape size: %s\n" % str((indicator.shape as RectangleShape2D).size)
 
@@ -400,6 +416,8 @@ func _generate_multiple_rules_diagnostics(bounds_rule: WithinTilemapBoundsRule, 
 	diagnostics += "- Combined validation valid: %s (failing rules: %d)\n" % [str(combined_valid), (1 if not bounds_valid else 0) + (1 if not collision_valid else 0)]
 	diagnostics += "- Indicator position: %s\n" % str(indicator.global_position)
 	diagnostics += "- Indicator colliding: %s\n" % str(indicator.is_colliding())
-	diagnostics += "- Collision rule mask: %d, Indicator mask: %d\n" % [collision_rule.collision_mask, indicator.collision_mask]
+	diagnostics += "- Collision rule mask: %d, Indicator mask: %d\n" % [
+		collision_rule.collision_mask, indicator.collision_mask
+	]
 
 	return diagnostics

@@ -75,7 +75,7 @@ func _test_single_collision_object_scenario(
 	shape_size: Vector2,
 	expected_shape_count: int
 ) -> void:
-	GBTestDiagnostics.buffer("=== DEBUG COLLISION OBJECT: %s ===" % object_type)
+	GBTestDiagnostics.log_verbose("=== DEBUG COLLISION OBJECT: %s ===" % object_type)
 
 	# Create collision object based on type
 	var collision_obj: CollisionObject2D = _create_collision_object(object_type, collision_layer)
@@ -90,24 +90,24 @@ func _test_single_collision_object_scenario(
 	collision_obj.add_child(collision_shape)
 
 	# Debug output
-	GBTestDiagnostics.buffer(
+	GBTestDiagnostics.log_verbose(
 		"1. %s.collision_layer: %d" % [object_type, collision_obj.collision_layer]
 	)
-	GBTestDiagnostics.buffer("2. %s.name: %s" % [object_type, collision_obj.name])
-	GBTestDiagnostics.buffer("3. CollisionShape2D.name: %s" % collision_shape.name)
-	GBTestDiagnostics.buffer("4. CollisionShape2D.shape: %s" % collision_shape.shape)
-	GBTestDiagnostics.buffer("5. %s.get_shape_owners(): %s" % [
+	GBTestDiagnostics.log_verbose("2. %s.name: %s" % [object_type, collision_obj.name])
+	GBTestDiagnostics.log_verbose("3. CollisionShape2D.name: %s" % collision_shape.name)
+	GBTestDiagnostics.log_verbose("4. CollisionShape2D.shape: %s" % collision_shape.shape)
+	GBTestDiagnostics.log_verbose("5. %s.get_shape_owners(): %s" % [
 		object_type, collision_obj.get_shape_owners()
 	])
 
 	# Test shape detection utilities
 	var shapes_from_owner: Array[Shape2D] = GBGeometryUtils.get_shapes_from_owner(collision_obj)
-	GBTestDiagnostics.buffer("6. get_shapes_from_owner result: %d shapes" % shapes_from_owner.size())
+	GBTestDiagnostics.log_verbose("6. get_shapes_from_owner result: %d shapes" % shapes_from_owner.size())
 
 	var all_shapes: Dictionary[Node2D, Array] = GBGeometryUtils.get_all_collision_shapes_by_owner(
 		collision_obj
 	)
-	GBTestDiagnostics.buffer(
+	GBTestDiagnostics.log_verbose(
 		"7. get_all_collision_shapes_by_owner result: %d owners" % all_shapes.size()
 	)
 
@@ -170,7 +170,7 @@ func test_packed_scene_collision_debug_scenarios() -> void:
 		_test_single_packed_scene_scenario(object_type, collision_layer)
 
 func _test_single_packed_scene_scenario(object_type: String, collision_layer: int) -> void:
-	GBTestDiagnostics.buffer("=== DEBUG PACKED SCENE: %s ===" % object_type)
+	GBTestDiagnostics.log_verbose("=== DEBUG PACKED SCENE: %s ===" % object_type)
 
 	# Create original collision object (NO auto_free for PackedScene nodes)
 	var original_obj: CollisionObject2D = _create_collision_object_for_packed_scene(
@@ -188,29 +188,29 @@ func _test_single_packed_scene_scenario(object_type: String, collision_layer: in
 	# CRITICAL: Set owner for PackedScene to include children
 	collision_shape.owner = original_obj
 
-	GBTestDiagnostics.buffer(
+	GBTestDiagnostics.log_verbose(
 		"1. Original %s children: %d" % [object_type, original_obj.get_child_count()]
 	)
 	if original_obj.get_child_count() > 0:
 		var child: Node = original_obj.get_children()[0]
-		GBTestDiagnostics.buffer("1a. First child name: %s" % child.name)
-		GBTestDiagnostics.buffer("1b. First child type: %s" % child.get_class())
+		GBTestDiagnostics.log_verbose("1a. First child name: %s" % child.name)
+		GBTestDiagnostics.log_verbose("1b. First child type: %s" % child.get_class())
 
-	GBTestDiagnostics.buffer(
+	GBTestDiagnostics.log_verbose(
 		"2. Original %s shape_owners: %s" % [object_type, original_obj.get_shape_owners()]
 	)
 	var original_shapes: Array[Shape2D] = GBGeometryUtils.get_shapes_from_owner(original_obj)
-	GBTestDiagnostics.buffer("3. Original shapes: %d" % original_shapes.size())
+	GBTestDiagnostics.log_verbose("3. Original shapes: %d" % original_shapes.size())
 
 	# Create PackedScene and verify packing
 	var scene: PackedScene = PackedScene.new()
 	var pack_result: int = scene.pack(original_obj)
-	GBTestDiagnostics.buffer("4. PackedScene.pack() result: %s" % pack_result)
+	GBTestDiagnostics.log_verbose("4. PackedScene.pack() result: %s" % pack_result)
 
 	var state: SceneState = scene.get_state()
-	GBTestDiagnostics.buffer("5. Packed scene node count: %d" % state.get_node_count())
+	GBTestDiagnostics.log_verbose("5. Packed scene node count: %d" % state.get_node_count())
 	for i in range(state.get_node_count()):
-		GBTestDiagnostics.buffer(
+		GBTestDiagnostics.log_verbose(
 			"5a. Node %d: %s (type: %s)" % [i, state.get_node_name(i), state.get_node_type(i)]
 		)
 
@@ -218,11 +218,11 @@ func _test_single_packed_scene_scenario(object_type: String, collision_layer: in
 	var preview_obj: CollisionObject2D = scene.instantiate() as CollisionObject2D
 	add_child(preview_obj)
 
-	GBTestDiagnostics.buffer(
+	GBTestDiagnostics.log_verbose(
 		"6. Preview %s children: %d" % [object_type, preview_obj.get_child_count()]
 	)
 	var preview_shapes: Array[Shape2D] = GBGeometryUtils.get_shapes_from_owner(preview_obj)
-	GBTestDiagnostics.buffer("7. Preview shapes: %d" % preview_shapes.size())
+	GBTestDiagnostics.log_verbose("7. Preview shapes: %d" % preview_shapes.size())
 
 	# Assertions
 	assert_int(pack_result).append_failure_message("PackedScene.pack() failed").is_equal(OK)

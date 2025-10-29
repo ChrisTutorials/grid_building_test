@@ -16,13 +16,10 @@ func after_test() -> void:
 func test_rule_result_backward_compatibility_is_empty() -> void:
 	var rr := RuleResult.new(_dummy_rule)
 	assert_that(rr.is_empty()).append_failure_message("RuleResult should be empty initially").is_true()
-	assert_that(rr.get_issues())
-  .append_failure_message("RuleResult should have no issues initially").is_empty()
+	assert_that(rr.get_issues()).append_failure_message("RuleResult should have no issues initially").is_empty()
 	rr.add_issue("failure A")
-	assert_that(rr.is_empty())
-  .append_failure_message("RuleResult should not be empty after adding issue").is_false()
-	assert_array(rr.get_issues())
-  .append_failure_message("RuleResult should have exactly one issue").has_size(1)
+	assert_that(rr.is_empty()).append_failure_message("RuleResult should not be empty after adding issue").is_false()
+	assert_array(rr.get_issues()).append_failure_message("RuleResult should have exactly one issue").has_size(1)
 
 func test_validation_results_mixed_api_support() -> void:
 	var rr1 := RuleResult.new(_dummy_rule) # empty success
@@ -35,8 +32,7 @@ func test_validation_results_mixed_api_support() -> void:
 	# Re-add failing
 	vr.add_rule_result(_dummy_rule, rr2)
 	assert_that(vr.has_failing_rules()).append_failure_message("ValidationResults should have failing rules after adding failing result").is_true()
-	assert_array(vr.get_issues())
-  .append_failure_message("ValidationResults should have exactly one issue").has_size(1)
+	assert_array(vr.get_issues()).append_failure_message("ValidationResults should have exactly one issue").has_size(1)
 
 func test_placement_report_aggregates_indicator_and_primary_issues() -> void:
 	var rr := RuleResult.new(_dummy_rule)
@@ -78,19 +74,15 @@ func test_validation_results_stores_both_errors_and_issues() -> void:
 	var validation_issues: Array[String] = validation_results.get_issues()
 
 	# Assert: Configuration errors are captured
-	assert_array(config_errors).contains_exactly(["Camera2D not found in viewport"]) \
-		.append_failure_message("Expected configuration error to be captured in get_errors()")
+	assert_array(config_errors).contains_exactly(["Camera2D not found in viewport"]).append_failure_message("Expected configuration error to be captured in get_errors()")
 
 	# Assert: Rule validation issues are captured
 	var expected_issues: Array[String] = ["collision detected on tile (5,7)", "boundary violation at position X"]
-	assert_array(validation_issues).contains_exactly(expected_issues) \
-		.append_failure_message("Expected rule validation failures to be captured in get_issues()")
+	assert_array(validation_issues).contains_exactly(expected_issues).append_failure_message("Expected rule validation failures to be captured in get_issues()")
 
 	# Assert: Both collections should be non-empty when both error types exist
-	assert_bool(config_errors.is_empty()).is_false() \
-		.append_failure_message("Configuration errors should not be empty")
-	assert_bool(validation_issues.is_empty()).is_false() \
-		.append_failure_message("Validation issues should not be empty")
+	assert_bool(config_errors.is_empty()).is_false().append_failure_message("Configuration errors should not be empty")
+	assert_bool(validation_issues.is_empty()).is_false().append_failure_message("Validation issues should not be empty")
 
 func test_placement_report_collects_validation_results_comprehensively() -> void:
 	# Test: PlacementReport should collect issues from ValidationResults.get_errors() AND get_issues()
@@ -136,12 +128,9 @@ func test_placement_report_collects_validation_results_comprehensively() -> void
 	var all_issues: Array[String] = placement_report.get_issues()
 
 	# Assert: Both configuration errors and validation issues are present
-	assert_bool(all_issues.has("Camera2D not found in viewport")).is_true() \
-		.append_failure_message("Expected configuration error in PlacementReport. Got: %s" % str(all_issues))
+	assert_bool(all_issues.has("Camera2D not found in viewport")).is_true().append_failure_message("Expected configuration error in PlacementReport. Got: %s" % str(all_issues))
 
-	assert_bool(all_issues.has("Colliding on 8 tile(s)")).is_true() \
-		.append_failure_message("Expected validation issue in PlacementReport. Got: %s" % str(all_issues))
+	assert_bool(all_issues.has("Colliding on 8 tile(s)")).is_true().append_failure_message("Expected validation issue in PlacementReport. Got: %s" % str(all_issues))
 
 	# Assert: PlacementReport correctly reports failure status
-	assert_bool(placement_report.is_successful()).is_false() \
-		.append_failure_message("PlacementReport should report failure when validation issues exist")
+	assert_bool(placement_report.is_successful()).is_false().append_failure_message("PlacementReport should report failure when validation issues exist")

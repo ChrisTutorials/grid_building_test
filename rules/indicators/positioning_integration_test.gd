@@ -26,20 +26,19 @@ func test_collision_mapping_produces_relative_offsets() -> void:
 		return
 
 	# Buffer initial diagnostic information
-	GBTestDiagnostics.buffer("=== COLLISION MAPPING INTEGRATION TEST ===")
-	GBTestDiagnostics.buffer("Positioner position: %s" % test_env.positioner.global_position)
-	GBTestDiagnostics.buffer("Environment setup successful - collision mapper available at correct position")
-	GBTestDiagnostics.buffer("The fix in collision_processor.gd should prevent absolute coordinates from being returned")
-	GBTestDiagnostics.buffer("Instead of center_tile = collision_object.position, now uses center_tile = positioner.position")
-	GBTestDiagnostics.buffer("This ensures offsets are calculated relative to where IndicatorFactory expects them")
-
+	GBTestDiagnostics.log_verbose("=== COLLISION MAPPING INTEGRATION TEST ===")
+	GBTestDiagnostics.log_verbose("Positioner position: %s" % test_env.positioner.global_position)
+	GBTestDiagnostics.log_verbose("Environment setup successful - collision mapper available at correct position")
+	GBTestDiagnostics.log_verbose("The fix in collision_processor.gd should prevent absolute coordinates from being returned")
+	GBTestDiagnostics.log_verbose("Instead of center_tile = collision_object.position, now uses center_tile = positioner.position")
+	GBTestDiagnostics.log_verbose("This ensures offsets are calculated relative to where IndicatorFactory expects them")
 	# Create a simple test setup - just verify that collision mapping doesn't produce
 	# massive offsets like (51, 21) which caused the 800+ pixel displacement
 
 	# For now, this is a placeholder test that verifies the environment is set up correctly
 	# The real test would need more complex collision object setup
 
-	var context := GBTestDiagnostics.flush_for_assert()
-	assert_that(test_env.positioner.global_position).append_failure_message("Expected positioner at correct coordinates. Context: %s" % context).is_equal(Vector2(456.0, 552.0))
-	assert_that(collision_mapper)
-  .append_failure_message("Expected collision mapper to be available").is_not_null()
+	var diag: PackedStringArray = PackedStringArray()
+	diag.append("Positioning integration test context")
+	assert_that(test_env.positioner.global_position).append_failure_message("Expected positioner at correct coordinates. Context: %s" % "\n".join(diag)).is_equal(Vector2(456.0, 552.0))
+	assert_that(collision_mapper).append_failure_message("Expected collision mapper to be available").is_not_null()

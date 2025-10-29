@@ -26,8 +26,8 @@ func before_test() -> void:
 		GBTestConstants.EnvironmentType.COLLISION_TEST
 	)
 	if not env_scene:
-		# Try the path fallback directly
-		env_scene = load(GBTestConstants.COLLISION_TEST_ENV_PATH)
+		# Fallback to the preloaded constant
+		env_scene = GBTestConstants.COLLISION_TEST_ENV
 
 	if not env_scene:
 		# Last fallback to the old UID that was in the test

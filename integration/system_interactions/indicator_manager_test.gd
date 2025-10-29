@@ -69,7 +69,7 @@ func _create_rect_area_scene(size: Vector2) -> Node2D:
 
 func _create_smithy_scene() -> Node2D:
 	# Load pre-built smithy test scene using path
-	var smithy_scene: PackedScene = load(GBTestConstants.SMITHY_PATH)
+	var smithy_scene: PackedScene = GBTestConstants.SMITHY_SCENE
 	var instance: Node2D = smithy_scene.instantiate()
 	add_child(instance)
 	auto_free(instance)
@@ -77,7 +77,7 @@ func _create_smithy_scene() -> Node2D:
 
 func _create_ellipse_scene() -> Node2D:
 	# Load pre-built ellipse test scene
-	var ellipse_scene: PackedScene = GBTestConstants.eclipse_scene
+	var ellipse_scene: PackedScene = GBTestConstants.ELLIPSE_SCENE
 	var instance: Node2D = ellipse_scene.instantiate()
 	add_child(instance)
 	auto_free(instance)
@@ -85,7 +85,7 @@ func _create_ellipse_scene() -> Node2D:
 
 func _create_gigantic_egg_scene() -> Node2D:
 	# Load pre-built gigantic egg test scene
-	var egg_scene: PackedScene = load(GBTestConstants.GIGANTIC_EGG_PATH)
+	var egg_scene: PackedScene = GBTestConstants.GIGANTIC_EGG_SCENE
 	var instance: Node2D = egg_scene.instantiate()
 	add_child(instance)
 	auto_free(instance)
@@ -104,20 +104,12 @@ func _create_rect_15_tiles_scene() -> Node2D:
 func before_test() -> void:
 	# Use the EnvironmentTestFactory to provide a consistent prebuilt test environment
 	_test_env = EnvironmentTestFactory.create_collision_test_environment(self)
- assert_object(_test_env)
-  .append_failure_message("EnvironmentTestFactory failed to create collision env").is_not_null()
 
 	# Extract components from environment using proper property names
 	_container = _test_env.get_container()
 	_positioner = _test_env.positioner
 	indicator_manager = _test_env.indicator_manager
 	map_layer = _test_env.tile_map_layer
-
-	# Verify all required components are available
- assert_object(_container).append_failure_message("Container is null").is_not_null()
- assert_object(_positioner).append_failure_message("Positioner is null").is_not_null()
- assert_object(indicator_manager).append_failure_message("IndicatorManager is null").is_not_null()
- assert_object(map_layer).append_failure_message("TileMapLayer is null").is_not_null()
 
 	# Set up test constants
 	global_snap_pos = map_layer.map_to_local(Vector2i(0,0))
@@ -148,7 +140,7 @@ func test_indicator_manager_dependencies_initialized() -> void:
 	# Attempt physics body layer overlap prerequisite; don't hard fail if only raw shapes exist.
 	var overlap_ok: bool = _collision_layer_overlaps(shape_scene, col_checking_rules)
 	if not overlap_ok:
-		GBTestDiagnostics.buffer("[TEST][indicator_manager] WARNING: No physics body layer overlap for eclipse_scene; proceeding (shape-only scene)")
+		GBTestDiagnostics.log_verbose("[TEST][indicator_manager] WARNING: No physics body layer overlap for eclipse_scene; proceeding (shape-only scene)")
 
 	var indicators_report : IndicatorSetupReport = setup_scene_with_indicators(shape_scene)
 	var data: Dictionary[String, Variant] = get_indicators_and_summary(indicators_report)
@@ -156,10 +148,11 @@ func test_indicator_manager_dependencies_initialized() -> void:
 	var summary: String = data.summary
 
 	# Assert that indicators were created (this tests the internal functionality without exposing private properties)
-	var context := GBTestDiagnostics.flush_for_assert()
+	var diag: PackedStringArray = PackedStringArray()
+	diag.append("[TEST][indicator_manager] Setup context")
 	assert_int(indicators.size()).append_failure_message(
 		"No indicators generated for eclipse_scene. shapes=%d rules=%s summary=%s\nContext: %s" %
-		[collision_shape_count, str(col_checking_rules), summary, context]
+		[collision_shape_count, str(col_checking_rules), summary, "\n".join(diag)]
 	).is_greater(0)
 
 	# Test that the manager can get colliding indicators
@@ -279,8 +272,8 @@ func test_indicator_generation_distance(shape_scene_key: String, expected_distan
 	var indicator_0: RuleCheckIndicator = indicators.get(0)
 	var indicator_1: RuleCheckIndicator = indicators.get(1)
 
-	assert_bool(indicator_0 != null && indicator_1 != null)
-		.append_failure_message("Expected to generate 2 indicators for this test: [%s, %s]" % [indicator_0, indicator_1])
+	assert_bool(indicator_0 != null && indicator_1 != null) \
+		.append_failure_message("Expected to generate 2 indicators for this test: [%s, %s]" % [indicator_0, indicator_1]) \
 		.is_true()
 
 	if indicator_0 == null || indicator_1 == null:

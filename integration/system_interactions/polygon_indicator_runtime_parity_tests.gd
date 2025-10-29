@@ -103,7 +103,7 @@ func test_polygon_indicators_align_with_geometry() -> void:
 
 	# Skip test if build mode fails
 	if not _building_validation.is_successful:
-		var diagnostic: String = GBTestDiagnostics.flush_for_assert()
+		var diagnostic: String = "diagnostic context"
 		(
 			assert_bool(_building_validation.is_successful)
 			. append_failure_message(
@@ -118,7 +118,7 @@ func test_polygon_indicators_align_with_geometry() -> void:
 
 	# Skip test if manager setup fails
 	if not _manager_validation.is_valid:
-		var diagnostic: String = GBTestDiagnostics.flush_for_assert()
+		var diagnostic: String = "diagnostic context"
 		(
 			assert_bool(_manager_validation.is_valid)
 			. append_failure_message(
@@ -140,7 +140,7 @@ func test_polygon_indicators_align_with_geometry() -> void:
 
 	# Skip if no indicators generated
 	if indicator_result.indicator_count == 0:
-		var diagnostic: String = GBTestDiagnostics.flush_for_assert()
+		var diagnostic: String = "diagnostic context"
 		(
 			assert_int(indicator_result.indicator_count)
 			. append_failure_message(
@@ -181,7 +181,7 @@ func test_polygon_preview_has_collision_polygon() -> void:
 
 	# This test can provide useful debugging even if build mode fails
 	if not _building_validation.is_successful:
-		var diagnostic: String = GBTestDiagnostics.flush_for_assert()
+		var diagnostic: String = "diagnostic context"
 		(
 			assert_bool(_building_validation.is_successful)
 			. append_failure_message(

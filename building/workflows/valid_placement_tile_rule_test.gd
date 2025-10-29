@@ -115,8 +115,7 @@ func test_test_tile_data_for_all_matches(
 	if not rule:
 		fail("Rule is null - cannot test _test_tile_data_for_all_matches")
 		return
-	assert_object(rule.expected_tile_custom_data)
-  .append_failure_message("Rule expected_tile_custom_data should not be null").is_not_null()
+	assert_object(rule.expected_tile_custom_data).append_failure_message("Rule expected_tile_custom_data should not be null").is_not_null()
 	var result: bool = rule._test_tile_data_for_all_matches(p_tile_data, rule.expected_tile_custom_data)
 	assert_bool(result).append_failure_message(
 		"Tile data matching should match expected result for tile data: " + str(p_tile_data)

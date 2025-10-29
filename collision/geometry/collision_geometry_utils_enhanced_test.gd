@@ -836,10 +836,10 @@ func test_collision_geometry_calculator_concave_tile_overlap() -> void:
 		min_overlap_ratio
 	)
 
-	GBTestDiagnostics.buffer(
+	GBTestDiagnostics.log_verbose(
 		"CollisionGeometryCalculator test - overlapped tiles: %s" % str(overlapped_tiles)
 	)
-	var context := GBTestDiagnostics.flush_for_assert()
+	var context := "diagnostic context"
 
 	# Convert to center-relative coordinates for analysis (assuming center at origin)
 	var center_tile: Vector2i = Vector2i(0, 0)  # Origin tile
