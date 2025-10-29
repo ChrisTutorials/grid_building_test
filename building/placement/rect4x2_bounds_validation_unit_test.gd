@@ -29,8 +29,8 @@ func before_test() -> void:
 	runner = scene_runner(GBTestConstants.BUILDING_TEST_ENV_UID)
 	env = runner.scene() as BuildingTestEnvironment
 
-	assert_object(env)
-  .append_failure_message("Failed to load BuildingTestEnvironment scene").is_not_null()
+	assert_object(env).append_failure_message(
+		"Failed to load BuildingTestEnvironment scene").is_not_null()
 
 	# Direct property access - type-safe
 	_container = env.get_container()
@@ -57,8 +57,8 @@ func before_test() -> void:
 	var placement_rules: Array[PlacementRule] = _container.get_placement_rules()
 
 	## Collisions Check Rule + Within Tilemaps Bound Rule
-	assert_int(placement_rules.size())
-		.append_failure_message("[TEST_DEBUG] before_test: placement_rules.size()=%d" % placement_rules.size())
+	assert_int(placement_rules.size()) \
+		.append_failure_message("[TEST_DEBUG] before_test: placement_rules.size()=%d" % placement_rules.size()) \
 		.is_equal(2)
 
 	# Diagnostic: assert that all setup rules reference the same map instance as the test _map
@@ -69,8 +69,8 @@ func before_test() -> void:
 		if r2.has_method("get_target_map"):
 			var rule_map: TileMapLayer = r2.call("get_target_map") as TileMapLayer
 			# If rule exposes the target_map, assert it's the same TileMapLayer instance used by the test
-			assert_bool(rule_map == _map)
-				.append_failure_message("PlacementRule at index %d is not bound to the test tilemap (_map)." % i)
+			assert_bool(rule_map == _map) \
+				.append_failure_message("PlacementRule at index %d is not bound to the test tilemap (_map)." % i) \
 				.is_true()
 
 	## Ensure tile map layer meets expectations
@@ -192,7 +192,7 @@ func test_pre_validation_is_successful_for_rect4x2_start_tile() -> void:
 	# Assert
 	_assert_validation_success(result, "Pre-validation should pass at start_tile " + str(start_tile))
 
-func test_bounds_tiles_have_tiledata() -> void:
+func test_bounds_tiles_have_tile_data() -> void:
 	var start_tile: Vector2i = SAFE_START_TILE
 	var td: TileData = _map.get_cell_tile_data(start_tile)
 	assert_object(td).append_failure_message(
