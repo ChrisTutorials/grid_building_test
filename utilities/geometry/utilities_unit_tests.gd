@@ -228,7 +228,7 @@ func test_search_utils_collision_objects() -> void:
 
 @warning_ignore("unused_parameter")
 func test_search_utils_premade_scene_collision_objects(
-	scene_path: String, expected_collision_count: int, test_parameters := TEST_SCENE_DATA
+	scene_path: String, expected_collision_count: int, _test_parameters := TEST_SCENE_DATA
 ) -> void:
 	# Test that premade scenes properly return collision objects (or lack thereof)
 	# This validates that fallback mechanisms are only needed when appropriate
