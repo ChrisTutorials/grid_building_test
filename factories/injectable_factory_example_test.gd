@@ -26,41 +26,54 @@ func test_collision_mapper_static_factory() -> void:
 	# Test the new static factory method
 	var collision_mapper: CollisionMapper = CollisionMapper.create_with_injection(container)
 
-	assert_that(collision_mapper)
-  .append_failure_message("CollisionMapper factory should create non-null instance").is_not_null()
-	assert_that(collision_mapper).append_failure_message("Factory should create CollisionMapper instance").is_instanceof(CollisionMapper)
+	assert_that(collision_mapper) \
+		.append_failure_message("CollisionMapper factory should create non-null instance") \
+		.is_not_null()
+	assert_that(collision_mapper) \
+		.append_failure_message("Factory should create CollisionMapper instance") \
+		.is_instanceof(CollisionMapper)
 
 	# Verify dependencies were injected
 	var validation_issues: Array[String] = collision_mapper.get_runtime_issues()
-	assert_that(validation_issues)
-  .append_failure_message("CollisionMapper should have no runtime issues after injection").is_empty()
+	assert_that(validation_issues) \
+		.append_failure_message("CollisionMapper should have no runtime issues after injection") \
+		.is_empty()
 
 
 func test_placement_validator_static_factory() -> void:
 	# Test the new static factory method
 	var validator: PlacementValidator = PlacementValidator.create_with_injection(container)
 
-	assert_that(validator)
-  .append_failure_message("PlacementValidator factory should create non-null instance").is_not_null()
-	assert_that(validator).append_failure_message("Factory should create PlacementValidator instance").is_instanceof(PlacementValidator)
+	assert_that(validator) \
+		.append_failure_message("PlacementValidator factory should create non-null instance") \
+		.is_not_null()
+	assert_that(validator) \
+		.append_failure_message("Factory should create PlacementValidator instance") \
+		.is_instanceof(PlacementValidator)
 
 	# Verify dependencies were injected
 	var validation_issues: Array[String] = validator.get_runtime_issues()
-	assert_that(validation_issues).append_failure_message("PlacementValidator should have no runtime issues after injection").is_empty()
+	assert_that(validation_issues) \
+		.append_failure_message("PlacementValidator should have no runtime issues after injection") \
+		.is_empty()
 
 
 func test_test_setup_factory_static_factory() -> void:
 	# Test the new static factory method
 	var factory: TestSetupFactory = TestSetupFactory.create_with_injection(container)
 
-	assert_that(factory)
-  .append_failure_message("TestSetupFactory factory should create non-null instance").is_not_null()
-	assert_that(factory).append_failure_message("Factory should create TestSetupFactory instance").is_instanceof(TestSetupFactory)
+	assert_that(factory) \
+		.append_failure_message("TestSetupFactory factory should create non-null instance") \
+		.is_not_null()
+	assert_that(factory) \
+		.append_failure_message("Factory should create TestSetupFactory instance") \
+		.is_instanceof(TestSetupFactory)
 
 	# Verify dependencies were injected
 	var validation_issues: Array[String] = factory.get_runtime_issues()
-	assert_that(validation_issues)
-  .append_failure_message("TestSetupFactory should have no runtime issues after injection").is_empty()
+	assert_that(validation_issues) \
+		.append_failure_message("TestSetupFactory should have no runtime issues after injection") \
+		.is_empty()
 
 
 func test_unified_factory_wrapper_methods() -> void:
@@ -68,12 +81,17 @@ func test_unified_factory_wrapper_methods() -> void:
 	var collision_mapper: CollisionMapper = CollisionMapper.create_with_injection(container)
 	var validator: PlacementValidator = PlacementValidator.create_with_injection(container)
 
-	assert_that(collision_mapper)
-  .append_failure_message("CollisionMapper factory should create non-null instance").is_not_null()
-	assert_that(validator)
-  .append_failure_message("PlacementValidator factory should create non-null instance").is_not_null()
+	assert_that(collision_mapper) \
+		.append_failure_message("CollisionMapper factory should create non-null instance") \
+		.is_not_null()
+	assert_that(validator) \
+		.append_failure_message("PlacementValidator factory should create non-null instance") \
+		.is_not_null()
 
 	# Both should have valid dependencies
-	assert_that(collision_mapper.get_runtime_issues())
-  .append_failure_message("CollisionMapper should have no runtime issues after injection").is_empty()
-	assert_that(validator.get_runtime_issues()).append_failure_message("PlacementValidator should have no runtime issues after injection").is_empty()
+	assert_that(collision_mapper.get_runtime_issues()) \
+		.append_failure_message("CollisionMapper should have no runtime issues after injection") \
+		.is_empty()
+	assert_that(validator.get_runtime_issues()) \
+		.append_failure_message("PlacementValidator should have no runtime issues after injection") \
+		.is_empty()
