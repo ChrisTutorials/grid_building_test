@@ -15,7 +15,7 @@ func test_should_be_visible_off_mode_active_when_off() -> void:
 	var has_mouse := false
 
 	var result := GridPositionerLogic.should_be_visible(GBEnums.Mode.OFF, settings, last_mouse, has_mouse)
-	assert_bool(result).append_failure_message("Positioner should be visible in OFF mode when remain_active_in_off_mode is true")
+	assert_bool(result).append_failure_message("Positioner should be visible in OFF mode when remain_active_in_off_mode is true")\
 		.is_true()
 
 func test_should_be_visible_off_mode_not_active_when_off() -> void:
@@ -25,7 +25,7 @@ func test_should_be_visible_off_mode_not_active_when_off() -> void:
 	var has_mouse := false
 
 	var result := GridPositionerLogic.should_be_visible(GBEnums.Mode.OFF, settings, last_mouse, has_mouse)
-	assert_bool(result).append_failure_message("Positioner should be hidden in OFF mode when remain_active_in_off_mode is false")
+	assert_bool(result).append_failure_message("Positioner should be hidden in OFF mode when remain_active_in_off_mode is false")\
 		.is_false()
 
 func test_should_be_visible_info_mode() -> void:
@@ -46,7 +46,7 @@ func test_should_be_visible_active_mode_with_last_mouse_allowed() -> void:
 	var has_mouse := false
 
 	var result := GridPositionerLogic.should_be_visible(GBEnums.Mode.MOVE, settings, last_mouse, has_mouse)
-	assert_bool(result).append_failure_message("Positioner should be visible in MOVE mode when last_mouse is allowed")
+	assert_bool(result).append_failure_message("Positioner should be visible in MOVE mode when last_mouse is allowed")\
 		.is_true()
 
 func test_should_be_visible_active_mode_with_mouse_world_and_enabled() -> void:
@@ -58,7 +58,7 @@ func test_should_be_visible_active_mode_with_mouse_world_and_enabled() -> void:
 	var has_mouse := true
 
 	var result := GridPositionerLogic.should_be_visible(GBEnums.Mode.MOVE, settings, last_mouse, has_mouse)
-	assert_bool(result).append_failure_message("Expected positioner to be visible with cached mouse world. Settings: mouse_enabled=%s, has_mouse_world=%s, last_mouse_allowed=%s, hide_on_handled=%s" % [str(settings.enable_mouse_input), str(has_mouse), str(last_mouse.allowed), str(settings.hide_on_handled)])
+	assert_bool(result).append_failure_message("Expected positioner to be visible with cached mouse world. Settings: mouse_enabled=%s, has_mouse_world=%s, last_mouse_allowed=%s, hide_on_handled=%s" % [str(settings.enable_mouse_input), str(has_mouse), str(last_mouse.allowed), str(settings.hide_on_handled)])\
 		.is_true()
 
 func test_should_be_visible_active_mode_default() -> void:
@@ -77,7 +77,7 @@ func test_should_be_visible_for_mode_off_active() -> void:
 	settings.remain_active_in_off_mode = true
 
 	var result := GridPositionerLogic.should_be_visible_for_mode(GBEnums.Mode.OFF, settings)
-	assert_bool(result).append_failure_message("Positioner should be visible for OFF mode when remain_active_in_off_mode is true")
+	assert_bool(result).append_failure_message("Positioner should be visible for OFF mode when remain_active_in_off_mode is true")\
 		.is_true()
 
 func test_should_be_visible_for_mode_off_not_active() -> void:
@@ -85,7 +85,7 @@ func test_should_be_visible_for_mode_off_not_active() -> void:
 	settings.remain_active_in_off_mode = false
 
 	var result := GridPositionerLogic.should_be_visible_for_mode(GBEnums.Mode.OFF, settings)
-	assert_bool(result).append_failure_message("Positioner should be hidden for OFF mode when remain_active_in_off_mode is false")
+	assert_bool(result).append_failure_message("Positioner should be hidden for OFF mode when remain_active_in_off_mode is false")\
 		.is_false()
 
 func test_should_be_visible_for_mode_info() -> void:

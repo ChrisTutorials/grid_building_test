@@ -70,10 +70,10 @@ func test_reconcile_reuses_existing_indicator_and_updates_rules() -> void:
 
     # Create an existing indicator via the factory (this will parent the node under `parent`)
     var existing_indicators: Array = IndicatorFactory.generate_indicators(pos_map_1, GBTestConstants.TEST_INDICATOR_TD_PLATFORMER, parent, ctx["container"].get_states().targeting, test_object)
-    assert_that(existing_indicators.size() == 1)
+    assert_that(existing_indicators.size() == 1)\
 		.append_failure_message("Expected factory to create 1 existing indicator").is_true()
     var indicator1: RuleCheckIndicator = existing_indicators[0]
-    assert_that(is_instance_valid(indicator1))
+    assert_that(is_instance_valid(indicator1))\
 		.append_failure_message("Existing indicator should be valid").is_true()
 
     # Register the existing indicators with the service (simulate prior state)
@@ -85,7 +85,7 @@ func test_reconcile_reuses_existing_indicator_and_updates_rules() -> void:
     var pos_map_2: Dictionary[Vector2i, Array] = {}
     pos_map_2[Vector2i(0,0)] = [rule_b]
     var new_indicators: Array = IndicatorFactory.generate_indicators(pos_map_2, GBTestConstants.TEST_INDICATOR_TD_PLATFORMER, parent, ctx["container"].get_states().targeting, test_object)
-    assert_that(new_indicators.size() == 1)
+    assert_that(new_indicators.size() == 1)\
 		.append_failure_message("Expected factory to create 1 new indicator").is_true()
 
     # Force new indicator to be at the exact same global_position as the existing one
@@ -95,7 +95,7 @@ func test_reconcile_reuses_existing_indicator_and_updates_rules() -> void:
 
     # Call the internal reconcile function directly to test reuse semantics
     var reconciled: Array = service._reconcile_indicators(new_indicators)
-    assert_that(reconciled.size() == 1)
+    assert_that(reconciled.size() == 1)\
 		.append_failure_message("Expected 1 reconciled indicator").is_true()
 
     var indicator2: RuleCheckIndicator = reconciled[0]
@@ -104,9 +104,9 @@ func test_reconcile_reuses_existing_indicator_and_updates_rules() -> void:
 
     # The reused indicator should have had its rules updated to contain rule_b and not rule_a
     var rules_after: Array = indicator2.get_rules()
-    assert_that(rules_after.size() == 1)
+    assert_that(rules_after.size() == 1)\
 		.append_failure_message("Reused indicator should have exactly 1 rule after reconcile").is_true()
-    assert_that(rules_after[0].resource_name == "B")
+    assert_that(rules_after[0].resource_name == "B")\
 		.append_failure_message("Reused indicator's rule should be rule_b").is_true()
 
     # Diagnostic: ensure no duplicate indicator nodes remain parented under indicators parent

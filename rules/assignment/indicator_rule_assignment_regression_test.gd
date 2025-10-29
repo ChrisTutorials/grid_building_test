@@ -131,7 +131,7 @@ func test_polygon_test_object_indicator_collision_filtering() -> void:
 
 	var diag: PackedStringArray = PackedStringArray()
 	diag.append("Setup report context")
-	assert_object(setup_report).append_failure_message("IndicatorManager.try_setup returned null. Context: %s" % "\n".join(diag))
+	assert_object(setup_report).append_failure_message("IndicatorManager.try_setup returned null. Context: %s" % "\n".join(diag))\
 		.is_not_null()
 	assert_bool(setup_report.is_successful()).append_failure_message("IndicatorManager.try_setup failed. Context: %s" % "\n".join(diag)).is_true()
 
@@ -275,8 +275,8 @@ func test_polygon_test_object_center_tile_filtering() -> void:
 	for rule: PlacementRule in rules:
 		if rule is CollisionsCheckRule:
 			var setup_issues: Array[String] = rule.setup(_container.get_targeting_state())
-   assert_array(setup_issues).append_failure_message("Collision rule setup should complete without issues for rule: %s" % rule.get_class()
-		.is_empty()
+   assert_array(setup_issues).append_failure_message("Collision rule setup should complete without issues for rule: %s" % rule.get_class()\
+	.is_empty()
 
 	# Call try_setup directly on the IndicatorManager
 	# Ensure the targeting state has the test instance as the current target

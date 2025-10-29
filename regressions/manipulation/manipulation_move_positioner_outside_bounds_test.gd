@@ -103,8 +103,8 @@ func test_exclusion_fails_when_positioner_outside_original_bounds() -> void:
 
 	# THEN: Indicator should be valid (exclusion should work)
 	# BUG: This currently FAILS - indicator.valid = false
- assert_bool(indicator.valid).append_failure_message("Indicator should be valid when positioned outside original bounds with exclusion")
-		.is_true()
+ assert_bool(indicator.valid).append_failure_message("Indicator should be valid when positioned outside original bounds with exclusion")\
+	.is_true()
 
 func test_exclusion_works_at_edge_of_original_bounds() -> void:
 	# GIVEN: Large body at (100, 100), size 64x64
@@ -121,8 +121,8 @@ func test_exclusion_works_at_edge_of_original_bounds() -> void:
 	await get_tree().physics_frame
 
 	# THEN: Indicator should be valid
- assert_bool(indicator.valid).append_failure_message("Indicator at edge of original bounds should be valid when body is excluded")
-		.is_true()
+ assert_bool(indicator.valid).append_failure_message("Indicator at edge of original bounds should be valid when body is excluded")\
+	.is_true()
 
 func test_multiple_indicators_outside_bounds_all_excluded() -> void:
 	# GIVEN: Large body
@@ -174,5 +174,5 @@ func test_exclusion_independent_of_positioner_movement() -> void:
 
 	# THEN: Exclusion should work in both positions
  assert_bool(valid_inside).append_failure_message("Indicator should be valid inside bounds when body is excluded").is_true()
- assert_bool(valid_outside).append_failure_message("Indicator should remain valid outside bounds when body is excluded")
-		.is_true()
+ assert_bool(valid_outside).append_failure_message("Indicator should remain valid outside bounds when body is excluded")\
+	.is_true()

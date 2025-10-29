@@ -235,7 +235,7 @@ func test_empty_sequence_edge_cases() -> void:
 	assert_object(sequence.get_variant(-1)).append_failure_message("Empty sequence get_variant(-1) should return null").is_null()
 
 	# variant_display_name should return <Unknown> for any index
-	assert_str(sequence.variant_display_name(0)).append_failure_message("Empty sequence variant_display_name(0) should return '<Unknown>'")
+	assert_str(sequence.variant_display_name(0)).append_failure_message("Empty sequence variant_display_name(0) should return '<Unknown>'")\
 		.is_equal("<Unknown>")
 
 	# Should have validation issues

@@ -59,7 +59,7 @@ func test_indicators_ignore_original_when_positioner_inside_bounds() -> void:
 		Vector2(32, 32)
 	)
 	var original: Node2D = manipulatable.root
-	assert_object(original) \
+	assert_object(original) \\
 		.append_failure_message("Manipulatable root should not be null").is_not_null()
 	_runner.simulate_frames(1)
 
@@ -91,7 +91,7 @@ func test_indicators_ignore_original_when_positioner_outside_bounds() -> void:
 		Vector2(32, 32)
 	)
 	var original: Node2D = manipulatable.root
-	assert_object(original) \
+	assert_object(original) \\
 		.append_failure_message("Manipulatable root should not be null").is_not_null()
 	_runner.simulate_frames(1)
 
@@ -124,7 +124,7 @@ func test_indicators_remain_valid_across_position_transitions() -> void:
 		Vector2(32, 32)
 	)
 	var original: Node2D = manipulatable.root
-	assert_object(original) \
+	assert_object(original) \\
 		.append_failure_message("Manipulatable root should not be null").is_not_null()
 	_runner.simulate_frames(1)
 
@@ -165,7 +165,7 @@ func test_exclusion_list_contains_original_during_move() -> void:
 		Vector2(100, 100)
 	)
 	var original: Node2D = manipulatable.root
-	assert_object(original) \
+	assert_object(original) \\
 		.append_failure_message("Manipulatable root should not be null").is_not_null()
 	_runner.simulate_frames(1)
 
@@ -190,7 +190,7 @@ func test_exclusion_list_persists_across_positioner_movement() -> void:
 		Vector2(100, 100)
 	)
 	var original: Node2D = manipulatable.root
-	assert_object(original) \
+	assert_object(original) \\
 		.append_failure_message("Manipulatable root should not be null").is_not_null()
 	_runner.simulate_frames(1)
 
@@ -207,10 +207,10 @@ func test_exclusion_list_persists_across_positioner_movement() -> void:
 	var exclusions_outside := _targeting_state.collision_exclusions.duplicate()
 
 	# THEN: Exclusion list should remain the same (contain original)
-	assert_int(exclusions_inside.size())
+	assert_int(exclusions_inside.size())\
 		.append_failure_message("Collision exclusions should contain exactly 1 item when positioner is inside bounds")
 		.is_equal(1)
-	assert_int(exclusions_outside.size())
+	assert_int(exclusions_outside.size())\
 		.append_failure_message("Collision exclusions should contain exactly 1 item when positioner is outside bounds")
 		.is_equal(1)
 	assert_that(exclusions_inside[0]).append_failure_message("First exclusion inside bounds should be the original object").is_same(original)

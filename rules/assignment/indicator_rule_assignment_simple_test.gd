@@ -154,5 +154,5 @@ func test_clear_rules() -> void:
 
 	# Verify rules were cleared and bidirectional relationship removed
 	assert_array(collision_rule.indicators).append_failure_message("Expected rule indicators to be empty after clear").is_empty()
-	assert_bool(indicator.valid).append_failure_message("Expected indicator to be valid when no rules")
+	assert_bool(indicator.valid).append_failure_message("Expected indicator to be valid when no rules")\
 		.is_true()  # Should default to valid when no rules

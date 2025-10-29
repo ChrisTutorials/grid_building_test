@@ -39,7 +39,7 @@ func test_camera_world_bounds_and_inside_flag() -> void:
 	cam.zoom = Vector2.ONE
 	cam.global_position = Vector2(256, 256)
 	var bounds := GBDiagnostics.camera_world_bounds(cam, vp)
-	assert_bool(bounds.get("has", false)).append_failure_message("camera_world_bounds should return dict with 'has' key. Got: %s" % bounds)
+	assert_bool(bounds.get("has", false)).append_failure_message("camera_world_bounds should return dict with 'has' key. Got: %s" % bounds)\
 		.is_true()
 	var center: Vector2 = bounds.get("center", Vector2.ZERO)
 	assert_bool(center.distance_to(Vector2(256, 256)) < 0.001).append_failure_message("Camera center should be at (256, 256), got %s" % center).is_true()

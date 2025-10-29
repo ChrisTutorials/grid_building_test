@@ -109,7 +109,7 @@ func test_context_from_get_stack() -> void:
 	var has_proper_context: bool = context.contains("gb_logger_test") and context.contains("test_context_from_get_stack")
 	var has_test_fallback: bool = context == "test_environment"
 
-	assert_bool(has_proper_context or has_test_fallback).append_failure_message("Context '%s' should either contain test info or be 'test_environment'. %s" % [context, diagnostic])
+	assert_bool(has_proper_context or has_test_fallback).append_failure_message("Context '%s' should either contain test info or be 'test_environment'. %s" % [context, diagnostic])\
 		.is_true()
 
 func test_context_from_convenience_methods() -> void:
@@ -137,7 +137,7 @@ func test_context_from_convenience_methods() -> void:
 	var has_proper_context2: bool = context.contains("gb_logger_test") and context.contains("test_context_from_convenience_methods")
 	var has_test_fallback2: bool = context == "test_environment"
 
-	assert_bool(has_proper_context2 or has_test_fallback2).append_failure_message("Context '%s' should either contain test info or be 'test_environment'. %s" % [context, diagnostic2])
+	assert_bool(has_proper_context2 or has_test_fallback2).append_failure_message("Context '%s' should either contain test info or be 'test_environment'. %s" % [context, diagnostic2])\
 		.is_true()
 
 func _call_me() -> void:

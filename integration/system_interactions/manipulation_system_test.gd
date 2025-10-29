@@ -142,7 +142,7 @@ func test_start_move(
 
 	if result_data != null:
 		var result: bool = result_data.status == GBEnums.Status.STARTED
-		assert_bool(result).append_failure_message("Move operation result should match expected value %s" % p_expected)
+		assert_bool(result).append_failure_message("Move operation result should match expected value %s" % p_expected)\
 			.is_equal(p_expected)
 
 		# During manipulation, the move copy should follow the positioner position, not the source position
@@ -164,7 +164,7 @@ func test_cancel() -> void:
 
 	if move_result != null:
 		var valid_move: bool = move_result.status == GBEnums.Status.STARTED
-		assert_bool(valid_move) \
+		assert_bool(valid_move) \\
 			.append_failure_message("Move should be successfully started for cancel test").is_true()
 
 		# Get active manipulation data
@@ -175,9 +175,9 @@ func test_cancel() -> void:
 		if active_data != null and active_data.move_copy != null:
 			active_data.move_copy.root.global_position = CANCEL_TEST_POSITION
 			var origin: Vector2 = active_data.source.root.global_transform.origin
-			assert_float(origin.x).append_failure_message("Origin x position should be approximately %f" % TEST_POSITION.x)
+			assert_float(origin.x).append_failure_message("Origin x position should be approximately %f" % TEST_POSITION.x)\
 				.is_equal_approx(TEST_POSITION.x, POSITION_PRECISION)
-			assert_float(origin.y).append_failure_message("Origin y position should be approximately %f" % TEST_POSITION.y)
+			assert_float(origin.y).append_failure_message("Origin y position should be approximately %f" % TEST_POSITION.y)\
 				.is_equal_approx(TEST_POSITION.y, POSITION_PRECISION)
 
 			system.cancel()
@@ -241,7 +241,7 @@ func test_demolish(
 	# Handle return value - demolish returns bool
 	var success: bool = demolish_result if demolish_result is bool else false
 
-	assert_bool(success).append_failure_message("Demolish operation should have expected success status %s" % p_expected)
+	assert_bool(success).append_failure_message("Demolish operation should have expected success status %s" % p_expected)\
 		.is_equal(p_expected)
 
 @warning_ignore("unused_parameter")
@@ -263,7 +263,7 @@ func test_try_placement(
 
 	if move_result != null:
 		var started: bool = move_result.status == GBEnums.Status.STARTED
-		assert_bool(started) \
+		assert_bool(started) \\
 			.append_failure_message("Move should be successfully started for placement test").is_true()
 
 		var move_data: ManipulationData = _container.get_states().manipulation.data
@@ -384,9 +384,9 @@ func test_flip_horizontal() -> void:
 	system.flip_horizontal(target)
 
 	# Test ManipulationParent scale instead of target scale (correct architecture)
-	assert_float(manipulation_parent.scale.x).append_failure_message("Horizontal flip should invert ManipulationParent X scale")
+	assert_float(manipulation_parent.scale.x).append_failure_message("Horizontal flip should invert ManipulationParent X scale")\
 		.is_equal_approx(original_scale.x * -1, SCALE_PRECISION)
-	assert_float(manipulation_parent.scale.y).append_failure_message("Horizontal flip should preserve ManipulationParent Y scale")
+	assert_float(manipulation_parent.scale.y).append_failure_message("Horizontal flip should preserve ManipulationParent Y scale")\
 		.is_equal_approx(original_scale.y, SCALE_PRECISION)
 
 @warning_ignore("unused_parameter")
@@ -403,9 +403,9 @@ func test_flip_vertical(
 	system.flip_vertical(target)
 
 	# Test ManipulationParent scale instead of target scale (correct architecture)
-	assert_float(manipulation_parent.scale.x).append_failure_message("Vertical flip should preserve ManipulationParent X scale")
+	assert_float(manipulation_parent.scale.x).append_failure_message("Vertical flip should preserve ManipulationParent X scale")\
 		.is_equal_approx(original_scale.x, SCALE_PRECISION)
-	assert_float(manipulation_parent.scale.y).append_failure_message("Vertical flip should invert ManipulationParent Y scale")
+	assert_float(manipulation_parent.scale.y).append_failure_message("Vertical flip should invert ManipulationParent Y scale")\
 		.is_equal_approx(original_scale.y * -1, SCALE_PRECISION)
 
 @warning_ignore("unused_parameter")
@@ -421,7 +421,7 @@ func test_rotate_node2d_target_rotates_correctly(
 
 	for i in range(ROTATION_ITERATIONS):
 		var success: bool = system.rotate(target, ROTATION_INCREMENT)
-		assert_bool(success) \
+		assert_bool(success) \\
 			.append_failure_message("Rotate operation should succeed on iteration %d" % i).is_true()
 
 		expected_rotation_degrees += ROTATION_INCREMENT
@@ -429,7 +429,7 @@ func test_rotate_node2d_target_rotates_correctly(
 		# Test ManipulationParent rotation instead of target rotation (correct architecture)
 		var actual_rotation: float = _normalize_rotation(manipulation_parent.global_rotation_degrees)
 
-		assert_float(actual_rotation).append_failure_message("Rotation should match expected degrees on iteration %d (expected: %f, actual: %f)" % [i, normalized_expected, actual_rotation])
+		assert_float(actual_rotation).append_failure_message("Rotation should match expected degrees on iteration %d (expected: %f, actual: %f)" % [i, normalized_expected, actual_rotation])\
 			.is_equal_approx(normalized_expected, ROTATION_PRECISION)
 
 @warning_ignore("unused_parameter")
@@ -454,9 +454,9 @@ func test_rotate_negative(
 		var remainder_preview: float = fmod(preview.rotation_degrees, rotation_per_time)
 		var remainder_rci: float = fmod(placement_manager.rotation_degrees, rotation_per_time)
 
-		assert_float(remainder_preview).append_failure_message("Preview rotation remainder should be within expected range")
+		assert_float(remainder_preview).append_failure_message("Preview rotation remainder should be within expected range")\
 			.is_between(ROTATION_RANGE_MIN, ROTATION_RANGE_MAX)
-		assert_float(remainder_rci).append_failure_message("RCI rotation remainder should be within expected range")
+		assert_float(remainder_rci).append_failure_message("RCI rotation remainder should be within expected range")\
 			.is_between(ROTATION_RANGE_MIN, ROTATION_RANGE_MAX)
 #endregion
 
