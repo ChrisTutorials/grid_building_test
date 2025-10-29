@@ -239,11 +239,11 @@ func test_validity_sprite_texture_switches_on_validity_change() -> void:
 	body2.global_position = indicator2.global_position
 	runner.simulate_frames(1)  # Wait for body to be added to physics
 	indicator2.force_validity_evaluation()  # Force collision check AND validity update
-	assert_bool(indicator2.valid)
-		.append_failure_message(_indicator_state_diag(indicator2, "Indicator should be invalid after collision"))
+	assert_bool(indicator2.valid) \
+		.append_failure_message(_indicator_state_diag(indicator2, "Indicator should be invalid after collision")) \
 		.is_false()
-	assert_object(sprite2.texture)
-		.append_failure_message(_indicator_state_diag(indicator2, "Sprite texture should be invalid texture after collision"))
+	assert_object(sprite2.texture) \
+		.append_failure_message(_indicator_state_diag(indicator2, "Sprite texture should be invalid texture after collision")) \
 		.is_equal(invalid_texture2)
 
 	# Remove body2 to restore validity
