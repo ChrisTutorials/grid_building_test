@@ -127,10 +127,8 @@ func test_start_move(
 	_container.get_states().targeting.positioner.global_position = TEST_POSITION
 
 	var source_manipulatable: Manipulatable = _create_test_manipulatable(p_settings)
-	assert_that(source_manipulatable)
-  .append_failure_message("Source manipulatable should not be null").is_not_null()
-	assert_that(source_manipulatable.root)
-  .append_failure_message("Source manipulatable root should not be null").is_not_null()
+	assert_that(source_manipulatable).append_failure_message("Source manipulatable should not be null").is_not_null()
+	assert_that(source_manipulatable.root).append_failure_message("Source manipulatable root should not be null").is_not_null()
 
 	# Set the targeting state to target this manipulatable's root
 	_container.get_states().targeting.set_manual_target(source_manipulatable.root)
@@ -144,8 +142,7 @@ func test_start_move(
 
 	if result_data != null:
 		var result: bool = result_data.status == GBEnums.Status.STARTED
-		assert_bool(result)
-			.append_failure_message("Move operation result should match expected value %s" % p_expected)
+		assert_bool(result).append_failure_message("Move operation result should match expected value %s" % p_expected)
 			.is_equal(p_expected)
 
 		# During manipulation, the move copy should follow the positioner position, not the source position
@@ -178,16 +175,13 @@ func test_cancel() -> void:
 		if active_data != null and active_data.move_copy != null:
 			active_data.move_copy.root.global_position = CANCEL_TEST_POSITION
 			var origin: Vector2 = active_data.source.root.global_transform.origin
-			assert_float(origin.x)
-				.append_failure_message("Origin x position should be approximately %f" % TEST_POSITION.x)
+			assert_float(origin.x).append_failure_message("Origin x position should be approximately %f" % TEST_POSITION.x)
 				.is_equal_approx(TEST_POSITION.x, POSITION_PRECISION)
-			assert_float(origin.y)
-				.append_failure_message("Origin y position should be approximately %f" % TEST_POSITION.y)
+			assert_float(origin.y).append_failure_message("Origin y position should be approximately %f" % TEST_POSITION.y)
 				.is_equal_approx(TEST_POSITION.y, POSITION_PRECISION)
 
 			system.cancel()
-			assert_object(_container.get_states().manipulation.data)
-    .append_failure_message("Manipulation data should be null after cancel").is_null()
+			assert_object(_container.get_states().manipulation.data).append_failure_message("Manipulation data should be null after cancel").is_null()
 			assert_vector(active_data.source.root.global_position).append_failure_message("Source position should return to original after cancel").is_equal(TEST_POSITION)
 
 @warning_ignore("unused_parameter")
@@ -237,8 +231,7 @@ func test_demolish(
 		p_settings = manipulatable_settings_all_allowed
 		p_expected = true
 	var target_manipulatable: Manipulatable = _create_test_manipulatable(p_settings) if p_settings != null else all_manipulatable
-	assert_that(target_manipulatable)
-  .append_failure_message("Target manipulatable should not be null for demolish test").is_not_null()
+	assert_that(target_manipulatable).append_failure_message("Target manipulatable should not be null for demolish test").is_not_null()
 
 	monitor_signals(manipulation_state)
 
@@ -248,8 +241,7 @@ func test_demolish(
 	# Handle return value - demolish returns bool
 	var success: bool = demolish_result if demolish_result is bool else false
 
-	assert_bool(success)
-		.append_failure_message("Demolish operation should have expected success status %s" % p_expected)
+	assert_bool(success).append_failure_message("Demolish operation should have expected success status %s" % p_expected)
 		.is_equal(p_expected)
 
 @warning_ignore("unused_parameter")
@@ -259,8 +251,7 @@ func test_try_placement(
 	test_parameters := [[manipulatable_settings_all_allowed, true]]  # Changed: Expect TRUE because factory creates collision shapes
 ) -> void:
 	var source: Manipulatable = _create_test_manipulatable(p_settings)
-	assert_that(source)
-  .append_failure_message("Source manipulatable should not be null for placement test").is_not_null()
+	assert_that(source).append_failure_message("Source manipulatable should not be null for placement test").is_not_null()
 
 	# Set the targeting state to target this manipulatable's root
 	_container.get_states().targeting.set_manual_target(source.root)
@@ -283,8 +274,7 @@ func test_try_placement(
 			move_data.move_copy.root.global_position = test_location
 
 			var placement_results: ValidationResults = system.try_placement(move_data)
-			assert_that(placement_results)
-    .append_failure_message("Placement results should not be null").is_not_null()
+			assert_that(placement_results).append_failure_message("Placement results should not be null").is_not_null()
 
 			if placement_results != null:
 				# Enhanced diagnostic: Show why placement succeeded/failed
@@ -301,8 +291,7 @@ func test_try_placement(
 
 				# After successful placement, verify state changes
 				if success_status:
-					assert_object(move_data.move_copy)
-      .append_failure_message("Move copy should be null after successful placement").is_null()
+					assert_object(move_data.move_copy).append_failure_message("Move copy should be null after successful placement").is_null()
 					assert_vector(source.root.global_position).append_failure_message("Source position should match test location after placement").is_equal(test_location)
 
 ## Test: Failed placement due to collision should NOT execute move and should clean up target
@@ -395,11 +384,9 @@ func test_flip_horizontal() -> void:
 	system.flip_horizontal(target)
 
 	# Test ManipulationParent scale instead of target scale (correct architecture)
-	assert_float(manipulation_parent.scale.x)
-		.append_failure_message("Horizontal flip should invert ManipulationParent X scale")
+	assert_float(manipulation_parent.scale.x).append_failure_message("Horizontal flip should invert ManipulationParent X scale")
 		.is_equal_approx(original_scale.x * -1, SCALE_PRECISION)
-	assert_float(manipulation_parent.scale.y)
-		.append_failure_message("Horizontal flip should preserve ManipulationParent Y scale")
+	assert_float(manipulation_parent.scale.y).append_failure_message("Horizontal flip should preserve ManipulationParent Y scale")
 		.is_equal_approx(original_scale.y, SCALE_PRECISION)
 
 @warning_ignore("unused_parameter")
@@ -416,11 +403,9 @@ func test_flip_vertical(
 	system.flip_vertical(target)
 
 	# Test ManipulationParent scale instead of target scale (correct architecture)
-	assert_float(manipulation_parent.scale.x)
-		.append_failure_message("Vertical flip should preserve ManipulationParent X scale")
+	assert_float(manipulation_parent.scale.x).append_failure_message("Vertical flip should preserve ManipulationParent X scale")
 		.is_equal_approx(original_scale.x, SCALE_PRECISION)
-	assert_float(manipulation_parent.scale.y)
-		.append_failure_message("Vertical flip should invert ManipulationParent Y scale")
+	assert_float(manipulation_parent.scale.y).append_failure_message("Vertical flip should invert ManipulationParent Y scale")
 		.is_equal_approx(original_scale.y * -1, SCALE_PRECISION)
 
 @warning_ignore("unused_parameter")
@@ -444,8 +429,7 @@ func test_rotate_node2d_target_rotates_correctly(
 		# Test ManipulationParent rotation instead of target rotation (correct architecture)
 		var actual_rotation: float = _normalize_rotation(manipulation_parent.global_rotation_degrees)
 
-		assert_float(actual_rotation)
-			.append_failure_message("Rotation should match expected degrees on iteration %d (expected: %f, actual: %f)" % [i, normalized_expected, actual_rotation])
+		assert_float(actual_rotation).append_failure_message("Rotation should match expected degrees on iteration %d (expected: %f, actual: %f)" % [i, normalized_expected, actual_rotation])
 			.is_equal_approx(normalized_expected, ROTATION_PRECISION)
 
 @warning_ignore("unused_parameter")
@@ -470,11 +454,9 @@ func test_rotate_negative(
 		var remainder_preview: float = fmod(preview.rotation_degrees, rotation_per_time)
 		var remainder_rci: float = fmod(placement_manager.rotation_degrees, rotation_per_time)
 
-		assert_float(remainder_preview)
-			.append_failure_message("Preview rotation remainder should be within expected range")
+		assert_float(remainder_preview).append_failure_message("Preview rotation remainder should be within expected range")
 			.is_between(ROTATION_RANGE_MIN, ROTATION_RANGE_MAX)
-		assert_float(remainder_rci)
-			.append_failure_message("RCI rotation remainder should be within expected range")
+		assert_float(remainder_rci).append_failure_message("RCI rotation remainder should be within expected range")
 			.is_between(ROTATION_RANGE_MIN, ROTATION_RANGE_MAX)
 #endregion
 
@@ -509,21 +491,17 @@ func _create_test_manipulatable(p_settings: ManipulatableSettings) -> Manipulata
 
 ## Creates move data for testing - replaces _create_move_data with better validation
 func _create_test_move_data(p_settings: ManipulatableSettings) -> ManipulationData:
-	assert_that(_container)
-  .append_failure_message("Container should not be null when creating test move data").is_not_null()
+	assert_that(_container).append_failure_message("Container should not be null when creating test move data").is_not_null()
 
 	var source_obj: Manipulatable = _create_test_manipulatable(p_settings)
 	assert_that(source_obj).append_failure_message("Source object should not be null").is_not_null()
-	assert_that(source_obj.root)
-  .append_failure_message("Source object root should not be null").is_not_null()
+	assert_that(source_obj.root).append_failure_message("Source object root should not be null").is_not_null()
 
 	var target_duplicate: Manipulatable = auto_free(source_obj.duplicate())
-	assert_that(target_duplicate)
-  .append_failure_message("Target duplicate should not be null").is_not_null()
+	assert_that(target_duplicate).append_failure_message("Target duplicate should not be null").is_not_null()
 
 	var manipulator_node: Node = manipulation_state.get_manipulator()
-	assert_that(manipulator_node)
-  .append_failure_message("Manipulator node should not be null").is_not_null()
+	assert_that(manipulator_node).append_failure_message("Manipulator node should not be null").is_not_null()
 
 	var data: ManipulationData = ManipulationData.new(
 		manipulator_node,
@@ -531,8 +509,7 @@ func _create_test_move_data(p_settings: ManipulatableSettings) -> ManipulationDa
 		target_duplicate,
 		GBEnums.Action.MOVE
 	)
-	assert_that(data)
-  .append_failure_message("Manipulation data should not be null after creation").is_not_null()
+	assert_that(data).append_failure_message("Manipulation data should not be null after creation").is_not_null()
 	add_child(data.move_copy)
 	return data
 

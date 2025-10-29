@@ -32,7 +32,9 @@ func _create_basic_collision_hierarchy(
 ## Creates hierarchy with Manipulatable: root → collision → manipulatable
 ## Returns dictionary with 'root', 'collision', 'manipulatable' keys
 func _create_manipulatable_hierarchy(p_root_name: String = "Root") -> Dictionary[String, Node]:
-	var result: Dictionary[String, Node] = _create_basic_collision_hierarchy(p_root_name, "Collision")
+	var result: Dictionary[String, Node] = _create_basic_collision_hierarchy(
+		p_root_name, "Collision"
+	)
 
 	var manipulatable: Manipulatable = auto_free(Manipulatable.new())
 	manipulatable.root = result.root

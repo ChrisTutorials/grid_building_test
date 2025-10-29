@@ -2,11 +2,9 @@
 extends GdUnitTestSuite
 @warning_ignore("unused_parameter")
 @warning_ignore("return_value_discarded")
-
 ## Tests for ValidPlacementTileRule class functionality.
 ## Validates tile data matching against expected custom data requirements,
 ## ensuring placement rules correctly identify valid and invalid tile configurations.
-
 const TILE_SOURCE_ID := 0
 const TILE_COORD_FULL_MATCH := Vector2i(0, 0)
 const TILE_COORD_PARTIAL_MATCH := Vector2i(0, 1)
@@ -31,6 +29,7 @@ var _gts: GridTargetingState
 
 #region Test setup and teardown
 
+
 func before_test() -> void:
 	_env = EnvironmentTestFactory.create_all_systems_env(self, GBTestConstants.ALL_SYSTEMS_ENV_UID)
 	_container = _env.injector.composition_container
@@ -41,7 +40,7 @@ func before_test() -> void:
 	rule.expected_tile_custom_data = {"type": "grass", "color": Color.GREEN}
 
 	## Use the standard indicator scene for testing
-	var indicator_scene : PackedScene = GBTestConstants.TEST_INDICATOR_TD_PLATFORMER
+	var indicator_scene: PackedScene = GBTestConstants.TEST_INDICATOR_TD_PLATFORMER
 	no_setup_indicator = auto_free(indicator_scene.instantiate()) as RuleCheckIndicator
 	no_setup_indicator.add_rule(rule)
 	no_setup_indicator.resolve_gb_dependencies(_container)
@@ -53,16 +52,20 @@ func before_test() -> void:
 	add_child(valid_indicator)
 
 	# Map and targeting state setup - override the factory defaults with test constants
-	map_layer = auto_free(GBTestConstants.TEST_TILE_MAP_LAYER_BUILDABLE.instantiate()) as TileMapLayer
+	map_layer = (
+		auto_free(GBTestConstants.TEST_TILE_MAP_LAYER_BUILDABLE.instantiate()) as TileMapLayer
+	)
 	add_child(map_layer)
 	_gts.target_map = map_layer
 	_gts.maps = [map_layer]
 
 	## This must validate successfully
 	var setup_issues := rule.setup(_gts)
-	assert_array(setup_issues).append_failure_message(
-		"Rule setup should complete without issues"
-	).is_empty()
+	(
+		assert_array(setup_issues)
+		. append_failure_message("Rule setup should complete without issues")
+		. is_empty()
+	)
 
 	# Assign the TileSet to the TileMap
 	map_layer.tile_set = GBTestConstants.TEST_CUSTOM_DATA_TILE_SET
@@ -80,6 +83,7 @@ func before_test() -> void:
 		TILE_COORD_EXTRA, {"type": "grass", "color": Color.GREEN, "height": 10}
 	)
 
+
 #endregion
 #region Test suite methods
 
@@ -94,9 +98,14 @@ func test_does_tile_have_valid_data(
 		fail("Rule is null - cannot test does_tile_have_valid_data")
 		return
 	var result: bool = rule.does_tile_have_valid_data(p_indicator, [map_layer])
-	assert_bool(result).append_failure_message(
-		"Tile data validation should match expected result for indicator: " + str(p_indicator)
-	).is_equal(p_expected)
+	(
+		assert_bool(result)
+		. append_failure_message(
+			"Tile data validation should match expected result for indicator: " + str(p_indicator)
+		)
+		. is_equal(p_expected)
+	)
+
 
 @warning_ignore("unused_parameter")
 func test_test_tile_data_for_all_matches(
@@ -115,14 +124,26 @@ func test_test_tile_data_for_all_matches(
 	if not rule:
 		fail("Rule is null - cannot test _test_tile_data_for_all_matches")
 		return
-	assert_object(rule.expected_tile_custom_data).append_failure_message("Rule expected_tile_custom_data should not be null").is_not_null()
-	var result: bool = rule._test_tile_data_for_all_matches(p_tile_data, rule.expected_tile_custom_data)
-	assert_bool(result).append_failure_message(
-		"Tile data matching should match expected result for tile data: " + str(p_tile_data)
-	).is_equal(p_expected)
+	(
+		assert_object(rule.expected_tile_custom_data)
+		. append_failure_message("Rule expected_tile_custom_data should not be null")
+		. is_not_null()
+	)
+	var result: bool = rule._test_tile_data_for_all_matches(
+		p_tile_data, rule.expected_tile_custom_data
+	)
+	(
+		assert_bool(result)
+		. append_failure_message(
+			"Tile data matching should match expected result for tile data: " + str(p_tile_data)
+		)
+		. is_equal(p_expected)
+	)
+
 
 #endregion
 #region Helper methods
+
 
 # Helper function to create TileData at a specific tile position
 func _create_tile_data(coords: Vector2i, custom_data: Dictionary) -> TileData:

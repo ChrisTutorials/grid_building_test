@@ -27,6 +27,7 @@ extends GdUnitTestSuite
 ## - ISOMETRIC_TEST uses different dimensions due to isometric tile requirements
 ## - Provides margins for drag-building tests and collision separation
 
+
 func test_environment_scene_loading() -> void:
 	# Test that GBTestConstants can load each environment type
 	var env_types: Array = [
@@ -41,7 +42,12 @@ func test_environment_scene_loading() -> void:
 		var type_name: String = env_data[1]
 
 		var env_scene: PackedScene = GBTestConstants.get_environment_scene(environment_type)
-		assert_that(env_scene).append_failure_message("%s environment scene should load successfully" % type_name).is_not_null()
+		(
+			assert_that(env_scene)
+			. append_failure_message("%s environment scene should load successfully" % type_name)
+			. is_not_null()
+		)
+
 
 func test_environment_scene_instantiation() -> void:
 	# Test that the loaded scene can be instantiated
@@ -57,11 +63,22 @@ func test_environment_scene_instantiation() -> void:
 		var type_name: String = env_data[1]
 
 		var env_scene: PackedScene = GBTestConstants.get_environment_scene(environment_type)
-		assert_that(env_scene).append_failure_message("%s environment scene should be available" % type_name).is_not_null()
+		(
+			assert_that(env_scene)
+			. append_failure_message("%s environment scene should be available" % type_name)
+			. is_not_null()
+		)
 
 		var env: Node = env_scene.instantiate()
-		assert_that(env).append_failure_message("%s environment scene should instantiate successfully" % type_name).is_not_null()
+		(
+			assert_that(env)
+			. append_failure_message(
+				"%s environment scene should instantiate successfully" % type_name
+			)
+			. is_not_null()
+		)
 		auto_free(env)
+
 
 func test_environment_uses_same_test_container() -> void:
 	# Test that all environments use the same test composition container (single source of truth)
@@ -78,47 +95,96 @@ func test_environment_uses_same_test_container() -> void:
 		var type_name: String = env_data[1]
 
 		var env_scene: PackedScene = GBTestConstants.get_environment_scene(environment_type)
-		assert_that(env_scene).append_failure_message("%s environment scene should be available" % type_name).is_not_null()
+		(
+			assert_that(env_scene)
+			. append_failure_message("%s environment scene should be available" % type_name)
+			. is_not_null()
+		)
 
 		var env: GBTestEnvironment = env_scene.instantiate() as GBTestEnvironment
-		assert_that(env).append_failure_message("%s environment should instantiate as GBTestEnvironment" % type_name).is_not_null()
+		(
+			assert_that(env)
+			. append_failure_message(
+				"%s environment should instantiate as GBTestEnvironment" % type_name
+			)
+			. is_not_null()
+		)
 
 		# Get the container from the environment
 		var container: GBCompositionContainer = env.get_container()
-		assert_that(container).append_failure_message("%s environment should have a container" % type_name).is_not_null()
+		(
+			assert_that(container)
+			. append_failure_message("%s environment should have a container" % type_name)
+			. is_not_null()
+		)
 
 		# Verify it's the same test composition container instance/resource (except for ISOMETRIC_TEST)
-		var expected_container: GBCompositionContainer = auto_free(GBTestConstants.TEST_COMPOSITION_CONTAINER.duplicate(true))
+		var expected_container: GBCompositionContainer = auto_free(
+			GBTestConstants.TEST_COMPOSITION_CONTAINER.duplicate(true)
+		)
 		if environment_type == GBTestConstants.EnvironmentType.ISOMETRIC_TEST:
 			# ISOMETRIC_TEST may use a different container - just verify it has placement rules
 			var placement_rules: Array[PlacementRule] = container.get_placement_rules()
 			var diag: PackedStringArray = PackedStringArray()
-			diag.append("[CONTAINER_TEST] %s environment placement_rules count: %d" % [type_name, placement_rules.size()])
-			assert_that(placement_rules.size()).append_failure_message(
-				"%s environment should have placement rules configured. Context: %s" % [type_name, "\n".join(diag)]
-			).is_greater(0)
+			diag.append(
+				(
+					"[CONTAINER_TEST] %s environment placement_rules count: %d"
+					% [type_name, placement_rules.size()]
+				)
+			)
+			(
+				assert_that(placement_rules.size())
+				. append_failure_message(
+					(
+						"%s environment should have placement rules configured. Context: %s"
+						% [type_name, "\n".join(diag)]
+					)
+				)
+				. is_greater(0)
+			)
 		else:
 			# Other environments should use the standard test container
-			assert_that(container.resource_path).append_failure_message(
-				"%s environment should use the same test composition container. Expected: %s, Got: %s" % [
-					type_name, expected_container.resource_path, container.resource_path
-				]
-			).is_equal(expected_container.resource_path)
+			(
+				assert_that(container.resource_path)
+				. append_failure_message(
+					(
+						"%s environment should use the same test composition container. Expected: %s, Got: %s"
+						% [type_name, expected_container.resource_path, container.resource_path]
+					)
+				)
+				. is_equal(expected_container.resource_path)
+			)
 
 			# Verify placement rules are consistent (single source of truth)
 			var placement_rules: Array[PlacementRule] = container.get_placement_rules()
 			var diag: PackedStringArray = PackedStringArray()
-			diag.append("[CONTAINER_TEST] %s environment placement_rules count: %d" % [type_name, placement_rules.size()])
+			diag.append(
+				(
+					"[CONTAINER_TEST] %s environment placement_rules count: %d"
+					% [type_name, placement_rules.size()]
+				)
+			)
 
 			# All test environments should have the same placement rules from the shared container
 			var expected_rules: Array[PlacementRule] = expected_container.get_placement_rules()
-			assert_that(placement_rules.size()).append_failure_message(
-				"%s environment should have same number of placement rules as test container. Expected: %d, Got: %d. Context: %s" % [
-					type_name, expected_rules.size(), placement_rules.size(), "\n".join(diag)
-				]
-			).is_equal(expected_rules.size())
+			(
+				assert_that(placement_rules.size())
+				. append_failure_message(
+					(
+						"%s environment should have same number of placement rules as test container. Expected: %d, Got: %d. Context: %s"
+						% [
+							type_name,
+							expected_rules.size(),
+							placement_rules.size(),
+							"\n".join(diag)
+						]
+					)
+				)
+				. is_equal(expected_rules.size())
+			)
 
 		auto_free(env)
+
 
 ## Test: Environment tilemaps are correctly dimensioned (31x31 from -15 to +15)
 ## This ensures consistent test environments and prevents bounds validation issues
@@ -135,33 +201,60 @@ func test_environment_tilemaps_have_correct_dimensions() -> void:
 		var type_name: String = env_data[1]
 
 		var env_scene: PackedScene = GBTestConstants.get_environment_scene(environment_type)
-		assert_that(env_scene).append_failure_message("%s environment scene should be available" % type_name).is_not_null()
+		(
+			assert_that(env_scene)
+			. append_failure_message("%s environment scene should be available" % type_name)
+			. is_not_null()
+		)
 
 		var env: GBTestEnvironment = env_scene.instantiate() as GBTestEnvironment
-		assert_that(env).append_failure_message("%s environment should instantiate as GBTestEnvironment" % type_name).is_not_null()
+		(
+			assert_that(env)
+			. append_failure_message(
+				"%s environment should instantiate as GBTestEnvironment" % type_name
+			)
+			. is_not_null()
+		)
 		add_child(env)
 		await get_tree().process_frame  # Let the environment initialize
 
 		# Verify tilemap layer exists
-		assert_that(env.tile_map_layer).append_failure_message("%s environment should have a tile_map_layer" % type_name)
+		assert_that(env.tile_map_layer).append_failure_message(
+			"%s environment should have a tile_map_layer" % type_name
+		)
 		var tile_map: TileMapLayer = env.tile_map_layer
 		var used_rect: Rect2i = tile_map.get_used_rect()
+
 
 ## Test: Isometric environment has appropriate dimensions for isometric testing
 ## Test: Isometric environment has appropriate dimensions for isometric testing
 func test_isometric_environment_tilemap_dimensions() -> void:
-	var env_scene: PackedScene = GBTestConstants.get_environment_scene(GBTestConstants.EnvironmentType.ISOMETRIC_TEST)
-	assert_that(env_scene).append_failure_message("ISOMETRIC_TEST environment scene should be available").is_not_null()
+	var env_scene: PackedScene = GBTestConstants.get_environment_scene(
+		GBTestConstants.EnvironmentType.ISOMETRIC_TEST
+	)
+	(
+		assert_that(env_scene)
+		. append_failure_message("ISOMETRIC_TEST environment scene should be available")
+		. is_not_null()
+	)
 
 	var env: GBTestEnvironment = env_scene.instantiate() as GBTestEnvironment
-	assert_that(env).append_failure_message("ISOMETRIC_TEST environment should instantiate as GBTestEnvironment").is_not_null()
+	(
+		assert_that(env)
+		. append_failure_message(
+			"ISOMETRIC_TEST environment should instantiate as GBTestEnvironment"
+		)
+		. is_not_null()
+	)
 	add_child(env)
 	await get_tree().process_frame  # Let the environment initialize
 
 	# Verify tilemap layer exists
-	assert_that(env.tile_map_layer).append_failure_message(
-		"ISOMETRIC_TEST environment should have a tile_map_layer"
-	).is_not_null()
+	(
+		assert_that(env.tile_map_layer)
+		. append_failure_message("ISOMETRIC_TEST environment should have a tile_map_layer")
+		. is_not_null()
+	)
 
 	var tile_map: TileMapLayer = env.tile_map_layer
 	var used_rect: Rect2i = tile_map.get_used_rect()
@@ -173,25 +266,43 @@ func test_isometric_environment_tilemap_dimensions() -> void:
 	var _actual_end: Vector2i = used_rect.position + used_rect.size - Vector2i(1, 1)
 
 	# Verify tilemap has reasonable dimensions (not empty, has sufficient space)
-	assert_int(actual_size.x).append_failure_message(
-		"ISOMETRIC_TEST tilemap should have reasonable width, got %d" % actual_size.x
-	).is_greater(10)
-	assert_int(actual_size.y).append_failure_message(
-		"ISOMETRIC_TEST tilemap should have reasonable height, got %d" % actual_size.y
-	).is_greater(10)
+	(
+		assert_int(actual_size.x)
+		. append_failure_message(
+			"ISOMETRIC_TEST tilemap should have reasonable width, got %d" % actual_size.x
+		)
+		. is_greater(10)
+	)
+	(
+		assert_int(actual_size.y)
+		. append_failure_message(
+			"ISOMETRIC_TEST tilemap should have reasonable height, got %d" % actual_size.y
+		)
+		. is_greater(10)
+	)
 
 	# Verify tile_set configuration
-	assert_that(tile_map.tile_set).append_failure_message(
-		"ISOMETRIC_TEST tilemap should have a tile_set configured"
-	).is_not_null()
+	(
+		assert_that(tile_map.tile_set)
+		. append_failure_message("ISOMETRIC_TEST tilemap should have a tile_set configured")
+		. is_not_null()
+	)
 
 	# Document actual tile size for isometric (from test results: 90x50 pixels)
 	var tile_size: Vector2i = tile_map.tile_set.tile_size
-	assert_int(tile_size.x).append_failure_message(
-		"ISOMETRIC_TEST tile_size.x should be positive, got %d" % tile_size.x
-	).is_greater(0)
-	assert_int(tile_size.y).append_failure_message(
-		"ISOMETRIC_TEST tile_size.y should be positive, got %d" % tile_size.y
-	).is_greater(0)
+	(
+		assert_int(tile_size.x)
+		. append_failure_message(
+			"ISOMETRIC_TEST tile_size.x should be positive, got %d" % tile_size.x
+		)
+		. is_greater(0)
+	)
+	(
+		assert_int(tile_size.y)
+		. append_failure_message(
+			"ISOMETRIC_TEST tile_size.y should be positive, got %d" % tile_size.y
+		)
+		. is_greater(0)
+	)
 
 	auto_free(env)

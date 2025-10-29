@@ -24,13 +24,18 @@ const SAFE_TILE_C: Vector2i = Vector2i(5, 0)
 const SAFE_TILE_D: Vector2i = Vector2i(-10, 5)
 const SAFE_TILE_E: Vector2i = Vector2i(10, 5)
 
+
 func before_test() -> void:
 	# Use scene_runner for deterministic frame control
 	runner = scene_runner(GBTestConstants.BUILDING_TEST_ENV_UID)
 	runner.simulate_frames(1)
 
 	env = runner.scene() as BuildingTestEnvironment
-	assert_object(env).append_failure_message("Failed to load BuildingTestEnvironment").is_not_null()
+	(
+		assert_object(env)
+		. append_failure_message("Failed to load BuildingTestEnvironment")
+		. is_not_null()
+	)
 
 	_building_system = env.building_system
 	_map = env.tile_map_layer
@@ -67,7 +72,7 @@ func before_test() -> void:
 	# DragManager is enabled by being in tree and processing
 	# No drag_multi_build setting needed anymore
 
-	runner.simulate_frames(2)	# Connect to build signals to track attempts
+	runner.simulate_frames(2)  # Connect to build signals to track attempts
 	_container.get_states().building.success.connect(_on_build_success)
 	_container.get_states().building.failed.connect(_on_build_failed)
 
@@ -79,6 +84,7 @@ func before_test() -> void:
 
 	runner.simulate_frames(1)
 
+
 func after_test() -> void:
 	if _container:
 		if _container.get_states().building.success.is_connected(_on_build_success):
@@ -87,15 +93,22 @@ func after_test() -> void:
 			_container.get_states().building.failed.disconnect(_on_build_failed)
 	runner = null
 
+
 func _on_build_success(data: BuildActionData) -> void:
 	var build_info := {
 		"result": "success",
 		"position": data.report.placed.global_position if data.report.placed else Vector2.ZERO,
-		"tile": _map.local_to_map(_map.to_local(data.report.placed.global_position)) if data.report.placed else Vector2i.ZERO,
+		"tile":
+		(
+			_map.local_to_map(_map.to_local(data.report.placed.global_position))
+			if data.report.placed
+			else Vector2i.ZERO
+		),
 		"physics_frame": Engine.get_physics_frames(),
 		"timestamp": Time.get_ticks_msec()
 	}
 	_build_attempts.append(build_info)
+
 
 func _on_build_failed(data: BuildActionData) -> void:
 	var build_info := {
@@ -108,7 +121,9 @@ func _on_build_failed(data: BuildActionData) -> void:
 	}
 	_build_attempts.append(build_info)
 
+
 #region Helper Functions for Diagnostics
+
 
 ## Format builds summary for diagnostic messages
 func _format_builds_summary(builds: Array[Dictionary]) -> String:
@@ -122,6 +137,7 @@ func _format_builds_summary(builds: Array[Dictionary]) -> String:
 		parts.append("(%d,%d):%s@F%d" % [tile.x, tile.y, result[0], frame])
 	return "[%s]" % ", ".join(parts)
 
+
 ## Format builds by physics frame for diagnostic messages
 func _format_builds_in_frame_debug(builds_in_frame: Dictionary) -> String:
 	var parts: Array[String] = []
@@ -129,6 +145,7 @@ func _format_builds_in_frame_debug(builds_in_frame: Dictionary) -> String:
 		var count: int = builds_in_frame[frame]
 		parts.append("F%d:%d" % [frame, count])
 	return "{%s}" % ", ".join(parts)
+
 
 ## Extract set of tiles that were built from build attempts
 func _get_built_tiles(builds: Array[Dictionary]) -> Array[Vector2i]:
@@ -139,34 +156,52 @@ func _get_built_tiles(builds: Array[Dictionary]) -> Array[Vector2i]:
 			tiles.append(tile)
 	return tiles
 
+
 ## Format system state for diagnostic messages (DRY helper)
 func _format_system_state() -> String:
-	var mode_str: String = GBEnums.Mode.keys()[_container.get_states().mode.current] if _container and _container.get_states() else "N/A"
-	var preview_exists: bool = _building_system._states.building.preview != null if _building_system and _building_system._states else false
-	var drag_enabled: bool = _drag_manager.is_inside_tree() and not _drag_manager.is_queued_for_deletion() if _drag_manager else false
-	return "[System: mode=%s, preview=%s, drag_enabled=%s]" % [
-		mode_str,
-		preview_exists,
-		drag_enabled
-	]
+	var mode_str: String = (
+		GBEnums.Mode.keys()[_container.get_states().mode.current]
+		if _container and _container.get_states()
+		else "N/A"
+	)
+	var preview_exists: bool = (
+		_building_system._states.building.preview != null
+		if _building_system and _building_system._states
+		else false
+	)
+	var drag_enabled: bool = (
+		_drag_manager.is_inside_tree() and not _drag_manager.is_queued_for_deletion()
+		if _drag_manager
+		else false
+	)
+	return (
+		"[System: mode=%s, preview=%s, drag_enabled=%s]" % [mode_str, preview_exists, drag_enabled]
+	)
+
 
 ## Format DragManager state for diagnostic messages (DRY helper)
 func _format_drag_manager_state() -> String:
 	if not _drag_manager:
 		return "[DragManager: null]"
-	return "[DragManager: valid=%s, in_tree=%s, physics=%s, dragging=%s]" % [
-		_drag_manager != null,
-		_drag_manager.is_inside_tree(),
-		_drag_manager.is_physics_processing(),
-		_drag_manager.is_dragging()
-	]
+	return (
+		"[DragManager: valid=%s, in_tree=%s, physics=%s, dragging=%s]"
+		% [
+			_drag_manager != null,
+			_drag_manager.is_inside_tree(),
+			_drag_manager.is_physics_processing(),
+			_drag_manager.is_dragging()
+		]
+	)
+
 
 ## Helper function to position the positioner at a specific tile coordinate
 func _position_at_tile(tile_pos: Vector2i) -> void:
 	var world_pos: Vector2 = _map.to_global(_map.map_to_local(tile_pos))
 	_positioner.global_position = world_pos
 
+
 #endregion
+
 
 ## Test: Rapid tile changes should not cause double builds in same frame
 ## Setup: Enter build mode, position at safe tile, start drag
@@ -184,19 +219,30 @@ func test_rapid_tile_changes_no_double_build() -> void:
 
 	var report: PlacementReport = _building_system.enter_build_mode(placeable)
 	var setup_issues := str(report.get_issues())
-	assert_bool(report.is_successful()).append_failure_message(
-		"Enter build mode failed at tile (%d,%d): %s" % [SAFE_TILE_A.x, SAFE_TILE_A.y, setup_issues]
-	).is_true()
+	(
+		assert_bool(report.is_successful())
+		. append_failure_message(
+			(
+				"Enter build mode failed at tile (%d,%d): %s"
+				% [SAFE_TILE_A.x, SAFE_TILE_A.y, setup_issues]
+			)
+		)
+		. is_true()
+	)
 
 	# Start drag via DragManager (not BuildingSystem)
 	var drag_data: DragPathData = _drag_manager.start_drag()
 	var drag_state_str: String = DragManager.format_drag_state(drag_data)
-	assert_object(drag_data).append_failure_message(
-		"start_drag() should return drag_data - %s, %s" % [
-			drag_state_str,
-			_format_system_state()
-		]
-	).is_not_null()
+	(
+		assert_object(drag_data)
+		. append_failure_message(
+			(
+				"start_drag() should return drag_data - %s, %s"
+				% [drag_state_str, _format_system_state()]
+			)
+		)
+		. is_not_null()
+	)
 
 	# Clear build tracking before test
 	_build_attempts.clear()
@@ -226,20 +272,28 @@ func test_rapid_tile_changes_no_double_build() -> void:
 	# Therefore we expect 0 builds (drag detection is physics-driven)
 	var total_builds := _build_attempts.size()
 	var builds_summary := _format_builds_summary(_build_attempts)
-	assert_int(total_builds).append_failure_message(
-		"v5.0.0: Expected 0 builds (physics not running in test runner) - Actual: %d, %s, %s, %s" % [
-			total_builds,
-			builds_summary,
-			_format_system_state(),
-			_format_drag_manager_state()
-		]
-	).is_equal(0)
+	(
+		assert_int(total_builds)
+		. append_failure_message(
+			(
+				"v5.0.0: Expected 0 builds (physics not running in test runner) - Actual: %d, %s, %s, %s"
+				% [
+					total_builds,
+					builds_summary,
+					_format_system_state(),
+					_format_drag_manager_state()
+				]
+			)
+		)
+		. is_equal(0)
+	)
 
 	# Note: In v5.0.0, drag building requires DragManager._physics_process to run
 	# which needs actual scene tree physics, not manual frame simulation.
 	# This test documents that manual frame control doesn't trigger drag builds.
 
 	_drag_manager.stop_drag()
+
 
 ## Test: Collision state should be current for each build
 ## Setup: Build object at tile A, then immediately drag to adjacent tile B
@@ -264,7 +318,10 @@ func test_collision_state_synchronized_with_builds() -> void:
 	var report: PlacementReport = _building_system.enter_build_mode(placeable)
 	var issues_detail := str(report.get_issues())
 	assert_bool(report.is_successful()).is_true().append_failure_message(
-		"Enter build mode failed at tile (%d,%d): %s" % [SAFE_TILE_D.x, SAFE_TILE_D.y, issues_detail]
+		(
+			"Enter build mode failed at tile (%d,%d): %s"
+			% [SAFE_TILE_D.x, SAFE_TILE_D.y, issues_detail]
+		)
 	)
 
 	# Wait for build mode setup to stabilize
@@ -287,13 +344,13 @@ func test_collision_state_synchronized_with_builds() -> void:
 	var preview_exists := _building_system._states.building.preview != null
 	var target_node := _targeting_state.get_target()
 	var diagnostic_msg := (
-		"First build failed at tile (%d,%d). Diagnostic: " % [SAFE_TILE_D.x, SAFE_TILE_D.y] +
-		"Issues=[%s], " % [first_issues] +
-		"PositionerTile=(%d,%d), " % [pos_tile.x, pos_tile.y] +
-		"PreviewExists=%s, " % [preview_exists] +
-		"TargetNode=%s, " % ["valid" if target_node else "null"] +
-		"DragState=%s, " % [_format_drag_manager_state()] +
-		"SystemState=%s" % [_format_system_state()]
+		"First build failed at tile (%d,%d). Diagnostic: " % [SAFE_TILE_D.x, SAFE_TILE_D.y]
+		+ "Issues=[%s], " % [first_issues]
+		+ "PositionerTile=(%d,%d), " % [pos_tile.x, pos_tile.y]
+		+ "PreviewExists=%s, " % [preview_exists]
+		+ "TargetNode=%s, " % ["valid" if target_node else "null"]
+		+ "DragState=%s, " % [_format_drag_manager_state()]
+		+ "SystemState=%s" % [_format_system_state()]
 	)
 	assert_bool(first_build_report.is_successful()).is_true().append_failure_message(diagnostic_msg)
 
@@ -318,24 +375,41 @@ func test_collision_state_synchronized_with_builds() -> void:
 	# document the race condition
 	if pre_physics_frame == post_physics_frame:
 		var race_detected := true
-		var diagnostic := "Build attempted at (%d,%d) in same physics frame (%d) as first build at (%d,%d). Second build: %s" % [
-			SAFE_TILE_E.x, SAFE_TILE_E.y, pre_physics_frame,
-			first_built_tile.x, first_built_tile.y,
-			"success" if second_build_report.is_successful() else "failed"
-		]
+		var diagnostic := (
+			"Build attempted at (%d,%d) in same physics frame (%d) as first build at (%d,%d). Second build: %s"
+			% [
+				SAFE_TILE_E.x,
+				SAFE_TILE_E.y,
+				pre_physics_frame,
+				first_built_tile.x,
+				first_built_tile.y,
+				"success" if second_build_report.is_successful() else "failed"
+			]
+		)
 		# This test documents the issue - we expect this to happen (race condition exists)
-		assert_bool(race_detected) \
-			.append_failure_message( \
-				"Race condition test - documents that builds can occur in same physics frame before collision updates. %s" % diagnostic \
+		(
+			assert_bool(race_detected)
+			. append_failure_message(
+				(
+					"Race condition test - documents that builds can occur in same physics frame before collision updates. %s"
+					% diagnostic
+				)
 			)
+		)
 	else:
 		# Build waited for physics frame - good! This means fix is working
-		var diagnostic := "Builds occurred in different physics frames: %d vs %d" % [pre_physics_frame, post_physics_frame]
-		assert_bool(pre_physics_frame != post_physics_frame) \
-			.append_failure_message(diagnostic) \
-			.is_true()
+		var diagnostic := (
+			"Builds occurred in different physics frames: %d vs %d"
+			% [pre_physics_frame, post_physics_frame]
+		)
+		(
+			assert_bool(pre_physics_frame != post_physics_frame)
+			. append_failure_message(diagnostic)
+			. is_true()
+		)
 
 	_drag_manager.stop_drag()
+
 
 ## Test: Process timing vs physics timing verification
 ## Setup: Monitor DragManager update frequency vs physics update frequency
@@ -343,10 +417,7 @@ func test_collision_state_synchronized_with_builds() -> void:
 ## Assert: Document timing relationship to demonstrate race condition window
 @warning_ignore("unused_parameter")
 func test_process_vs_physics_timing_analysis(
-	test_name: String,
-	test_parameters := [
-		["timing_analysis"]
-	]
+	test_name: String, test_parameters := [["timing_analysis"]]
 ) -> void:
 	# TEST ISOLATION FIX: Reset positioner to known state at test start
 	_positioner.global_position = Vector2.ZERO
@@ -376,9 +447,16 @@ func test_process_vs_physics_timing_analysis(
 
 	# Document the timing relationship - this test demonstrates the race condition exists
 	# In a real game, process calls can outpace physics frames, allowing multiple builds per physics update
-	assert_bool(process_calls > physics_frames) \
-		.append_failure_message("Race condition window exists: %d process calls vs %d physics frames (ratio: %.2f). Multiple builds can occur per physics update!" % [process_calls, physics_frames, ratio]) \
-		.is_true()
+	(
+		assert_bool(process_calls > physics_frames)
+		. append_failure_message(
+			(
+				"Race condition window exists: %d process calls vs %d physics frames (ratio: %.2f). Multiple builds can occur per physics update!"
+				% [process_calls, physics_frames, ratio]
+			)
+		)
+		. is_true()
+	)
 
 	_drag_manager.stop_drag()
 
@@ -400,19 +478,31 @@ func test_drag_tile_deduplication_prevents_same_tile_rebuild() -> void:
 
 	var report: PlacementReport = _building_system.enter_build_mode(placeable)
 	var setup_issues := str(report.get_issues())
-	assert_bool(report.is_successful()) \
-		.append_failure_message("Enter build mode failed at tile (%d,%d): %s" % [SAFE_TILE_D.x, SAFE_TILE_D.y, setup_issues])
+	assert_bool(report.is_successful()).append_failure_message(
+		"Enter build mode failed at tile (%d,%d): %s" % [SAFE_TILE_D.x, SAFE_TILE_D.y, setup_issues]
+	)
 	_drag_manager.start_drag()
 	runner.simulate_frames(2, 2)  # Let drag start
 
 	# Verify drag actually started
-	assert_object(_drag_manager.drag_data) \
-		.append_failure_message("Drag data should exist after start_drag(). DragManager: %s" % str(_drag_manager)) \
-		.is_not_null()
+	(
+		assert_object(_drag_manager.drag_data)
+		. append_failure_message(
+			"Drag data should exist after start_drag(). DragManager: %s" % str(_drag_manager)
+		)
+		. is_not_null()
+	)
 
-	assert_bool(_drag_manager.drag_data.is_dragging) \
-		.append_failure_message("Drag should be active after start_drag(). is_dragging: %s" % str(_drag_manager.drag_data.is_dragging if _drag_manager.drag_data else "null")) \
-		.is_true()
+	(
+		assert_bool(_drag_manager.drag_data.is_dragging)
+		. append_failure_message(
+			(
+				"Drag should be active after start_drag(). is_dragging: %s"
+				% str(_drag_manager.drag_data.is_dragging if _drag_manager.drag_data else "null")
+			)
+		)
+		. is_true()
+	)
 
 	# Clear build tracking AFTER drag starts
 	_build_attempts.clear()
@@ -441,15 +531,31 @@ func test_drag_tile_deduplication_prevents_same_tile_rebuild() -> void:
 	# Expected: 0 builds (physics not running in test runner)
 	var expected_builds := 0
 	var dedup_diagnostic := (
-		"\n• After first build at SAFE_TILE_A: %d builds\n %s" % [first_builds_count, first_summary] +
-		"\n• After move to SAFE_TILE_E: %d builds\n %s" % [after_move_count, after_move_summary] +
-		"\n• After return to SAFE_TILE_A: %d total builds\n %s" % [final_builds_count, final_summary]
+		"\n• After first build at SAFE_TILE_A: %d builds\n %s" % [first_builds_count, first_summary]
+		+ "\n• After move to SAFE_TILE_E: %d builds\n %s" % [after_move_count, after_move_summary]
+		+ (
+			"\n• After return to SAFE_TILE_A: %d total builds\n %s"
+			% [final_builds_count, final_summary]
+		)
 	)
-	assert_int(final_builds_count) \
-		.is_equal(expected_builds) \
-		.append_failure_message("Deduplication test results:%s" % dedup_diagnostic)
-	assert_int(final_builds_count) \
-		.append_failure_message("v5.0.0: Expected 0 builds (physics not running in test runner), but got %d. Deduplication test requires actual scene tree physics. Builds: %s. First: %d, After move: %d, Final: %d" % [final_builds_count, final_summary, first_builds_count, after_move_count, final_builds_count]) \
-		.is_equal(expected_builds)
+	assert_int(final_builds_count).is_equal(expected_builds).append_failure_message(
+		"Deduplication test results:%s" % dedup_diagnostic
+	)
+	(
+		assert_int(final_builds_count)
+		. append_failure_message(
+			(
+				"v5.0.0: Expected 0 builds (physics not running in test runner), but got %d. Deduplication test requires actual scene tree physics. Builds: %s. First: %d, After move: %d, Final: %d"
+				% [
+					final_builds_count,
+					final_summary,
+					first_builds_count,
+					after_move_count,
+					final_builds_count
+				]
+			)
+		)
+		. is_equal(expected_builds)
+	)
 
 	_drag_manager.stop_drag()

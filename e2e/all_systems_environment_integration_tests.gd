@@ -93,7 +93,9 @@ func test_locations_close_to_zero_are_within_tile_map_bounds() -> void:
 	assert_array(setup_issues).is_empty()
 
 	# Create an indicator from test constants
-	var indicator_instance: RuleCheckIndicator = GBTestConstants.TEST_INDICATOR_TD_PLATFORMER.instantiate()
+	var indicator_instance: RuleCheckIndicator = (
+		GBTestConstants.TEST_INDICATOR_TD_PLATFORMER.instantiate()
+	)
 	test_env.positioner.add_child(indicator_instance)
 	auto_free(indicator_instance)
 

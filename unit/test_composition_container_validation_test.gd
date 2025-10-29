@@ -12,7 +12,7 @@ func test_validate_test_composition_container_subcomponents() -> void:
 	# Test: Validate test composition container has all subcomponents (runtime checks only)
 	var diag: PackedStringArray = PackedStringArray()
 	diag.append("Validating test composition container resource...")
-	
+
 	assert_that(_container).append_failure_message("\n".join(diag)).is_not_null()
 
 	# Instantiate if it's a PackedScene-like resource that needs instantiation, otherwise it's a Resource

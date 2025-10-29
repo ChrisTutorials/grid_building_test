@@ -57,11 +57,9 @@ func before_test() -> void:
 	_indicator_template = GBTestConstants.TEST_INDICATOR_TD_PLATFORMER
 
 	# Validate setup
-	assert_that(_indicator_template)
-  .append_failure_message("Failed to load indicator template").is_not_null()
+	assert_that(_indicator_template).append_failure_message("Failed to load indicator template").is_not_null()
 	assert_that(_tile_map).append_failure_message("TileMap should be created").is_not_null()
-	assert_that(_tile_map.tile_set)
-  .append_failure_message("TileSet not properly assigned").is_not_null()
+	assert_that(_tile_map.tile_set).append_failure_message("TileSet not properly assigned").is_not_null()
 
 func test_coordinate_transformation_pipeline() -> void:
 	# Test the key positioning calculation from IndicatorFactory.generate_indicators()
@@ -77,11 +75,9 @@ func test_coordinate_transformation_pipeline() -> void:
 	var expected_global_pos: Vector2 = _tile_map.to_global(_tile_map.map_to_local(target_tile))
 
 	# Verify each step produces reasonable results
-	assert_that(positioner_tile)
-  .append_failure_message("Positioner tile calculation failed").is_not_null()
+	assert_that(positioner_tile).append_failure_message("Positioner tile calculation failed").is_not_null()
 	assert_that(target_tile).append_failure_message("Target tile calculation failed").is_not_null()
-	assert_that(expected_global_pos)
-  .append_failure_message("Global position calculation failed").is_not_null()
+	assert_that(expected_global_pos).append_failure_message("Global position calculation failed").is_not_null()
 
 	# Verify the offset was applied correctly
 	var expected_target: Vector2i = positioner_tile + test_position

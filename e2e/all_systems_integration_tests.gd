@@ -1378,7 +1378,9 @@ func test_performance_regression_prevention() -> void:
 	GBTestDiagnostics.log_verbose("Performance Results:")
 	GBTestDiagnostics.log_verbose("  Build Mode Entry: %d ms" % build_mode_time)
 	GBTestDiagnostics.log_verbose("  Validation Setup (collision processing): %d ms" % setup_time)
-	GBTestDiagnostics.log_verbose("  Validation Only (indicator evaluation): %d ms" % validation_time)
+	GBTestDiagnostics.log_verbose(
+		"  Validation Only (indicator evaluation): %d ms" % validation_time
+	)
 	GBTestDiagnostics.log_verbose("  Placement Operation: %d ms" % placement_time)
 
 	# Explain performance characteristics

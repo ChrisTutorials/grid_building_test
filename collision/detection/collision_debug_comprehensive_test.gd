@@ -19,6 +19,7 @@ var collision_object_test_cases: Array[Array]
 var packed_scene_test_cases: Array[Array]
 var polygon_test_cases: Array[Dictionary]
 
+
 func _init() -> void:
 	collision_object_test_cases = [
 		["RigidBody2D", TEST_COLLISION_LAYER_RIGID, "RectangleShape2D", Vector2(16, 16), 1],
@@ -51,10 +52,12 @@ func _init() -> void:
 		},
 		{
 			"name": "Degenerate Rectangle",
-			"points": PackedVector2Array([Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)]),
+			"points":
+			PackedVector2Array([Vector2(0, 0), Vector2(0, 0), Vector2(0, 0), Vector2(0, 0)]),
 			"expected_valid": false
 		}
 	]
+
 
 func test_collision_object_debug_scenarios() -> void:
 	for test_case: Array in collision_object_test_cases:
@@ -67,6 +70,7 @@ func test_collision_object_debug_scenarios() -> void:
 		_test_single_collision_object_scenario(
 			object_type, collision_layer, shape_type, shape_size, expected_shape_count
 		)
+
 
 func _test_single_collision_object_scenario(
 	object_type: String,
@@ -96,13 +100,15 @@ func _test_single_collision_object_scenario(
 	GBTestDiagnostics.log_verbose("2. %s.name: %s" % [object_type, collision_obj.name])
 	GBTestDiagnostics.log_verbose("3. CollisionShape2D.name: %s" % collision_shape.name)
 	GBTestDiagnostics.log_verbose("4. CollisionShape2D.shape: %s" % collision_shape.shape)
-	GBTestDiagnostics.log_verbose("5. %s.get_shape_owners(): %s" % [
-		object_type, collision_obj.get_shape_owners()
-	])
+	GBTestDiagnostics.log_verbose(
+		"5. %s.get_shape_owners(): %s" % [object_type, collision_obj.get_shape_owners()]
+	)
 
 	# Test shape detection utilities
 	var shapes_from_owner: Array[Shape2D] = GBGeometryUtils.get_shapes_from_owner(collision_obj)
-	GBTestDiagnostics.log_verbose("6. get_shapes_from_owner result: %d shapes" % shapes_from_owner.size())
+	GBTestDiagnostics.log_verbose(
+		"6. get_shapes_from_owner result: %d shapes" % shapes_from_owner.size()
+	)
 
 	var all_shapes: Dictionary[Node2D, Array] = GBGeometryUtils.get_all_collision_shapes_by_owner(
 		collision_obj
@@ -112,15 +118,23 @@ func _test_single_collision_object_scenario(
 	)
 
 	# Assertions
-	assert_int(shapes_from_owner.size()).append_failure_message(
-		"Expected %d shapes from %s, got %d" % [
-			expected_shape_count, object_type, shapes_from_owner.size()
-		]
-	).is_equal(expected_shape_count)
+	(
+		assert_int(shapes_from_owner.size())
+		. append_failure_message(
+			(
+				"Expected %d shapes from %s, got %d"
+				% [expected_shape_count, object_type, shapes_from_owner.size()]
+			)
+		)
+		. is_equal(expected_shape_count)
+	)
 
-	assert_int(all_shapes.size()).append_failure_message(
-		"Expected at least 1 collision owner for %s" % object_type
-	).is_greater(0)
+	(
+		assert_int(all_shapes.size())
+		. append_failure_message("Expected at least 1 collision owner for %s" % object_type)
+		. is_greater(0)
+	)
+
 
 func _create_collision_object(object_type: String, collision_layer: int) -> CollisionObject2D:
 	var collision_obj: CollisionObject2D
@@ -134,12 +148,17 @@ func _create_collision_object(object_type: String, collision_layer: int) -> Coll
 		"CharacterBody2D":
 			collision_obj = auto_free(CharacterBody2D.new())
 		_:
-			assert_that(object_type).append_failure_message("Unknown collision object type").is_equal("")
+			(
+				assert_that(object_type)
+				. append_failure_message("Unknown collision object type")
+				. is_equal("")
+			)
 			return null
 
 	collision_obj.name = "Test%s" % object_type
 	collision_obj.collision_layer = collision_layer
 	return collision_obj
+
 
 func _create_shape(shape_type: String, shape_size: Vector2) -> Shape2D:
 	var shape: Shape2D
@@ -162,12 +181,14 @@ func _create_shape(shape_type: String, shape_size: Vector2) -> Shape2D:
 			return null
 	return shape
 
+
 func test_packed_scene_collision_debug_scenarios() -> void:
 	for test_case: Array in packed_scene_test_cases:
 		var object_type: String = test_case[0]
 		var collision_layer: int = test_case[1]
 
 		_test_single_packed_scene_scenario(object_type, collision_layer)
+
 
 func _test_single_packed_scene_scenario(object_type: String, collision_layer: int) -> void:
 	GBTestDiagnostics.log_verbose("=== DEBUG PACKED SCENE: %s ===" % object_type)
@@ -226,12 +247,17 @@ func _test_single_packed_scene_scenario(object_type: String, collision_layer: in
 
 	# Assertions
 	assert_int(pack_result).append_failure_message("PackedScene.pack() failed").is_equal(OK)
-	assert_int(state.get_node_count()).append_failure_message(
-		"Expected at least 2 nodes in packed scene"
-	).is_greater_equal(2)
-	assert_int(preview_obj.get_child_count()).append_failure_message(
-		"Preview should have children"
-	).is_greater(0)
+	(
+		assert_int(state.get_node_count())
+		. append_failure_message("Expected at least 2 nodes in packed scene")
+		. is_greater_equal(2)
+	)
+	(
+		assert_int(preview_obj.get_child_count())
+		. append_failure_message("Preview should have children")
+		. is_greater(0)
+	)
+
 
 func _create_collision_object_for_packed_scene(
 	object_type: String, collision_layer: int
@@ -245,12 +271,17 @@ func _create_collision_object_for_packed_scene(
 		"Area2D":
 			collision_obj = Area2D.new()
 		_:
-			assert_that(object_type).append_failure_message("Unknown collision object type").is_equal("")
+			(
+				assert_that(object_type)
+				. append_failure_message("Unknown collision object type")
+				. is_equal("")
+			)
 			return null
 
 	collision_obj.name = "Original%s" % object_type
 	collision_obj.collision_layer = collision_layer
 	return collision_obj
+
 
 ## Test polygon shape conversion and collision detection edge cases
 func test_polygon_collision_edge_cases() -> void:
@@ -269,9 +300,9 @@ func test_polygon_collision_edge_cases() -> void:
 		diagnostic_messages.append("Polygon bounds: %s" % bounds)
 
 		# Test if polygon is considered valid (using points.size() >= 3)
-		var is_valid: bool = points.size() >= 3 and CollisionGeometryCalculator.polygon_area(
-			points
-		) > 0.001
+		var is_valid: bool = (
+			points.size() >= 3 and CollisionGeometryCalculator.polygon_area(points) > 0.001
+		)
 		diagnostic_messages.append("Is valid polygon: %s" % is_valid)
 
 		# Test area calculation if valid
@@ -279,8 +310,17 @@ func test_polygon_collision_edge_cases() -> void:
 			var area: float = CollisionGeometryCalculator.polygon_area(points)
 			diagnostic_messages.append("Polygon area: %f" % area)
 
-		assert_bool(is_valid).append_failure_message(
-			"Polygon validity mismatch for %s: expected %s, got %s" % [
-				test_case.name, expected_valid, is_valid
-			] + "\n" + "\n".join(diagnostic_messages)
-		).is_equal(expected_valid)
+		(
+			assert_bool(is_valid)
+			. append_failure_message(
+				(
+					(
+						"Polygon validity mismatch for %s: expected %s, got %s"
+						% [test_case.name, expected_valid, is_valid]
+					)
+					+ "\n"
+					+ "\n".join(diagnostic_messages)
+				)
+			)
+			. is_equal(expected_valid)
+		)

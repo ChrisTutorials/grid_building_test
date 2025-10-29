@@ -78,8 +78,7 @@ func test_get_script_name(
 ) -> void:
 	# Use pure logic class for getting script name with contextual message on mismatch
 	var found: String = NodeSearchLogic.get_script_name(p_node)
-	assert_str(found)
-		.append_failure_message("Script name mismatch expected=%s got=%s" % [p_expected, found])
+	assert_str(found).append_failure_message("Script name mismatch expected=%s got=%s" % [p_expected, found])
 		.is_equal(p_expected)
 
 
@@ -90,9 +89,7 @@ func test_search_by_is_in_group() -> void:
 	var membership: Array[String] = []
 	for n in all_nodes:
 		membership.append("%s:%s" % [n.name, n.is_in_group(owner_group)])
-	assert_int(found_nodes.size())
-		.append_failure_message("find_nodes_by_group('%s') expected 2 (owner + child) got %d -> %s memberships=%s" % [owner_group, found_nodes.size(), found_nodes, membership])
+	assert_int(found_nodes.size()).append_failure_message("find_nodes_by_group('%s') expected 2 (owner + child) got %d -> %s memberships=%s" % [owner_group, found_nodes.size(), found_nodes, membership])
 		.is_equal(2)
 	if found_nodes.size() == 2:
-		assert_object(found_nodes[0])
-   .append_failure_message("First found node should not be null").is_not_null()
+		assert_object(found_nodes[0]).append_failure_message("First found node should not be null").is_not_null()

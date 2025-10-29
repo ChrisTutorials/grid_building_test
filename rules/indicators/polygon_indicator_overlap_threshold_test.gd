@@ -9,11 +9,12 @@ const TILE_SIZE: Vector2 = Vector2(16, 16)
 const MIN_OVERLAP_RATIO: float = 0.12
 const COLLISION_LAYER_MASK: int = 1 << 0
 
-var _env : BuildingTestEnvironment
+var _env: BuildingTestEnvironment
 var _manager: IndicatorManager
 var _map: TileMapLayer
-var _state : GridTargetingState
+var _state: GridTargetingState
 var _positioner: Node2D
+
 
 func before_test() -> void:
 	_env = EnvironmentTestFactory.create_building_system_test_environment(self)
@@ -22,9 +23,11 @@ func before_test() -> void:
 	_manager = _env.indicator_manager
 	_positioner = _env.positioner
 
+
 # region Helper functions
 func _collect_indicators(pm: IndicatorManager) -> Array[RuleCheckIndicator]:
 	return pm.get_indicators() if pm else []
+
 
 func _find_child_polygon(root: Node) -> CollisionPolygon2D:
 	for c: Node in root.get_children():
@@ -34,16 +37,21 @@ func _find_child_polygon(root: Node) -> CollisionPolygon2D:
 		if nested:
 			return nested
 	return null
+
+
 # endregion
+
 
 ## Failing regression: with current mapper settings, indicators are created on tiles below a reasonable overlap threshold.
 func test_polygon_preview_indicators_respect_min_overlap_ratio() -> void:
 	# Arrange: create the preview under the active positioner like at runtime
 	# Create a simple polygon preview using the factory
-	var polygon_points: PackedVector2Array = PackedVector2Array([
-		Vector2(-20, -10), Vector2(20, -10), Vector2(15, 10), Vector2(-15, 10)
-	])
-	var preview: Node2D = CollisionObjectTestFactory.create_static_body_with_polygon(self, polygon_points, Vector2.ZERO)
+	var polygon_points: PackedVector2Array = PackedVector2Array(
+		[Vector2(-20, -10), Vector2(20, -10), Vector2(15, 10), Vector2(-15, 10)]
+	)
+	var preview: Node2D = CollisionObjectTestFactory.create_static_body_with_polygon(
+		self, polygon_points, Vector2.ZERO
+	)
 	# Ensure preview is not already parented by the test harness factories before
 	# adding it under the targeting state's positioner. Some factories add the
 	# object to the test root for convenience; explicitly reparent here.
@@ -68,14 +76,26 @@ func test_polygon_preview_indicators_respect_min_overlap_ratio() -> void:
 	assert_array(setup_issues).is_empty()
 
 	var setup_ok: PlacementReport = _manager.try_setup(rules, _state, true)
-	assert_bool(setup_ok.is_successful()).append_failure_message("IndicatorManager.try_setup failed for polygon preview").is_true()
+	(
+		assert_bool(setup_ok.is_successful())
+		. append_failure_message("IndicatorManager.try_setup failed for polygon preview")
+		. is_true()
+	)
 
 	var indicators: Array[RuleCheckIndicator] = _collect_indicators(_manager)
-	assert_array(indicators).append_failure_message("No indicators generated for polygon preview").is_not_empty()
+	(
+		assert_array(indicators)
+		. append_failure_message("No indicators generated for polygon preview")
+		. is_not_empty()
+	)
 
 	# Compute expected allowed tiles using a minimum overlap ratio
 	var poly: CollisionPolygon2D = _find_child_polygon(preview)
-	assert_object(poly).append_failure_message("Preview lacks CollisionPolygon2D child").is_not_null()
+	(
+		assert_object(poly)
+		. append_failure_message("Preview lacks CollisionPolygon2D child")
+		. is_not_null()
+	)
 	var world_points: PackedVector2Array = CollisionGeometryUtils.to_world_polygon(poly)
 	var tile_size: Vector2 = Vector2(_map.tile_set.tile_size)
 	# Compute absolute tiles meeting the min overlap using calculator (area-based)
@@ -101,6 +121,13 @@ func test_polygon_preview_indicators_respect_min_overlap_ratio() -> void:
 			unexpected.append(t)
 
 	# Known issue: 4 corners may be flagged as unexpected; ensure we don't exceed that
-	assert_int(unexpected.size()).append_failure_message(
-		"Found indicators on tiles with insufficient overlap. unexpected=%s\nallowed_abs=%s\nactual=%s" % [str(unexpected), str(allowed_abs.keys()), str(actual_tiles)]
-	).is_less_equal(4)
+	(
+		assert_int(unexpected.size())
+		. append_failure_message(
+			(
+				"Found indicators on tiles with insufficient overlap. unexpected=%s\nallowed_abs=%s\nactual=%s"
+				% [str(unexpected), str(allowed_abs.keys()), str(actual_tiles)]
+			)
+		)
+		. is_less_equal(4)
+	)

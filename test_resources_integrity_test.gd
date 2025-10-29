@@ -36,9 +36,11 @@ const PORTABLE_ALLOWED_DEPENDENCIES: Array[String] = [
 func test_no_test_resources_depend_on_templates_or_demos() -> void:
 	var test_files: Array[String] = _list_test_files(TEST_ROOT)
 
-	assert_int(test_files.size()).append_failure_message(
-		"No test files found under %s" % TEST_ROOT
-	).is_greater(0)
+	(
+		assert_int(test_files.size())
+		. append_failure_message("No test files found under %s" % TEST_ROOT)
+		. is_greater(0)
+	)
 
 	var violations: Array[Dictionary] = []
 
@@ -78,9 +80,11 @@ func test_no_test_resources_depend_on_templates_or_demos() -> void:
 func test_all_test_scenes_instantiate_without_errors() -> void:
 	var scene_files: Array[String] = _list_files_by_extension(TEST_ROOT, ".tscn")
 
-	assert_int(scene_files.size()).append_failure_message(
-		"No .tscn files found under %s" % TEST_ROOT
-	).is_greater(0)
+	(
+		assert_int(scene_files.size())
+		. append_failure_message("No .tscn files found under %s" % TEST_ROOT)
+		. is_greater(0)
+	)
 
 	var failures: Array[Dictionary] = []
 
@@ -98,8 +102,7 @@ func test_all_test_scenes_instantiate_without_errors() -> void:
 		instance.free()
 
 	var failure_msg := (
-		"All test scenes should instantiate without errors - Found %d failures"
-		% failures.size()
+		"All test scenes should instantiate without errors - Found %d failures" % failures.size()
 	)
 	if failures.size() > 0:
 		failure_msg += "\nFailed to instantiate test scenes:\n"
@@ -113,9 +116,11 @@ func test_all_test_scenes_instantiate_without_errors() -> void:
 func test_all_test_resources_load_successfully() -> void:
 	var resource_files: Array[String] = _list_files_by_extension(TEST_ROOT, ".tres")
 
-	assert_int(resource_files.size()).append_failure_message(
-		"No .tres files found under %s" % TEST_ROOT
-	).is_greater(0)
+	(
+		assert_int(resource_files.size())
+		. append_failure_message("No .tres files found under %s" % TEST_ROOT)
+		. is_greater(0)
+	)
 
 	var failures: Array[Dictionary] = []
 
@@ -125,8 +130,7 @@ func test_all_test_resources_load_successfully() -> void:
 			failures.append({"resource": res_path, "error": "Failed to load resource"})
 
 	var failure_msg := (
-		"All test resources should load successfully - Found %d failures"
-		% failures.size()
+		"All test resources should load successfully - Found %d failures" % failures.size()
 	)
 	if failures.size() > 0:
 		failure_msg += "\nFailed to load test resources:\n"

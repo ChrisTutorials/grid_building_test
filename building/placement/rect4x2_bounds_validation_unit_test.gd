@@ -14,7 +14,7 @@ const PLACEABLE_RECT_4X2 := GBTestConstants.PLACEABLE_RECT_4X2
 
 var runner: GdUnitSceneRunner
 var env: BuildingTestEnvironment
-var _building_system : BuildingSystem
+var _building_system: BuildingSystem
 var _container: GBCompositionContainer
 var _indicator_manager: IndicatorManager
 var _placement_validator: PlacementValidator
@@ -23,13 +23,17 @@ var _targeting_state: GridTargetingState
 var _positioner: Node2D
 var _isolation_state: Dictionary
 
+
 func before_test() -> void:
 	# MIGRATION: Use scene_runner WITHOUT frame simulation
 	runner = scene_runner(GBTestConstants.BUILDING_TEST_ENV_UID)
 	env = runner.scene() as BuildingTestEnvironment
 
-	assert_object(env).append_failure_message(
-		"Failed to load BuildingTestEnvironment scene").is_not_null()
+	(
+		assert_object(env)
+		. append_failure_message("Failed to load BuildingTestEnvironment scene")
+		. is_not_null()
+	)
 
 	# Direct property access - type-safe
 	_container = env.get_container()
@@ -56,10 +60,13 @@ func before_test() -> void:
 	var placement_rules: Array[PlacementRule] = _container.get_placement_rules()
 
 	## Collisions Check Rule + Within Tilemaps Bound Rule
-	assert_int(placement_rules.size()) \
-		.append_failure_message("[TEST_DEBUG] before_test: placement_rules.size()=%d" \
-			% placement_rules.size()) \
-		.is_equal(2)
+	(
+		assert_int(placement_rules.size())
+		. append_failure_message(
+			"[TEST_DEBUG] before_test: placement_rules.size()=%d" % placement_rules.size()
+		)
+		. is_equal(2)
+	)
 
 	# Diagnostic: assert that all setup rules reference the same map instance as the test _map
 	for i in range(placement_rules.size()):
@@ -69,10 +76,13 @@ func before_test() -> void:
 		if r2.has_method("get_target_map"):
 			var rule_map: TileMapLayer = r2.call("get_target_map") as TileMapLayer
 			# If rule exposes the target_map, assert it's the same TileMapLayer instance used by the test
-			assert_bool(rule_map == _map) \
-				.append_failure_message("PlacementRule at index %d is not bound to the test tilemap (_map)." \
-					% i) \
-				.is_true()
+			(
+				assert_bool(rule_map == _map)
+				. append_failure_message(
+					"PlacementRule at index %d is not bound to the test tilemap (_map)." % i
+				)
+				. is_true()
+			)
 
 	## Ensure tile map layer meets expectations
 	var used_rect: Rect2i = _map.get_used_rect()
@@ -82,8 +92,10 @@ func before_test() -> void:
 	)
 
 	# Set up test isolation to prevent mouse interference
-	_isolation_state = GBTestIsolation.setup_building_test_isolation(_positioner, _map,
-		_container.get_logger())
+	_isolation_state = GBTestIsolation.setup_building_test_isolation(
+		_positioner, _map, _container.get_logger()
+	)
+
 
 # Helper guard method: Extract complex conditional for targeting settings configuration
 func _apply_test_targeting_settings() -> void:
@@ -93,10 +105,16 @@ func _apply_test_targeting_settings() -> void:
 	_container.config.settings.targeting.restrict_to_map_area = false
 	_container.config.settings.targeting.limit_to_adjacent = false
 
+
 # Helper guard method: Check if targeting settings are accessible (3+ conditionals)
 func _has_targeting_settings() -> bool:
-	return _container != null and _container.config != null and \
-		_container.config.settings != null and _container.config.settings.targeting != null
+	return (
+		_container != null
+		and _container.config != null
+		and _container.config.settings != null
+		and _container.config.settings.targeting != null
+	)
+
 
 # Helper method to move positioner to a specific tile
 func _move_positioner_to_tile(target_tile: Vector2i) -> void:
@@ -105,18 +123,29 @@ func _move_positioner_to_tile(target_tile: Vector2i) -> void:
 	var global_pos: Vector2 = _map.to_global(local_pos)
 	_positioner.global_position = global_pos
 
+
 # Helper method to enter build mode for a placeable
 func _enter_build_mode_for_placeable(placeable: Placeable) -> PlacementReport:
 	var setup_report: PlacementReport = _building_system.enter_build_mode(placeable)
-	assert_object(setup_report).append_failure_message("enter_build_mode returned null").is_not_null()
-	assert_bool(setup_report.is_successful()).append_failure_message(
-		"enter_build_mode should succeed; issues=" + str(setup_report.get_issues())
-	).is_true()
+	(
+		assert_object(setup_report)
+		. append_failure_message("enter_build_mode returned null")
+		. is_not_null()
+	)
+	(
+		assert_bool(setup_report.is_successful())
+		. append_failure_message(
+			"enter_build_mode should succeed; issues=" + str(setup_report.get_issues())
+		)
+		. is_true()
+	)
 	return setup_report
+
 
 # Helper method to validate placement and return results
 func _validate_placement() -> ValidationResults:
 	return _indicator_manager.validate_placement()
+
 
 # Helper method to get indicator positions as tile coordinates (relative to tile map)
 func _get_indicator_tile_positions_as_strings() -> Array[String]:
@@ -130,6 +159,7 @@ func _get_indicator_tile_positions_as_strings() -> Array[String]:
 			indicator_tile_positions.append(str(tile_pos))
 	return indicator_tile_positions
 
+
 # Helper method to assert validation success with diagnostics
 func _assert_validation_success(result: ValidationResults, context_message: String) -> void:
 	var indicator_tile_positions: Array[String] = _get_indicator_tile_positions_as_strings()
@@ -138,9 +168,15 @@ func _assert_validation_success(result: ValidationResults, context_message: Stri
 
 	var formatted_message: String = "\n" + context_message + "\n"
 	formatted_message += "├─ Validation Issues: " + str(issues) + "\n"
-	formatted_message += "├─ Tile Map Used Rect: " + str(used_rect) + " (covers tiles from " \
-		+ str(used_rect.position) + " to " + str(used_rect.position + used_rect.size - Vector2i.ONE) \
+	formatted_message += (
+		"├─ Tile Map Used Rect: "
+		+ str(used_rect)
+		+ " (covers tiles from "
+		+ str(used_rect.position)
+		+ " to "
+		+ str(used_rect.position + used_rect.size - Vector2i.ONE)
 		+ ")\n"
+	)
 	formatted_message += "└─ Indicator Tile Positions (relative to tile map coordinate system):\n"
 
 	# Format indicator positions in a more readable way
@@ -157,6 +193,7 @@ func _assert_validation_success(result: ValidationResults, context_message: Stri
 
 	assert_bool(result.is_successful()).append_failure_message(formatted_message).is_true()
 
+
 func test_pre_validation_is_successful_for_rect4x2_start_tile() -> void:
 	# Arrange
 	# Reset positions to ensure consistent testing regardless of scene layout
@@ -170,20 +207,46 @@ func test_pre_validation_is_successful_for_rect4x2_start_tile() -> void:
 	var placeable: Placeable = PLACEABLE_RECT_4X2
 
 	# Replace raw prints with assert chains so failure reports include these diagnostics
-	assert_object(_positioner).append_failure_message(
-		"start_tile=%s positioner.global_position=%s before_build" \
-		% [str(start_tile), str(_positioner.global_position)]).is_not_null()
-	assert_object(_targeting_state).append_failure_message(
-		"targeting_state.positioner.global_position=%s" \
-		% str(_targeting_state.positioner.global_position)).is_not_null()
-	assert_bool(_positioner == _targeting_state.positioner).append_failure_message(
-		"Are they the same object? %s" % str(_positioner == _targeting_state.positioner)).is_true()
+	(
+		assert_object(_positioner)
+		. append_failure_message(
+			(
+				"start_tile=%s positioner.global_position=%s before_build"
+				% [str(start_tile), str(_positioner.global_position)]
+			)
+		)
+		. is_not_null()
+	)
+	(
+		assert_object(_targeting_state)
+		. append_failure_message(
+			(
+				"targeting_state.positioner.global_position=%s"
+				% str(_targeting_state.positioner.global_position)
+			)
+		)
+		. is_not_null()
+	)
+	(
+		assert_bool(_positioner == _targeting_state.positioner)
+		. append_failure_message(
+			"Are they the same object? %s" % str(_positioner == _targeting_state.positioner)
+		)
+		. is_true()
+	)
 
 	# Ensure the building system uses the correct targeting state
 	var targeting_system: GridTargetingSystem = env.grid_targeting_system
-	assert_object(targeting_system.get_state().positioner).append_failure_message(
-		"targeting_system.get_state().positioner.global_position=%s" \
-		% str(targeting_system.get_state().positioner.global_position)).is_not_null()
+	(
+		assert_object(targeting_system.get_state().positioner)
+		. append_failure_message(
+			(
+				"targeting_system.get_state().positioner.global_position=%s"
+				% str(targeting_system.get_state().positioner.global_position)
+			)
+		)
+		. is_not_null()
+	)
 
 	_enter_build_mode_for_placeable(placeable)
 
@@ -193,27 +256,52 @@ func test_pre_validation_is_successful_for_rect4x2_start_tile() -> void:
 	_move_positioner_to_tile(start_tile)
 
 	# DEBUG: Check positioner position after build mode
-	var positioner_tile_after: Vector2i = _map.local_to_map(_map.to_local(_positioner.global_position))
-	assert_bool(positioner_tile_after == start_tile).append_failure_message(
-		"Positioner must be on start_tile after setup; positioner_tile_after=%s " +
-		"global_pos=%s start_tile=%s" \
-		% [str(positioner_tile_after), str(_positioner.global_position), str(start_tile)]
-	).is_true()
+	var positioner_tile_after: Vector2i = _map.local_to_map(
+		_map.to_local(_positioner.global_position)
+	)
+	(
+		assert_bool(positioner_tile_after == start_tile)
+		. append_failure_message(
+			(
+				"Positioner must be on start_tile after setup; positioner_tile_after=%s "
+				+ (
+					"global_pos=%s start_tile=%s"
+					% [
+						str(positioner_tile_after),
+						str(_positioner.global_position),
+						str(start_tile)
+					]
+				)
+			)
+		)
+		. is_true()
+	)
 
 	# Act
 	var result: ValidationResults = _validate_placement()
 
 	# Assert
-	_assert_validation_success(result, "Pre-validation should pass at start_tile " \
-		+ str(start_tile))
+	_assert_validation_success(
+		result, "Pre-validation should pass at start_tile " + str(start_tile)
+	)
+
 
 func test_bounds_tiles_have_tile_data() -> void:
 	var start_tile: Vector2i = SAFE_START_TILE
 	var td: TileData = _map.get_cell_tile_data(start_tile)
-	assert_object(td).append_failure_message(
-		"Start tile must have TileData; start_tile=" + str(start_tile) +
-		" used_rect=" + str(_map.get_used_rect())
-	).is_not_null()
+	(
+		assert_object(td)
+		. append_failure_message(
+			(
+				"Start tile must have TileData; start_tile="
+				+ str(start_tile)
+				+ " used_rect="
+				+ str(_map.get_used_rect())
+			)
+		)
+		. is_not_null()
+	)
+
 
 func test_pre_validation_out_of_bounds_outside_used_rect() -> void:
 	# Arrange: move clearly outside the used_rect to guarantee OOB
@@ -227,14 +315,25 @@ func test_pre_validation_out_of_bounds_outside_used_rect() -> void:
 
 	# Guard: ensure outside_tile is actually outside used_rect - if not, fail with diagnostic details
 	var is_outside: bool = not ur.has_point(outside_tile)
-	assert_bool(is_outside).append_failure_message(
-		"Computed outside_tile is not outside used_rect - outside_tile=" + str(outside_tile)
-		+ " used_rect=" + str(ur) + ". Adjust OUTSIDE_OFFSET or inspect map setup."
-	).is_true()
+	(
+		assert_bool(is_outside)
+		. append_failure_message(
+			(
+				"Computed outside_tile is not outside used_rect - outside_tile="
+				+ str(outside_tile)
+				+ " used_rect="
+				+ str(ur)
+				+ ". Adjust OUTSIDE_OFFSET or inspect map setup."
+			)
+		)
+		. is_true()
+	)
 
 	# Move the positioner and capture tiles for diagnostics
 	_move_positioner_to_tile(outside_tile)
-	var positioner_tile_after: Vector2i = _map.local_to_map(_map.to_local(_positioner.global_position))
+	var positioner_tile_after: Vector2i = _map.local_to_map(
+		_map.to_local(_positioner.global_position)
+	)
 	var placeable: Placeable = PLACEABLE_RECT_4X2
 	_enter_build_mode_for_placeable(placeable)
 
@@ -247,10 +346,21 @@ func test_pre_validation_out_of_bounds_outside_used_rect() -> void:
 	# Assert: Must fail when obviously outside
 	# Build a human-friendly, multi-line failure message
 	var failure_message_lines: Array[String] = []
-	failure_message_lines.append("Pre-validation failed: expected failure when placement is outside used_rect.")
+	failure_message_lines.append(
+		"Pre-validation failed: expected failure when placement is outside used_rect."
+	)
 	failure_message_lines.append("  outside_tile: " + str(outside_tile))
-	failure_message_lines.append("  used_rect:    " + str(ur) + " (covers tiles from " + str(ur.position) \
-		+ " to " + str(ur.position + ur.size - Vector2i.ONE) + ")")
+	failure_message_lines.append(
+		(
+			"  used_rect:    "
+			+ str(ur)
+			+ " (covers tiles from "
+			+ str(ur.position)
+			+ " to "
+			+ str(ur.position + ur.size - Vector2i.ONE)
+			+ ")"
+		)
+	)
 	failure_message_lines.append("  positioner_after_tile: " + str(positioner_tile_after))
 	failure_message_lines.append("  validator_issues: " + str(result.get_issues()))
 	failure_message_lines.append("  indicator_tiles:")

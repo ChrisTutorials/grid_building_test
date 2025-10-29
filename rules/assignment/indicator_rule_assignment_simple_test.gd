@@ -33,14 +33,11 @@ func _create_indicator_with_rule_and_verify(indicator: RuleCheckIndicator, rule:
 	indicator.add_rule(rule)
 
 	var assigned_rules: Array[TileCheckRule] = indicator.get_rules()
-	assert_array(assigned_rules)
-  .append_failure_message("Expected exactly one rule to be assigned").has_size(1)
-	assert_object(assigned_rules[0])
-  .append_failure_message("Expected assigned rule to match original rule").is_same(rule)
+	assert_array(assigned_rules).append_failure_message("Expected exactly one rule to be assigned").has_size(1)
+	assert_object(assigned_rules[0]).append_failure_message("Expected assigned rule to match original rule").is_same(rule)
 
 	if rule is CollisionsCheckRule:
-		assert_array((rule as CollisionsCheckRule).indicators)
-   .append_failure_message("Expected rule to contain indicator").contains([indicator])
+		assert_array((rule as CollisionsCheckRule).indicators).append_failure_message("Expected rule to contain indicator").contains([indicator])
 # endregion
 
 ## Test that rules are properly assigned to indicators during creation
@@ -61,8 +58,7 @@ func test_indicator_rule_assignment_via_factory() -> void:
 	)
 
 	# Should return null since we didn't provide a template
-	assert_object(indicator)
-  .append_failure_message("Expected indicator to be null without template").is_null()
+	assert_object(indicator).append_failure_message("Expected indicator to be null without template").is_null()
 
 ## Test that add_rule() properly establishes bidirectional relationship
 func test_add_rule_bidirectional_relationship() -> void:
@@ -114,8 +110,7 @@ func test_indicator_rule_validation() -> void:
 	_create_indicator_with_rule_and_verify(indicator, collision_rule)
 
 	# Initial state should be valid (no collisions in empty scene)
-	assert_bool(indicator.valid)
-  .append_failure_message("Expected indicator to be valid initially").is_true()
+	assert_bool(indicator.valid).append_failure_message("Expected indicator to be valid initially").is_true()
 
 ## Test that IndicatorFactory uses proper rule assignment method
 func test_factory_uses_add_rule_method() -> void:
@@ -134,8 +129,7 @@ func test_factory_uses_add_rule_method() -> void:
 		parent_node
 	)
 
-	assert_object(indicator)
-  .append_failure_message("Expected indicator to be null without template").is_null()
+	assert_object(indicator).append_failure_message("Expected indicator to be null without template").is_null()
 
 ## Test rule clearing functionality
 func test_clear_rules() -> void:
@@ -152,17 +146,13 @@ func test_clear_rules() -> void:
 	indicator.add_rule(collision_rule)
 
 	# Verify rule was added
-	assert_array(indicator.get_rules())
-  .append_failure_message("Expected exactly one rule after adding").has_size(1)
-	assert_array(collision_rule.indicators)
-  .append_failure_message("Expected rule to contain indicator").contains([indicator])
+	assert_array(indicator.get_rules()).append_failure_message("Expected exactly one rule after adding").has_size(1)
+	assert_array(collision_rule.indicators).append_failure_message("Expected rule to contain indicator").contains([indicator])
 
 	# Clear rules
 	indicator.clear()
 
 	# Verify rules were cleared and bidirectional relationship removed
-	assert_array(collision_rule.indicators)
-  .append_failure_message("Expected rule indicators to be empty after clear").is_empty()
-	assert_bool(indicator.valid)
-		.append_failure_message("Expected indicator to be valid when no rules")
+	assert_array(collision_rule.indicators).append_failure_message("Expected rule indicators to be empty after clear").is_empty()
+	assert_bool(indicator.valid).append_failure_message("Expected indicator to be valid when no rules")
 		.is_true()  # Should default to valid when no rules

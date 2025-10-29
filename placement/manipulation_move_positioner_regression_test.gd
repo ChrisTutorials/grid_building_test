@@ -288,7 +288,9 @@ func test_move_exclusion_with_overlapping_indicators() -> void:
 
 	# WHEN: Positioner positioned so indicators overlap original AND empty space
 	# Move slightly to the right - some indicators over original, some over empty
-	var result_overlap: Dictionary[String, Variant] = _check_indicators_at_position_sync(Vector2(230, 200))
+	var result_overlap: Dictionary[String, Variant] = _check_indicators_at_position_sync(
+		Vector2(230, 200)
+	)
 
 	# THEN: All indicators should be valid (those over original excluded, those over empty valid)
 	(

@@ -23,10 +23,13 @@ var _injector: GBInjectorSystem
 var _gts: GridTargetingState
 #endregion
 
+
 #region Setup and Teardown
 func before_test() -> void:
 	# Create environment using premade scene
-	var env_scene: PackedScene = GBTestConstants.get_environment_scene(GBTestConstants.EnvironmentType.ALL_SYSTEMS)
+	var env_scene: PackedScene = GBTestConstants.get_environment_scene(
+		GBTestConstants.EnvironmentType.ALL_SYSTEMS
+	)
 	assert_that(env_scene).is_not_null()
 	var env: AllSystemsTestEnvironment = env_scene.instantiate()
 	add_child(env)
@@ -38,9 +41,13 @@ func before_test() -> void:
 	# Create 5x5 tile map around origin
 	# Use pre-validated test tilemap from GBTestConstants to avoid missing atlas issues
 	var packed_tilemap: PackedScene = GBTestConstants.TEST_TILE_MAP_LAYER_BUILDABLE
-	assert_object(packed_tilemap) \
-		.append_failure_message("GBTestConstants.TEST_TILE_MAP_LAYER_BUILDABLE must be defined and preloadable") \
-		.is_not_null()
+	(
+		assert_object(packed_tilemap)
+		. append_failure_message(
+			"GBTestConstants.TEST_TILE_MAP_LAYER_BUILDABLE must be defined and preloadable"
+		)
+		. is_not_null()
+	)
 	tile_map_layer = auto_free(packed_tilemap.instantiate() as TileMapLayer)
 	# Ensure tilemap is parented for scene tree operations
 	add_child(tile_map_layer)
@@ -72,15 +79,20 @@ func before_test() -> void:
 
 	# Use building system from AllSystemsTestEnvironment
 	building_system = env.building_system
-	assert_object(building_system).append_failure_message(
-		"AllSystemsTestEnvironment should provide BuildingSystem"
-	).is_not_null()
+	(
+		assert_object(building_system)
+		. append_failure_message("AllSystemsTestEnvironment should provide BuildingSystem")
+		. is_not_null()
+	)
 
 	# Ensure placement manager exists
 	if _container.get_contexts().indicator.get_manager() == null:
 		var pm := IndicatorManager.create_with_injection(_container)
 		add_child(auto_free(pm))
+
+
 #endregion
+
 
 #region Test Functions
 func test_rigid_body_with_collision_layer_513_generates_indicators() -> void:
@@ -109,9 +121,16 @@ func test_rigid_body_with_collision_layer_513_generates_indicators() -> void:
 	var box_layer: int = test_box.collision_layer
 	var unoccupied_mask: int = unoccupied_space.apply_to_objects_mask
 	var box_layer_match: bool = (box_layer & unoccupied_mask) != 0
-	assert_bool(box_layer_match).append_failure_message(
-		"Box collision_layer %d does not match unoccupied space check rule apply_to_objects_mask %d" % [box_layer, unoccupied_mask]
-	).is_true()
+	(
+		assert_bool(box_layer_match)
+		. append_failure_message(
+			(
+				"Box collision_layer %d does not match unoccupied space check rule apply_to_objects_mask %d"
+				% [box_layer, unoccupied_mask]
+			)
+		)
+		. is_true()
+	)
 
 	# Create a simple placeable
 	var scene: PackedScene = PackedScene.new()
@@ -120,29 +139,42 @@ func test_rigid_body_with_collision_layer_513_generates_indicators() -> void:
 	placeable.display_name = &"Simple Box"
 
 	# Guard assertion - ensure building system is properly initialized
-	assert_object(building_system).append_failure_message(
-		"BuildingSystem should be initialized in before_test()"
-	).is_not_null()
+	(
+		assert_object(building_system)
+		. append_failure_message("BuildingSystem should be initialized in before_test()")
+		. is_not_null()
+	)
 
 	# Enter build mode
 	building_system.selected_placeable = placeable
 	var entered: PlacementReport = building_system.enter_build_mode(placeable)
-	assert_bool(entered.is_successful()).append_failure_message(
-		"Failed to enter build mode with simple box"
-	).is_true()
+	(
+		assert_bool(entered.is_successful())
+		. append_failure_message("Failed to enter build mode with simple box")
+		. is_true()
+	)
 
 	# Get the preview and placement manager
 	var preview: Node2D = _container.get_states().building.preview
-	assert_object(preview).append_failure_message(
-		"No preview generated for simple box. Placeable: %s, rules: %s" % [placeable, placeable.placement_rules]
-	).is_not_null()
+	(
+		assert_object(preview)
+		. append_failure_message(
+			(
+				"No preview generated for simple box. Placeable: %s, rules: %s"
+				% [placeable, placeable.placement_rules]
+			)
+		)
+		. is_not_null()
+	)
 
 	# Verify preview contains collision objects
 	var preview_collision_objects: Array[Node2D] = []
 	_find_collision_objects(preview, preview_collision_objects)
-	assert_array(preview_collision_objects).append_failure_message(
-		"Preview should contain collision objects"
-	).is_not_empty()
+	(
+		assert_array(preview_collision_objects)
+		. append_failure_message("Preview should contain collision objects")
+		. is_not_empty()
+	)
 
 	# Debug the preview structure - this should contain collision objects
 	var collision_object_details: Array[String] = []
@@ -150,7 +182,9 @@ func test_rigid_body_with_collision_layer_513_generates_indicators() -> void:
 		var obj: Node2D = preview_collision_objects[i]
 		var detail: String = "%s (%s)" % [obj.name, obj.get_class()]
 		if obj is CollisionObject2D:
-			detail += " [layer: %d, shape_owners: %s]" % [obj.collision_layer, obj.get_shape_owners()]
+			detail += (
+				" [layer: %d, shape_owners: %s]" % [obj.collision_layer, obj.get_shape_owners()]
+			)
 			var shapes_from_owner: Array = GBGeometryUtils.get_shapes_from_owner(obj)
 			detail += " [shapes: %d]" % shapes_from_owner.size()
 			# Debug children
@@ -164,33 +198,52 @@ func test_rigid_body_with_collision_layer_513_generates_indicators() -> void:
 		collision_object_details.append(detail)
 
 	# Verify GBGeometryUtils can find collision shapes in preview
-	var owner_shapes: Dictionary[Node2D, Array] = GBGeometryUtils.get_all_collision_shapes_by_owner(preview)
+	var owner_shapes: Dictionary[Node2D, Array] = GBGeometryUtils.get_all_collision_shapes_by_owner(
+		preview
+	)
 
 	# This assertion should fail and expose the root cause
-	assert_int(owner_shapes.size()).append_failure_message(
-		"CORE ISSUE: GBGeometryUtils.get_all_collision_shapes_by_owner() returns 0 owners despite preview having %d collision objects: %s" % [preview_collision_objects.size(), collision_object_details]
-	).is_greater(0)
+	(
+		assert_int(owner_shapes.size())
+		. append_failure_message(
+			(
+				"CORE ISSUE: GBGeometryUtils.get_all_collision_shapes_by_owner() returns 0 owners despite preview having %d collision objects: %s"
+				% [preview_collision_objects.size(), collision_object_details]
+			)
+		)
+		. is_greater(0)
+	)
 
 	var manager := _container.get_contexts().indicator.get_manager()
-	assert_object(manager).append_failure_message(
-		"No placement manager available"
-	).is_not_null()
+	assert_object(manager).append_failure_message("No placement manager available").is_not_null()
 
 	# Set up rule validation parameters (same as test)
 	var _manip_owner: Node = _container.get_states().manipulation.get_manipulator()
 
 	# Set up rules
 	var setup_success: PlacementReport = manager.try_setup(placeable.placement_rules, _gts, false)
-	assert_bool(setup_success.is_successful()).append_failure_message(
-		"Failed to set up rules for simple box"
-	).is_true()
+	(
+		assert_bool(setup_success.is_successful())
+		. append_failure_message("Failed to set up rules for simple box")
+		. is_true()
+	)
 
 	# Get generated indicators - THIS IS THE REGRESSION TEST
 	var indicators: Array[RuleCheckIndicator] = manager.get_indicators()
-	assert_array(indicators).append_failure_message(
-		"REGRESSION: No indicators generated for simple box with collision layer 513. Preview collision objects: %d, Owner shapes: %d" % [preview_collision_objects.size(), owner_shapes.size()]
-	).is_not_empty()
+	(
+		assert_array(indicators)
+		. append_failure_message(
+			(
+				"REGRESSION: No indicators generated for simple box with collision layer 513. Preview collision objects: %d, Owner shapes: %d"
+				% [preview_collision_objects.size(), owner_shapes.size()]
+			)
+		)
+		. is_not_empty()
+	)
+
+
 #endregion
+
 
 #region Helper Functions
 ## Helper: Find all collision objects recursively
@@ -199,6 +252,7 @@ func _find_collision_objects(node: Node, output: Array[Node2D]) -> void:
 		output.append(node)
 	for child in node.get_children():
 		_find_collision_objects(child, output)
+
 
 ## Helper: Debug node structure recursively (for append_failure_message context)
 func _debug_node_recursively(node: Node, depth: int) -> String:

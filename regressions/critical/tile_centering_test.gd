@@ -18,12 +18,9 @@ func after_test() -> void:
 
 func test_debug_tile_centering_issue() -> void:
 	# Use the manually created components
-	assert_object(grid_positioner)
-  .append_failure_message("GridPositioner2D should exist after factory creation").is_not_null()
-	assert_object(target_map)
-  .append_failure_message("Target map should exist after factory creation").is_not_null()
-	assert_object(target_map.tile_set)
-  .append_failure_message("TileSet should exist on target map after factory creation").is_not_null()
+	assert_object(grid_positioner).append_failure_message("GridPositioner2D should exist after factory creation").is_not_null()
+	assert_object(target_map).append_failure_message("Target map should exist after factory creation").is_not_null()
+	assert_object(target_map.tile_set).append_failure_message("TileSet should exist on target map after factory creation").is_not_null()
 
 	# Check tile size - should be 16x16 for standard Grid Building
 	var tile_size: Vector2i = target_map.tile_set.tile_size
@@ -58,17 +55,14 @@ func test_debug_map_to_local_behavior() -> void:
 		var expected_center: Vector2 = expected_top_left + Vector2(tile_size) * 0.5
 
 		# Enhanced diagnostics: check if map_local is actually a Vector2
-		assert_object(map_local)
-			.append_failure_message("map_to_local should return non-null value for tile: %s" % str(test_tile))
+		assert_object(map_local).append_failure_message("map_to_local should return non-null value for tile: %s" % str(test_tile))
 			.is_not_null()
 
 		# Verify the types are correct
-		assert_bool(map_local is Vector2)
-			.append_failure_message("map_to_local should return Vector2, got type: %s with value: %s" % [typeof(map_local), str(map_local)])
+		assert_bool(map_local is Vector2).append_failure_message("map_to_local should return Vector2, got type: %s with value: %s" % [typeof(map_local), str(map_local)])
 			.is_true()
 
-		assert_bool(expected_center is Vector2)
-			.append_failure_message("expected_center should be Vector2, got type: %s with value: %s" % [typeof(expected_center), str(expected_center)])
+		assert_bool(expected_center is Vector2).append_failure_message("expected_center should be Vector2, got type: %s with value: %s" % [typeof(expected_center), str(expected_center)])
 			.is_true()
 
 		# Verify map_to_local gives expected position (should be center, not top-left)

@@ -15,7 +15,9 @@ var _preview_ref: Variant
 
 func before_test() -> void:
 	# Load premade environment using GBTestConstants
-	var env_scene: PackedScene = GBTestConstants.get_environment_scene(GBTestConstants.EnvironmentType.ALL_SYSTEMS)
+	var env_scene: PackedScene = GBTestConstants.get_environment_scene(
+		GBTestConstants.EnvironmentType.ALL_SYSTEMS
+	)
 
 	if not env_scene:
 		fail("Could not load all_systems test environment")
@@ -53,7 +55,9 @@ func before_test() -> void:
 	var validation_issues: Array[String] = GBTestConstants.validate_environment_scenes()
 	if not validation_issues.is_empty():
 		fail("Environment validation failed: " + str(validation_issues))
-		return# region Helper functions
+		return  # region Helper functions
+
+
 func _instantiate_preview(packed_scene: PackedScene) -> Node2D:
 	## Create preview using DRY factory pattern when possible
 	if packed_scene:
@@ -61,6 +65,7 @@ func _instantiate_preview(packed_scene: PackedScene) -> Node2D:
 
 	# Use DRY factory for synthetic preview creation
 	return CollisionObjectTestFactory.create_polygon_test_object(self, self)
+
 
 func _get_collision_shapes_from_node(root: Node) -> Array[Node]:
 	## Helper method to collect collision shapes using DRY pattern
@@ -76,14 +81,16 @@ func _get_collision_shapes_from_node(root: Node) -> Array[Node]:
 
 	return shapes
 
+
 func _find_physics_body_ancestor(node: Node) -> Node:
 	## Helper method to find physics body ancestor
-	var current : Node = node.get_parent()
+	var current: Node = node.get_parent()
 	while current != null:
 		if current is PhysicsBody2D or current is Area2D:
 			return current
 		current = current.get_parent()
 	return null
+
 
 func _validate_indicator_positions(indicators: Array[RuleCheckIndicator], preview: Node2D) -> void:
 	## Helper method to validate indicator positioning using DRY patterns
@@ -95,9 +102,13 @@ func _validate_indicator_positions(indicators: Array[RuleCheckIndicator], previe
 		var position: Vector2 = indicator.global_position
 
 		# Check for duplicate positions
-		assert_bool(seen_positions.has(position)).append_failure_message(
-			"Duplicate indicator position at index %d: %s" % [i, str(position)]
-		).is_false()
+		(
+			assert_bool(seen_positions.has(position))
+			. append_failure_message(
+				"Duplicate indicator position at index %d: %s" % [i, str(position)]
+			)
+			. is_false()
+		)
 		seen_positions[position] = true
 
 		# Validate tile alignment using DRY pattern
@@ -106,18 +117,30 @@ func _validate_indicator_positions(indicators: Array[RuleCheckIndicator], previe
 			var tile_size: Vector2i = map.tile_set.tile_size
 			var tile_origin: Vector2 = map.map_to_local(map.local_to_map(map.to_local(position)))
 			var offset: Vector2 = position - tile_origin
-			assert_bool(abs(offset.x) <= tile_size.x and abs(offset.y) <= tile_size.y)
-    .append_failure_message(
-				"Indicator %d not within tile bounds. pos=%s origin=%s tile_size=%s" %
-				[i, str(position), str(tile_origin), str(tile_size)]
-			).is_true()
+			(
+				assert_bool(abs(offset.x) <= tile_size.x and abs(offset.y) <= tile_size.y)
+				. append_failure_message(
+					(
+						"Indicator %d not within tile bounds. pos=%s origin=%s tile_size=%s"
+						% [i, str(position), str(tile_origin), str(tile_size)]
+					)
+				)
+				. is_true()
+			)
 
 		# Ensure positions differ from previous indicator
 		if i > 0:
-			var prev_position: Vector2 = indicators[i-1].global_position
-			assert_bool(prev_position != position).append_failure_message(
-				"Indicator positions should differ: %s vs %s" % [str(prev_position), str(position)]
-			).is_true()
+			var prev_position: Vector2 = indicators[i - 1].global_position
+			(
+				assert_bool(prev_position != position)
+				. append_failure_message(
+					(
+						"Indicator positions should differ: %s vs %s"
+						% [str(prev_position), str(position)]
+					)
+				)
+				. is_true()
+			)
 
 	# Validate clustering around preview center
 	var preview_center: Vector2 = preview.global_position
@@ -126,11 +149,20 @@ func _validate_indicator_positions(indicators: Array[RuleCheckIndicator], previe
 		centroid += indicator.global_position
 	centroid /= indicators.size()
 
-	assert_bool((centroid - preview_center).length() < 256.0).append_failure_message(
-		"Average indicator position too far from preview center. avg=%s preview=%s" %
-		[str(centroid), str(preview_center)]
-	).is_true()
+	(
+		assert_bool((centroid - preview_center).length() < 256.0)
+		. append_failure_message(
+			(
+				"Average indicator position too far from preview center. avg=%s preview=%s"
+				% [str(centroid), str(preview_center)]
+			)
+		)
+		. is_true()
+	)
+
+
 # endregion
+
 
 func after_test() -> void:
 	## Clean up test resources using DRY patterns
@@ -209,9 +241,11 @@ func test_real_world_indicator_positioning() -> void:
 		body.collision_layer = GBTestConstants.TEST_COLLISION_LAYER
 
 	# Setup validation
-	assert_bool(is_instance_valid(preview)).append_failure_message(
-		"Failed to create preview (real=%s)" % str(used_real_placeable)
-	).is_true()
+	(
+		assert_bool(is_instance_valid(preview))
+		. append_failure_message("Failed to create preview (real=%s)" % str(used_real_placeable))
+		. is_true()
+	)
 
 	# Remove from test suite and add to positioner
 	if preview.get_parent():
@@ -222,9 +256,11 @@ func test_real_world_indicator_positioning() -> void:
 
 	# Use helper method for collision shape collection
 	var collision_shapes: Array[Node] = _get_collision_shapes_from_node(preview)
-	assert_int(collision_shapes.size()).append_failure_message(
-		"Preview has no CollisionShape2D or CollisionPolygon2D nodes"
-	).is_greater(0)
+	(
+		assert_int(collision_shapes.size())
+		. append_failure_message("Preview has no CollisionShape2D or CollisionPolygon2D nodes")
+		. is_greater(0)
+	)
 
 	# Validate collision layer alignment using DRY pattern
 	var tile_check_rule := CollisionsCheckRule.new()
@@ -233,9 +269,11 @@ func test_real_world_indicator_positioning() -> void:
 
 	# Set up the rule with the targeting state
 	var rule_issues: Array[String] = tile_check_rule.setup(targeting_state)
-	assert_array(rule_issues).append_failure_message(
-		"Rule setup should not have issues: %s" % str(rule_issues)
-	).is_empty()
+	(
+		assert_array(rule_issues)
+		. append_failure_message("Rule setup should not have issues: %s" % str(rule_issues))
+		. is_empty()
+	)
 
 	var has_matching_layer: bool = false
 	var physics_body_details: Array[String] = []
@@ -248,16 +286,24 @@ func test_real_world_indicator_positioning() -> void:
 			if (layer_bits & tile_check_rule.apply_to_objects_mask) != 0:
 				has_matching_layer = true
 
-	assert_bool(has_matching_layer).append_failure_message(
-		"No physics body has collision_layer overlapping TileCheckRule mask. Bodies: %s mask=%d" %
-		[", ".join(physics_body_details), tile_check_rule.apply_to_objects_mask]
-	).is_true()
+	(
+		assert_bool(has_matching_layer)
+		. append_failure_message(
+			(
+				"No physics body has collision_layer overlapping TileCheckRule mask. Bodies: %s mask=%d"
+				% [", ".join(physics_body_details), tile_check_rule.apply_to_objects_mask]
+			)
+		)
+		. is_true()
+	)
 
 	# Validate targeting state using DRY pattern
 	var targeting_issues: Array[String] = targeting_state.get_runtime_issues()
-	assert_array(targeting_issues).append_failure_message(
-		"Targeting state issues: %s" % str(targeting_issues)
-	).is_empty()
+	(
+		assert_array(targeting_issues)
+		. append_failure_message("Targeting state issues: %s" % str(targeting_issues))
+		. is_empty()
+	)
 
 	# Generate indicators using DRY pattern
 	var tile_check_rules: Array[TileCheckRule] = [tile_check_rule]
@@ -267,9 +313,11 @@ func test_real_world_indicator_positioning() -> void:
 	# NOTE: Indicator generation is currently not working due to systemic issues in the collision mapping pipeline
 	# This test currently validates the setup process and component access patterns
 	# TODO: Re-enable indicator generation assertions once collision mapping issues are resolved
-	assert_object(report).append_failure_message(
-		"IndicatorManager.setup_indicators should return a valid report"
-	).is_not_null()
+	(
+		assert_object(report)
+		. append_failure_message("IndicatorManager.setup_indicators should return a valid report")
+		. is_not_null()
+	)
 
 	# For now, just verify the setup process works (report is created, no crashes)
 	# When indicator generation is fixed, uncomment the assertions below:

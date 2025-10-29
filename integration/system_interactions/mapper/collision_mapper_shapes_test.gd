@@ -116,8 +116,11 @@ func test_collision_shape_tile_coverage_with_various_shape_types(
 
 	# Calculate tile offsets using collision mapper
 
-	var tile_offsets: Dictionary[Vector2i, Array] = collision_mapper.get_tile_offsets_for_test_collisions(
-		CollisionTestSetup2D.new(test_object, STANDARD_SHAPE_SIZE)
+	var tile_offsets: Dictionary[Vector2i, Array] = (
+		collision_mapper
+		. get_tile_offsets_for_test_collisions(
+			CollisionTestSetup2D.new(test_object, STANDARD_SHAPE_SIZE)
+		)
 	)
 
 	# Verify expected tile count
@@ -162,8 +165,9 @@ func test_collision_mapper_positioning_edge_cases_handle_problematic_positions(
 	var test_object: Node2D = _create_test_object_with_shape("rectangle", shape_data)
 
 	# Calculate tile offsets
-	var tile_offsets: Dictionary[Vector2i, Array] = collision_mapper.get_tile_offsets_for_test_collisions(
-		CollisionTestSetup2D.new(test_object, shape_size)
+	var tile_offsets: Dictionary[Vector2i, Array] = (
+		collision_mapper
+		. get_tile_offsets_for_test_collisions(CollisionTestSetup2D.new(test_object, shape_size))
 	)
 
 	# Verify behavior based on expected case
@@ -240,8 +244,8 @@ func test_complex_polygon_shapes_handle_edge_cases_from_debug_tests() -> void:
 		test_object.add_child(collision_polygon)
 
 		var indicator_test_setup := CollisionTestSetup2D.new(test_object, SMALL_SHAPE_SIZE)
-		var tile_offsets: Dictionary[Vector2i, Array] = collision_mapper.get_tile_offsets_for_test_collisions(
-			indicator_test_setup
+		var tile_offsets: Dictionary[Vector2i, Array] = (
+			collision_mapper.get_tile_offsets_for_test_collisions(indicator_test_setup)
 		)
 
 		(
@@ -265,7 +269,9 @@ func test_collision_mapper_transform_consistency_across_different_transforms() -
 		{"position": base_position + SMALL_SHAPE_SIZE, "rotation": 0.0, "scale": Vector2.ONE}
 	]
 
-	var shape_data: Dictionary[String, Variant] = {"size": STANDARD_SHAPE_SIZE, "position": ORIGIN_POSITION}
+	var shape_data: Dictionary[String, Variant] = {
+		"size": STANDARD_SHAPE_SIZE, "position": ORIGIN_POSITION
+	}
 
 	for i in range(test_transforms.size()):
 		var transform_data: Dictionary[String, Variant] = test_transforms[i]
@@ -277,8 +283,11 @@ func test_collision_mapper_transform_consistency_across_different_transforms() -
 
 		var test_object: Node2D = _create_test_object_with_shape("rectangle", shape_data)
 
-		var tile_offsets: Dictionary[Vector2i, Array] = collision_mapper.get_tile_offsets_for_test_collisions(
-			CollisionTestSetup2D.new(test_object, STANDARD_SHAPE_SIZE)
+		var tile_offsets: Dictionary[Vector2i, Array] = (
+			collision_mapper
+			. get_tile_offsets_for_test_collisions(
+				CollisionTestSetup2D.new(test_object, STANDARD_SHAPE_SIZE)
+			)
 		)
 
 		# Verify consistent behavior across transforms

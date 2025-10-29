@@ -61,5 +61,5 @@ func test_end_of_frame_state_log_emitted() -> void:
             break
 
     assert_bool(found)
-    	.append_failure_message("Expected an 'end_of_frame_state' log entry; captured=%s" % str(captured))
-    	.is_true()
+		.append_failure_message("Expected an 'end_of_frame_state' log entry; captured=%s" % str(captured))
+		.is_true()

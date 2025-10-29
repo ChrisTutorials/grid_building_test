@@ -70,29 +70,21 @@ func _set_and_verify_rotation(rotation_deg: float) -> void:
 
 ## Test cardinal direction conversion from degrees
 func test_degrees_to_cardinal_conversion() -> void:
-	assert_int(GridRotationUtils.degrees_to_cardinal(0))
-		.append_failure_message("0 degrees should convert to NORTH direction")
+	assert_int(GridRotationUtils.degrees_to_cardinal(0)).append_failure_message("0 degrees should convert to NORTH direction")
 		.is_equal(GridRotationUtils.CardinalDirection.NORTH)
-	assert_int(GridRotationUtils.degrees_to_cardinal(90))
-		.append_failure_message("90 degrees should convert to EAST direction")
+	assert_int(GridRotationUtils.degrees_to_cardinal(90)).append_failure_message("90 degrees should convert to EAST direction")
 		.is_equal(GridRotationUtils.CardinalDirection.EAST)
-	assert_int(GridRotationUtils.degrees_to_cardinal(180))
-		.append_failure_message("180 degrees should convert to SOUTH direction")
+	assert_int(GridRotationUtils.degrees_to_cardinal(180)).append_failure_message("180 degrees should convert to SOUTH direction")
 		.is_equal(GridRotationUtils.CardinalDirection.SOUTH)
-	assert_int(GridRotationUtils.degrees_to_cardinal(270))
-		.append_failure_message("270 degrees should convert to WEST direction")
+	assert_int(GridRotationUtils.degrees_to_cardinal(270)).append_failure_message("270 degrees should convert to WEST direction")
 		.is_equal(GridRotationUtils.CardinalDirection.WEST)
 
 ## Test cardinal direction conversion to degrees
 func test_cardinal_to_degrees_conversion() -> void:
-	assert_float(GridRotationUtils.cardinal_to_degrees(GridRotationUtils.CardinalDirection.NORTH))
-  .append_failure_message("NORTH direction should convert to 0 degrees").is_equal(0.0)
-	assert_float(GridRotationUtils.cardinal_to_degrees(GridRotationUtils.CardinalDirection.EAST))
-  .append_failure_message("EAST direction should convert to 90 degrees").is_equal(90.0)
-	assert_float(GridRotationUtils.cardinal_to_degrees(GridRotationUtils.CardinalDirection.SOUTH))
-  .append_failure_message("SOUTH direction should convert to 180 degrees").is_equal(180.0)
-	assert_float(GridRotationUtils.cardinal_to_degrees(GridRotationUtils.CardinalDirection.WEST))
-  .append_failure_message("WEST direction should convert to 270 degrees").is_equal(270.0)
+	assert_float(GridRotationUtils.cardinal_to_degrees(GridRotationUtils.CardinalDirection.NORTH)).append_failure_message("NORTH direction should convert to 0 degrees").is_equal(0.0)
+	assert_float(GridRotationUtils.cardinal_to_degrees(GridRotationUtils.CardinalDirection.EAST)).append_failure_message("EAST direction should convert to 90 degrees").is_equal(90.0)
+	assert_float(GridRotationUtils.cardinal_to_degrees(GridRotationUtils.CardinalDirection.SOUTH)).append_failure_message("SOUTH direction should convert to 180 degrees").is_equal(180.0)
+	assert_float(GridRotationUtils.cardinal_to_degrees(GridRotationUtils.CardinalDirection.WEST)).append_failure_message("WEST direction should convert to 270 degrees").is_equal(270.0)
 
 ## Test clockwise rotation sequence
 func test_clockwise_rotation_sequence() -> void:
@@ -102,17 +94,13 @@ func test_clockwise_rotation_sequence() -> void:
 	var west := GridRotationUtils.rotate_clockwise(south)
 	var back_to_north := GridRotationUtils.rotate_clockwise(west)
 
-	assert_int(east)
-  .append_failure_message("Rotating clockwise from NORTH: expected EAST (1), got %d" % east)\
+	assert_int(east).append_failure_message("Rotating clockwise from NORTH: expected EAST (1), got %d" % east)\
 		.is_equal(GridRotationUtils.CardinalDirection.EAST)
-	assert_int(south)
-  .append_failure_message("Rotating clockwise from EAST: expected SOUTH (2), got %d" % south)\
+	assert_int(south).append_failure_message("Rotating clockwise from EAST: expected SOUTH (2), got %d" % south)\
 		.is_equal(GridRotationUtils.CardinalDirection.SOUTH)
-	assert_int(west)
-  .append_failure_message("Rotating clockwise from SOUTH: expected WEST (3), got %d" % west)\
+	assert_int(west).append_failure_message("Rotating clockwise from SOUTH: expected WEST (3), got %d" % west)\
 		.is_equal(GridRotationUtils.CardinalDirection.WEST)
-	assert_int(back_to_north)
-  .append_failure_message("Rotating clockwise from WEST: expected NORTH (0), got %d" % back_to_north)\
+	assert_int(back_to_north).append_failure_message("Rotating clockwise from WEST: expected NORTH (0), got %d" % back_to_north)\
 		.is_equal(GridRotationUtils.CardinalDirection.NORTH)
 
 ## Test counter-clockwise rotation sequence
@@ -123,14 +111,11 @@ func test_counter_clockwise_rotation_sequence() -> void:
 	var east := GridRotationUtils.rotate_counter_clockwise(south)
 	var back_to_north := GridRotationUtils.rotate_counter_clockwise(east)
 
-	assert_int(west)
-  .append_failure_message("Rotating counter-clockwise from NORTH: expected WEST (3), got %d" % west)\
+	assert_int(west).append_failure_message("Rotating counter-clockwise from NORTH: expected WEST (3), got %d" % west)\
 		.is_equal(GridRotationUtils.CardinalDirection.WEST)
-	assert_int(south)
-  .append_failure_message("Rotating counter-clockwise from WEST: expected SOUTH (2), got %d" % south)\
+	assert_int(south).append_failure_message("Rotating counter-clockwise from WEST: expected SOUTH (2), got %d" % south)\
 		.is_equal(GridRotationUtils.CardinalDirection.SOUTH)
-	assert_int(east)
-  .append_failure_message("Rotating counter-clockwise from SOUTH: expected EAST (1), got %d" % east)\
+	assert_int(east).append_failure_message("Rotating counter-clockwise from SOUTH: expected EAST (1), got %d" % east)\
 		.is_equal(GridRotationUtils.CardinalDirection.EAST)
 	assert_int(back_to_north).append_failure_message("Rotating counter-clockwise from EAST: expected NORTH (0), got %d" % back_to_north)\
 		.is_equal(GridRotationUtils.CardinalDirection.NORTH)
@@ -180,8 +165,7 @@ func test_direction_tile_deltas() -> void:
 	var west_delta := GridRotationUtils.get_direction_tile_delta(GridRotationUtils.CardinalDirection.WEST)
 
 	assert_vector(north_delta).append_failure_message("NORTH delta: expected (0, -1), got %s" % north_delta).is_equal(Vector2i(0, -1))
-	assert_vector(east_delta)
-  .append_failure_message("EAST delta: expected (1, 0), got %s" % east_delta).is_equal(Vector2i(1, 0))
+	assert_vector(east_delta).append_failure_message("EAST delta: expected (1, 0), got %s" % east_delta).is_equal(Vector2i(1, 0))
 	assert_vector(south_delta).append_failure_message("SOUTH delta: expected (0, 1), got %s" % south_delta).is_equal(Vector2i(0, 1))
 	assert_vector(west_delta).append_failure_message("WEST delta: expected (-1, 0), got %s" % west_delta).is_equal(Vector2i(-1, 0))
 
@@ -204,50 +188,38 @@ func test_opposite_directions() -> void:
 func test_direction_classification() -> void:
 	# Test horizontal directions
 	assert_bool(GridRotationUtils
-		.is_horizontal(GridRotationUtils.CardinalDirection.EAST))
-		.append_failure_message("EAST should be horizontal")
+		.is_horizontal(GridRotationUtils.CardinalDirection.EAST)).append_failure_message("EAST should be horizontal")
 		.is_true()
 	assert_bool(GridRotationUtils
-		.is_horizontal(GridRotationUtils.CardinalDirection.WEST))
-		.append_failure_message("WEST should be horizontal")
+		.is_horizontal(GridRotationUtils.CardinalDirection.WEST)).append_failure_message("WEST should be horizontal")
 		.is_true()
 	assert_bool(GridRotationUtils
-		.is_horizontal(GridRotationUtils.CardinalDirection.NORTH))
-		.append_failure_message("NORTH should NOT be horizontal")
+		.is_horizontal(GridRotationUtils.CardinalDirection.NORTH)).append_failure_message("NORTH should NOT be horizontal")
 		.is_false()
 	assert_bool(GridRotationUtils
-		.is_horizontal(GridRotationUtils.CardinalDirection.SOUTH))
-		.append_failure_message("SOUTH should NOT be horizontal")
+		.is_horizontal(GridRotationUtils.CardinalDirection.SOUTH)).append_failure_message("SOUTH should NOT be horizontal")
 		.is_false()
 
 	# Test vertical directions
 	assert_bool(GridRotationUtils
-		.is_vertical(GridRotationUtils.CardinalDirection.NORTH))
-		.append_failure_message("NORTH should be vertical")
+		.is_vertical(GridRotationUtils.CardinalDirection.NORTH)).append_failure_message("NORTH should be vertical")
 		.is_true()
 	assert_bool(GridRotationUtils
-		.is_vertical(GridRotationUtils.CardinalDirection.SOUTH))
-		.append_failure_message("SOUTH should be vertical")
+		.is_vertical(GridRotationUtils.CardinalDirection.SOUTH)).append_failure_message("SOUTH should be vertical")
 		.is_true()
 	assert_bool(GridRotationUtils
-		.is_vertical(GridRotationUtils.CardinalDirection.EAST))
-		.append_failure_message("EAST should NOT be vertical")
+		.is_vertical(GridRotationUtils.CardinalDirection.EAST)).append_failure_message("EAST should NOT be vertical")
 		.is_false()
 	assert_bool(GridRotationUtils
-		.is_vertical(GridRotationUtils.CardinalDirection.WEST))
-		.append_failure_message("WEST should NOT be vertical")
+		.is_vertical(GridRotationUtils.CardinalDirection.WEST)).append_failure_message("WEST should NOT be vertical")
 		.is_false()
 
 ## Test string representation of directions
 func test_direction_to_string() -> void:
-	assert_str(GridRotationUtils.direction_to_string(GridRotationUtils.CardinalDirection.NORTH))
-  .append_failure_message("NORTH direction should convert to 'North' string").is_equal("North")
-	assert_str(GridRotationUtils.direction_to_string(GridRotationUtils.CardinalDirection.EAST))
-  .append_failure_message("EAST direction should convert to 'East' string").is_equal("East")
-	assert_str(GridRotationUtils.direction_to_string(GridRotationUtils.CardinalDirection.SOUTH))
-  .append_failure_message("SOUTH direction should convert to 'South' string").is_equal("South")
-	assert_str(GridRotationUtils.direction_to_string(GridRotationUtils.CardinalDirection.WEST))
-  .append_failure_message("WEST direction should convert to 'West' string").is_equal("West")
+	assert_str(GridRotationUtils.direction_to_string(GridRotationUtils.CardinalDirection.NORTH)).append_failure_message("NORTH direction should convert to 'North' string").is_equal("North")
+	assert_str(GridRotationUtils.direction_to_string(GridRotationUtils.CardinalDirection.EAST)).append_failure_message("EAST direction should convert to 'East' string").is_equal("East")
+	assert_str(GridRotationUtils.direction_to_string(GridRotationUtils.CardinalDirection.SOUTH)).append_failure_message("SOUTH direction should convert to 'South' string").is_equal("South")
+	assert_str(GridRotationUtils.direction_to_string(GridRotationUtils.CardinalDirection.WEST)).append_failure_message("WEST direction should convert to 'West' string").is_equal("West")
 
 ## Test comprehensive rotation cycle (360 degrees)
 func test_full_rotation_cycle() -> void:

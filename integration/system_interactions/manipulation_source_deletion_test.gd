@@ -10,6 +10,7 @@ var manipulation_state: ManipulationState
 var test_object: Node2D
 var manipulatable: Manipulatable
 
+
 func before_test() -> void:
 	# Load test environment using scene_runner with ALL_SYSTEMS_ENV_UID
 	runner = scene_runner(GBTestConstants.ALL_SYSTEMS_ENV_UID)
@@ -26,9 +27,11 @@ func before_test() -> void:
 
 	await get_tree().process_frame
 
+
 func after_test() -> void:
 	# Cleanup is handled by auto_free()
 	pass
+
 
 ## Helper: Create a fresh test object with manipulatable component
 func _create_test_object() -> void:
@@ -47,6 +50,7 @@ func _create_test_object() -> void:
 	# Initialize manipulatable with container dependencies
 	manipulatable.resolve_gb_dependencies(container)
 
+
 ## Test: Manipulation auto-cancels when source object is deleted
 ## Setup: Start move manipulation on a test object
 ## Act: Delete the source object while manipulation is active
@@ -57,21 +61,30 @@ func test_source_deletion_cancels_manipulation() -> void:
 
 	# Verify manipulation started successfully
 	assert_object(move_data).append_failure_message("Expected move_data to be created")
-	assert_int(move_data.status).is_equal(GBEnums.Status.STARTED).append_failure_message("Expected manipulation to start with STARTED status, got: %d" % move_data.status)
+	assert_int(move_data.status).is_equal(GBEnums.Status.STARTED).append_failure_message(
+		"Expected manipulation to start with STARTED status, got: %d" % move_data.status
+	)
 
 	# Verify manipulation data is active
-	assert_object(manipulation_state.data).is_not_null().append_failure_message("Expected active manipulation data to be set")
+	assert_object(manipulation_state.data).is_not_null().append_failure_message(
+		"Expected active manipulation data to be set"
+	)
 
 	# Act: Delete the source object (simulating external deletion)
 	test_object.queue_free()
 	await get_tree().process_frame
 
 	# Assert: Manipulation should be auto-canceled
-	assert_object(manipulation_state.data).is_null().append_failure_message("Expected manipulation data to be cleared after source deletion")
+	assert_object(manipulation_state.data).is_null().append_failure_message(
+		"Expected manipulation data to be cleared after source deletion"
+	)
 
 	# Verify no manipulation is active - use manipulation_state.data instead of is_manipulating()
 	var is_manipulating: bool = manipulation_state.data != null
-	assert_bool(is_manipulating).is_false().append_failure_message("Expected manipulation system to report no active manipulation after source deletion")
+	assert_bool(is_manipulating).is_false().append_failure_message(
+		"Expected manipulation system to report no active manipulation after source deletion"
+	)
+
 
 ## Test: Multiple deletions don't cause crashes
 ## Setup: Start manipulation and track initial state
@@ -84,21 +97,28 @@ func test_multiple_source_deletions_handled_safely() -> void:
 
 	# Start move manipulation
 	var move_data: ManipulationData = manipulation_system.try_move(test_object)
-	assert_int(move_data.status).is_equal(GBEnums.Status.STARTED).append_failure_message("Expected manipulation to start successfully")
+	assert_int(move_data.status).is_equal(GBEnums.Status.STARTED).append_failure_message(
+		"Expected manipulation to start successfully"
+	)
 
 	# Act: Delete source and wait for processing
 	test_object.queue_free()
 	await get_tree().process_frame
 
 	# Assert: Manipulation canceled
-	assert_object(manipulation_state.data).is_null().append_failure_message("Expected manipulation to be canceled after first deletion")
+	assert_object(manipulation_state.data).is_null().append_failure_message(
+		"Expected manipulation to be canceled after first deletion"
+	)
 
 	# Act again: Attempt to trigger signal again (shouldn't crash)
 	# The signal should already be disconnected
 	await get_tree().process_frame
 
 	# Assert: Still no active manipulation, no crashes
-	assert_object(manipulation_state.data).is_null().append_failure_message("Expected manipulation to remain canceled")
+	assert_object(manipulation_state.data).is_null().append_failure_message(
+		"Expected manipulation to remain canceled"
+	)
+
 
 ## Test: Source deletion during different manipulation phases
 ## Setup: Track manipulation phases (started, in-progress)
@@ -112,7 +132,9 @@ func test_source_deletion_at_various_manipulation_phases() -> void:
 	assert_int(move_data1.status).is_equal(GBEnums.Status.STARTED)
 	test_object.queue_free()
 	await get_tree().process_frame
-	assert_object(manipulation_state.data).is_null().append_failure_message("Expected immediate deletion to cancel manipulation")
+	assert_object(manipulation_state.data).is_null().append_failure_message(
+		"Expected immediate deletion to cancel manipulation"
+	)
 
 	# Setup for phase 2: Recreate test object
 	test_object = auto_free(Node2D.new())
@@ -127,7 +149,7 @@ func test_source_deletion_at_various_manipulation_phases() -> void:
 	await get_tree().process_frame
 
 	# Phase 2: Delete after some processing time
-	_create_test_object() # Create fresh object for phase 2
+	_create_test_object()  # Create fresh object for phase 2
 	await get_tree().process_frame
 	var move_data2: ManipulationData = manipulation_system.try_move(test_object)
 	assert_int(move_data2.status).is_equal(GBEnums.Status.STARTED)
@@ -139,4 +161,6 @@ func test_source_deletion_at_various_manipulation_phases() -> void:
 	# Now delete
 	test_object.queue_free()
 	await get_tree().process_frame
-	assert_object(manipulation_state.data).is_null().append_failure_message("Expected delayed deletion to cancel manipulation")
+	assert_object(manipulation_state.data).is_null().append_failure_message(
+		"Expected delayed deletion to cancel manipulation"
+	)

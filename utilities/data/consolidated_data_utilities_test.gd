@@ -9,17 +9,20 @@ const NODE_NAME_NUM_SEPARATOR: int = 2
 #endregion
 
 #region Test Variables
-var _container : GBCompositionContainer = null
+var _container: GBCompositionContainer = null
 var test_node: Node
 var building_node_script: Script = GBTestConstants.BUILDING_NODE_SCRIPT
 var project_name_num_seperator: int
 var container: GBCompositionContainer
 #endregion
 
+
 func before_test() -> void:
 	test_node = auto_free(Node.new())
 	add_child(test_node)
-	project_name_num_seperator = ProjectSettings.get_setting("editor/naming/node_name_num_separator")
+	project_name_num_seperator = ProjectSettings.get_setting(
+		"editor/naming/node_name_num_separator"
+	)
 	ProjectSettings.set_setting("editor/naming/node_name_num_separator", NODE_NAME_NUM_SEPARATOR)
 
 	# Initialize container for composition/configuration tests
@@ -28,23 +31,38 @@ func before_test() -> void:
 	# Duplicate canonical test composition container per-test to avoid shared-resource pollution
 	_container = auto_free(GBTestConstants.TEST_COMPOSITION_CONTAINER.duplicate(true))
 
+
 func after_test() -> void:
 	ProjectSettings.set_setting("editor/naming/node_name_num_separator", project_name_num_seperator)
+
 
 #region Helper Functions
 func _assert_object_initializes(obj: Object) -> void:
 	assert_object(obj).append_failure_message("Object failed to initialize").is_not_null()
 
+
 func _make_test_logger_with_settings(p_settings: GBDebugSettings) -> GBLogger:
 	var LoggerScript := preload("res://addons/grid_building/logging/gb_logger.gd")
 	var logger: GBLogger = LoggerScript.new(p_settings)
 	return logger
+
+
 #endregion
+
 
 #region Composition Container Validation Tests
 func test_validate_test_composition_container_subcomponents() -> void:
 	"""Test: Validate test composition container resource and GBConfig subcomponents"""
-	assert_that(_container).append_failure_message("Failed to load test composition container resource: %s" % GBTestConstants.TEST_COMPOSITION_CONTAINER.resource_path).is_not_null()
+	(
+		assert_that(_container)
+		. append_failure_message(
+			(
+				"Failed to load test composition container resource: %s"
+				% GBTestConstants.TEST_COMPOSITION_CONTAINER.resource_path
+			)
+		)
+		. is_not_null()
+	)
 
 	# Instantiate if it's a PackedScene-like resource that needs instantiation, otherwise it's a Resource
 	var container: GBCompositionContainer = null
@@ -52,22 +70,33 @@ func test_validate_test_composition_container_subcomponents() -> void:
 		container = _container
 	else:
 		# Try loading as PackedScene or instancing - fallback to loading resource path used by tests
-		container = ResourceLoader.load(GBTestConstants.TEST_PATH_COMPOSITION_CONTAINER_TEST_RESOURCE)
+		container = ResourceLoader.load(
+			GBTestConstants.TEST_PATH_COMPOSITION_CONTAINER_TEST_RESOURCE
+		)
 
-	assert_that(container) \
-		.append_failure_message("Test composition container not found or wrong type").is_not_null()
+	(
+		assert_that(container)
+		. append_failure_message("Test composition container not found or wrong type")
+		. is_not_null()
+	)
 
 	# Assert GBConfig exists and its main subcomponents are present
 	var cfg: GBConfig = container.config
-	assert_that(cfg) \
-		.append_failure_message("GBConfig is null on the test composition container").is_not_null()
+	(
+		assert_that(cfg)
+		. append_failure_message("GBConfig is null on the test composition container")
+		. is_not_null()
+	)
 
 	# Check top-level exported subresources to isolate missing ext_resources
 	assert_that(cfg.settings).append_failure_message("GBConfig.settings is null").is_not_null()
 	assert_that(cfg.templates).append_failure_message("GBConfig.templates is null").is_not_null()
 	assert_that(cfg.actions).append_failure_message("GBConfig.actions is null").is_not_null()
-	assert_that(cfg.settings.visual) \
-		.append_failure_message("GBConfig.settings.visual is null").is_not_null()
+	(
+		assert_that(cfg.settings.visual)
+		. append_failure_message("GBConfig.settings.visual is null")
+		. is_not_null()
+	)
 
 	# Check placement rules are present in settings (this may load programmatic fallback)
 	var rules := container.get_placement_rules()
@@ -80,31 +109,65 @@ func test_validate_test_composition_container_subcomponents() -> void:
 	assert_that(issues).append_failure_message("Editor issues: %s" % str(issues)).is_not_null()
 
 	# For test hygiene, expect editor issues to be empty in a well-formed test container
-	assert_that(issues.size()).append_failure_message("Expected no editor issues in test composition container: %s" % GBConfigurationValidator.editor_diagnostic(container)).is_equal(0)
+	(
+		assert_that(issues.size())
+		. append_failure_message(
+			(
+				"Expected no editor issues in test composition container: %s"
+				% GBConfigurationValidator.editor_diagnostic(container)
+			)
+		)
+		. is_equal(0)
+	)
+
 
 #region Display Name Tests
 @warning_ignore("unused_parameter")
-func test_get_display_name(p_name: String, p_method_name: String, p_ex: String, p_ex_start_with: bool, test_parameters := [
-	["TestNode_500", "", "Test Node", false],
-	["TestNode_500", "to_string", "Test Node", true]
-]) -> void:
+func test_get_display_name(
+	p_name: String,
+	p_method_name: String,
+	p_ex: String,
+	p_ex_start_with: bool,
+	test_parameters := [
+		["TestNode_500", "", "Test Node", false], ["TestNode_500", "to_string", "Test Node", true]
+	]
+) -> void:
 	"""Test: Validate display name generation from Node objects"""
 	test_node.name = p_name
 	var display_name: String = GBObjectUtils.get_display_name(test_node, "<none>")
 	if p_ex_start_with:
-		assert_str(display_name).append_failure_message("Display name should start with expected prefix").starts_with(p_ex)
+		(
+			assert_str(display_name)
+			. append_failure_message("Display name should start with expected prefix")
+			. starts_with(p_ex)
+		)
 	else:
-		assert_str(display_name).append_failure_message("Display name should contain expected substring").contains(p_ex)
-		assert_int(display_name.length()).append_failure_message("Account for the space in returned string").is_equal(p_ex.length())
+		(
+			assert_str(display_name)
+			. append_failure_message("Display name should contain expected substring")
+			. contains(p_ex)
+		)
+		(
+			assert_int(display_name.length())
+			. append_failure_message("Account for the space in returned string")
+			. is_equal(p_ex.length())
+		)
+
 
 @warning_ignore("unused_parameter")
-func test_building_node_get_display_name(p_name: String, p_ex: String, test_parameters := [["TestNode_500", "Test Node"]]) -> void:
+func test_building_node_get_display_name(
+	p_name: String, p_ex: String, test_parameters := [["TestNode_500", "Test Node"]]
+) -> void:
 	"""Test: Validate display name generation for building nodes"""
 	var building_node: Node = auto_free(building_node_script.new())
 	building_node.name = p_name
 	var display_name: String = GBObjectUtils.get_display_name(building_node)
-	assert_str(display_name) \
-		.append_failure_message("Building node display name should match expected format").is_equal(p_ex)
+	(
+		assert_str(display_name)
+		. append_failure_message("Building node display name should match expected format")
+		. is_equal(p_ex)
+	)
+
 
 #region Debug Settings Tests
 func test_debug_setting_float_and_color_are_read() -> void:
@@ -126,21 +189,49 @@ func test_debug_setting_float_and_color_are_read() -> void:
 	indicator._logger = test_logger
 
 	# Call internal helper methods via call() to verify they read from settings
-	var f_val_float: float = float(indicator.call("_debug_setting_float_or", 1.0, "indicator_collision_point_min_radius"))
-	assert_float(f_val_float).append_failure_message("Expected float debug setting to be read from GBDebugSettings").is_equal_approx(7.5, 0.0001)
+	var f_val_float: float = float(
+		indicator.call("_debug_setting_float_or", 1.0, "indicator_collision_point_min_radius")
+	)
+	(
+		assert_float(f_val_float)
+		. append_failure_message("Expected float debug setting to be read from GBDebugSettings")
+		. is_equal_approx(7.5, 0.0001)
+	)
 
-	var c_val_color: Color = indicator.call("_debug_setting_color_or", Color.RED, "indicator_connection_line_color") as Color
-	assert_float(c_val_color.r).append_failure_message("Expected color.r to match setting").is_equal_approx(0.1, 0.0001)
-	assert_float(c_val_color.g).append_failure_message("Expected color.g to match setting").is_equal_approx(0.2, 0.0001)
-	assert_float(c_val_color.b).append_failure_message("Expected color.b to match setting").is_equal_approx(0.3, 0.0001)
+	var c_val_color: Color = (
+		indicator.call("_debug_setting_color_or", Color.RED, "indicator_connection_line_color")
+		as Color
+	)
+	(
+		assert_float(c_val_color.r)
+		. append_failure_message("Expected color.r to match setting")
+		. is_equal_approx(0.1, 0.0001)
+	)
+	(
+		assert_float(c_val_color.g)
+		. append_failure_message("Expected color.g to match setting")
+		. is_equal_approx(0.2, 0.0001)
+	)
+	(
+		assert_float(c_val_color.b)
+		. append_failure_message("Expected color.b to match setting")
+		. is_equal_approx(0.3, 0.0001)
+	)
 
 	# Also verify a fallback occurs when requesting a non-existent property
-	var fallback_val: float = float(indicator.call("_debug_setting_float_or", 2.25, "non_existent_property"))
-	assert_float(fallback_val).append_failure_message("Expected fallback default when setting missing").is_equal_approx(2.25, 0.0001)
+	var fallback_val: float = float(
+		indicator.call("_debug_setting_float_or", 2.25, "non_existent_property")
+	)
+	(
+		assert_float(fallback_val)
+		. append_failure_message("Expected fallback default when setting missing")
+		. is_equal_approx(2.25, 0.0001)
+	)
 
 	# Clean up
 	if is_instance_valid(indicator):
 		indicator.queue_free()
+
 
 #region Object Initialization Tests
 func test_resource_stack_init() -> void:
@@ -148,11 +239,13 @@ func test_resource_stack_init() -> void:
 	var resource_stack: ResourceStack = ResourceStack.new()
 	_assert_object_initializes(resource_stack)
 
+
 func test_building_system_init() -> void:
 	"""Test: BuildingSystem object initialization"""
 	var building_system: BuildingSystem = BuildingSystem.new()
 	_assert_object_initializes(building_system)
 	building_system.free()
+
 
 func test_grid_targeter_system_init() -> void:
 	"""Test: GridTargetingSystem object initialization"""
@@ -160,11 +253,13 @@ func test_grid_targeter_system_init() -> void:
 	_assert_object_initializes(grid_targeter_system)
 	grid_targeter_system.free()
 
+
 func test_rule_check_indicator_init() -> void:
 	"""Test: RuleCheckIndicator object initialization"""
 	var rule_check_indicator: RuleCheckIndicator = RuleCheckIndicator.new([])
 	_assert_object_initializes(rule_check_indicator)
 	rule_check_indicator.free()
+
 
 func test_rule_check_indicator_manager_init() -> void:
 	"""Test: IndicatorManager object initialization"""
@@ -172,18 +267,20 @@ func test_rule_check_indicator_manager_init() -> void:
 	_assert_object_initializes(indicator_manager)
 	indicator_manager.free()
 
+
 func test_node_locator_init() -> void:
 	"""Test: NodeLocator object initialization"""
 	var node_locator: NodeLocator = NodeLocator.new()
 	_assert_object_initializes(node_locator)
 
+
 #region Trapezoid Collision Diagnostic Tests
 func test_trapezoid_collision_calculation_diagnostic() -> void:
 	"""Test: Isolate and fix the trapezoid collision calculation bug"""
 	# Arrange: The exact runtime trapezoid coordinates that fail
-	var trapezoid_points: PackedVector2Array = PackedVector2Array([
-		Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)
-	])
+	var trapezoid_points: PackedVector2Array = PackedVector2Array(
+		[Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)]
+	)
 	var tile_size: Vector2 = Vector2(16, 16)
 	var center_tile: Vector2i = Vector2i(27, 34)  # Runtime position (440, 544) / 16
 
@@ -191,8 +288,13 @@ func test_trapezoid_collision_calculation_diagnostic() -> void:
 	var bounds: Rect2 = CollisionGeometryCalculator._get_polygon_bounds(trapezoid_points)
 
 	# Step 2: Calculate expected tile range
-	var start_tile: Vector2i = Vector2i(floor(bounds.position.x / tile_size.x), floor(bounds.position.y / tile_size.y))
-	var end_tile: Vector2i = Vector2i(ceil((bounds.position.x + bounds.size.x) / tile_size.x), ceil((bounds.position.y + bounds.size.y) / tile_size.y))
+	var start_tile: Vector2i = Vector2i(
+		floor(bounds.position.x / tile_size.x), floor(bounds.position.y / tile_size.y)
+	)
+	var end_tile: Vector2i = Vector2i(
+		ceil((bounds.position.x + bounds.size.x) / tile_size.x),
+		ceil((bounds.position.y + bounds.size.y) / tile_size.y)
+	)
 
 	# Step 3: Test overlap detection for each tile in range
 	var overlapping_tiles: Array[Vector2i] = []
@@ -202,11 +304,17 @@ func test_trapezoid_collision_calculation_diagnostic() -> void:
 			var tile_rect: Rect2 = Rect2(Vector2(x * tile_size.x, y * tile_size.y), tile_size)
 
 			# Test with different overlap thresholds
-			var overlaps_strict: bool = CollisionGeometryCalculator.polygon_overlaps_rect(trapezoid_points, tile_rect, 0.01, 0.05)  # 5% threshold
-			var overlaps_loose: bool = CollisionGeometryCalculator.polygon_overlaps_rect(trapezoid_points, tile_rect, 0.01, 0.01)  # 1% threshold
+			var overlaps_strict: bool = CollisionGeometryCalculator.polygon_overlaps_rect(
+				trapezoid_points, tile_rect, 0.01, 0.05
+			)  # 5% threshold
+			var overlaps_loose: bool = CollisionGeometryCalculator.polygon_overlaps_rect(
+				trapezoid_points, tile_rect, 0.01, 0.01
+			)  # 1% threshold
 
 			if overlaps_strict or overlaps_loose:
-				var clipped: PackedVector2Array = CollisionGeometryCalculator.clip_polygon_to_rect(trapezoid_points, tile_rect)
+				var clipped: PackedVector2Array = CollisionGeometryCalculator.clip_polygon_to_rect(
+					trapezoid_points, tile_rect
+				)
 				var _area: float = CollisionGeometryCalculator.polygon_area(clipped)
 
 				if overlaps_strict:
@@ -218,32 +326,68 @@ func test_trapezoid_collision_calculation_diagnostic() -> void:
 	)
 
 	# Assert: Should find overlapping tiles, not return 0
-	assert_int(core_result.size()).append_failure_message(
-		"Expected core calculation to find %d overlapping tiles, got %d tiles: %s" %
-		[overlapping_tiles.size(), core_result.size(), core_result]
-	).is_greater(0)
+	(
+		assert_int(core_result.size())
+		. append_failure_message(
+			(
+				"Expected core calculation to find %d overlapping tiles, got %d tiles: %s"
+				% [overlapping_tiles.size(), core_result.size(), core_result]
+			)
+		)
+		. is_greater(0)
+	)
+
 
 #region Composition and Configuration Tests
 func test_test_composition_container_loads_and_has_placement_rules() -> void:
 	"""Test: Composition container loading and placement rules"""
 	var repo_res: GBCompositionContainer = GBTestConstants.TEST_COMPOSITION_CONTAINER
-	assert_object(repo_res).append_failure_message("GBTestConstants.TEST_COMPOSITION_CONTAINER must be a valid resource").is_not_null()
+	(
+		assert_object(repo_res)
+		. append_failure_message(
+			"GBTestConstants.TEST_COMPOSITION_CONTAINER must be a valid resource"
+		)
+		. is_not_null()
+	)
 	var pr: Array = repo_res.get_placement_rules()
 	var pr_count: int = pr.size() if pr else 0
-	assert_int(pr_count).append_failure_message("Expected repo composition container to contain placement rules").is_greater(0)
+	(
+		assert_int(pr_count)
+		. append_failure_message("Expected repo composition container to contain placement rules")
+		. is_greater(0)
+	)
 
 	var dup: GBCompositionContainer = repo_res.duplicate(true)
-	assert_object(dup).append_failure_message("Duplicated container should not be null").is_not_null()
+	(
+		assert_object(dup)
+		. append_failure_message("Duplicated container should not be null")
+		. is_not_null()
+	)
 	var pr_dup: Array = dup.get_placement_rules()
 	var pr_dup_count: int = pr_dup.size() if pr_dup else 0
-	assert_int(pr_dup_count).append_failure_message("Duplicated container should retain placement rules").is_greater(0)
+	(
+		assert_int(pr_dup_count)
+		. append_failure_message("Duplicated container should retain placement rules")
+		. is_greater(0)
+	)
 
 	var path: String = GBTestConstants.TEST_PATH_COMPOSITION_CONTAINER_TEST_RESOURCE
 	var loaded: Resource = ResourceLoader.load(path)
-	assert_object(loaded).append_failure_message("ResourceLoader failed to load %s" % path).is_not_null()
-	var pr_loaded: Array = loaded.get_placement_rules() if loaded and loaded.has_method("get_placement_rules") else []
+	(
+		assert_object(loaded)
+		. append_failure_message("ResourceLoader failed to load %s" % path)
+		. is_not_null()
+	)
+	var pr_loaded: Array = (
+		loaded.get_placement_rules() if loaded and loaded.has_method("get_placement_rules") else []
+	)
 	var pr_loaded_count: int = pr_loaded.size() if pr_loaded else 0
-	assert_int(pr_loaded_count).append_failure_message("Loaded resource should have placement rules").is_greater(0)
+	(
+		assert_int(pr_loaded_count)
+		. append_failure_message("Loaded resource should have placement rules")
+		. is_greater(0)
+	)
+
 
 func test_validate_configuration_with_complete_config() -> void:
 	"""Test: Configuration validator with complete config"""
@@ -251,23 +395,37 @@ func test_validate_configuration_with_complete_config() -> void:
 	container.config.actions = GBActions.new()
 	container.config.templates = GBTemplates.new()
 	var issues: Array[String] = container.get_editor_issues()
-	assert_int(issues.size()).append_failure_message("Issues found: %s" % str(issues)).is_greater_equal(0)
+	(
+		assert_int(issues.size())
+		. append_failure_message("Issues found: %s" % str(issues))
+		. is_greater_equal(0)
+	)
+
 
 func test_validate_runtime_configuration_minimum() -> void:
 	"""Test: Runtime configuration validation minimum"""
-	var issues : Array[String] = container.get_runtime_issues()
+	var issues: Array[String] = container.get_runtime_issues()
 	# Expect some non-critical issues by default; ensure API returns an array
 	assert_array(issues).append_failure_message("Runtime issues should be an array").is_not_null()
+
 
 func test_injectable_factory_create_collision_mapper() -> void:
 	"""Test: Injectable factory creates collision mapper"""
 	container.config.settings = GBSettings.new()
 	var mapper: CollisionMapper = GBInjectableFactory.create_collision_mapper(container)
 	assert_object(mapper).append_failure_message("Collision mapper should be created").is_not_null()
-	assert_bool(mapper is CollisionMapper) \
-		.append_failure_message("Created object should be CollisionMapper type").is_true()
+	(
+		assert_bool(mapper is CollisionMapper)
+		. append_failure_message("Created object should be CollisionMapper type")
+		. is_true()
+	)
 	var issues: Array[String] = mapper.get_runtime_issues()
-	assert_int(issues.size()).append_failure_message("Validation issues: %s" % str(issues)).is_equal(0)
+	(
+		assert_int(issues.size())
+		. append_failure_message("Validation issues: %s" % str(issues))
+		. is_equal(0)
+	)
+
 
 #region Manipulatable Hierarchy Tests
 func test_hierarchy_valid_when_root_is_ancestor() -> void:
@@ -279,8 +437,17 @@ func test_hierarchy_valid_when_root_is_ancestor() -> void:
 	var m := Manipulatable.new()
 	child.add_child(m)
 	m.root = root
-	assert_bool(m.is_root_hierarchy_valid()).append_failure_message("Hierarchy should be valid when root is ancestor").is_true()
-	assert_array(m.get_issues()).append_failure_message("No issues expected for valid hierarchy").is_empty()
+	(
+		assert_bool(m.is_root_hierarchy_valid())
+		. append_failure_message("Hierarchy should be valid when root is ancestor")
+		. is_true()
+	)
+	(
+		assert_array(m.get_issues())
+		. append_failure_message("No issues expected for valid hierarchy")
+		. is_empty()
+	)
+
 
 func test_hierarchy_invalid_when_root_not_ancestor() -> void:
 	"""Test: Manipulatable hierarchy validation when root is not ancestor"""
@@ -293,6 +460,14 @@ func test_hierarchy_invalid_when_root_not_ancestor() -> void:
 	var m := Manipulatable.new()
 	child.add_child(m)
 	m.root = unrelated
-	assert_bool(m.is_root_hierarchy_valid()).append_failure_message("Hierarchy should be invalid when root is not ancestor").is_false()
-	assert_array(m.get_issues()).append_failure_message("Issues expected for invalid hierarchy").is_not_empty()
+	(
+		assert_bool(m.is_root_hierarchy_valid())
+		. append_failure_message("Hierarchy should be invalid when root is not ancestor")
+		. is_false()
+	)
+	(
+		assert_array(m.get_issues())
+		. append_failure_message("Issues expected for invalid hierarchy")
+		. is_not_empty()
+	)
 #endregion

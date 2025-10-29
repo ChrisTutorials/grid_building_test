@@ -10,6 +10,7 @@ var targeting_state: GridTargetingState
 var test_map: TileMapLayer
 var positioner: Node2D
 
+
 func before_test() -> void:
 	composition_container = GBTestConstants.TEST_COMPOSITION_CONTAINER
 
@@ -17,7 +18,9 @@ func before_test() -> void:
 	test_map = auto_free(TileMapLayer.new())
 	add_child(test_map)
 	var tile_set := TileSet.new()
-	tile_set.tile_size = Vector2i(GBTestConstants.DEFAULT_TILE_SIZE.x, GBTestConstants.DEFAULT_TILE_SIZE.y)
+	tile_set.tile_size = Vector2i(
+		GBTestConstants.DEFAULT_TILE_SIZE.x, GBTestConstants.DEFAULT_TILE_SIZE.y
+	)
 	test_map.tile_set = tile_set
 
 	# Create positioner for positioning tests
@@ -38,7 +41,9 @@ func before_test() -> void:
 	container_targeting_state.positioner = positioner
 
 	# Create IndicatorManager with dependency injection
-	indicator_manager = auto_free(IndicatorManager.create_with_injection(composition_container, positioner))
+	indicator_manager = auto_free(
+		IndicatorManager.create_with_injection(composition_container, positioner)
+	)
 
 	# Create a basic test object with collision shape
 	test_object = Node2D.new()
@@ -57,6 +62,7 @@ func before_test() -> void:
 	rectangle_shape.size = GBTestConstants.DEFAULT_TILE_SIZE * 2  # 2x2 tiles (32x32)
 	collision_shape.shape = rectangle_shape
 	area.add_child(collision_shape)
+
 
 func after_test() -> void:
 	# Let GdUnit handle cleanup via auto_free()
@@ -86,12 +92,12 @@ func after_test() -> void:
 
 # 	# Get the created indicators
 # 	var indicators: Array[RuleCheckIndicator] = indicator_manager.get_indicators()
-	
+
 # 	assert_that(moved_indicators_data).append_failure_message(
 # 		"Should have created indicators at second position\nContext: %s" % "\n".join(diag) )
-		
-# 	# Verify that some indicators have moved (basic sanity check) 
-# 	var indicators_moved: bool = false 
+
+# 	# Verify that some indicators have moved (basic sanity check)
+# 	var indicators_moved: bool = false
 # 	var min_count : int = min(initial_indicators_data.size(), moved_indicators_data.size())
 # 	for i : int in range(min_count):
 # 		var initial_pos : Vector2 = initial_indicators_data[i]["global_pos"]

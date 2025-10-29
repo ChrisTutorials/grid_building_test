@@ -32,12 +32,15 @@ var _env: AllSystemsTestEnvironment
 var _container: GBCompositionContainer
 var runner: GdUnitSceneRunner
 
+
 func _diag(message: String) -> String:
 	return GBDiagnostics.format_debug(message, "RuleCheckIndicatorTest", get_script().resource_path)
+
 
 ## Build a full indicator state diagnostic via RuleCheckIndicatorLogic helper
 static func _indicator_state_diag(ind: RuleCheckIndicator, header: String = "") -> String:
 	return RuleCheckIndicatorLogic.format_indicator_state(ind, header)
+
 
 ## Helper method to get properly initialized GridTargetingState from environment
 func create_rule_targeting_state() -> GridTargetingState:
@@ -45,17 +48,24 @@ func create_rule_targeting_state() -> GridTargetingState:
 	var targeting_state: GridTargetingState = _container.get_states().targeting
 
 	# Validate that the environment properly set up the targeting state
-	assert_that(targeting_state).append_failure_message(
-		"Environment should provide targeting state"
-	).is_not_null()
-	assert_that(targeting_state.target_map).append_failure_message(
-		"Environment targeting state should have target_map set"
-	).is_not_null()
-	assert_that(targeting_state.positioner).append_failure_message(
-		"Environment targeting state should have positioner set"
-	).is_not_null()
+	(
+		assert_that(targeting_state)
+		. append_failure_message("Environment should provide targeting state")
+		. is_not_null()
+	)
+	(
+		assert_that(targeting_state.target_map)
+		. append_failure_message("Environment targeting state should have target_map set")
+		. is_not_null()
+	)
+	(
+		assert_that(targeting_state.positioner)
+		. append_failure_message("Environment targeting state should have positioner set")
+		. is_not_null()
+	)
 
 	return targeting_state
+
 
 func before_test() -> void:
 	# Use scene_runner for reliable frame simulation
@@ -103,9 +113,11 @@ func before_test() -> void:
 	indicator.validity_sprite = auto_free(Sprite2D.new())
 	indicator.add_child(indicator.validity_sprite)
 
-	assert_object(indicator.get_parent()).append_failure_message(
-		"Indicator should be added to scene tree"
-	).is_not_null()
+	(
+		assert_object(indicator.get_parent())
+		. append_failure_message("Indicator should be added to scene tree")
+		. is_not_null()
+	)
 
 	# Ensure indicator starts in valid state before resolving dependencies so
 	# visuals and any immediate validations consider it valid by default.
@@ -118,19 +130,24 @@ func before_test() -> void:
 	# Simulate frames for indicator setup
 	runner.simulate_frames(2)
 
+
 func after_test() -> void:
 	runner = null
 	_env = null
 	_container = null
 	indicator = null
 
+
 func test_setup_indicator_defaults() -> void:
-	assert_object(indicator).append_failure_message(
-		"Indicator must not be null"
-	).is_not_null()
-	assert_vector(indicator.global_position).append_failure_message(
-		"Indicator should start at zero position, got %s" % str(indicator.global_position)
-	).is_equal(Vector2.ZERO)
+	assert_object(indicator).append_failure_message("Indicator must not be null").is_not_null()
+	(
+		assert_vector(indicator.global_position)
+		. append_failure_message(
+			"Indicator should start at zero position, got %s" % str(indicator.global_position)
+		)
+		. is_equal(Vector2.ZERO)
+	)
+
 
 ## Integration test: indicator switches valid → fail → valid as collision body is added/removed
 func test_indicator_validity_switches_on_dynamic_collision() -> void:
@@ -151,19 +168,33 @@ func test_indicator_validity_switches_on_dynamic_collision() -> void:
 	test_indicator.add_rule(rule)
 
 	var signal_states: Array[bool] = []
-	test_indicator.valid_changed.connect(func(is_valid: bool) -> void: signal_states.append(is_valid))
+	test_indicator.valid_changed.connect(
+		func(is_valid: bool) -> void: signal_states.append(is_valid)
+	)
 
 	runner.simulate_frames(2)
-	assert_bool(test_indicator.valid).append_failure_message(
-		_indicator_state_diag(test_indicator,
-			"Indicator should start valid, but was invalid. signal_states=%s" %
-			[str(signal_states)])
-	).is_true()
+	(
+		assert_bool(test_indicator.valid)
+		. append_failure_message(
+			_indicator_state_diag(
+				test_indicator,
+				(
+					"Indicator should start valid, but was invalid. signal_states=%s"
+					% [str(signal_states)]
+				)
+			)
+		)
+		. is_true()
+	)
 	# Implementation may or may not emit initial valid signal. Accept either [] or [true]
 	if signal_states.size() > 0:
-		assert_array(signal_states).append_failure_message(
-			"Unexpected initial signal sequence: %s" % [str(signal_states)]
-		).is_equal([true])
+		(
+			assert_array(signal_states)
+			. append_failure_message(
+				"Unexpected initial signal sequence: %s" % [str(signal_states)]
+			)
+			. is_equal([true])
+		)
 
 	# Add a colliding body to trigger failure
 	var body := _create_test_body()
@@ -171,38 +202,63 @@ func test_indicator_validity_switches_on_dynamic_collision() -> void:
 	body.global_position = test_indicator.global_position
 	runner.simulate_frames(1)  # Wait for body to be added to physics
 	test_indicator.force_validity_evaluation()  # Force collision check AND validity update
-	assert_bool(test_indicator.valid).append_failure_message(
-		_indicator_state_diag(test_indicator,
-			"Indicator should be invalid after collision, but was valid. signal_states=%s" %
-			[str(signal_states)])
-	).is_false()
+	(
+		assert_bool(test_indicator.valid)
+		. append_failure_message(
+			_indicator_state_diag(
+				test_indicator,
+				(
+					"Indicator should be invalid after collision, but was valid. signal_states=%s"
+					% [str(signal_states)]
+				)
+			)
+		)
+		. is_false()
+	)
 	# After collision we expect last emission to be false
 	if signal_states.size() > 0:
-		assert_bool(signal_states.back()).append_failure_message(
-			"Signal states after collision: %s" % [str(signal_states)]
-		).is_false()
+		(
+			assert_bool(signal_states.back())
+			. append_failure_message("Signal states after collision: %s" % [str(signal_states)])
+			. is_false()
+		)
 	else:
-		assert_that(signal_states.size()).append_failure_message(
-			"Expected at least one signal emission after collision"
-		).is_greater(0)
+		(
+			assert_that(signal_states.size())
+			. append_failure_message("Expected at least one signal emission after collision")
+			. is_greater(0)
+		)
 
 	# Remove the body to restore validity
 	_env.remove_child(body)
 	body.free()  # Immediate removal
 	test_indicator.force_validity_evaluation()  # Force collision recheck AND validity update
-	assert_bool(test_indicator.valid).append_failure_message(
-		_indicator_state_diag(test_indicator,
-			"Indicator should be valid after body removal, but was invalid. signal_states=%s" %
-			[str(signal_states)])
-	).is_true()
+	(
+		assert_bool(test_indicator.valid)
+		. append_failure_message(
+			_indicator_state_diag(
+				test_indicator,
+				(
+					"Indicator should be valid after body removal, but was invalid. signal_states=%s"
+					% [str(signal_states)]
+				)
+			)
+		)
+		. is_true()
+	)
 	if signal_states.size() > 0:
-		assert_bool(signal_states.back()).append_failure_message(
-			"Signal states after body removal: %s" % [str(signal_states)]
-		).is_true()
+		(
+			assert_bool(signal_states.back())
+			. append_failure_message("Signal states after body removal: %s" % [str(signal_states)])
+			. is_true()
+		)
 	else:
-		assert_that(signal_states.size()).append_failure_message(
-			"Expected at least one signal emission after body removal"
-		).is_greater(0)
+		(
+			assert_that(signal_states.size())
+			. append_failure_message("Expected at least one signal emission after body removal")
+			. is_greater(0)
+		)
+
 
 ## Test: validity_sprite texture changes when indicator validity changes
 func test_validity_sprite_texture_switches_on_validity_change() -> void:
@@ -228,18 +284,24 @@ func test_validity_sprite_texture_switches_on_validity_change() -> void:
 
 	runner.simulate_frames(2)
 	var sprite2: Sprite2D = indicator2.validity_sprite
-	assert_object(sprite2).append_failure_message(
-		"Indicator validity_sprite is null"
-	).is_not_null()
+	assert_object(sprite2).append_failure_message("Indicator validity_sprite is null").is_not_null()
 	var valid_texture2: Texture2D = indicator2.valid_settings.texture
 	var invalid_texture2: Texture2D = indicator2.invalid_settings.texture
-	assert_bool(valid_texture2 != invalid_texture2).append_failure_message(
-		"Valid and invalid textures should differ"
-	).is_true()
-	assert_object(sprite2.texture).append_failure_message(
-		"Sprite texture should be valid texture after initial frame, got %s expected %s" %
-		[str(sprite2.texture), str(valid_texture2)]
-	).is_equal(valid_texture2)
+	(
+		assert_bool(valid_texture2 != invalid_texture2)
+		. append_failure_message("Valid and invalid textures should differ")
+		. is_true()
+	)
+	(
+		assert_object(sprite2.texture)
+		. append_failure_message(
+			(
+				"Sprite texture should be valid texture after initial frame, got %s expected %s"
+				% [str(sprite2.texture), str(valid_texture2)]
+			)
+		)
+		. is_equal(valid_texture2)
+	)
 
 	# Add a colliding body to trigger failure
 	var body2 := _create_test_body()
@@ -247,36 +309,63 @@ func test_validity_sprite_texture_switches_on_validity_change() -> void:
 	body2.global_position = indicator2.global_position
 	runner.simulate_frames(1)  # Wait for body to be added to physics
 	indicator2.force_validity_evaluation()  # Force collision check AND validity update
-	assert_bool(indicator2.valid).append_failure_message(
-		_indicator_state_diag(indicator2, "Indicator should be invalid after collision")
-	).is_false()
-	assert_object(sprite2.texture).append_failure_message(
-		_indicator_state_diag(indicator2, "Sprite texture should be invalid texture after collision")
-	).is_equal(invalid_texture2)
+	(
+		assert_bool(indicator2.valid)
+		. append_failure_message(
+			_indicator_state_diag(indicator2, "Indicator should be invalid after collision")
+		)
+		. is_false()
+	)
+	(
+		assert_object(sprite2.texture)
+		. append_failure_message(
+			_indicator_state_diag(
+				indicator2, "Sprite texture should be invalid texture after collision"
+			)
+		)
+		. is_equal(invalid_texture2)
+	)
 
 	# Remove body2 to restore validity
 	_env.remove_child(body2)  # Remove from scene tree first
 	body2.free()  # Immediate removal
 	indicator2.force_validity_evaluation()  # Force collision recheck AND validity update
-	assert_bool(indicator2.valid).append_failure_message(
-		_indicator_state_diag(indicator2, "Indicator should be valid after body removal")
-	).is_true()
-	assert_object(sprite2.texture).append_failure_message(
-		_indicator_state_diag(indicator2, "Sprite texture should be valid texture after body removal")
-	).is_equal(valid_texture2)
+	(
+		assert_bool(indicator2.valid)
+		. append_failure_message(
+			_indicator_state_diag(indicator2, "Indicator should be valid after body removal")
+		)
+		. is_true()
+	)
+	(
+		assert_object(sprite2.texture)
+		. append_failure_message(
+			_indicator_state_diag(
+				indicator2, "Sprite texture should be valid texture after body removal"
+			)
+		)
+		. is_equal(valid_texture2)
+	)
+
 
 ## Test that indicators start in valid state when no rules are present
 func test_indicator_starts_valid_with_no_rules() -> void:
 	# Wait for physics frame to allow _physics_process to run and update validity
 	runner.simulate_frames(1)
-	assert_bool(indicator.valid).append_failure_message(
-		_diag("Indicator should start valid with no rules")
-	).is_true()
+	(
+		assert_bool(indicator.valid)
+		. append_failure_message(_diag("Indicator should start valid with no rules"))
+		. is_true()
+	)
 	# Allow deferred post-ready visual application to run
 	runner.simulate_frames(1)
-	assert_object(indicator.current_display_settings).append_failure_message(
-		_diag("current_display_settings should be valid_settings when no rules present")
-	).is_equal(indicator.valid_settings)
+	(
+		assert_object(indicator.current_display_settings)
+		. append_failure_message(
+			_diag("current_display_settings should be valid_settings when no rules present")
+		)
+		. is_equal(indicator.valid_settings)
+	)
 
 
 ## Parameterized: pass/fail scenarios reduce setup duplication
@@ -288,23 +377,12 @@ func test_indicator_validity_scenarios(
 	bodies: Array[int],
 	expected_valid: bool,
 	test_parameters := [
+		[[{"pass_on_collision": false, "mask": 1}], [1], false],  # one failing rule on layer 1  # one body on layer 1  # expected invalid
+		[[{"pass_on_collision": true, "mask": 1}], [1], true],  # one passing rule on layer 1  # one body on layer 1  # expected valid
 		[
-			[{"pass_on_collision": false, "mask": 1}], # one failing rule on layer 1
-			[1],                                        # one body on layer 1
-			false                                       # expected invalid
-		],
-		[
-			[{"pass_on_collision": true, "mask": 1}],  # one passing rule on layer 1
-			[1],                                        # one body on layer 1
-			true                                        # expected valid
-		],
-		[
-			[                                          # multiple rules: one pass, one fail
-				{"pass_on_collision": true, "mask": 1},
-				{"pass_on_collision": false, "mask": 2}
-			],
-			[1, 2],                                     # bodies on layers 1 and 2
-			false                                       # expected invalid
+			[{"pass_on_collision": true, "mask": 1}, {"pass_on_collision": false, "mask": 2}],  # multiple rules: one pass, one fail
+			[1, 2],  # bodies on layers 1 and 2
+			false  # expected invalid
 		]
 	]
 ) -> void:
@@ -328,21 +406,39 @@ func test_indicator_validity_scenarios(
 	runner.simulate_frames(2)
 
 	# Validate expected state and visuals
-	assert_bool(indicator.valid).append_failure_message(
-		_indicator_state_diag(indicator,
-			"indicator.valid mismatch; expected=%s rules=%s bodies=%s" %
-			[str(expected_valid), str(rules), str(bodies)])
-	).is_equal(expected_valid)
+	(
+		assert_bool(indicator.valid)
+		. append_failure_message(
+			_indicator_state_diag(
+				indicator,
+				(
+					"indicator.valid mismatch; expected=%s rules=%s bodies=%s"
+					% [str(expected_valid), str(rules), str(bodies)]
+				)
+			)
+		)
+		. is_equal(expected_valid)
+	)
 	if expected_valid:
-		assert_object(indicator.current_display_settings).append_failure_message(
-			_indicator_state_diag(indicator,
-				"current_display_settings should be valid_settings when valid")
-		).is_equal(indicator.valid_settings)
+		(
+			assert_object(indicator.current_display_settings)
+			. append_failure_message(
+				_indicator_state_diag(
+					indicator, "current_display_settings should be valid_settings when valid"
+				)
+			)
+			. is_equal(indicator.valid_settings)
+		)
 	else:
-		assert_object(indicator.current_display_settings).append_failure_message(
-			_indicator_state_diag(indicator,
-				"current_display_settings should be invalid_settings when invalid")
-		).is_equal(indicator.invalid_settings)
+		(
+			assert_object(indicator.current_display_settings)
+			. append_failure_message(
+				_indicator_state_diag(
+					indicator, "current_display_settings should be invalid_settings when invalid"
+				)
+			)
+			. is_equal(indicator.invalid_settings)
+		)
 
 
 ## Test that the valid_changed signal is emitted when validity state changes
@@ -370,28 +466,58 @@ func test_valid_changed_signal_emitted_on_state_change(
 
 	indicator.add_rule(rule)
 	runner.simulate_frames(2)
-	assert_bool(signal_data[0]).append_failure_message(
-		_indicator_state_diag(indicator, "valid_changed signal was not emitted on state change")
-	).is_true()
-	assert_bool(signal_data[1]).append_failure_message(
-		_indicator_state_diag(indicator,
-			"valid_changed signal payload mismatch; expected=%s actual=%s" %
-			[str(expected_value), str(signal_data[1])])
-	).is_equal(expected_value)
+	(
+		assert_bool(signal_data[0])
+		. append_failure_message(
+			_indicator_state_diag(indicator, "valid_changed signal was not emitted on state change")
+		)
+		. is_true()
+	)
+	(
+		assert_bool(signal_data[1])
+		. append_failure_message(
+			_indicator_state_diag(
+				indicator,
+				(
+					"valid_changed signal payload mismatch; expected=%s actual=%s"
+					% [str(expected_value), str(signal_data[1])]
+				)
+			)
+		)
+		. is_equal(expected_value)
+	)
 	indicator.valid_changed.disconnect(signal_handler)
 
 
 ## Test that visual settings are properly updated when validity changes
 func test_visual_settings_update_on_validity_change() -> void:
-	assert_object(indicator.current_display_settings).append_failure_message(
-		_indicator_state_diag(indicator, "current_display_settings should start as valid_settings")
-	).is_equal(indicator.valid_settings)
-	assert_object(indicator.validity_sprite.texture).append_failure_message(
-		_indicator_state_diag(indicator, "validity_sprite.texture should start as valid texture")
-	).is_equal(indicator.valid_settings.texture)
-	assert_that(indicator.validity_sprite.modulate).append_failure_message(
-		_indicator_state_diag(indicator, "validity_sprite.modulate should start as valid modulate")
-	).is_equal(indicator.valid_settings.modulate)
+	(
+		assert_object(indicator.current_display_settings)
+		. append_failure_message(
+			_indicator_state_diag(
+				indicator, "current_display_settings should start as valid_settings"
+			)
+		)
+		. is_equal(indicator.valid_settings)
+	)
+	(
+		assert_object(indicator.validity_sprite.texture)
+		. append_failure_message(
+			_indicator_state_diag(
+				indicator, "validity_sprite.texture should start as valid texture"
+			)
+		)
+		. is_equal(indicator.valid_settings.texture)
+	)
+	(
+		assert_that(indicator.validity_sprite.modulate)
+		. append_failure_message(
+			_indicator_state_diag(
+				indicator, "validity_sprite.modulate should start as valid modulate"
+			)
+		)
+		. is_equal(indicator.valid_settings.modulate)
+	)
 
 	# Create a failing rule to trigger visual change
 	var failing_rule: CollisionsCheckRule = PlacementRuleTestFactory.create_default_collision_rule()
@@ -412,21 +538,35 @@ func test_visual_settings_update_on_validity_change() -> void:
 	# Wait for physics process to run
 	runner.simulate_frames(2)
 
-	assert_bool(indicator.valid).append_failure_message(
-		"The indicator should be invalid after adding a failing rule."
-	).is_false()
+	(
+		assert_bool(indicator.valid)
+		. append_failure_message("The indicator should be invalid after adding a failing rule.")
+		. is_false()
+	)
 
 	# Verify visual settings changed to invalid
-	assert_object(indicator.current_display_settings).append_failure_message(
-		"The current display is expected to be the invalid settings."
-	).is_equal(indicator.invalid_settings)
-	assert_object(indicator.validity_sprite.texture).append_failure_message(
-		"The texture of the current sprite should be set to the invalid settings texture."
-	).is_equal(indicator.invalid_settings.texture)
-	assert_that(indicator.validity_sprite.modulate).append_failure_message(
-		"The modulate color of the current validity_sprite Sprite2D is expected to be " +
-		"the failure modulate color from the settings."
-	).is_equal(indicator.invalid_settings.modulate)
+	(
+		assert_object(indicator.current_display_settings)
+		. append_failure_message("The current display is expected to be the invalid settings.")
+		. is_equal(indicator.invalid_settings)
+	)
+	(
+		assert_object(indicator.validity_sprite.texture)
+		. append_failure_message(
+			"The texture of the current sprite should be set to the invalid settings texture."
+		)
+		. is_equal(indicator.invalid_settings.texture)
+	)
+	(
+		assert_that(indicator.validity_sprite.modulate)
+		. append_failure_message(
+			(
+				"The modulate color of the current validity_sprite Sprite2D is expected to be "
+				+ "the failure modulate color from the settings."
+			)
+		)
+		. is_equal(indicator.invalid_settings.modulate)
+	)
 
 
 ## Test that force_validation_update properly updates the indicator state
@@ -448,20 +588,40 @@ func test_force_validation_update(
 
 	indicator.add_rule(rule)
 
-	assert_bool(indicator.force_validity_evaluation()).append_failure_message(
-		_diag("force_validity_evaluation() did not return expected value; expected=%s current_valid=%s" %
-			[str(expected_valid), str(indicator.valid)])
-	).is_equal(expected_valid)
+	(
+		assert_bool(indicator.force_validity_evaluation())
+		. append_failure_message(
+			_diag(
+				(
+					"force_validity_evaluation() did not return expected value; expected=%s current_valid=%s"
+					% [str(expected_valid), str(indicator.valid)]
+				)
+			)
+		)
+		. is_equal(expected_valid)
+	)
 	if expected_valid:
-		assert_object(indicator.current_display_settings).append_failure_message(
-			_indicator_state_diag(indicator,
-				"current_display_settings should be valid_settings when expected_valid=true")
-		).is_equal(indicator.valid_settings)
+		(
+			assert_object(indicator.current_display_settings)
+			. append_failure_message(
+				_indicator_state_diag(
+					indicator,
+					"current_display_settings should be valid_settings when expected_valid=true"
+				)
+			)
+			. is_equal(indicator.valid_settings)
+		)
 	else:
-		assert_object(indicator.current_display_settings).append_failure_message(
-			_indicator_state_diag(indicator,
-				"current_display_settings should be invalid_settings when expected_valid=false")
-		).is_equal(indicator.invalid_settings)
+		(
+			assert_object(indicator.current_display_settings)
+			. append_failure_message(
+				_indicator_state_diag(
+					indicator,
+					"current_display_settings should be invalid_settings when expected_valid=false"
+				)
+			)
+			. is_equal(indicator.invalid_settings)
+		)
 
 
 ## Test that indicators properly handle rules being added after _ready
@@ -470,9 +630,13 @@ func test_rules_added_after_ready() -> void:
 	runner.simulate_frames(1)
 
 	# Verify initial state
-	assert_bool(indicator.valid).append_failure_message(
-		_indicator_state_diag(indicator, "Indicator should start valid with no rules")
-	).is_true()
+	(
+		assert_bool(indicator.valid)
+		. append_failure_message(
+			_indicator_state_diag(indicator, "Indicator should start valid with no rules")
+		)
+		. is_true()
+	)
 
 	# Create and add a failing rule after _ready
 	var failing_rule: CollisionsCheckRule = PlacementRuleTestFactory.create_default_collision_rule()
@@ -496,12 +660,19 @@ func test_rules_added_after_ready() -> void:
 	runner.simulate_frames(2)
 
 	# Verify the indicator is now invalid
-	assert_bool(indicator.valid).append_failure_message(
-		_diag("Indicator should be invalid after adding failing rule")
-	).is_false()
-	assert_object(indicator.current_display_settings).append_failure_message(
-		_diag("Display settings did not switch to invalid settings after failing rule")
-	).is_equal(indicator.invalid_settings)
+	(
+		assert_bool(indicator.valid)
+		. append_failure_message(_diag("Indicator should be invalid after adding failing rule"))
+		. is_false()
+	)
+	(
+		assert_object(indicator.current_display_settings)
+		. append_failure_message(
+			_diag("Display settings did not switch to invalid settings after failing rule")
+		)
+		. is_equal(indicator.invalid_settings)
+	)
+
 
 ## Test that indicators properly handle rules being removed
 func test_rules_removed() -> void:
@@ -528,10 +699,18 @@ func test_rules_removed() -> void:
 
 	# Verify the indicator is invalid (provide detailed diagnostics)
 	var prior_rules_count: int = indicator.get_rules().size()
-	assert_bool(indicator.valid).append_failure_message(
-		_diag("Indicator unexpectedly valid before rule removal; rules=%d collisions=%d" %
-			[prior_rules_count, indicator.get_collision_count()])
-	).is_false()
+	(
+		assert_bool(indicator.valid)
+		. append_failure_message(
+			_diag(
+				(
+					"Indicator unexpectedly valid before rule removal; rules=%d collisions=%d"
+					% [prior_rules_count, indicator.get_collision_count()]
+				)
+			)
+		)
+		. is_false()
+	)
 
 	# Remove the rule
 	indicator.clear()
@@ -540,13 +719,24 @@ func test_rules_removed() -> void:
 	runner.simulate_frames(2)
 
 	# Verify the indicator is now valid again
-	assert_bool(indicator.valid).append_failure_message(
-		_diag("Indicator did not become valid after clear(); remaining_rules=%d" %
-			[indicator.get_rules().size()])
-	).is_true()
-	assert_object(indicator.current_display_settings).append_failure_message(
-		_diag("Display settings not reverted to valid after clear()")
-	).is_equal(indicator.valid_settings)
+	(
+		assert_bool(indicator.valid)
+		. append_failure_message(
+			_diag(
+				(
+					"Indicator did not become valid after clear(); remaining_rules=%d"
+					% [indicator.get_rules().size()]
+				)
+			)
+		)
+		. is_true()
+	)
+	(
+		assert_object(indicator.current_display_settings)
+		. append_failure_message(_diag("Display settings not reverted to valid after clear()"))
+		. is_equal(indicator.valid_settings)
+	)
+
 
 ## Test improved debug log format when no rules present at _ready
 func test_ready_debug_log_format_no_rules() -> void:
@@ -560,16 +750,24 @@ func test_ready_debug_log_format_no_rules() -> void:
 	test_indicator.shape = default_shape
 	test_indicator.target_position = Vector2.ZERO
 	_env.add_child(test_indicator)
-	test_indicator.shape = RectangleShape2D.new(); test_indicator.shape.size = Vector2.ONE
+	test_indicator.shape = RectangleShape2D.new()
+	test_indicator.shape.size = Vector2.ONE
 	test_indicator.resolve_gb_dependencies(_container)
 	runner.simulate_frames(1)
 	# We can't intercept internal logger messages without a spy; assert valid state and zero rules
-	assert_int(test_indicator.get_rules().size()).append_failure_message(
-		"Test indicator should start with 0 rules"
-	).is_equal(0)
-	assert_bool(test_indicator.valid).append_failure_message(
-		_indicator_state_diag(test_indicator, "Test indicator should be valid with no rules")
-	).is_true()
+	(
+		assert_int(test_indicator.get_rules().size())
+		. append_failure_message("Test indicator should start with 0 rules")
+		. is_equal(0)
+	)
+	(
+		assert_bool(test_indicator.valid)
+		. append_failure_message(
+			_indicator_state_diag(test_indicator, "Test indicator should be valid with no rules")
+		)
+		. is_true()
+	)
+
 
 ## Test per-frame evaluation toggled by environment variable
 func test_per_frame_validation_env_flag() -> void:
@@ -590,14 +788,25 @@ func test_per_frame_validation_env_flag() -> void:
 	_env.remove_child(body)  # Remove from scene tree first
 	body.free()  # Immediate removal
 	indicator.force_validity_evaluation()  # Force collision recheck AND validity update
-	assert_bool(first_state).append_failure_message(
-		_indicator_state_diag(indicator,
-			"first_state should be false with collision body present")
-	).is_false()
-	assert_bool(indicator.valid).append_failure_message(
-		_indicator_state_diag(indicator,
-			"indicator.valid should be true after body removal with per-frame validation")
-	).is_true()
+	(
+		assert_bool(first_state)
+		. append_failure_message(
+			_indicator_state_diag(
+				indicator, "first_state should be false with collision body present"
+			)
+		)
+		. is_false()
+	)
+	(
+		assert_bool(indicator.valid)
+		. append_failure_message(
+			_indicator_state_diag(
+				indicator,
+				"indicator.valid should be true after body removal with per-frame validation"
+			)
+		)
+		. is_true()
+	)
 	OS.set_environment("GB_INDICATOR_EVAL_EACH_FRAME", "0")
 
 
@@ -625,22 +834,21 @@ func test_indicator_collide_and_get_contacts(
 	#endregion
 
 	#region Execution
-	indicator.global_position = original_position + (
-		p_move_shape_size_multiplier * indicator_shape_size
+	indicator.global_position = (
+		original_position + (p_move_shape_size_multiplier * indicator_shape_size)
 	)
 	var result: PackedVector2Array = indicator.shape.collide_and_get_contacts(
 		indicator.global_transform, shape.shape, shape.global_transform
 	)
 	(
 		assert_bool(result.is_empty())
-		.append_failure_message("If false, is inside shape. If true, is outside.")
-		.is_equal(p_expected_empty)
+		. append_failure_message("If false, is inside shape. If true, is outside.")
+		. is_equal(p_expected_empty)
 	)
 	#endregion
 
 
 @warning_ignore("unused_parameter")
-
 ## Count the number of collisions when instancing a p_test_scene at the origin 0,0 and seeing
 ## if it matches the expected number
 func test_instance_collisions(
@@ -651,17 +859,25 @@ func test_instance_collisions(
 
 	# Find a PhysicsBody2D to use for collision tests (scene root may be Node2D)
 	var phys_body: PhysicsBody2D = _find_first_physics_body(root_instance)
-	assert_object(phys_body).append_failure_message(
-		"Test scene does not contain a PhysicsBody2D root or descendant: %s" %
-		[str(p_test_scene)]
-	).is_not_null()
+	(
+		assert_object(phys_body)
+		. append_failure_message(
+			(
+				"Test scene does not contain a PhysicsBody2D root or descendant: %s"
+				% [str(p_test_scene)]
+			)
+		)
+		. is_not_null()
+	)
 
 	indicator.collision_mask = phys_body.collision_layer
 	indicator.force_shapecast_update()
 	var collision_count: int = indicator.get_collision_count()
-	assert_int(collision_count).append_failure_message( \
-		"Collision count should match expected value" \
-	).is_equal(p_expected_collisions)
+	(
+		assert_int(collision_count)
+		. append_failure_message("Collision count should match expected value")
+		. is_equal(p_expected_collisions)
+	)
 
 
 @warning_ignore("unused_parameter")
@@ -670,9 +886,11 @@ func test__update_visuals() -> void:
 	var local_settings: IndicatorVisualSettings = IndicatorVisualSettings.new()
 	local_settings.modulate = Color(0.5, 0.5, 0.5)
 	var updated_sprite: Sprite2D = indicator._update_visuals(local_settings)
-	assert_that(updated_sprite.modulate).append_failure_message(
-		"Sprite modulate should match settings modulate"
-	).is_equal(local_settings.modulate)
+	(
+		assert_that(updated_sprite.modulate)
+		. append_failure_message("Sprite modulate should match settings modulate")
+		. is_equal(local_settings.modulate)
+	)
 
 
 ## Test the default return of get_tile_positon
@@ -682,9 +900,11 @@ func test_get_tile_position_default() -> void:
 	)
 	add_child(test_tile_map)
 	var position: Vector2i = indicator.get_tile_position(test_tile_map)
-	assert_vector(position).append_failure_message(
-		"Default tile position should be Vector2i.ZERO"
-	).is_equal(Vector2i.ZERO)
+	(
+		assert_vector(position)
+		. append_failure_message("Default tile position should be Vector2i.ZERO")
+		. is_equal(Vector2i.ZERO)
+	)
 
 
 ## Creates a test collision body for testing rule validation

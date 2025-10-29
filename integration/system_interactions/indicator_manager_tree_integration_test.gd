@@ -71,19 +71,14 @@ func test_indicators_are_parented_and_inside_tree() -> void:
 	var rules: Array[PlacementRule] = [rule]
 	var setup_results: PlacementReport = indicator_manager.try_setup(rules, targeting_state)
 	assert_bool(setup_results
-		.is_successful())
-		.append_failure_message("IndicatorManager.try_setup failed: " + str(setup_results.get_issues()))
+		.is_successful()).append_failure_message("IndicatorManager.try_setup failed: " + str(setup_results.get_issues()))
 		.is_true()
 	var indicators: Array[RuleCheckIndicator] = indicator_manager.get_indicators()
-	assert_array(indicators)
-		.append_failure_message("No indicators created. Setup result: " + str(setup_results
-		.is_successful()))
-		.is_not_empty()
+	assert_array(indicators).append_failure_message("No indicators created. Setup result: " + str(setup_results
+		.is_successful())).is_not_empty()
 	for ind: RuleCheckIndicator in indicators:
-		assert_bool(ind.is_inside_tree())
-   .append_failure_message("Indicator not inside tree: %s" % ind.name).is_true()
-		assert_object(ind.get_parent())
-   .append_failure_message("Indicator has no parent: %s" % ind.name).is_not_null()
+		assert_bool(ind.is_inside_tree()).append_failure_message("Indicator not inside tree: %s" % ind.name).is_true()
+		assert_object(ind.get_parent()).append_failure_message("Indicator has no parent: %s" % ind.name).is_not_null()
 		# Debug information for parent node
 		# Current architecture: indicators are parented under the IndicatorManager itself
 		var expected_parent: Node = indicator_manager
@@ -105,7 +100,6 @@ func test_indicators_are_parented_and_inside_tree() -> void:
 			diag.append("Tree integration debug - Expected parent: %s (%s), Actual parent: %s (%s)" % [expected_name, expected_class, actual_name, actual_class])
 
 			var context := "\n".join(diag)
-			assert_object(ind.get_parent())
-				.append_failure_message("Unexpected parent for indicator: %s. Expected parent node: %s, Got: %s\nContext: %s" % [ind.name, expected_name, actual_name, context])
+			assert_object(ind.get_parent()).append_failure_message("Unexpected parent for indicator: %s. Expected parent node: %s, Got: %s\nContext: %s" % [ind.name, expected_name, actual_name, context])
 				.is_equal(expected_parent)
 

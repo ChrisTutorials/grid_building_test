@@ -31,9 +31,7 @@ const TEST_STATIC_BODY_NAME := "TestStaticBody"
 
 ## Assertion message constants
 const SCENE_LOAD_SUCCESS_MESSAGE := "Scene should load successfully: "
-const COLLISION_OBJECT_COUNT_MESSAGE := (
-	"Scene {scene_path} should have exactly {expected_count} collision objects"
-)
+const COLLISION_OBJECT_COUNT_MESSAGE := "Scene {scene_path} should have exactly {expected_count} collision objects"
 
 ## Test scene paths and expected collision object counts
 const TEST_SCENE_DATA := [

@@ -83,11 +83,9 @@ func before_test() -> void:
 	_rules = [rule]
 	# Ensure rule is setup for the targeting state
 	var setup_issues: Array[String] = rule.setup(_container.get_targeting_state())
-	assert_array(setup_issues)
-  .append_failure_message("Concave test: rule.setup reported issues").is_empty()
+	assert_array(setup_issues).append_failure_message("Concave test: rule.setup reported issues").is_empty()
 	var setup_ok := _manager.try_setup(_rules, _container.get_targeting_state(), true)
-	assert_bool(setup_ok.is_successful())
-  .append_failure_message("IndicatorManager.try_setup failed for concave polygon test").is_true()
+	assert_bool(setup_ok.is_successful()).append_failure_message("IndicatorManager.try_setup failed for concave polygon test").is_true()
 
 func after_test() -> void:
 	if _validator:
@@ -155,8 +153,7 @@ func _build_concave_failure_message(tiles: Array, indicators: Array[RuleCheckInd
 func test_concave_polygon_generates_expected_indicator_distribution() -> void:
 	var indicators: Array[RuleCheckIndicator] = _collect_indicators()
 
-	assert_array(indicators)
-		.append_failure_message("No indicators generated for concave polygon – investigate rule attach path. Indicators not generated; test pending implementation.")
+	assert_array(indicators).append_failure_message("No indicators generated for concave polygon – investigate rule attach path. Indicators not generated; test pending implementation.")
 		.is_not_empty()
 
 	var tiles: Array[Vector2i] = []

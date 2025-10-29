@@ -162,7 +162,7 @@ func test_polygon_shape_edge_cases(
 					expected_min_tiles,
 					tile_offsets.size(),
 					description,
-					"\"Context: diagnostic test\""
+					'"Context: diagnostic test"'
 				]
 			)
 		)
@@ -184,7 +184,7 @@ func test_polygon_shape_edge_cases(
 					test_name,
 					tile_offsets.size(),
 					unique_offsets.size(),
-					"\"Context: diagnostic test\""
+					'"Context: diagnostic test"'
 				]
 			)
 		)
@@ -243,7 +243,7 @@ func test_position_independence_edge_cases(
 					test_name,
 					tile_offsets.size(),
 					origin_offsets.size(),
-					"\"Context: diagnostic test\""
+					'"Context: diagnostic test"'
 				]
 			)
 		)
@@ -253,8 +253,12 @@ func test_position_independence_edge_cases(
 	# Assert consistent pattern (relative positions should be the same)
 	if expected_pattern_consistency:
 		# Calculate the pattern bounds for comparison
-		var pattern_bounds_current: Dictionary[String, int] = _calculate_pattern_bounds(tile_offsets)
-		var pattern_bounds_origin: Dictionary[String, int] = _calculate_pattern_bounds(origin_offsets)
+		var pattern_bounds_current: Dictionary[String, int] = _calculate_pattern_bounds(
+			tile_offsets
+		)
+		var pattern_bounds_origin: Dictionary[String, int] = _calculate_pattern_bounds(
+			origin_offsets
+		)
 
 		(
 			assert_int(pattern_bounds_current["width"])
@@ -300,7 +304,7 @@ func test_boundary_condition_edge_cases() -> void:
 		. append_failure_message(
 			(
 				"Boundary-aligned polygon should generate tiles but got %d\n%s"
-				% [boundary_offsets.size(), "\"Context: diagnostic test\""]
+				% [boundary_offsets.size(), '"Context: diagnostic test"']
 			)
 		)
 		. is_greater(0)
@@ -326,7 +330,7 @@ func test_boundary_condition_edge_cases() -> void:
 		. append_failure_message(
 			(
 				"Fractional boundary polygon should generate tiles but got %d\n%s"
-				% [fractional_offsets.size(), "\"Context: diagnostic test\""]
+				% [fractional_offsets.size(), '"Context: diagnostic test"']
 			)
 		)
 		. is_greater(0)
@@ -364,13 +368,17 @@ func test_winding_order_edge_cases() -> void:
 	var ccw_offsets: Array[Vector2i] = CollisionGeometryUtils.compute_polygon_tile_offsets(
 		ccw_polygon, TILE_SIZE_16, CENTER_TILE
 	)
-	GBTestDiagnostics.log_verbose("CCW offsets: %s (%d tiles)" % [str(ccw_offsets), ccw_offsets.size()])
+	GBTestDiagnostics.log_verbose(
+		"CCW offsets: %s (%d tiles)" % [str(ccw_offsets), ccw_offsets.size()]
+	)
 
 	GBTestDiagnostics.log_verbose("Testing clockwise polygon...")
 	var cw_offsets: Array[Vector2i] = CollisionGeometryUtils.compute_polygon_tile_offsets(
 		cw_polygon, TILE_SIZE_16, CENTER_TILE
 	)
-	GBTestDiagnostics.log_verbose("CW offsets: %s (%d tiles)" % [str(cw_offsets), cw_offsets.size()])
+	GBTestDiagnostics.log_verbose(
+		"CW offsets: %s (%d tiles)" % [str(cw_offsets), cw_offsets.size()]
+	)
 
 	# Both should produce the same result
 	(
@@ -378,7 +386,7 @@ func test_winding_order_edge_cases() -> void:
 		. append_failure_message(
 			(
 				"Winding order should not affect tile count. CCW: %d tiles, CW: %d tiles\n%s"
-				% [ccw_offsets.size(), cw_offsets.size(), "\"Context: diagnostic test\""]
+				% [ccw_offsets.size(), cw_offsets.size(), '"Context: diagnostic test"']
 			)
 		)
 		. is_equal(ccw_offsets.size())

@@ -42,8 +42,7 @@ func after_test() -> void:
 #region Test Setup Helpers
 func _setup_test_environment() -> void:
 	var env_scene: PackedScene = GBTestConstants.get_environment_scene(GBTestConstants.EnvironmentType.ALL_SYSTEMS)
- assert_that(env_scene)
-  .append_failure_message("Failed to load test environment scene").is_not_null()
+ assert_that(env_scene).append_failure_message("Failed to load test environment scene").is_not_null()
 
 	_test_env = env_scene.instantiate()
 	add_child(_test_env)
@@ -103,12 +102,10 @@ func test_validate_setup_environment_collects_targeting_issues() -> void:
 	# Missing template and invalid targeting state -> validate should fail and add issues
 	var report := service.setup_indicators(preview, _create_valid_tile_check_rules())
 
-	assert_that(report)
-  .append_failure_message("Expected report to be created with null service components").is_not_null()
+	assert_that(report).append_failure_message("Expected report to be created with null service components").is_not_null()
 	var issues := report.issues
 	assert_that(issues.size()).append_failure_message("Expected issues when template/targeting are missing, got %d issues: %s" % [issues.size(), str(issues)]).is_greater(0)
-	assert_array(issues)
-		.append_failure_message("Expected template missing issue present, but got issues: %s" % str(issues)).contains(["Indicator template is not set; cannot create indicators."])
+	assert_array(issues).append_failure_message("Expected template missing issue present, but got issues: %s" % str(issues)).contains(["Indicator template is not set; cannot create indicators."])
 
 # Test catches: Preview objects without collision shapes causing early abort
 func test_setup_indicators_reports_no_collision_shapes() -> void:
@@ -121,8 +118,7 @@ func test_setup_indicators_reports_no_collision_shapes() -> void:
 	var report := _service.setup_indicators(preview, _create_valid_tile_check_rules())
 
 	assert_that(report).append_failure_message("Expected report to be created for preview with no collision shapes").is_not_null()
-	assert_array(report.issues)
-		.append_failure_message("Should report no collision shapes found, got issues: %s" % str(report.issues)).contains(["setup_indicators: No collision shapes found on test object"])
+	assert_array(report.issues).append_failure_message("Should report no collision shapes found, got issues: %s" % str(report.issues)).contains(["setup_indicators: No collision shapes found on test object"])
 
 # Test catches: Missing collision mapper causing setup failure
 func test_setup_indicators_reports_missing_collision_mapper_when_nulled() -> void:
@@ -135,10 +131,8 @@ func test_setup_indicators_reports_missing_collision_mapper_when_nulled() -> voi
 	_service._collision_mapper = null
 	var report := _service.setup_indicators(preview, _create_valid_tile_check_rules())
 
-	assert_that(report)
-  .append_failure_message("Expected report to be created with null collision mapper").is_not_null()
-	assert_array(report.issues)
-		.append_failure_message("Should report missing collision mapper, got issues: %s" % str(report.issues)).contains(["setup_indicators: Collision mapper is not available"])
+	assert_that(report).append_failure_message("Expected report to be created with null collision mapper").is_not_null()
+	assert_array(report.issues).append_failure_message("Should report missing collision mapper, got issues: %s" % str(report.issues)).contains(["setup_indicators: Collision mapper is not available"])
 
 #endregion
 
@@ -193,8 +187,7 @@ func test_indicator_positioning_regression_800_pixel_offset() -> void:
 	)
 
 	# Validate that indicators exist
-	assert_that(indicators.size()).is_greater(0)
-  .append_failure_message("Expected indicators to be generated")
+	assert_that(indicators.size()).is_greater(0).append_failure_message("Expected indicators to be generated")
 
 	# CRITICAL ASSERTION: Check that indicators are positioned near the expected position
 	# This should fail with current regression, showing ~800+ pixel offset
@@ -340,10 +333,8 @@ func test_indicators_positioned_at_correct_tile_positions() -> void:
 
 	var report := _service.setup_indicators(preview, _create_valid_tile_check_rules())
 
-	assert_that(report)
-  .append_failure_message("Expected successful indicator setup but got null report").is_not_null()
-	assert_that(report.issues)
-  .append_failure_message("Expected no setup issues but got: %s" % str(report.issues)).is_empty()
+	assert_that(report).append_failure_message("Expected successful indicator setup but got null report").is_not_null()
+	assert_that(report.issues).append_failure_message("Expected no setup issues but got: %s" % str(report.issues)).is_empty()
 
 	# Verify that indicators were created
 	var indicators := _service._indicators
@@ -370,8 +361,7 @@ func test_indicators_have_offset_based_naming() -> void:
 	var preview := _create_preview_with_collision_shapes()
 	var report := _service.setup_indicators(preview, _create_valid_tile_check_rules())
 
-	assert_that(report.issues)
-  .append_failure_message("Expected no setup issues but got: %s" % str(report.issues)).is_empty()
+	assert_that(report.issues).append_failure_message("Expected no setup issues but got: %s" % str(report.issues)).is_empty()
 
 	var indicators := _service._indicators
 	assert_that(indicators.size()).append_failure_message("Expected indicators to be generated, got %d from service" % indicators.size()).is_greater(0)
@@ -400,8 +390,7 @@ func test_testing_indicator_freed_after_setup() -> void:
 
 	var report := _service.setup_indicators(preview, _create_valid_tile_check_rules())
 
-	assert_that(report.issues)
-  .append_failure_message("Expected no setup issues but got: %s" % str(report.issues)).is_empty()
+	assert_that(report.issues).append_failure_message("Expected no setup issues but got: %s" % str(report.issues)).is_empty()
 
 	# Give some time for cleanup operations
 	await get_tree().process_frame

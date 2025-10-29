@@ -125,8 +125,7 @@ func test_collision_processor_error_handling(
 	var result : Dictionary[Vector2i, Array] = _processor.get_tile_offsets_for_collision(collision_obj, test_data, test_map, _test_env.positioner)
 
 	# Assert - result is a Dictionary, not Array[Node2D]
-	assert_that(result.size())
-  .append_failure_message("Expected empty result for %s" % test_description).is_equal(expected_size)
+	assert_that(result.size()).append_failure_message("Expected empty result for %s" % test_description).is_equal(expected_size)
 
 ## Test isometric tile processing
 func test_collision_processor_isometric_tiles() -> void:
@@ -167,8 +166,7 @@ func test_collision_processor_cache_invalidation() -> void:
 	).is_greater(0)
 
 	# Results should be identical
-	assert_that(result1)
-  .append_failure_message("Expected identical results after cache invalidation").is_equal(result2)
+	assert_that(result1).append_failure_message("Expected identical results after cache invalidation").is_equal(result2)
 
 ## Test multiple shapes in single CollisionObject2D
 func test_collision_processor_multiple_shapes() -> void:
@@ -199,8 +197,7 @@ func test_collision_processor_multiple_shapes() -> void:
 	var result: Dictionary[Vector2i, Array[Node2D]] = _processor.get_tile_offsets_for_collision(collision_obj, test_data, _test_env.top_down_map, _test_env.positioner)
 
 	# Assert - result is a Dictionary[Vector2i, Array[Node2D]]
-	assert_that(result.size())
-  .append_failure_message("Expected collision processing to handle multiple shapes").is_greater(0)
+	assert_that(result.size()).append_failure_message("Expected collision processing to handle multiple shapes").is_greater(0)
 	# Multiple shapes may only cover 1 tile if they're small and close together
 	assert_that(result.size()).append_failure_message("Expected at least 1 tile for multiple shapes, got %d tiles" % result.size()).is_greater_equal(1)
 

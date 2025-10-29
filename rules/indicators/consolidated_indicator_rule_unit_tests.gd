@@ -208,9 +208,9 @@ func test_indicator_factory_handles_empty_position_map() -> void:
 	)
 
 	(
-		assert_that(indicators.size() == 0).append_failure_message(
-			"Expected 0 indicators for empty position map"
-		).is_true()
+		assert_that(indicators.size() == 0)
+		. append_failure_message("Expected 0 indicators for empty position map")
+		. is_true()
 	)
 
 
@@ -233,15 +233,21 @@ func test_indicator_basic_setup(
 
 	# Verify basic setup
 	(
-		assert_object(indicator).append_failure_message("Indicator should be created for shape type: %s" % shape_type).is_not_null()
+		assert_object(indicator)
+		. append_failure_message("Indicator should be created for shape type: %s" % shape_type)
+		. is_not_null()
 	)
 
 	(
-		assert_object(indicator.shape).append_failure_message("Indicator shape should be set for type: %s" % shape_type).is_not_null()
+		assert_object(indicator.shape)
+		. append_failure_message("Indicator shape should be set for type: %s" % shape_type)
+		. is_not_null()
 	)
 
 	(
-		assert_vector(indicator.global_position).append_failure_message("Indicator should have zero global position initially").is_equal(Vector2.ZERO)
+		assert_vector(indicator.global_position)
+		. append_failure_message("Indicator should have zero global position initially")
+		. is_equal(Vector2.ZERO)
 	)
 
 
@@ -323,7 +329,9 @@ func test_coordinate_transformation_tile_to_world() -> void:
 		tilemap_position + Vector2(tile_coords.x * tile_size.x, tile_coords.y * tile_size.y)
 	)
 
-	assert_vector(world_pos).is_equal(expected_world_pos).append_failure_message("Tile to world coordinate transformation should be correct")
+	assert_vector(world_pos).is_equal(expected_world_pos).append_failure_message(
+		"Tile to world coordinate transformation should be correct"
+	)
 
 
 func test_coordinate_transformation_world_to_tile() -> void:
@@ -337,7 +345,9 @@ func test_coordinate_transformation_world_to_tile() -> void:
 		floori((world_pos.y - tilemap_position.y) / tile_size.y)
 	)
 
-	assert_vector(tile_coords).is_equal(Vector2i(2, 3)).append_failure_message("World to tile coordinate transformation should be correct")
+	assert_vector(tile_coords).is_equal(Vector2i(2, 3)).append_failure_message(
+		"World to tile coordinate transformation should be correct"
+	)
 
 
 # ===== POLYGON INDICATOR TESTS =====
@@ -444,7 +454,12 @@ func test_positioning_integration_with_tilemap() -> void:
 	diag.append("Result Indicators: %d" % result.indicators.size())
 	diag.append("Tilemap Cells: %d" % tilemap.get_used_cells().size())
 
-	assert_that(result.indicators.size()).is_greater(0).append_failure_message(("Should create indicators when positioned over tilemap tiles. Diagnostics:\n  %s" % "\n  ".join(diag)))
+	assert_that(result.indicators.size()).is_greater(0).append_failure_message(
+		(
+			"Should create indicators when positioned over tilemap tiles. Diagnostics:\n  %s"
+			% "\n  ".join(diag)
+		)
+	)
 
 
 # ===== REGRESSION TESTS =====
@@ -513,9 +528,13 @@ func test_grid_targeting_state_debug_functionality() -> void:
 
 	targeting_state.set_manual_target(test_target)
 
-	assert_object(targeting_state.get_target()).is_not_null().append_failure_message("Targeting state should have target after assignment")
+	assert_object(targeting_state.get_target()).is_not_null().append_failure_message(
+		"Targeting state should have target after assignment"
+	)
 
-	assert_object(targeting_state.get_target()).is_same(test_target).append_failure_message("Targeting state should return the assigned target")
+	assert_object(targeting_state.get_target()).is_same(test_target).append_failure_message(
+		"Targeting state should return the assigned target"
+	)
 
 
 # ===== INDICATOR RECONCILE TESTS =====

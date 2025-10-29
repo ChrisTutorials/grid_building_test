@@ -28,9 +28,7 @@
 
 ## Alternative: Use larger base polygons (e.g., 40x40) if 4-tile coverage is needed.## Key findings:## Key findings:
 
-
-
-extends GdUnitTestSuite## 1. 45° skew of 32x32 square creates diamond spanning 1×2 tiles## 1. 45° skew of 32x32 square creates diamond spanning 1×2 tiles
+extends GdUnitTestSuite  ## 1. 45° skew of 32x32 square creates diamond spanning 1×2 tiles## 1. 45° skew of 32x32 square creates diamond spanning 1×2 tiles
 
 ## 2. 45° rotation of 32x32 square creates diamond with vertices at ±22.63## 2. 45° rotation of 32x32 square creates diamond with vertices at ±22.63
 
@@ -43,7 +41,5 @@ extends GdUnitTestSuite## 1. 45° skew of 32x32 square creates diamond spanning 
 ## Recommendation: Update test expectations from 4 to 3 tiles for both transforms.## Recommendation: Update test expectations from 4 to 3 tiles for both transforms.
 
 ## Alternative: Use larger base polygons (e.g., 40x40) if 4-tile coverage is needed.## Alternative: Use larger base polygons (e.g., 40x40) if 4-tile coverage is needed.
-
-
 
 extends GdUnitTestSuite
