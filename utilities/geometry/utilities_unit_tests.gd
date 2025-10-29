@@ -1,9 +1,10 @@
 extends GdUnitTestSuite
 
-## Comprehensive unit tests for core utility classes: geometry math, geometry utils, collision geometry,
-## string utilities, and search utilities. Tests individual utility functions in isolation with
-## proper validation of collision object discovery, mathematical operations, and utility functions.
-## Ensures robust collision detection and mathematical accuracy across all utility systems.
+## Comprehensive unit tests for core utility classes: geometry math, geometry utils,
+## collision geometry, string utilities, and search utilities. Tests individual utility
+## functions in isolation with proper validation of collision object discovery,
+## mathematical operations, and utility functions. Ensures robust collision detection
+## and mathematical accuracy across all utility systems.
 
 @warning_ignore("unused_parameter")
 @warning_ignore("return_value_discarded")
@@ -13,17 +14,6 @@ const TEST_TILE_SIZE := Vector2(32, 32)
 const TEST_TILE_POS := Vector2(10, 10)
 const TEST_RECT_SIZE := Vector2(32, 32)
 const TEST_POSITION := Vector2(10, 10)
-
-## Test data polygons for various geometric operations
-var TEST_POLYGON := PackedVector2Array(
-	[Vector2(0, 0), Vector2(10, 0), Vector2(10, 10), Vector2(0, 10)]
-)
-var TEST_CONVEX_POLYGON := PackedVector2Array(
-	[Vector2(0, 0), Vector2(10, 0), Vector2(10, 10), Vector2(0, 10)]
-)
-var TEST_CONCAVE_POLYGON := PackedVector2Array(
-	[Vector2(0, 0), Vector2(10, 0), Vector2(5, 5), Vector2(10, 10), Vector2(0, 10)]
-)
 
 ## Expected intersection area for polygon tests
 const EXPECTED_INTERSECTION_AREA := 25.0
@@ -41,21 +31,34 @@ const TEST_STATIC_BODY_NAME := "TestStaticBody"
 
 ## Assertion message constants
 const SCENE_LOAD_SUCCESS_MESSAGE := "Scene should load successfully: "
-const COLLISION_OBJECT_COUNT_MESSAGE := "Scene {scene_path} should have exactly {expected_count} collision objects"
+const COLLISION_OBJECT_COUNT_MESSAGE := (
+	"Scene {scene_path} should have exactly {expected_count} collision objects"
+)
 
 ## Test scene paths and expected collision object counts
 const TEST_SCENE_DATA := [
-	[GBTestConstants.GIGANTIC_EGG_PATH, 1],
-	[GBTestConstants.PILLAR_PATH, 1],
-	[GBTestConstants.RECT_15_TILES_PATH, 1],
-	[GBTestConstants.SMITHY_PATH, 2],
-	[GBTestConstants.PLACEABLE_INSTANCE_2D_PATH, 0],
-	[GBTestConstants.TEST_2D_OBJECT_PATH, 0],
-	[GBTestConstants.ELLIPSE_PATH, 1],
-	[GBTestConstants.SKEW_ROTATION_RECT_PATH, 1],
-	[GBTestConstants.ISOMETRIC_BUILDING_PATH, 1],
-	[GBTestConstants.SCRIPT_KEEP_SCENE_PATH, 0],
+	["res://test/grid_building_test/scenes/objects/test_gigantic_egg.tscn", 1],
+	["res://test/grid_building_test/scenes/objects/test_pillar.tscn", 1],
+	["res://test/grid_building_test/scenes/objects/test_rect_15_tiles.tscn", 1],
+	["res://test/grid_building_test/scenes/objects/test_smithy.tscn", 2],
+	["res://test/grid_building_test/scenes/objects/test_placeable_instance_scene_2d.tscn", 0],
+	["res://test/grid_building_test/scenes/objects/2d_test_object.tscn", 0],
+	["res://test/grid_building_test/scenes/objects/test_elipse.tscn", 1],
+	["res://test/grid_building_test/scenes/objects/test_skew_rotation_rect.tscn", 1],
+	["res://test/grid_building_test/scenes/objects/isometric_building.tscn", 1],
+	["res://test/grid_building_test/scenes/objects/script_keep_scene.tscn", 0],
 ]
+
+## Test data polygons for various geometric operations
+var _test_polygon := PackedVector2Array(
+	[Vector2(0, 0), Vector2(10, 0), Vector2(10, 10), Vector2(0, 10)]
+)
+var _test_convex_polygon := PackedVector2Array(
+	[Vector2(0, 0), Vector2(10, 0), Vector2(10, 10), Vector2(0, 10)]
+)
+var _test_concave_polygon := PackedVector2Array(
+	[Vector2(0, 0), Vector2(10, 0), Vector2(5, 5), Vector2(10, 10), Vector2(0, 10)]
+)
 
 #endregion
 
@@ -69,7 +72,7 @@ var _created_test_nodes: Array[Node] = []
 
 @warning_ignore("unused_parameter")
 func test_geometry_math_polygon_intersection() -> void:
-	var poly_a := TEST_POLYGON
+	var poly_a := _test_polygon
 	var poly_b := PackedVector2Array(
 		[Vector2(5, 5), Vector2(15, 5), Vector2(15, 15), Vector2(5, 15)]
 	)
@@ -132,7 +135,7 @@ func test_collision_geometry_utils_transform_building() -> void:
 
 @warning_ignore("unused_parameter")
 func test_collision_geometry_polygon_operations() -> void:
-	var collision_polygon := _create_collision_polygon(TEST_POLYGON)
+	var collision_polygon := _create_collision_polygon(_test_polygon)
 	_track_test_node(collision_polygon)
 	add_child(collision_polygon)
 
@@ -144,8 +147,8 @@ func test_collision_geometry_polygon_operations() -> void:
 
 @warning_ignore("unused_parameter")
 func test_collision_geometry_convex_check() -> void:
-	assert_that(CollisionGeometryUtils.is_polygon_convex(TEST_CONVEX_POLYGON)).is_true()
-	assert_that(CollisionGeometryUtils.is_polygon_convex(TEST_CONCAVE_POLYGON)).is_false()
+	assert_that(CollisionGeometryUtils.is_polygon_convex(_test_convex_polygon)).is_true()
+	assert_that(CollisionGeometryUtils.is_polygon_convex(_test_concave_polygon)).is_false()
 
 
 #endregion
@@ -159,11 +162,12 @@ func test_string_utilities_name_conversion() -> void:
 
 
 @warning_ignore("unused_parameter")
+@warning_ignore("unused_parameter")
 func test_string_utilities_separator_matching(
 	separator: String,
 	separator_type: int,
 	expected: bool,
-	test_parameters := [
+	_test_parameters := [
 		["_", GBString.SeparatorType.UNDERSCORE, true],
 		["-", GBString.SeparatorType.DASH, true],
 		[" ", GBString.SeparatorType.SPACE, true],
@@ -186,7 +190,7 @@ func test_string_utilities_separator_matching(
 func test_string_utilities_get_separator_string(
 	separator_type: int,
 	expected: String,
-	test_parameters := [
+	_test_parameters := [
 		[GBString.SeparatorType.NONE, ""],
 		[GBString.SeparatorType.SPACE, " "],
 		[GBString.SeparatorType.UNDERSCORE, "_"],

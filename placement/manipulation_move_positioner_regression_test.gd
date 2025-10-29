@@ -73,7 +73,7 @@ func _create_manipulatable_object(
 
 
 ## Helper to get indicator validity at a specific positioner position (sync version with scene_runner)
-func _check_indicators_at_position_sync(p_position: Vector2) -> Dictionary:
+func _check_indicators_at_position_sync(p_position: Vector2) -> Dictionary[String, Variant]:
 	# Move positioner to test position
 	_env.positioner.global_position = p_position
 
@@ -251,12 +251,12 @@ func test_move_exclusion_consistent_across_multiple_positions() -> void:
 
 	var results: Array[Dictionary] = []
 	for pos: Vector2 in positions:
-		var result: Dictionary = _check_indicators_at_position_sync(pos)
+		var result: Dictionary[String, Variant] = _check_indicators_at_position_sync(pos)
 		results.append(result)
 
 	# THEN: ALL positions should have valid indicators (original excluded everywhere)
 	for i in range(results.size()):
-		var result: Dictionary = results[i]
+		var result: Dictionary[String, Variant] = results[i]
 		var pos: Vector2 = positions[i]
 		(
 			assert_bool(result.all_valid)
@@ -288,7 +288,7 @@ func test_move_exclusion_with_overlapping_indicators() -> void:
 
 	# WHEN: Positioner positioned so indicators overlap original AND empty space
 	# Move slightly to the right - some indicators over original, some over empty
-	var result_overlap: Dictionary = _check_indicators_at_position_sync(Vector2(230, 200))
+	var result_overlap: Dictionary[String, Variant] = _check_indicators_at_position_sync(Vector2(230, 200))
 
 	# THEN: All indicators should be valid (those over original excluded, those over empty valid)
 	(

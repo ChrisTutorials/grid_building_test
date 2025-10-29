@@ -23,7 +23,7 @@ var _container: GBCompositionContainer
 
 func before_test() -> void:
 	# Create test environment using GBTestConstants
-	env = EnvironmentTestFactory.create_all_systems_env(self, GBTestConstants.ALL_SYSTEMS_ENV_UID)
+	env = scene_runner(GBTestConstants.ALL_SYSTEMS_ENV).scene()
 
 	# Validate environment setup
 	assert_object(env).append_failure_message("Failed to create test environment").is_not_null()
@@ -39,12 +39,12 @@ func before_test() -> void:
 	_container = env.get_container()
 
 	# Validate required components
-	assert_object(_building_system)
-  .append_failure_message("BuildingSystem not available").is_not_null()
-	assert_object(_indicator_manager)
-  .append_failure_message("IndicatorManager not available").is_not_null()
-	assert_object(_manipulation_parent)
-  .append_failure_message("ManipulationParent not available").is_not_null()
+	assert_object(_building_system).append_failure_message(
+		"BuildingSystem not available").is_not_null()
+	assert_object(_indicator_manager).append_failure_message(
+		"IndicatorManager not available").is_not_null()
+	assert_object(_manipulation_parent).append_failure_message(
+		"ManipulationParent not available").is_not_null()
 
 func after_test() -> void:
 	if _building_system and _building_system.is_in_build_mode():

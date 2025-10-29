@@ -384,7 +384,7 @@ func _format_indicator_state(indicator: RuleCheckIndicator) -> String:
 func _format_exclusions() -> String:
 	if not _env or not _env.targeting_state:
 		return "[Exclusions: null]"
-	var exclusions: Array = _env.targeting_state.collision_exclusions
+	var exclusions: Array[Node] = _env.targeting_state.collision_exclusions
 	if exclusions.is_empty():
 		return "[Exclusions: none]"
 	var names: Array[String] = []

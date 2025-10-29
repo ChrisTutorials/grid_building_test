@@ -33,7 +33,7 @@ var tile_rule: TileCheckRule = preload("uid://bbmmdkiwwuj4a")
 var collision_rule : CollisionsCheckRule = preload("uid://du7xu07247202")
 
 func before_test() -> void:
-	env = EnvironmentTestFactory.create_all_systems_env(self, GBTestConstants.ALL_SYSTEMS_ENV_UID)
+	env = scene_runner(GBTestConstants.ALL_SYSTEMS_ENV).scene()
 	_validate_environment_setup()
 	_initialize_test_components()
 	_validate_required_dependencies()
@@ -127,8 +127,7 @@ func _assert_collision_results_valid(collision_results: Dictionary, context: Str
 
 	for tile_pos: Variant in collision_results.keys():
 		var pos: Vector2i = tile_pos as Vector2i
-		assert_bool(abs(pos.x) < MAX_REASONABLE_COORDINATE and abs(pos.y) < MAX_REASONABLE_COORDINATE)
-   .append_failure_message(
+		assert_bool(abs(pos.x) < MAX_REASONABLE_COORDINATE and abs(pos.y) < MAX_REASONABLE_COORDINATE).append_failure_message(
 			"%s: Generated tile position %s should be reasonable" % [context, str(pos)]
 		).is_true()
 
@@ -148,7 +147,11 @@ func _cleanup_test_state() -> void:
 
 #region BUILDING WORKFLOW INTEGRATION
 @warning_ignore("unused_parameter")
-func test_complete_building_workflow(p_placeable : Placeable, test_parameters := GBTestConstants.get_placeables()) -> void:
+func test_complete_building_workflow(p_placeable : Placeable, test_parameters := [
+	[GBTestConstants.PLACEABLE_BLACKSMITH_BLUE],
+	[GBTestConstants.PLACEABLE_HOUSE_WOODEN_RED],
+	[GBTestConstants.PLACEABLE_SMITHY]
+]) -> void:
 	if not _enter_build_mode_successfully(p_placeable):
 		return
 
@@ -236,14 +239,14 @@ func test_indicators_are_parented_and_inside_tree() -> void:
 	assert_array(indicators).append_failure_message("No indicators created").is_not_empty()
 
 	for ind: RuleCheckIndicator in indicators:
-		assert_bool(ind.is_inside_tree())
-   .append_failure_message("Indicator not inside tree: %s" % ind.name).is_true()
-		assert_object(ind.get_parent())
-   .append_failure_message("Indicator has no parent: %s" % ind.name).is_not_null()
+		assert_bool(ind.is_inside_tree()).append_failure_message(
+			"Indicator not inside tree: %s" % ind.name).is_true()
+		assert_object(ind.get_parent()).append_failure_message(
+			"Indicator has no parent: %s" % ind.name).is_not_null()
 		var expected_parent := env.indicator_manager
-		assert_object(ind.get_parent())
-			.append_failure_message("Unexpected parent for indicator: %s Parent was %s but should be %s" % [ind.name, ind.get_parent(), expected_parent])
-			.is_equal(expected_parent)
+		assert_object(ind.get_parent()).append_failure_message(
+			"Unexpected parent for indicator: %s Parent was %s but should be %s" % [ind.name, ind.get_parent(), expected_parent]
+		).is_equal(expected_parent)
 
 #endregion
 
@@ -284,9 +287,13 @@ func test_smithy_collision_detection() -> void:
 
 #region COMPLEX WORKFLOW INTEGRATION
 
-## Test build and then post build move manpipulation
+## Test build and then post build move manipulation
 @warning_ignore("unused_parameter")
-func test_complex_multi_system_workflow(p_placeable : Placeable, test_parameters := GBTestConstants.get_placeables()) -> void:
+func test_complex_multi_system_workflow(p_placeable : Placeable, test_parameters := [
+	[GBTestConstants.PLACEABLE_BLACKSMITH_BLUE],
+	[GBTestConstants.PLACEABLE_HOUSE_WOODEN_RED],
+	[GBTestConstants.PLACEABLE_SMITHY]
+]) -> void:
 	_set_targeting_position(TARGET_POS)
 
 	assert_vector(TARGET_POS).append_failure_message(
@@ -399,7 +406,11 @@ func test_targeting_state_transitions() -> void:
 #endregion
 #region COMPREHENSIVE INTEGRATION VALIDATION
 @warning_ignore("unused_parameter")
-func test_full_system_integration_workflow(p_placeable : Placeable, test_parameters := GBTestConstants.get_placeables()) -> void:
+func test_full_system_integration_workflow(p_placeable : Placeable, test_parameters := [
+	[GBTestConstants.PLACEABLE_BLACKSMITH_BLUE],
+	[GBTestConstants.PLACEABLE_HOUSE_WOODEN_RED],
+	[GBTestConstants.PLACEABLE_SMITHY]
+]) -> void:
 	# Step 1: Set target
 	_set_targeting_position(FULL_WORKFLOW_POS)
 

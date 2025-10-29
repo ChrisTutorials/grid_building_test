@@ -17,7 +17,7 @@ func _create_node(p_name: String, p_type: Variant = Node2D) -> Node:
 ## Returns dictionary with 'root' and 'collision' keys
 func _create_basic_collision_hierarchy(
 	p_root_name: String = "Root", p_collision_name: String = "Collision"
-) -> Dictionary:
+) -> Dictionary[String, Node]:
 	var root: Node2D = auto_free(Node2D.new())
 	root.name = p_root_name
 	add_child(root)
@@ -31,8 +31,8 @@ func _create_basic_collision_hierarchy(
 
 ## Creates hierarchy with Manipulatable: root → collision → manipulatable
 ## Returns dictionary with 'root', 'collision', 'manipulatable' keys
-func _create_manipulatable_hierarchy(p_root_name: String = "Root") -> Dictionary:
-	var result: Dictionary = _create_basic_collision_hierarchy(p_root_name, "Collision")
+func _create_manipulatable_hierarchy(p_root_name: String = "Root") -> Dictionary[String, Node]:
+	var result: Dictionary[String, Node] = _create_basic_collision_hierarchy(p_root_name, "Collision")
 
 	var manipulatable: Manipulatable = auto_free(Manipulatable.new())
 	manipulatable.root = result.root
@@ -81,7 +81,7 @@ func test_resolve_root_node_with_metadata_node_path() -> void:
 	# THISISROOTSMITHY-Node2D
 	#   └─ Smithy (Area2D with metadata/root_node = NodePath(".."))
 
-	var hierarchy: Dictionary = _create_basic_collision_hierarchy(
+	var hierarchy: Dictionary[String, Node] = _create_basic_collision_hierarchy(
 		"THISISROOTSMITHY-Node2D", "Smithy"
 	)
 	var root: Node2D = hierarchy.root

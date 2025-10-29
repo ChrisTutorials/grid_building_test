@@ -17,7 +17,7 @@ func after_test() -> void:
 	pass
 
 ## Helper method to create common test environment (DRY principle)
-func _create_base_test_environment() -> Dictionary:
+func _create_base_test_environment() -> Dictionary[String, Variant]:
 	var positioner := GridPositioner2D.new()
 	add_child(positioner)
 	auto_free(positioner)
@@ -196,7 +196,7 @@ func test_collision_processor_multiple_shapes() -> void:
 	var test_data: CollisionTestSetup2D = _create_collision_test_setup(collision_obj)
 
 	# Act
-	var result: Dictionary = _processor.get_tile_offsets_for_collision(collision_obj, test_data, _test_env.top_down_map, _test_env.positioner)
+	var result: Dictionary[Vector2i, Array[Node2D]] = _processor.get_tile_offsets_for_collision(collision_obj, test_data, _test_env.top_down_map, _test_env.positioner)
 
 	# Assert - result is a Dictionary[Vector2i, Array[Node2D]]
 	assert_that(result.size())
@@ -232,7 +232,7 @@ func test_calculate_tile_range_shapes(
 	shape_transform.origin = _test_env.test_position
 
 	# Act
-	var result: Dictionary = _processor.calculate_tile_range(shape, bounds, _test_env.top_down_map, _test_env.tile_size, shape_transform)
+	var result: Dictionary[String, Vector2i] = _processor.calculate_tile_range(shape, bounds, _test_env.top_down_map, _test_env.tile_size, shape_transform)
 
 	# Assert
 	assert_that(result).append_failure_message(
@@ -262,7 +262,7 @@ func test_process_shape_offsets_rectangle() -> void:
 	var shape_epsilon: float = 0.1
 
 	# Act
-	var result: Dictionary = _processor.process_shape_offsets(rect_test_setup, test_data, _test_env.top_down_map, _test_env.center_tile, _test_env.tile_size, shape_epsilon, collision_obj)
+	var result: Dictionary[Vector2i, Array[Node2D]] = _processor.process_shape_offsets(rect_test_setup, test_data, _test_env.top_down_map, _test_env.center_tile, _test_env.tile_size, shape_epsilon, collision_obj)
 
 	# Assert - result is a Dictionary[Vector2i, Array[Node2D]]
 	assert_that(result).append_failure_message(
@@ -287,7 +287,7 @@ func test_compute_shape_tile_offsets_rectangle() -> void:
 	var shape_epsilon: float = 0.1
 
 	# Act
-	var result: Array = _processor.compute_shape_tile_offsets(shape, shape_transform, _test_env.top_down_map, _test_env.tile_size, shape_epsilon, start_tile, end_exclusive, _test_env.center_tile, shape_polygon)
+	var result: Array[Vector2i] = _processor.compute_shape_tile_offsets(shape, shape_transform, _test_env.top_down_map, _test_env.tile_size, shape_epsilon, start_tile, end_exclusive, _test_env.center_tile, shape_polygon)
 
 	# Assert
 	assert_that(result).is_not_null()
