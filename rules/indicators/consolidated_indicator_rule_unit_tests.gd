@@ -81,8 +81,12 @@ func after_test() -> void:
 
 
 func _setup_test_environment() -> void:
-	var env_scene: PackedScene = GBTestConstants.get_environment_scene(GBTestConstants.EnvironmentType.ALL_SYSTEMS)
-	assert_that(env_scene).is_not_null().append_failure_message("Failed to load test environment scene")
+	var env_scene: PackedScene = GBTestConstants.get_environment_scene(
+		GBTestConstants.EnvironmentType.ALL_SYSTEMS
+	)
+	assert_that(env_scene).is_not_null().append_failure_message(
+		"Failed to load test environment scene"
+	)
 
 	_test_env = env_scene.instantiate()
 	add_child(_test_env)
@@ -204,7 +208,9 @@ func test_indicator_factory_handles_empty_position_map() -> void:
 	)
 
 	(
-		assert_that(indicators.size() == 0).append_failure_message("Expected 0 indicators for empty position map").is_true()
+		assert_that(indicators.size() == 0).append_failure_message(
+			"Expected 0 indicators for empty position map"
+		).is_true()
 	)
 
 
