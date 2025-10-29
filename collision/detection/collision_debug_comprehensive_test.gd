@@ -254,32 +254,33 @@ func _create_collision_object_for_packed_scene(
 
 ## Test polygon shape conversion and collision detection edge cases
 func test_polygon_collision_edge_cases() -> void:
-		GBTestDiagnostics.buffer("=== DEBUG POLYGON COLLISION EDGE CASES ===")
+	var diagnostic_messages: Array[String] = []
+	diagnostic_messages.append("=== DEBUG POLYGON COLLISION EDGE CASES ===")
 
-		for test_case: Dictionary in polygon_test_cases:
-			GBTestDiagnostics.buffer("--- Testing: %s ---" % test_case.name)
-			var points: PackedVector2Array = test_case.points as PackedVector2Array
-			var expected_valid: bool = test_case.expected_valid as bool
+	for test_case: Dictionary in polygon_test_cases:
+		diagnostic_messages.append("--- Testing: %s ---" % test_case.name)
+		var points: PackedVector2Array = test_case.points as PackedVector2Array
+		var expected_valid: bool = test_case.expected_valid as bool
 
-			GBTestDiagnostics.buffer("Input points: %s" % points)
+		diagnostic_messages.append("Input points: %s" % points)
 
-			# Test bounds calculation
-			var bounds: Rect2 = CollisionGeometryCalculator._get_polygon_bounds(points)
-			GBTestDiagnostics.buffer("Polygon bounds: %s" % bounds)
+		# Test bounds calculation
+		var bounds: Rect2 = CollisionGeometryCalculator._get_polygon_bounds(points)
+		diagnostic_messages.append("Polygon bounds: %s" % bounds)
 
-			# Test if polygon is considered valid (using points.size() >= 3)
-			var is_valid: bool = points.size() >= 3 and CollisionGeometryCalculator.polygon_area(
-				points
-			) > 0.001
-			GBTestDiagnostics.buffer("Is valid polygon: %s" % is_valid)
+		# Test if polygon is considered valid (using points.size() >= 3)
+		var is_valid: bool = points.size() >= 3 and CollisionGeometryCalculator.polygon_area(
+			points
+		) > 0.001
+		diagnostic_messages.append("Is valid polygon: %s" % is_valid)
 
-			# Test area calculation if valid
-			if is_valid:
-				var area: float = CollisionGeometryCalculator.polygon_area(points)
-				GBTestDiagnostics.buffer("Polygon area: %f" % area)
+		# Test area calculation if valid
+		if is_valid:
+			var area: float = CollisionGeometryCalculator.polygon_area(points)
+			diagnostic_messages.append("Polygon area: %f" % area)
 
-			assert_bool(is_valid).append_failure_message(
-				"Polygon validity mismatch for %s: expected %s, got %s" % [
-					test_case.name, expected_valid, is_valid
-				] + "\n" + GBTestDiagnostics.flush_for_assert()
-			).is_equal(expected_valid)
+		assert_bool(is_valid).append_failure_message(
+			"Polygon validity mismatch for %s: expected %s, got %s" % [
+				test_case.name, expected_valid, is_valid
+			] + "\n" + "\n".join(diagnostic_messages)
+		).is_equal(expected_valid)
