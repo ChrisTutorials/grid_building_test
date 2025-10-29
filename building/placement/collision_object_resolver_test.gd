@@ -65,17 +65,20 @@ func test_collision_object_resolution(test_name: String, setup_func: Callable, e
 	var result: Variant = _resolver.resolve_collision_object(collision_node, test_setups)
 
 	# Assert
-	assert_that(result.is_valid)
-  .append_failure_message("Resolution validity should match expected").is_equal(expected_valid)
+	assert_that(result.is_valid).append_failure_message(
+		"Resolution validity should match expected").is_equal(expected_valid)
 	if expected_valid:
 		assert_that(result.collision_object).append_failure_message("Valid resolution should return expected collision object").is_same(expected_collision_obj)
 		assert_that(result.test_setup).append_failure_message("Valid resolution should return expected test setup").is_same(expected_test_setup)
-		assert_that(result.error_message)
-   .append_failure_message("Valid resolution should have no error message").is_empty()
+		assert_that(result.error_message).append_failure_message(
+			"Valid resolution should have no error message").is_empty()
 	else:
-		assert_that(result.collision_object).append_failure_message("Invalid resolution should return expected collision object").is_same(expected_collision_obj)
-		assert_that(result.test_setup).append_failure_message("Invalid resolution should return expected test setup").is_same(expected_test_setup)
-		assert_that(result.error_message).append_failure_message("Invalid resolution should contain expected error text").contains(expected_error_contains)
+		assert_that(result.collision_object).append_failure_message(
+			"Invalid resolution should return expected collision object").is_same(expected_collision_obj)
+		assert_that(result.test_setup).append_failure_message(
+			"Invalid resolution should return expected test setup").is_same(expected_test_setup)
+		assert_that(result.error_message).append_failure_message(
+			"Invalid resolution should contain expected error text").contains(expected_error_contains)
 
 	# Cleanup
 	for obj: Node in test_data.cleanup_objects:
@@ -93,8 +96,8 @@ func test_object_matches_layer_mask() -> void:
 	assert_that(_resolver.object_matches_layer_mask(collision_obj, 2)).append_failure_message("Layer 2 should NOT match collision object on layer 5").is_false()  # 010 & 101 = 000
 
 	# Test null object
-	assert_that(_resolver.object_matches_layer_mask(null, 1))
-  .append_failure_message("Null object should not match any layer mask").is_false()
+	assert_that(_resolver.object_matches_layer_mask(null, 1)) \
+		.append_failure_message("Null object should not match any layer mask").is_false()
 
 	# Cleanup
 	collision_obj.queue_free()
