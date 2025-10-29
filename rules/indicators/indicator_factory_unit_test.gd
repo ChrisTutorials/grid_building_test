@@ -45,16 +45,16 @@ func test_indicator_factory_creates_indicators_from_position_map() -> void:
 		test_object
 	)
 	(
-		assert_that(indicators.size() == 2)
-		. append_failure_message("Expected 2 indicators for 2 positions in map")
+		assert_that(indicators.size() == 2) \
+		. append_failure_message("Expected 2 indicators for 2 positions in map") \
 		. is_true()
 	)
 
 	# Verify indicators have rules assigned
 	for indicator in indicators:
 		(
-			assert_that(indicator.get_rules().size() > 0)
-			. append_failure_message("Expected indicators to have rules assigned")
+			assert_that(indicator.get_rules().size() > 0) \
+			. append_failure_message("Expected indicators to have rules assigned") \
 			. is_true()
 		)
 
@@ -94,8 +94,8 @@ func test_indicator_factory_handles_empty_position_map() -> void:
 		test_object
 	)
 	(
-		assert_that(indicators.size() == 0)
-		. append_failure_message("Expected 0 indicators for empty position map")
+		assert_that(indicators.size() == 0) \
+		. append_failure_message("Expected 0 indicators for empty position map") \
 		. is_true()
 	)
 
@@ -141,15 +141,15 @@ func test_indicator_factory_handles_multiple_rules_per_position() -> void:
 		test_object
 	)
 	(
-		assert_that(indicators.size() == 1)
-		. append_failure_message("Expected 1 indicator for 1 position in map")
+		assert_that(indicators.size() == 1) \
+		. append_failure_message("Expected 1 indicator for 1 position in map") \
 		. is_true()
 	)
 
 	# Verify indicator has both rules assigned
 	var indicator := indicators[0]
 	(
-		assert_that(indicator.get_rules().size() == 2)
-		. append_failure_message("Expected indicator to have 2 rules assigned")
+		assert_that(indicator.get_rules().size() == 2) \
+		. append_failure_message("Expected indicator to have 2 rules assigned") \
 		. is_true()
 	)

@@ -62,8 +62,8 @@ func test_indicator_positioning_at_multiple_offsets() -> void:
 			test_rule = rule
 			break
 	(
-		assert_that(test_rule)
-		. append_failure_message("Should find a TileCheckRule in the test setup")
+		assert_that(test_rule) \
+		. append_failure_message("Should find a TileCheckRule in the test setup") \
 		. is_not_null()
 	)
 
@@ -108,13 +108,13 @@ func test_indicator_positioning_at_multiple_offsets() -> void:
 				)
 
 				(
-					assert_that(indicator.global_position)
+					assert_that(indicator.global_position) \
 					. append_failure_message(
 						(
 							"Indicator at offset %s should be positioned at %s but is at %s"
 							% [expected_offset, expected_world_pos, indicator.global_position]
 						)
-					)
+					) \
 					. is_equal(expected_world_pos)
 				)
 
@@ -135,8 +135,8 @@ func test_null_targeting_state_components_handled_gracefully() -> void:
 			test_rule = rule
 			break
 	(
-		assert_that(test_rule)
-		. append_failure_message("Should find a TileCheckRule in the test setup")
+		assert_that(test_rule) \
+		. append_failure_message("Should find a TileCheckRule in the test setup") \
 		. is_not_null()
 	)
 	position_rules_map[Vector2i(1, 1)] = [test_rule]

@@ -153,7 +153,7 @@ func test_polygon_shape_edge_cases(
 
 	# Assert minimum expected tiles
 	(
-		assert_int(tile_offsets.size())
+		assert_int(tile_offsets.size()) \
 		. append_failure_message(
 			(
 				"Polygon shape '%s' should generate at least %d tiles but got %d. Description: %s\n%s"
@@ -165,7 +165,7 @@ func test_polygon_shape_edge_cases(
 					'"Context: diagnostic test"'
 				]
 			)
-		)
+		) \
 		. is_greater_equal(expected_min_tiles)
 	)
 
@@ -176,7 +176,7 @@ func test_polygon_shape_edge_cases(
 			unique_offsets.append(offset)
 
 	(
-		assert_int(unique_offsets.size())
+		assert_int(unique_offsets.size()) \
 		. append_failure_message(
 			(
 				"Polygon shape '%s' generated duplicate tile offsets. Original: %d, Unique: %d\n%s"
@@ -187,7 +187,7 @@ func test_polygon_shape_edge_cases(
 					'"Context: diagnostic test"'
 				]
 			)
-		)
+		) \
 		. is_equal(tile_offsets.size())
 	)
 
@@ -235,7 +235,7 @@ func test_position_independence_edge_cases(
 
 	# Assert same number of tiles regardless of position
 	(
-		assert_int(tile_offsets.size())
+		assert_int(tile_offsets.size()) \
 		. append_failure_message(
 			(
 				"Position independence failed for '%s'. Got %d tiles, expected %d (same as origin)\n%s"
@@ -246,7 +246,7 @@ func test_position_independence_edge_cases(
 					'"Context: diagnostic test"'
 				]
 			)
-		)
+		) \
 		. is_equal(origin_offsets.size())
 	)
 
@@ -261,24 +261,24 @@ func test_position_independence_edge_cases(
 		)
 
 		(
-			assert_int(pattern_bounds_current["width"])
+			assert_int(pattern_bounds_current["width"]) \
 			. append_failure_message(
 				(
 					"Pattern width changed with position. Current: %d, Origin: %d"
 					% [pattern_bounds_current["width"], pattern_bounds_origin["width"]]
 				)
-			)
+			) \
 			. is_equal(pattern_bounds_origin["width"])
 		)
 
 		(
-			assert_int(pattern_bounds_current["height"])
+			assert_int(pattern_bounds_current["height"]) \
 			. append_failure_message(
 				(
 					"Pattern height changed with position. Current: %d, Origin: %d"
 					% [pattern_bounds_current["height"], pattern_bounds_origin["height"]]
 				)
-			)
+			) \
 			. is_equal(pattern_bounds_origin["height"])
 		)
 
@@ -300,13 +300,13 @@ func test_boundary_condition_edge_cases() -> void:
 	)
 
 	(
-		assert_int(boundary_offsets.size())
+		assert_int(boundary_offsets.size()) \
 		. append_failure_message(
 			(
 				"Boundary-aligned polygon should generate tiles but got %d\n%s"
 				% [boundary_offsets.size(), '"Context: diagnostic test"']
 			)
-		)
+		) \
 		. is_greater(0)
 	)
 
@@ -326,13 +326,13 @@ func test_boundary_condition_edge_cases() -> void:
 	)
 
 	(
-		assert_int(fractional_offsets.size())
+		assert_int(fractional_offsets.size()) \
 		. append_failure_message(
 			(
 				"Fractional boundary polygon should generate tiles but got %d\n%s"
 				% [fractional_offsets.size(), '"Context: diagnostic test"']
 			)
-		)
+		) \
 		. is_greater(0)
 	)
 
@@ -382,13 +382,13 @@ func test_winding_order_edge_cases() -> void:
 
 	# Both should produce the same result
 	(
-		assert_int(cw_offsets.size())
+		assert_int(cw_offsets.size()) \
 		. append_failure_message(
 			(
 				"Winding order should not affect tile count. CCW: %d tiles, CW: %d tiles\n%s"
 				% [ccw_offsets.size(), cw_offsets.size(), '"Context: diagnostic test"']
 			)
-		)
+		) \
 		. is_equal(ccw_offsets.size())
 	)
 

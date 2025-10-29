@@ -55,10 +55,10 @@ func test_mark_as_placed_sets_metadata() -> void:
 
 	# Assert
 	(
-		assert_bool(test_object.has_meta(GBPlacementPersistence.META_KEY))
+		assert_bool(test_object.has_meta(GBPlacementPersistence.META_KEY)) \
 		. append_failure_message(
 			"Expected object to have placement metadata after mark_as_placed()"
-		)
+		) \
 		. is_true()
 	)
 
@@ -71,8 +71,8 @@ func test_mark_as_placed_stores_placeable_path() -> void:
 	# Assert
 	var placement_data: Dictionary = test_object.get_meta(GBPlacementPersistence.META_KEY)
 	(
-		assert_str(placement_data.get("placeable_path", ""))
-		. append_failure_message("Placement data should contain placeable_path")
+		assert_str(placement_data.get("placeable_path", "")) \
+		. append_failure_message("Placement data should contain placeable_path") \
 		. is_equal(test_placeable.resource_path)
 	)
 
@@ -84,8 +84,8 @@ func test_is_placed_returns_true_for_marked_objects() -> void:
 
 	# Act & Assert
 	(
-		assert_bool(GBPlacementPersistence.is_placed(test_object))
-		. append_failure_message("Expected is_placed() to return true for marked object")
+		assert_bool(GBPlacementPersistence.is_placed(test_object)) \
+		. append_failure_message("Expected is_placed() to return true for marked object") \
 		. is_true()
 	)
 
@@ -94,8 +94,8 @@ func test_is_placed_returns_true_for_marked_objects() -> void:
 func test_is_placed_returns_false_for_unmarked_objects() -> void:
 	# Act & Assert
 	(
-		assert_bool(GBPlacementPersistence.is_placed(test_object))
-		. append_failure_message("Expected is_placed() to return false for unmarked object")
+		assert_bool(GBPlacementPersistence.is_placed(test_object)) \
+		. append_failure_message("Expected is_placed() to return false for unmarked object") \
 		. is_false()
 	)
 
@@ -110,16 +110,16 @@ func test_get_placeable_returns_correct_placeable() -> void:
 
 	# Assert
 	(
-		assert_object(retrieved_placeable)
-		. append_failure_message("Expected get_placeable() to return valid Placeable resource")
+		assert_object(retrieved_placeable) \
+		. append_failure_message("Expected get_placeable() to return valid Placeable resource") \
 		. is_not_null()
 	)
 
 	(
-		assert_str(retrieved_placeable.resource_path)
+		assert_str(retrieved_placeable.resource_path) \
 		. append_failure_message(
 			"Retrieved placeable should match original placeable resource path"
-		)
+		) \
 		. is_equal(test_placeable.resource_path)
 	)
 
@@ -131,8 +131,8 @@ func test_get_placeable_returns_null_for_unmarked_objects() -> void:
 
 	# Assert
 	(
-		assert_object(retrieved_placeable)
-		. append_failure_message("Expected get_placeable() to return null for unmarked object")
+		assert_object(retrieved_placeable) \
+		. append_failure_message("Expected get_placeable() to return null for unmarked object") \
 		. is_null()
 	)
 
@@ -152,15 +152,15 @@ func test_save_placement_data_includes_transform() -> void:
 
 	# Assert
 	(
-		assert_bool(save_data.has("transform"))
-		. append_failure_message("Save data should contain transform key")
+		assert_bool(save_data.has("transform")) \
+		. append_failure_message("Save data should contain transform key") \
 		. is_true()
 	)
 
 	var saved_transform: Transform2D = str_to_var(save_data["transform"])
 	(
-		assert_vector(saved_transform.origin)
-		. append_failure_message("Saved transform origin should match object transform")
+		assert_vector(saved_transform.origin) \
+		. append_failure_message("Saved transform origin should match object transform") \
 		. is_equal(TEST_TRANSFORM.origin)
 	)
 
@@ -175,8 +175,8 @@ func test_save_placement_data_includes_instance_name() -> void:
 
 	# Assert
 	(
-		assert_str(save_data.get("instance_name", ""))
-		. append_failure_message("Save data should contain instance_name matching object name")
+		assert_str(save_data.get("instance_name", "")) \
+		. append_failure_message("Save data should contain instance_name matching object name") \
 		. is_equal(TEST_OBJECT_NAME)
 	)
 
@@ -191,21 +191,21 @@ func test_save_placement_data_includes_placeable_data() -> void:
 
 	# Assert
 	(
-		assert_bool(save_data.has("placeable"))
-		. append_failure_message("Save data should contain placeable resource path")
+		assert_bool(save_data.has("placeable")) \
+		. append_failure_message("Save data should contain placeable resource path") \
 		. is_true()
 	)
 
 	var placeable_path: String = save_data["placeable"]
 	(
-		assert_str(placeable_path)
-		. append_failure_message("Placeable path should not be empty")
+		assert_str(placeable_path) \
+		. append_failure_message("Placeable path should not be empty") \
 		. is_not_empty()
 	)
 
 	(
-		assert_str(placeable_path)
-		. append_failure_message("Placeable path should be a valid resource path")
+		assert_str(placeable_path) \
+		. append_failure_message("Placeable path should be a valid resource path") \
 		. starts_with("res://")
 	)
 
@@ -217,8 +217,8 @@ func test_save_placement_data_returns_empty_for_unmarked_objects() -> void:
 
 	# Assert
 	(
-		assert_int(save_data.size())
-		. append_failure_message("Save data for unmarked object should be empty")
+		assert_int(save_data.size()) \
+		. append_failure_message("Save data for unmarked object should be empty") \
 		. is_equal(0)
 	)
 
@@ -242,14 +242,14 @@ func test_instance_from_save_creates_node_with_correct_name() -> void:
 
 	# Assert
 	(
-		assert_object(loaded_instance)
-		. append_failure_message("instance_from_save() should return valid node")
+		assert_object(loaded_instance) \
+		. append_failure_message("instance_from_save() should return valid node") \
 		. is_not_null()
 	)
 
 	(
-		assert_str(loaded_instance.name)
-		. append_failure_message("Loaded instance name should match saved name")
+		assert_str(loaded_instance.name) \
+		. append_failure_message("Loaded instance name should match saved name") \
 		. is_equal(TEST_OBJECT_NAME)
 	)
 
@@ -268,8 +268,8 @@ func test_instance_from_save_applies_correct_transform() -> void:
 
 	# Assert
 	(
-		assert_vector(loaded_instance.transform.origin)
-		. append_failure_message("Loaded instance transform should match saved transform")
+		assert_vector(loaded_instance.transform.origin) \
+		. append_failure_message("Loaded instance transform should match saved transform") \
 		. is_equal(TEST_TRANSFORM.origin)
 	)
 
@@ -288,8 +288,8 @@ func test_instance_from_save_marks_instance_as_placed() -> void:
 
 	# Assert
 	(
-		assert_bool(GBPlacementPersistence.is_placed(loaded_instance))
-		. append_failure_message("Loaded instance should be marked as placed")
+		assert_bool(GBPlacementPersistence.is_placed(loaded_instance)) \
+		. append_failure_message("Loaded instance should be marked as placed") \
 		. is_true()
 	)
 
@@ -309,16 +309,16 @@ func test_instance_from_save_adds_instance_to_parent() -> void:
 
 	# Assert
 	(
-		assert_int(load_parent.get_child_count())
+		assert_int(load_parent.get_child_count()) \
 		. append_failure_message(
 			"Parent should have one additional child after instance_from_save()"
-		)
+		) \
 		. is_equal(initial_child_count + 1)
 	)
 
 	(
-		assert_object(loaded_instance.get_parent())
-		. append_failure_message("Loaded instance parent should be the provided parent node")
+		assert_object(loaded_instance.get_parent()) \
+		. append_failure_message("Loaded instance parent should be the provided parent node") \
 		. is_same(load_parent)
 	)
 
@@ -339,14 +339,14 @@ func test_instance_from_save_returns_null_for_invalid_data() -> void:
 				loaded_instance = GBPlacementPersistence.instance_from_save(
 					invalid_save_data, load_parent
 				)
-		)
+		) \
 		. is_push_error("GBPlacementPersistence: Save data missing placeable information")
 	)
 
 	# Verify function returned null
 	(
-		assert_object(loaded_instance)
-		. append_failure_message("instance_from_save() should return null for invalid save data")
+		assert_object(loaded_instance) \
+		. append_failure_message("instance_from_save() should return null for invalid save data") \
 		. is_null()
 	)
 
@@ -363,10 +363,10 @@ func test_is_preview_returns_true_for_preview_objects() -> void:
 
 	# Act & Assert
 	(
-		assert_bool(GBPlacementPersistence.is_preview(test_object))
+		assert_bool(GBPlacementPersistence.is_preview(test_object)) \
 		. append_failure_message(
 			"Expected is_preview() to return true for object with gb_preview metadata"
-		)
+		) \
 		. is_true()
 	)
 
@@ -375,10 +375,10 @@ func test_is_preview_returns_true_for_preview_objects() -> void:
 func test_is_preview_returns_false_for_regular_objects() -> void:
 	# Act & Assert
 	(
-		assert_bool(GBPlacementPersistence.is_preview(test_object))
+		assert_bool(GBPlacementPersistence.is_preview(test_object)) \
 		. append_failure_message(
 			"Expected is_preview() to return false for object without gb_preview metadata"
-		)
+		) \
 		. is_false()
 	)
 
@@ -400,16 +400,16 @@ func test_get_placed_objects_excludes_preview_objects() -> void:
 
 	# Assert
 	(
-		assert_int(placed_objects.size())
+		assert_int(placed_objects.size()) \
 		. append_failure_message(
 			"get_placed_objects() should return only non-preview placed objects"
-		)
+		) \
 		. is_equal(1)
 	)
 
 	(
-		assert_object(placed_objects[0])
-		. append_failure_message("Returned object should be the non-preview placed object")
+		assert_object(placed_objects[0]) \
+		. append_failure_message("Returned object should be the non-preview placed object") \
 		. is_same(placed_object)
 	)
 
@@ -434,10 +434,10 @@ func test_get_placed_objects_returns_all_placed_objects() -> void:
 
 	# Assert
 	(
-		assert_int(placed_objects.size())
+		assert_int(placed_objects.size()) \
 		. append_failure_message(
 			"Expected get_placed_objects() to return all %d placed objects" % placed_count
-		)
+		) \
 		. is_equal(placed_count)
 	)
 
@@ -457,17 +457,17 @@ func test_save_all_placements_returns_array_of_save_data() -> void:
 
 	# Assert
 	(
-		assert_int(save_data_array.size())
+		assert_int(save_data_array.size()) \
 		. append_failure_message(
 			"Expected save_all_placements() to return %d save data entries" % placed_count
-		)
+		) \
 		. is_equal(placed_count)
 	)
 
 	for save_data in save_data_array:
 		(
-			assert_bool(save_data.has("instance_name"))
-			. append_failure_message("Each save data entry should have instance_name")
+			assert_bool(save_data.has("instance_name")) \
+			. append_failure_message("Each save data entry should have instance_name") \
 			. is_true()
 		)
 
@@ -494,16 +494,16 @@ func test_load_all_placements_recreates_all_placed_objects() -> void:
 
 	# Assert
 	(
-		assert_int(loaded_instances.size())
+		assert_int(loaded_instances.size()) \
 		. append_failure_message(
 			"Expected load_all_placements() to return %d loaded instances" % placed_count
-		)
+		) \
 		. is_equal(placed_count)
 	)
 
 	(
-		assert_int(load_parent.get_child_count())
-		. append_failure_message("Load parent should have %d children after loading" % placed_count)
+		assert_int(load_parent.get_child_count()) \
+		. append_failure_message("Load parent should have %d children after loading" % placed_count) \
 		. is_equal(placed_count)
 	)
 

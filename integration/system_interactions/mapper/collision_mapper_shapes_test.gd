@@ -125,23 +125,23 @@ func test_collision_shape_tile_coverage_with_various_shape_types(
 
 	# Verify expected tile count
 	(
-		assert_int(tile_offsets.size())
+		assert_int(tile_offsets.size()) \
 		. append_failure_message(
 			(
 				"Expected %d tiles for %s shape, got %d. Tiles: %s"
 				% [expected_tile_count, shape_type, tile_offsets.size(), tile_offsets.keys()]
 			)
-		)
+		) \
 		. is_equal(expected_tile_count)
 	)
 
 	# Verify all offsets are valid Vector2i
 	for offset: Vector2i in tile_offsets.keys():
 		(
-			assert_object(offset)
+			assert_object(offset) \
 			. append_failure_message(
 				"Invalid offset type for %s: %s" % [shape_type, typeof(offset)]
-			)
+			) \
 			. is_not_null()
 		)
 
@@ -174,39 +174,39 @@ func test_collision_mapper_positioning_edge_cases_handle_problematic_positions(
 	match expected_behavior:
 		"normal_coverage":
 			(
-				assert_int(tile_offsets.size())
+				assert_int(tile_offsets.size()) \
 				. append_failure_message(
 					"Normal coverage should produce multiple tiles at position %s" % position
-				)
+				) \
 				. is_greater(0)
 			)
 		"single_tile":
 			# Small shapes on boundaries can cover up to 4 tiles; accept a tight range
 			(
-				assert_int(tile_offsets.size())
+				assert_int(tile_offsets.size()) \
 				. append_failure_message(
 					(
 						"Small shape near origin should produce a minimal bounded set of tiles (1..4) at position %s; got %d"
 						% [position, tile_offsets.size()]
 					)
-				)
+				) \
 				. is_between(1, 4)
 			)
 		"partial_overlap":
 			(
-				assert_int(tile_offsets.size())
+				assert_int(tile_offsets.size()) \
 				. append_failure_message(
 					"Partial overlap should still produce valid tiles at position %s" % position
-				)
+				) \
 				. is_greater(0)
 			)
 		"negative_coords":
 			# Should handle negative coordinates gracefully
 			(
-				assert_bool(tile_offsets.size() >= 0)
+				assert_bool(tile_offsets.size() >= 0) \
 				. append_failure_message(
 					"Negative coordinates should be handled gracefully at position %s" % position
-				)
+				) \
 				. is_true()
 			)
 
@@ -249,13 +249,13 @@ func test_complex_polygon_shapes_handle_edge_cases_from_debug_tests() -> void:
 		)
 
 		(
-			assert_int(tile_offsets.size())
+			assert_int(tile_offsets.size()) \
 			. append_failure_message(
 				(
 					"Complex polygon '%s' should cover at least %d tiles, got %d"
 					% [polygon_data.name, polygon_data.min_expected_tiles, tile_offsets.size()]
 				)
-			)
+			) \
 			. is_greater_equal(polygon_data.min_expected_tiles)
 		)
 
@@ -292,23 +292,23 @@ func test_collision_mapper_transform_consistency_across_different_transforms() -
 
 		# Verify consistent behavior across transforms
 		(
-			assert_int(tile_offsets.size())
+			assert_int(tile_offsets.size()) \
 			. append_failure_message(
 				(
 					"Transform case %d should produce valid tile coverage. Transform: %s"
 					% [i, transform_data]
 				)
-			)
+			) \
 			. is_greater(0)
 		)
 
 		# Verify all tile offsets are reasonable (within expected bounds)
 		for offset: Vector2i in tile_offsets.keys():
 			(
-				assert_bool(abs(offset.x) < 100 and abs(offset.y) < 100)
+				assert_bool(abs(offset.x) < 100 and abs(offset.y) < 100) \
 				. append_failure_message(
 					"Tile offset %s seems unreasonable for transform %s" % [offset, transform_data]
-				)
+				) \
 				. is_true()
 			)
 
@@ -381,15 +381,15 @@ func test_rules_and_collision_integration() -> void:
 
 	# Validate integration produces reasonable results
 	(
-		assert_dict(collision_tiles)
-		. append_failure_message("Collision mapping should produce tiles for rule validation")
+		assert_dict(collision_tiles) \
+		. append_failure_message("Collision mapping should produce tiles for rule validation") \
 		. is_not_empty()
 	)
 
 	var validation_result: Variant = rule.validate_placement()
 	(
-		assert_object(validation_result)
-		. append_failure_message("Rule validation should complete with collision context")
+		assert_object(validation_result) \
+		. append_failure_message("Rule validation should complete with collision context") \
 		. is_not_null()
 	)
 
@@ -399,10 +399,10 @@ func test_collisions_check_rule_setup() -> void:
 	auto_free(rule)  # Clean up rule instance
 	var setup_issues: Array[String] = rule.setup(targeting_state)
 	(
-		assert_array(setup_issues)
+		assert_array(setup_issues) \
 		. append_failure_message(
 			"Rule setup should succeed with valid parameters: %s" % str(setup_issues)
-		)
+		) \
 		. is_empty()
 	)
 
@@ -412,8 +412,8 @@ func test_tile_check_rule_basic() -> void:
 	auto_free(rule)  # Clean up rule instance
 	var setup_issues: Array[String] = rule.setup(targeting_state)
 	(
-		assert_array(setup_issues)
-		. append_failure_message("Tile rule setup should succeed: %s" % str(setup_issues))
+		assert_array(setup_issues) \
+		. append_failure_message("Tile rule setup should succeed: %s" % str(setup_issues)) \
 		. is_empty()
 	)
 
@@ -454,7 +454,7 @@ func test_collision_mapper_shape_processing() -> void:
 
 	# Should return some collision tiles for test object
 	(
-		assert_dict(collision_results)
-		. append_failure_message("Test collision object should generate collision tiles")
+		assert_dict(collision_results) \
+		. append_failure_message("Test collision object should generate collision tiles") \
 		. is_not_empty()
 	)

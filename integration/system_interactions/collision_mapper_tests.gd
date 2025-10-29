@@ -62,13 +62,13 @@ func test_rectangles_cover_expected_min_tiles(
 	assert_int(setups.size()).is_greater(0)
 	var result := _mapper.get_tile_offsets_for_test_collisions(setups[0])
 	(
-		assert_int(result.size())
+		assert_int(result.size()) \
 		. append_failure_message(
 			(
 				"Rectangle %s should produce at least %d tiles, got %d"
 				% [desc, expected_min, result.size()]
 			)
-		)
+		) \
 		. is_greater_equal(expected_min)
 	)
 
@@ -90,13 +90,13 @@ func test_circles_cover_expected_min_tiles(
 	assert_int(setups.size()).is_greater(0)
 	var result := _mapper.get_tile_offsets_for_test_collisions(setups[0])
 	(
-		assert_int(result.size())
+		assert_int(result.size()) \
 		. append_failure_message(
 			(
 				"Circle %s should produce at least %d tiles, got %d"
 				% [desc, expected_min, result.size()]
 			)
-		)
+		) \
 		. is_greater_equal(expected_min)
 	)
 
@@ -126,12 +126,12 @@ func test_relative_offsets_constant_when_positioner_moves() -> void:
 	assert_int(r2.size()).is_greater(0)
 	# Tile count should remain consistent even if exact offsets change
 	(
-		assert_int(r2.size())
+		assert_int(r2.size()) \
 		. append_failure_message(
 			(
 				"Tile count should be consistent when positioner moves, got %d vs %d"
 				% [r1.size(), r2.size()]
 			)
-		)
+		) \
 		. is_equal(r1.size())
 	)

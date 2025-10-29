@@ -271,13 +271,13 @@ static func check_collsion_tiles_at_position(
 
 	(
 		test_suite
-		. assert_int(collision_tiles.size())
+		. assert_int(collision_tiles.size()) \
 		. append_failure_message(
 			(
 				"Should generate at least %d collision tiles at position %s"
 				% [expected_min_tiles, position]
 			)
-		)
+		) \
 		. is_greater_equal(expected_min_tiles)
 	)
 
@@ -465,10 +465,10 @@ static func check_collision_generation_with_rotation(
 		)
 		(
 			test_suite
-			. assert_array(collision_tiles.keys())
+			. assert_array(collision_tiles.keys()) \
 			. append_failure_message(
 				"Should generate collision tiles at rotation %s degrees" % [rad_to_deg(angle)]
-			)
+			) \
 			. is_not_empty()
 		)
 

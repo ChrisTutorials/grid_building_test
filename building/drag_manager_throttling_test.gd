@@ -103,8 +103,8 @@ func test_no_requests_when_drag_not_started() -> void:
 
 	# Should be no drag_data
 	(
-		assert_object(_drag_manager.drag_data)
-		. append_failure_message("drag_data should be null when drag not started")
+		assert_object(_drag_manager.drag_data) \
+		. append_failure_message("drag_data should be null when drag not started") \
 		. is_null()
 	)
 
@@ -121,13 +121,13 @@ func test_no_requests_when_tile_unchanged() -> void:
 
 	# Tile hasn't changed - should be ZERO build requests
 	(
-		assert_int(drag_data.build_requests)
+		assert_int(drag_data.build_requests) \
 		. append_failure_message(
 			(
 				"No build requests should be made when tile unchanged. Initial tile: %s, Current: %s, Frames: 5"
 				% [initial_tile, drag_data.target_tile]
 			)
-		)
+		) \
 		. is_equal(0)
 	)
 
@@ -143,13 +143,13 @@ func test_single_request_on_tile_change() -> void:
 
 	# Should have made exactly ONE request
 	(
-		assert_int(drag_data.build_requests)
+		assert_int(drag_data.build_requests) \
 		. append_failure_message(
 			(
 				"Exactly one build request should be made on tile change. Initial: %s, New: %s"
 				% [initial_tile, drag_data.target_tile]
 			)
-		)
+		) \
 		. is_equal(1)
 	)
 
@@ -178,16 +178,16 @@ func test_physics_frame_gate_blocks_multiple_requests_same_frame() -> void:
 
 	# Should only have ONE new request (the first one), second should be gated
 	(
-		assert_int(requests_after_first - initial_requests)
-		. append_failure_message("First tile change should trigger request")
+		assert_int(requests_after_first - initial_requests) \
+		. append_failure_message("First tile change should trigger request") \
 		. is_equal(1)
 	)
 
 	(
-		assert_int(requests_after_second - requests_after_first)
+		assert_int(requests_after_second - requests_after_first) \
 		. append_failure_message(
 			"Second tile change in SAME frame should be BLOCKED by physics frame gate"
-		)
+		) \
 		. is_equal(0)
 	)
 
@@ -206,8 +206,8 @@ func test_multiple_tile_changes_across_frames() -> void:
 
 	# Should have exactly 3 requests (one per tile change)
 	(
-		assert_int(drag_data.build_requests)
-		. append_failure_message("Should have 3 build requests for 3 tile changes")
+		assert_int(drag_data.build_requests) \
+		. append_failure_message("Should have 3 build requests for 3 tile changes") \
 		. is_equal(3)
 	)
 
@@ -223,8 +223,8 @@ func test_last_attempted_tile_prevents_duplicate_requests() -> void:
 
 	var requests_after_move: int = drag_data.build_requests
 	(
-		assert_int(requests_after_move)
-		. append_failure_message("Should make build request after moving to new tile")
+		assert_int(requests_after_move) \
+		. append_failure_message("Should make build request after moving to new tile") \
 		. is_greater(0)
 	)
 
@@ -233,13 +233,13 @@ func test_last_attempted_tile_prevents_duplicate_requests() -> void:
 
 	# Should NOT make another request for the same tile
 	(
-		assert_int(drag_data.build_requests)
+		assert_int(drag_data.build_requests) \
 		. append_failure_message(
 			(
 				"Should NOT make duplicate request for same tile. Last attempted: %s, Current: %s"
 				% [drag_data.last_attempted_tile, drag_data.target_tile]
 			)
-		)
+		) \
 		. is_equal(requests_after_move)
 	)
 
@@ -251,8 +251,8 @@ func test_drag_session_isolation() -> void:
 	_drag_manager.update_drag_state(0.016)
 	var drag1_requests: int = drag1.build_requests
 	(
-		assert_int(drag1_requests)
-		. append_failure_message("First drag session should make build requests after moving")
+		assert_int(drag1_requests) \
+		. append_failure_message("First drag session should make build requests after moving") \
 		. is_greater(0)
 	)
 
@@ -264,8 +264,8 @@ func test_drag_session_isolation() -> void:
 
 	# Second session should have fresh counter starting at 0
 	(
-		assert_int(drag2.build_requests)
-		. append_failure_message("New drag session should start with build_requests = 0")
+		assert_int(drag2.build_requests) \
+		. append_failure_message("New drag session should start with build_requests = 0") \
 		. is_equal(0)
 	)
 
@@ -275,8 +275,8 @@ func test_drag_session_isolation() -> void:
 
 	# Second session should track its own requests independently
 	(
-		assert_int(drag2.build_requests)
-		. append_failure_message("Second drag session should track requests independently")
+		assert_int(drag2.build_requests) \
+		. append_failure_message("Second drag session should track requests independently") \
 		. is_equal(1)
 	)
 
@@ -299,8 +299,8 @@ func test_no_requests_when_not_in_build_mode() -> void:
 
 	# Should NOT make request when not in BUILD mode
 	(
-		assert_int(drag_data.build_requests)
-		. append_failure_message("Should NOT make build requests when not in BUILD mode")
+		assert_int(drag_data.build_requests) \
+		. append_failure_message("Should NOT make build requests when not in BUILD mode") \
 		. is_equal(0)
 	)
 
@@ -318,8 +318,8 @@ func test_no_requests_when_no_preview() -> void:
 
 	# Should NOT make request when no preview exists
 	(
-		assert_int(drag_data.build_requests)
-		. append_failure_message("Should NOT make build requests when no active preview")
+		assert_int(drag_data.build_requests) \
+		. append_failure_message("Should NOT make build requests when no active preview") \
 		. is_equal(0)
 	)
 
@@ -339,8 +339,8 @@ func test_build_requests_counts_only_successful_gate_passes() -> void:
 
 	var drag_data: DragPathData = _drag_manager.start_drag()
 	(
-		assert_int(drag_data.build_requests)
-		. append_failure_message("Build requests should start at 0 for new drag session")
+		assert_int(drag_data.build_requests) \
+		. append_failure_message("Build requests should start at 0 for new drag session") \
 		. is_equal(0)
 	)
 
@@ -349,8 +349,8 @@ func test_build_requests_counts_only_successful_gate_passes() -> void:
 	_drag_manager.update_drag_state(0.016)
 	_drag_manager._last_signal_physics_frame = -1  # Reset gate for next call
 	(
-		assert_int(drag_data.build_requests)
-		. append_failure_message("Should count when all conditions met")
+		assert_int(drag_data.build_requests) \
+		. append_failure_message("Should count when all conditions met") \
 		. is_equal(1)
 	)
 
@@ -358,8 +358,8 @@ func test_build_requests_counts_only_successful_gate_passes() -> void:
 	_drag_manager.update_drag_state(0.016)
 	_drag_manager._last_signal_physics_frame = -1  # Reset gate for next call
 	(
-		assert_int(drag_data.build_requests)
-		. append_failure_message("Should NOT count when tile unchanged")
+		assert_int(drag_data.build_requests) \
+		. append_failure_message("Should NOT count when tile unchanged") \
 		. is_equal(1)
 	)
 
@@ -368,8 +368,8 @@ func test_build_requests_counts_only_successful_gate_passes() -> void:
 	_drag_manager.update_drag_state(0.016)
 	_drag_manager._last_signal_physics_frame = -1  # Reset gate for next call
 	(
-		assert_int(drag_data.build_requests)
-		. append_failure_message("Should NOT count duplicate tile")
+		assert_int(drag_data.build_requests) \
+		. append_failure_message("Should NOT count duplicate tile") \
 		. is_equal(1)
 	)
 
@@ -378,8 +378,8 @@ func test_build_requests_counts_only_successful_gate_passes() -> void:
 	_drag_manager.update_drag_state(0.016)
 	_drag_manager._last_signal_physics_frame = -1  # Reset gate for next call
 	(
-		assert_int(drag_data.build_requests)
-		. append_failure_message("Should count new tile with all conditions met")
+		assert_int(drag_data.build_requests) \
+		. append_failure_message("Should count new tile with all conditions met") \
 		. is_equal(2)
 	)
 

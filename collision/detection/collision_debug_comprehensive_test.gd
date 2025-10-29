@@ -119,19 +119,19 @@ func _test_single_collision_object_scenario(
 
 	# Assertions
 	(
-		assert_int(shapes_from_owner.size())
+		assert_int(shapes_from_owner.size()) \
 		. append_failure_message(
 			(
 				"Expected %d shapes from %s, got %d"
 				% [expected_shape_count, object_type, shapes_from_owner.size()]
 			)
-		)
+		) \
 		. is_equal(expected_shape_count)
 	)
 
 	(
-		assert_int(all_shapes.size())
-		. append_failure_message("Expected at least 1 collision owner for %s" % object_type)
+		assert_int(all_shapes.size()) \
+		. append_failure_message("Expected at least 1 collision owner for %s" % object_type) \
 		. is_greater(0)
 	)
 
@@ -149,8 +149,8 @@ func _create_collision_object(object_type: String, collision_layer: int) -> Coll
 			collision_obj = auto_free(CharacterBody2D.new())
 		_:
 			(
-				assert_that(object_type)
-				. append_failure_message("Unknown collision object type")
+				assert_that(object_type) \
+				. append_failure_message("Unknown collision object type") \
 				. is_equal("")
 			)
 			return null
@@ -248,13 +248,13 @@ func _test_single_packed_scene_scenario(object_type: String, collision_layer: in
 	# Assertions
 	assert_int(pack_result).append_failure_message("PackedScene.pack() failed").is_equal(OK)
 	(
-		assert_int(state.get_node_count())
-		. append_failure_message("Expected at least 2 nodes in packed scene")
+		assert_int(state.get_node_count()) \
+		. append_failure_message("Expected at least 2 nodes in packed scene") \
 		. is_greater_equal(2)
 	)
 	(
-		assert_int(preview_obj.get_child_count())
-		. append_failure_message("Preview should have children")
+		assert_int(preview_obj.get_child_count()) \
+		. append_failure_message("Preview should have children") \
 		. is_greater(0)
 	)
 
@@ -272,8 +272,8 @@ func _create_collision_object_for_packed_scene(
 			collision_obj = Area2D.new()
 		_:
 			(
-				assert_that(object_type)
-				. append_failure_message("Unknown collision object type")
+				assert_that(object_type) \
+				. append_failure_message("Unknown collision object type") \
 				. is_equal("")
 			)
 			return null
@@ -311,7 +311,7 @@ func test_polygon_collision_edge_cases() -> void:
 			diagnostic_messages.append("Polygon area: %f" % area)
 
 		(
-			assert_bool(is_valid)
+			assert_bool(is_valid) \
 			. append_failure_message(
 				(
 					(
@@ -321,6 +321,6 @@ func test_polygon_collision_edge_cases() -> void:
 					+ "\n"
 					+ "\n".join(diagnostic_messages)
 				)
-			)
+			) \
 			. is_equal(expected_valid)
 		)

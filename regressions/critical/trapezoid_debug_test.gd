@@ -78,9 +78,9 @@ func test_trapezoid_debug() -> void:
 	# Check why we're only getting 2 tiles instead of 6
 	# Append all collected diagnostic details to the failure message for easy debugging
 	(
-		assert_int(actual_offsets.size())
+		assert_int(actual_offsets.size()) \
 		. append_failure_message(
 			details + "Should get at least 4 tiles, got " + str(actual_offsets.size())
-		)
+		) \
 		. is_greater_equal(4)
 	)

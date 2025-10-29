@@ -62,8 +62,8 @@ func before_test() -> void:
 	## This must validate successfully
 	var setup_issues := rule.setup(_gts)
 	(
-		assert_array(setup_issues)
-		. append_failure_message("Rule setup should complete without issues")
+		assert_array(setup_issues) \
+		. append_failure_message("Rule setup should complete without issues") \
 		. is_empty()
 	)
 
@@ -99,10 +99,10 @@ func test_does_tile_have_valid_data(
 		return
 	var result: bool = rule.does_tile_have_valid_data(p_indicator, [map_layer])
 	(
-		assert_bool(result)
+		assert_bool(result) \
 		. append_failure_message(
 			"Tile data validation should match expected result for indicator: " + str(p_indicator)
-		)
+		) \
 		. is_equal(p_expected)
 	)
 
@@ -125,18 +125,18 @@ func test_test_tile_data_for_all_matches(
 		fail("Rule is null - cannot test _test_tile_data_for_all_matches")
 		return
 	(
-		assert_object(rule.expected_tile_custom_data)
-		. append_failure_message("Rule expected_tile_custom_data should not be null")
+		assert_object(rule.expected_tile_custom_data) \
+		. append_failure_message("Rule expected_tile_custom_data should not be null") \
 		. is_not_null()
 	)
 	var result: bool = rule._test_tile_data_for_all_matches(
 		p_tile_data, rule.expected_tile_custom_data
 	)
 	(
-		assert_bool(result)
+		assert_bool(result) \
 		. append_failure_message(
 			"Tile data matching should match expected result for tile data: " + str(p_tile_data)
-		)
+		) \
 		. is_equal(p_expected)
 	)
 

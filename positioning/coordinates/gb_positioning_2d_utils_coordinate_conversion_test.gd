@@ -52,22 +52,22 @@ func test_multiple_screen_positions_tile_alignment() -> void:
 		# Verify the tile coordinate is valid and world position is reasonable
 		# Canvas transform produces different coordinate ranges than manual calculation
 		(
-			assert_bool(tile_coord.x >= -50 and tile_coord.x <= 50)
+			assert_bool(tile_coord.x >= -50 and tile_coord.x <= 50) \
 			. append_failure_message(
 				(
 					"Position %d: screen %s -> world pos %s -> tile x %d should be in reasonable range (-50 to 50)"
 					% [i, str(screen_pos), str(world_pos), tile_coord.x]
 				)
-			)
+			) \
 			. is_true()
 		)
 		(
-			assert_bool(tile_coord.y >= -50 and tile_coord.y <= 50)
+			assert_bool(tile_coord.y >= -50 and tile_coord.y <= 50) \
 			. append_failure_message(
 				(
 					"Position %d: screen %s -> world pos %s -> tile y %d should be in reasonable range (-50 to 50)"
 					% [i, str(screen_pos), str(world_pos), tile_coord.y]
 				)
-			)
+			) \
 			. is_true()
 		)

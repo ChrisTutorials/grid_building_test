@@ -249,8 +249,8 @@ func test_collision_performance_large_tilemap() -> void:
 	# Assert
 	var processing_time: int = end_time - start_time
 	(
-		assert_int(processing_time)
-		. is_less_equal(int(GBTestConstants.TEST_TIMEOUT_MS / 10.0))
+		assert_int(processing_time) \
+		. is_less_equal(int(GBTestConstants.TEST_TIMEOUT_MS / 10.0)) \
 		. append_failure_message(
 			"Large tilemap collision processing should complete within reasonable time"
 		)
@@ -311,8 +311,8 @@ func test_collision_performance_multiple_objects() -> void:
 	# Assert
 	var processing_time: int = end_time - start_time
 	(
-		assert_int(processing_time)
-		. is_less_equal(int(GBTestConstants.TEST_TIMEOUT_MS / 5.0))
+		assert_int(processing_time) \
+		. is_less_equal(int(GBTestConstants.TEST_TIMEOUT_MS / 5.0)) \
 		. append_failure_message(
 			"Multiple object collision processing should complete within reasonable time"
 		)
@@ -477,7 +477,7 @@ func test_systems_environment_consolidation_validation() -> void:
 	var collision_result: Dictionary = (
 		test_hierarchy
 		. indicator_manager
-		. get_collision_mapper()
+		. get_collision_mapper() \
 		. get_tile_offsets_for_test_collisions(test_setup)
 	)
 	assert_dict(collision_result).is_not_empty()

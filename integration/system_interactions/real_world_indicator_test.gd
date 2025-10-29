@@ -103,10 +103,10 @@ func _validate_indicator_positions(indicators: Array[RuleCheckIndicator], previe
 
 		# Check for duplicate positions
 		(
-			assert_bool(seen_positions.has(position))
+			assert_bool(seen_positions.has(position)) \
 			. append_failure_message(
 				"Duplicate indicator position at index %d: %s" % [i, str(position)]
-			)
+			) \
 			. is_false()
 		)
 		seen_positions[position] = true
@@ -118,13 +118,13 @@ func _validate_indicator_positions(indicators: Array[RuleCheckIndicator], previe
 			var tile_origin: Vector2 = map.map_to_local(map.local_to_map(map.to_local(position)))
 			var offset: Vector2 = position - tile_origin
 			(
-				assert_bool(abs(offset.x) <= tile_size.x and abs(offset.y) <= tile_size.y)
+				assert_bool(abs(offset.x) <= tile_size.x and abs(offset.y) <= tile_size.y) \
 				. append_failure_message(
 					(
 						"Indicator %d not within tile bounds. pos=%s origin=%s tile_size=%s"
 						% [i, str(position), str(tile_origin), str(tile_size)]
 					)
-				)
+				) \
 				. is_true()
 			)
 
@@ -132,13 +132,13 @@ func _validate_indicator_positions(indicators: Array[RuleCheckIndicator], previe
 		if i > 0:
 			var prev_position: Vector2 = indicators[i - 1].global_position
 			(
-				assert_bool(prev_position != position)
+				assert_bool(prev_position != position) \
 				. append_failure_message(
 					(
 						"Indicator positions should differ: %s vs %s"
 						% [str(prev_position), str(position)]
 					)
-				)
+				) \
 				. is_true()
 			)
 
@@ -150,13 +150,13 @@ func _validate_indicator_positions(indicators: Array[RuleCheckIndicator], previe
 	centroid /= indicators.size()
 
 	(
-		assert_bool((centroid - preview_center).length() < 256.0)
+		assert_bool((centroid - preview_center).length() < 256.0) \
 		. append_failure_message(
 			(
 				"Average indicator position too far from preview center. avg=%s preview=%s"
 				% [str(centroid), str(preview_center)]
 			)
-		)
+		) \
 		. is_true()
 	)
 
@@ -242,8 +242,8 @@ func test_real_world_indicator_positioning() -> void:
 
 	# Setup validation
 	(
-		assert_bool(is_instance_valid(preview))
-		. append_failure_message("Failed to create preview (real=%s)" % str(used_real_placeable))
+		assert_bool(is_instance_valid(preview)) \
+		. append_failure_message("Failed to create preview (real=%s)" % str(used_real_placeable)) \
 		. is_true()
 	)
 
@@ -257,8 +257,8 @@ func test_real_world_indicator_positioning() -> void:
 	# Use helper method for collision shape collection
 	var collision_shapes: Array[Node] = _get_collision_shapes_from_node(preview)
 	(
-		assert_int(collision_shapes.size())
-		. append_failure_message("Preview has no CollisionShape2D or CollisionPolygon2D nodes")
+		assert_int(collision_shapes.size()) \
+		. append_failure_message("Preview has no CollisionShape2D or CollisionPolygon2D nodes") \
 		. is_greater(0)
 	)
 
@@ -270,8 +270,8 @@ func test_real_world_indicator_positioning() -> void:
 	# Set up the rule with the targeting state
 	var rule_issues: Array[String] = tile_check_rule.setup(targeting_state)
 	(
-		assert_array(rule_issues)
-		. append_failure_message("Rule setup should not have issues: %s" % str(rule_issues))
+		assert_array(rule_issues) \
+		. append_failure_message("Rule setup should not have issues: %s" % str(rule_issues)) \
 		. is_empty()
 	)
 
@@ -287,21 +287,21 @@ func test_real_world_indicator_positioning() -> void:
 				has_matching_layer = true
 
 	(
-		assert_bool(has_matching_layer)
+		assert_bool(has_matching_layer) \
 		. append_failure_message(
 			(
 				"No physics body has collision_layer overlapping TileCheckRule mask. Bodies: %s mask=%d"
 				% [", ".join(physics_body_details), tile_check_rule.apply_to_objects_mask]
 			)
-		)
+		) \
 		. is_true()
 	)
 
 	# Validate targeting state using DRY pattern
 	var targeting_issues: Array[String] = targeting_state.get_runtime_issues()
 	(
-		assert_array(targeting_issues)
-		. append_failure_message("Targeting state issues: %s" % str(targeting_issues))
+		assert_array(targeting_issues) \
+		. append_failure_message("Targeting state issues: %s" % str(targeting_issues)) \
 		. is_empty()
 	)
 
@@ -314,8 +314,8 @@ func test_real_world_indicator_positioning() -> void:
 	# This test currently validates the setup process and component access patterns
 	# TODO: Re-enable indicator generation assertions once collision mapping issues are resolved
 	(
-		assert_object(report)
-		. append_failure_message("IndicatorManager.setup_indicators should return a valid report")
+		assert_object(report) \
+		. append_failure_message("IndicatorManager.setup_indicators should return a valid report") \
 		. is_not_null()
 	)
 

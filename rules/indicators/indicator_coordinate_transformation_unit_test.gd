@@ -51,8 +51,8 @@ func test_tile_to_global_position_logic() -> void:
 
 	# Assert
 	(
-		assert_int(indicators.size())
-		. append_failure_message("IndicatorFactory should generate 1 indicator for 1 offset")
+		assert_int(indicators.size()) \
+		. append_failure_message("IndicatorFactory should generate 1 indicator for 1 offset") \
 		. is_equal(1)
 	)
 	var indicator: Node2D = indicators[0]

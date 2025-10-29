@@ -28,8 +28,8 @@ func test_trapezoid_bottom_row_coverage() -> void:
 	var tile_positions: Array = tile_positions_dict.keys()
 
 	(
-		assert_bool(tile_positions.size() > 0)
-		. append_failure_message("Expected tile positions")
+		assert_bool(tile_positions.size() > 0) \
+		. append_failure_message("Expected tile positions") \
 		. is_true()
 	)
 
@@ -45,8 +45,8 @@ func test_trapezoid_total_coverage_reasonable() -> void:
 	var tile_positions: Array = tile_positions_dict.keys()
 
 	(
-		assert_int(tile_positions.size())
-		. append_failure_message("Expected 7-15 tiles, got %d" % tile_positions.size())
+		assert_int(tile_positions.size()) \
+		. append_failure_message("Expected 7-15 tiles, got %d" % tile_positions.size()) \
 		. is_between(7, 15)
 	)
 

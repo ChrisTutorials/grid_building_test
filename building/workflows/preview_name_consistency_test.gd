@@ -24,8 +24,8 @@ var placeable_with_rules: Placeable
 func before_test() -> void:
 	# Validate test resources are loaded
 	(
-		assert_object(placeable_2d_test)
-		. append_failure_message("Test placeable resource should be loaded successfully")
+		assert_object(placeable_2d_test) \
+		. append_failure_message("Test placeable resource should be loaded successfully") \
 		. is_not_null()
 	)
 
@@ -38,8 +38,8 @@ func before_test() -> void:
 	# Access shared states from the pre-configured test container
 	var states := _container.get_states()
 	(
-		assert_object(states)
-		. append_failure_message("Container states should be accessible and initialized")
+		assert_object(states) \
+		. append_failure_message("Container states should be accessible and initialized") \
 		. is_not_null()
 	)
 	targeting_state = states.targeting
@@ -51,13 +51,13 @@ func before_test() -> void:
 	# Create a placeable with rules for testing
 	placeable_with_rules = _create_test_placeable_with_rules()
 	(
-		assert_object(placeable_with_rules)
-		. append_failure_message("Test placeable with rules should be created successfully")
+		assert_object(placeable_with_rules) \
+		. append_failure_message("Test placeable with rules should be created successfully") \
 		. is_not_null()
 	)
 	(
-		assert_array(placeable_with_rules.placement_rules)
-		. append_failure_message("Test placeable should have placement rules configured")
+		assert_array(placeable_with_rules.placement_rules) \
+		. append_failure_message("Test placeable should have placement rules configured") \
 		. is_not_empty()
 	)
 
@@ -86,10 +86,10 @@ func test_same_placeable_twice_preserves_name() -> void:
 	# First call to enter_build_mode
 	var report1: PlacementReport = system.enter_build_mode(placeable_with_rules)
 	(
-		assert_bool(report1.is_successful())
+		assert_bool(report1.is_successful()) \
 		. append_failure_message(
 			"First enter_build_mode should succeed, but failed with: " + str(report1.get_issues())
-		)
+		) \
 		. is_true()
 	)
 
@@ -99,10 +99,10 @@ func test_same_placeable_twice_preserves_name() -> void:
 	# Second call to enter_build_mode with same placeable
 	var report2: PlacementReport = system.enter_build_mode(placeable_with_rules)
 	(
-		assert_bool(report2.is_successful())
+		assert_bool(report2.is_successful()) \
 		. append_failure_message(
 			"Second enter_build_mode should succeed, but failed with: " + str(report2.get_issues())
-		)
+		) \
 		. is_true()
 	)
 
@@ -111,8 +111,8 @@ func test_same_placeable_twice_preserves_name() -> void:
 
 	# Ensure it's a different instance (not the same object)
 	(
-		assert_object(preview2)
-		. append_failure_message("Second preview should be a different instance from the first")
+		assert_object(preview2) \
+		. append_failure_message("Second preview should be a different instance from the first") \
 		. is_not_same(preview1)
 	)
 
@@ -158,19 +158,19 @@ func _get_expected_preview_name(placeable: Placeable) -> String:
 ## Asserts that preview is not null and has the expected name
 func _assert_preview_valid_and_named(preview: Node2D, expected_name: String) -> void:
 	(
-		assert_object(preview)
+		assert_object(preview) \
 		. append_failure_message(
 			"Building system preview should not be null after enter_build_mode"
-		)
+		) \
 		. is_not_null()
 	)
 
 	if preview != null:
 		(
-			assert_str(preview.name)
+			assert_str(preview.name) \
 			. append_failure_message(
 				"Preview name should be '%s' but was '%s'" % [expected_name, preview.name]
-			)
+			) \
 			. is_equal(expected_name)
 		)
 

@@ -54,13 +54,13 @@ func _move_to_tile_and_verify(target_tile: Vector2i) -> void:
 	var actual_global: Vector2 = positioner.global_position
 	var delta_px: float = expected_global.distance_to(actual_global)
 	(
-		assert_vector(actual_global)
+		assert_vector(actual_global) \
 		. append_failure_message(
 			(
 				"Position tile %s: expected_global=%s, actual=%s, delta=%.2fpx"
 				% [str(target_tile), str(expected_global), str(actual_global), delta_px]
 			)
-		)
+		) \
 		. is_equal_approx(expected_global, Vector2.ONE)
 	)
 
@@ -74,13 +74,13 @@ func _get_current_tile() -> Vector2i:
 func _assert_at_tile(expected_tile: Vector2i, context: String) -> void:
 	var actual_tile := _get_current_tile()
 	(
-		assert_that(actual_tile)
+		assert_that(actual_tile) \
 		. append_failure_message(
 			(
 				"%s: expected=%s, actual=%s, pos=%s"
 				% [context, str(expected_tile), str(actual_tile), str(positioner.global_position)]
 			)
-		)
+		) \
 		. is_equal(expected_tile)
 	)
 
@@ -101,8 +101,8 @@ func test_injector_injects_positioner_and_settings() -> void:
 
 	var meta_present := positioner.has_meta(GBInjectorSystem.INJECTION_META_KEY)
 	(
-		assert_bool(meta_present)
-		. append_failure_message("Positioner must have injector meta after injection")
+		assert_bool(meta_present) \
+		. append_failure_message("Positioner must have injector meta after injection") \
 		. is_true()
 	)
 
@@ -113,22 +113,22 @@ func test_injector_injects_positioner_and_settings() -> void:
 		var expected_id: int = int(injector.get_instance_id())
 		var actual_id: int = meta.get("injector_id", -1)
 		(
-			assert_int(actual_id)
+			assert_int(actual_id) \
 			. append_failure_message(
 				(
 					"Injector ID: expected=%d, actual=%d, meta_keys=%s"
 					% [expected_id, actual_id, str(meta.keys())]
 				)
-			)
+			) \
 			. is_equal(expected_id)
 		)
 
 	var issues: Array[String] = positioner.get_runtime_issues()
 	(
-		assert_array(issues)
+		assert_array(issues) \
 		. append_failure_message(
 			"GridPositioner2D should have no runtime issues post-injection, got: %s" % str(issues)
-		)
+		) \
 		. is_empty()
 	)
 
@@ -168,10 +168,10 @@ func test_move_to_viewport_center() -> void:
 	var result_tile: Vector2i = positioner.move_to_viewport_center_tile()
 	var is_valid: bool = result_tile != Vector2i(-1, -1)
 	(
-		assert_bool(is_valid)
+		assert_bool(is_valid) \
 		. append_failure_message(
 			"move_to_viewport_center_tile() returned invalid: %s" % str(result_tile)
-		)
+		) \
 		. is_true()
 	)
 	_assert_at_tile(result_tile, "After viewport center")
@@ -211,13 +211,13 @@ func test_coordinate_conversions() -> void:
 		var result_tile := _get_current_tile()
 		var global_pos := positioner.global_position
 		(
-			assert_that(result_tile)
+			assert_that(result_tile) \
 			. append_failure_message(
 				(
 					"Round-trip: target=%s, global=%s, result=%s, delta=%s"
 					% [str(tile), str(global_pos), str(result_tile), str(tile - result_tile)]
 				)
-			)
+			) \
 			. is_equal(tile)
 		)
 
@@ -238,25 +238,25 @@ func test_runtime_issues_when_dependencies_missing() -> void:
 	var issue_count: int = issues.size()
 
 	(
-		assert_array(issues)
+		assert_array(issues) \
 		. append_failure_message(
 			(
 				"Positioner without dependencies should report issues, got %d: %s"
 				% [issue_count, str(issues)]
 			)
-		)
+		) \
 		. is_not_empty()
 	)
 
 	var min_expected: int = 3
 	(
-		assert_int(issue_count)
+		assert_int(issue_count) \
 		. append_failure_message(
 			(
 				"Expected >= %d dependency issues, got %d: %s"
 				% [min_expected, issue_count, str(issues)]
 			)
-		)
+		) \
 		. is_greater_equal(min_expected)
 	)
 

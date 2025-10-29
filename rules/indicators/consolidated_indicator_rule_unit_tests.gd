@@ -58,8 +58,8 @@ func before_test() -> void:
 	env = runner.scene() as CollisionTestEnvironment
 
 	(
-		assert_object(env)
-		. append_failure_message("Failed to load CollisionTestEnvironment scene")
+		assert_object(env) \
+		. append_failure_message("Failed to load CollisionTestEnvironment scene") \
 		. is_not_null()
 	)
 
@@ -170,16 +170,16 @@ func test_indicator_factory_creates_indicators_from_position_map() -> void:
 		test_object
 	)
 	(
-		assert_that(indicators.size() == 2)
-		. append_failure_message("Expected 2 indicators for 2 positions in map")
+		assert_that(indicators.size() == 2) \
+		. append_failure_message("Expected 2 indicators for 2 positions in map") \
 		. is_true()
 	)
 
 	# Verify indicators have rules assigned
 	for indicator in indicators:
 		(
-			assert_that(indicator.get_rules().size() > 0)
-			. append_failure_message("Expected indicators to have rules assigned")
+			assert_that(indicator.get_rules().size() > 0) \
+			. append_failure_message("Expected indicators to have rules assigned") \
 			. is_true()
 		)
 
@@ -208,8 +208,8 @@ func test_indicator_factory_handles_empty_position_map() -> void:
 	)
 
 	(
-		assert_that(indicators.size() == 0)
-		. append_failure_message("Expected 0 indicators for empty position map")
+		assert_that(indicators.size() == 0) \
+		. append_failure_message("Expected 0 indicators for empty position map") \
 		. is_true()
 	)
 
@@ -233,20 +233,20 @@ func test_indicator_basic_setup(
 
 	# Verify basic setup
 	(
-		assert_object(indicator)
-		. append_failure_message("Indicator should be created for shape type: %s" % shape_type)
+		assert_object(indicator) \
+		. append_failure_message("Indicator should be created for shape type: %s" % shape_type) \
 		. is_not_null()
 	)
 
 	(
-		assert_object(indicator.shape)
-		. append_failure_message("Indicator shape should be set for type: %s" % shape_type)
+		assert_object(indicator.shape) \
+		. append_failure_message("Indicator shape should be set for type: %s" % shape_type) \
 		. is_not_null()
 	)
 
 	(
-		assert_vector(indicator.global_position)
-		. append_failure_message("Indicator should have zero global position initially")
+		assert_vector(indicator.global_position) \
+		. append_failure_message("Indicator should have zero global position initially") \
 		. is_equal(Vector2.ZERO)
 	)
 

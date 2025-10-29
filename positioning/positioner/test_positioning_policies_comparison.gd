@@ -105,43 +105,43 @@ func test_center_on_mouse_vs_center_on_screen_policies() -> void:
 
 	# Assert that both positioners are visible and functional
 	(
-		assert_bool(positioner_mouse.visible)
-		. append_failure_message("Mouse policy positioner should be visible. %s" % mouse_diag)
+		assert_bool(positioner_mouse.visible) \
+		. append_failure_message("Mouse policy positioner should be visible. %s" % mouse_diag) \
 		. is_true()
 	)
 
 	(
-		assert_bool(positioner_screen.visible)
-		. append_failure_message("Screen policy positioner should be visible. %s" % screen_diag)
+		assert_bool(positioner_screen.visible) \
+		. append_failure_message("Screen policy positioner should be visible. %s" % screen_diag) \
 		. is_true()
 	)
 
 	# Assert that both accept manual positioning
 	(
-		assert_bool(mouse_position != DEFAULT_POSITION)
+		assert_bool(mouse_position != DEFAULT_POSITION) \
 		. append_failure_message(
 			(
 				"Mouse policy should accept positioning. Pos: %s, Distance from origin: %.2f | %s"
 				% [str(mouse_position), mouse_from_origin, mouse_diag]
 			)
-		)
+		) \
 		. is_true()
 	)
 
 	(
-		assert_bool(screen_position != DEFAULT_POSITION)
+		assert_bool(screen_position != DEFAULT_POSITION) \
 		. append_failure_message(
 			(
 				"Screen policy should accept positioning. Pos: %s, Distance from origin: %.2f | %s"
 				% [str(screen_position), screen_from_origin, screen_diag]
 			)
-		)
+		) \
 		. is_true()
 	)
 
 	# Assert positioning is maintained (both should stay at assigned positions)
 	(
-		assert_bool(mouse_from_origin > 40.0 and screen_from_origin > 90.0)
+		assert_bool(mouse_from_origin > 40.0 and screen_from_origin > 90.0) \
 		. append_failure_message(
 			(
 				"Both policies should maintain assigned positions. Mouse dist: %.2f (expected ~70), Screen dist: %.2f (expected ~141), Policy dist: %.2f | Mouse: %s | Screen: %s"
@@ -153,6 +153,6 @@ func test_center_on_mouse_vs_center_on_screen_policies() -> void:
 					screen_diag
 				]
 			)
-		)
+		) \
 		. is_true()
 	)

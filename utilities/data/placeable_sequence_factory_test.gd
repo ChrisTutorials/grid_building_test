@@ -53,13 +53,13 @@ func test_from_placeables_basic_conversion() -> void:
 
 	# Should create one sequence per placeable
 	(
-		assert_int(result.size())
+		assert_int(result.size()) \
 		. append_failure_message(
 			(
 				"from_placeables should create %d sequences, created %d"
 				% [placeables.size(), result.size()]
 			)
-		)
+		) \
 		. is_equal(placeables.size())
 	)
 
@@ -69,20 +69,20 @@ func test_from_placeables_basic_conversion() -> void:
 		var original_placeable: Placeable = placeables[i]
 
 		(
-			assert_str(sequence.display_name)
-			. append_failure_message("Sequence %d display name should match original placeable" % i)
+			assert_str(sequence.display_name) \
+			. append_failure_message("Sequence %d display name should match original placeable" % i) \
 			. is_equal(original_placeable.display_name)
 		)
 
 		(
-			assert_int(sequence.placeables.size())
-			. append_failure_message("Sequence %d should contain exactly 1 placeable" % i)
+			assert_int(sequence.placeables.size()) \
+			. append_failure_message("Sequence %d should contain exactly 1 placeable" % i) \
 			. is_equal(1)
 		)
 
 		(
-			assert_object(sequence.placeables[0])
-			. append_failure_message("Sequence %d should contain the original placeable" % i)
+			assert_object(sequence.placeables[0]) \
+			. append_failure_message("Sequence %d should contain the original placeable" % i) \
 			. is_same(original_placeable)
 		)
 
@@ -121,13 +121,13 @@ func test_from_placeables_scenarios(
 	)
 
 	(
-		assert_int(result.size())
+		assert_int(result.size()) \
 		. append_failure_message(
 			(
 				"from_placeables with setup '%s' should produce %d sequences, got %d"
 				% [setup_description, expected_output_count, result.size()]
 			)
-		)
+		) \
 		. is_equal(expected_output_count)
 	)
 
@@ -135,13 +135,13 @@ func test_from_placeables_scenarios(
 	for i in range(result.size()):
 		var sequence: PlaceableSequence = result[i]
 		(
-			assert_int(sequence.placeables.size())
-			. append_failure_message("Converted sequence %d should contain exactly 1 placeable" % i)
+			assert_int(sequence.placeables.size()) \
+			. append_failure_message("Converted sequence %d should contain exactly 1 placeable" % i) \
 			. is_equal(1)
 		)
 		(
-			assert_object(sequence.placeables[0])
-			. append_failure_message("Converted sequence %d should contain non-null placeable" % i)
+			assert_object(sequence.placeables[0]) \
+			. append_failure_message("Converted sequence %d should contain non-null placeable" % i) \
 			. is_not_null()
 		)
 
@@ -156,48 +156,48 @@ func test_ensure_sequences_preserves_existing_sequences() -> void:
 	var result: Array[PlaceableSequence] = PlaceableSequenceFactory.ensure_sequences(mixed_input)
 
 	(
-		assert_int(result.size())
+		assert_int(result.size()) \
 		. append_failure_message(
 			(
 				"ensure_sequences should preserve all valid items: input %d, output %d"
 				% [mixed_input.size(), result.size()]
 			)
-		)
+		) \
 		. is_equal(mixed_input.size())
 	)
 
 	# First item should be preserved sequence
 	(
-		assert_object(result[0])
-		. append_failure_message("First result should be the same PlaceableSequence object")
+		assert_object(result[0]) \
+		. append_failure_message("First result should be the same PlaceableSequence object") \
 		. is_same(test_sequence_1)
 	)
 
 	# Second item should be converted placeable
 	(
-		assert_str(result[1].display_name)
-		. append_failure_message("Second result should be converted placeable with preserved name")
+		assert_str(result[1].display_name) \
+		. append_failure_message("Second result should be converted placeable with preserved name") \
 		. is_equal(test_placeable_1.display_name)
 	)
 	(
-		assert_int(result[1].placeables.size())
+		assert_int(result[1].placeables.size()) \
 		. append_failure_message(
 			"Converted placeable sequence should contain exactly one placeable"
-		)
+		) \
 		. is_equal(1)
 	)
 	(
-		assert_object(result[1].placeables[0])
+		assert_object(result[1].placeables[0]) \
 		. append_failure_message(
 			"Converted placeable sequence should contain the original placeable"
-		)
+		) \
 		. is_same(test_placeable_1)
 	)
 
 	# Third item should be preserved sequence
 	(
-		assert_object(result[2])
-		. append_failure_message("Third result should be the same PlaceableSequence object")
+		assert_object(result[2]) \
+		. append_failure_message("Third result should be the same PlaceableSequence object") \
 		. is_same(test_sequence_2)
 	)
 
@@ -246,26 +246,26 @@ func test_ensure_sequences_scenarios(
 	var result: Array[PlaceableSequence] = PlaceableSequenceFactory.ensure_sequences(mixed_input)
 
 	(
-		assert_int(result.size())
+		assert_int(result.size()) \
 		. append_failure_message(
 			(
 				"ensure_sequences with setup '%s' should produce %d sequences, got %d"
 				% [setup_description, expected_output_count, result.size()]
 			)
-		)
+		) \
 		. is_equal(expected_output_count)
 	)
 
 	# Verify all results are PlaceableSequence objects
 	for i in range(result.size()):
 		(
-			assert_bool(result[i] is PlaceableSequence)
+			assert_bool(result[i] is PlaceableSequence) \
 			. append_failure_message(
 				(
 					"Result item %d should be PlaceableSequence, got %s"
 					% [i, str(result[i].get_class())]
 				)
-			)
+			) \
 			. is_true()
 		)
 
@@ -279,20 +279,20 @@ func test_ensure_sequences_preserves_original_properties() -> void:
 
 	# Properties should be preserved during conversion
 	(
-		assert_str(converted_sequence.display_name)
-		. append_failure_message("Converted sequence should preserve original display name")
+		assert_str(converted_sequence.display_name) \
+		. append_failure_message("Converted sequence should preserve original display name") \
 		. is_equal(original_placeable.display_name)
 	)
 
 	(
-		assert_int(converted_sequence.placeables.size())
-		. append_failure_message("Converted sequence should contain exactly 1 placeable")
+		assert_int(converted_sequence.placeables.size()) \
+		. append_failure_message("Converted sequence should contain exactly 1 placeable") \
 		. is_equal(1)
 	)
 
 	(
-		assert_object(converted_sequence.placeables[0])
-		. append_failure_message("Converted sequence should contain the original placeable object")
+		assert_object(converted_sequence.placeables[0]) \
+		. append_failure_message("Converted sequence should contain the original placeable object") \
 		. is_same(original_placeable)
 	)
 
@@ -309,8 +309,8 @@ func test_null_and_empty_input_handling() -> void:
 		empty_placeables
 	)
 	(
-		assert_array(empty_result)
-		. append_failure_message("from_placeables with empty array should return empty result")
+		assert_array(empty_result) \
+		. append_failure_message("from_placeables with empty array should return empty result") \
 		. is_empty()
 	)
 
@@ -319,8 +319,8 @@ func test_null_and_empty_input_handling() -> void:
 		empty_mixed
 	)
 	(
-		assert_array(empty_mixed_result)
-		. append_failure_message("ensure_sequences with empty array should return empty result")
+		assert_array(empty_mixed_result) \
+		. append_failure_message("ensure_sequences with empty array should return empty result") \
 		. is_empty()
 	)
 
@@ -328,8 +328,8 @@ func test_null_and_empty_input_handling() -> void:
 	var only_nulls: Array[Placeable] = [null, null, null]
 	var null_result: Array[PlaceableSequence] = PlaceableSequenceFactory.from_placeables(only_nulls)
 	(
-		assert_array(null_result)
-		. append_failure_message("from_placeables with only nulls should return empty result")
+		assert_array(null_result) \
+		. append_failure_message("from_placeables with only nulls should return empty result") \
 		. is_empty()
 	)
 
@@ -338,8 +338,8 @@ func test_null_and_empty_input_handling() -> void:
 		mixed_nulls
 	)
 	(
-		assert_array(mixed_null_result)
-		. append_failure_message("ensure_sequences with only nulls should return empty result")
+		assert_array(mixed_null_result) \
+		. append_failure_message("ensure_sequences with only nulls should return empty result") \
 		. is_empty()
 	)
 
@@ -380,30 +380,30 @@ func test_large_array_performance() -> void:
 
 	# Verify correct output sizes
 	(
-		assert_int(result1.size())
-		. append_failure_message("from_placeables should convert 100 placeables to 100 sequences")
+		assert_int(result1.size()) \
+		. append_failure_message("from_placeables should convert 100 placeables to 100 sequences") \
 		. is_equal(100)
 	)
 	(
-		assert_int(result2.size())
-		. append_failure_message("ensure_sequences should process 100 mixed items to 100 sequences")
+		assert_int(result2.size()) \
+		. append_failure_message("ensure_sequences should process 100 mixed items to 100 sequences") \
 		. is_equal(100)
 	)
 
 	# Performance should be reasonable (< 100ms for 100 items)
 	(
-		assert_int(time1)
+		assert_int(time1) \
 		. append_failure_message(
 			"from_placeables should complete in reasonable time, took %d ms" % time1
-		)
+		) \
 		. is_less(100)
 	)
 
 	(
-		assert_int(time2)
+		assert_int(time2) \
 		. append_failure_message(
 			"ensure_sequences should complete in reasonable time, took %d ms" % time2
-		)
+		) \
 		. is_less(100)
 	)
 
@@ -419,13 +419,13 @@ func test_type_safety_and_validation() -> void:
 
 	# Should only convert the placeable and preserve the sequence (2 valid items)
 	(
-		assert_int(result.size())
+		assert_int(result.size()) \
 		. append_failure_message(
 			(
 				"ensure_sequences should only process PlaceableSequence and Placeable objects, processed %d items"
 				% result.size()
 			)
-		)
+		) \
 		. is_equal(2)
 	)
 
@@ -443,14 +443,14 @@ func test_type_safety_and_validation() -> void:
 			found_converted_placeable = true
 
 	(
-		assert_bool(found_original_sequence)
-		. append_failure_message("Should preserve original PlaceableSequence")
+		assert_bool(found_original_sequence) \
+		. append_failure_message("Should preserve original PlaceableSequence") \
 		. is_true()
 	)
 
 	(
-		assert_bool(found_converted_placeable)
-		. append_failure_message("Should convert Placeable to PlaceableSequence")
+		assert_bool(found_converted_placeable) \
+		. append_failure_message("Should convert Placeable to PlaceableSequence") \
 		. is_true()
 	)
 

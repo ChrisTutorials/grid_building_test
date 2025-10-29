@@ -72,12 +72,12 @@ func test_polygon_overlap_threshold(
 
 	# Assert
 	(
-		assert_bool(result)
+		assert_bool(result) \
 		. append_failure_message(
 			(
 				"%s | clipped_area=%.6f min_ratio=%.3f expected=%s"
 				% [description, clipped_area, min_overlap_ratio, str(expected)]
 			)
-		)
+		) \
 		. is_equal(expected)
 	)

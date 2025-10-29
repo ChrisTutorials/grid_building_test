@@ -26,16 +26,16 @@ func test_validate_test_composition_container_subcomponents() -> void:
 		)
 
 	(
-		assert_that(container)
-		. append_failure_message("Test composition container not found or wrong type")
+		assert_that(container) \
+		. append_failure_message("Test composition container not found or wrong type") \
 		. is_not_null()
 	)
 
 	# Assert GBConfig exists and its main subcomponents are present
 	var cfg: GBConfig = container.config
 	(
-		assert_that(cfg)
-		. append_failure_message("GBConfig is null on the test composition container")
+		assert_that(cfg) \
+		. append_failure_message("GBConfig is null on the test composition container") \
 		. is_not_null()
 	)
 
@@ -44,13 +44,13 @@ func test_validate_test_composition_container_subcomponents() -> void:
 	assert_that(cfg.templates).append_failure_message("GBConfig.templates is null").is_not_null()
 	assert_that(cfg.actions).append_failure_message("GBConfig.actions is null").is_not_null()
 	(
-		assert_that(cfg.settings.manipulation)
-		. append_failure_message("GBConfig.settings.manipulation is null")
+		assert_that(cfg.settings.manipulation) \
+		. append_failure_message("GBConfig.settings.manipulation is null") \
 		. is_not_null()
 	)
 	(
-		assert_that(cfg.settings.visual)
-		. append_failure_message("GBConfig.settings.visual is null")
+		assert_that(cfg.settings.visual) \
+		. append_failure_message("GBConfig.settings.visual is null") \
 		. is_not_null()
 	)
 
@@ -68,12 +68,12 @@ func test_validate_test_composition_container_subcomponents() -> void:
 
 	# Validate that we have no editor-level validation issues for test resources
 	(
-		assert_that(issues.size())
+		assert_that(issues.size()) \
 		. append_failure_message(
 			(
 				"Expected no editor issues in test composition container, got %d issues: %s"
 				% [issues.size(), str(issues)]
 			)
-		)
+		) \
 		. is_equal(0)
 	)

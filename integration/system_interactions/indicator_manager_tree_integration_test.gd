@@ -71,7 +71,7 @@ func test_indicators_are_parented_and_inside_tree() -> void:
 	var rules: Array[PlacementRule] = [rule]
 	var setup_results: PlacementReport = indicator_manager.try_setup(rules, targeting_state)
 	assert_bool(setup_results\
-		.is_successful()).append_failure_message("IndicatorManager.try_setup failed: " + str(setup_results.get_issues()))
+		.is_successful()).append_failure_message("IndicatorManager.try_setup failed: " + str(setup_results.get_issues())) \
 		.is_true()
 	var indicators: Array[RuleCheckIndicator] = indicator_manager.get_indicators()
 	assert_array(indicators).append_failure_message("No indicators created. Setup result: " + str(setup_results\

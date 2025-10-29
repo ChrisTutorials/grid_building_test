@@ -73,26 +73,26 @@ func test_preloaded_tilemap_has_valid_tile_data() -> void:
 
 	# Verify basic tilemap properties
 	(
-		assert_object(tile_map)
-		. append_failure_message("TileMapLayer should instantiate successfully from packed scene")
+		assert_object(tile_map) \
+		. append_failure_message("TileMapLayer should instantiate successfully from packed scene") \
 		. is_not_null()
 	)
 	(
-		assert_object(tile_map.tile_set)
-		. append_failure_message("TileMapLayer should have a valid tile_set")
+		assert_object(tile_map.tile_set) \
+		. append_failure_message("TileMapLayer should have a valid tile_set") \
 		. is_not_null()
 	)
 
 	var used_rect: Rect2i = tile_map.get_used_rect()
 	var expected_rect: Rect2i = Rect2i(-15, -15, 31, 31)
 	(
-		assert_that(used_rect)
+		assert_that(used_rect) \
 		. append_failure_message(
 			(
 				"Tilemap used rect should match integration test: expected %s, got %s"
 				% [expected_rect, used_rect]
 			)
-		)
+		) \
 		. is_equal(expected_rect)
 	)
 	var tile_size: Vector2i = tile_map.tile_set.tile_size
@@ -113,21 +113,21 @@ func test_preloaded_tilemap_has_valid_tile_data() -> void:
 	# This should be tile (0, 0) based on 16x16 tiles and 8.0 world position
 	var expected_tile: Vector2i = Vector2i(0, 0)
 	(
-		assert_vector(Vector2(integration_test_tile))
-		. append_failure_message("Integration test position should map to expected tile")
+		assert_vector(Vector2(integration_test_tile)) \
+		. append_failure_message("Integration test position should map to expected tile") \
 		. is_equal(Vector2(expected_tile))
 	)
 
 	# Verify that tile (0,0) has valid TileData
 	var tile_data: TileData = tile_map.get_cell_tile_data(expected_tile)
 	(
-		assert_object(tile_data)
+		assert_object(tile_data) \
 		. append_failure_message(
 			(
 				"Integration test tile position %s should have valid TileData for "
 				+ "WithinTilemapBoundsRule to pass" % expected_tile
 			)
-		)
+		) \
 		. is_not_null()
 	)
 
@@ -179,13 +179,13 @@ func test_within_tilemap_bounds_rule_at_valid_position() -> void:
 	var is_valid: bool = failing_indicators.size() == 0
 
 	(
-		assert_bool(is_valid)
+		assert_bool(is_valid) \
 		. append_failure_message(
 			(
 				"WITHIN TILEMAP BOUNDS RULE UNIT TEST FAILURE:\nThis reproduces the integration test failure. "
 				+ "Position should be within tilemap bounds but rule is failing."
 			)
-		)
+		) \
 		. is_true()
 	)
 
@@ -237,8 +237,8 @@ func test_within_tilemap_bounds_rule_at_invalid_position() -> void:
 
 	# This should fail since position is outside bounds
 	(
-		assert_bool(is_valid)
-		. append_failure_message("WithinTilemapBoundsRule should fail for out-of-bounds position")
+		assert_bool(is_valid) \
+		. append_failure_message("WithinTilemapBoundsRule should fail for out-of-bounds position") \
 		. is_false()
 	)
 
@@ -304,7 +304,7 @@ func test_within_tilemap_bounds_rule_boundary_positions(
 
 	var used_rect: Rect2i = tile_map.get_used_rect()
 	(
-		assert_bool(is_valid)
+		assert_bool(is_valid) \
 		. append_failure_message(
 			(
 				"Boundary test '%s': tile %s should be %s. Used rect: %s, Within bounds: %s, Rule result: %s"
@@ -317,7 +317,7 @@ func test_within_tilemap_bounds_rule_boundary_positions(
 					"valid" if is_valid else "invalid"
 				]
 			)
-		)
+		) \
 		. is_equal(expected_valid)
 	)
 
@@ -397,20 +397,20 @@ func test_multiple_rules_validation_combination() -> void:
 
 	# Individual rules should pass (like integration test shows valid=true for indicators)
 	(
-		assert_bool(bounds_valid)
-		. append_failure_message("Bounds rule should pass individually:\n%s" % diagnostics)
+		assert_bool(bounds_valid) \
+		. append_failure_message("Bounds rule should pass individually:\n%s" % diagnostics) \
 		. is_true()
 	)
 
 	(
-		assert_bool(collision_valid)
-		. append_failure_message("Collision rule should pass individually:\n%s" % diagnostics)
+		assert_bool(collision_valid) \
+		. append_failure_message("Collision rule should pass individually:\n%s" % diagnostics) \
 		. is_true()
 	)
 
 	# Combined validation should also pass (this is where integration test fails)
 	(
-		assert_bool(combined_valid)
+		assert_bool(combined_valid) \
 		. append_failure_message(
 			(
 				"MULTIPLE RULES VALIDATION UNIT TEST FAILURE:\n%s\nThis reproduces the integration test "
@@ -419,7 +419,7 @@ func test_multiple_rules_validation_combination() -> void:
 					% diagnostics
 				)
 			)
-		)
+		) \
 		. is_true()
 	)
 

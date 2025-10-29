@@ -121,8 +121,8 @@ func before_test() -> void:
 	# Pull placement validator from the environment's IndicatorManager (fail fast if missing)
 	placement_validator = _indicator_manager.get_placement_validator()
 	(
-		assert_object(placement_validator)
-		. append_failure_message("IndicatorManager did not provide a PlacementValidator")
+		assert_object(placement_validator) \
+		. append_failure_message("IndicatorManager did not provide a PlacementValidator") \
 		. is_not_null()
 	)
 
@@ -237,8 +237,8 @@ func _enter_build_mode_for_rect_4x2_and_start_drag() -> Dictionary:
 		GBTestConstants.PLACEABLE_RECT_4X2
 	)
 	(
-		assert_bool(report.is_successful())
-		. append_failure_message("Build mode entry failed: " + str(report.get_issues()))
+		assert_bool(report.is_successful()) \
+		. append_failure_message("Build mode entry failed: " + str(report.get_issues())) \
 		. is_true()
 	)
 	# Create DragManager manually for tests (now standalone component)
@@ -249,13 +249,13 @@ func _enter_build_mode_for_rect_4x2_and_start_drag() -> Dictionary:
 	drag_manager.set_test_mode(true)  # Disable input processing for manual control
 	var drag_data: DragPathData = drag_manager.start_drag()
 	(
-		assert_object(drag_data)
+		assert_object(drag_data) \
 		. append_failure_message(
 			(
 				"Drag data should be created by start_drag() - manager_valid=%s, in_tree=%s"
 				% [drag_manager != null, drag_manager.is_inside_tree()]
 			)
-		)
+		) \
 		. is_not_null()
 	)
 	result["drag_manager"] = drag_manager
@@ -269,8 +269,8 @@ func _assert_build_attempted(context: String = "") -> void:
 		% [context, _build_success_count, _build_failed_count]
 	)
 	(
-		assert_int(_build_success_count + _build_failed_count)
-		. append_failure_message(_format_debug(msg))
+		assert_int(_build_success_count + _build_failed_count) \
+		. append_failure_message(_format_debug(msg)) \
 		. is_greater(0)
 	)
 
@@ -318,8 +318,8 @@ func _doc_tile_coverage(tile: Vector2i) -> String:
 ## Scans from map center outward to avoid edges and sparse areas.
 func _find_safe_center_tile_for_rect_4x2() -> Vector2i:
 	(
-		assert_object(_map)
-		. append_failure_message("TileMapLayer missing for safe-tile search")
+		assert_object(_map) \
+		. append_failure_message("TileMapLayer missing for safe-tile search") \
 		. is_not_null()
 	)
 
@@ -404,8 +404,8 @@ func _find_safe_center_tile_for_rect_4x2() -> Vector2i:
 ## Scans center-out across safe bounds and returns the first passing tile; falls back to current position if none.
 func _find_prevalidated_start_tile_for_rect_4x2() -> Vector2i:
 	(
-		assert_object(_indicator_manager)
-		. append_failure_message("IndicatorManager missing for prevalidated search")
+		assert_object(_indicator_manager) \
+		. append_failure_message("IndicatorManager missing for prevalidated search") \
 		. is_not_null()
 	)
 	var ur: Rect2i = _map.get_used_rect()
@@ -477,8 +477,8 @@ func test_placement_validation_basic(
 	]
 ) -> void:
 	(
-		assert_object(placement_validator)
-		. append_failure_message("PlacementValidator missing in test")
+		assert_object(placement_validator) \
+		. append_failure_message("PlacementValidator missing in test") \
 		. is_not_null()
 	)
 
@@ -492,10 +492,10 @@ func test_placement_validation_basic(
 	var setup_issues: Dictionary = placement_validator.setup(empty_rules, _targeting_state)
 
 	(
-		assert_that(setup_issues.is_empty())
+		assert_that(setup_issues.is_empty()) \
 		. append_failure_message(
 			"Setup should succeed with no rules for scenario: %s" % placement_scenario
-		)
+		) \
 		. is_true()
 	)
 
@@ -503,7 +503,7 @@ func test_placement_validation_basic(
 
 	# With no rules, PlacementValidator returns unsuccessful because no rules were set up
 	(
-		assert_that(result.is_successful())
+		assert_that(result.is_successful()) \
 		. append_failure_message(
 			(
 				"BASIC PLACEMENT VALIDATION RESULT MISMATCH:\n"
@@ -526,14 +526,14 @@ func test_placement_validation_basic(
 				+ "  • Environment: "
 				+ _collect_placement_diagnostics(placement_scenario)
 			)
-		)
+		) \
 		. is_equal(expected_valid)
 	)
 
 	if not expected_valid:
 		(
-			assert_str(result.message)
-			. append_failure_message("Should have appropriate message about no rules")
+			assert_str(result.message) \
+			. append_failure_message("Should have appropriate message about no rules") \
 			. contains("not been successfully setup")
 		)
 
@@ -553,8 +553,8 @@ func test_placement_validation_with_rules(
 	]
 ) -> void:
 	(
-		assert_object(placement_validator)
-		. append_failure_message("PlacementValidator missing in test")
+		assert_object(placement_validator) \
+		. append_failure_message("PlacementValidator missing in test") \
 		. is_not_null()
 	)
 
@@ -572,7 +572,7 @@ func test_placement_validation_with_rules(
 
 	# Enhanced diagnostic: Verify _positioner exists before using it
 	(
-		assert_object(_positioner)
+		assert_object(_positioner) \
 		. append_failure_message(
 			(
 				"CRITICAL: _positioner is null in test_placement_validation_with_rules. "
@@ -583,7 +583,7 @@ func test_placement_validation_with_rules(
 				+ ". "
 				+ "This indicates test environment setup failure in before_test()."
 			)
-		)
+		) \
 		. is_not_null()
 	)
 
@@ -592,7 +592,7 @@ func test_placement_validation_with_rules(
 
 	# Enhanced diagnostic: Verify _targeting_state and _targeting_state.get_target() exist
 	(
-		assert_object(_targeting_state)
+		assert_object(_targeting_state) \
 		. append_failure_message(
 			(
 				"CRITICAL: _targeting_state is null in test_placement_validation_with_rules. "
@@ -603,12 +603,12 @@ func test_placement_validation_with_rules(
 				+ ". "
 				+ "This indicates GridTargetingSystem.get_state() failed or returned null."
 			)
-		)
+		) \
 		. is_not_null()
 	)
 
 	(
-		assert_object(_targeting_state.get_target())
+		assert_object(_targeting_state.get_target()) \
 		. append_failure_message(
 			(
 				"CRITICAL: _targeting_state.get_target() is null in test_placement_validation_with_rules. "
@@ -627,7 +627,7 @@ func test_placement_validation_with_rules(
 				+ "_targeting_state.get_target() was set in before_test() but is now null. "
 				+ "This may indicate the target node was freed or not properly retained between tests."
 			)
-		)
+		) \
 		. is_not_null()
 	)
 
@@ -656,10 +656,10 @@ func test_placement_validation_with_rules(
 
 	# Verify result details
 	(
-		assert_object(result)
+		assert_object(result) \
 		. append_failure_message(
 			"Validation result should not be null for scenario: " + str(rule_scenario)
-		)
+		) \
 		. is_not_null()
 	)
 
@@ -677,8 +677,8 @@ func test_placement_validation_edge_cases(
 	]
 ) -> void:
 	(
-		assert_object(placement_validator)
-		. append_failure_message("PlacementValidator missing in test")
+		assert_object(placement_validator) \
+		. append_failure_message("PlacementValidator missing in test") \
 		. is_not_null()
 	)
 
@@ -689,10 +689,10 @@ func test_placement_validation_edge_cases(
 			var empty_rules: Array[PlacementRule] = []
 			var setup_issues: Dictionary = placement_validator.setup(empty_rules, null)
 			(
-				assert_bool(setup_issues.is_empty())
+				assert_bool(setup_issues.is_empty()) \
 				. append_failure_message(
 					"Empty rules with null _targeting_state should result in empty setup issues"
-				)
+				) \
 				. is_true()
 			)
 
@@ -700,8 +700,8 @@ func test_placement_validation_edge_cases(
 			var test_rules: Array[PlacementRule] = [ValidPlacementTileRule.new()]
 			var setup_issues_with_rules: Dictionary = placement_validator.setup(test_rules, null)
 			(
-				assert_bool(setup_issues_with_rules.is_empty())
-				. append_failure_message("Rules with null parameters should cause setup issues")
+				assert_bool(setup_issues_with_rules.is_empty()) \
+				. append_failure_message("Rules with null parameters should cause setup issues") \
 				. is_false()
 			)
 
@@ -711,15 +711,15 @@ func test_placement_validation_edge_cases(
 			# With empty rules, validate() returns false because active_rules is empty
 			var result: ValidationResults = placement_validator.validate_placement()
 			(
-				assert_bool(result.is_successful())
+				assert_bool(result.is_successful()) \
 				. append_failure_message(
 					"Validation with empty rules should fail (no active rules)"
-				)
+				) \
 				. is_false()
 			)
 			(
-				assert_str(result.message)
-				. append_failure_message("Should indicate setup issue")
+				assert_str(result.message) \
+				. append_failure_message("Should indicate setup issue") \
 				. contains("not been successfully setup")
 			)
 
@@ -730,8 +730,8 @@ func test_placement_validation_edge_cases(
 			# Don't call setup with null target_map as it may cause hangs
 			# Instead, just check that target_map is required
 			(
-				assert_object(_targeting_state.target_map)
-				. append_failure_message("Target map should be null for this test")
+				assert_object(_targeting_state.target_map) \
+				. append_failure_message("Target map should be null for this test") \
 				. is_null()
 			)
 
@@ -748,8 +748,8 @@ func test_placement_validation_edge_cases(
 			var result: ValidationResults = placement_validator.validate_placement()
 			# This might be valid or invalid depending on implementation
 			(
-				assert_object(result)
-				. append_failure_message("Invalid position should still return a result object")
+				assert_object(result) \
+				. append_failure_message("Invalid position should still return a result object") \
 				. is_not_null()
 			)
 
@@ -828,7 +828,7 @@ func test_parented_polygon_offsets_stable_when_positioner_moves() -> void:
 	# The key behavior to test: offsets should be stable (consistent) when the parent moves
 	# We don't care about the specific coordinate values, just that they're consistent
 	(
-		assert_array(offsets1)
+		assert_array(offsets1) \
 		. append_failure_message(
 			(
 				"First offset collection should not be empty. Got: "
@@ -836,12 +836,12 @@ func test_parented_polygon_offsets_stable_when_positioner_moves() -> void:
 				+ ", DBG: "
 				+ str(_collect_placement_diagnostics("first_read"))
 			)
-		)
+		) \
 		. is_not_empty()
 	)
 
 	(
-		assert_array(offsets2)
+		assert_array(offsets2) \
 		. append_failure_message(
 			(
 				"Second offset collection should not be empty. Got: "
@@ -849,14 +849,14 @@ func test_parented_polygon_offsets_stable_when_positioner_moves() -> void:
 				+ ", DBG: "
 				+ str(_collect_placement_diagnostics("after_move"))
 			)
-		)
+		) \
 		. is_not_empty()
 	)
 
 	# The critical stability test: offsets should be the same pattern regardless of positioner movement
 	# This tests that the collision mapping accounts for parent-child relationships correctly
 	(
-		assert_array(offsets2)
+		assert_array(offsets2) \
 		. append_failure_message(
 			(
 				"Polygon offsets should be stable when positioner moves. First: "
@@ -866,7 +866,7 @@ func test_parented_polygon_offsets_stable_when_positioner_moves() -> void:
 				+ ", DBG: "
 				+ str(_collect_placement_diagnostics("stability_check"))
 			)
-		)
+		) \
 		. contains_exactly_in_any_order(offsets1)
 	)
 
@@ -991,10 +991,10 @@ func _collect_offsets(
 		poly, tile_map
 	)
 	(
-		assert_object(node_tile_offsets)
+		assert_object(node_tile_offsets) \
 		. append_failure_message(
 			"CollisionMapper should return valid dictionary from get_tile_offsets_for_collision_polygon"
-		)
+		) \
 		. is_not_null()
 	)
 	var arr: Array[Vector2i] = []
@@ -1044,7 +1044,7 @@ func _collect_offsets(
 			)
 
 		(
-			assert_array(arr)
+			assert_array(arr) \
 			. append_failure_message(
 				(
 					"_collect_offsets should return non-empty array of tile offsets. Dict keys: "
@@ -1055,12 +1055,12 @@ func _collect_offsets(
 					+ str(poly.global_position)
 					+ diag_msg
 				)
-			)
+			) \
 			. is_not_empty()
 		)
 	else:
 		(
-			assert_array(arr)
+			assert_array(arr) \
 			. append_failure_message(
 				(
 					"_collect_offsets should return non-empty array of tile offsets. Dict keys: "
@@ -1070,7 +1070,7 @@ func _collect_offsets(
 					+ ", Polygon global_position: "
 					+ str(poly.global_position)
 				)
-			)
+			) \
 			. is_not_empty()
 		)
 
@@ -1358,13 +1358,13 @@ func test_large_rectangle_generates_full_grid_of_indicators() -> void:
 
 	# Enhanced diagnostic: Verify _positioner exists before using it
 	(
-		assert_object(_positioner)
+		assert_object(_positioner) \
 		. append_failure_message(
 			(
 				"CRITICAL: _positioner is null in test_large_rectangle_generates_full_grid_of_indicators. "
 				+ "This indicates test environment setup failure in before_test()."
 			)
-		)
+		) \
 		. is_not_null()
 	)
 
@@ -1373,18 +1373,18 @@ func test_large_rectangle_generates_full_grid_of_indicators() -> void:
 
 	# Enhanced diagnostic: Verify _targeting_state and _targeting_state.get_target() exist
 	(
-		assert_object(_targeting_state)
+		assert_object(_targeting_state) \
 		. append_failure_message(
 			(
 				"CRITICAL: _targeting_state is null in test_large_rectangle_generates_full_grid_of_indicators. "
 				+ "This indicates GridTargetingSystem.get_state() failed or returned null."
 			)
-		)
+		) \
 		. is_not_null()
 	)
 
 	(
-		assert_object(_targeting_state.get_target())
+		assert_object(_targeting_state.get_target()) \
 		. append_failure_message(
 			(
 				"CRITICAL: _targeting_state.get_target() is null in test_large_rectangle_generates_full_grid_of_indicators. "
@@ -1401,7 +1401,7 @@ func test_large_rectangle_generates_full_grid_of_indicators() -> void:
 				+ "2) env.placer was null when assigned in before_test(), or "
 				+ "3) A previous test modified _targeting_state.get_target() without cleanup."
 			)
-		)
+		) \
 		. is_not_null()
 	)
 
@@ -1447,27 +1447,27 @@ func test_large_rectangle_generates_full_grid_of_indicators() -> void:
 
 	var setup_report := _indicator_manager.try_setup(rules, _targeting_state, true)
 	(
-		assert_object(setup_report)
-		. append_failure_message("IndicatorManager.try_setup returned null")
+		assert_object(setup_report) \
+		. append_failure_message("IndicatorManager.try_setup returned null") \
 		. is_not_null()
 	)
 	(
-		assert_bool(setup_report.is_successful())
+		assert_bool(setup_report.is_successful()) \
 		. append_failure_message(
 			"IndicatorManager.try_setup failed for rectangular building preview"
-		)
+		) \
 		. is_true()
 	)
 
 	var indicators: Array[RuleCheckIndicator] = setup_report.indicators_report.indicators
 	(
-		assert_array(indicators)
+		assert_array(indicators) \
 		. append_failure_message(
 			(
 				"No indicators generated for rectangular building; rule attach failed. DBG: "
 				+ str(_collect_placement_diagnostics("rect_setup"))
 			)
-		)
+		) \
 		. is_not_empty()
 	)
 
@@ -1657,13 +1657,13 @@ func test_isolated_rect_48x64_tile_offsets() -> void:
 
 	# Also assert the count as a sanity check
 	(
-		assert_int(offsets.size())
+		assert_int(offsets.size()) \
 		. append_failure_message(
 			(
 				"Expected %d tile offsets, got %d. %s"
 				% [expected_tiles.size(), offsets.size(), failure_msg]
 			)
-		)
+		) \
 		. is_equal(expected_tiles.size())
 	)
 
@@ -1675,15 +1675,15 @@ func test_isolated_rect_48x64_tile_offsets() -> void:
 	# Verify initial state
 	var is_build_mode: bool = _building_system.is_in_build_mode()
 	(
-		assert_bool(is_build_mode)
-		. append_failure_message("Building system should not be in build mode initially")
+		assert_bool(is_build_mode) \
+		. append_failure_message("Building system should not be in build mode initially") \
 		. is_false()
 	)
 
 	# Verify _building_system components are available
 	(
-		assert_object(_building_system)
-		. append_failure_message("Building system instance should exist")
+		assert_object(_building_system) \
+		. append_failure_message("Building system instance should exist") \
 		. is_not_null()
 	)
 
@@ -1695,26 +1695,26 @@ func _disabled_test_building_mode_enter_exit() -> void:
 		GBTestConstants.PLACEABLE_SMITHY
 	)
 	(
-		assert_object(enter_report)
-		. append_failure_message("Enter build mode should return a report")
+		assert_object(enter_report) \
+		. append_failure_message("Enter build mode should return a report") \
 		. is_not_null()
 	)
 	(
-		assert_bool(enter_report.is_successful())
-		. append_failure_message("Enter build mode should be successful")
+		assert_bool(enter_report.is_successful()) \
+		. append_failure_message("Enter build mode should be successful") \
 		. is_true()
 	)
 	(
-		assert_bool(_building_system.is_in_build_mode())
-		. append_failure_message("Should be in build mode after entering")
+		assert_bool(_building_system.is_in_build_mode()) \
+		. append_failure_message("Should be in build mode after entering") \
 		. is_true()
 	)
 
 	# Exit build mode
 	_building_system.exit_build_mode()
 	(
-		assert_bool(_building_system.is_in_build_mode())
-		. append_failure_message("Should not be in build mode after exiting")
+		assert_bool(_building_system.is_in_build_mode()) \
+		. append_failure_message("Should not be in build mode after exiting") \
 		. is_false()
 	)
 
@@ -1726,7 +1726,7 @@ func test_building_placement_attempt() -> void:
 		GBTestConstants.PLACEABLE_SMITHY
 	)
 	(
-		assert_bool(enter_report.is_successful())
+		assert_bool(enter_report.is_successful()) \
 		. append_failure_message(
 			_format_debug(
 				(
@@ -1734,7 +1734,7 @@ func test_building_placement_attempt() -> void:
 					% [str(enter_report.get_issues()), _get_container_config_debug()]
 				)
 			)
-		)
+		) \
 		. is_true()
 	)
 
@@ -1742,16 +1742,16 @@ func test_building_placement_attempt() -> void:
 
 	var placement_result: PlacementReport = _building_system.try_build()
 	(
-		assert_object(placement_result)
+		assert_object(placement_result) \
 		. append_failure_message(
 			_format_debug(
 				"BuildingSystem.try_build() should return valid report (preview system manages collision objects)"
 			)
-		)
+		) \
 		. is_not_null()
 	)
 	(
-		assert_bool(placement_result.is_successful())
+		assert_bool(placement_result.is_successful()) \
 		. append_failure_message(
 			_format_debug(
 				(
@@ -1763,11 +1763,11 @@ func test_building_placement_attempt() -> void:
 					]
 				)
 			)
-		)
+		) \
 		. is_true()
 	)
 	(
-		assert_object(placement_result.placed)
+		assert_object(placement_result.placed) \
 		. append_failure_message(
 			_format_debug(
 				(
@@ -1775,7 +1775,7 @@ func test_building_placement_attempt() -> void:
 					% [_build_success_count, _build_failed_count]
 				)
 			)
-		)
+		) \
 		. is_not_null()
 	)
 
@@ -1796,8 +1796,8 @@ func test_building_state_transitions() -> void:
 	_building_system.enter_build_mode(GBTestConstants.PLACEABLE_SMITHY)
 	var build_mode_state: bool = _building_system.is_in_build_mode()
 	(
-		assert_bool(build_mode_state)
-		. append_failure_message("Should be in build mode after entering")
+		assert_bool(build_mode_state) \
+		. append_failure_message("Should be in build mode after entering") \
 		. is_true()
 	)
 
@@ -1805,8 +1805,8 @@ func test_building_state_transitions() -> void:
 	_building_system.exit_build_mode()
 	var final_state: bool = _building_system.is_in_build_mode()
 	(
-		assert_bool(final_state)
-		. append_failure_message("Should not be in build mode after exiting")
+		assert_bool(final_state) \
+		. append_failure_message("Should not be in build mode after exiting") \
 		. is_false()
 	)
 
@@ -1817,26 +1817,26 @@ func test_building_state_persistence() -> void:
 
 	# State should persist across method calls
 	(
-		assert_bool(_building_system.is_in_build_mode())
-		. append_failure_message("Should remain in build mode after entering")
+		assert_bool(_building_system.is_in_build_mode()) \
+		. append_failure_message("Should remain in build mode after entering") \
 		. is_true()
 	)
 	(
-		assert_bool(_building_system.is_in_build_mode())
-		. append_failure_message("Should remain in build mode (second check)")
+		assert_bool(_building_system.is_in_build_mode()) \
+		. append_failure_message("Should remain in build mode (second check)") \
 		. is_true()
 	)  # Called twice intentionally
 
 	# Exit and verify persistence
 	_building_system.exit_build_mode()
 	(
-		assert_bool(_building_system.is_in_build_mode())
-		. append_failure_message("Should not be in build mode after exiting")
+		assert_bool(_building_system.is_in_build_mode()) \
+		. append_failure_message("Should not be in build mode after exiting") \
 		. is_false()
 	)
 	(
-		assert_bool(_building_system.is_in_build_mode())
-		. append_failure_message("Should not be in build mode after exiting (second check)")
+		assert_bool(_building_system.is_in_build_mode()) \
+		. append_failure_message("Should not be in build mode after exiting (second check)") \
 		. is_false()
 	)  # Called twice intentionally
 
@@ -1852,8 +1852,8 @@ func test_drag_build_initialization() -> void:
 	add_child(drag_manager)
 	drag_manager.resolve_gb_dependencies(_container)
 	(
-		assert_object(drag_manager)
-		. append_failure_message("Drag build manager should be available")
+		assert_object(drag_manager) \
+		. append_failure_message("Drag build manager should be available") \
 		. is_not_null()
 	)
 
@@ -1869,16 +1869,16 @@ func test_drag_build_functionality() -> void:
 	drag_manager.start_drag()
 
 	(
-		assert_bool(drag_manager.is_dragging())
-		. append_failure_message("Should be in drag building mode after start")
+		assert_bool(drag_manager.is_dragging()) \
+		. append_failure_message("Should be in drag building mode after start") \
 		. is_true()
 	)
 
 	drag_manager.stop_drag()
 
 	(
-		assert_bool(drag_manager.is_dragging())
-		. append_failure_message("Should not be in drag building mode after end")
+		assert_bool(drag_manager.is_dragging()) \
+		. append_failure_message("Should not be in drag building mode after end") \
 		. is_false()
 	)
 
@@ -1897,7 +1897,7 @@ func test_single_placement_per_tile_constraint() -> void:
 		GBTestConstants.PLACEABLE_SMITHY
 	)
 	(
-		assert_bool(enter_report.is_successful())
+		assert_bool(enter_report.is_successful()) \
 		. append_failure_message(
 			_format_debug(
 				(
@@ -1905,7 +1905,7 @@ func test_single_placement_per_tile_constraint() -> void:
 					% [str(enter_report.get_issues()), user_node.get_child_count()]
 				)
 			)
-		)
+		) \
 		. is_true()
 	)
 
@@ -1914,16 +1914,16 @@ func test_single_placement_per_tile_constraint() -> void:
 	# First placement attempt - this should succeed because indicators are valid
 	var first_report: PlacementReport = _building_system.try_build()
 	(
-		assert_object(first_report)
+		assert_object(first_report) \
 		. append_failure_message(
 			_format_debug(
 				"First placement attempt should return valid report (preview collision system working)"
 			)
-		)
+		) \
 		. is_not_null()
 	)
 	(
-		assert_bool(first_report.is_successful())
+		assert_bool(first_report.is_successful()) \
 		. append_failure_message(
 			_format_debug(
 				(
@@ -1931,26 +1931,26 @@ func test_single_placement_per_tile_constraint() -> void:
 					% [str(_positioner.global_position), str(first_report.get_issues())]
 				)
 			)
-		)
+		) \
 		. is_true()
 	)
 	(
-		assert_object(first_report.placed)
+		assert_object(first_report.placed) \
 		. append_failure_message(
 			_format_debug(
 				"First placement should return valid placed object - Target has no collision bodies to interfere"
 			)
-		)
+		) \
 		. is_not_null()
 	)
 
 	# This will test the system's ability to prevent multiple placements in the same tile
 	var second_report: PlacementReport = _building_system.try_build()
 	(
-		assert_object(second_report)
+		assert_object(second_report) \
 		. append_failure_message(
 			_format_debug("Duplicate placement attempt should still return a PlacementReport")
-		)
+		) \
 		. is_not_null()
 	)
 
@@ -1966,8 +1966,8 @@ func test_tile_placement_validation() -> void:
 	for pos: Vector2 in positions:
 		var report: PlacementReport = _building_system.try_build()
 		(
-			assert_object(report)
-			. append_failure_message("Should get result for position %s" % pos)
+			assert_object(report) \
+			. append_failure_message("Should get result for position %s" % pos) \
 			. is_not_null()
 		)
 
@@ -1987,8 +1987,8 @@ func test_preview_name_consistency() -> void:
 	if preview != null:
 		var preview_name: String = preview.get_name()
 		(
-			assert_str(preview_name)
-			. append_failure_message("Preview name should be consistent with placeable")
+			assert_str(preview_name) \
+			. append_failure_message("Preview name should be consistent with placeable") \
 			. contains("Smithy")
 		)
 
@@ -2007,8 +2007,8 @@ func test_preview_rotation_consistency() -> void:
 
 	var rotated_preview: Node2D = _building_system.get_building_state().preview
 	(
-		assert_object(rotated_preview)
-		. append_failure_message("Preview should exist after rotation")
+		assert_object(rotated_preview) \
+		. append_failure_message("Preview should exist after rotation") \
 		. is_not_null()
 	)
 
@@ -2027,7 +2027,7 @@ func test_complete_building_workflow() -> void:
 		GBTestConstants.PLACEABLE_SMITHY
 	)
 	(
-		assert_bool(enter_report.is_successful())
+		assert_bool(enter_report.is_successful()) \
 		. append_failure_message(
 			_format_debug(
 				(
@@ -2035,12 +2035,12 @@ func test_complete_building_workflow() -> void:
 					% [str(enter_report.get_issues()), _get_container_config_debug()]
 				)
 			)
-		)
+		) \
 		. is_true()
 	)
 	(
-		assert_bool(_building_system.is_in_build_mode())
-		. append_failure_message("Should be in build mode after entering")
+		assert_bool(_building_system.is_in_build_mode()) \
+		. append_failure_message("Should be in build mode after entering") \
 		. is_true()
 	)
 
@@ -2049,16 +2049,16 @@ func test_complete_building_workflow() -> void:
 	# Phase 3: Attempt building
 	var build_report: PlacementReport = _building_system.try_build()
 	(
-		assert_object(build_report)
+		assert_object(build_report) \
 		. append_failure_message(
 			_format_debug(
 				"Build attempt should return valid placement report (preview system handles collision objects)"
 			)
-		)
+		) \
 		. is_not_null()
 	)
 	(
-		assert_bool(build_report.is_successful())
+		assert_bool(build_report.is_successful()) \
 		. append_failure_message(
 			_format_debug(
 				(
@@ -2070,11 +2070,11 @@ func test_complete_building_workflow() -> void:
 					]
 				)
 			)
-		)
+		) \
 		. is_true()
 	)
 	(
-		assert_object(build_report.placed)
+		assert_object(build_report.placed) \
 		. append_failure_message(
 			_format_debug(
 				(
@@ -2082,15 +2082,15 @@ func test_complete_building_workflow() -> void:
 					% [_build_success_count, _build_failed_count]
 				)
 			)
-		)
+		) \
 		. is_not_null()
 	)
 
 	# Phase 4: Cleanup
 	_building_system.exit_build_mode()
 	(
-		assert_bool(_building_system.is_in_build_mode())
-		. append_failure_message("Should not be in build mode after exiting")
+		assert_bool(_building_system.is_in_build_mode()) \
+		. append_failure_message("Should not be in build mode after exiting") \
 		. is_false()
 	)
 
@@ -2100,20 +2100,20 @@ func test_building_error_recovery() -> void:
 	var invalid_placeable: Variant = null
 	_building_system.enter_build_mode(invalid_placeable)
 	(
-		assert_bool(_building_system.is_in_build_mode())
-		. append_failure_message("Invalid placeable should not enable build mode")
+		assert_bool(_building_system.is_in_build_mode()) \
+		. append_failure_message("Invalid placeable should not enable build mode") \
 		. is_false()
 	)
 
 	_building_system.enter_build_mode(GBTestConstants.PLACEABLE_SMITHY)
 	(
-		assert_bool(_building_system.is_in_build_mode())
-		. append_failure_message("Should be in build mode after entering with valid placeable")
+		assert_bool(_building_system.is_in_build_mode()) \
+		. append_failure_message("Should be in build mode after entering with valid placeable") \
 		. is_true()
 	)
 	(
-		assert_bool(_building_system.is_in_build_mode())
-		. append_failure_message("System should recover and accept valid placeable")
+		assert_bool(_building_system.is_in_build_mode()) \
+		. append_failure_message("System should recover and accept valid placeable") \
 		. is_true()
 	)
 
@@ -2129,10 +2129,10 @@ func test_building_system_dependencies() -> void:
 	# Verify _building_system has required dependencies
 	var issues: Array = _building_system.get_runtime_issues()
 	(
-		assert_array(issues)
+		assert_array(issues) \
 		. append_failure_message(
 			"Building _building_system should have minimal dependency issues: %s" % [str(issues)]
-		)
+		) \
 		. is_empty()
 	)
 
@@ -2141,10 +2141,10 @@ func test_building_system_validation() -> void:
 	# Test _building_system validation using dependency issues
 	var issues: Array = _building_system.get_runtime_issues()
 	(
-		assert_array(issues)
+		assert_array(issues) \
 		. append_failure_message(
 			"Building _building_system should be properly set up with no dependency issues"
-		)
+		) \
 		. is_empty()
 	)
 
@@ -2166,8 +2166,8 @@ func test_drag_build_single_placement_regression() -> void:
 	# Start drag build
 	var drag_data: Variant = drag_manager.start_drag()
 	(
-		assert_object(drag_data)
-		. append_failure_message("Should be able to start drag operation")
+		assert_object(drag_data) \
+		. append_failure_message("Should be able to start drag operation") \
 		. is_not_null()
 	)
 
@@ -2178,8 +2178,8 @@ func test_drag_build_single_placement_regression() -> void:
 		# Since we can't directly test placement count without internal access,
 		# we'll verify the drag operation itself works
 		(
-			assert_bool(drag_manager.is_dragging())
-			. append_failure_message("Drag building should be active")
+			assert_bool(drag_manager.is_dragging()) \
+			. append_failure_message("Drag building should be active") \
 			. is_true()
 		)
 
@@ -2200,13 +2200,13 @@ func test_preview_indicator_consistency() -> void:
 	if preview != null and indicators != null:
 		# Both should exist or both should be null for consistency
 		(
-			assert_object(preview)
-			. append_failure_message("Preview should be instantiated when indicators are present")
+			assert_object(preview) \
+			. append_failure_message("Preview should be instantiated when indicators are present") \
 			. is_not_null()
 		)
 		(
-			assert_array(indicators)
-			. append_failure_message("Indicators array should be available when preview exists")
+			assert_array(indicators) \
+			. append_failure_message("Indicators array should be available when preview exists") \
 			. is_not_null()
 		)
 
@@ -2326,8 +2326,8 @@ func _setup_target_collision_shape_for_validation() -> void:
 
 func _resolve_tile_for_build(preferred_tile: Vector2i) -> Vector2i:
 	(
-		assert_object(_map)
-		. append_failure_message("TileMapLayer missing when resolving build tile")
+		assert_object(_map) \
+		. append_failure_message("TileMapLayer missing when resolving build tile") \
 		. is_not_null()
 	)
 
@@ -2356,8 +2356,8 @@ func _resolve_tile_for_build(preferred_tile: Vector2i) -> Vector2i:
 ## Find a valid tile within the actual map bounds that has tile data
 func _find_valid_tile_within_map_bounds() -> Vector2i:
 	(
-		assert_object(_map)
-		. append_failure_message("TileMapLayer missing when finding valid tile")
+		assert_object(_map) \
+		. append_failure_message("TileMapLayer missing when finding valid tile") \
 		. is_not_null()
 	)
 

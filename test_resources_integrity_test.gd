@@ -37,8 +37,8 @@ func test_no_test_resources_depend_on_templates_or_demos() -> void:
 	var test_files: Array[String] = _list_test_files(TEST_ROOT)
 
 	(
-		assert_int(test_files.size())
-		. append_failure_message("No test files found under %s" % TEST_ROOT)
+		assert_int(test_files.size()) \
+		. append_failure_message("No test files found under %s" % TEST_ROOT) \
 		. is_greater(0)
 	)
 
@@ -81,8 +81,8 @@ func test_all_test_scenes_instantiate_without_errors() -> void:
 	var scene_files: Array[String] = _list_files_by_extension(TEST_ROOT, ".tscn")
 
 	(
-		assert_int(scene_files.size())
-		. append_failure_message("No .tscn files found under %s" % TEST_ROOT)
+		assert_int(scene_files.size()) \
+		. append_failure_message("No .tscn files found under %s" % TEST_ROOT) \
 		. is_greater(0)
 	)
 
@@ -117,8 +117,8 @@ func test_all_test_resources_load_successfully() -> void:
 	var resource_files: Array[String] = _list_files_by_extension(TEST_ROOT, ".tres")
 
 	(
-		assert_int(resource_files.size())
-		. append_failure_message("No .tres files found under %s" % TEST_ROOT)
+		assert_int(resource_files.size()) \
+		. append_failure_message("No .tres files found under %s" % TEST_ROOT) \
 		. is_greater(0)
 	)
 

@@ -32,18 +32,18 @@ func before_test() -> void:
 
 	# Validate basic environment setup
 	(
-		assert_object(_collision_mapper)
-		. append_failure_message("CollisionMapper should not be null")
+		assert_object(_collision_mapper) \
+		. append_failure_message("CollisionMapper should not be null") \
 		. is_not_null()
 	)
 	(
-		assert_object(_targeting_state)
-		. append_failure_message("GridTargetingState should not be null")
+		assert_object(_targeting_state) \
+		. append_failure_message("GridTargetingState should not be null") \
 		. is_not_null()
 	)
 	(
-		assert_object(_indicator_manager)
-		. append_failure_message("IndicatorManager should not be null")
+		assert_object(_indicator_manager) \
+		. append_failure_message("IndicatorManager should not be null") \
 		. is_not_null()
 	)
 
@@ -139,10 +139,10 @@ func test_collision_mapper_minimal_setup() -> void:
 		CollisionTestSetup2D.create_test_setups_from_test_node(test_object, _targeting_state)
 	)
 	(
-		assert_that(setup_list.size())
+		assert_that(setup_list.size()) \
 		. append_failure_message(
 			"Expected create_test_setups_from_test_node to produce at least one setup for the test object"
-		)
+		) \
 		. is_not_equal(0)
 	)
 
@@ -158,13 +158,13 @@ func test_collision_mapper_minimal_setup() -> void:
 	# Assert
 	var positions: Array[Vector2i] = positions_to_rules.keys()
 	(
-		assert_int(positions_to_rules.size())
+		assert_int(positions_to_rules.size()) \
 		. append_failure_message(
 			(
 				"CollisionMapper should map at least one position for a simple square shape. Mapped positions: %s"
 				% str(positions)
 			)
-		)
+		) \
 		. is_not_equal(0)
 	)
 
@@ -174,16 +174,16 @@ func test_collision_mapper_configuration_requirements() -> void:
 	# Arrange
 	# Before setup, required properties should be null
 	(
-		assert_object(_collision_mapper.get("test_indicator"))
-		. append_failure_message("Expected test_indicator to be null before setup")
+		assert_object(_collision_mapper.get("test_indicator")) \
+		. append_failure_message("Expected test_indicator to be null before setup") \
 		. is_null()
 	)
 	var pre_setups: Array[CollisionTestSetup2D] = _collision_mapper.get("test_setups")
 	(
-		assert_array(pre_setups)
+		assert_array(pre_setups) \
 		. append_failure_message(
 			"Expected test_setups to be empty before setup, got: %s" % str(pre_setups)
-		)
+		) \
 		. is_empty()
 	)
 
@@ -195,8 +195,8 @@ func test_collision_mapper_configuration_requirements() -> void:
 	_collision_mapper.setup(mock_indicator, mock_setups)
 
 	(
-		assert_object(_collision_mapper.get("test_indicator"))
-		. is_same(mock_indicator)
+		assert_object(_collision_mapper.get("test_indicator")) \
+		. is_same(mock_indicator) \
 		. append_failure_message(
 			"CollisionMapper.setup(...) should set the test_indicator reference provided."
 		)
@@ -214,10 +214,10 @@ func test_proper_collision_mapper_setup() -> void:
 
 	var expected_offsets: Array[Vector2i] = _compute_expected_trapezoid_offsets(test_object)
 	(
-		assert_int(expected_offsets.size())
+		assert_int(expected_offsets.size()) \
 		. append_failure_message(
 			"CollisionGeometryUtils should compute at least one tile offset for the trapezoid."
-		)
+		) \
 		. is_not_equal(0)
 	)
 
@@ -226,8 +226,8 @@ func test_proper_collision_mapper_setup() -> void:
 		CollisionTestSetup2D.create_test_setups_from_test_node(test_object, _targeting_state)
 	)
 	(
-		assert_int(setups.size())
-		. append_failure_message("Expected at least one test setup for trapezoid owner")
+		assert_int(setups.size()) \
+		. append_failure_message("Expected at least one test setup for trapezoid owner") \
 		. is_greater(0)
 	)
 
@@ -244,8 +244,8 @@ func test_proper_collision_mapper_setup() -> void:
 
 	# Assert
 	(
-		assert_bool(position_rules is Dictionary)
-		. append_failure_message("map_collision_positions_to_rules should return a Dictionary.")
+		assert_bool(position_rules is Dictionary) \
+		. append_failure_message("map_collision_positions_to_rules should return a Dictionary.") \
 		. is_true()
 	)
 
@@ -254,10 +254,10 @@ func test_proper_collision_mapper_setup() -> void:
 	var mapped_positions: Array[Vector2i] = []
 	for k: Variant in position_rules.keys():
 		(
-			assert_bool(k is Vector2i)
+			assert_bool(k is Vector2i) \
 			. append_failure_message(
 				"All keys in position_rules should be Vector2i. Found: %s" % str(k)
-			)
+			) \
 			. is_true()
 		)
 		keys_typed.append(k)

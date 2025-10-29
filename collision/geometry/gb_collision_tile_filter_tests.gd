@@ -32,12 +32,12 @@ func test_circle_tile_allowed_filters_far_corner() -> void:
 	(
 		assert_bool(
 			GBCollisionTileFilter.circle_tile_allowed(center, radius, near_tile_center, tile_size)
-		)
+		) \
 		. is_true()
 	)
 	(
 		assert_bool(
 			GBCollisionTileFilter.circle_tile_allowed(center, radius, far_tile_center, tile_size)
-		)
+		) \
 		. is_false()
 	)

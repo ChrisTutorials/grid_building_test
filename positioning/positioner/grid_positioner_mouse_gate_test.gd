@@ -111,7 +111,7 @@ func test_mouse_gate_status_changes_with_setting() -> void:
 	_settings.enable_mouse_input = true
 	var gate_enabled := _positioner._mouse_input_gate()
 	assert_bool(gate_enabled)\
-		.append_failure_message("Mouse gate should be open with enable_mouse_input=true")
+		.append_failure_message("Mouse gate should be open with enable_mouse_input=true") \
 		.is_true()
 
 	# WHEN: Mouse input disabled
@@ -120,7 +120,7 @@ func test_mouse_gate_status_changes_with_setting() -> void:
 	# THEN: Gate should be closed
 	var gate_disabled := _positioner._mouse_input_gate()
 	assert_bool(gate_disabled)\
-		.append_failure_message("Mouse gate should be closed with enable_mouse_input=false")
+		.append_failure_message("Mouse gate should be closed with enable_mouse_input=false") \
 		.is_false()
 
 	# WHEN: Re-enabled
@@ -129,7 +129,7 @@ func test_mouse_gate_status_changes_with_setting() -> void:
 	# THEN: Gate should reopen
 	var gate_reenabled := _positioner._mouse_input_gate()
 	assert_bool(gate_reenabled)\
-		.append_failure_message("Mouse gate should reopen with enable_mouse_input=true")
+		.append_failure_message("Mouse gate should reopen with enable_mouse_input=true") \
 		.is_true()
 
 ## Test mouse gate blocks input status world update

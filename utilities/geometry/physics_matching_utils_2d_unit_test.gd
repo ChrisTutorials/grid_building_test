@@ -9,8 +9,8 @@ func test_get_layers_from_bitmask_single_bit() -> void:
 		var mask: int = 1 << i
 		var layers: Array[int] = PhysicsUtils.get_layers_from_bitmask(mask)
 		(
-			assert_that(layers)
-			. append_failure_message("Layer %d mask %d should return [%d]" % [i, mask, i])
+			assert_that(layers) \
+			. append_failure_message("Layer %d mask %d should return [%d]" % [i, mask, i]) \
 			. contains_exactly([i])
 		)
 
@@ -19,16 +19,16 @@ func test_get_layers_from_bitmask_multiple_bits() -> void:
 	# Test layer 513 (bits 0 and 9 set)
 	var layers: Array[int] = PhysicsUtils.get_layers_from_bitmask(513)
 	(
-		assert_that(layers)
-		. append_failure_message("Mask 513 should return layers [0, 9]")
+		assert_that(layers) \
+		. append_failure_message("Mask 513 should return layers [0, 9]") \
 		. contains_exactly([0, 9])
 	)
 
 	# Test layer 2561 (bits 0, 9, and 11 set)
 	layers = PhysicsUtils.get_layers_from_bitmask(2561)
 	(
-		assert_that(layers)
-		. append_failure_message("Mask 2561 should return layers [0, 9, 11]")
+		assert_that(layers) \
+		. append_failure_message("Mask 2561 should return layers [0, 9, 11]") \
 		. contains_exactly([0, 9, 11])
 	)
 
@@ -39,8 +39,8 @@ func test_get_layers_from_bitmask_multiple_bits() -> void:
 	for i in range(32):
 		expected_all.append(i)
 	(
-		assert_that(layers)
-		. append_failure_message("All bits set should return layers [0-31]")
+		assert_that(layers) \
+		. append_failure_message("All bits set should return layers [0-31]") \
 		. contains_exactly(expected_all)
 	)
 
@@ -49,8 +49,8 @@ func test_get_layers_from_bitmask_edge_cases() -> void:
 	# Test zero mask
 	var layers: Array[int] = PhysicsUtils.get_layers_from_bitmask(0)
 	(
-		assert_that(layers)
-		. append_failure_message("Zero mask should return empty array")
+		assert_that(layers) \
+		. append_failure_message("Zero mask should return empty array") \
 		. contains_exactly([])
 	)
 
@@ -65,8 +65,8 @@ func test_get_layers_from_bitmask_edge_cases() -> void:
 	# Test highest layer (bit 31)
 	layers = PhysicsUtils.get_layers_from_bitmask(1 << 31)
 	(
-		assert_that(layers)
-		. append_failure_message("Highest layer mask should return [31]")
+		assert_that(layers) \
+		. append_failure_message("Highest layer mask should return [31]") \
 		. contains_exactly([31])
 	)
 
@@ -78,42 +78,42 @@ func test_object_has_matching_layer() -> void:
 	# Test exact match: collision layer 513 (bits 0,9) with mask 513 (bits 0,9)
 	test_area.collision_layer = 513
 	(
-		assert_that(PhysicsUtils.object_has_matching_layer(test_area, 513))
-		. append_failure_message("Exact match: collision layer 513 should match mask 513")
+		assert_that(PhysicsUtils.object_has_matching_layer(test_area, 513)) \
+		. append_failure_message("Exact match: collision layer 513 should match mask 513") \
 		. is_true()
 	)
 
 	# Test partial match: collision layer 513 (bits 0,9) with mask 2561 (bits 0,9,11)
 	test_area.collision_layer = 513
 	(
-		assert_that(PhysicsUtils.object_has_matching_layer(test_area, 2561))
+		assert_that(PhysicsUtils.object_has_matching_layer(test_area, 2561)) \
 		. append_failure_message(
 			"Partial match: collision layer 513 should match mask 2561 (overlapping bits)"
-		)
+		) \
 		. is_true()
 	)
 
 	# Test no match: collision layer 2 (bit 1) with mask 513 (bits 0,9)
 	test_area.collision_layer = 2
 	(
-		assert_that(PhysicsUtils.object_has_matching_layer(test_area, 513))
-		. append_failure_message("No match: collision layer 2 should not match mask 513")
+		assert_that(PhysicsUtils.object_has_matching_layer(test_area, 513)) \
+		. append_failure_message("No match: collision layer 2 should not match mask 513") \
 		. is_false()
 	)
 
 	# Test zero collision layer (no layers active)
 	test_area.collision_layer = 0
 	(
-		assert_that(PhysicsUtils.object_has_matching_layer(test_area, 513))
-		. append_failure_message("Zero collision layer should not match any mask")
+		assert_that(PhysicsUtils.object_has_matching_layer(test_area, 513)) \
+		. append_failure_message("Zero collision layer should not match any mask") \
 		. is_false()
 	)
 
 	# Test zero mask (no layers to match)
 	test_area.collision_layer = 513
 	(
-		assert_that(PhysicsUtils.object_has_matching_layer(test_area, 0))
-		. append_failure_message("Zero mask should not match any collision layer")
+		assert_that(PhysicsUtils.object_has_matching_layer(test_area, 0)) \
+		. append_failure_message("Zero mask should not match any collision layer") \
 		. is_false()
 	)
 
@@ -127,10 +127,10 @@ func test_object_has_matching_layer_complex_cases() -> void:
 	test_area.collision_layer = 0b110011  # bits 0,1,4,5
 	var mask: int = 0b1111  # bits 0,1,2,3
 	(
-		assert_that(PhysicsUtils.object_has_matching_layer(test_area, mask))
+		assert_that(PhysicsUtils.object_has_matching_layer(test_area, mask)) \
 		. append_failure_message(
 			"Multiple overlapping bits: collision layer 0b110011 should match mask 0b1111"
-		)
+		) \
 		. is_true()
 	)
 
@@ -138,10 +138,10 @@ func test_object_has_matching_layer_complex_cases() -> void:
 	test_area.collision_layer = 0b110000  # bits 4,5
 	mask = 0b001111  # bits 0,1,2,3
 	(
-		assert_that(PhysicsUtils.object_has_matching_layer(test_area, mask))
+		assert_that(PhysicsUtils.object_has_matching_layer(test_area, mask)) \
 		. append_failure_message(
 			"Non-overlapping bits: collision layer 0b110000 should not match mask 0b001111"
-		)
+		) \
 		. is_false()
 	)
 
@@ -149,10 +149,10 @@ func test_object_has_matching_layer_complex_cases() -> void:
 	test_area.collision_layer = 0b100000  # bit 5
 	mask = 0b101111  # bits 0,1,2,3,5
 	(
-		assert_that(PhysicsUtils.object_has_matching_layer(test_area, mask))
+		assert_that(PhysicsUtils.object_has_matching_layer(test_area, mask)) \
 		. append_failure_message(
 			"Single bit overlap: collision layer 0b100000 should match mask 0b101111"
-		)
+		) \
 		. is_true()
 	)
 
@@ -171,10 +171,10 @@ func test_regression_collision_layer_513_matches_mask_2561() -> void:
 
 	# This should return true since both have bits 0 and 9 set
 	(
-		assert_that(PhysicsUtils.object_has_matching_layer(test_area, 2561))
+		assert_that(PhysicsUtils.object_has_matching_layer(test_area, 2561)) \
 		. append_failure_message(
 			"Regression test: collision layer 513 should match mask 2561 (both have bits 0 and 9)"
-		)
+		) \
 		. is_true()
 	)
 
@@ -222,10 +222,10 @@ func test_bitmask_conversion_consistency() -> void:
 		for layer in layers:
 			reconstructed_mask |= (1 << layer)
 		(
-			assert_that(reconstructed_mask)
+			assert_that(reconstructed_mask) \
 			. append_failure_message(
 				"Expected reconstructed mask to match original mask: " + str(mask)
-			)
+			) \
 			. is_equal(mask)
 		)
 
@@ -235,29 +235,29 @@ func assert_array_contains_exactly(
 	actual: Array[int], expected: Array[int], _message: String = ""
 ) -> void:
 	(
-		assert_that(actual.size())
+		assert_that(actual.size()) \
 		. append_failure_message(
 			(
 				"Array size should match expected size - Actual: %s, Expected: %s"
 				% [str(actual.size()), str(expected.size())]
 			)
-		)
+		) \
 		. is_equal(expected.size())
 	)
 	for item in expected:
 		(
-			assert_that(actual)
+			assert_that(actual) \
 			. append_failure_message(
 				"Array should contain expected item %d - Actual: %s" % [item, str(actual)]
-			)
+			) \
 			. contains(item)
 		)
 	for item in actual:
 		(
-			assert_that(expected)
+			assert_that(expected) \
 			. append_failure_message(
 				"Array should not contain unexpected item %d - Expected: %s" % [item, str(expected)]
-			)
+			) \
 			. contains(item)
 		)
 
@@ -271,23 +271,23 @@ func test_debug_layers_from_bitmask() -> void:
 
 	# Basic assertions with diagnostic context
 	(
-		assert_that(layers_0.size())
-		. append_failure_message("Layers from mask 0: %s" % str(layers_0))
+		assert_that(layers_0.size()) \
+		. append_failure_message("Layers from mask 0: %s" % str(layers_0)) \
 		. is_equal(0)
 	)
 	(
-		assert_that(layers_1.size())
-		. append_failure_message("Layers from mask 1: %s" % str(layers_1))
+		assert_that(layers_1.size()) \
+		. append_failure_message("Layers from mask 1: %s" % str(layers_1)) \
 		. is_equal(1)
 	)
 	(
-		assert_that(layers_513.size())
-		. append_failure_message("Layers from mask 513: %s" % str(layers_513))
+		assert_that(layers_513.size()) \
+		. append_failure_message("Layers from mask 513: %s" % str(layers_513)) \
 		. is_equal(2)
 	)
 	(
-		assert_that(layers_2561.size())
-		. append_failure_message("Layers from mask 2561: %s" % str(layers_2561))
+		assert_that(layers_2561.size()) \
+		. append_failure_message("Layers from mask 2561: %s" % str(layers_2561)) \
 		. is_equal(3)
 	)
 
@@ -297,31 +297,31 @@ func assert_array_contains_exactly_strings(
 	actual: Array[String], expected: Array[String], _message: String = ""
 ) -> void:
 	(
-		assert_that(actual.size())
+		assert_that(actual.size()) \
 		. append_failure_message(
 			(
 				"String array size should match expected size - Actual: %s, Expected: %s"
 				% [str(actual.size()), str(expected.size())]
 			)
-		)
+		) \
 		. is_equal(expected.size())
 	)
 	for item in expected:
 		(
-			assert_that(actual)
+			assert_that(actual) \
 			. append_failure_message(
 				"String array should contain expected item '%s' - Actual: %s" % [item, str(actual)]
-			)
+			) \
 			. contains(item)
 		)
 	for item in actual:
 		(
-			assert_that(expected)
+			assert_that(expected) \
 			. append_failure_message(
 				(
 					"String array should not contain unexpected item '%s' - Expected: %s"
 					% [item, str(expected)]
 				)
-			)
+			) \
 			. contains(item)
 		)

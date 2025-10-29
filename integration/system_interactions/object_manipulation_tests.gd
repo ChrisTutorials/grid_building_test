@@ -89,24 +89,24 @@ func test_collision_mapper_basic_setup() -> void:
 	)
 
 	(
-		assert_that(indicator_manager)
-		. append_failure_message("Expected indicator manager to be available")
+		assert_that(indicator_manager) \
+		. append_failure_message("Expected indicator manager to be available") \
 		. is_not_null()
 	)
 	(
-		assert_that(collision_setups.size())
-		. append_failure_message("Expected collision setups to be created")
+		assert_that(collision_setups.size()) \
+		. append_failure_message("Expected collision setups to be created") \
 		. is_greater(0)
 	)
 	var collision_setup: CollisionTestSetup2D = collision_setups[0]
 	(
-		assert_that(collision_setup)
-		. append_failure_message("Expected collision setup to be created")
+		assert_that(collision_setup) \
+		. append_failure_message("Expected collision setup to be created") \
 		. is_not_null()
 	)
 	(
-		assert_that(collision_setup.collision_object)
-		. append_failure_message("Expected collision object to be available")
+		assert_that(collision_setup.collision_object) \
+		. append_failure_message("Expected collision object to be available") \
 		. is_not_null()
 	)
 
@@ -124,8 +124,8 @@ func test_collision_mapper_shape_positioning() -> void:
 	# Verify the collision mapper is configured
 	var collision_mapper: Object = indicator_manager.get_collision_mapper()
 	(
-		assert_that(collision_mapper)
-		. append_failure_message("Expected collision mapper to be available")
+		assert_that(collision_mapper) \
+		. append_failure_message("Expected collision mapper to be available") \
 		. is_not_null()
 	)
 
@@ -140,15 +140,15 @@ func test_collision_mapper_movement_tracking() -> void:
 
 	static_body.position = initial_pos
 	(
-		assert_that(static_body.position)
-		. append_failure_message("Expected position to match initial position")
+		assert_that(static_body.position) \
+		. append_failure_message("Expected position to match initial position") \
 		. is_equal(initial_pos)
 	)
 
 	static_body.position = moved_pos
 	(
-		assert_that(static_body.position)
-		. append_failure_message("Expected position to match moved position")
+		assert_that(static_body.position) \
+		. append_failure_message("Expected position to match moved position") \
 		. is_equal(moved_pos)
 	)
 
@@ -168,8 +168,8 @@ func test_geometry_calculator_basic_operations() -> void:
 	# Test shape bounds calculation
 	var bounds: Rect2 = Rect2(Vector2.ZERO, rect_shape.size)
 	(
-		assert_that(bounds.size)
-		. append_failure_message("Expected bounds size to match default rect size")
+		assert_that(bounds.size) \
+		. append_failure_message("Expected bounds size to match default rect size") \
 		. is_equal(DEFAULT_RECT_SIZE)
 	)
 
@@ -206,13 +206,13 @@ func test_polygon_tile_mapper_basic() -> void:
 	)
 
 	(
-		assert_object(iteration_range.start)
-		. append_failure_message("Expected iteration range start to be available")
+		assert_object(iteration_range.start) \
+		. append_failure_message("Expected iteration range start to be available") \
 		. is_not_null()
 	)
 	(
-		assert_object(iteration_range.end_exclusive)
-		. append_failure_message("Expected iteration range end to be available")
+		assert_object(iteration_range.end_exclusive) \
+		. append_failure_message("Expected iteration range end to be available") \
 		. is_not_null()
 	)
 
@@ -258,8 +258,8 @@ func test_area2d_rotation_indicator_basic() -> void:
 	# Test basic rotation
 	area.rotation = PI / 4  # 45 degrees
 	(
-		assert_that(area.rotation)
-		. append_failure_message("Expected rotation to be PI/4 radians")
+		assert_that(area.rotation) \
+		. append_failure_message("Expected rotation to be PI/4 radians") \
 		. is_equal_approx(PI / 4, 0.01)
 	)
 
@@ -273,13 +273,13 @@ func test_area2d_rotation_indicator_collision() -> void:
 	add_child(area)
 
 	(
-		assert_that(area.collision_layer)
-		. append_failure_message("Expected collision layer to be 2")
+		assert_that(area.collision_layer) \
+		. append_failure_message("Expected collision layer to be 2") \
 		. is_equal(2)
 	)
 	(
-		assert_that(area.collision_mask)
-		. append_failure_message("Expected collision mask to be 2")
+		assert_that(area.collision_mask) \
+		. append_failure_message("Expected collision mask to be 2") \
 		. is_equal(2)
 	)
 
@@ -307,17 +307,17 @@ func test_indicator_factory_with_custom_shape() -> void:
 	assert_that(indicator.shape).is_not_null()
 	var rect_shape: RectangleShape2D = indicator.shape as RectangleShape2D
 	(
-		assert_float(rect_shape.size.x)
+		assert_float(rect_shape.size.x) \
 		. append_failure_message(
 			"The indicator shape size should be equal to the GBTestConstants.DEFAULT_TILE_SIZE const"
-		)
+		) \
 		. is_equal_approx(GBTestConstants.DEFAULT_TILE_SIZE.x, 0.2)
 	)
 	(
-		assert_float(rect_shape.size.y)
+		assert_float(rect_shape.size.y) \
 		. append_failure_message(
 			"The indicator shape size should be equal to the GBTestConstants.DEFAULT_TILE_SIZE const"
-		)
+		) \
 		. is_equal_approx(GBTestConstants.DEFAULT_TILE_SIZE.y, 0.2)
 	)
 
@@ -350,8 +350,8 @@ func test_grid_alignment_basic() -> void:
 	)
 
 	(
-		assert_that(aligned_pos)
-		. append_failure_message("The aligned position should be at 0,0")
+		assert_that(aligned_pos) \
+		. append_failure_message("The aligned position should be at 0,0") \
 		. is_equal(Vector2(0, 0))
 	)  # Flooring 14,15 goes to 0,0 instead of 16,16
 
@@ -413,8 +413,8 @@ func test_placement_environment_integration() -> void:
 	# Note: Test injector duplicates the container for isolation, so check non-null instead of identity
 	var env_container := test_env.get_container()
 	(
-		assert_that(env_container)
-		. is_not_null()
+		assert_that(env_container) \
+		. is_not_null() \
 		. append_failure_message(
 			"Environment container should be duplicated and available (GBTestInjectorSystem duplicates containers for test isolation)"
 		)

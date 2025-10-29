@@ -28,8 +28,8 @@ func test_indicator_context_reports_missing_manager_initially() -> void:
 	# Initially, fresh context should report that IndicatorManager is not assigned
 	var initial_issues: Array[String] = fresh_indicator_context.get_runtime_issues()
 	(
-		assert_array(initial_issues)
-		. append_failure_message("IndicatorContext should return an array of issues")
+		assert_array(initial_issues) \
+		. append_failure_message("IndicatorContext should return an array of issues") \
 		. is_not_empty()
 	)
 
@@ -40,20 +40,20 @@ func test_indicator_context_reports_missing_manager_initially() -> void:
 			break
 
 	(
-		assert_bool(has_manager_issue)
+		assert_bool(has_manager_issue) \
 		. append_failure_message(
 			(
 				"IndicatorContext should report IndicatorManager not assigned initially. Issues found: %s"
 				% str(initial_issues)
 			)
-		)
+		) \
 		. is_true()
 	)
 
 	# Should not have a manager initially
 	(
-		assert_bool(fresh_indicator_context.has_manager())
-		. append_failure_message("IndicatorContext should not have a manager initially")
+		assert_bool(fresh_indicator_context.has_manager()) \
+		. append_failure_message("IndicatorContext should not have a manager initially") \
 		. is_false()
 	)
 
@@ -69,28 +69,28 @@ func test_indicator_context_after_manager_assignment() -> void:
 	# After assignment, should have no runtime issues
 	var post_assignment_issues: Array[String] = indicator_context.get_runtime_issues()
 	(
-		assert_array(post_assignment_issues)
+		assert_array(post_assignment_issues) \
 		. append_failure_message(
 			(
 				"IndicatorContext should have no runtime issues after IndicatorManager assignment, but found: %s"
 				% str(post_assignment_issues)
 			)
-		)
+		) \
 		. is_empty()
 	)
 
 	# Should have a manager
 	(
-		assert_bool(indicator_context.has_manager())
-		. append_failure_message("IndicatorContext should have a manager after assignment")
+		assert_bool(indicator_context.has_manager()) \
+		. append_failure_message("IndicatorContext should have a manager after assignment") \
 		. is_true()
 	)
 
 	# Should be able to retrieve the same manager
 	var retrieved_manager: IndicatorManager = indicator_context.get_manager()
 	(
-		assert_object(retrieved_manager)
-		. append_failure_message("Should be able to retrieve the assigned IndicatorManager")
+		assert_object(retrieved_manager) \
+		. append_failure_message("Should be able to retrieve the assigned IndicatorManager") \
 		. is_same(indicator_manager)
 	)
 
@@ -105,16 +105,16 @@ func test_indicator_context_manager_changed_signal() -> void:
 
 	# Verify manager was set (basic functionality test)
 	(
-		assert_bool(indicator_context.has_manager())
-		. append_failure_message("IndicatorContext should have manager after assignment")
+		assert_bool(indicator_context.has_manager()) \
+		. append_failure_message("IndicatorContext should have manager after assignment") \
 		. is_true()
 	)
 
 	# Test setting the same manager doesn't cause issues
 	indicator_context.set_manager(indicator_manager)
 	(
-		assert_bool(indicator_context.has_manager())
-		. append_failure_message("IndicatorContext should still have manager after re-assignment")
+		assert_bool(indicator_context.has_manager()) \
+		. append_failure_message("IndicatorContext should still have manager after re-assignment") \
 		. is_true()
 	)
 
@@ -134,13 +134,13 @@ func test_composition_container_validation_with_manager() -> void:
 			break
 
 	(
-		assert_bool(has_indicator_manager_issue)
+		assert_bool(has_indicator_manager_issue) \
 		. append_failure_message(
 			(
 				"Composition container should report IndicatorManager not assigned issue initially. Issues found: %s"
 				% str(initial_issues)
 			)
-		)
+		) \
 		. is_true()
 	)
 
@@ -158,12 +158,12 @@ func test_composition_container_validation_with_manager() -> void:
 			break
 
 	(
-		assert_bool(still_has_indicator_manager_issue)
+		assert_bool(still_has_indicator_manager_issue) \
 		. append_failure_message(
 			(
 				"Composition container should not report IndicatorManager issue after assignment. Issues found: %s"
 				% str(post_assignment_issues)
 			)
-		)
+		) \
 		. is_false()
 	)

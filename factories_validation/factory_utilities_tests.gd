@@ -101,10 +101,10 @@ func _assert_performance_threshold(
 ) -> void:
 	"""Assert performance is within acceptable threshold"""
 	(
-		assert_int(actual_ms)
+		assert_int(actual_ms) \
 		. append_failure_message(
 			"%s should be fast (< %dms), took: %d ms" % [operation, threshold, actual_ms]
-		)
+		) \
 		. is_less(threshold)
 	)
 
@@ -113,10 +113,10 @@ func _assert_memory_usage_change(initial: int, final: int, operation: String) ->
 	"""Assert memory usage change is within tolerance"""
 	var memory_diff: int = final - initial
 	(
-		assert_int(memory_diff)
+		assert_int(memory_diff) \
 		. append_failure_message(
 			"%s should not cause major memory leaks: %d bytes" % [operation, memory_diff]
-		)
+		) \
 		. is_less_equal(MEMORY_TOLERANCE_BYTES)
 	)
 
@@ -128,10 +128,10 @@ func _validate_environment_components(
 	if env is Dictionary:
 		for component_name in required_components:
 			(
-				assert_that(env.has(component_name))
+				assert_that(env.has(component_name)) \
 				. append_failure_message(
 					"%s environment missing required component: %s" % [context, component_name]
-				)
+				) \
 				. is_true()
 			)
 
@@ -157,8 +157,8 @@ func _validate_environment_components(
 			_assert_object_not_null(component, "%s component '%s'" % [context, component_name])
 	else:
 		(
-			assert_that(false)
-			. append_failure_message("Unsupported environment type: %s" % env.get_class())
+			assert_that(false) \
+			. append_failure_message("Unsupported environment type: %s" % env.get_class()) \
 			. is_false()
 		)
 
@@ -213,22 +213,22 @@ func test_test_node2d_factory_robustness() -> void:
 	# Type validation
 	var node_class: String = test_node.get_class()
 	(
-		assert_str(node_class)
-		. append_failure_message("Created object should be Node2D type, got: %s" % node_class)
+		assert_str(node_class) \
+		. append_failure_message("Created object should be Node2D type, got: %s" % node_class) \
 		. is_equal("Node2D")
 	)
 
 	# State validation
 	(
-		assert_that(is_instance_valid(test_node))
-		. append_failure_message("Created Node2D should be valid instance")
+		assert_that(is_instance_valid(test_node)) \
+		. append_failure_message("Created Node2D should be valid instance") \
 		. is_true()
 	)
 
 	# Resource management validation
 	(
-		assert_object(test_node.get_parent())
-		. append_failure_message("Node2D should be properly parented for cleanup")
+		assert_object(test_node.get_parent()) \
+		. append_failure_message("Node2D should be properly parented for cleanup") \
 		. is_not_null()
 	)
 
@@ -251,23 +251,23 @@ func test_test_tilemap_factory_validation() -> void:
 
 		var tilemap_class: String = test_tilemap.get_class()
 		(
-			assert_str(tilemap_class)
-			. append_failure_message("Should be TileMapLayer type, got: %s" % tilemap_class)
+			assert_str(tilemap_class) \
+			. append_failure_message("Should be TileMapLayer type, got: %s" % tilemap_class) \
 			. is_equal("TileMapLayer")
 		)
 
 		# Configuration validation
 		(
-			assert_object(test_tilemap.tile_set)
-			. append_failure_message("TileMapLayer should have valid tile_set assigned")
+			assert_object(test_tilemap.tile_set) \
+			. append_failure_message("TileMapLayer should have valid tile_set assigned") \
 			. is_not_null()
 		)
 
 		# Functional validation
 		var tile_source_count: int = test_tilemap.tile_set.get_source_count()
 		(
-			assert_int(tile_source_count)
-			. append_failure_message("TileSet should have at least one source configured")
+			assert_int(tile_source_count) \
+			. append_failure_message("TileSet should have at least one source configured") \
 			. is_greater_equal(MINIMUM_TILE_SOURCES)
 		)
 
@@ -302,8 +302,8 @@ func test_composition_container_factory_robustness() -> void:
 	_assert_object_not_null(contexts, "Container contexts")
 
 	(
-		assert_object(contexts.owner)
-		. append_failure_message("Container should have owner context configured")
+		assert_object(contexts.owner) \
+		. append_failure_message("Container should have owner context configured") \
 		. is_not_null()
 	)
 
@@ -317,8 +317,8 @@ func test_composition_container_factory_robustness() -> void:
 
 	# Should handle incomplete configuration gracefully without crashing
 	(
-		assert_that(settings == null or settings is GBSettings)
-		. append_failure_message("Container should handle incomplete configuration gracefully")
+		assert_that(settings == null or settings is GBSettings) \
+		. append_failure_message("Container should handle incomplete configuration gracefully") \
 		. is_true()
 	)
 
@@ -334,14 +334,14 @@ func test_placement_system_factory_layer_comprehensive() -> void:
 
 	# Basic structure validation
 	(
-		assert_object(placement_env)
-		. append_failure_message("Factory environment should not be null")
+		assert_object(placement_env) \
+		. append_failure_message("Factory environment should not be null") \
 		. is_not_null()
 	)
 
 	(
-		assert_that(placement_env is CollisionTestEnvironment)
-		. append_failure_message("Environment should be CollisionTestEnvironment type")
+		assert_that(placement_env is CollisionTestEnvironment) \
+		. append_failure_message("Environment should be CollisionTestEnvironment type") \
 		. is_true()
 	)
 
@@ -378,16 +378,16 @@ func test_rule_indicator_factory_layer_dependencies() -> void:
 	var positioner: Node2D = rule_env.positioner
 	positioner.global_position = POSITIONER_TEST_POSITION
 	(
-		assert_vector(positioner.global_position)
-		. append_failure_message("Positioner should accept position changes")
+		assert_vector(positioner.global_position) \
+		. append_failure_message("Positioner should accept position changes") \
 		. is_equal(POSITIONER_TEST_POSITION)
 	)
 
 	# Test grid targeting system configuration
 	var grid_targeting_system: Object = rule_env.grid_targeting_system
 	(
-		assert_object(grid_targeting_system)
-		. append_failure_message("Grid targeting system should be available")
+		assert_object(grid_targeting_system) \
+		. append_failure_message("Grid targeting system should be available") \
 		. is_not_null()
 	)
 
@@ -417,8 +417,8 @@ func test_factory_edge_cases_invalid_configurations() -> void:
 
 	# Should be able to create multiple environments
 	(
-		assert_int(environments.size())
-		. append_failure_message("Should be able to create multiple test environments")
+		assert_int(environments.size()) \
+		. append_failure_message("Should be able to create multiple test environments") \
 		. is_greater_equal(MINIMUM_ENVIRONMENT_COUNT)
 	)
 
@@ -452,8 +452,8 @@ func test_factory_performance_and_cleanup() -> void:
 
 	# Validate all objects are properly created
 	(
-		assert_int(created_objects.size())
-		. append_failure_message("Should create all requested objects")
+		assert_int(created_objects.size()) \
+		. append_failure_message("Should create all requested objects") \
 		. is_equal(STRESS_TEST_ITERATIONS)
 	)
 
@@ -461,8 +461,8 @@ func test_factory_performance_and_cleanup() -> void:
 	for env: CollisionTestEnvironment in created_objects:
 		assert_object(env).append_failure_message("Each environment should be valid").is_not_null()
 		(
-			assert_object(env.indicator_manager)
-			. append_failure_message("Each environment should have indicator_manager")
+			assert_object(env.indicator_manager) \
+			. append_failure_message("Each environment should have indicator_manager") \
 			. is_not_null()
 		)
 
@@ -478,13 +478,13 @@ func test_factory_memory_safety() -> void:
 	if indicator_manager:
 		var parent: Node = indicator_manager.get_parent()
 		(
-			assert_object(parent)
-			. append_failure_message("IndicatorManager should have a valid parent Node")
+			assert_object(parent) \
+			. append_failure_message("IndicatorManager should have a valid parent Node") \
 			. is_not_null()
 		)
 		(
-			assert_bool(parent is Node2D)
-			. append_failure_message("IndicatorManager parent should be a Node2D")
+			assert_bool(parent is Node2D) \
+			. append_failure_message("IndicatorManager parent should be a Node2D") \
 			. is_true()
 		)
 
@@ -492,16 +492,16 @@ func test_factory_memory_safety() -> void:
 	var positioner: Node2D = env.positioner
 	var weak_ref: WeakRef = weakref(positioner)
 	(
-		assert_that(weak_ref.get_ref() != null)
-		. append_failure_message("Weak reference should remain valid during test")
+		assert_that(weak_ref.get_ref() != null) \
+		. append_failure_message("Weak reference should remain valid during test") \
 		. is_true()
 	)
 
 	# Test object persistence
 	positioner.global_position = PERSISTENCE_TEST_POSITION
 	(
-		assert_vector(positioner.global_position)
-		. append_failure_message("Object state should persist")
+		assert_vector(positioner.global_position) \
+		. append_failure_message("Object state should persist") \
 		. is_equal(PERSISTENCE_TEST_POSITION)
 	)
 
@@ -524,13 +524,13 @@ func test_factory_stress_and_recovery() -> void:
 	# Should have reasonable success rate (at least 80%)
 	var success_rate: float = float(successful_creations) / total_attempts
 	(
-		assert_float(success_rate)
+		assert_float(success_rate) \
 		. append_failure_message(
 			(
 				"Factory should have good success rate: %d/%d (%.1f%%)"
 				% [successful_creations, total_attempts, success_rate * 100]
 			)
-		)
+		) \
 		. is_greater_equal(SUCCESS_RATE_THRESHOLD)
 	)
 
@@ -543,15 +543,15 @@ func test_factory_error_recovery() -> void:
 	# Test single environment creation and cleanup
 	var env: CollisionTestEnvironment = _create_indicator_test_environment_with_tracking()
 	(
-		assert_that(env)
-		. append_failure_message("Should be able to create a test environment")
+		assert_that(env) \
+		. append_failure_message("Should be able to create a test environment") \
 		. is_not_null()
 	)
 
 	# Test that environment is properly initialized
 	(
-		assert_that(env.collision_mapper)
-		. append_failure_message("Environment should have collision mapper")
+		assert_that(env.collision_mapper) \
+		. append_failure_message("Environment should have collision mapper") \
 		. is_not_null()
 	)
 
@@ -574,8 +574,8 @@ func test_factory_memory_cleanup() -> void:
 	# Node path should no longer be valid
 	var is_still_valid: bool = is_instance_valid(temp_node)
 	(
-		assert_that(is_still_valid)
-		. append_failure_message("Node should be properly freed after cleanup")
+		assert_that(is_still_valid) \
+		. append_failure_message("Node should be properly freed after cleanup") \
 		. is_false()
 	)
 
@@ -596,8 +596,8 @@ func test_collision_rule_validation() -> void:
 	_track_object(collision_rule)
 
 	(
-		assert_object(collision_rule)
-		. append_failure_message("Should create collision rule instance")
+		assert_object(collision_rule) \
+		. append_failure_message("Should create collision rule instance") \
 		. is_not_null()
 	)
 
@@ -605,16 +605,16 @@ func test_collision_rule_validation() -> void:
 	if collision_rule:
 		# Test that rule has expected default properties
 		(
-			assert_bool(collision_rule.collision_mask != 0)
-			. append_failure_message("Collision rule should have non-zero collision mask")
+			assert_bool(collision_rule.collision_mask != 0) \
+			. append_failure_message("Collision rule should have non-zero collision mask") \
 			. is_true()
 		)
 
 		# Test that rule can be configured
 		collision_rule.collision_mask = 1
 		(
-			assert_int(collision_rule.collision_mask)
-			. append_failure_message("Should be able to set collision mask")
+			assert_int(collision_rule.collision_mask) \
+			. append_failure_message("Should be able to set collision mask") \
 			. is_equal(1)
 		)
 
@@ -638,8 +638,8 @@ func test_validation_out_of_bounds() -> void:
 
 	# Skip targeting state test - method removed from factory
 	(
-		assert_that(true)
-		. append_failure_message("Test skipped - targeting state factory method removed")
+		assert_that(true) \
+		. append_failure_message("Test skipped - targeting state factory method removed") \
 		. is_true()
 	)
 
@@ -663,8 +663,8 @@ func test_factory_method_redundancy_detection() -> void:
 
 	# Basic validation that container is properly instantiated
 	(
-		assert_object(container)
-		. append_failure_message("GBCompositionContainer should be properly instantiated")
+		assert_object(container) \
+		. append_failure_message("GBCompositionContainer should be properly instantiated") \
 		. is_not_null()
 	)
 
@@ -680,8 +680,8 @@ func test_deprecated_factory_methods_usage() -> void:
 
 	# Should work but issue warning
 	(
-		assert_object(deprecated_env)
-		. append_failure_message("Deprecated method should still work but warn")
+		assert_object(deprecated_env) \
+		. append_failure_message("Deprecated method should still work but warn") \
 		. is_not_null()
 	)
 

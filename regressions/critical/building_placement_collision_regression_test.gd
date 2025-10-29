@@ -81,10 +81,10 @@ func test_smithy_placement_in_clear_area_should_not_report_collision() -> void:
 
 	# Assert: Should enter build mode successfully
 	(
-		assert_bool(enter_report.is_successful())
+		assert_bool(enter_report.is_successful()) \
 		. append_failure_message(
 			"Enter build mode failed - issues: %s" % str(enter_report.get_issues())
-		)
+		) \
 		. is_true()
 	)
 
@@ -93,8 +93,8 @@ func test_smithy_placement_in_clear_area_should_not_report_collision() -> void:
 
 	# Assert: CRITICAL - Should NOT report any collisions in clear area
 	(
-		assert_object(placement_report)
-		. append_failure_message("try_build() returned null - indicates system failure")
+		assert_object(placement_report) \
+		. append_failure_message("try_build() returned null - indicates system failure") \
 		. is_not_null()
 	)
 
@@ -106,22 +106,22 @@ func test_smithy_placement_in_clear_area_should_not_report_collision() -> void:
 			break
 
 	(
-		assert_bool(has_collision_issue)
+		assert_bool(has_collision_issue) \
 		. append_failure_message(
 			(
 				"REGRESSION: False collision detected in clear area - issues: %s. This breaks basic building functionality."
 				% str(issues)
 			)
-		)
+		) \
 		. is_false()
 	)
 
 	# Assert: Placement should succeed
 	(
-		assert_bool(placement_report.is_successful())
+		assert_bool(placement_report.is_successful()) \
 		. append_failure_message(
 			"Placement should succeed in clear area - issues: %s" % str(issues)
-		)
+		) \
 		. is_true()
 	)
 
@@ -138,8 +138,8 @@ func test_collision_rule_configuration_validity() -> void:
 
 	# Validate that the container is available
 	(
-		assert_object(container)
-		. append_failure_message("GBCompositionContainer not available in environment")
+		assert_object(container) \
+		. append_failure_message("GBCompositionContainer not available in environment") \
 		. is_not_null()
 	)
 
@@ -152,8 +152,8 @@ func test_collision_rule_configuration_validity() -> void:
 	# Validate that collision detection is working as expected in clear area
 	var collision_mapper: CollisionMapper = env.indicator_manager.get_collision_mapper()
 	(
-		assert_object(collision_mapper)
-		. append_failure_message("CollisionMapper not available for validation")
+		assert_object(collision_mapper) \
+		. append_failure_message("CollisionMapper not available for validation") \
 		. is_not_null()
 	)
 
@@ -166,13 +166,13 @@ func test_collision_rule_configuration_validity() -> void:
 	# In a clear area, collision detection should find no blocking objects
 	var blocking_tiles: int = collision_results.size()
 	(
-		assert_int(blocking_tiles)
+		assert_int(blocking_tiles) \
 		. append_failure_message(
 			(
 				"REGRESSION: Collision detection finding blocking objects in clear area - found %d blocking tiles"
 				% blocking_tiles
 			)
-		)
+		) \
 		. is_equal(0)
 	)
 

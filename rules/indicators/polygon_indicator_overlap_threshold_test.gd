@@ -77,23 +77,23 @@ func test_polygon_preview_indicators_respect_min_overlap_ratio() -> void:
 
 	var setup_ok: PlacementReport = _manager.try_setup(rules, _state, true)
 	(
-		assert_bool(setup_ok.is_successful())
-		. append_failure_message("IndicatorManager.try_setup failed for polygon preview")
+		assert_bool(setup_ok.is_successful()) \
+		. append_failure_message("IndicatorManager.try_setup failed for polygon preview") \
 		. is_true()
 	)
 
 	var indicators: Array[RuleCheckIndicator] = _collect_indicators(_manager)
 	(
-		assert_array(indicators)
-		. append_failure_message("No indicators generated for polygon preview")
+		assert_array(indicators) \
+		. append_failure_message("No indicators generated for polygon preview") \
 		. is_not_empty()
 	)
 
 	# Compute expected allowed tiles using a minimum overlap ratio
 	var poly: CollisionPolygon2D = _find_child_polygon(preview)
 	(
-		assert_object(poly)
-		. append_failure_message("Preview lacks CollisionPolygon2D child")
+		assert_object(poly) \
+		. append_failure_message("Preview lacks CollisionPolygon2D child") \
 		. is_not_null()
 	)
 	var world_points: PackedVector2Array = CollisionGeometryUtils.to_world_polygon(poly)
@@ -122,12 +122,12 @@ func test_polygon_preview_indicators_respect_min_overlap_ratio() -> void:
 
 	# Known issue: 4 corners may be flagged as unexpected; ensure we don't exceed that
 	(
-		assert_int(unexpected.size())
+		assert_int(unexpected.size()) \
 		. append_failure_message(
 			(
 				"Found indicators on tiles with insufficient overlap. unexpected=%s\nallowed_abs=%s\nactual=%s"
 				% [str(unexpected), str(allowed_abs.keys()), str(actual_tiles)]
 			)
-		)
+		) \
 		. is_less_equal(4)
 	)

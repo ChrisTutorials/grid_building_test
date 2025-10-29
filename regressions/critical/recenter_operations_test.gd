@@ -144,7 +144,7 @@ func test_debug_recenter_operations() -> void:
 	# Attach diagnostics to a meaningful assertion so failure messages include the collected data
 	# Assert that the positioner moved from the origin (sanity check for recenter operations)
 	(
-		assert_bool(positioner.global_position != Vector2.ZERO)
-		. append_failure_message("%s" % "\n".join(diag))
+		assert_bool(positioner.global_position != Vector2.ZERO) \
+		. append_failure_message("%s" % "\n".join(diag)) \
 		. is_true()
 	)

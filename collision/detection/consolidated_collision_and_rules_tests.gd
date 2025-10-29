@@ -51,8 +51,8 @@ func test_collision_calculator_tile_overlap_empty() -> void:
 	)
 
 	(
-		assert_array(overlapped_tiles)
-		. append_failure_message("Empty polygon should produce no overlapped tiles")
+		assert_array(overlapped_tiles) \
+		. append_failure_message("Empty polygon should produce no overlapped tiles") \
 		. is_empty()
 	)
 
@@ -67,8 +67,8 @@ func test_collision_calculator_single_point() -> void:
 	)
 
 	(
-		assert_int(overlapped_tiles.size())
-		. append_failure_message("Single point cannot form valid polygon (need 3+ vertices)")
+		assert_int(overlapped_tiles.size()) \
+		. append_failure_message("Single point cannot form valid polygon (need 3+ vertices)") \
 		. is_equal(0)
 	)
 
@@ -90,10 +90,10 @@ func test_collision_calculator_rectangle_overlap() -> void:
 	)
 
 	(
-		assert_int(overlapped_tiles.size())
+		assert_int(overlapped_tiles.size()) \
 		. append_failure_message(
 			"32x32 rectangle should overlap 4 tiles (2x2), got %d" % overlapped_tiles.size()
-		)
+		) \
 		. is_equal(4)
 	)
 
@@ -111,8 +111,8 @@ func test_collision_detection_no_collision() -> void:
 	var collision: bool = CollisionGeometryCalculator.detect_collisions(shape1, shape2)
 
 	(
-		assert_bool(collision)
-		. append_failure_message("Separated rectangles should not collide")
+		assert_bool(collision) \
+		. append_failure_message("Separated rectangles should not collide") \
 		. is_false()
 	)
 
@@ -142,8 +142,8 @@ func test_get_polygon_bounds_single_point() -> void:
 	var bounds: Rect2 = CollisionGeometryCalculator._get_polygon_bounds(single_point)
 
 	(
-		assert_vector(bounds.position)
-		. append_failure_message("Single point bounds position should be the point itself")
+		assert_vector(bounds.position) \
+		. append_failure_message("Single point bounds position should be the point itself") \
 		. is_equal(Vector2(5, 5))
 	)
 
@@ -155,13 +155,13 @@ func test_get_polygon_bounds_rectangle() -> void:
 	var bounds: Rect2 = CollisionGeometryCalculator._get_polygon_bounds(rectangle)
 
 	(
-		assert_vector(bounds.position)
-		. append_failure_message("Rectangle bounds position should be top-left corner")
+		assert_vector(bounds.position) \
+		. append_failure_message("Rectangle bounds position should be top-left corner") \
 		. is_equal(Vector2(1, 2))
 	)
 	(
-		assert_vector(bounds.size)
-		. append_failure_message("Rectangle bounds size should be width x height")
+		assert_vector(bounds.size) \
+		. append_failure_message("Rectangle bounds size should be width x height") \
 		. is_equal(Vector2(4, 4))
 	)
 
@@ -178,8 +178,8 @@ func test_polygon_overlaps_rect_no_overlap() -> void:
 	var overlap: bool = CollisionGeometryCalculator.polygon_overlaps_rect(polygon, rect, 0.01, 0.05)
 
 	(
-		assert_bool(overlap)
-		. append_failure_message("Separated polygon and rect should not overlap")
+		assert_bool(overlap) \
+		. append_failure_message("Separated polygon and rect should not overlap") \
 		. is_false()
 	)
 
@@ -193,8 +193,8 @@ func test_polygon_overlaps_rect_with_overlap() -> void:
 	var overlap: bool = CollisionGeometryCalculator.polygon_overlaps_rect(polygon, rect, 0.01, 0.05)
 
 	(
-		assert_bool(overlap)
-		. append_failure_message("Overlapping polygon and rect should overlap")
+		assert_bool(overlap) \
+		. append_failure_message("Overlapping polygon and rect should overlap") \
 		. is_true()
 	)
 
@@ -211,8 +211,8 @@ func test_point_in_polygon_inside() -> void:
 	var inside: bool = CollisionGeometryCalculator.point_in_polygon(point, polygon)
 
 	(
-		assert_bool(inside)
-		. append_failure_message("Point (5,5) should be inside rectangle (0,0)-(10,10)")
+		assert_bool(inside) \
+		. append_failure_message("Point (5,5) should be inside rectangle (0,0)-(10,10)") \
 		. is_true()
 	)
 
@@ -226,8 +226,8 @@ func test_point_in_polygon_outside() -> void:
 	var inside: bool = CollisionGeometryCalculator.point_in_polygon(point, polygon)
 
 	(
-		assert_bool(inside)
-		. append_failure_message("Point (15,15) should be outside rectangle (0,0)-(10,10)")
+		assert_bool(inside) \
+		. append_failure_message("Point (15,15) should be outside rectangle (0,0)-(10,10)") \
 		. is_false()
 	)
 
@@ -246,8 +246,8 @@ func test_lines_intersect_crossing() -> void:
 	)
 
 	(
-		assert_bool(intersection)
-		. append_failure_message("Perpendicular crossing lines should intersect")
+		assert_bool(intersection) \
+		. append_failure_message("Perpendicular crossing lines should intersect") \
 		. is_true()
 	)
 
@@ -263,8 +263,8 @@ func test_lines_intersect_parallel() -> void:
 	)
 
 	(
-		assert_bool(intersection)
-		. append_failure_message("Parallel lines should not intersect")
+		assert_bool(intersection) \
+		. append_failure_message("Parallel lines should not intersect") \
 		. is_false()
 	)
 
@@ -283,8 +283,8 @@ func test_polygons_intersect_overlapping() -> void:
 	var intersection: bool = CollisionGeometryCalculator._polygons_intersect(poly1, poly2, 0.01)
 
 	(
-		assert_bool(intersection)
-		. append_failure_message("Overlapping rectangles should intersect")
+		assert_bool(intersection) \
+		. append_failure_message("Overlapping rectangles should intersect") \
 		. is_true()
 	)
 
@@ -300,8 +300,8 @@ func test_polygons_intersect_separate() -> void:
 	var intersection: bool = CollisionGeometryCalculator._polygons_intersect(poly1, poly2, 0.01)
 
 	(
-		assert_bool(intersection)
-		. append_failure_message("Separated rectangles should not intersect")
+		assert_bool(intersection) \
+		. append_failure_message("Separated rectangles should not intersect") \
 		. is_false()
 	)
 
@@ -321,13 +321,13 @@ func test_debug_edge_case_tiny_polygon() -> void:
 	var bounds: Rect2 = CollisionGeometryCalculator._get_polygon_bounds(tiny_polygon)
 
 	(
-		assert_float(bounds.size.x)
-		. append_failure_message("Tiny polygon should have measurable width")
+		assert_float(bounds.size.x) \
+		. append_failure_message("Tiny polygon should have measurable width") \
 		. is_equal_approx(EDGE_CASE_SIZE, EDGE_CASE_TOLERANCE)
 	)
 	(
-		assert_float(bounds.size.y)
-		. append_failure_message("Tiny polygon should have measurable height")
+		assert_float(bounds.size.y) \
+		. append_failure_message("Tiny polygon should have measurable height") \
 		. is_equal_approx(EDGE_CASE_SIZE, EDGE_CASE_TOLERANCE)
 	)
 
@@ -359,7 +359,7 @@ func test_collisions_check_rule_validation() -> void:
 	var pre_setup_result: RuleResult = rule.validate_placement()
 	assert_object(pre_setup_result).is_not_null()
 	(
-		assert_bool(pre_setup_result.is_successful())
-		. append_failure_message("Collision rule should fail validation before setup")
+		assert_bool(pre_setup_result.is_successful()) \
+		. append_failure_message("Collision rule should fail validation before setup") \
 		. is_false()
 	)

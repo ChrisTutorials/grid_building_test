@@ -34,8 +34,8 @@ func test_is_colliding_and_get_collider_behavior() -> void:
 	add_child(sc)
 	# By default, no colliders present
 	(
-		assert_bool(sc.is_colliding())
-		. append_failure_message("New TargetingShapeCast2D should not be colliding by default")
+		assert_bool(sc.is_colliding()) \
+		. append_failure_message("New TargetingShapeCast2D should not be colliding by default") \
 		. is_false()
 	)
 	# Do not call get_collider() when not colliding; engine raises 'No collider found'
@@ -82,7 +82,7 @@ func test_targeting_detects_static_body_with_matching_collision_layers() -> void
 
 	# Assert: ShapeCast should detect the StaticBody2D
 	(
-		assert_bool(sc.is_colliding())
+		assert_bool(sc.is_colliding()) \
 		. append_failure_message(
 			(
 				"TargetingShapeCast2D (mask=%d) should detect StaticBody2D (layer=%d) - bits 1+9 match. ShapeCast pos=%s, Body pos=%s"
@@ -93,28 +93,28 @@ func test_targeting_detects_static_body_with_matching_collision_layers() -> void
 					str(target_body.global_position)
 				]
 			)
-		)
+		) \
 		. is_true()
 	)
 
 	# Assert: GridTargetingState.target should be updated
 	(
-		assert_object(targeting_state.get_target())
+		assert_object(targeting_state.get_target()) \
 		. append_failure_message(
 			(
 				"GridTargetingState.target should be set to the detected StaticBody2D after update_target(). Currently: %s"
 				% str(targeting_state.get_target())
 			)
-		)
+		) \
 		. is_not_null()
 	)
 
 	if targeting_state.get_target() != null:
 		(
-			assert_object(targeting_state.get_target())
+			assert_object(targeting_state.get_target()) \
 			. append_failure_message(
 				"GridTargetingState.target should be the StaticBody2D we created"
-			)
+			) \
 			. is_same(target_body)
 		)
 
@@ -153,21 +153,21 @@ func test_targeting_continuous_update_via_physics_process() -> void:
 
 	# Assert: After physics frames, target should be detected automatically
 	(
-		assert_object(targeting_state.get_target())
+		assert_object(targeting_state.get_target()) \
 		. append_failure_message(
 			(
 				"After physics frames, GridTargetingState.target should be set by _physics_process. Currently: %s"
 				% str(targeting_state.get_target())
 			)
-		)
+		) \
 		. is_not_null()
 	)
 
 	(
-		assert_bool(sc.is_colliding())
+		assert_bool(sc.is_colliding()) \
 		. append_failure_message(
 			"ShapeCast2D should be colliding with StaticBody2D after physics frames"
-		)
+		) \
 		. is_true()
 	)
 
@@ -209,8 +209,8 @@ func test_targeting_detects_object_without_leaving_collision_area() -> void:
 
 	# Verify no target set initially
 	(
-		assert_object(targeting_state.get_target())
-		. append_failure_message("Initial state: target should be null before physics update")
+		assert_object(targeting_state.get_target()) \
+		. append_failure_message("Initial state: target should be null before physics update") \
 		. is_null()
 	)
 
@@ -220,7 +220,7 @@ func test_targeting_detects_object_without_leaving_collision_area() -> void:
 	# EXPECTED: Target should now be set because ShapeCast is colliding
 	# ACTUAL BUG: Target stays null until mouse moves out and back in
 	(
-		assert_bool(sc.is_colliding())
+		assert_bool(sc.is_colliding()) \
 		. append_failure_message(
 			(
 				"ShapeCast should detect collision when positioned over object. "
@@ -229,13 +229,13 @@ func test_targeting_detects_object_without_leaving_collision_area() -> void:
 					% [str(sc.global_position), str(target_body.global_position), str(sc.enabled)]
 				)
 			)
-		)
+		) \
 		. is_true()
 	)
 
 	# This is the failing assertion that reveals the bug
 	(
-		assert_object(targeting_state.get_target())
+		assert_object(targeting_state.get_target()) \
 		. append_failure_message(
 			(
 				"REGRESSION: Target should be set when ShapeCast is already over object, "
@@ -249,15 +249,15 @@ func test_targeting_detects_object_without_leaving_collision_area() -> void:
 					]
 				)
 			)
-		)
+		) \
 		. is_not_null()
 	)
 
 	# Verify it's the correct target
 	if targeting_state.get_target() != null:
 		(
-			assert_object(targeting_state.get_target())
-			. append_failure_message("Target should be the object we positioned ShapeCast over")
+			assert_object(targeting_state.get_target()) \
+			. append_failure_message("Target should be the object we positioned ShapeCast over") \
 			. is_same(target_body)
 		)
 
@@ -307,8 +307,8 @@ func test_targeting_updates_when_target_changes_to_null() -> void:
 	runner.simulate_frames(2)
 
 	(
-		assert_object(targeting_state.get_target())
-		. append_failure_message("Step 1: ObjectA should be targeted")
+		assert_object(targeting_state.get_target()) \
+		. append_failure_message("Step 1: ObjectA should be targeted") \
 		. is_same(object_a)
 	)
 
@@ -318,7 +318,7 @@ func test_targeting_updates_when_target_changes_to_null() -> void:
 
 	# Target should automatically update to ObjectB
 	(
-		assert_object(targeting_state.get_target())
+		assert_object(targeting_state.get_target()) \
 		. append_failure_message(
 			(
 				"Step 2: Target should update to ObjectB when ShapeCast moves over it. "
@@ -327,7 +327,7 @@ func test_targeting_updates_when_target_changes_to_null() -> void:
 					% [str(sc.is_colliding()), str(targeting_state.get_target())]
 				)
 			)
-		)
+		) \
 		. is_same(object_b)
 	)
 
@@ -341,7 +341,7 @@ func test_targeting_updates_when_target_changes_to_null() -> void:
 	runner.simulate_frames(1)
 
 	(
-		assert_object(targeting_state.get_target())
+		assert_object(targeting_state.get_target()) \
 		. append_failure_message(
 			(
 				"Step 4: After target cleared, ShapeCast should re-detect ObjectB "
@@ -350,7 +350,7 @@ func test_targeting_updates_when_target_changes_to_null() -> void:
 					% [str(sc.is_colliding()), str(targeting_state.get_target())]
 				)
 			)
-		)
+		) \
 		. is_same(object_b)
 	)
 
@@ -396,8 +396,8 @@ func test_targeting_after_external_target_clear_while_hovering() -> void:
 	runner.simulate_frames(2)
 
 	(
-		assert_object(targeting_state.get_target())
-		. append_failure_message("Setup: Target should be set to persistent object")
+		assert_object(targeting_state.get_target()) \
+		. append_failure_message("Setup: Target should be set to persistent object") \
 		. is_same(persistent_obj)
 	)
 
@@ -407,17 +407,17 @@ func test_targeting_after_external_target_clear_while_hovering() -> void:
 
 	# Verify target is cleared
 	(
-		assert_object(targeting_state.get_target())
-		. append_failure_message("After external clear: target should be null")
+		assert_object(targeting_state.get_target()) \
+		. append_failure_message("After external clear: target should be null") \
 		. is_null()
 	)
 
 	# ShapeCast should still be detecting collision
 	(
-		assert_bool(sc.is_colliding())
+		assert_bool(sc.is_colliding()) \
 		. append_failure_message(
 			"ShapeCast should still be colliding with persistent object after target cleared"
-		)
+		) \
 		. is_true()
 	)
 
@@ -441,8 +441,8 @@ func test_targeting_after_external_target_clear_while_hovering() -> void:
 	assert_object(targeting_state.get_target()).append_failure_message(failure_msg).is_not_null()
 
 	(
-		assert_object(targeting_state.get_target())
-		. append_failure_message("Re-detected target should be the persistent object")
+		assert_object(targeting_state.get_target()) \
+		. append_failure_message("Re-detected target should be the persistent object") \
 		. is_same(persistent_obj)
 	)
 
@@ -490,24 +490,24 @@ func test_root_node_metadata_on_collision_object_redirects_to_root() -> void:
 
 	# Assert: Target should be collision body, target_root should be the resolved root node
 	(
-		assert_object(targeting_state.get_collider())
+		assert_object(targeting_state.get_collider()) \
 		. append_failure_message(
 			(
 				"Target should be the collision body. Got: %s, ShapeCast colliding: %s"
 				% [str(targeting_state.get_collider()), str(sc.is_colliding())]
 			)
-		)
+		) \
 		. is_same(collision_body)
 	)
 
 	(
-		assert_object(targeting_state.get_target())
+		assert_object(targeting_state.get_target()) \
 		. append_failure_message(
 			(
 				"Target root should be redirected to root node via root_node metadata. "
 				+ "Expected: %s, Got: %s" % [root_node.name, str(targeting_state.get_target())]
 			)
-		)
+		) \
 		. is_same(root_node)
 	)
 
@@ -558,21 +558,21 @@ func test_root_node_metadata_hierarchical_search() -> void:
 
 	# Assert: target should be collision body, target_root should be resolved via Manipulatable
 	(
-		assert_object(targeting_state.get_collider())
+		assert_object(targeting_state.get_collider()) \
 		. append_failure_message(
 			"Target should be the collision body. Got: %s" % [str(targeting_state.get_collider())]
-		)
+		) \
 		. is_same(collision_body)
 	)
 
 	(
-		assert_object(targeting_state.get_target())
+		assert_object(targeting_state.get_target()) \
 		. append_failure_message(
 			(
 				"Target root should be resolved via sibling Manipulatable search. "
 				+ "Expected: %s, Got: %s" % [root_node.name, str(targeting_state.get_target())]
 			)
-		)
+		) \
 		. is_same(root_node)
 	)
 
@@ -634,21 +634,21 @@ func test_root_node_metadata_max_depth_limit() -> void:
 
 	# Assert: target should be collision body, target_root should be resolved from direct child
 	(
-		assert_object(targeting_state.get_collider())
+		assert_object(targeting_state.get_collider()) \
 		. append_failure_message(
 			"Target should be the collision body. Got: %s" % [str(targeting_state.get_collider())]
-		)
+		) \
 		. is_same(collision_body)
 	)
 
 	(
-		assert_object(targeting_state.get_target())
+		assert_object(targeting_state.get_target()) \
 		. append_failure_message(
 			(
 				"Target root should be resolved from direct child Manipulatable (1 level), not grandchild (2 levels). "
 				+ "Expected: %s, Got: %s" % [root_node.name, str(targeting_state.get_target())]
 			)
-		)
+		) \
 		. is_same(root_node)
 	)
 
@@ -689,13 +689,13 @@ func test_root_node_metadata_invalid_value_fallback() -> void:
 
 	# Assert: Should fallback to collision body itself
 	(
-		assert_object(targeting_state.get_target())
+		assert_object(targeting_state.get_target()) \
 		. append_failure_message(
 			(
 				"Target should fallback to collision body when metadata value is invalid (null). "
 				+ "Expected: %s, Got: %s" % [collision_body.name, str(targeting_state.get_target())]
 			)
-		)
+		) \
 		. is_same(collision_body)
 	)
 
@@ -738,13 +738,13 @@ func test_root_node_metadata_wrong_type_fallback() -> void:
 
 	# Assert: Should fallback to collision body when metadata wrong type
 	(
-		assert_object(targeting_state.get_target())
+		assert_object(targeting_state.get_target()) \
 		. append_failure_message(
 			(
 				"Target should fallback to collision body when metadata type is not Node2D. "
 				+ "Expected: %s, Got: %s" % [collision_body.name, str(targeting_state.get_target())]
 			)
-		)
+		) \
 		. is_same(collision_body)
 	)
 
@@ -782,13 +782,13 @@ func test_root_node_metadata_backward_compatibility() -> void:
 
 	# Assert: Should target the StaticBody2D itself (traditional behavior)
 	(
-		assert_object(targeting_state.get_target())
+		assert_object(targeting_state.get_target()) \
 		. append_failure_message(
 			(
 				"Backward compatibility: Traditional scenes without metadata should target collision object. "
 				+ "Expected: %s, Got: %s" % [area_root.name, str(targeting_state.get_target())]
 			)
-		)
+		) \
 		. is_same(area_root)
 	)
 
@@ -828,13 +828,13 @@ func test_root_node_metadata_self_reference() -> void:
 
 	# Assert: Should resolve to self (no-op but valid)
 	(
-		assert_object(targeting_state.get_target())
+		assert_object(targeting_state.get_target()) \
 		. append_failure_message(
 			(
 				"Self-referencing metadata should work (node references itself as root). "
 				+ "Expected: %s, Got: %s" % [self_root.name, str(targeting_state.get_target())]
 			)
-		)
+		) \
 		. is_same(self_root)
 	)
 

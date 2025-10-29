@@ -56,8 +56,8 @@ func before_test() -> void:
 	env = runner.scene() as CollisionTestEnvironment
 
 	(
-		assert_object(env)
-		. append_failure_message("Failed to load CollisionTestEnvironment scene")
+		assert_object(env) \
+		. append_failure_message("Failed to load CollisionTestEnvironment scene") \
 		. is_not_null()
 	)
 
@@ -70,8 +70,8 @@ func before_test() -> void:
 func test_gather_collision_shapes_null_input() -> void:
 	var result := IndicatorSetupUtils.gather_collision_shapes(null)
 	(
-		assert_that(result)
-		. append_failure_message("Expected empty result when input is null")
+		assert_that(result) \
+		. append_failure_message("Expected empty result when input is null") \
 		. is_empty()
 	)
 
@@ -82,8 +82,8 @@ func test_gather_collision_shapes_empty_node() -> void:
 
 	var result := IndicatorSetupUtils.gather_collision_shapes(empty_node)
 	(
-		assert_that(result)
-		. append_failure_message("Expected empty result when node has no collision shapes")
+		assert_that(result) \
+		. append_failure_message("Expected empty result when node has no collision shapes") \
 		. is_empty()
 	)
 
@@ -102,10 +102,10 @@ func test_gather_collision_shapes_parameterized() -> void:
 			diag.append("Warning: Could not load scene at path: %s" % scene_path)
 			var context := "\n".join(diag)
 			(
-				assert_bool(scene != null)
+				assert_bool(scene != null) \
 				. append_failure_message(
 					"Scene should load successfully: %s\nContext: %s" % [scene_path, context]
-				)
+				) \
 				. is_true()
 			)
 			continue
@@ -117,22 +117,22 @@ func test_gather_collision_shapes_parameterized() -> void:
 
 		# Should find collision shapes
 		(
-			assert_that(result)
-			. append_failure_message("Should find collision shapes for %s" % test_name)
+			assert_that(result) \
+			. append_failure_message("Should find collision shapes for %s" % test_name) \
 			. is_not_empty()
 		)
 
 		# Check that we have the expected structure
 		for owner_node: Node in result.keys():
 			(
-				assert_that(owner_node)
-				. append_failure_message("Owner should be Node2D for %s" % test_name)
+				assert_that(owner_node) \
+				. append_failure_message("Owner should be Node2D for %s" % test_name) \
 				. is_instanceof(Node2D)
 			)
 			var shapes: Array = result[owner_node]
 			(
-				assert_that(shapes)
-				. append_failure_message("Shapes array should not be empty for %s" % test_name)
+				assert_that(shapes) \
+				. append_failure_message("Shapes array should not be empty for %s" % test_name) \
 				. is_not_empty()
 			)
 
@@ -163,8 +163,8 @@ func test_execute_indicator_setup_produces_zero_indicators_despite_collision_sha
 	var collision_shapes: Dictionary = IndicatorSetupUtils.gather_collision_shapes(smithy_obj)
 	var collision_shapes_count := collision_shapes.size()
 	(
-		assert_that(collision_shapes_count)
-		. append_failure_message("Smithy should have collision shapes")
+		assert_that(collision_shapes_count) \
+		. append_failure_message("Smithy should have collision shapes") \
 		. is_greater(0)
 	)
 
@@ -173,16 +173,16 @@ func test_execute_indicator_setup_produces_zero_indicators_despite_collision_sha
 		collision_shapes, DEFAULT_TILE_SIZE
 	)
 	(
-		assert_that(test_setups.size())
-		. append_failure_message("Should build collision test setups from smithy shapes")
+		assert_that(test_setups.size()) \
+		. append_failure_message("Should build collision test setups from smithy shapes") \
 		. is_greater(0)
 	)
 
 	# Get collision mapper from environment (direct property access)
 	var collision_mapper: CollisionMapper = env.collision_mapper
 	(
-		assert_object(collision_mapper)
-		. append_failure_message("CollisionMapper should be available in test environment")
+		assert_object(collision_mapper) \
+		. append_failure_message("CollisionMapper should be available in test environment") \
 		. is_not_null()
 	)
 
@@ -205,7 +205,7 @@ func test_execute_indicator_setup_produces_zero_indicators_despite_collision_sha
 		var diag: PackedStringArray = PackedStringArray()
 		diag.append("IndicatorSetupUtils.execute_indicator_setup returned null")
 		(
-			assert_that(false)
+			assert_that(false) \
 			. append_failure_message(
 				(
 					"IndicatorSetupUtils.execute_indicator_setup returned null. DBG: collision_shapes=%d, test_setups=%d, expected_collision_tiles=%d, smithy_pos=%s\n%s"
@@ -217,14 +217,14 @@ func test_execute_indicator_setup_produces_zero_indicators_despite_collision_sha
 						"\n".join(diag)
 					]
 				)
-			)
+			) \
 			. is_true()
 		)
 		return
 
 	# This assertion should FAIL - mirrors integration test smithy failure
 	(
-		assert_that(setup_result.indicators.size())
+		assert_that(setup_result.indicators.size()) \
 		. append_failure_message(
 			(
 				"Expected IndicatorSetupUtils.execute_indicator_setup to create indicators but got 0. DBG: collision_shapes=%d, test_setups=%d, expected_collision_tiles=%d, setup_issues=%s, smithy_pos=%s"
@@ -236,7 +236,7 @@ func test_execute_indicator_setup_produces_zero_indicators_despite_collision_sha
 					smithy_obj.global_position
 				]
 			)
-		)
+		) \
 		. is_greater(0)
 	)
 
@@ -254,8 +254,8 @@ func test_collision_mapping_works_but_indicator_creation_fails() -> void:
 	# Test collision mapping directly (this should work)
 	var collision_mapper: CollisionMapper = env.collision_mapper
 	(
-		assert_object(collision_mapper)
-		. append_failure_message("CollisionMapper should be available")
+		assert_object(collision_mapper) \
+		. append_failure_message("CollisionMapper should be available") \
 		. is_not_null()
 	)
 
@@ -290,7 +290,7 @@ func test_collision_mapping_works_but_indicator_creation_fails() -> void:
 
 	# Verify collision mapping works
 	(
-		assert_that(collision_tiles_found)
+		assert_that(collision_tiles_found) \
 		. append_failure_message(
 			(
 				"Collision mapping should find tiles. DBG: test_object_type=%s, position=%s, collision_layer=%d, collision_mask=%d, collision_shapes_count=%d, tilemap_size=%s, targeting_state_valid=%s"
@@ -308,7 +308,7 @@ func test_collision_mapping_works_but_indicator_creation_fails() -> void:
 					str(_targeting_state != null)
 				]
 			)
-		)
+		) \
 		. is_greater(0)
 	)
 
@@ -338,7 +338,7 @@ func test_collision_mapping_works_but_indicator_creation_fails() -> void:
 			)
 		)
 		(
-			assert_that(false)
+			assert_that(false) \
 			. append_failure_message(
 				(
 					"IndicatorSetupUtils.execute_indicator_setup returned null when collision mapping finds %d tiles. DBG: collision_tiles=%d, test_object_pos=%s\n%s"
@@ -349,15 +349,15 @@ func test_collision_mapping_works_but_indicator_creation_fails() -> void:
 						"\n".join(diag)
 					]
 				)
-			)
+			) \
 			. is_true()
 		)
 		return
 
 	# This assertion should FAIL - collision mapping works but indicator creation fails
 	(
-		assert_that(setup_result.indicators.size())
-		. is_greater(0)
+		assert_that(setup_result.indicators.size()) \
+		. is_greater(0) \
 		. append_failure_message(
 			(
 				"Expected indicator creation to succeed when collision mapping finds %d tiles. DBG: collision_tiles=%d, setup_issues=%s, test_object_pos=%s"
@@ -385,7 +385,7 @@ func test_collision_mapping_works_but_indicator_creation_fails() -> void:
 			collision_shape_info += shape_details + " "
 
 	(
-		assert_int(collision_tiles_found)
+		assert_int(collision_tiles_found) \
 		. append_failure_message(
 			(
 				"Collision system should find at least 1 tile for 2x2 object. DBG: collision_results_size=%d, test_object_children_count=%d, collision_shape_info='%s', collision_mapper_valid=%s, test_object_collision_layer=%d"
@@ -397,7 +397,7 @@ func test_collision_mapping_works_but_indicator_creation_fails() -> void:
 					test_object.collision_layer
 				]
 			)
-		)
+		) \
 		. is_greater_equal(1)
 	)
 
@@ -421,28 +421,28 @@ func test_gather_collision_shapes_with_collision_object() -> void:
 	var result := IndicatorSetupUtils.gather_collision_shapes(test_object)
 
 	(
-		assert_that(result)
-		. append_failure_message("Expected collision shapes to be found")
+		assert_that(result) \
+		. append_failure_message("Expected collision shapes to be found") \
 		. is_not_empty()
 	)
 	(
-		assert_that(result.has(collision_owner))
-		. append_failure_message("Expected collision_owner to be in result")
+		assert_that(result.has(collision_owner)) \
+		. append_failure_message("Expected collision_owner to be in result") \
 		. is_true()
 	)
 	(
-		assert_that(result[collision_owner])
-		. append_failure_message("Expected shapes array to not be empty")
+		assert_that(result[collision_owner]) \
+		. append_failure_message("Expected shapes array to not be empty") \
 		. is_not_empty()
 	)
 	(
-		assert_that(result[collision_owner][0])
-		. append_failure_message("Expected first shape to be RectangleShape2D")
+		assert_that(result[collision_owner][0]) \
+		. append_failure_message("Expected first shape to be RectangleShape2D") \
 		. is_class("RectangleShape2D")
 	)
 	(
-		assert_that(result[collision_owner][0].size)
-		. append_failure_message("Expected shape size to be Vector2(32, 32)")
+		assert_that(result[collision_owner][0].size) \
+		. append_failure_message("Expected shape size to be Vector2(32, 32)") \
 		. is_equal(Vector2(32, 32))
 	)
 
@@ -457,13 +457,13 @@ func test_execute_indicator_setup_null_inputs() -> void:
 	)
 
 	(
-		assert_that(result.has_issues())
-		. append_failure_message("Expected setup to have issues with null inputs")
+		assert_that(result.has_issues()) \
+		. append_failure_message("Expected setup to have issues with null inputs") \
 		. is_true()
 	)
 	(
-		assert_that(result.indicators)
-		. append_failure_message("Expected no indicators when setup has issues")
+		assert_that(result.indicators) \
+		. append_failure_message("Expected no indicators when setup has issues") \
 		. is_empty()
 	)
 
@@ -488,15 +488,15 @@ func test_execute_indicator_setup_basic_success() -> void:
 
 	# Assert: result should be successful and contain indicators
 	(
-		assert_that(result.is_successful())
-		. append_failure_message("Setup should be successful")
+		assert_that(result.is_successful()) \
+		. append_failure_message("Setup should be successful") \
 		. is_true()
 	)
 	assert_that(result.has_issues()).append_failure_message("Should have no issues").is_false()
 	assert_that(result.indicators).append_failure_message("Should have indicators").is_not_empty()
 	(
-		assert_that(result.owner_shapes)
-		. append_failure_message("Should have owner shapes")
+		assert_that(result.owner_shapes) \
+		. append_failure_message("Should have owner shapes") \
 		. is_not_empty()
 	)
 
@@ -513,10 +513,10 @@ func test_calculate_indicator_count_parameterized() -> void:
 			diag.append("Warning: Could not load scene at path: %s" % scene_path)
 			var context := "\n".join(diag)
 			(
-				assert_bool(scene != null)
+				assert_bool(scene != null) \
 				. append_failure_message(
 					"Scene should load successfully: %s\nContext: %s" % [scene_path, context]
-				)
+				) \
 				. is_true()
 			)
 			continue
@@ -535,10 +535,10 @@ func test_calculate_indicator_count_parameterized() -> void:
 
 		# Should return a positive count
 		(
-			assert_that(count)
+			assert_that(count) \
 			. append_failure_message(
 				"Should return positive count for %s, got %d" % [test_name, count]
-			)
+			) \
 			. is_greater_equal(1)
 		)
 
@@ -567,14 +567,14 @@ func test_validate_indicator_positions_correct_positioning() -> void:
 	)
 
 	(
-		assert_that(result.is_valid)
-		. append_failure_message("Expected validation to be successful")
+		assert_that(result.is_valid) \
+		. append_failure_message("Expected validation to be successful") \
 		. is_true()
 	)
 	assert_that(result.size_mismatch).append_failure_message("Expected no size mismatch").is_false()
 	(
-		assert_that(result.position_mismatches)
-		. append_failure_message("Expected no position mismatches")
+		assert_that(result.position_mismatches) \
+		. append_failure_message("Expected no position mismatches") \
 		. is_empty()
 	)
 
@@ -596,18 +596,18 @@ func test_validate_indicator_positions_size_mismatch() -> void:
 	)
 
 	(
-		assert_that(result.is_valid)
-		. append_failure_message("Expected validation to fail due to size mismatch")
+		assert_that(result.is_valid) \
+		. append_failure_message("Expected validation to fail due to size mismatch") \
 		. is_false()
 	)
 	(
-		assert_that(result.size_mismatch)
-		. append_failure_message("Expected size mismatch to be detected")
+		assert_that(result.size_mismatch) \
+		. append_failure_message("Expected size mismatch to be detected") \
 		. is_true()
 	)
 	(
-		assert_that(result.expected_count)
-		. append_failure_message("Expected count should be 2")
+		assert_that(result.expected_count) \
+		. append_failure_message("Expected count should be 2") \
 		. is_equal(2)
 	)
 	assert_that(result.actual_count).append_failure_message("Actual count should be 1").is_equal(1)
@@ -632,24 +632,24 @@ func test_validate_indicator_positions_position_mismatch() -> void:
 	)
 
 	(
-		assert_that(result.is_valid)
-		. append_failure_message("Expected validation to fail due to position mismatch")
+		assert_that(result.is_valid) \
+		. append_failure_message("Expected validation to fail due to position mismatch") \
 		. is_false()
 	)
 	assert_that(result.size_mismatch).append_failure_message("Expected no size mismatch").is_false()
 	(
-		assert_that(result.position_mismatches)
-		. append_failure_message("Expected position mismatches to be detected")
+		assert_that(result.position_mismatches) \
+		. append_failure_message("Expected position mismatches to be detected") \
 		. is_not_empty()
 	)
 	(
-		assert_that(result.position_mismatches[0]["expected"])
-		. append_failure_message("Expected position should be TILE_POS_ORIGIN")
+		assert_that(result.position_mismatches[0]["expected"]) \
+		. append_failure_message("Expected position should be TILE_POS_ORIGIN") \
 		. is_equal(TILE_POS_ORIGIN)
 	)
 	(
-		assert_that(result.position_mismatches[0]["actual"])
-		. append_failure_message("Actual position should be TILE_POS_WRONG")
+		assert_that(result.position_mismatches[0]["actual"]) \
+		. append_failure_message("Actual position should be TILE_POS_WRONG") \
 		. is_equal(TILE_POS_WRONG)
 	)
 
@@ -679,31 +679,31 @@ func test_build_collision_test_setups_collision_object_owner() -> void:
 	var result := IndicatorSetupUtils.build_collision_test_setups(owner_shapes, tile_size)
 
 	(
-		assert_that(result)
-		. append_failure_message("Expected collision setups to be created")
+		assert_that(result) \
+		. append_failure_message("Expected collision setups to be created") \
 		. is_not_empty()
 	)
 	(
-		assert_that(result.has(collision_owner))
-		. append_failure_message("Expected collision_owner to be in result")
+		assert_that(result.has(collision_owner)) \
+		. append_failure_message("Expected collision_owner to be in result") \
 		. is_true()
 	)
 	(
-		assert_that(result[collision_owner])
-		. append_failure_message("Expected setup to not be null")
+		assert_that(result[collision_owner]) \
+		. append_failure_message("Expected setup to not be null") \
 		. is_not_null()
 	)
 	(
-		assert_that(result[collision_owner])
-		. append_failure_message("Expected setup to be CollisionTestSetup2D")
+		assert_that(result[collision_owner]) \
+		. append_failure_message("Expected setup to be CollisionTestSetup2D") \
 		. is_class("CollisionTestSetup2D")
 	)
 
 	# Verify the stretch amount calculation (tile_size * 2.0)
 	var expected_stretch := Vector2(32, 32)  # 16 * 2.0
 	(
-		assert_that(result[collision_owner].shape_stretch_size)
-		. append_failure_message("Expected shape stretch size to be Vector2(32, 32)")
+		assert_that(result[collision_owner].shape_stretch_size) \
+		. append_failure_message("Expected shape stretch size to be Vector2(32, 32)") \
 		. is_equal(expected_stretch)
 	)
 
@@ -724,13 +724,13 @@ func test_build_collision_test_setups_collision_polygon_owner() -> void:
 
 	assert_that(result).append_failure_message("Expected result to not be empty").is_not_empty()
 	(
-		assert_that(result.has(collision_owner))
-		. append_failure_message("Expected collision_owner to be in result")
+		assert_that(result.has(collision_owner)) \
+		. append_failure_message("Expected collision_owner to be in result") \
 		. is_true()
 	)
 	(
-		assert_that(result[collision_owner])
-		. append_failure_message("Expected null setup for CollisionPolygon2D")
+		assert_that(result[collision_owner]) \
+		. append_failure_message("Expected null setup for CollisionPolygon2D") \
 		. is_null()
 	)  # CollisionPolygon2D gets null setup
 
@@ -746,8 +746,8 @@ func test_map_positions_to_rules_null_mapper() -> void:
 
 	var result := IndicatorSetupUtils.map_positions_to_rules(collision_mapper, owner_shapes, rules)
 	(
-		assert_that(result)
-		. append_failure_message("Expected empty result with null collision mapper")
+		assert_that(result) \
+		. append_failure_message("Expected empty result with null collision mapper") \
 		. is_empty()
 	)
 
@@ -762,8 +762,8 @@ func test_validate_setup_preconditions_valid_inputs() -> void:
 		test_object, rules, mock_collision_mapper
 	)
 	(
-		assert_that(result)
-		. append_failure_message("Expected no validation issues with valid preconditions")
+		assert_that(result) \
+		. append_failure_message("Expected no validation issues with valid preconditions") \
 		. is_empty()
 	)
 
@@ -780,8 +780,8 @@ func test_validate_setup_preconditions_null_test_object() -> void:
 		null, rules, mock_collision_mapper
 	)
 	(
-		assert_that(result)
-		. append_failure_message("Expected validation issues with null test object")
+		assert_that(result) \
+		. append_failure_message("Expected validation issues with null test object") \
 		. is_not_empty()
 	)
 	assert_that(result.has("Test object is null or invalid")).is_true()
@@ -797,13 +797,13 @@ func test_validate_setup_preconditions_empty_rules() -> void:
 		test_object, rules, mock_collision_mapper
 	)
 	(
-		assert_that(result)
-		. append_failure_message("Expected validation issues with empty rules")
+		assert_that(result) \
+		. append_failure_message("Expected validation issues with empty rules") \
 		. is_not_empty()
 	)
 	(
-		assert_that(result.has("No tile check rules provided"))
-		. append_failure_message("Expected specific error message about rules")
+		assert_that(result.has("No tile check rules provided")) \
+		. append_failure_message("Expected specific error message about rules") \
 		. is_true()
 	)
 
@@ -820,13 +820,13 @@ func test_validate_setup_preconditions_null_collision_mapper() -> void:
 
 	var result := IndicatorSetupUtils.validate_setup_preconditions(test_object, rules, null)
 	(
-		assert_that(result)
-		. append_failure_message("Expected validation issues with null collision mapper")
+		assert_that(result) \
+		. append_failure_message("Expected validation issues with null collision mapper") \
 		. is_not_empty()
 	)
 	(
-		assert_that(result.has("Collision mapper is not available"))
-		. append_failure_message("Expected specific error message about collision mapper")
+		assert_that(result.has("Collision mapper is not available")) \
+		. append_failure_message("Expected specific error message about collision mapper") \
 		. is_true()
 	)
 
@@ -915,8 +915,8 @@ func _validate_collision_mapping(
 ) -> int:
 	var collision_mapper: CollisionMapper = env.collision_mapper
 	(
-		assert_object(collision_mapper)
-		. append_failure_message("CollisionMapper should be available")
+		assert_object(collision_mapper) \
+		. append_failure_message("CollisionMapper should be available") \
 		. is_not_null()
 	)
 
@@ -926,8 +926,8 @@ func _validate_collision_mapping(
 	var tiles_found: int = collision_results.size()
 
 	(
-		assert_that(tiles_found)
-		. append_failure_message("Collision mapping should find tiles for mask %d" % mask)
+		assert_that(tiles_found) \
+		. append_failure_message("Collision mapping should find tiles for mask %d" % mask) \
 		. is_greater(0)
 	)
 	return tiles_found
@@ -949,8 +949,8 @@ func _run_indicator_setup(
 	)
 	if expected_success:
 		(
-			assert_object(setup_result)
-			. append_failure_message("Setup result should not be null")
+			assert_object(setup_result) \
+			. append_failure_message("Setup result should not be null") \
 			. is_not_null()
 		)
 		assert_that(setup_result.indicators.size()).is_greater(0).append_failure_message(
@@ -974,13 +974,13 @@ func test_collision_rule_validation_setup() -> void:
 
 	# Test rule properties are set correctly
 	(
-		assert_bool(collision_rule.pass_on_collision)
-		. append_failure_message("Expected pass_on_collision to be false")
+		assert_bool(collision_rule.pass_on_collision) \
+		. append_failure_message("Expected pass_on_collision to be false") \
 		. is_false()
 	)
 	(
-		assert_int(collision_rule.apply_to_objects_mask)
-		. append_failure_message("Expected collision mask to be 1")
+		assert_int(collision_rule.apply_to_objects_mask) \
+		. append_failure_message("Expected collision mask to be 1") \
 		. is_equal(1)
 	)
 
@@ -992,10 +992,10 @@ func test_collision_rule_validation_setup() -> void:
 		test_object, rules, mock_collision_mapper
 	)
 	(
-		assert_that(result)
+		assert_that(result) \
 		. append_failure_message(
 			"Expected no validation issues with properly configured collision rule"
-		)
+		) \
 		. is_empty()
 	)
 
@@ -1027,21 +1027,21 @@ func test_multiple_rule_validation_setup() -> void:
 		test_object, rules, mock_collision_mapper
 	)
 	(
-		assert_that(result)
-		. append_failure_message("Expected no validation issues with multiple rules")
+		assert_that(result) \
+		. append_failure_message("Expected no validation issues with multiple rules") \
 		. is_empty()
 	)
 
 	# Verify rule count and types
 	assert_int(rules.size()).append_failure_message("Expected 2 rules").is_equal(2)
 	(
-		assert_bool(rules[0] is CollisionsCheckRule)
-		. append_failure_message("Expected first rule to be CollisionsCheckRule")
+		assert_bool(rules[0] is CollisionsCheckRule) \
+		. append_failure_message("Expected first rule to be CollisionsCheckRule") \
 		. is_true()
 	)
 	(
-		assert_bool(rules[1] is TileCheckRule)
-		. append_failure_message("Expected second rule to be TileCheckRule")
+		assert_bool(rules[1] is TileCheckRule) \
+		. append_failure_message("Expected second rule to be TileCheckRule") \
 		. is_true()
 	)
 

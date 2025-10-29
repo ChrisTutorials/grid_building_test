@@ -38,8 +38,8 @@ func before_test() -> void:
 	test_environment = runner.scene() as AllSystemsTestEnvironment
 
 	(
-		assert_object(test_environment)
-		. append_failure_message("Failed to load AllSystemsTestEnvironment scene")
+		assert_object(test_environment) \
+		. append_failure_message("Failed to load AllSystemsTestEnvironment scene") \
 		. is_not_null()
 	)
 
@@ -53,13 +53,13 @@ func before_test() -> void:
 
 	# Validate environment is properly set up
 	(
-		assert_object(manipulation_system)
-		. append_failure_message("ManipulationSystem should be available")
+		assert_object(manipulation_system) \
+		. append_failure_message("ManipulationSystem should be available") \
 		. is_not_null()
 	)
 	(
-		assert_object(manipulation_state)
-		. append_failure_message("ManipulationState should be available")
+		assert_object(manipulation_state) \
+		. append_failure_message("ManipulationState should be available") \
 		. is_not_null()
 	)
 	assert_object(container).append_failure_message("Container should be available").is_not_null()
@@ -79,17 +79,17 @@ func test_manipulation_system_factory_with_environment() -> void:
 	"""Test that manipulation system factory creates properly configured systems"""
 	# The system should be properly instantiated through the environment
 	(
-		assert_object(manipulation_system)
+		assert_object(manipulation_system) \
 		. append_failure_message(
 			"ManipulationSystem should be properly instantiated through environment"
-		)
+		) \
 		. is_not_null()
 	)
 
 	# Should be added to the scene tree
 	(
-		assert_bool(manipulation_system.is_inside_tree())
-		. append_failure_message("ManipulationSystem should be in scene tree")
+		assert_bool(manipulation_system.is_inside_tree()) \
+		. append_failure_message("ManipulationSystem should be in scene tree") \
 		. is_true()
 	)
 
@@ -98,21 +98,21 @@ func test_manipulation_system_environment_integration() -> void:
 	"""Test manipulation system integration with full environment"""
 	# Test that system has access to required dependencies
 	(
-		assert_object(manipulation_state)
-		. append_failure_message("System should have access to manipulation state")
+		assert_object(manipulation_state) \
+		. append_failure_message("System should have access to manipulation state") \
 		. is_not_null()
 	)
 
 	(
-		assert_object(container)
-		. append_failure_message("System should have access to composition container")
+		assert_object(container) \
+		. append_failure_message("System should have access to composition container") \
 		. is_not_null()
 	)
 
 	# Test that system is properly registered in the environment
 	(
-		assert_object(test_environment.injector)
-		. append_failure_message("Environment injector should be available")
+		assert_object(test_environment.injector) \
+		. append_failure_message("Environment injector should be available") \
 		. is_not_null()
 	)
 
@@ -124,8 +124,8 @@ func test_manipulation_system_result_object_creation() -> void:
 
 	# Should return a valid boolean result
 	(
-		assert_that(demolish_result)
-		. append_failure_message("ManipulationSystem.demolish should return a valid boolean result")
+		assert_that(demolish_result) \
+		. append_failure_message("ManipulationSystem.demolish should return a valid boolean result") \
 		. is_not_null()
 	)
 
@@ -135,23 +135,23 @@ func test_manipulation_system_container_validation() -> void:
 	# Test that container provides required services
 	var logger: Object = container.get_logger()
 	(
-		assert_object(logger)
-		. append_failure_message("Container should provide logger service")
+		assert_object(logger) \
+		. append_failure_message("Container should provide logger service") \
 		. is_not_null()
 	)
 
 	var contexts: Object = container.get_contexts()
 	(
-		assert_object(contexts)
-		. append_failure_message("Container should provide contexts")
+		assert_object(contexts) \
+		. append_failure_message("Container should provide contexts") \
 		. is_not_null()
 	)
 
 	# Test owner context is properly configured
 	var owner_context: GBOwnerContext = contexts.owner
 	(
-		assert_object(owner_context)
-		. append_failure_message("Container should have owner context")
+		assert_object(owner_context) \
+		. append_failure_message("Container should have owner context") \
 		. is_not_null()
 	)
 
@@ -161,8 +161,8 @@ func test_manipulation_system_result_objects_not_null() -> void:
 	# Test try_move with null input
 	var move_null_result: Variant = manipulation_system.try_move(null)
 	(
-		assert_object(move_null_result)
-		. append_failure_message("try_move(null) should return result object, not null")
+		assert_object(move_null_result) \
+		. append_failure_message("try_move(null) should return result object, not null") \
 		. is_not_null()
 	)
 
@@ -170,16 +170,16 @@ func test_manipulation_system_result_objects_not_null() -> void:
 	var invalid_node: Node = auto_free(Node.new())
 	var move_invalid_result: Variant = manipulation_system.try_move(invalid_node)
 	(
-		assert_object(move_invalid_result)
-		. append_failure_message("try_move(invalid_node) should return result object, not null")
+		assert_object(move_invalid_result) \
+		. append_failure_message("try_move(invalid_node) should return result object, not null") \
 		. is_not_null()
 	)
 
 	# Test demolish with null input
 	var demolish_result: bool = await manipulation_system.demolish(null)
 	(
-		assert_that(demolish_result)
-		. append_failure_message("demolish(null) should return a valid boolean result")
+		assert_that(demolish_result) \
+		. append_failure_message("demolish(null) should return a valid boolean result") \
 		. is_not_null()
 	)
 
@@ -191,28 +191,28 @@ func test_manipulation_system_scene_runner_pattern() -> void:
 
 	# System should exist and be properly integrated
 	(
-		assert_object(scene_system)
-		. append_failure_message("Scene runner system should exist")
+		assert_object(scene_system) \
+		. append_failure_message("Scene runner system should exist") \
 		. is_not_null()
 	)
 
 	# System should be in scene tree (passive initialization)
 	(
-		assert_bool(scene_system.is_inside_tree())
-		. append_failure_message("Scene runner system should be in scene tree")
+		assert_bool(scene_system.is_inside_tree()) \
+		. append_failure_message("Scene runner system should be in scene tree") \
 		. is_true()
 	)
 
 	# System should have access to all dependencies
 	(
-		assert_object(manipulation_state)
-		. append_failure_message("System should have access to manipulation state")
+		assert_object(manipulation_state) \
+		. append_failure_message("System should have access to manipulation state") \
 		. is_not_null()
 	)
 
 	(
-		assert_object(container)
-		. append_failure_message("System should have access to composition container")
+		assert_object(container) \
+		. append_failure_message("System should have access to composition container") \
 		. is_not_null()
 	)
 
@@ -221,37 +221,37 @@ func test_manipulation_system_dependency_injection() -> void:
 	"""Test that manipulation system receives proper dependency injection"""
 	# System should have access to all required dependencies through the environment
 	(
-		assert_object(manipulation_system)
+		assert_object(manipulation_system) \
 		. append_failure_message(
 			"ManipulationSystem should be available through dependency injection"
-		)
+		) \
 		. is_not_null()
 	)
 	(
-		assert_object(manipulation_state)
+		assert_object(manipulation_state) \
 		. append_failure_message(
 			"ManipulationState should be available through dependency injection"
-		)
+		) \
 		. is_not_null()
 	)
 	(
-		assert_object(container)
+		assert_object(container) \
 		. append_failure_message(
 			"CompositionContainer should be available through dependency injection"
-		)
+		) \
 		. is_not_null()
 	)
 	(
-		assert_object(test_environment.injector)
-		. append_failure_message("Injector should be available in test environment")
+		assert_object(test_environment.injector) \
+		. append_failure_message("Injector should be available in test environment") \
 		. is_not_null()
 	)
 
 	# Test that the system can perform basic operations without null reference errors
 	var test_result: Variant = manipulation_system.try_move(null)
 	(
-		assert_object(test_result)
-		. append_failure_message("System should handle operations without null reference crashes")
+		assert_object(test_result) \
+		. append_failure_message("System should handle operations without null reference crashes") \
 		. is_not_null()
 	)
 

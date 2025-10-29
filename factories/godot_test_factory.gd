@@ -220,8 +220,8 @@ static func create_tile_map_layer_with_shape(
 	var map_size_px: Vector2 = map_layer.get_used_rect().size * map_layer.tile_set.tile_size
 	(
 		test
-		. assert_vector(map_size_px)
-		. append_failure_message("GodotTestFactory Math Incorrect")
+		. assert_vector(map_size_px) \
+		. append_failure_message("GodotTestFactory Math Incorrect") \
 		. is_equal(Vector2(grid_size * 16, grid_size * 16))
 	)
 
@@ -320,8 +320,8 @@ static func create_static_body_with_rect_shape(
 	body.collision_layer = 1  # Set collision layer to match test expectations
 	(
 		test
-		. assert_object(shape.shape)
-		. append_failure_message("GodotTestFactory: Bad Generated Shape")
+		. assert_object(shape.shape) \
+		. append_failure_message("GodotTestFactory: Bad Generated Shape") \
 		. is_not_null()
 	)
 

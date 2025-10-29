@@ -94,7 +94,7 @@ func test_trapezoid_full_pipeline_integration() -> void:
 	GBTestDiagnostics.log_verbose("[TRAPEZOID] Running IndicatorManager.try_setup with %d placement rules" % placement_rules.size())
 	var report: PlacementReport = _indicator_manager.try_setup(placement_rules, _targeting_state, true)
 
-	assert_object(report).append_failure_message("PlacementReport is null\n%s" % "diagnostic context")
+	assert_object(report).append_failure_message("PlacementReport is null\n%s" % "diagnostic context") \
 		.is_not_null()
 
 	if not report.is_successful():

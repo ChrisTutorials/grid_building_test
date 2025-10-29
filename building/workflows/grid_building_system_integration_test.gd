@@ -43,18 +43,18 @@ func before_test() -> void:
 ## Validate environment is properly set up without issues
 func _validate_environment_setup() -> void:
 	(
-		assert_object(env)
+		assert_object(env) \
 		. append_failure_message(
 			"Failed to create AllSystemsTestEnvironment from UnifiedTestFactory"
-		)
+		) \
 		. is_not_null()
 	)
 
 	# Use environment's get_issues method for validation
 	var issues: Array[String] = env.get_issues()
 	(
-		assert_array(issues)
-		. append_failure_message("Environment setup has issues: %s" % str(issues))
+		assert_array(issues) \
+		. append_failure_message("Environment setup has issues: %s" % str(issues)) \
 		. is_empty()
 	)
 
@@ -81,18 +81,18 @@ func _validate_required_dependencies() -> void:
 
 	for dep_name: String in dependencies:
 		(
-			assert_object(dependencies[dep_name])
+			assert_object(dependencies[dep_name]) \
 			. append_failure_message(
 				"Required dependency '%s' not available from environment" % dep_name
-			)
+			) \
 			. is_not_null()
 		)
 
 	# Assert TileMap availability instead of creating
 	var target_map: TileMapLayer = _gts.target_map
 	(
-		assert_object(target_map)
-		. append_failure_message("Environment should provide a configured TileMap for testing")
+		assert_object(target_map) \
+		. append_failure_message("Environment should provide a configured TileMap for testing") \
 		. is_not_null()
 	)
 
@@ -107,13 +107,13 @@ func after_test() -> void:
 ## Common assertion helper for validating placement reports
 func _assert_placement_report_success(report: PlacementReport, context: String) -> void:
 	(
-		assert_object(report)
-		. append_failure_message("%s should return a valid PlacementReport" % context)
+		assert_object(report) \
+		. append_failure_message("%s should return a valid PlacementReport" % context) \
 		. is_not_null()
 	)
 	(
-		assert_bool(report.is_successful())
-		. append_failure_message("%s should succeed: %s" % [context, str(report.get_issues())])
+		assert_bool(report.is_successful()) \
+		. append_failure_message("%s should succeed: %s" % [context, str(report.get_issues())]) \
 		. is_true()
 	)
 
@@ -123,8 +123,8 @@ func _enter_build_mode_successfully(placeable: Placeable) -> bool:
 	var setup_report: PlacementReport = _building_system.enter_build_mode(placeable)
 	if setup_report.is_successful():
 		(
-			assert_bool(_building_system.is_in_build_mode())
-			. append_failure_message("Should be in build mode after successful enter_build_mode")
+			assert_bool(_building_system.is_in_build_mode()) \
+			. append_failure_message("Should be in build mode after successful enter_build_mode") \
 			. is_true()
 		)
 		return true
@@ -137,8 +137,8 @@ func _enter_build_mode_successfully(placeable: Placeable) -> bool:
 func _set_targeting_position(position: Vector2) -> void:
 	var targeting_state: GridTargetingState = _container.get_states().targeting
 	(
-		assert_object(targeting_state.positioner)
-		. append_failure_message("Targeting state should have a valid positioner configured")
+		assert_object(targeting_state.positioner) \
+		. append_failure_message("Targeting state should have a valid positioner configured") \
 		. is_not_null()
 	)
 	targeting_state.positioner.global_position = position
@@ -153,8 +153,8 @@ func _assert_setup_successful(setup_result: PlacementReport, context: String) ->
 ## Common assertion helper for collision detection results
 func _assert_collision_results_valid(collision_results: Dictionary, context: String) -> void:
 	(
-		assert_dict(collision_results)
-		. append_failure_message("%s: Should generate collision tile positions" % context)
+		assert_dict(collision_results) \
+		. append_failure_message("%s: Should generate collision tile positions" % context) \
 		. is_not_empty()
 	)
 
@@ -163,10 +163,10 @@ func _assert_collision_results_valid(collision_results: Dictionary, context: Str
 		(
 			assert_bool(
 				abs(pos.x) < MAX_REASONABLE_COORDINATE and abs(pos.y) < MAX_REASONABLE_COORDINATE
-			)
+			) \
 			. append_failure_message(
 				"%s: Generated tile position %s should be reasonable" % [context, str(pos)]
-			)
+			) \
 			. is_true()
 		)
 
@@ -205,20 +205,20 @@ func test_complete_building_workflow(
 	# Validate placement before building
 	var validation_result: ValidationResults = _indicator_manager.validate_placement()
 	(
-		assert_bool(validation_result.is_successful())
+		assert_bool(validation_result.is_successful()) \
 		. append_failure_message(
 			"Validation should succeed for valid position %s" % VALID_BUILD_POS
-		)
+		) \
 		. is_true()
 	)
 
 	# Test building at validated position
 	var build_result: PlacementReport = _building_system.try_build_at_position(VALID_BUILD_POS)
 	(
-		assert_object(build_result.placed)
+		assert_object(build_result.placed) \
 		. append_failure_message(
 			"Building should succeed and return placed object at position %s" % VALID_BUILD_POS
-		)
+		) \
 		. is_not_null()
 	)
 
@@ -235,10 +235,10 @@ func test_multi_rule_indicator_attachment() -> void:
 
 	# Assert environment provides TileMap rather than creating it
 	(
-		assert_object(_gts.target_map)
+		assert_object(_gts.target_map) \
 		. append_failure_message(
 			"Environment should provide a configured TileMap for multi-rule testing"
-		)
+		) \
 		. is_not_null()
 	)
 
@@ -251,10 +251,10 @@ func test_multi_rule_indicator_attachment() -> void:
 	# Verify indicators are created for multiple rules
 	var indicators: Array[RuleCheckIndicator] = _indicator_manager.get_indicators()
 	(
-		assert_int(indicators.size())
+		assert_int(indicators.size()) \
 		. append_failure_message(
 			"Should have indicators for multiple rules, got %d" % indicators.size()
-		)
+		) \
 		. is_greater_equal(MIN_EXPECTED_INDICATORS)
 	)
 
@@ -267,13 +267,13 @@ func test_rule_indicator_state_synchronization() -> void:
 	_gts.set_manual_target(static_body)
 	var setup_result: PlacementReport = _indicator_manager.try_setup([collision_rule], _gts)
 	(
-		assert_bool(setup_result.is_successful())
+		assert_bool(setup_result.is_successful()) \
 		. append_failure_message(
 			(
 				"Initial indicator setup should succeed with collision rule: %s"
 				% str(setup_result.get_issues())
 			)
-		)
+		) \
 		. is_true()
 	)
 
@@ -287,15 +287,15 @@ func test_rule_indicator_state_synchronization() -> void:
 func test_indicators_are_parented_and_inside_tree() -> void:
 	# Assert environment provides required targeting setup
 	(
-		assert_object(_gts.target_map)
+		assert_object(_gts.target_map) \
 		. append_failure_message(
 			"Environment should provide a configured TileMap for indicator testing"
-		)
+		) \
 		. is_not_null()
 	)
 	(
-		assert_object(_container.get_states().manipulation.parent)
-		. append_failure_message("Environment should provide manipulation parent for indicators")
+		assert_object(_container.get_states().manipulation.parent) \
+		. append_failure_message("Environment should provide manipulation parent for indicators") \
 		. is_not_null()
 	)
 
@@ -320,24 +320,24 @@ func test_indicators_are_parented_and_inside_tree() -> void:
 
 	for ind: RuleCheckIndicator in indicators:
 		(
-			assert_bool(ind.is_inside_tree())
-			. append_failure_message("Indicator not inside tree: %s" % ind.name)
+			assert_bool(ind.is_inside_tree()) \
+			. append_failure_message("Indicator not inside tree: %s" % ind.name) \
 			. is_true()
 		)
 		(
-			assert_object(ind.get_parent())
-			. append_failure_message("Indicator has no parent: %s" % ind.name)
+			assert_object(ind.get_parent()) \
+			. append_failure_message("Indicator has no parent: %s" % ind.name) \
 			. is_not_null()
 		)
 		var expected_parent := env.indicator_manager
 		(
-			assert_object(ind.get_parent())
+			assert_object(ind.get_parent()) \
 			. append_failure_message(
 				(
 					"Unexpected parent for indicator: %s Parent was %s but should be %s"
 					% [ind.name, ind.get_parent(), expected_parent]
 				)
-			)
+			) \
 			. is_equal(expected_parent)
 		)
 
@@ -351,8 +351,8 @@ func test_smithy_indicator_generation() -> void:
 	var smithy_placeable := GBTestConstants.PLACEABLE_SMITHY
 	var test_rules: Array[PlacementRule] = smithy_placeable.placement_rules
 	(
-		assert_array(test_rules)
-		. append_failure_message("Test placeable should have placement rules")
+		assert_array(test_rules) \
+		. append_failure_message("Test placeable should have placement rules") \
 		. is_not_empty()
 	)
 
@@ -368,8 +368,8 @@ func test_smithy_indicator_generation() -> void:
 func test_smithy_collision_detection() -> void:
 	var collision_mapper: CollisionMapper = env.indicator_manager.get_collision_mapper()
 	(
-		assert_object(collision_mapper)
-		. append_failure_message("Environment should provide a CollisionMapper for testing")
+		assert_object(collision_mapper) \
+		. append_failure_message("Environment should provide a CollisionMapper for testing") \
 		. is_not_null()
 	)
 
@@ -408,8 +408,8 @@ func test_complex_multi_system_workflow(
 	_set_targeting_position(TARGET_POS)
 
 	(
-		assert_vector(TARGET_POS)
-		. append_failure_message("Target position should be set correctly")
+		assert_vector(TARGET_POS) \
+		. append_failure_message("Target position should be set correctly") \
 		. is_equal(TARGET_POS)
 	)
 
@@ -419,18 +419,18 @@ func test_complex_multi_system_workflow(
 
 	var build_result: PlacementReport = _building_system.try_build_at_position(TARGET_POS)
 	(
-		assert_object(build_result.placed)
+		assert_object(build_result.placed) \
 		. append_failure_message(
 			"Complex workflow should succeed and place object at %s" % TARGET_POS
-		)
+		) \
 		. is_not_null()
 	)
 
 	# Phase 3: Post-build manipulation
 	env.manipulation_system.set_targeted(build_result.placed)
 	(
-		assert_object(_manipulation_state)
-		. append_failure_message("Should have valid manipulation state after selection")
+		assert_object(_manipulation_state) \
+		. append_failure_message("Should have valid manipulation state after selection") \
 		. is_not_null()
 	)
 
@@ -448,13 +448,13 @@ func test_polygon_test_object_indicator_generation() -> void:
 	# Generate indicators for polygon object using proper parameters
 	var setup_result: PlacementReport = _indicator_manager.try_setup([], _gts)
 	(
-		assert_bool(setup_result.is_successful())
+		assert_bool(setup_result.is_successful()) \
 		. append_failure_message(
 			(
 				"Polygon object indicator generation should succeed: %s"
 				% str(setup_result.get_issues())
 			)
-		)
+		) \
 		. is_true()
 	)
 
@@ -494,17 +494,17 @@ func _assert_polygon_spans_coordinates(collision_tiles: Dictionary) -> void:
 		unique_y_coords[tile_coord.y] = true
 
 	(
-		assert_int(unique_x_coords.size())
+		assert_int(unique_x_coords.size()) \
 		. append_failure_message(
 			"Polygon should span multiple X coordinates, got %d" % unique_x_coords.size()
-		)
+		) \
 		. is_greater_equal(MIN_POLYGON_SPAN)
 	)
 	(
-		assert_int(unique_y_coords.size())
+		assert_int(unique_y_coords.size()) \
 		. append_failure_message(
 			"Polygon should span multiple Y coordinates, got %d" % unique_y_coords.size()
-		)
+		) \
 		. is_greater_equal(MIN_POLYGON_SPAN)
 	)
 
@@ -525,8 +525,8 @@ func test_grid_targeting_highlight_integration() -> void:
 	# Verify highlight state updates with targeting
 	var highlight_active: bool = highlight_manager.is_highlight_active()
 	(
-		assert_bool(highlight_active)
-		. append_failure_message("Highlight should be active when targeting position is set")
+		assert_bool(highlight_active) \
+		. append_failure_message("Highlight should be active when targeting position is set") \
 		. is_true()
 	)
 
@@ -539,13 +539,13 @@ func test_targeting_state_transitions() -> void:
 		var updated_pos: Vector2 = _gts.positioner.global_position
 
 		(
-			assert_vector(updated_pos)
+			assert_vector(updated_pos) \
 			. append_failure_message(
 				(
 					"Target position should update from %s to %s, got %s"
 					% [initial_pos, TRANSITION_TEST_POS, updated_pos]
 				)
-			)
+			) \
 			. is_equal(TRANSITION_TEST_POS)
 		)
 
@@ -555,8 +555,8 @@ func test_targeting_state_transitions() -> void:
 
 		# Cleared position behavior depends on system implementation
 		(
-			assert_object(cleared_pos)
-			. append_failure_message("Should have valid position response after clearing target")
+			assert_object(cleared_pos) \
+			. append_failure_message("Should have valid position response after clearing target") \
 			. is_not_null()
 		)
 
@@ -591,20 +591,20 @@ func test_full_system_integration_workflow(
 	# Step 3: Build at target
 	var build_result: PlacementReport = _building_system.try_build_at_position(FULL_WORKFLOW_POS)
 	(
-		assert_object(build_result.placed)
+		assert_object(build_result.placed) \
 		. append_failure_message(
 			"Full workflow should successfully place object at position %s" % FULL_WORKFLOW_POS
-		)
+		) \
 		. is_not_null()
 	)
 
 	# Step 4: Validate post-build state
 	_building_system.exit_build_mode()
 	(
-		assert_bool(_building_system.is_in_build_mode())
+		assert_bool(_building_system.is_in_build_mode()) \
 		. append_failure_message(
 			"Should not be in build mode after explicit exit in full workflow test"
-		)
+		) \
 		. is_false()
 	)
 
@@ -616,39 +616,39 @@ func test_system_error_recovery() -> void:
 
 	# System should return a failed report for invalid input
 	(
-		assert_object(invalid_report)
+		assert_object(invalid_report) \
 		. append_failure_message(
 			(
 				"enter_build_mode should return a PlacementReport even for invalid input, got: %s"
 				% str(type_string(typeof(invalid_report)))
 			)
-		)
+		) \
 		. is_not_null()
 	)
 
 	# Additional type validation
 	(
-		assert_bool(invalid_report is PlacementReport)
+		assert_bool(invalid_report is PlacementReport) \
 		. append_failure_message(
 			(
 				"enter_build_mode should return a PlacementReport, got type: %s"
 				% str(type_string(typeof(invalid_report)))
 			)
-		)
+		) \
 		. is_true()
 	)
 
 	(
-		assert_bool(invalid_report.is_successful())
-		. append_failure_message("enter_build_mode should fail with null placeable")
+		assert_bool(invalid_report.is_successful()) \
+		. append_failure_message("enter_build_mode should fail with null placeable") \
 		. is_false()
 	)
 
 	# System should not be in build mode after failed enter_build_mode
 	var is_in_build_mode: bool = _building_system.is_in_build_mode()
 	(
-		assert_bool(is_in_build_mode)
-		. append_failure_message("System should not be in build mode after failed enter_build_mode")
+		assert_bool(is_in_build_mode) \
+		. append_failure_message("System should not be in build mode after failed enter_build_mode") \
 		. is_false()
 	)
 
@@ -656,10 +656,10 @@ func test_system_error_recovery() -> void:
 	var test_placeable: Placeable = GBTestConstants.PLACEABLE_SMITHY
 	if _enter_build_mode_successfully(test_placeable):
 		(
-			assert_bool(_building_system.is_in_build_mode())
+			assert_bool(_building_system.is_in_build_mode()) \
 			. append_failure_message(
 				"System should recover and enter build mode with valid placeable"
-			)
+			) \
 			. is_true()
 		)
 
@@ -679,42 +679,42 @@ func test_building_system_reports_success_failure_correctly() -> void:
 	var smithy_placeable: Placeable = GBTestConstants.PLACEABLE_SMITHY
 	var enter_result: PlacementReport = _building_system.enter_build_mode(smithy_placeable)
 	(
-		assert_bool(enter_result.is_successful())
+		assert_bool(enter_result.is_successful()) \
 		. append_failure_message(
 			"Failed to enter build mode with smithy: %s" % str(enter_result.get_issues())
-		)
+		) \
 		. is_true()
 	)
 
 	# Test Case 1: Valid build position should have successful PlacementReport
 	var valid_result: PlacementReport = _building_system.try_build_at_position(VALID_BUILD_POS)
 	(
-		assert_object(valid_result)
-		. append_failure_message("try_build_at_position should return PlacementReport")
+		assert_object(valid_result) \
+		. append_failure_message("try_build_at_position should return PlacementReport") \
 		. is_not_null()
 	)
 
 	# The critical assertion: PlacementReport success state should match actual success
 	if valid_result.get_issues().is_empty():
 		(
-			assert_bool(valid_result.is_successful())
+			assert_bool(valid_result.is_successful()) \
 			. append_failure_message(
 				(
 					"PlacementReport with no issues should be successful. Issues: %s"
 					% str(valid_result.get_issues())
 				)
-			)
+			) \
 			. is_true()
 		)
 	else:
 		(
-			assert_bool(valid_result.is_successful())
+			assert_bool(valid_result.is_successful()) \
 			. append_failure_message(
 				(
 					"PlacementReport with issues should not be successful. Issues: %s"
 					% str(valid_result.get_issues())
 				)
-			)
+			) \
 			. is_false()
 		)
 
@@ -733,33 +733,33 @@ func test_building_system_reports_success_failure_correctly() -> void:
 
 	var collision_result: PlacementReport = _building_system.try_build_at_position(TARGET_POS)
 	(
-		assert_object(collision_result)
+		assert_object(collision_result) \
 		. append_failure_message(
 			"try_build_at_position should return PlacementReport even for collision"
-		)
+		) \
 		. is_not_null()
 	)
 
 	# This should fail due to collision and have issues
 	(
-		assert_bool(collision_result.get_issues().is_empty())
+		assert_bool(collision_result.get_issues().is_empty()) \
 		. append_failure_message(
 			(
 				"PlacementReport at collision position should have issues. Position: %s"
 				% str(TARGET_POS)
 			)
-		)
+		) \
 		. is_false()
 	)
 
 	(
-		assert_bool(collision_result.is_successful())
+		assert_bool(collision_result.is_successful()) \
 		. append_failure_message(
 			(
 				"PlacementReport with collision should not be successful. Issues: %s"
 				% str(collision_result.get_issues())
 			)
-		)
+		) \
 		. is_false()
 	)
 

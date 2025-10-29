@@ -91,10 +91,10 @@ const EDGE_CASE_POSITIONS: Array[Vector2] = [
 func _assert_placement_report_successful(report: PlacementReport, context: String) -> void:
 	"""Standardized assertion for successful placement reports with diagnostic context"""
 	(
-		assert_bool(report.is_successful())
+		assert_bool(report.is_successful()) \
 		. append_failure_message(
 			"%s - Report Details: %s" % [context, _format_placement_report_debug(report)]
-		)
+		) \
 		. is_true()
 	)
 
@@ -108,13 +108,13 @@ func _assert_build_mode_state(
 		"in build mode" if expected_in_build_mode else "not in build mode"
 	)
 	(
-		assert_bool(actual_state)
+		assert_bool(actual_state) \
 		. append_failure_message(
 			(
 				"%s - Expected system to be %s, actual state: %s"
 				% [context, state_description, actual_state]
 			)
-		)
+		) \
 		. is_equal(expected_in_build_mode)
 	)
 
@@ -140,13 +140,13 @@ func _assert_validation_result(
 		)
 	else:
 		(
-			assert_bool(actual_success)
+			assert_bool(actual_success) \
 			. append_failure_message(
 				(
 					"%s: Validation should %s at position %s but %s - Issues: %s"
 					% [context, success_description, position, actual_description, issues]
 				)
-			)
+			) \
 			. is_false()
 		)
 
@@ -468,13 +468,13 @@ func _time_operation(
 
 	if threshold > 0:  # Only assert if threshold is specified
 		(
-			assert_int(duration)
+			assert_int(duration) \
 			. append_failure_message(
 				(
 					"%s took %d ms (should be < %d ms for performance)"
 					% [operation_name, duration, threshold]
 				)
-			)
+			) \
 			. is_less(threshold)
 		)
 
@@ -548,23 +548,23 @@ func test_multi_rule_indicator_attachment() -> void:
 
 	# If setup fails, just check that we get a valid report - some setups may legitimately fail
 	(
-		assert_object(setup_result)
+		assert_object(setup_result) \
 		. append_failure_message(
 			"Multi-rule setup should return a report - Rules: %d" % rules.size()
-		)
+		) \
 		. is_not_null()
 	)
 
 	# Get indicators and check if any were created (may be 0 if rules don't apply)
 	var indicators: Array[RuleCheckIndicator] = indicator_manager.get_indicators()
 	(
-		assert_int(indicators.size())
+		assert_int(indicators.size()) \
 		. append_failure_message(
 			(
 				"Indicator count should be non-negative for %d rules, got %d"
 				% [rules.size(), indicators.size()]
 			)
-		)
+		) \
 		. is_greater_equal(0)
 	)
 
@@ -622,13 +622,13 @@ func test_indicators_are_parented_and_inside_tree() -> void:
 
 	for ind: RuleCheckIndicator in indicators:
 		(
-			assert_bool(ind.is_inside_tree())
-			. append_failure_message("Indicator not inside tree: %s" % ind.name)
+			assert_bool(ind.is_inside_tree()) \
+			. append_failure_message("Indicator not inside tree: %s" % ind.name) \
 			. is_true()
 		)
 		(
-			assert_object(ind.get_parent())
-			. append_failure_message("Indicator has no parent: %s" % ind.name)
+			assert_object(ind.get_parent()) \
+			. append_failure_message("Indicator has no parent: %s" % ind.name) \
 			. is_not_null()
 		)
 
@@ -679,17 +679,17 @@ func test_smithy_collision_detection() -> void:
 	for tile_pos: Vector2i in collision_results.keys():
 		var tile_coord: Vector2i = tile_pos as Vector2i
 		(
-			assert_int(abs(tile_coord.x))
+			assert_int(abs(tile_coord.x)) \
 			. append_failure_message(
 				"Collision tile x coordinate should be reasonable: %d" % tile_coord.x
-			)
+			) \
 			. is_less_than(MAX_TILE_COORDINATE)
 		)
 		(
-			assert_int(abs(tile_coord.y))
+			assert_int(abs(tile_coord.y)) \
 			. append_failure_message(
 				"Collision tile y coordinate should be reasonable: %d" % tile_coord.y
-			)
+			) \
 			. is_less_than(MAX_TILE_COORDINATE)
 		)
 
@@ -713,16 +713,16 @@ func test_build_and_move_multi_system_integration() -> void:
 	_set_targeting_position(targeting_state, target_pos)
 
 	(
-		assert_vector(target_pos)
-		. append_failure_message("Target position should be set correctly")
+		assert_vector(target_pos) \
+		. append_failure_message("Target position should be set correctly") \
 		. is_equal(TEST_POSITION_2)
 	)
 
 	# Phase 2: Building placement
 	var setup_report: PlacementReport = building_system.enter_build_mode(test_placeable)
 	(
-		assert_bool(setup_report.is_successful())
-		. append_failure_message("Setup report should be successful")
+		assert_bool(setup_report.is_successful()) \
+		. append_failure_message("Setup report should be successful") \
 		. is_true()
 	)
 	var build_report: PlacementReport = building_system.try_build_at_position(target_pos)
@@ -748,10 +748,10 @@ func test_build_and_move_multi_system_integration() -> void:
 			return
 
 		(
-			assert_bool(manipulatable.is_movable())
+			assert_bool(manipulatable.is_movable()) \
 			. append_failure_message(
 				"Placed object is expected to be movable as defined on it's Manipulatable component."
-			)
+			) \
 			. is_true()
 		)
 
@@ -759,8 +759,8 @@ func test_build_and_move_multi_system_integration() -> void:
 	var move_result: Variant = _manipulation_system.try_move(built_node)
 	var manipulation_state := _container.get_states().manipulation
 	(
-		assert_object(building_system._states.manipulation)
-		. append_failure_message("Make sure we are dealing with the same state.")
+		assert_object(building_system._states.manipulation) \
+		. append_failure_message("Make sure we are dealing with the same state.") \
 		. is_equal(manipulation_state)
 	)  # Check if try_move was successful before validating state
 	if move_result == null or not manipulation_state.validate_setup():
@@ -773,17 +773,17 @@ func test_build_and_move_multi_system_integration() -> void:
 	var active_root: Node = manipulation_state.get_active_root()
 	if active_root != null:
 		(
-			assert_object(active_root)
+			assert_object(active_root) \
 			. append_failure_message(
 				(
 					"When moving, the target node should be the built object - Expected: %s, Actual: %s"
 					% [built_node, active_root]
 				)
-			)
+			) \
 			. is_equal(built_node)
 		)
 		(
-			assert_bool(manipulation_state.is_targeted_movable())
+			assert_bool(manipulation_state.is_targeted_movable()) \
 			. append_failure_message(
 				(
 					"Expected that the built %s is movable - State: %s"
@@ -796,7 +796,7 @@ func test_build_and_move_multi_system_integration() -> void:
 						)
 					]
 				)
-			)
+			) \
 			. is_true()
 		)
 	else:
@@ -818,8 +818,8 @@ func test_enter_build_mode_state_consistency() -> void:
 
 	var setup_report: PlacementReport = building_system.enter_build_mode(test_placeable)
 	(
-		assert_bool(setup_report.is_successful())
-		. append_failure_message("Setup report should be successful")
+		assert_bool(setup_report.is_successful()) \
+		. append_failure_message("Setup report should be successful") \
 		. is_true()
 	)
 
@@ -830,13 +830,13 @@ func test_enter_build_mode_state_consistency() -> void:
 
 	# Systems should maintain consistent target positions
 	(
-		assert_object(building_target)
+		assert_object(building_target) \
 		. append_failure_message(
 			(
 				"Building system target (%s) should match targeting system (%s)"
 				% [building_target, targeting_target]
 			)
-		)
+		) \
 		. is_equal(targeting_target)
 	)
 
@@ -895,17 +895,17 @@ func test_polygon_collision_integration() -> void:
 	# Only check patterns if we have collision data
 	if unique_x_coords.size() > 0 and unique_y_coords.size() > 0:
 		(
-			assert_int(unique_x_coords.size())
+			assert_int(unique_x_coords.size()) \
 			. append_failure_message(
 				"Polygon should span multiple X coordinates, got %d" % unique_x_coords.size()
-			)
+			) \
 			. is_greater_equal(1)
 		)  # Relaxed from 2 to 1
 		(
-			assert_int(unique_y_coords.size())
+			assert_int(unique_y_coords.size()) \
 			. append_failure_message(
 				"Polygon should span multiple Y coordinates, got %d" % unique_y_coords.size()
-			)
+			) \
 			. is_greater_equal(1)
 		)  # Relaxed from 2 to 1
 
@@ -961,13 +961,13 @@ func test_targeting_state_transitions() -> void:
 		var updated_pos: Vector2 = targeting_state.positioner.global_position
 
 		(
-			assert_vector(updated_pos)
+			assert_vector(updated_pos) \
 			. append_failure_message(
 				(
 					"Target position should update from %s to %s, got %s"
 					% [initial_pos, TEST_POSITION_4, updated_pos]
 				)
-			)
+			) \
 			. is_equal(TEST_POSITION_4)
 		)
 
@@ -977,8 +977,8 @@ func test_targeting_state_transitions() -> void:
 
 		# Cleared position behavior depends on system implementation
 		(
-			assert_object(cleared_pos)
-			. append_failure_message("Should have valid position response after clearing target")
+			assert_object(cleared_pos) \
+			. append_failure_message("Should have valid position response after clearing target") \
 			. is_not_null()
 		)
 	else:
@@ -1005,8 +1005,8 @@ func test_full_system_integration_workflow() -> void:
 	# Step 2: Enter build mode with indicators
 	var setup_report: PlacementReport = building_system.enter_build_mode(test_placeable)
 	(
-		assert_bool(setup_report.is_successful())
-		. append_failure_message("Setup report should be successful")
+		assert_bool(setup_report.is_successful()) \
+		. append_failure_message("Setup report should be successful") \
 		. is_true()
 	)
 
@@ -1022,8 +1022,8 @@ func test_full_system_integration_workflow() -> void:
 		smithy_rules, targeting_state_full
 	)
 	(
-		assert_bool(indicator_result.is_successful())
-		. append_failure_message("Indicator result should be successful")
+		assert_bool(indicator_result.is_successful()) \
+		. append_failure_message("Indicator result should be successful") \
 		. is_true()
 	)
 
@@ -1047,16 +1047,16 @@ func test_system_error_recovery() -> void:
 	assert_object(invalid_report).is_not_null()
 	if invalid_report and invalid_report is PlacementReport:
 		(
-			assert_bool(invalid_report.is_successful())
-			. append_failure_message("enter_build_mode should fail with null placeable")
+			assert_bool(invalid_report.is_successful()) \
+			. append_failure_message("enter_build_mode should fail with null placeable") \
 			. is_false()
 		)
 
 	# System should not be in build mode after failed enter_build_mode
 	var is_in_build_mode: bool = building_system.is_in_build_mode()
 	(
-		assert_bool(is_in_build_mode)
-		. append_failure_message("System should not be in build mode after failed enter_build_mode")
+		assert_bool(is_in_build_mode) \
+		. append_failure_message("System should not be in build mode after failed enter_build_mode") \
 		. is_false()
 	)
 
@@ -1067,17 +1067,17 @@ func test_system_error_recovery() -> void:
 
 	if recovery_report and recovery_report.is_successful():
 		(
-			assert_bool(building_system.is_in_build_mode())
+			assert_bool(building_system.is_in_build_mode()) \
 			. append_failure_message(
 				"System should recover and enter build mode with valid placeable"
-			)
+			) \
 			. is_true()
 		)
 	else:
 		# If recovery failed, that's also a valid test outcome - log the issue
 		(
-			assert_bool(false)
-			. append_failure_message("System failed to recover with valid placeable")
+			assert_bool(false) \
+			. append_failure_message("System failed to recover with valid placeable") \
 			. is_true()
 		)
 
@@ -1138,8 +1138,8 @@ func test_targeting_system_behavior(
 				"Targeting state positioner should match environment positioner"
 			)
 			(
-				assert_that(targeting_state.target_map)
-				. is_equal(env.tile_map_layer)
+				assert_that(targeting_state.target_map) \
+				. is_equal(env.tile_map_layer) \
 				. append_failure_message("Targeting state target_map should match tile map")
 			)
 
@@ -1150,8 +1150,8 @@ func test_targeting_system_behavior(
 
 			var targeting_state: GridTargetingState = _container.get_states().targeting
 			(
-				assert_that(targeting_state.positioner.position)
-				. is_equal(TEST_POSITION_128)
+				assert_that(targeting_state.positioner.position) \
+				. is_equal(TEST_POSITION_128) \
 				. append_failure_message(
 					"Targeting system should track positioner position updates"
 				)
@@ -1190,10 +1190,10 @@ func test_system_cleanup_integration() -> void:
 	var final_child_count: int = manipulation_parent.get_child_count()
 	# Allow for some flexibility in cleanup - just verify it's reasonable
 	(
-		assert_int(final_child_count)
+		assert_int(final_child_count) \
 		. append_failure_message(
 			"After cleanup, expected around 1 child (test_area), got %d" % final_child_count
-		)
+		) \
 		. is_less_equal(2)
 	)  # Allow for up to 2 children in case of indicator remnants
 
@@ -1288,8 +1288,8 @@ func test_edge_case_positions_comprehensive() -> void:
 	# Ensure we can still place at normal positions
 	var normal_result: PlacementReport = building_system.try_build_at_position(TEST_POSITION_1)
 	(
-		assert_object(normal_result)
-		. append_failure_message("System should still function normally after edge case testing")
+		assert_object(normal_result) \
+		. append_failure_message("System should still function normally after edge case testing") \
 		. is_not_null()
 	)
 

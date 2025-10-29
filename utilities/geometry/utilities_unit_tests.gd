@@ -293,10 +293,10 @@ func test_performance_utilities_combined() -> void:
 
 	var elapsed: int = Time.get_ticks_usec() - start_time
 	(
-		assert_that(elapsed)
+		assert_that(elapsed) \
 		. append_failure_message(
 			"Combined utilities performance test completed in " + str(elapsed) + " microseconds"
-		)
+		) \
 		. is_less(PERFORMANCE_MAX_TIME_US)
 	)
 

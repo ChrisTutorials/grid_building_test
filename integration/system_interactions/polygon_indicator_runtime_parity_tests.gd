@@ -42,39 +42,39 @@ func test_polygon_placeable_builds_and_generates_indicators() -> void:
 	# Step 1: Create placeable with clear debugging
 	var placeable: Placeable = PlaceableTestFactory.create_polygon_test_placeable(self)
 	(
-		assert_object(placeable)
-		. append_failure_message("Failed to create polygon test placeable")
+		assert_object(placeable) \
+		. append_failure_message("Failed to create polygon test placeable") \
 		. is_not_null()
 	)
 
 	# Step 2: Validate building system can enter build mode
 	_building_validation = DebugHelper.validate_building_system_entry(self, _test_env, placeable)
 	(
-		assert_bool(_building_validation.is_successful)
+		assert_bool(_building_validation.is_successful) \
 		. append_failure_message(
 			(
 				"Building system failed to enter build mode. Details:\n%s"
 				% _building_validation.error_summary
 			)
-		)
+		) \
 		. is_true()
 	)
 
 	# Step 3: Validate preview exists
 	var preview: Node2D = _building_validation.preview
 	(
-		assert_object(preview)
-		. append_failure_message("No preview created after successful build mode entry")
+		assert_object(preview) \
+		. append_failure_message("No preview created after successful build mode entry") \
 		. is_not_null()
 	)
 
 	# Step 4: Create indicator manager and validate setup
 	_manager_validation = DebugHelper.create_indicator_manager_with_validation(self, _test_env)
 	(
-		assert_bool(_manager_validation.is_valid)
+		assert_bool(_manager_validation.is_valid) \
 		. append_failure_message(
 			"Indicator manager setup failed. Issues: %s" % str(_manager_validation.setup_issues)
-		)
+		) \
 		. is_true()
 	)
 
@@ -86,10 +86,10 @@ func test_polygon_placeable_builds_and_generates_indicators() -> void:
 		_manager_validation.manager, preview, rules
 	)
 	(
-		assert_int(indicator_result.indicator_count)
+		assert_int(indicator_result.indicator_count) \
 		. append_failure_message(
 			"Expected indicators to be generated. Details:\n%s" % indicator_result.summary
-		)
+		) \
 		. is_greater(0)
 	)
 
@@ -105,10 +105,10 @@ func test_polygon_indicators_align_with_geometry() -> void:
 	if not _building_validation.is_successful:
 		var diagnostic: String = "diagnostic context"
 		(
-			assert_bool(_building_validation.is_successful)
+			assert_bool(_building_validation.is_successful) \
 			. append_failure_message(
 				"Build mode failed, cannot test indicator alignment. Diagnostics: %s" % diagnostic
-			)
+			) \
 			. is_true()
 		)
 		return
@@ -120,13 +120,13 @@ func test_polygon_indicators_align_with_geometry() -> void:
 	if not _manager_validation.is_valid:
 		var diagnostic: String = "diagnostic context"
 		(
-			assert_bool(_manager_validation.is_valid)
+			assert_bool(_manager_validation.is_valid) \
 			. append_failure_message(
 				(
 					"Manager setup failed, cannot test indicator alignment. Diagnostics: %s"
 					% diagnostic
 				)
-			)
+			) \
 			. is_true()
 		)
 		return
@@ -142,10 +142,10 @@ func test_polygon_indicators_align_with_geometry() -> void:
 	if indicator_result.indicator_count == 0:
 		var diagnostic: String = "diagnostic context"
 		(
-			assert_int(indicator_result.indicator_count)
+			assert_int(indicator_result.indicator_count) \
 			. append_failure_message(
 				"No indicators generated, cannot test alignment. Diagnostics: %s" % diagnostic
-			)
+			) \
 			. is_greater(0)
 		)
 		return
@@ -165,10 +165,10 @@ func test_polygon_indicators_align_with_geometry() -> void:
 			indicators_near_center += 1
 
 	(
-		assert_int(indicators_near_center)
+		assert_int(indicators_near_center) \
 		. append_failure_message(
 			"Expected at least one indicator near positioner center tile %s" % str(center_tile)
-		)
+		) \
 		. is_greater(0)
 	)
 
@@ -183,13 +183,13 @@ func test_polygon_preview_has_collision_polygon() -> void:
 	if not _building_validation.is_successful:
 		var diagnostic: String = "diagnostic context"
 		(
-			assert_bool(_building_validation.is_successful)
+			assert_bool(_building_validation.is_successful) \
 			. append_failure_message(
 				(
 					"Build mode failed: %s. Diagnostics: %s"
 					% [_building_validation.error_summary, diagnostic]
 				)
-			)
+			) \
 			. is_true()
 		)
 		return
@@ -204,17 +204,17 @@ func test_polygon_preview_has_collision_polygon() -> void:
 			break
 
 	(
-		assert_object(collision_polygon)
+		assert_object(collision_polygon) \
 		. append_failure_message(
 			"Preview should contain a CollisionPolygon2D child for geometry calculations"
-		)
+		) \
 		. is_not_null()
 	)
 
 	# Verify polygon has points
 	if collision_polygon:
 		(
-			assert_int(collision_polygon.polygon.size())
-			. append_failure_message("CollisionPolygon2D should have polygon points defined")
+			assert_int(collision_polygon.polygon.size()) \
+			. append_failure_message("CollisionPolygon2D should have polygon points defined") \
 			. is_greater(2)
 		)

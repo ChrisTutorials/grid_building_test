@@ -161,7 +161,7 @@ func test_collision_mapper_integration() -> void:
 	# Get collision shapes
 	var owner_shapes: Dictionary[Node2D, Array] = GBGeometryUtils.get_all_collision_shapes_by_owner(test_object)
 	assert_int(owner_shapes.size())\
-		.append_failure_message("Collision shapes should be detected from trapezoid test object")
+		.append_failure_message("Collision shapes should be detected from trapezoid test object") \
 		.is_greater(0)
 
 	# Create collision test rules

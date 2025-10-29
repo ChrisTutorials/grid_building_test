@@ -16,15 +16,15 @@ func before_test() -> void:
 
 	env = runner.scene() as CollisionTestEnvironment
 	(
-		assert_object(env)
-		. append_failure_message("Failed to load CollisionTestEnvironment scene")
+		assert_object(env) \
+		. append_failure_message("Failed to load CollisionTestEnvironment scene") \
 		. is_not_null()
 	)
 
 	targeter = env.targeter
 	(
-		assert_object(targeter)
-		. append_failure_message("CollisionTestEnvironment should have targeter")
+		assert_object(targeter) \
+		. append_failure_message("CollisionTestEnvironment should have targeter") \
 		. is_not_null()
 	)
 
@@ -51,8 +51,8 @@ func test_env_injection_wires_targeting_state() -> void:
 	# Acquire targeting state from environment container
 	var gts: GridTargetingState = env.get_container().get_states().targeting
 	(
-		assert_object(gts)
-		. append_failure_message("GridTargetingState should be available from container")
+		assert_object(gts) \
+		. append_failure_message("GridTargetingState should be available from container") \
 		. is_not_null()
 	)
 
@@ -61,8 +61,8 @@ func test_env_injection_wires_targeting_state() -> void:
 
 	# Verify initial state is clean
 	(
-		assert_object(gts.get_target())
-		. append_failure_message("Initial target should be null before test begins")
+		assert_object(gts.get_target()) \
+		. append_failure_message("Initial target should be null before test begins") \
 		. is_null()
 	)
 
@@ -83,8 +83,8 @@ func test_env_injection_wires_targeting_state() -> void:
 
 	# Verify manual targeting works
 	(
-		assert_object(gts.get_target())
-		. append_failure_message("Manual targeting should set target to collision_body")
+		assert_object(gts.get_target()) \
+		. append_failure_message("Manual targeting should set target to collision_body") \
 		. is_same(collision_body)
 	)
 
@@ -92,8 +92,8 @@ func test_env_injection_wires_targeting_state() -> void:
 	gts.clear()
 
 	(
-		assert_object(gts.get_target())
-		. append_failure_message("Target should be null after being cleared")
+		assert_object(gts.get_target()) \
+		. append_failure_message("Target should be null after being cleared") \
 		. is_null()
 	)
 
@@ -104,10 +104,10 @@ func test_env_injection_wires_targeting_state() -> void:
 
 	# Target should remain null because manual mode blocks automatic updates
 	(
-		assert_object(gts.get_target())
+		assert_object(gts.get_target()) \
 		. append_failure_message(
 			"Target should remain null when manual targeting is active (blocks automatic updates)"
-		)
+		) \
 		. is_null()
 	)
 

@@ -42,10 +42,10 @@ func before_test() -> void:
 	# Use pre-validated test tilemap from GBTestConstants to avoid missing atlas issues
 	var packed_tilemap: PackedScene = GBTestConstants.TEST_TILE_MAP_LAYER_BUILDABLE
 	(
-		assert_object(packed_tilemap)
+		assert_object(packed_tilemap) \
 		. append_failure_message(
 			"GBTestConstants.TEST_TILE_MAP_LAYER_BUILDABLE must be defined and preloadable"
-		)
+		) \
 		. is_not_null()
 	)
 	tile_map_layer = auto_free(packed_tilemap.instantiate() as TileMapLayer)
@@ -80,8 +80,8 @@ func before_test() -> void:
 	# Use building system from AllSystemsTestEnvironment
 	building_system = env.building_system
 	(
-		assert_object(building_system)
-		. append_failure_message("AllSystemsTestEnvironment should provide BuildingSystem")
+		assert_object(building_system) \
+		. append_failure_message("AllSystemsTestEnvironment should provide BuildingSystem") \
 		. is_not_null()
 	)
 
@@ -122,13 +122,13 @@ func test_rigid_body_with_collision_layer_513_generates_indicators() -> void:
 	var unoccupied_mask: int = unoccupied_space.apply_to_objects_mask
 	var box_layer_match: bool = (box_layer & unoccupied_mask) != 0
 	(
-		assert_bool(box_layer_match)
+		assert_bool(box_layer_match) \
 		. append_failure_message(
 			(
 				"Box collision_layer %d does not match unoccupied space check rule apply_to_objects_mask %d"
 				% [box_layer, unoccupied_mask]
 			)
-		)
+		) \
 		. is_true()
 	)
 
@@ -140,8 +140,8 @@ func test_rigid_body_with_collision_layer_513_generates_indicators() -> void:
 
 	# Guard assertion - ensure building system is properly initialized
 	(
-		assert_object(building_system)
-		. append_failure_message("BuildingSystem should be initialized in before_test()")
+		assert_object(building_system) \
+		. append_failure_message("BuildingSystem should be initialized in before_test()") \
 		. is_not_null()
 	)
 
@@ -149,21 +149,21 @@ func test_rigid_body_with_collision_layer_513_generates_indicators() -> void:
 	building_system.selected_placeable = placeable
 	var entered: PlacementReport = building_system.enter_build_mode(placeable)
 	(
-		assert_bool(entered.is_successful())
-		. append_failure_message("Failed to enter build mode with simple box")
+		assert_bool(entered.is_successful()) \
+		. append_failure_message("Failed to enter build mode with simple box") \
 		. is_true()
 	)
 
 	# Get the preview and placement manager
 	var preview: Node2D = _container.get_states().building.preview
 	(
-		assert_object(preview)
+		assert_object(preview) \
 		. append_failure_message(
 			(
 				"No preview generated for simple box. Placeable: %s, rules: %s"
 				% [placeable, placeable.placement_rules]
 			)
-		)
+		) \
 		. is_not_null()
 	)
 
@@ -171,8 +171,8 @@ func test_rigid_body_with_collision_layer_513_generates_indicators() -> void:
 	var preview_collision_objects: Array[Node2D] = []
 	_find_collision_objects(preview, preview_collision_objects)
 	(
-		assert_array(preview_collision_objects)
-		. append_failure_message("Preview should contain collision objects")
+		assert_array(preview_collision_objects) \
+		. append_failure_message("Preview should contain collision objects") \
 		. is_not_empty()
 	)
 
@@ -204,13 +204,13 @@ func test_rigid_body_with_collision_layer_513_generates_indicators() -> void:
 
 	# This assertion should fail and expose the root cause
 	(
-		assert_int(owner_shapes.size())
+		assert_int(owner_shapes.size()) \
 		. append_failure_message(
 			(
 				"CORE ISSUE: GBGeometryUtils.get_all_collision_shapes_by_owner() returns 0 owners despite preview having %d collision objects: %s"
 				% [preview_collision_objects.size(), collision_object_details]
 			)
-		)
+		) \
 		. is_greater(0)
 	)
 
@@ -223,21 +223,21 @@ func test_rigid_body_with_collision_layer_513_generates_indicators() -> void:
 	# Set up rules
 	var setup_success: PlacementReport = manager.try_setup(placeable.placement_rules, _gts, false)
 	(
-		assert_bool(setup_success.is_successful())
-		. append_failure_message("Failed to set up rules for simple box")
+		assert_bool(setup_success.is_successful()) \
+		. append_failure_message("Failed to set up rules for simple box") \
 		. is_true()
 	)
 
 	# Get generated indicators - THIS IS THE REGRESSION TEST
 	var indicators: Array[RuleCheckIndicator] = manager.get_indicators()
 	(
-		assert_array(indicators)
+		assert_array(indicators) \
 		. append_failure_message(
 			(
 				"REGRESSION: No indicators generated for simple box with collision layer 513. Preview collision objects: %d, Owner shapes: %d"
 				% [preview_collision_objects.size(), owner_shapes.size()]
 			)
-		)
+		) \
 		. is_not_empty()
 	)
 

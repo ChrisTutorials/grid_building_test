@@ -55,13 +55,13 @@ func test_build_shape_transform_no_rotation() -> void:
 
 	# Transform should have object's position as origin
 	(
-		assert_vector(transform.origin)
+		assert_vector(transform.origin) \
 		. append_failure_message(
 			(
 				"Transform origin should match object position. Expected %s, got %s"
 				% [str(obj.global_position), str(transform.origin)]
 			)
-		)
+		) \
 		. is_equal(obj.global_position)
 	)
 
@@ -69,13 +69,13 @@ func test_build_shape_transform_no_rotation() -> void:
 	var expected_rotation := 0.0
 	var actual_rotation := transform.get_rotation()
 	(
-		assert_float(actual_rotation)
+		assert_float(actual_rotation) \
 		. append_failure_message(
 			(
 				"Transform should have no rotation. Expected %.2f°, got %.2f°"
 				% [rad_to_deg(expected_rotation), rad_to_deg(actual_rotation)]
 			)
-		)
+		) \
 		. is_equal_approx(expected_rotation, 0.01)
 	)
 
@@ -94,13 +94,13 @@ func test_build_shape_transform_90_degree_rotation() -> void:
 	# Transform should have 90° rotation
 	var actual_rotation := transform.get_rotation()
 	(
-		assert_float(actual_rotation)
+		assert_float(actual_rotation) \
 		. append_failure_message(
 			(
 				"Transform should have 90° rotation. Expected %.2f°, got %.2f°"
 				% [rad_to_deg(ROTATION_90_DEG), rad_to_deg(actual_rotation)]
 			)
-		)
+		) \
 		. is_equal_approx(ROTATION_90_DEG, 0.01)
 	)
 
@@ -119,13 +119,13 @@ func test_build_shape_transform_45_degree_rotation() -> void:
 	# Transform should have 45° rotation
 	var actual_rotation := transform.get_rotation()
 	(
-		assert_float(actual_rotation)
+		assert_float(actual_rotation) \
 		. append_failure_message(
 			(
 				"Transform should have 45° rotation. Expected %.2f°, got %.2f°"
 				% [rad_to_deg(ROTATION_45_DEG), rad_to_deg(actual_rotation)]
 			)
-		)
+		) \
 		. is_equal_approx(ROTATION_45_DEG, 0.01)
 	)
 
@@ -145,13 +145,13 @@ func test_build_shape_transform_with_shape_owner_offset_rotated() -> void:
 	# So final origin should be (100, 200) + (0, 16) = (100, 216)
 	var expected_origin := Vector2(100, 216)
 	(
-		assert_vector(transform.origin)
+		assert_vector(transform.origin) \
 		. append_failure_message(
 			(
 				"Transform origin should include rotated shape owner offset. Expected %s, got %s"
 				% [str(expected_origin), str(transform.origin)]
 			)
-		)
+		) \
 		. is_equal_approx(expected_origin, Vector2(0.1, 0.1))
 	)
 
@@ -176,10 +176,10 @@ func test_rectangle_to_polygon_no_rotation() -> void:
 
 	# Should have 4 vertices for rectangle
 	(
-		assert_int(polygon.size())
+		assert_int(polygon.size()) \
 		. append_failure_message(
 			"Rectangle polygon should have 4 vertices, got %d" % polygon.size()
-		)
+		) \
 		. is_equal(4)
 	)
 
@@ -196,10 +196,10 @@ func test_rectangle_to_polygon_no_rotation() -> void:
 
 	# Polygon should cover 32x32 area
 	(
-		assert_vector(polygon_size)
+		assert_vector(polygon_size) \
 		. append_failure_message(
 			"Unrotated rectangle polygon should be 32x32. Got %s" % str(polygon_size)
-		)
+		) \
 		. is_equal_approx(SHAPE_SIZE, Vector2(0.1, 0.1))
 	)
 
@@ -220,10 +220,10 @@ func test_rectangle_to_polygon_45_degree_rotation() -> void:
 
 	# Should have 4 vertices for rectangle
 	(
-		assert_int(polygon.size())
+		assert_int(polygon.size()) \
 		. append_failure_message(
 			"Rectangle polygon should have 4 vertices, got %d" % polygon.size()
-		)
+		) \
 		. is_equal(4)
 	)
 
@@ -244,24 +244,24 @@ func test_rectangle_to_polygon_45_degree_rotation() -> void:
 
 	# Both width and height of bounds should be approximately the diagonal
 	(
-		assert_float(polygon_bounds_size.x)
+		assert_float(polygon_bounds_size.x) \
 		. append_failure_message(
 			(
 				"Rotated 45° rectangle bounding box width should be ~%.2f (diagonal). Got %.2f"
 				% [expected_bounds_diagonal, polygon_bounds_size.x]
 			)
-		)
+		) \
 		. is_equal_approx(expected_bounds_diagonal, 1.0)
 	)
 
 	(
-		assert_float(polygon_bounds_size.y)
+		assert_float(polygon_bounds_size.y) \
 		. append_failure_message(
 			(
 				"Rotated 45° rectangle bounding box height should be ~%.2f (diagonal). Got %.2f"
 				% [expected_bounds_diagonal, polygon_bounds_size.y]
 			)
-		)
+		) \
 		. is_equal_approx(expected_bounds_diagonal, 1.0)
 	)
 
@@ -282,10 +282,10 @@ func test_rectangle_to_polygon_90_degree_rotation() -> void:
 
 	# Should have 4 vertices for rectangle
 	(
-		assert_int(polygon.size())
+		assert_int(polygon.size()) \
 		. append_failure_message(
 			"Rectangle polygon should have 4 vertices, got %d" % polygon.size()
-		)
+		) \
 		. is_equal(4)
 	)
 
@@ -302,13 +302,13 @@ func test_rectangle_to_polygon_90_degree_rotation() -> void:
 
 	# For a SQUARE rotated 90°, bounding box should be same size (32x32)
 	(
-		assert_vector(polygon_bounds_size)
+		assert_vector(polygon_bounds_size) \
 		. append_failure_message(
 			(
 				"Square rotated 90° should have same bounding box (32x32). Got %s"
 				% str(polygon_bounds_size)
 			)
-		)
+		) \
 		. is_equal_approx(SHAPE_SIZE, Vector2(0.1, 0.1))
 	)
 

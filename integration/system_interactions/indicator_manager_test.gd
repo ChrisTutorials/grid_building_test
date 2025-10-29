@@ -172,13 +172,13 @@ func test_indicator_manager_dependencies_initialized() -> void:
 	var diag: PackedStringArray = PackedStringArray()
 	diag.append("[TEST][indicator_manager] Setup context")
 	(
-		assert_int(indicators.size())
+		assert_int(indicators.size()) \
 		. append_failure_message(
 			(
 				"No indicators generated for eclipse_scene. shapes=%d rules=%s summary=%s\nContext: %s"
 				% [collision_shape_count, str(col_checking_rules), summary, "\n".join(diag)]
 			)
-		)
+		) \
 		. is_greater(0)
 	)
 
@@ -231,7 +231,7 @@ func test_indicator_count_for_shapes(
 	var summary: String = data.summary
 
 	(
-		assert_int(indicators.size())
+		assert_int(indicators.size()) \
 		. append_failure_message(
 			(
 				"Generated indicator count mismatch. expected=%d actual=%d shapes=%d scene=%s summary=%s"
@@ -243,7 +243,7 @@ func test_indicator_count_for_shapes(
 					summary
 				]
 			)
-		)
+		) \
 		. is_equal(expected)
 	)
 
@@ -260,13 +260,13 @@ func test_indicator_positions_are_unique() -> void:
 	var summary: String = data.summary
 
 	(
-		assert_int(indicators.size())
+		assert_int(indicators.size()) \
 		. append_failure_message(
 			(
 				"No indicators to test uniqueness. shapes=%d summary=%s"
 				% [_count_collision_shapes(shape_scene), summary]
 			)
-		)
+		) \
 		. is_greater(0)
 	)
 
@@ -281,13 +281,13 @@ func test_indicator_positions_are_unique() -> void:
 			unique_positions.append(pos)
 
 	(
-		assert_int(positions.size())
+		assert_int(positions.size()) \
 		. append_failure_message(
 			(
 				"Indicator positions not unique; total=%d unique=%d"
 				% [positions.size(), unique_positions.size()]
 			)
-		)
+		) \
 		. is_equal(unique_positions.size())
 	)
 
@@ -301,13 +301,13 @@ func test_no_indicators_for_empty_scene() -> void:
 	var summary: String = data.summary
 
 	(
-		assert_int(indicators.size())
+		assert_int(indicators.size()) \
 		. append_failure_message(
 			(
 				"Indicators should be zero for empty scene but were %d summary=%s"
 				% [indicators.size(), summary]
 			)
-		)
+		) \
 		. is_equal(0)
 	)
 
@@ -334,13 +334,13 @@ func test_indicator_generation_distance(
 	var summary: String = data.summary
 
 	(
-		assert_int(indicators.size())
+		assert_int(indicators.size()) \
 		. append_failure_message(
 			(
 				"Need at least 2 indicators for distance test. actual=%d scene=%s summary=%s"
 				% [indicators.size(), str(shape_scene), summary]
 			)
-		)
+		) \
 		. is_greater(1)
 	)
 
@@ -348,10 +348,10 @@ func test_indicator_generation_distance(
 	var indicator_1: RuleCheckIndicator = indicators.get(1)
 
 	(
-		assert_bool(indicator_0 != null && indicator_1 != null)
+		assert_bool(indicator_0 != null && indicator_1 != null) \
 		. append_failure_message(
 			"Expected to generate 2 indicators for this test: [%s, %s]" % [indicator_0, indicator_1]
-		)
+		) \
 		. is_true()
 	)
 
@@ -362,13 +362,13 @@ func test_indicator_generation_distance(
 	var distance_to: float = indicator_0.global_position.distance_to(indicator_1.global_position)
 
 	(
-		assert_float(distance_to)
+		assert_float(distance_to) \
 		. append_failure_message(
 			(
 				"Indicator spacing mismatch. expected=%f actual=%f scene=%s"
 				% [expected_distance, distance_to, str(shape_scene)]
 			)
-		)
+		) \
 		. is_equal(expected_distance)
 	)
 
@@ -382,13 +382,13 @@ func test_indicators_are_freed_on_reset() -> void:
 	var summary: String = data.summary
 
 	(
-		assert_int(indicators.size())
+		assert_int(indicators.size()) \
 		. append_failure_message(
 			(
 				"No indicators generated before reset; shapes=%d summary=%s"
 				% [_count_collision_shapes(shape_scene), summary]
 			)
-		)
+		) \
 		. is_greater(0)
 	)
 
@@ -397,17 +397,17 @@ func test_indicators_are_freed_on_reset() -> void:
 	# After tear_down, call setup on empty to confirm no indicators remain
 	var cleared: Array[RuleCheckIndicator] = indicator_manager.get_colliding_indicators()
 	(
-		assert_int(cleared.size())
+		assert_int(cleared.size()) \
 		. append_failure_message(
 			"Indicators not cleared after tear_down; remaining=%d" % cleared.size()
-		)
+		) \
 		. is_equal(0)
 	)
 
 	# Also check main indicator list is empty
 	(
-		assert_int(indicator_manager.get_indicators().size())
-		. append_failure_message("indicator_manager.get_indicators() not empty after tear_down")
+		assert_int(indicator_manager.get_indicators().size()) \
+		. append_failure_message("indicator_manager.get_indicators() not empty after tear_down") \
 		. is_equal(0)
 	)
 
@@ -444,13 +444,13 @@ func _assert_collision_layer_overlaps(
 				if (layer_bits & mask) != 0:
 					overlapping = true
 	(
-		assert_bool(overlapping)
+		assert_bool(overlapping) \
 		. append_failure_message(
 			(
 				"No physics body with collision_layer overlapping TileCheckRule mask=%d in scene=%s bodies=%s"
 				% [mask, scene_label, ", ".join(body_layers)]
 			)
-		)
+		) \
 		. is_true()
 	)
 

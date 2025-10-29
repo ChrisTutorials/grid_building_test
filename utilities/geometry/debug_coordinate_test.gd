@@ -35,33 +35,33 @@ func test_debug_coordinate_transformation() -> void:
 
 	# Validate basic setup
 	(
-		assert_that(polygon.position)
-		. append_failure_message("Polygon position should be set correctly")
+		assert_that(polygon.position) \
+		. append_failure_message("Polygon position should be set correctly") \
 		. is_equal(POLYGON_POSITION)
 	)
 	(
-		assert_that(polygon.global_position)
+		assert_that(polygon.global_position) \
 		. append_failure_message(
 			"Polygon global_position should match position when no parent transform"
-		)
+		) \
 		. is_equal(POLYGON_POSITION)
 	)
 	(
-		assert_that(polygon.polygon)
-		. append_failure_message("Polygon points should match input")
+		assert_that(polygon.polygon) \
+		. append_failure_message("Polygon points should match input") \
 		. is_equal(polygon_points)
 	)
 	(
-		assert_that(test_map.tile_set.tile_size)
-		. append_failure_message("Tilemap should have 16x16 tile size")
+		assert_that(test_map.tile_set.tile_size) \
+		. append_failure_message("Tilemap should have 16x16 tile size") \
 		. is_equal(TILE_SIZE)
 	)
 	assert_that(test_map.position).append_failure_message("Tilemap should be at origin").is_equal(
 		Vector2.ZERO
 	)
 	(
-		assert_that(test_map.global_position)
-		. append_failure_message("Tilemap global_position should be at origin")
+		assert_that(test_map.global_position) \
+		. append_failure_message("Tilemap global_position should be at origin") \
 		. is_equal(Vector2.ZERO)
 	)
 
@@ -72,13 +72,13 @@ func test_debug_coordinate_transformation() -> void:
 	# Validate world point transformations
 	for i: int in range(world_points.size()):
 		(
-			assert_that(world_points[i])
+			assert_that(world_points[i]) \
 			. append_failure_message(
 				(
 					"World point %d should be transformed correctly: expected %s, got %s"
 					% [i, expected_world_points[i], world_points[i]]
 				)
-			)
+			) \
 			. is_equal(expected_world_points[i])
 		)
 

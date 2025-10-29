@@ -95,8 +95,8 @@ func test_visibility_reconcile_hides_when_hide_on_handled_true() -> void:
 		"Expected visibility_reconcile to apply change when hide_on_handled triggers"
 	)
 	(
-		assert_bool(result.visible)
-		. is_false()
+		assert_bool(result.visible) \
+		. is_false() \
 		. append_failure_message(
 			"Expected visibility_reconcile to set visible=false when hide_on_handled=true and input handled"
 		)

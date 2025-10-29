@@ -32,8 +32,8 @@ func before_test() -> void:
 
 	env = runner.scene() as BuildingTestEnvironment
 	(
-		assert_object(env)
-		. append_failure_message("Failed to load BuildingTestEnvironment")
+		assert_object(env) \
+		. append_failure_message("Failed to load BuildingTestEnvironment") \
 		. is_not_null()
 	)
 
@@ -220,13 +220,13 @@ func test_rapid_tile_changes_no_double_build() -> void:
 	var report: PlacementReport = _building_system.enter_build_mode(placeable)
 	var setup_issues := str(report.get_issues())
 	(
-		assert_bool(report.is_successful())
+		assert_bool(report.is_successful()) \
 		. append_failure_message(
 			(
 				"Enter build mode failed at tile (%d,%d): %s"
 				% [SAFE_TILE_A.x, SAFE_TILE_A.y, setup_issues]
 			)
-		)
+		) \
 		. is_true()
 	)
 
@@ -234,13 +234,13 @@ func test_rapid_tile_changes_no_double_build() -> void:
 	var drag_data: DragPathData = _drag_manager.start_drag()
 	var drag_state_str: String = DragManager.format_drag_state(drag_data)
 	(
-		assert_object(drag_data)
+		assert_object(drag_data) \
 		. append_failure_message(
 			(
 				"start_drag() should return drag_data - %s, %s"
 				% [drag_state_str, _format_system_state()]
 			)
-		)
+		) \
 		. is_not_null()
 	)
 
@@ -273,7 +273,7 @@ func test_rapid_tile_changes_no_double_build() -> void:
 	var total_builds := _build_attempts.size()
 	var builds_summary := _format_builds_summary(_build_attempts)
 	(
-		assert_int(total_builds)
+		assert_int(total_builds) \
 		. append_failure_message(
 			(
 				"v5.0.0: Expected 0 builds (physics not running in test runner) - Actual: %d, %s, %s, %s"
@@ -284,7 +284,7 @@ func test_rapid_tile_changes_no_double_build() -> void:
 					_format_drag_manager_state()
 				]
 			)
-		)
+		) \
 		. is_equal(0)
 	)
 
@@ -388,7 +388,7 @@ func test_collision_state_synchronized_with_builds() -> void:
 		)
 		# This test documents the issue - we expect this to happen (race condition exists)
 		(
-			assert_bool(race_detected)
+			assert_bool(race_detected) \
 			. append_failure_message(
 				(
 					"Race condition test - documents that builds can occur in same physics frame before collision updates. %s"
@@ -403,8 +403,8 @@ func test_collision_state_synchronized_with_builds() -> void:
 			% [pre_physics_frame, post_physics_frame]
 		)
 		(
-			assert_bool(pre_physics_frame != post_physics_frame)
-			. append_failure_message(diagnostic)
+			assert_bool(pre_physics_frame != post_physics_frame) \
+			. append_failure_message(diagnostic) \
 			. is_true()
 		)
 
@@ -448,13 +448,13 @@ func test_process_vs_physics_timing_analysis(
 	# Document the timing relationship - this test demonstrates the race condition exists
 	# In a real game, process calls can outpace physics frames, allowing multiple builds per physics update
 	(
-		assert_bool(process_calls > physics_frames)
+		assert_bool(process_calls > physics_frames) \
 		. append_failure_message(
 			(
 				"Race condition window exists: %d process calls vs %d physics frames (ratio: %.2f). Multiple builds can occur per physics update!"
 				% [process_calls, physics_frames, ratio]
 			)
-		)
+		) \
 		. is_true()
 	)
 
@@ -486,21 +486,21 @@ func test_drag_tile_deduplication_prevents_same_tile_rebuild() -> void:
 
 	# Verify drag actually started
 	(
-		assert_object(_drag_manager.drag_data)
+		assert_object(_drag_manager.drag_data) \
 		. append_failure_message(
 			"Drag data should exist after start_drag(). DragManager: %s" % str(_drag_manager)
-		)
+		) \
 		. is_not_null()
 	)
 
 	(
-		assert_bool(_drag_manager.drag_data.is_dragging)
+		assert_bool(_drag_manager.drag_data.is_dragging) \
 		. append_failure_message(
 			(
 				"Drag should be active after start_drag(). is_dragging: %s"
 				% str(_drag_manager.drag_data.is_dragging if _drag_manager.drag_data else "null")
 			)
-		)
+		) \
 		. is_true()
 	)
 
@@ -542,7 +542,7 @@ func test_drag_tile_deduplication_prevents_same_tile_rebuild() -> void:
 		"Deduplication test results:%s" % dedup_diagnostic
 	)
 	(
-		assert_int(final_builds_count)
+		assert_int(final_builds_count) \
 		. append_failure_message(
 			(
 				"v5.0.0: Expected 0 builds (physics not running in test runner), but got %d. Deduplication test requires actual scene tree physics. Builds: %s. First: %d, After move: %d, Final: %d"
@@ -554,7 +554,7 @@ func test_drag_tile_deduplication_prevents_same_tile_rebuild() -> void:
 					final_builds_count
 				]
 			)
-		)
+		) \
 		. is_equal(expected_builds)
 	)
 

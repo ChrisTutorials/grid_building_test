@@ -360,7 +360,7 @@ func test_compute_polygon_tile_offsets(
 	# Assert - check that we get expected number of offsets
 	var actual_count := offsets.size()
 	(
-		assert_bool(actual_count >= expected_min_offsets)
+		assert_bool(actual_count >= expected_min_offsets) \
 		. override_failure_message(
 			(
 				"Test '%s': %s. Expected at least %d tile offsets, got %d. World points: %s, Center tile: %s, Offsets: %s"
@@ -550,7 +550,7 @@ func test_edge_cases_and_boundaries(
 	if should_succeed:
 		# Assert expected number of results
 		(
-			assert_int(offsets.size())
+			assert_int(offsets.size()) \
 			. append_failure_message(
 				(
 					"Test '%s': %s. Expected %d offsets, got %d. Polygon: %s, Tile size: %s, Center: %s, Offsets: %s"
@@ -565,7 +565,7 @@ func test_edge_cases_and_boundaries(
 						str(offsets)
 					]
 				)
-			)
+			) \
 			. is_equal(expected_result_size)
 		)
 
@@ -573,25 +573,25 @@ func test_edge_cases_and_boundaries(
 		for offset in offsets:
 			var distance := offset.length()
 			(
-				assert_bool(distance <= 50)
+				assert_bool(distance <= 50) \
 				. append_failure_message(
 					(
 						"Test '%s': Offset %s is unreasonably far from center (distance: %f)"
 						% [test_name, str(offset), distance]
 					)
-				)
+				) \
 				. is_true()
 			)
 	else:
 		# Test expects failure - verify we handle it gracefully
 		(
-			assert_bool(offsets.size() == 0)
+			assert_bool(offsets.size() == 0) \
 			. append_failure_message(
 				(
 					"Test '%s': Expected empty result for edge case but got %d offsets: %s"
 					% [test_name, offsets.size(), str(offsets)]
 				)
-			)
+			) \
 			. is_true()
 		)
 
@@ -792,13 +792,13 @@ func test_polygon_convexity(
 	var is_convex := CollisionGeometryUtils.is_polygon_convex(polygon)
 
 	(
-		assert_bool(is_convex)
+		assert_bool(is_convex) \
 		. append_failure_message(
 			(
 				"Test '%s': %s. Polygon: %s, Expected convex: %s, Got: %s"
 				% [test_name, description, str(polygon), str(expected_convex), str(is_convex)]
 			)
-		)
+		) \
 		. is_equal(expected_convex)
 	)
 
@@ -864,19 +864,19 @@ func test_collision_geometry_calculator_concave_tile_overlap() -> void:
 				break
 
 		(
-			assert_bool(tile_found)
+			assert_bool(tile_found) \
 			. append_failure_message(
 				(
 					"CollisionGeometryCalculator should include tile %s which intersects the concave polygon. Tiles found: %s\nContext: %s"
 					% [expected_tile, str(overlapped_tiles), context]
 				)
-			)
+			) \
 			. is_true()
 		)
 
 	# Verify minimum expected tile count (U-shape should intersect multiple tiles)
 	(
-		assert_int(overlapped_tiles.size())
+		assert_int(overlapped_tiles.size()) \
 		. append_failure_message(
 			(
 				"U-shaped concave polygon should intersect multiple tiles, got %d: %s%s%s"
@@ -887,7 +887,7 @@ func test_collision_geometry_calculator_concave_tile_overlap() -> void:
 					"Relative tiles: %s" % str(relative_tiles) if relative_tiles.size() > 0 else ""
 				]
 			)
-		)
+		) \
 		. is_greater_equal(4)
 	)
 
@@ -1118,7 +1118,7 @@ func test_polygon_overlaps_rect(
 
 	# Assert the result
 	(
-		assert_bool(actual_overlap)
+		assert_bool(actual_overlap) \
 		. append_failure_message(
 			(
 				"Test '%s': %s. Polygon: %s, Threshold: %.2f, Expected: %s, Got: %s"
@@ -1131,7 +1131,7 @@ func test_polygon_overlaps_rect(
 					str(actual_overlap)
 				]
 			)
-		)
+		) \
 		. is_equal(expected_overlap)
 	)
 
@@ -1355,7 +1355,7 @@ func test_isometric_transformations(
 
 	# Assert minimum number of tiles covered
 	(
-		assert_int(offsets.size())
+		assert_int(offsets.size()) \
 		. append_failure_message(
 			(
 				"Test '%s': %s. Transform: %s %s°, Base polygon: %s, Transformed: %s, Expected min: %d, Got: %d offsets: %s"
@@ -1371,27 +1371,27 @@ func test_isometric_transformations(
 					str(offsets)
 				]
 			)
-		)
+		) \
 		. is_greater_equal(expected_min_offsets)
 	)
 
 	# Verify that we get some reasonable results (not empty and not too many)
 	(
-		assert_int(offsets.size())
+		assert_int(offsets.size()) \
 		. append_failure_message(
 			"Test '%s': No tile offsets calculated for transformed polygon" % test_name
-		)
+		) \
 		. is_greater(0)
 	)
 
 	(
-		assert_int(offsets.size())
+		assert_int(offsets.size()) \
 		. append_failure_message(
 			(
 				"Test '%s': Too many tile offsets (%d), possible calculation error"
 				% [test_name, offsets.size()]
 			)
-		)
+		) \
 		. is_less_equal(20)
 	)  # Reasonable upper bound
 
@@ -1399,13 +1399,13 @@ func test_isometric_transformations(
 	var has_center := offsets.has(Vector2i(0, 0))
 	if expected_min_offsets >= 1:
 		(
-			assert_bool(has_center)
+			assert_bool(has_center) \
 			. append_failure_message(
 				(
 					"Test '%s': Expected center tile (0,0) to be included in offsets: %s"
 					% [test_name, str(offsets)]
 				)
-			)
+			) \
 			. is_true()
 		)
 
@@ -1449,7 +1449,7 @@ func test_isometric_diamond_single_tile_collision() -> void:
 
 	# The diamond should only overlap ONE tile (the center tile at 1,0 based on the global position)
 	(
-		assert_int(overlapped_tiles.size())
+		assert_int(overlapped_tiles.size()) \
 		. append_failure_message(
 			(
 				"Isometric diamond (single-tile building) should generate 1 tile overlap, got %d tiles: %s\nDiamond polygon: %s\nWorld polygon: %s\nBuilding position: %s\nTile size: %s"
@@ -1462,6 +1462,6 @@ func test_isometric_diamond_single_tile_collision() -> void:
 					str(tile_set.tile_size)
 				]
 			)
-		)
+		) \
 		. is_equal(1)
 	)

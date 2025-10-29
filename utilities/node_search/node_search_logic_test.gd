@@ -261,7 +261,7 @@ func test_validation_scenarios(
 ) -> void:
 	var issues: Array[String] = NodeSearchLogic.validate_search_params(search_method, search_string)
 	assert_bool(issues\
-		.is_empty()).append_failure_message("Validation result should match expected_valid for method %d and string '%s'" % [search_method, search_string])
+		.is_empty()).append_failure_message("Validation result should match expected_valid for method %d and string '%s'" % [search_method, search_string]) \
 		.is_equal(expected_valid)
 
 	if not expected_valid:

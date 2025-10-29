@@ -69,13 +69,13 @@ func test_indicator_cleanup() -> void:
 	var indicator_count: int = _count_indicators(manipulation_parent)
 	var indicator_names: Array[String] = _get_indicator_names()
 	(
-		assert_int(indicator_count)
+		assert_int(indicator_count) \
 		. append_failure_message(
 			(
 				"Indicator cleanup failed - expected 0 indicators, found %d. Remaining: %s"
 				% [indicator_count, str(indicator_names)]
 			)
-		)
+		) \
 		. is_equal(0)
 	)
 
@@ -124,20 +124,20 @@ func test_multiple_setup_calls() -> void:
 	var second_names: Array[String] = _get_indicator_names()
 
 	(
-		assert_int(first_count)
+		assert_int(first_count) \
 		. append_failure_message(
 			"First setup produced no indicators. Names: %s" % [str(first_names)]
-		)
+		) \
 		. is_greater(0)
 	)
 	(
-		assert_int(second_count)
+		assert_int(second_count) \
 		. append_failure_message(
 			(
 				"Second setup should replace, not duplicate - expected %d, got %d. First: %s | Second: %s"
 				% [first_count, second_count, str(first_names), str(second_names)]
 			)
-		)
+		) \
 		. is_equal(first_count)
 	)
 
@@ -151,8 +151,8 @@ func test_indicators_are_reused_via_reconciliation_between_setups() -> void:
 	var indicator_manager: IndicatorManager = env.indicator_manager
 	var gts: GridTargetingState = env.get_container().get_targeting_state()
 	(
-		assert_object(gts.target_map)
-		. append_failure_message("GridTargetingState.target_map must be set by environment")
+		assert_object(gts.target_map) \
+		. append_failure_message("GridTargetingState.target_map must be set by environment") \
 		. is_not_null()
 	)
 
@@ -168,16 +168,16 @@ func test_indicators_are_reused_via_reconciliation_between_setups() -> void:
 
 	var indicators_first: Array[RuleCheckIndicator] = indicator_manager.get_indicators()
 	(
-		assert_int(indicators_first.size())
-		. append_failure_message("First setup produced no indicators")
+		assert_int(indicators_first.size()) \
+		. append_failure_message("First setup produced no indicators") \
 		. is_greater(0)
 	)
 
 	var map_first: Dictionary = _map_indicators_by_tile(indicators_first)
 	var tiles_first: Array = map_first.keys()
 	(
-		assert_int(tiles_first.size())
-		. append_failure_message("No tiles mapped in first setup")
+		assert_int(tiles_first.size()) \
+		. append_failure_message("No tiles mapped in first setup") \
 		. is_greater(0)
 	)
 
@@ -210,10 +210,10 @@ func test_indicators_are_reused_via_reconciliation_between_setups() -> void:
 	# Assert: the indicators are reused per tile (same instance IDs)
 	var indicators_second: Array[RuleCheckIndicator] = indicator_manager.get_indicators()
 	(
-		assert_int(indicators_second.size())
+		assert_int(indicators_second.size()) \
 		. append_failure_message(
 			"Second setup produced different count; expected reuse to keep count stable"
-		)
+		) \
 		. is_equal(indicators_first.size())
 	)
 
@@ -221,10 +221,10 @@ func test_indicators_are_reused_via_reconciliation_between_setups() -> void:
 	var tiles_second: Array = map_second.keys()
 
 	(
-		assert_array(tiles_second)
+		assert_array(tiles_second) \
 		. append_failure_message(
 			"Tile sets differ between setups; expected identical tiles for same area"
-		)
+		) \
 		. contains_exactly(tiles_first)
 	)
 
@@ -233,7 +233,7 @@ func test_indicators_are_reused_via_reconciliation_between_setups() -> void:
 		var ind1: RuleCheckIndicator = map_first[tile]
 		var ind2: RuleCheckIndicator = map_second[tile]
 		(
-			assert_int(ind2.get_instance_id())
+			assert_int(ind2.get_instance_id()) \
 			. append_failure_message(
 				(
 					"Indicator at tile %s was recreated. Before: %s(%d) After: %s(%d)"
@@ -245,7 +245,7 @@ func test_indicators_are_reused_via_reconciliation_between_setups() -> void:
 						ind2.get_instance_id()
 					]
 				)
-			)
+			) \
 			. is_equal(ind1.get_instance_id())
 		)
 
@@ -264,13 +264,13 @@ func test_indicators_are_reused_via_reconciliation_between_setups() -> void:
 			)
 	)
 	(
-		assert_int(lingering.size())
+		assert_int(lingering.size()) \
 		. append_failure_message(
 			(
 				"Reused indicator still contains old rule instances; expected rules to be replaced. Old: %s New: %s"
 				% [str(sample_rules_first), str(sample_rules_second)]
 			)
-		)
+		) \
 		. is_equal(0)
 	)
 
@@ -314,10 +314,10 @@ func _create_test_rules() -> Array[TileCheckRule]:
 		env.get_container().get_targeting_state()
 	)
 	(
-		assert_array(setup_issues)
+		assert_array(setup_issues) \
 		. append_failure_message(
 			"CollisionsCheckRule.setup returned issues: %s" % [str(setup_issues)]
-		)
+		) \
 		. is_empty()
 	)
 	rules.append(collisions_rule)

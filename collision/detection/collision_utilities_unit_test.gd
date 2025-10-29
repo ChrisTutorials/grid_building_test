@@ -120,8 +120,8 @@ func test_collision_utilities_invalid_tile_map() -> void:
 	)
 	assert_array_not_null_and_type(result, "Should handle invalid tile map gracefully")
 	(
-		assert_that(result.is_empty())
-		. append_failure_message("Should return empty array for invalid tile map")
+		assert_that(result.is_empty()) \
+		. append_failure_message("Should return empty array for invalid tile map") \
 		. is_true()
 	)
 
@@ -148,7 +148,7 @@ func test_collision_utilities_indicator_overlap() -> void:
 		indicator, null, shape_owner
 	)
 	(
-		assert_that(null_result is bool)
-		. append_failure_message("Should handle null target shape gracefully")
+		assert_that(null_result is bool) \
+		. append_failure_message("Should handle null target shape gracefully") \
 		. is_true()
 	)

@@ -69,8 +69,8 @@ func test_collision_mapper_shape_positioning() -> void:
 		)
 
 		(
-			assert_int(collision_tiles.size())
-			. append_failure_message("Should generate collision tiles at position %s" % pos)
+			assert_int(collision_tiles.size()) \
+			. append_failure_message("Should generate collision tiles at position %s" % pos) \
 			. is_greater(0)
 		)
 
@@ -99,23 +99,23 @@ func test_shape_positioner_movement_consistency() -> void:
 
 	# Both positions should generate valid collision data
 	(
-		assert_int(start_tiles.size())
-		. append_failure_message("Start position should generate collision tiles")
+		assert_int(start_tiles.size()) \
+		. append_failure_message("Start position should generate collision tiles") \
 		. is_greater(0)
 	)
 	(
-		assert_int(end_tiles.size())
-		. append_failure_message("End position should generate collision tiles")
+		assert_int(end_tiles.size()) \
+		. append_failure_message("End position should generate collision tiles") \
 		. is_greater(0)
 	)
 
 	# Positions should generally produce different tile sets
 	var tiles_differ: bool = start_tiles.keys() != end_tiles.keys()
 	(
-		assert_bool(tiles_differ)
+		assert_bool(tiles_differ) \
 		. append_failure_message(
 			"Different positions should generally produce different collision tiles"
-		)
+		) \
 		. is_true()
 	)
 
@@ -136,16 +136,16 @@ func test_trapezoid_bottom_row_regression() -> void:
 	)
 
 	(
-		assert_array(overlapped_tiles)
-		. append_failure_message("Trapezoid should overlap multiple tiles")
+		assert_array(overlapped_tiles) \
+		. append_failure_message("Trapezoid should overlap multiple tiles") \
 		. is_not_empty()
 	)
 
 	# Verify trapezoid geometry properties
 	var bounds: Rect2 = GBGeometryMath.get_polygon_bounds(trapezoid_points)
 	(
-		assert_float(bounds.size.x)
-		. append_failure_message("Trapezoid should have reasonable width")
+		assert_float(bounds.size.x) \
+		. append_failure_message("Trapezoid should have reasonable width") \
 		. is_greater(32.0)
 	)
 
@@ -173,8 +173,8 @@ func test_collision_mapper_trapezoid_regression() -> void:
 	)
 
 	(
-		assert_int(collision_tiles.size())
-		. append_failure_message("Trapezoid collision mapping should produce tiles")
+		assert_int(collision_tiles.size()) \
+		. append_failure_message("Trapezoid collision mapping should produce tiles") \
 		. is_greater(0)
 	)
 
@@ -183,10 +183,10 @@ func test_collision_mapper_trapezoid_regression() -> void:
 	for tile_pos: Variant in collision_tiles.keys():
 		var tile_coord: Vector2i = tile_pos as Vector2i
 		(
-			assert_int(abs(tile_coord.x))
+			assert_int(abs(tile_coord.x)) \
 			. append_failure_message(
 				"Trapezoid tile offset should be reasonable: %d" % tile_coord.x
-			)
+			) \
 			. is_less(10)
 		)  # Offsets should be within reasonable range from center
 
@@ -206,10 +206,10 @@ func test_polygon_tile_mapper_basic() -> void:
 	)
 
 	(
-		assert_int(mapped_tiles.size())
+		assert_int(mapped_tiles.size()) \
 		. append_failure_message(
 			"32x32 polygon should map to 4 tiles (2x2), got %d" % mapped_tiles.size()
-		)
+		) \
 		. is_equal(4)
 	)
 
@@ -228,10 +228,10 @@ func test_polygon_tile_mapper_isometric() -> void:
 	)
 
 	(
-		assert_array(square_tiles)
+		assert_array(square_tiles) \
 		. append_failure_message(
 			"Diamond polygon should map to tiles (using square fallback for test)"
-		)
+		) \
 		. is_not_empty()
 	)
 
@@ -251,8 +251,8 @@ func test_polygon_tile_shape_propagation() -> void:
 
 	# Should produce results
 	(
-		assert_array(square_tiles)
-		. append_failure_message("Square tile mapping should produce results")
+		assert_array(square_tiles) \
+		. append_failure_message("Square tile mapping should produce results") \
 		. is_not_empty()
 	)
 
@@ -273,15 +273,15 @@ func test_indicator_manager_runtime_issues_guard() -> void:
 	# Create a minimal setup that should trigger error handling
 	var result: PlacementReport = indicator_manager.try_setup([], env.targeting_state)  # Empty rules array
 	(
-		assert_object(result)
-		. append_failure_message("Indicator manager should handle empty rules gracefully")
+		assert_object(result) \
+		. append_failure_message("Indicator manager should handle empty rules gracefully") \
 		. is_not_null()
 	)
 
 	# Result should indicate success (graceful handling of empty rules)
 	(
-		assert_bool(result.is_successful())
-		. append_failure_message("Empty rules setup should be handled gracefully and succeed")
+		assert_bool(result.is_successful()) \
+		. append_failure_message("Empty rules setup should be handled gracefully and succeed") \
 		. is_true()
 	)
 
@@ -291,8 +291,8 @@ func test_indicator_manager_tree_integration() -> void:
 
 	# Verify indicator manager is properly integrated into scene tree
 	(
-		assert_object(indicator_manager.get_parent())
-		. append_failure_message("Indicator manager should have a parent in scene tree")
+		assert_object(indicator_manager.get_parent()) \
+		. append_failure_message("Indicator manager should have a parent in scene tree") \
 		. is_not_null()
 	)
 
@@ -319,30 +319,30 @@ func test_indicator_manager_context_initialization() -> void:
 
 	# Verify manager is properly set
 	(
-		assert_bool(indicator_context.has_manager())
+		assert_bool(indicator_context.has_manager()) \
 		. append_failure_message(
 			"IndicatorContext should report having a manager from the test environment"
-		)
+		) \
 		. is_true()
 	)
 
 	var retrieved_manager: IndicatorManager = indicator_context.get_manager()
 	(
-		assert_object(retrieved_manager)
-		. append_failure_message("Should be able to retrieve the IndicatorManager from context")
+		assert_object(retrieved_manager) \
+		. append_failure_message("Should be able to retrieve the IndicatorManager from context") \
 		. is_same(indicator_manager)
 	)
 
 	# After setup, context should have no issues
 	var post_setup_issues: Array = indicator_context.get_editor_issues()
 	(
-		assert_array(post_setup_issues)
+		assert_array(post_setup_issues) \
 		. append_failure_message(
 			(
 				"IndicatorContext should have no editor issues with the test environment's IndicatorManager, but found: %s"
 				% str(post_setup_issues)
 			)
-		)
+		) \
 		. is_empty()
 	)
 
@@ -374,10 +374,10 @@ func test_polygon_indicator_runtime_parity() -> void:
 		[test_rule], env.targeting_state
 	)
 	(
-		assert_bool(indicator_result.is_successful())
+		assert_bool(indicator_result.is_successful()) \
 		. append_failure_message(
 			"Polygon indicator generation should succeed: %s" % str(indicator_result.get_issues())
-		)
+		) \
 		. is_true()
 	)
 
@@ -402,8 +402,8 @@ func test_polygon_origin_indicator_regression() -> void:
 		)
 
 		(
-			assert_array(mapped_tiles)
-			. append_failure_message("Polygon with origin offset %s should map to tiles" % offset)
+			assert_array(mapped_tiles) \
+			. append_failure_message("Polygon with origin offset %s should map to tiles" % offset) \
 			. is_not_empty()
 		)
 
@@ -427,8 +427,8 @@ func test_real_world_indicator_scenarios() -> void:
 		collision_mapper, [small_building]
 	)
 	(
-		assert_array(small_tiles.keys())
-		. append_failure_message("Small building should generate collision tiles")
+		assert_array(small_tiles.keys()) \
+		. append_failure_message("Small building should generate collision tiles") \
 		. is_not_empty()
 	)
 
@@ -445,17 +445,17 @@ func test_real_world_indicator_scenarios() -> void:
 		collision_mapper, [large_building]
 	)
 	(
-		assert_array(large_tiles.keys())
-		. append_failure_message("Large building should generate collision tiles")
+		assert_array(large_tiles.keys()) \
+		. append_failure_message("Large building should generate collision tiles") \
 		. is_not_empty()
 	)
 
 	# Large building should generally have more collision tiles
 	(
-		assert_int(large_tiles.size())
+		assert_int(large_tiles.size()) \
 		. append_failure_message(
 			"Large building should have more collision tiles than small building"
-		)
+		) \
 		. is_greater(small_tiles.size())
 	)
 
@@ -476,10 +476,10 @@ func test_isometric_collision_mapping() -> void:
 	)
 
 	(
-		assert_array(square_tiles)
+		assert_array(square_tiles) \
 		. append_failure_message(
 			"Isometric diamond should map to tiles (using square tiles for test)"
-		)
+		) \
 		. is_not_empty()
 	)
 
@@ -508,8 +508,8 @@ func test_isometric_precision() -> void:
 	)
 
 	(
-		assert_array(precise_tiles)
-		. append_failure_message("Precise diamond should map to at least one tile")
+		assert_array(precise_tiles) \
+		. append_failure_message("Precise diamond should map to at least one tile") \
 		. is_not_empty()
 	)
 
@@ -519,8 +519,8 @@ func test_isometric_precision() -> void:
 	)
 
 	(
-		assert_array(high_precision_tiles)
-		. append_failure_message("High precision calculation should also produce tiles")
+		assert_array(high_precision_tiles) \
+		. append_failure_message("High precision calculation should also produce tiles") \
 		. is_not_empty()
 	)
 
@@ -547,8 +547,8 @@ func test_component_integration_workflow() -> void:
 		collision_mapper, [complex_object]
 	)
 	(
-		assert_array(collision_tiles.keys())
-		. append_failure_message("Complex object should generate collision tiles")
+		assert_array(collision_tiles.keys()) \
+		. append_failure_message("Complex object should generate collision tiles") \
 		. is_not_empty()
 	)
 
@@ -582,8 +582,8 @@ func test_placement_component_error_handling() -> void:
 		collision_mapper, []
 	)
 	(
-		assert_dict(null_tiles)
-		. append_failure_message("Should handle empty collision object list gracefully")
+		assert_dict(null_tiles) \
+		. append_failure_message("Should handle empty collision object list gracefully") \
 		. is_empty()
 	)
 
@@ -598,16 +598,16 @@ func test_placement_component_error_handling() -> void:
 		[invalid_rule], env.targeting_state
 	)
 	(
-		assert_object(invalid_result)
-		. append_failure_message("Should handle invalid rule gracefully")
+		assert_object(invalid_result) \
+		. append_failure_message("Should handle invalid rule gracefully") \
 		. is_not_null()
 	)
 
 	(
-		assert_bool(invalid_result.is_successful())
+		assert_bool(invalid_result.is_successful()) \
 		. append_failure_message(
 			"Invalid rule setup should be handled gracefully and succeed (null rules are filtered out)"
-		)
+		) \
 		. is_true()
 	)
 
@@ -623,8 +623,8 @@ func test_indicator_context_reports_missing_manager_initially() -> void:
 	# Initially, fresh context should report that IndicatorManager is not assigned
 	var initial_issues: Array[String] = fresh_indicator_context.get_runtime_issues()
 	(
-		assert_array(initial_issues)
-		. append_failure_message("IndicatorContext should return an array of issues")
+		assert_array(initial_issues) \
+		. append_failure_message("IndicatorContext should return an array of issues") \
 		. is_not_empty()
 	)
 
@@ -635,20 +635,20 @@ func test_indicator_context_reports_missing_manager_initially() -> void:
 			break
 
 	(
-		assert_bool(has_manager_issue)
+		assert_bool(has_manager_issue) \
 		. append_failure_message(
 			(
 				"IndicatorContext should report IndicatorManager not assigned initially. Issues found: %s"
 				% str(initial_issues)
 			)
-		)
+		) \
 		. is_true()
 	)
 
 	# Should not have a manager initially
 	(
-		assert_bool(fresh_indicator_context.has_manager())
-		. append_failure_message("IndicatorContext should not have a manager initially")
+		assert_bool(fresh_indicator_context.has_manager()) \
+		. append_failure_message("IndicatorContext should not have a manager initially") \
 		. is_false()
 	)
 
@@ -664,28 +664,28 @@ func test_indicator_context_after_manager_assignment() -> void:
 	# After assignment, should have no runtime issues
 	var post_assignment_issues: Array[String] = indicator_context.get_runtime_issues()
 	(
-		assert_array(post_assignment_issues)
+		assert_array(post_assignment_issues) \
 		. append_failure_message(
 			(
 				"IndicatorContext should have no runtime issues after IndicatorManager assignment, but found: %s"
 				% str(post_assignment_issues)
 			)
-		)
+		) \
 		. is_empty()
 	)
 
 	# Should have a manager
 	(
-		assert_bool(indicator_context.has_manager())
-		. append_failure_message("IndicatorContext should have a manager after assignment")
+		assert_bool(indicator_context.has_manager()) \
+		. append_failure_message("IndicatorContext should have a manager after assignment") \
 		. is_true()
 	)
 
 	# Should be able to retrieve the same manager
 	var retrieved_manager: IndicatorManager = indicator_context.get_manager()
 	(
-		assert_object(retrieved_manager)
-		. append_failure_message("Should be able to retrieve the assigned IndicatorManager")
+		assert_object(retrieved_manager) \
+		. append_failure_message("Should be able to retrieve the assigned IndicatorManager") \
 		. is_same(indicator_manager)
 	)
 
@@ -700,16 +700,16 @@ func test_indicator_context_manager_changed_signal() -> void:
 
 	# Verify manager was set (basic functionality test)
 	(
-		assert_bool(indicator_context.has_manager())
-		. append_failure_message("IndicatorContext should have manager after assignment")
+		assert_bool(indicator_context.has_manager()) \
+		. append_failure_message("IndicatorContext should have manager after assignment") \
 		. is_true()
 	)
 
 	# Test setting the same manager doesn't cause issues
 	indicator_context.set_manager(indicator_manager)
 	(
-		assert_bool(indicator_context.has_manager())
-		. append_failure_message("IndicatorContext should still have manager after re-assignment")
+		assert_bool(indicator_context.has_manager()) \
+		. append_failure_message("IndicatorContext should still have manager after re-assignment") \
 		. is_true()
 	)
 
@@ -729,13 +729,13 @@ func test_composition_container_validation_with_manager() -> void:
 			break
 
 	(
-		assert_bool(has_indicator_manager_issue)
+		assert_bool(has_indicator_manager_issue) \
 		. append_failure_message(
 			(
 				"Composition container should report IndicatorManager not assigned issue initially. Issues found: %s"
 				% str(initial_issues)
 			)
-		)
+		) \
 		. is_true()
 	)
 
@@ -753,13 +753,13 @@ func test_composition_container_validation_with_manager() -> void:
 			break
 
 	(
-		assert_bool(still_has_indicator_manager_issue)
+		assert_bool(still_has_indicator_manager_issue) \
 		. append_failure_message(
 			(
 				"Composition container should not report IndicatorManager issue after assignment. Issues found: %s"
 				% str(post_assignment_issues)
 			)
-		)
+		) \
 		. is_false()
 	)
 
@@ -779,31 +779,31 @@ func test_indicators_are_parented_and_inside_tree() -> void:
 
 	var setup_results: PlacementReport = env.indicator_manager.try_setup(rules, env.targeting_state)
 	(
-		assert_bool(setup_results.is_successful())
+		assert_bool(setup_results.is_successful()) \
 		. append_failure_message(
 			"IndicatorManager.try_setup failed: " + str(setup_results.get_issues())
-		)
+		) \
 		. is_true()
 	)
 
 	var indicators: Array[RuleCheckIndicator] = env.indicator_manager.get_indicators()
 	(
-		assert_array(indicators)
+		assert_array(indicators) \
 		. append_failure_message(
 			"No indicators created. Setup result: " + str(setup_results.is_successful())
-		)
+		) \
 		. is_not_empty()
 	)
 
 	for ind: RuleCheckIndicator in indicators:
 		(
-			assert_bool(ind.is_inside_tree())
-			. append_failure_message("Indicator not inside tree: %s" % ind.name)
+			assert_bool(ind.is_inside_tree()) \
+			. append_failure_message("Indicator not inside tree: %s" % ind.name) \
 			. is_true()
 		)
 		(
-			assert_object(ind.get_parent())
-			. append_failure_message("Indicator has no parent: %s" % ind.name)
+			assert_object(ind.get_parent()) \
+			. append_failure_message("Indicator has no parent: %s" % ind.name) \
 			. is_not_null()
 		)
 
@@ -812,8 +812,8 @@ func test_indicators_are_parented_and_inside_tree() -> void:
 		var actual_parent: Node = ind.get_parent()
 
 		(
-			assert_object(ind.get_parent())
-			. append_failure_message("Unexpected parent for indicator: %s" % [ind.name])
+			assert_object(ind.get_parent()) \
+			. append_failure_message("Unexpected parent for indicator: %s" % [ind.name]) \
 			. is_equal(expected_parent)
 		)
 
@@ -856,13 +856,13 @@ func test_indicator_cleanup() -> void:
 	var indicator_count: int = _count_indicators(self)
 	var indicator_names: Array[String] = _get_indicator_names()
 	(
-		assert_int(indicator_count)
+		assert_int(indicator_count) \
 		. append_failure_message(
 			(
 				"Indicator cleanup failed - expected 0 indicators, found %d. Remaining: %s"
 				% [indicator_count, str(indicator_names)]
 			)
-		)
+		) \
 		. is_equal(0)
 	)
 
@@ -910,20 +910,20 @@ func test_multiple_setup_calls() -> void:
 	var second_names: Array[String] = _get_indicator_names()
 
 	(
-		assert_int(first_count)
+		assert_int(first_count) \
 		. append_failure_message(
 			"First setup produced no indicators. Names: %s" % [str(first_names)]
-		)
+		) \
 		. is_greater(0)
 	)
 	(
-		assert_int(second_count)
+		assert_int(second_count) \
 		. append_failure_message(
 			(
 				"Second setup should replace, not duplicate - expected %d, got %d. First: %s | Second: %s"
 				% [first_count, second_count, str(first_names), str(second_names)]
 			)
-		)
+		) \
 		. is_equal(first_count)
 	)
 
@@ -971,10 +971,10 @@ func _create_test_rules() -> Array[TileCheckRule]:
 		env.get_container().get_targeting_state()
 	)
 	(
-		assert_array(setup_issues)
+		assert_array(setup_issues) \
 		. append_failure_message(
 			"CollisionsCheckRule.setup returned issues: %s" % [str(setup_issues)]
-		)
+		) \
 		. is_empty()
 	)
 	rules.append(collisions_rule)

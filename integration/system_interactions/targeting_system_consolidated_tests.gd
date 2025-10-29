@@ -59,26 +59,26 @@ func test_targeting_basic() -> void:
 	var targeting_state: GridTargetingState = targeting_system.get_state()
 
 	(
-		assert_object(targeting_system)
-		. append_failure_message("Targeting system should be properly initialized by factory")
+		assert_object(targeting_system) \
+		. append_failure_message("Targeting system should be properly initialized by factory") \
 		. is_not_null()
 	)
 	(
-		assert_object(targeting_state)
-		. append_failure_message("Targeting state should be accessible from targeting system")
+		assert_object(targeting_state) \
+		. append_failure_message("Targeting state should be accessible from targeting system") \
 		. is_not_null()
 	)
 
 	# Default target should have been created in before_test
 	var current_target: Node2D = targeting_state.get_target()
 	(
-		assert_object(current_target)
-		. append_failure_message("Default target should be available from setup")
+		assert_object(current_target) \
+		. append_failure_message("Default target should be available from setup") \
 		. is_not_null()
 	)
 	(
-		assert_vector(current_target.position)
-		. append_failure_message("Default target should be positioned at (64, 64)")
+		assert_vector(current_target.position) \
+		. append_failure_message("Default target should be positioned at (64, 64)") \
 		. is_equal(Vector2(64, 64))
 	)
 
@@ -95,13 +95,13 @@ func test_targeting_grid_alignment() -> void:
 
 	# The system should handle grid alignment through its internal logic
 	(
-		assert_object(positioner)
-		. append_failure_message("Positioner should be available from test hierarchy")
+		assert_object(positioner) \
+		. append_failure_message("Positioner should be available from test hierarchy") \
 		. is_not_null()
 	)
 	(
-		assert_vector(positioner.global_position)
-		. append_failure_message("Positioner should maintain the set global position")
+		assert_vector(positioner.global_position) \
+		. append_failure_message("Positioner should maintain the set global position") \
 		. is_equal(world_pos)
 	)
 
@@ -114,10 +114,10 @@ func test_targeting_validation() -> void:
 	# Test valid position using factory's default target
 	var issues: Array = targeting_system.get_runtime_issues()
 	(
-		assert_array(issues)
+		assert_array(issues) \
 		. append_failure_message(
 			"Targeting system should report no dependency issues with valid factory setup"
-		)
+		) \
 		. is_empty()
 	)
 
@@ -133,10 +133,10 @@ func test_targeting_validation() -> void:
 
 	# The system should still function but may have different behavior
 	(
-		assert_object(targeting_state.get_target())
+		assert_object(targeting_state.get_target()) \
 		. append_failure_message(
 			"Targeting state should maintain target reference even for invalid positions"
-		)
+		) \
 		. is_not_null()
 	)
 
@@ -169,20 +169,20 @@ func test_targeting_area_selection() -> void:
 
 	# Test area targeting using factory's default target
 	(
-		assert_object(targeting_state)
-		. append_failure_message("Targeting state should be properly initialized")
+		assert_object(targeting_state) \
+		. append_failure_message("Targeting state should be properly initialized") \
 		. is_not_null()
 	)
 	(
-		assert_object(targeting_state.get_target())
-		. append_failure_message("Factory should provide a default target for area selection tests")
+		assert_object(targeting_state.get_target()) \
+		. append_failure_message("Factory should provide a default target for area selection tests") \
 		. is_not_null()
 	)
 	(
-		assert_vector(targeting_state.get_target().position)
+		assert_vector(targeting_state.get_target().position) \
 		. append_failure_message(
 			"Default target should maintain factory position for area operations"
-		)
+		) \
 		. is_equal(Vector2(64, 64))
 	)
 
@@ -241,8 +241,8 @@ func test_targeting_cursor_tracking() -> void:
 		"Targeting state should maintain target reference during cursor tracking"
 	)
 	(
-		assert_vector(targeting_state.get_target().position)
-		. is_equal(mock_cursor_pos)
+		assert_vector(targeting_state.get_target().position) \
+		. is_equal(mock_cursor_pos) \
 		. append_failure_message("Target position should update to match cursor position")
 	)
 
@@ -282,8 +282,8 @@ func test_target_informer_shows_targeting_info() -> void:
 	# Use the TargetInformer from the environment scene
 	var informer: TargetInformer = env.target_informer
 	(
-		assert_object(informer)
-		. append_failure_message("CollisionTestEnvironment should have target_informer exported")
+		assert_object(informer) \
+		. append_failure_message("CollisionTestEnvironment should have target_informer exported") \
 		. is_not_null()
 	)
 
@@ -305,7 +305,7 @@ func test_target_informer_shows_targeting_info() -> void:
 
 	# Assert: TargetInformer should display the targeted object
 	(
-		assert_object(informer.get_display_target())
+		assert_object(informer.get_display_target()) \
 		. append_failure_message(
 			(
 				"TargetInformer should have target set from GridTargetingState.target_changed signal. "
@@ -319,14 +319,14 @@ func test_target_informer_shows_targeting_info() -> void:
 					]
 				)
 			)
-		)
+		) \
 		. is_same(test_target)
 	)
 
 	if informer.get_display_target() != null:
 		(
-			assert_str(informer.get_display_target().name)
-			. append_failure_message("TargetInformer target name should match hovered object")
+			assert_str(informer.get_display_target().name) \
+			. append_failure_message("TargetInformer target name should match hovered object") \
 			. is_equal("HoveredObject")
 		)
 
@@ -339,8 +339,8 @@ func test_target_informer_manipulation_priority() -> void:
 	# Use the TargetInformer from the environment scene
 	var informer: TargetInformer = env.target_informer
 	(
-		assert_object(informer)
-		. append_failure_message("CollisionTestEnvironment should have target_informer exported")
+		assert_object(informer) \
+		. append_failure_message("CollisionTestEnvironment should have target_informer exported") \
 		. is_not_null()
 	)
 
@@ -368,7 +368,7 @@ func test_target_informer_manipulation_priority() -> void:
 	runner.simulate_frames(2)
 
 	(
-		assert_object(informer.get_display_target())
+		assert_object(informer.get_display_target()) \
 		. append_failure_message(
 			(
 				"Step 1 failed - Expected: %s, Got: %s, Targeting: %s, Manipulation: %s"
@@ -379,7 +379,7 @@ func test_target_informer_manipulation_priority() -> void:
 					"active=%s" % str(manipulation_state.active_manipulatable != null)
 				]
 			)
-		)
+		) \
 		. is_same(hovered_object)
 	)
 
@@ -388,7 +388,7 @@ func test_target_informer_manipulation_priority() -> void:
 	runner.simulate_frames(2)
 
 	(
-		assert_object(informer.get_display_target())
+		assert_object(informer.get_display_target()) \
 		. append_failure_message(
 			(
 				"Step 2 failed - Expected: %s, Got: %s, Manipulatable root: %s, Active: %s"
@@ -401,7 +401,7 @@ func test_target_informer_manipulation_priority() -> void:
 					str(manipulation_state.active_manipulatable != null)
 				]
 			)
-		)
+		) \
 		. is_same(manipulated_object)
 	)
 
@@ -415,10 +415,10 @@ func test_target_informer_manipulation_priority() -> void:
 	runner.simulate_frames(2)
 
 	(
-		assert_object(informer.get_display_target())
+		assert_object(informer.get_display_target()) \
 		. append_failure_message(
 			"Step 3: TargetInformer should still show manipulated object, ignoring targeting changes"
-		)
+		) \
 		. is_same(manipulated_object)
 	)
 
@@ -428,7 +428,7 @@ func test_target_informer_manipulation_priority() -> void:
 
 	# After manipulation ends, it should show the currently targeted object
 	(
-		assert_object(informer.get_display_target())
+		assert_object(informer.get_display_target()) \
 		. append_failure_message(
 			(
 				"Step 4 failed - Expected: %s, Got: %s, Targeting: %s, Manipulation: %s"
@@ -439,7 +439,7 @@ func test_target_informer_manipulation_priority() -> void:
 					"active=%s" % str(manipulation_state.active_manipulatable != null)
 				]
 			)
-		)
+		) \
 		. is_same(another_hovered)
 	)
 
@@ -451,8 +451,8 @@ func test_target_informer_null_handling() -> void:
 	# Use the TargetInformer from the environment scene
 	var informer: TargetInformer = env.target_informer
 	(
-		assert_object(informer)
-		. append_failure_message("CollisionTestEnvironment should have target_informer exported")
+		assert_object(informer) \
+		. append_failure_message("CollisionTestEnvironment should have target_informer exported") \
 		. is_not_null()
 	)
 
@@ -468,7 +468,7 @@ func test_target_informer_null_handling() -> void:
 	runner.simulate_frames(1)
 
 	(
-		assert_object(informer.get_display_target())
+		assert_object(informer.get_display_target()) \
 		. append_failure_message(
 			(
 				"Initial target set failed - Expected: %s, Got: %s, Targeting: %s"
@@ -478,7 +478,7 @@ func test_target_informer_null_handling() -> void:
 					_node_name(targeting_state.get_target())
 				]
 			)
-		)
+		) \
 		. is_not_null()
 	)
 
@@ -488,13 +488,13 @@ func test_target_informer_null_handling() -> void:
 
 	# TargetInformer should clear its display
 	(
-		assert_object(informer.get_display_target())
+		assert_object(informer.get_display_target()) \
 		. append_failure_message(
 			(
 				"Target clear failed - Expected: null, Got: %s, Targeting: %s"
 				% [_node_name(informer.get_display_target()), str(targeting_state.get_target())]
 			)
-		)
+		) \
 		. is_null()
 	)
 
@@ -506,8 +506,8 @@ func test_target_informer_tracks_target_position() -> void:
 	# Use the TargetInformer from the environment scene
 	var informer: TargetInformer = env.target_informer
 	(
-		assert_object(informer)
-		. append_failure_message("CollisionTestEnvironment should have target_informer exported")
+		assert_object(informer) \
+		. append_failure_message("CollisionTestEnvironment should have target_informer exported") \
 		. is_not_null()
 	)
 
@@ -525,7 +525,7 @@ func test_target_informer_tracks_target_position() -> void:
 
 	# Initial position check
 	(
-		assert_object(informer.get_display_target())
+		assert_object(informer.get_display_target()) \
 		. append_failure_message(
 			(
 				"Initial tracking failed - Expected: %s, Got: %s, Position: %s, Targeting: %s"
@@ -536,7 +536,7 @@ func test_target_informer_tracks_target_position() -> void:
 					_node_name(targeting_state.get_target())
 				]
 			)
-		)
+		) \
 		. is_same(moving_target)
 	)
 
@@ -547,7 +547,7 @@ func test_target_informer_tracks_target_position() -> void:
 	# TargetInformer's _process should update the position display
 	# We verify it's still tracking the same target
 	(
-		assert_object(informer.get_display_target())
+		assert_object(informer.get_display_target()) \
 		. append_failure_message(
 			(
 				"Position tracking failed - Expected: %s at %s, Got: %s, Valid: %s"
@@ -558,18 +558,18 @@ func test_target_informer_tracks_target_position() -> void:
 					str(is_instance_valid(informer.get_display_target()))
 				]
 			)
-		)
+		) \
 		. is_same(moving_target)
 	)
 
 	(
-		assert_vector(informer.get_display_target().global_position)
+		assert_vector(informer.get_display_target().global_position) \
 		. append_failure_message(
 			(
 				"Target position mismatch - Expected: %s, Got: %s"
 				% [str(Vector2(200, 300)), str(informer.get_display_target().global_position)]
 			)
-		)
+		) \
 		. is_equal(Vector2(200, 300))
 	)
 
@@ -582,8 +582,8 @@ func test_target_informer_building_preview_priority() -> void:
 	# Use the TargetInformer from the environment scene
 	var informer: TargetInformer = env.target_informer
 	(
-		assert_object(informer)
-		. append_failure_message("CollisionTestEnvironment should have target_informer exported")
+		assert_object(informer) \
+		. append_failure_message("CollisionTestEnvironment should have target_informer exported") \
 		. is_not_null()
 	)
 
@@ -610,7 +610,7 @@ func test_target_informer_building_preview_priority() -> void:
 	runner.simulate_frames(1)
 
 	(
-		assert_object(informer.get_display_target())
+		assert_object(informer.get_display_target()) \
 		. append_failure_message(
 			(
 				"Step 1 failed - Expected: %s, Got: %s, Preview: %s"
@@ -620,7 +620,7 @@ func test_target_informer_building_preview_priority() -> void:
 					str(building_state.preview)
 				]
 			)
-		)
+		) \
 		. is_same(hovered_object)
 	)
 
@@ -629,7 +629,7 @@ func test_target_informer_building_preview_priority() -> void:
 	runner.simulate_frames(1)
 
 	(
-		assert_object(informer.get_display_target())
+		assert_object(informer.get_display_target()) \
 		. append_failure_message(
 			(
 				"Step 2 failed - Expected: %s, Got: %s, Preview: %s, Targeting: %s"
@@ -640,7 +640,7 @@ func test_target_informer_building_preview_priority() -> void:
 					_node_name(targeting_state.get_target())
 				]
 			)
-		)
+		) \
 		. is_same(preview_object)
 	)
 
@@ -653,7 +653,7 @@ func test_target_informer_building_preview_priority() -> void:
 	runner.simulate_frames(1)
 
 	(
-		assert_object(informer.get_display_target())
+		assert_object(informer.get_display_target()) \
 		. append_failure_message(
 			(
 				"Step 3 failed - Expected: %s (preview), Got: %s, Targeting: %s"
@@ -663,7 +663,7 @@ func test_target_informer_building_preview_priority() -> void:
 					another_object.name
 				]
 			)
-		)
+		) \
 		. is_same(preview_object)
 	)
 
@@ -672,7 +672,7 @@ func test_target_informer_building_preview_priority() -> void:
 	runner.simulate_frames(1)
 
 	(
-		assert_object(informer.get_display_target())
+		assert_object(informer.get_display_target()) \
 		. append_failure_message(
 			(
 				"Step 4 failed - Expected: %s, Got: %s, Preview: %s, Targeting: %s"
@@ -683,7 +683,7 @@ func test_target_informer_building_preview_priority() -> void:
 					another_object.name
 				]
 			)
-		)
+		) \
 		. is_same(another_object)
 	)
 
@@ -724,8 +724,8 @@ func test_placed_object_becomes_targetable_after_manipulation() -> void:
 	runner.simulate_frames(1)
 
 	(
-		assert_object(manipulation_state.active_manipulatable)
-		. append_failure_message("Step 1: Manipulation should have active target set")
+		assert_object(manipulation_state.active_manipulatable) \
+		. append_failure_message("Step 1: Manipulation should have active target set") \
 		. is_not_null()
 	)
 
@@ -739,16 +739,16 @@ func test_placed_object_becomes_targetable_after_manipulation() -> void:
 
 	# Verify manipulation state is cleared
 	(
-		assert_object(manipulation_state.active_manipulatable)
-		. append_failure_message("Step 2: Manipulation state should be cleared after placement")
+		assert_object(manipulation_state.active_manipulatable) \
+		. append_failure_message("Step 2: Manipulation state should be cleared after placement") \
 		. is_null()
 	)
 
 	(
-		assert_bool(targeting_state.is_manual_targeting_active)
+		assert_bool(targeting_state.is_manual_targeting_active) \
 		. append_failure_message(
 			"Step 2: is_manual_targeting_active should be false after placement"
-		)
+		) \
 		. is_false()
 	)
 
@@ -759,7 +759,7 @@ func test_placed_object_becomes_targetable_after_manipulation() -> void:
 
 	# THE REGRESSION: This should work but might fail if manipulation state interferes
 	(
-		assert_object(targeting_state.get_target())
+		assert_object(targeting_state.get_target()) \
 		. append_failure_message(
 			(
 				"Step 3 REGRESSION: After manipulation ends, placed object should be targetable. "
@@ -772,7 +772,7 @@ func test_placed_object_becomes_targetable_after_manipulation() -> void:
 					]
 				)
 			)
-		)
+		) \
 		. is_same(manipulated_object)
 	)
 
@@ -810,8 +810,8 @@ func test_manipulation_state_doesnt_block_targeting_after_clear() -> void:
 
 	# TargetInformer should show ObjectA (prioritizes manipulation)
 	(
-		assert_object(informer.get_display_target())
-		. append_failure_message("Step 1: TargetInformer should show manipulated object")
+		assert_object(informer.get_display_target()) \
+		. append_failure_message("Step 1: TargetInformer should show manipulated object") \
 		. is_same(object_a)
 	)
 
@@ -826,7 +826,7 @@ func test_manipulation_state_doesnt_block_targeting_after_clear() -> void:
 
 	# REGRESSION: TargetInformer should now show ObjectB, not stuck on ObjectA
 	(
-		assert_object(informer.get_display_target())
+		assert_object(informer.get_display_target()) \
 		. append_failure_message(
 			(
 				"Step 3 REGRESSION: After manipulation cleared, TargetInformer should show new target. "
@@ -840,7 +840,7 @@ func test_manipulation_state_doesnt_block_targeting_after_clear() -> void:
 					]
 				)
 			)
-		)
+		) \
 		. is_same(object_b)
 	)
 
@@ -886,8 +886,8 @@ func test_targeting_blocked_by_lingering_manipulation_target() -> void:
 
 	# Verify: TargetInformer shows manipulated object
 	(
-		assert_object(informer.get_display_target())
-		. append_failure_message("Step 1: TargetInformer should show manipulated object")
+		assert_object(informer.get_display_target()) \
+		. append_failure_message("Step 1: TargetInformer should show manipulated object") \
 		. is_same(object_a)
 	)
 
@@ -903,7 +903,7 @@ func test_targeting_blocked_by_lingering_manipulation_target() -> void:
 
 	# EXPECTED: TargetInformer should show ObjectB because manipulation state is clear
 	(
-		assert_object(informer.get_display_target())
+		assert_object(informer.get_display_target()) \
 		. append_failure_message(
 			(
 				"VERIFIED FIX: After manipulation ends with proper cleanup, new targeting should work. "
@@ -923,7 +923,7 @@ func test_targeting_blocked_by_lingering_manipulation_target() -> void:
 					)
 				)
 			)
-		)
+		) \
 		. is_same(object_b)
 	)
 

@@ -82,19 +82,19 @@ func test_positioner_moves_after_resolve_dependencies() -> void:
 
 	# Assert: position should have changed from origin
 	(
-		assert_vector(final_position)
+		assert_vector(final_position) \
 		. append_failure_message(
 			(
 				"Positioner should accept position changes after resolve. %s | %s"
 				% [pre_resolve_diag, post_resolve_diag]
 			)
-		)
+		) \
 		. is_not_equal(initial_position)
 	)
 
 	# The position should be at our test position
 	(
-		assert_bool(distance_from_origin > 50.0)
+		assert_bool(distance_from_origin > 50.0) \
 		. append_failure_message(
 			(
 				"Positioner should maintain assigned position. Initial: %s, Final: %s, Expected: %s, Distance: %.2f, Changed: %s | %s | %s"
@@ -108,6 +108,6 @@ func test_positioner_moves_after_resolve_dependencies() -> void:
 					post_resolve_diag
 				]
 			)
-		)
+		) \
 		. is_true()
 	)

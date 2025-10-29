@@ -170,7 +170,7 @@ func test_geometry_debug_scenarios_with_tile_shapes(
 
 	# Validate expected behavior
 	(
-		assert_bool(has_overlap)
+		assert_bool(has_overlap) \
 		. append_failure_message(
 			(
 				"Geometry %s with %s tiles: expected overlap %s but got %s (area: %.4f)"
@@ -182,7 +182,7 @@ func test_geometry_debug_scenarios_with_tile_shapes(
 					intersection_area
 				]
 			)
-		)
+		) \
 		. is_equal(expected_overlap)
 	)
 
@@ -248,13 +248,13 @@ func test_geometry_debug_scenarios(
 
 	# Validate expected behavior
 	(
-		assert_bool(has_overlap)
+		assert_bool(has_overlap) \
 		. append_failure_message(
 			(
 				"Geometry %s: expected overlap %s but got %s (area: %.4f)"
 				% [polygon_name, expected_overlap, has_overlap, intersection_area]
 			)
-		)
+		) \
 		. is_equal(expected_overlap)
 	)
 
@@ -310,10 +310,10 @@ func test_polygon_below_threshold_excluded() -> void:
 	)
 	var tile_count: int = tiles.size()
 	(
-		assert_int(tile_count)
+		assert_int(tile_count) \
 		. append_failure_message(
 			"Expected no tiles for area 4 (<5%% of 256), got %d tiles" % tile_count
-		)
+		) \
 		. is_equal(0)
 	)
 
@@ -333,10 +333,10 @@ func test_polygon_above_threshold_included() -> void:
 	)
 	var tile_count: int = tiles.size()
 	(
-		assert_int(tile_count)
+		assert_int(tile_count) \
 		. append_failure_message(
 			"Expected 1 tile for area 16 (>5%% threshold), got %d: %s" % [tile_count, tiles]
-		)
+		) \
 		. is_equal(1)
 	)
 
@@ -398,13 +398,13 @@ func test_trapezoid_top_left_overlap() -> void:
 
 	# Validate overlap detection
 	(
-		assert_bool(overlaps)
+		assert_bool(overlaps) \
 		. append_failure_message(
 			(
 				"Trapezoid should overlap tile %s at world pos %s"
 				% [str(problematic_tile_coord), str(tile_world_pos)]
 			)
-		)
+		) \
 		. is_true()
 	)
 
@@ -421,13 +421,13 @@ func test_correct_trapezoid_geometry() -> void:
 
 	# Validate geometric properties
 	(
-		assert_float(bounds.size.x)
-		. append_failure_message("Trapezoid width should be 32, got %.2f" % bounds.size.x)
+		assert_float(bounds.size.x) \
+		. append_failure_message("Trapezoid width should be 32, got %.2f" % bounds.size.x) \
 		. is_equal(32.0)
 	)
 	(
-		assert_float(bounds.size.y)
-		. append_failure_message("Trapezoid height should be 16, got %.2f" % bounds.size.y)
+		assert_float(bounds.size.y) \
+		. append_failure_message("Trapezoid height should be 16, got %.2f" % bounds.size.y) \
 		. is_equal(16.0)
 	)
 	assert_float(area).is_greater(0.0)
@@ -472,13 +472,13 @@ func test_polygon_shape_validation(
 		is_valid = area > MIN_AREA_THRESHOLD
 
 	(
-		assert_bool(is_valid)
+		assert_bool(is_valid) \
 		. append_failure_message(
 			(
 				"Shape %s: expected valid=%s but got valid=%s (points=%d, area=%.4f)"
 				% [shape_name, expected_valid, is_valid, polygon_points.size(), area]
 			)
-		)
+		) \
 		. is_equal(expected_valid)
 	)
 
@@ -525,13 +525,13 @@ func test_indicator_polygon_heuristics() -> void:
 		)
 
 		(
-			assert_int(tiles.size())
+			assert_int(tiles.size()) \
 			. append_failure_message(
 				(
 					"Polygon %s: expected %d tiles but got %d: %s"
 					% [polygon_name, expected_tiles, tiles.size(), tiles]
 				)
-			)
+			) \
 			. is_equal(expected_tiles)
 		)
 
@@ -686,20 +686,20 @@ func test_get_tile_polygon_for_all_shapes(
 
 	# Validate vertex count
 	(
-		assert_int(tile_polygon.size())
+		assert_int(tile_polygon.size()) \
 		. append_failure_message(
 			(
 				"Tile shape %s should have %d vertices, got %d"
 				% [tile_shape_name, expected_vertex_count, tile_polygon.size()]
 			)
-		)
+		) \
 		. is_equal(expected_vertex_count)
 	)
 
 	# Validate tile polygon is not empty
 	(
-		assert_array(tile_polygon)
-		. append_failure_message("Tile polygon for %s should not be empty" % tile_shape_name)
+		assert_array(tile_polygon) \
+		. append_failure_message("Tile polygon for %s should not be empty" % tile_shape_name) \
 		. is_not_empty()
 	)
 
@@ -812,25 +812,25 @@ func test_intersection_area_with_tile_for_all_shapes(
 
 	# Validate intersection area is within expected bounds
 	(
-		assert_float(intersection_area)
+		assert_float(intersection_area) \
 		. append_failure_message(
 			(
 				"Intersection area for %s should be between %.2f and %.2f, got %.2f"
 				% [test_case_name, expected_area_min, expected_area_max, intersection_area]
 			)
-		)
+		) \
 		. is_between(expected_area_min, expected_area_max)
 	)
 
 	# Validate area is non-negative
 	(
-		assert_float(intersection_area)
+		assert_float(intersection_area) \
 		. append_failure_message(
 			(
 				"Intersection area should never be negative, got %.2f for %s"
 				% [intersection_area, test_case_name]
 			)
-		)
+		) \
 		. is_greater_equal(0.0)
 	)
 
@@ -908,13 +908,13 @@ func test_does_polygon_overlap_tile_for_all_shapes(
 
 	# Validate overlap detection
 	(
-		assert_bool(overlaps)
+		assert_bool(overlaps) \
 		. append_failure_message(
 			(
 				"Overlap detection for %s should be %s, got %s"
 				% [test_case_name, expected_overlap, overlaps]
 			)
-		)
+		) \
 		. is_equal(expected_overlap)
 	)
 

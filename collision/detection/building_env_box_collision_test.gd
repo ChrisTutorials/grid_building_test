@@ -31,8 +31,8 @@ func before_test() -> void:
 	auto_free(env)
 	_container = env.get_container()
 	(
-		assert_array(env.get_issues())
-		. append_failure_message("Environment should initialize without issues")
+		assert_array(env.get_issues()) \
+		. append_failure_message("Environment should initialize without issues") \
 		. is_empty()
 	)
 	_gts = _container.get_states().targeting
@@ -63,7 +63,7 @@ func test_collision_object_creation() -> void:
 
 	# Assert collision layer is correct
 	(
-		assert_int(test_box.collision_layer)
+		assert_int(test_box.collision_layer) \
 		. append_failure_message(
 			(
 				"Test box collision_layer should be %d (%s), got %d"
@@ -73,28 +73,28 @@ func test_collision_object_creation() -> void:
 					test_box.collision_layer
 				]
 			)
-		)
+		) \
 		. is_equal(TEST_COLLISION_LAYER)
 	)
 
 	# Assert collision shape properties
 	var shape: CollisionShape2D = test_box.get_child(0)
 	(
-		assert_object(shape)
-		. append_failure_message("Test box should have CollisionShape2D child")
+		assert_object(shape) \
+		. append_failure_message("Test box should have CollisionShape2D child") \
 		. is_not_null()
 	)
 	(
-		assert_object(shape.shape)
-		. append_failure_message("CollisionShape2D should have a shape assigned")
+		assert_object(shape.shape) \
+		. append_failure_message("CollisionShape2D should have a shape assigned") \
 		. is_not_null()
 	)
 	if shape.shape is RectangleShape2D:
 		(
-			assert_vector(shape.shape.size)
+			assert_vector(shape.shape.size) \
 			. append_failure_message(
 				"Collision shape size should be %s, got %s" % [TEST_BOX_SIZE, shape.shape.size]
-			)
+			) \
 			. is_equal(TEST_BOX_SIZE)
 		)
 
@@ -107,18 +107,18 @@ func test_build_mode_entry() -> void:
 	# Enter build mode
 	var entered_report: PlacementReport = env.building_system.enter_build_mode(placeable)
 	(
-		assert_bool(entered_report.is_successful())
+		assert_bool(entered_report.is_successful()) \
 		. append_failure_message(
 			"Failed to enter build mode: %s" % str(entered_report.get_issues())
-		)
+		) \
 		. is_true()
 	)
 
 	# Verify preview was created
 	var preview: Node2D = _container.get_states().building.preview
 	(
-		assert_object(preview)
-		. append_failure_message("No preview generated for placeable")
+		assert_object(preview) \
+		. append_failure_message("No preview generated for placeable") \
 		. is_not_null()
 	)
 
@@ -138,22 +138,22 @@ func test_indicator_generation() -> void:
 		placeable.placement_rules, _gts, false
 	)
 	(
-		assert_bool(setup_report.is_successful())
-		. append_failure_message("Failed to set up rules: %s" % str(setup_report.get_issues()))
+		assert_bool(setup_report.is_successful()) \
+		. append_failure_message("Failed to set up rules: %s" % str(setup_report.get_issues())) \
 		. is_true()
 	)
 
 	# Verify indicators were generated
 	var indicators: Array[RuleCheckIndicator] = env.indicator_manager.get_indicators()
 	(
-		assert_array(indicators)
-		. append_failure_message("No indicators generated for collision object")
+		assert_array(indicators) \
+		. append_failure_message("No indicators generated for collision object") \
 		. is_not_empty()
 	)
 
 	(
-		assert_int(indicators.size())
-		. append_failure_message("Expected at least 1 indicator, got %d" % indicators.size())
+		assert_int(indicators.size()) \
+		. append_failure_message("Expected at least 1 indicator, got %d" % indicators.size()) \
 		. is_greater_equal(1)
 	)
 
@@ -181,8 +181,8 @@ func test_indicator_rules() -> void:
 			break
 
 	(
-		assert_bool(found_unoccupied_rule)
-		. append_failure_message("No indicator found with the unoccupied space rule")
+		assert_bool(found_unoccupied_rule) \
+		. append_failure_message("No indicator found with the unoccupied space rule") \
 		. is_true()
 	)
 
@@ -198,8 +198,8 @@ func test_indicator_rules() -> void:
 			break
 
 	(
-		assert_bool(found_correct_mask)
-		. append_failure_message("No indicator found with collision_mask %d" % TEST_COLLISION_LAYER)
+		assert_bool(found_correct_mask) \
+		. append_failure_message("No indicator found with collision_mask %d" % TEST_COLLISION_LAYER) \
 		. is_true()
 	)
 
@@ -235,8 +235,8 @@ func _create_placeable_from_node(node: Node, rules: Array[TileCheckRule]) -> Pla
 	var scene: PackedScene = PackedScene.new()
 	var result: int = scene.pack(node)
 	(
-		assert_int(result)
-		. append_failure_message("PackedScene.pack should succeed (PACKED_SCENE_PACK_OK = 0)")
+		assert_int(result) \
+		. append_failure_message("PackedScene.pack should succeed (PACKED_SCENE_PACK_OK = 0)") \
 		. is_zero()
 	)
 

@@ -83,7 +83,7 @@ func test_runtime_trapezoid_collision_calculation_bug() -> void:
 
 	# This test should expose the root cause of the runtime issue
 	(
-		assert_int(tile_offsets.size())
+		assert_int(tile_offsets.size()) \
 		. append_failure_message(
 			(
 				"Runtime trapezoid should generate tile offsets but returned 0. "
@@ -92,7 +92,7 @@ func test_runtime_trapezoid_collision_calculation_bug() -> void:
 					% "\n".join(diag)
 				)
 			)
-		)
+		) \
 		. is_greater(0)
 	)
 
@@ -134,13 +134,13 @@ func test_coordinate_system_analysis() -> void:
 		total_offsets += offsets_here.size()
 
 	(
-		assert_int(total_offsets)
+		assert_int(total_offsets) \
 		. append_failure_message(
 			(
 				"Coordinate system analysis produced no tile offsets.\nDiagnostics:\n%s"
 				% "\n".join(diag)
 			)
-		)
+		) \
 		. is_greater(0)
 	)
 
@@ -215,12 +215,12 @@ func test_polygon_validity_analysis() -> void:
 
 	# Final assertion: polygon area should be non-zero (sanity check) and include diagnostics on failure
 	(
-		assert_float(area)
+		assert_float(area) \
 		. append_failure_message(
 			(
 				"Polygon validity analysis failed or produced unexpected area.\nDiagnostics:\n%s"
 				% "\n".join(diag)
 			)
-		)
+		) \
 		. is_not_equal(0.0)
 	)

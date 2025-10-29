@@ -117,8 +117,8 @@ func test_positioner_with_collision_tracking() -> void:
 	)
 	var test_setup: CollisionTestSetup2D = setups[0] if setups.size() > 0 else null
 	(
-		assert_object(test_setup)
-		. is_not_null()
+		assert_object(test_setup) \
+		. is_not_null() \
 		. append_failure_message(
 			"CollisionTestSetup2D creation failed - verify collision_body exposes supported shapes and targeting_state is valid."
 		)
@@ -132,23 +132,23 @@ func test_positioner_with_collision_tracking() -> void:
 
 	var rect_setups: Array[RectCollisionTestingSetup] = test_setup.rect_collision_test_setups
 	(
-		assert_array(rect_setups)
-		. is_not_empty()
+		assert_array(rect_setups) \
+		. is_not_empty() \
 		. append_failure_message(
 			"CollisionTestSetup2D should provide at least one RectCollisionTestingSetup for coverage calculations."
 		)
 	)
 	var primary_rect_setup: RectCollisionTestingSetup = rect_setups[0]
 	(
-		assert_object(primary_rect_setup)
-		. is_not_null()
+		assert_object(primary_rect_setup) \
+		. is_not_null() \
 		. append_failure_message(
 			"Primary RectCollisionTestingSetup cannot be null - collision mapping requires rectangle coverage data."
 		)
 	)
 	(
-		assert_object(primary_rect_setup.rect_shape)
-		. is_not_null()
+		assert_object(primary_rect_setup.rect_shape) \
+		. is_not_null() \
 		. append_failure_message(
 			"RectCollisionTestingSetup must expose a RectangleShape2D to compute expected tile coverage."
 		)

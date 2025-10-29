@@ -55,23 +55,23 @@ func test_placeable_template_size_flags() -> void:
 	# Check width stretches to column width (allowing some margin for grid spacing)
 	var actual_width: float = entry_node.size.x
 	(
-		assert_float(actual_width)
+		assert_float(actual_width) \
 		. append_failure_message(
 			"Template width %.1f should stretch beyond minimum (>100px)" % actual_width
-		)
+		) \
 		. is_greater(100.0)
 	)
 
 	# Check height remains fixed
 	var actual_height: float = entry_node.size.y
 	(
-		assert_float(actual_height)
+		assert_float(actual_height) \
 		. append_failure_message(
 			(
 				"Template height %.1f should be exactly %d pixels"
 				% [actual_height, EXPECTED_PLACEABLE_HEIGHT]
 			)
-		)
+		) \
 		. is_equal(float(EXPECTED_PLACEABLE_HEIGHT))
 	)
 
@@ -96,23 +96,23 @@ func test_sequence_templates_stretch_to_column_width() -> void:
 	# Check width stretches to column width
 	var actual_width: float = template.size.x
 	(
-		assert_float(actual_width)
+		assert_float(actual_width) \
 		. append_failure_message(
 			"Sequence template width %.1f should stretch beyond minimum (>100px)" % actual_width
-		)
+		) \
 		. is_greater(100.0)
 	)
 
 	# Check height remains fixed
 	var actual_height: float = template.size.y
 	(
-		assert_float(actual_height)
+		assert_float(actual_height) \
 		. append_failure_message(
 			(
 				"Sequence template height %.1f should be exactly %d pixels"
 				% [actual_height, EXPECTED_SEQUENCE_HEIGHT]
 			)
-		)
+		) \
 		. is_equal(float(EXPECTED_SEQUENCE_HEIGHT))
 	)
 
@@ -133,13 +133,13 @@ func test_height_consistency_during_variant_cycling() -> void:
 	var initial_height: float = template.size.y
 	var initial_width: float = template.size.x
 	(
-		assert_float(initial_height)
+		assert_float(initial_height) \
 		. append_failure_message(
 			(
 				"Initial template height %.1f should be %d pixels"
 				% [initial_height, EXPECTED_SEQUENCE_HEIGHT]
 			)
-		)
+		) \
 		. is_equal(float(EXPECTED_SEQUENCE_HEIGHT))
 	)
 
@@ -157,13 +157,13 @@ func test_height_consistency_during_variant_cycling() -> void:
 	var post_cycle_height: float = template.size.y
 	var post_cycle_width: float = template.size.x
 	(
-		assert_float(post_cycle_height)
+		assert_float(post_cycle_height) \
 		. append_failure_message(
 			(
 				"Template height should remain %d pixels after cycling, was %.1f, now %.1f"
 				% [EXPECTED_SEQUENCE_HEIGHT, initial_height, post_cycle_height]
 			)
-		)
+		) \
 		. is_equal(initial_height)
 	)
 	assert_float(post_cycle_width).is_equal(initial_width).append_failure_message(
@@ -214,25 +214,25 @@ func test_mixed_content_consistent_sizing() -> void:
 			EXPECTED_PLACEABLE_HEIGHT if template is PlaceableView else EXPECTED_SEQUENCE_HEIGHT
 		)
 		(
-			assert_float(actual_height)
+			assert_float(actual_height) \
 			. append_failure_message(
 				(
 					"Mixed content template %d height %.1f should be %.0f pixels (type: %s)"
 					% [i, actual_height, expected_height, template.get_class()]
 				)
-			)
+			) \
 			. is_equal(expected_height)
 		)
 
 		# Check width stretches appropriately
 		(
-			assert_float(actual_width)
+			assert_float(actual_width) \
 			. append_failure_message(
 				(
 					"Mixed content template %d width %.1f should stretch beyond minimum (>100px)"
 					% [i, actual_width]
 				)
-			)
+			) \
 			. is_greater(100.0)
 		)
 
@@ -244,13 +244,13 @@ func test_mixed_content_consistent_sizing() -> void:
 		# Allow for some width variance between different template types
 		var width_difference: float = abs(expected_widths[i] - expected_widths[0])
 		(
-			assert_float(width_difference)
+			assert_float(width_difference) \
 			. append_failure_message(
 				(
 					"Template %d width %.1f should be similar to template 0 width %.1f (difference: %.1f, tolerance: 100px)"
 					% [i, expected_widths[i], expected_widths[0], width_difference]
 				)
-			)
+			) \
 			. is_less(100.0)
 		)  # Increased tolerance since PlaceableView and PlaceableListEntry may differ
 
@@ -266,13 +266,13 @@ func test_size_flags_configuration() -> void:
 
 	# Check placeable template size flags
 	(
-		assert_int(placeable_entry.size_flags_horizontal)
+		assert_int(placeable_entry.size_flags_horizontal) \
 		. append_failure_message(
 			(
 				"PlaceableView should have horizontal SIZE_EXPAND_FILL flag (%d), got %d"
 				% [Control.SIZE_EXPAND_FILL, placeable_entry.size_flags_horizontal]
 			)
-		)
+		) \
 		. is_equal(Control.SIZE_EXPAND_FILL)
 	)
 
@@ -284,13 +284,13 @@ func test_size_flags_configuration() -> void:
 				sequence_size_flags == Control.SIZE_EXPAND_FILL
 				or sequence_size_flags == Control.SIZE_EXPAND
 			)
-		)
+		) \
 		. append_failure_message(
 			(
 				"PlaceableListEntry should have horizontal expansion flags, got %d"
 				% sequence_size_flags
 			)
-		)
+		) \
 		. is_true()
 	)
 

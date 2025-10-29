@@ -84,7 +84,7 @@ func test_debug_viewport_center_calculation() -> void:
 	var current_camera: Camera2D = viewport.get_camera_2d()
 	var diag_context := "\n".join(diag)
 	(
-		assert_object(current_camera)
+		assert_object(current_camera) \
 		. append_failure_message(
 			(
 				"Camera should be current. Expected: %s, Got: %s%s%s"
@@ -95,6 +95,6 @@ func test_debug_viewport_center_calculation() -> void:
 					diag_context
 				]
 			)
-		)
+		) \
 		. is_same(camera)
 	)

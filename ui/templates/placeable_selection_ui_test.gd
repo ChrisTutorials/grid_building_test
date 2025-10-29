@@ -99,14 +99,14 @@ func test_mixed_content_initialization() -> void:
 	# Assert: UI correctly configured for mixed content
 	var tab_container: TabContainer = selection_ui.tab_container
 	(
-		assert_object(tab_container)
-		. append_failure_message("TabContainer should be configured after initialization")
+		assert_object(tab_container) \
+		. append_failure_message("TabContainer should be configured after initialization") \
 		. is_not_null()
 	)
 
 	(
-		assert_int(tab_container.get_tab_count())
-		. append_failure_message("Should have tabs for categories with content")
+		assert_int(tab_container.get_tab_count()) \
+		. append_failure_message("Should have tabs for categories with content") \
 		. is_greater_equal(1)
 	)
 
@@ -129,8 +129,8 @@ func test_mixed_grid_structure_creation() -> void:
 	# Assert: Grid structure accommodates both content types
 	var tab_container: TabContainer = selection_ui.tab_container
 	(
-		assert_int(tab_container.get_tab_count())
-		. append_failure_message("Should have at least one tab for mixed content")
+		assert_int(tab_container.get_tab_count()) \
+		. append_failure_message("Should have at least one tab for mixed content") \
 		. is_greater_equal(1)
 	)
 
@@ -138,15 +138,15 @@ func test_mixed_grid_structure_creation() -> void:
 	if tab_container.get_tab_count() > 0:
 		var first_tab: GridContainer = tab_container.get_child(0) as GridContainer
 		(
-			assert_object(first_tab)
-			. append_failure_message("First tab should be a GridContainer for mixed content")
+			assert_object(first_tab) \
+			. append_failure_message("First tab should be a GridContainer for mixed content") \
 			. is_not_null()
 		)
 
 		# Grid columns are now configured via template, not script property
 		(
-			assert_int(first_tab.columns)
-			. append_failure_message("Grid columns should be configured via template")
+			assert_int(first_tab.columns) \
+			. append_failure_message("Grid columns should be configured via template") \
 			. is_greater(0)
 		)
 
@@ -170,16 +170,16 @@ func test_sequences_mixed_content_functionality() -> void:
 	for sequence in test_sequences:
 		assert_object(sequence).append_failure_message("Sequence should not be null").is_not_null()
 		(
-			assert_array(sequence.placeables)
-			. append_failure_message("Sequence should have placeable variants")
+			assert_array(sequence.placeables) \
+			. append_failure_message("Sequence should have placeable variants") \
 			. is_not_empty()
 		)
 
 		# Check first placeable in sequence has tags
 		var first_placeable: Placeable = sequence.placeables[0]
 		(
-			assert_array(first_placeable.tags)
-			. append_failure_message("Sequence placeable should have tags")
+			assert_array(first_placeable.tags) \
+			. append_failure_message("Sequence placeable should have tags") \
 			. is_not_empty()
 		)
 
@@ -191,10 +191,10 @@ func test_sequences_mixed_content_functionality() -> void:
 	# Assert: UI configured for sequences within mixed content
 	var tab_container: TabContainer = selection_ui.tab_container
 	(
-		assert_int(tab_container.get_tab_count())
+		assert_int(tab_container.get_tab_count()) \
 		. append_failure_message(
 			"Should have exactly one tab for sequences content when placeables is empty"
-		)
+		) \
 		. is_equal(1)
 	)
 
@@ -202,8 +202,8 @@ func test_sequences_mixed_content_functionality() -> void:
 	if tab_container.get_tab_count() > 0:
 		var first_tab: GridContainer = tab_container.get_child(0) as GridContainer
 		(
-			assert_str(first_tab.name)
-			. append_failure_message("Tab should be named after sequences category")
+			assert_str(first_tab.name) \
+			. append_failure_message("Tab should be named after sequences category") \
 			. is_equal(TEST_DISPLAY_NAME_SEQUENCES)
 		)
 
@@ -226,30 +226,30 @@ func test_sequences_grid_structure_with_variant_cycling() -> void:
 	# Assert: Verify sequence grid structure
 	var tab_container: TabContainer = selection_ui.tab_container
 	(
-		assert_int(tab_container.get_tab_count())
+		assert_int(tab_container.get_tab_count()) \
 		. append_failure_message(
 			"Tab container should have exactly one tab for sequences-only content"
-		)
+		) \
 		. is_equal(1)
 	)
 
 	# Check first tab has grid container
 	var first_tab: Control = tab_container.get_tab_control(0)
 	(
-		assert_object(first_tab)
-		. append_failure_message("First sequences tab should exist")
+		assert_object(first_tab) \
+		. append_failure_message("First sequences tab should exist") \
 		. is_not_null()
 	)
 
 	# Verify tab is a GridContainer (unified approach for sequences)
 	(
-		assert_bool(first_tab is GridContainer)
+		assert_bool(first_tab is GridContainer) \
 		. append_failure_message(
 			(
 				"Sequences tab should use GridContainer for unified approach, got %s"
 				% str(first_tab.get_class())
 			)
-		)
+		) \
 		. is_true()
 	)
 
@@ -276,18 +276,18 @@ func test_dynamic_building_system_retrieval() -> void:
 
 	# Assert: System retrieved correctly
 	(
-		assert_object(retrieved_system)
+		assert_object(retrieved_system) \
 		. append_failure_message(
 			"Building system should be retrieved dynamically from systems context"
-		)
+		) \
 		. is_not_null()
 	)
 
 	(
-		assert_object(retrieved_system)
+		assert_object(retrieved_system) \
 		. append_failure_message(
 			"Retrieved building system should match the one in systems context"
-		)
+		) \
 		. is_same(test_building_system)
 	)
 
@@ -309,8 +309,8 @@ func test_missing_building_system_handling() -> void:
 
 	# Assert: Handles null gracefully
 	(
-		assert_object(retrieved_system)
-		. append_failure_message("Missing building system should return null without crashing")
+		assert_object(retrieved_system) \
+		. append_failure_message("Missing building system should return null without crashing") \
 		. is_null()
 	)
 
@@ -341,8 +341,8 @@ func test_mode_state_change_handling() -> void:
 
 	# Assert: UI should be connected to mode state changes
 	(
-		assert_object(selection_ui._mode_state)
-		. append_failure_message("Mode state should be assigned to UI")
+		assert_object(selection_ui._mode_state) \
+		. append_failure_message("Mode state should be assigned to UI") \
 		. is_same(test_mode_state)
 	)
 
@@ -368,23 +368,23 @@ func test_content_loading_and_validation() -> void:
 
 	# Assert: Valid content loaded properly
 	(
-		assert_int(selection_ui.placeables.size())
-		. append_failure_message("Placeables should contain all valid entries")
+		assert_int(selection_ui.placeables.size()) \
+		. append_failure_message("Placeables should contain all valid entries") \
 		. is_equal(test_placeables.size())
 	)
 
 	# Verify UI created successfully with valid content
 	var tab_container: TabContainer = selection_ui.tab_container
 	(
-		assert_object(tab_container)
-		. append_failure_message("Tab container should be created with valid content")
+		assert_object(tab_container) \
+		. append_failure_message("Tab container should be created with valid content") \
 		. is_not_null()
 	)
 
 	# Verify that valid placeables created proper tabs
 	(
-		assert_int(tab_container.get_tab_count())
-		. append_failure_message("Should have at least one tab for valid category content")
+		assert_int(tab_container.get_tab_count()) \
+		. append_failure_message("Should have at least one tab for valid category content") \
 		. is_greater_equal(1)
 	)
 
@@ -409,24 +409,24 @@ func test_null_placeable_validation_handling() -> void:
 	# Assert: UI still functions despite validation errors
 	var tab_container: TabContainer = selection_ui.tab_container
 	(
-		assert_object(tab_container)
-		. append_failure_message("Tab container should be created despite null entries")
+		assert_object(tab_container) \
+		. append_failure_message("Tab container should be created despite null entries") \
 		. is_not_null()
 	)
 
 	# Verify original array unchanged (nulls not removed from source)
 	(
-		assert_int(selection_ui.placeables.size())
-		. append_failure_message("Original placeables array should be unchanged")
+		assert_int(selection_ui.placeables.size()) \
+		. append_failure_message("Original placeables array should be unchanged") \
 		. is_equal(mixed_placeables.size())
 	)
 
 	# Verify UI still creates tabs for valid content (nulls skipped during processing)
 	(
-		assert_int(tab_container.get_tab_count())
+		assert_int(tab_container.get_tab_count()) \
 		. append_failure_message(
 			"Should have tabs for valid content even with null entries present"
-		)
+		) \
 		. is_greater_equal(1)
 	)
 
@@ -494,10 +494,10 @@ func _create_mock_placeable_entry_template() -> PackedScene:
 		load(GBTestConstants.TEST_PATH_PLACEABLE_VIEW_UI) as PackedScene
 	)
 	(
-		assert_object(placeable_scene)
+		assert_object(placeable_scene) \
 		. append_failure_message(
 			"Expected placeable_view.tscn to be available for placeable entry template"
-		)
+		) \
 		. is_not_null()
 	)
 	return placeable_scene
@@ -509,10 +509,10 @@ func _create_mock_sequence_entry_template() -> PackedScene:
 		load(GBTestConstants.TEST_PATH_PLACEABLE_LIST_ENTRY_UI) as PackedScene
 	)
 	(
-		assert_object(sequence_scene)
+		assert_object(sequence_scene) \
 		. append_failure_message(
 			"Expected placeable_list_entry.tscn to be available for sequence entry template"
-		)
+		) \
 		. is_not_null()
 	)
 	return sequence_scene

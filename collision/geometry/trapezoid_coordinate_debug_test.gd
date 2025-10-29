@@ -47,24 +47,24 @@ func test_trapezoid_coordinate_calculation() -> void:
 
 		# Offsets should be small relative to center (within reasonable range)
 		(
-			assert_int(abs(offset.x))
+			assert_int(abs(offset.x)) \
 			. append_failure_message(
 				(
 					"X offset %d is too large - suggests coordinate calculation error\n%s"
 					% [offset.x, "diagnostic context"]
 				)
-			)
+			) \
 			. is_less_equal(5)
 		)
 
 		(
-			assert_int(abs(offset.y))
+			assert_int(abs(offset.y)) \
 			. append_failure_message(
 				(
 					"Y offset %d is too large - suggests coordinate calculation error\n%s"
 					% [offset.y, "diagnostic context"]
 				)
-			)
+			) \
 			. is_less_equal(5)
 		)
 

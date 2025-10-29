@@ -12,15 +12,15 @@ func test_layer_mask_2561_matches_collision_layer_513() -> void:
 	# Verify our conversion logic - order doesn't matter for our use case
 	var layers_from_mask: Array[int] = PhysicsUtils.get_layers_from_bitmask(layer_mask)
 	(
-		assert_that(layers_from_mask)
-		. contains_exactly_in_any_order([0, 9, 11])
+		assert_that(layers_from_mask) \
+		. contains_exactly_in_any_order([0, 9, 11]) \
 		. override_failure_message("Layer mask 2561 should contain layers [0, 9, 11]")
 	)
 
 	var layers_from_collision: Array[int] = PhysicsUtils.get_layers_from_bitmask(collision_layer)
 	(
-		assert_that(layers_from_collision)
-		. contains_exactly_in_any_order([0, 9])
+		assert_that(layers_from_collision) \
+		. contains_exactly_in_any_order([0, 9]) \
 		. override_failure_message("Collision layer 513 should contain layers [0, 9]")
 	)
 
@@ -63,13 +63,13 @@ func test_regression_collision_layer_513_mask_2561_debug() -> void:
 
 	# Validate regression test success
 	(
-		assert_bool(direct_match)
+		assert_bool(direct_match) \
 		. append_failure_message(
 			(
 				"Collision layer 513 should properly match mask 2561. Layer value: %d, Mask value: %d, Intersection: %d"
 				% [513, 2561, 513 & 2561]
 			)
-		)
+		) \
 		. is_true()
 	)
 
@@ -119,8 +119,8 @@ func test_specific_integration_error_scenario() -> void:
 	# This should return true - no "does not match" error
 	var should_match: bool = PhysicsUtils.object_has_matching_layer(setup_area, 2561)
 	(
-		assert_bool(should_match)
-		. is_true()
+		assert_bool(should_match) \
+		. is_true() \
 		. override_failure_message(
 			(
 				"CRITICAL: IndicatorSetupTestingArea with collision layer 513 must match layer mask 2561. "
@@ -131,12 +131,12 @@ func test_specific_integration_error_scenario() -> void:
 
 	# Additional verification: check the binary representation
 	(
-		assert_that(513 & 2561)
+		assert_that(513 & 2561) \
 		. append_failure_message(
 			(
 				"Binary intersection of collision layer 513 and mask 2561 must be non-zero. Layer: %d, Mask: %d, Intersection: %d"
 				% [513, 2561, 513 & 2561]
 			)
-		)
+		) \
 		. is_greater(0)
 	)

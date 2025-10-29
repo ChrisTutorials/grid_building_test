@@ -23,26 +23,26 @@ func _assert_bounds_equal(
 	actual: Rect2, expected: Rect2, case_name: String, tolerance: float = BOUNDS_TOLERANCE
 ) -> void:
 	(
-		assert_float(actual.position.x)
-		. append_failure_message("Left bound mismatch for %s" % case_name)
+		assert_float(actual.position.x) \
+		. append_failure_message("Left bound mismatch for %s" % case_name) \
 		. is_equal_approx(expected.position.x, tolerance)
 	)
 
 	(
-		assert_float(actual.position.y)
-		. append_failure_message("Top bound mismatch for %s" % case_name)
+		assert_float(actual.position.y) \
+		. append_failure_message("Top bound mismatch for %s" % case_name) \
 		. is_equal_approx(expected.position.y, tolerance)
 	)
 
 	(
-		assert_float(actual.size.x)
-		. append_failure_message("Width mismatch for %s" % case_name)
+		assert_float(actual.size.x) \
+		. append_failure_message("Width mismatch for %s" % case_name) \
 		. is_equal_approx(expected.size.x, tolerance)
 	)
 
 	(
-		assert_float(actual.size.y)
-		. append_failure_message("Height mismatch for %s" % case_name)
+		assert_float(actual.size.y) \
+		. append_failure_message("Height mismatch for %s" % case_name) \
 		. is_equal_approx(expected.size.y, tolerance)
 	)
 
@@ -61,8 +61,8 @@ func _assert_tile_coverage(
 	var actual_tiles: Vector2i = _calculate_tile_coverage(bounds, tile_size)
 
 	(
-		assert_int(actual_tiles.x)
-		. append_failure_message("%s width tile count mismatch" % case_name)
+		assert_int(actual_tiles.x) \
+		. append_failure_message("%s width tile count mismatch" % case_name) \
 		. is_equal(expected_tiles.x)
 	)
 
@@ -231,10 +231,10 @@ func test_shape_tile_collision_detection(
 			overlaps = area > epsilon
 
 	(
-		assert_bool(overlaps)
+		assert_bool(overlaps) \
 		. append_failure_message(
 			"%s should %s overlap" % [case_name, "have" if expected_overlap else "not have"]
-		)
+		) \
 		. is_equal(expected_overlap)
 	)
 
@@ -281,8 +281,8 @@ func test_shape_symmetry_validation(
 	var horizontal_difference: float = abs(left_extent - right_extent)
 
 	(
-		assert_float(horizontal_difference)
-		. append_failure_message("%s should have symmetric horizontal bounds" % case_name)
+		assert_float(horizontal_difference) \
+		. append_failure_message("%s should have symmetric horizontal bounds" % case_name) \
 		. is_less(1.0)
 	)
 
@@ -292,8 +292,8 @@ func test_shape_symmetry_validation(
 	var vertical_difference: float = abs(top_extent - bottom_extent)
 
 	(
-		assert_float(vertical_difference)
-		. append_failure_message("%s should have symmetric vertical bounds" % case_name)
+		assert_float(vertical_difference) \
+		. append_failure_message("%s should have symmetric vertical bounds" % case_name) \
 		. is_less(1.0)
 	)
 
@@ -320,9 +320,9 @@ func test_collision_detection_performance() -> void:
 
 	# Performance assertion - should complete within reasonable time
 	(
-		assert_int(duration)
+		assert_int(duration) \
 		. append_failure_message(
 			"Collision detection took %dms for %d positions" % [duration, test_positions.size()]
-		)
+		) \
 		. is_less(PERFORMANCE_TIMEOUT_MS)
 	)  # Should complete in under 100ms

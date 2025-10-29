@@ -200,7 +200,7 @@ func test_collision_mapper_polygon_edge_cases(
 	# For now, just verify that CollisionGeometryUtils meets minimum expectations
 	# (CollisionMapper will fail until setup issues are resolved)
 	(
-		assert_int(expected_count)
+		assert_int(expected_count) \
 		. append_failure_message(
 			(
 				details
@@ -211,7 +211,7 @@ func test_collision_mapper_polygon_edge_cases(
 				+ " but found "
 				+ str(expected_count)
 			)
-		)
+		) \
 		. is_greater_equal(expected_min_tiles)
 	)
 
@@ -219,14 +219,14 @@ func test_collision_mapper_polygon_edge_cases(
 	if mapped_count == 0:
 		# Append mapping diagnostic to failure messages when appropriate (non-fatal here)
 		(
-			assert_int(0)
+			assert_int(0) \
 			. append_failure_message(
 				(
 					details
 					+ "*** CollisionMapper setup issue: 0 positions mapped for "
 					+ str(test_name)
 				)
-			)
+			) \
 			. is_greater_equal(0)
 		)
 
@@ -309,7 +309,7 @@ func test_collision_mapper_position_independence(
 	# For a 32x32 square on 16x16 tiles, the coverage varies slightly by alignment.
 	# Accept a reasonable range (1..9) instead of a fixed value.
 	(
-		assert_int(expected_offsets.size())
+		assert_int(expected_offsets.size()) \
 		. append_failure_message(
 			(
 				details
@@ -318,14 +318,14 @@ func test_collision_mapper_position_independence(
 				+ " at position "
 				+ str(position)
 			)
-		)
+		) \
 		. is_between(1, 9)
 	)
 
 	# Check that offsets are reasonable (within expected bounds for a 32x32 shape with 16x16 tiles)
 	for offset in expected_offsets:
 		(
-			assert_int(abs(offset.x))
+			assert_int(abs(offset.x)) \
 			. append_failure_message(
 				(
 					details
@@ -334,12 +334,12 @@ func test_collision_mapper_position_independence(
 					+ " too large for 32x32 shape at position "
 					+ str(position)
 				)
-			)
+			) \
 			. is_less_equal(2)
 		)
 
 		(
-			assert_int(abs(offset.y))
+			assert_int(abs(offset.y)) \
 			. append_failure_message(
 				(
 					details
@@ -348,7 +348,7 @@ func test_collision_mapper_position_independence(
 					+ " too large for 32x32 shape at position "
 					+ str(position)
 				)
-			)
+			) \
 			. is_less_equal(2)
 		)
 
@@ -408,13 +408,13 @@ func test_collision_mapper_size_extremes() -> void:
 	if expected_count == 0:
 		# Accept either result; assert that mapper did not produce an unexpectedly large result
 		(
-			assert_int(mapped_count)
+			assert_int(mapped_count) \
 			. append_failure_message(
 				(
 					details
 					+ "Note: Geometry utilities filtered micro polygon out (expected). Mapper should not produce many tiles."
 				)
-			)
+			) \
 			. is_less_equal(4)
 		)
 	else:
@@ -426,26 +426,26 @@ func test_collision_mapper_size_extremes() -> void:
 			# Use a non-fatal informational assertion: check 0 >= 0 to avoid test failure while
 			# appending the detailed diagnostic message for later inspection.
 			(
-				assert_int(0)
+				assert_int(0) \
 				. append_failure_message(
 					(
 						details
 						+ "NOTE: Mapper returned 0 mapped positions for a micro polygon; this is tolerated but should be reviewed if unexpected."
 					)
-				)
+				) \
 				. is_greater_equal(0)
 			)
 		else:
 			# Mapper produced at least one mapping; assert that as a pass.
 			(
-				assert_int(mapped_count)
-				. append_failure_message(details + "Mapper produced mapped positions as expected.")
+				assert_int(mapped_count) \
+				. append_failure_message(details + "Mapper produced mapped positions as expected.") \
 				. is_greater_equal(1)
 			)
 
 	# Additionally, if counts differ, append a more explicit failure message on the expected_count assertion
 	(
-		assert_int(expected_count)
+		assert_int(expected_count) \
 		. append_failure_message(
 			(
 				"[SIZE] CollisionGeometryUtils expected "
@@ -453,6 +453,6 @@ func test_collision_mapper_size_extremes() -> void:
 				+ " tiles for micro polygon but computed offsets: "
 				+ str(expected_offsets)
 			)
-		)
+		) \
 		. is_greater_equal(0)
 	)

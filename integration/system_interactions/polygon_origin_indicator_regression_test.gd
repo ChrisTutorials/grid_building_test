@@ -23,8 +23,8 @@ func before_test() -> void:
 		self, GBTestConstants.ALL_SYSTEMS_ENV_UID
 	)
 	(
-		assert_object(test_env)
-		. append_failure_message("AllSystemsTestEnvironment should be created successfully")
+		assert_object(test_env) \
+		. append_failure_message("AllSystemsTestEnvironment should be created successfully") \
 		. is_not_null()
 	)
 
@@ -36,19 +36,19 @@ func before_test() -> void:
 
 	# Validate essential components
 	(
-		assert_object(_indicator_manager)
-		. append_failure_message("IndicatorManager should be available")
+		assert_object(_indicator_manager) \
+		. append_failure_message("IndicatorManager should be available") \
 		. is_not_null()
 	)
 	(
-		assert_object(_targeting_state)
-		. append_failure_message("TargetingState should be available")
+		assert_object(_targeting_state) \
+		. append_failure_message("TargetingState should be available") \
 		. is_not_null()
 	)
 	assert_object(_map).append_failure_message("TileMapLayer should be available").is_not_null()
 	(
-		assert_object(_manipulation_parent)
-		. append_failure_message("ManipulationParent should be available")
+		assert_object(_manipulation_parent) \
+		. append_failure_message("ManipulationParent should be available") \
 		. is_not_null()
 	)
 
@@ -106,8 +106,8 @@ func test_polygon_test_object_no_indicator_at_origin_when_centered() -> void:
 	# Set up the rule with the targeting state
 	var rule_issues: Array[String] = rule.setup(_targeting_state)
 	(
-		assert_array(rule_issues)
-		. append_failure_message("Rule setup should not have issues: %s" % str(rule_issues))
+		assert_array(rule_issues) \
+		. append_failure_message("Rule setup should not have issues: %s" % str(rule_issues)) \
 		. is_empty()
 	)
 
@@ -121,8 +121,8 @@ func test_polygon_test_object_no_indicator_at_origin_when_centered() -> void:
 	# This test currently validates the setup process and component access patterns
 	# TODO: Re-enable indicator generation assertions once collision mapping issues are resolved
 	(
-		assert_object(report)
-		. append_failure_message("IndicatorManager.setup_indicators should return a valid report")
+		assert_object(report) \
+		. append_failure_message("IndicatorManager.setup_indicators should return a valid report") \
 		. is_not_null()
 	)
 
@@ -141,7 +141,7 @@ func test_polygon_test_object_no_indicator_at_origin_when_centered() -> void:
 	# The main assertion: (0,0) should NOT have an indicator
 	var has_origin_indicator: bool = Vector2i.ZERO in indicator_tiles
 	(
-		assert_bool(has_origin_indicator)
+		assert_bool(has_origin_indicator) \
 		. append_failure_message(
 			(
 				"REGRESSION: Found unexpected indicator at (0,0) for polygon test object. "
@@ -150,7 +150,7 @@ func test_polygon_test_object_no_indicator_at_origin_when_centered() -> void:
 				+ ". This indicates the collision detection is incorrectly "
 				+ "including the origin tile when the polygon is centered."
 			)
-		)
+		) \
 		. is_false()
 	)
 
@@ -176,8 +176,8 @@ func test_polygon_test_object_valid_indicators_generated() -> void:
 	# Set up the rule with the targeting state
 	var rule_issues: Array[String] = rule.setup(_targeting_state)
 	(
-		assert_array(rule_issues)
-		. append_failure_message("Rule setup should not have issues: %s" % str(rule_issues))
+		assert_array(rule_issues) \
+		. append_failure_message("Rule setup should not have issues: %s" % str(rule_issues)) \
 		. is_empty()
 	)
 
@@ -189,8 +189,8 @@ func test_polygon_test_object_valid_indicators_generated() -> void:
 	# NOTE: Indicator generation is currently not working due to systemic issues
 	# For now, just verify the setup process works
 	(
-		assert_object(report)
-		. append_failure_message("IndicatorManager.setup_indicators should return a valid report")
+		assert_object(report) \
+		. append_failure_message("IndicatorManager.setup_indicators should return a valid report") \
 		. is_not_null()
 	)
 
@@ -227,8 +227,8 @@ func test_polygon_test_object_centered_preview_flag() -> void:
 	# Set up the rule with the targeting state
 	var rule_issues: Array[String] = rule.setup(_targeting_state)
 	(
-		assert_array(rule_issues)
-		. append_failure_message("Rule setup should not have issues: %s" % str(rule_issues))
+		assert_array(rule_issues) \
+		. append_failure_message("Rule setup should not have issues: %s" % str(rule_issues)) \
 		. is_empty()
 	)
 
@@ -240,8 +240,8 @@ func test_polygon_test_object_centered_preview_flag() -> void:
 	# NOTE: Indicator generation is currently not working due to systemic issues
 	# For now, just verify the setup process works
 	(
-		assert_object(report)
-		. append_failure_message("IndicatorManager.setup_indicators should return a valid report")
+		assert_object(report) \
+		. append_failure_message("IndicatorManager.setup_indicators should return a valid report") \
 		. is_not_null()
 	)
 
@@ -278,8 +278,8 @@ func test_proper_parent_architecture_maintained() -> void:
 	# Set up the rule with the targeting state
 	var rule_issues: Array[String] = rule.setup(_targeting_state)
 	(
-		assert_array(rule_issues)
-		. append_failure_message("Rule setup should not have issues: %s" % str(rule_issues))
+		assert_array(rule_issues) \
+		. append_failure_message("Rule setup should not have issues: %s" % str(rule_issues)) \
 		. is_empty()
 	)
 
@@ -291,8 +291,8 @@ func test_proper_parent_architecture_maintained() -> void:
 	# NOTE: Indicator generation is currently not working due to systemic issues
 	# For now, just verify the setup process works
 	(
-		assert_object(report)
-		. append_failure_message("IndicatorManager.setup_indicators should return a valid report")
+		assert_object(report) \
+		. append_failure_message("IndicatorManager.setup_indicators should return a valid report") \
 		. is_not_null()
 	)
 

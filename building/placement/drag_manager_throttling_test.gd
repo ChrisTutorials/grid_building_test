@@ -44,18 +44,18 @@ func before_test() -> void:
 
 	# Validate critical references before continuing
 	(
-		assert_object(_targeting_state)
-		. append_failure_message("GridTargetingState should not be null")
+		assert_object(_targeting_state) \
+		. append_failure_message("GridTargetingState should not be null") \
 		. is_not_null()
 	)
 	(
-		assert_object(_targeting_state.positioner)
-		. append_failure_message("GridPositioner2D should not be null")
+		assert_object(_targeting_state.positioner) \
+		. append_failure_message("GridPositioner2D should not be null") \
 		. is_not_null()
 	)
 	(
-		assert_object(_building_system)
-		. append_failure_message("BuildingSystem should not be null")
+		assert_object(_building_system) \
+		. append_failure_message("BuildingSystem should not be null") \
 		. is_not_null()
 	)
 
@@ -66,8 +66,8 @@ func before_test() -> void:
 	# Get drag_manager from environment
 	_drag_manager = env.drag_manager
 	(
-		assert_object(_drag_manager)
-		. append_failure_message("DragManager should not be null")
+		assert_object(_drag_manager) \
+		. append_failure_message("DragManager should not be null") \
 		. is_not_null()
 	)
 
@@ -80,8 +80,8 @@ func before_test() -> void:
 	var test_placeable: Placeable = GBTestConstants.PLACEABLE_SMITHY
 	var enter_result: PlacementReport = _building_system.enter_build_mode(test_placeable)
 	(
-		assert_bool(enter_result.is_successful())
-		. append_failure_message("Failed to enter build mode: %s" % str(enter_result.get_issues()))
+		assert_bool(enter_result.is_successful()) \
+		. append_failure_message("Failed to enter build mode: %s" % str(enter_result.get_issues())) \
 		. is_true()
 	)
 
@@ -89,17 +89,17 @@ func before_test() -> void:
 	var mode_state: ModeState = _building_system._states.mode
 	var building_state: BuildingState = _building_system._states.building
 	(
-		assert_that(mode_state.current)
+		assert_that(mode_state.current) \
 		. append_failure_message(
 			"Should be in BUILD mode, but mode is: %s" % str(mode_state.current)
-		)
+		) \
 		. is_equal(GBEnums.Mode.BUILD)
 	)
 	(
-		assert_object(building_state.preview)
+		assert_object(building_state.preview) \
 		. append_failure_message(
 			"BuildingSystem should have active preview after entering build mode"
-		)
+		) \
 		. is_not_null()
 	)
 
@@ -124,8 +124,8 @@ func test_no_requests_when_drag_not_started() -> void:
 
 	# Should be no drag_data
 	(
-		assert_object(_drag_manager.drag_data)
-		. append_failure_message("drag_data should be null when drag not started")
+		assert_object(_drag_manager.drag_data) \
+		. append_failure_message("drag_data should be null when drag not started") \
 		. is_null()
 	)
 
@@ -141,13 +141,13 @@ func test_no_requests_when_tile_unchanged() -> void:
 
 	# Tile hasn't changed - should be ZERO build requests
 	(
-		assert_int(drag_data.build_requests)
+		assert_int(drag_data.build_requests) \
 		. append_failure_message(
 			(
 				"No build requests should be made when tile unchanged. Initial tile: %s, Current: %s, Frames: 5"
 				% [initial_tile, drag_data.target_tile]
 			)
-		)
+		) \
 		. is_equal(0)
 	)
 
@@ -155,16 +155,16 @@ func test_no_requests_when_tile_unchanged() -> void:
 func test_single_request_on_tile_change() -> void:
 	# Validate drag manager state
 	(
-		assert_object(_drag_manager)
-		. append_failure_message("DragManager should not be null")
+		assert_object(_drag_manager) \
+		. append_failure_message("DragManager should not be null") \
 		. is_not_null()
 	)
 
 	# Start drag
 	var drag_data: DragPathData = _drag_manager.start_drag()
 	(
-		assert_object(drag_data)
-		. append_failure_message("start_drag() should return valid DragPathData")
+		assert_object(drag_data) \
+		. append_failure_message("start_drag() should return valid DragPathData") \
 		. is_not_null()
 	)
 
@@ -181,7 +181,7 @@ func test_single_request_on_tile_change() -> void:
 	var final_requests: int = drag_data.build_requests
 	var requests_made: int = final_requests - initial_requests
 	(
-		assert_int(requests_made)
+		assert_int(requests_made) \
 		. append_failure_message(
 			(
 				"Exactly one build request should be made on tile change. Initial: %s, New: %s, Initial requests: %d, Final: %d, Made: %d"
@@ -193,7 +193,7 @@ func test_single_request_on_tile_change() -> void:
 					requests_made
 				]
 			)
-		)
+		) \
 		. is_equal(1)
 	)
 
@@ -204,15 +204,15 @@ func test_physics_frame_gate_blocks_multiple_requests_same_frame() -> void:
 	# only ONE request should go through
 
 	(
-		assert_object(_drag_manager)
-		. append_failure_message("DragManager should not be null")
+		assert_object(_drag_manager) \
+		. append_failure_message("DragManager should not be null") \
 		. is_not_null()
 	)
 
 	var drag_data: DragPathData = _drag_manager.start_drag()
 	(
-		assert_object(drag_data)
-		. append_failure_message("start_drag() should return valid DragPathData")
+		assert_object(drag_data) \
+		. append_failure_message("start_drag() should return valid DragPathData") \
 		. is_not_null()
 	)
 
@@ -235,25 +235,25 @@ func test_physics_frame_gate_blocks_multiple_requests_same_frame() -> void:
 	# Should only have ONE new request (the first one), second should be gated
 	var first_change_requests: int = requests_after_first - initial_requests
 	(
-		assert_int(first_change_requests)
+		assert_int(first_change_requests) \
 		. append_failure_message(
 			(
 				"First tile change should trigger request. Initial: %d, After first: %d, Delta: %d"
 				% [initial_requests, requests_after_first, first_change_requests]
 			)
-		)
+		) \
 		. is_equal(1)
 	)
 
 	var second_change_requests: int = requests_after_second - requests_after_first
 	(
-		assert_int(second_change_requests)
+		assert_int(second_change_requests) \
 		. append_failure_message(
 			(
 				"Second tile change in SAME frame should be BLOCKED by physics frame gate. After first: %d, After second: %d, Delta: %d"
 				% [requests_after_first, requests_after_second, second_change_requests]
 			)
-		)
+		) \
 		. is_equal(0)
 	)
 
@@ -261,25 +261,25 @@ func test_physics_frame_gate_blocks_multiple_requests_same_frame() -> void:
 func test_multiple_tile_changes_across_frames() -> void:
 	# Validate critical references
 	(
-		assert_object(_drag_manager)
-		. append_failure_message("DragManager should not be null")
+		assert_object(_drag_manager) \
+		. append_failure_message("DragManager should not be null") \
 		. is_not_null()
 	)
 	(
-		assert_object(_targeting_state)
-		. append_failure_message("GridTargetingState should not be null")
+		assert_object(_targeting_state) \
+		. append_failure_message("GridTargetingState should not be null") \
 		. is_not_null()
 	)
 	(
-		assert_object(_targeting_state.positioner)
-		. append_failure_message("GridPositioner2D should not be null")
+		assert_object(_targeting_state.positioner) \
+		. append_failure_message("GridPositioner2D should not be null") \
 		. is_not_null()
 	)
 
 	var drag_data: DragPathData = _drag_manager.start_drag()
 	(
-		assert_object(drag_data)
-		. append_failure_message("start_drag() should return valid DragPathData")
+		assert_object(drag_data) \
+		. append_failure_message("start_drag() should return valid DragPathData") \
 		. is_not_null()
 	)
 
@@ -324,10 +324,10 @@ func test_multiple_tile_changes_across_frames() -> void:
 
 	# Should have exactly 3 requests (one per tile change, each in different frame)
 	(
-		assert_int(requests_made)
+		assert_int(requests_made) \
 		. append_failure_message(
 			"Should have 3 build requests for 3 tile changes across frames. %s" % diagnostic
-		)
+		) \
 		. is_equal(3)
 	)
 
@@ -336,25 +336,25 @@ func test_last_attempted_tile_prevents_duplicate_requests() -> void:
 	# This tests the drag_data.last_attempted_tile check
 	# Validate critical references
 	(
-		assert_object(_drag_manager)
-		. append_failure_message("DragManager should not be null")
+		assert_object(_drag_manager) \
+		. append_failure_message("DragManager should not be null") \
 		. is_not_null()
 	)
 	(
-		assert_object(_targeting_state)
-		. append_failure_message("GridTargetingState should not be null")
+		assert_object(_targeting_state) \
+		. append_failure_message("GridTargetingState should not be null") \
 		. is_not_null()
 	)
 	(
-		assert_object(_targeting_state.positioner)
-		. append_failure_message("GridPositioner2D should not be null")
+		assert_object(_targeting_state.positioner) \
+		. append_failure_message("GridPositioner2D should not be null") \
 		. is_not_null()
 	)
 
 	var drag_data: DragPathData = _drag_manager.start_drag()
 	(
-		assert_object(drag_data)
-		. append_failure_message("start_drag() should return valid DragPathData")
+		assert_object(drag_data) \
+		. append_failure_message("start_drag() should return valid DragPathData") \
 		. is_not_null()
 	)
 
@@ -370,13 +370,13 @@ func test_last_attempted_tile_prevents_duplicate_requests() -> void:
 	var requests_after_move: int = drag_data.build_requests
 	var requests_from_move: int = requests_after_move - initial_requests
 	(
-		assert_int(requests_from_move)
+		assert_int(requests_from_move) \
 		. append_failure_message(
 			(
 				"Should have made at least one request after tile change. Initial: %d, After: %d, Delta: %d"
 				% [initial_requests, requests_after_move, requests_from_move]
 			)
-		)
+		) \
 		. is_greater(0)
 	)
 
@@ -387,7 +387,7 @@ func test_last_attempted_tile_prevents_duplicate_requests() -> void:
 	var final_requests: int = drag_data.build_requests
 	# Should NOT make another request for the same tile
 	(
-		assert_int(final_requests)
+		assert_int(final_requests) \
 		. append_failure_message(
 			(
 				"Should NOT make duplicate request for same tile. Last attempted: %s, Current: %s, After move: %d, Final: %d"
@@ -398,7 +398,7 @@ func test_last_attempted_tile_prevents_duplicate_requests() -> void:
 					final_requests
 				]
 			)
-		)
+		) \
 		. is_equal(requests_after_move)
 	)
 
@@ -406,26 +406,26 @@ func test_last_attempted_tile_prevents_duplicate_requests() -> void:
 func test_drag_session_isolation() -> void:
 	# Validate critical references
 	(
-		assert_object(_drag_manager)
-		. append_failure_message("DragManager should not be null")
+		assert_object(_drag_manager) \
+		. append_failure_message("DragManager should not be null") \
 		. is_not_null()
 	)
 	(
-		assert_object(_targeting_state)
-		. append_failure_message("GridTargetingState should not be null")
+		assert_object(_targeting_state) \
+		. append_failure_message("GridTargetingState should not be null") \
 		. is_not_null()
 	)
 	(
-		assert_object(_targeting_state.positioner)
-		. append_failure_message("GridPositioner2D should not be null")
+		assert_object(_targeting_state.positioner) \
+		. append_failure_message("GridPositioner2D should not be null") \
 		. is_not_null()
 	)
 
 	# First drag session
 	var drag1: DragPathData = _drag_manager.start_drag()
 	(
-		assert_object(drag1)
-		. append_failure_message("First start_drag() should return valid DragPathData")
+		assert_object(drag1) \
+		. append_failure_message("First start_drag() should return valid DragPathData") \
 		. is_not_null()
 	)
 
@@ -439,13 +439,13 @@ func test_drag_session_isolation() -> void:
 
 	var drag1_requests: int = drag1.build_requests
 	(
-		assert_int(drag1_requests)
+		assert_int(drag1_requests) \
 		. append_failure_message(
 			(
 				"First drag session should have made at least one request. Requests: %d"
 				% drag1_requests
 			)
-		)
+		) \
 		. is_greater(0)
 	)
 
@@ -456,15 +456,15 @@ func test_drag_session_isolation() -> void:
 	# Start second drag session
 	var drag2: DragPathData = _drag_manager.start_drag()
 	(
-		assert_object(drag2)
-		. append_failure_message("Second start_drag() should return valid DragPathData")
+		assert_object(drag2) \
+		. append_failure_message("Second start_drag() should return valid DragPathData") \
 		. is_not_null()
 	)
 
 	# Second session should have fresh counter starting at 0
 	(
-		assert_int(drag2.build_requests)
-		. append_failure_message("New drag session should start with build_requests = 0")
+		assert_int(drag2.build_requests) \
+		. append_failure_message("New drag session should start with build_requests = 0") \
 		. is_equal(0)
 	)
 
@@ -479,13 +479,13 @@ func test_drag_session_isolation() -> void:
 
 	# Second session should track its own requests independently
 	(
-		assert_int(drag2.build_requests)
+		assert_int(drag2.build_requests) \
 		. append_failure_message(
 			(
 				"Second drag session should track requests independently. Drag1 requests: %d, Drag2 requests: %d"
 				% [drag1_requests, drag2.build_requests]
 			)
-		)
+		) \
 		. is_equal(1)
 	)
 
@@ -498,30 +498,30 @@ func test_drag_session_isolation() -> void:
 func test_no_requests_when_not_in_build_mode() -> void:
 	# Validate critical references
 	(
-		assert_object(_drag_manager)
-		. append_failure_message("DragManager should not be null")
+		assert_object(_drag_manager) \
+		. append_failure_message("DragManager should not be null") \
 		. is_not_null()
 	)
 	(
-		assert_object(_building_system)
-		. append_failure_message("BuildingSystem should not be null")
+		assert_object(_building_system) \
+		. append_failure_message("BuildingSystem should not be null") \
 		. is_not_null()
 	)
 	(
-		assert_object(_targeting_state)
-		. append_failure_message("GridTargetingState should not be null")
+		assert_object(_targeting_state) \
+		. append_failure_message("GridTargetingState should not be null") \
 		. is_not_null()
 	)
 	(
-		assert_object(_targeting_state.positioner)
-		. append_failure_message("GridPositioner2D should not be null")
+		assert_object(_targeting_state.positioner) \
+		. append_failure_message("GridPositioner2D should not be null") \
 		. is_not_null()
 	)
 
 	var drag_data: DragPathData = _drag_manager.start_drag()
 	(
-		assert_object(drag_data)
-		. append_failure_message("start_drag() should return valid DragPathData")
+		assert_object(drag_data) \
+		. append_failure_message("start_drag() should return valid DragPathData") \
 		. is_not_null()
 	)
 
@@ -542,13 +542,13 @@ func test_no_requests_when_not_in_build_mode() -> void:
 	var final_requests: int = drag_data.build_requests
 	var requests_made: int = final_requests - initial_requests
 	(
-		assert_int(requests_made)
+		assert_int(requests_made) \
 		. append_failure_message(
 			(
 				"Should NOT make build requests when not in BUILD mode. Initial: %d, Final: %d, Made: %d"
 				% [initial_requests, final_requests, requests_made]
 			)
-		)
+		) \
 		. is_equal(0)
 	)
 
@@ -556,36 +556,36 @@ func test_no_requests_when_not_in_build_mode() -> void:
 func test_no_requests_when_no_preview() -> void:
 	# Validate critical references
 	(
-		assert_object(_drag_manager)
-		. append_failure_message("DragManager should not be null")
+		assert_object(_drag_manager) \
+		. append_failure_message("DragManager should not be null") \
 		. is_not_null()
 	)
 	(
-		assert_object(_building_system)
-		. append_failure_message("BuildingSystem should not be null")
+		assert_object(_building_system) \
+		. append_failure_message("BuildingSystem should not be null") \
 		. is_not_null()
 	)
 	(
-		assert_object(_building_system._states)
-		. append_failure_message("BuildingSystem._states should not be null")
+		assert_object(_building_system._states) \
+		. append_failure_message("BuildingSystem._states should not be null") \
 		. is_not_null()
 	)
 	(
-		assert_object(_targeting_state)
-		. append_failure_message("GridTargetingState should not be null")
+		assert_object(_targeting_state) \
+		. append_failure_message("GridTargetingState should not be null") \
 		. is_not_null()
 	)
 	(
-		assert_object(_targeting_state.positioner)
-		. append_failure_message("GridPositioner2D should not be null")
+		assert_object(_targeting_state.positioner) \
+		. append_failure_message("GridPositioner2D should not be null") \
 		. is_not_null()
 	)
 
 	# Start drag in build mode with preview
 	var drag_data: DragPathData = _drag_manager.start_drag()
 	(
-		assert_object(drag_data)
-		. append_failure_message("start_drag() should return valid DragPathData")
+		assert_object(drag_data) \
+		. append_failure_message("start_drag() should return valid DragPathData") \
 		. is_not_null()
 	)
 
@@ -605,13 +605,13 @@ func test_no_requests_when_no_preview() -> void:
 	var final_requests: int = drag_data.build_requests
 	var requests_made: int = final_requests - initial_requests
 	(
-		assert_int(requests_made)
+		assert_int(requests_made) \
 		. append_failure_message(
 			(
 				"Should NOT make build requests when no active preview. Initial: %d, Final: %d, Made: %d"
 				% [initial_requests, final_requests, requests_made]
 			)
-		)
+		) \
 		. is_equal(0)
 	)
 
@@ -631,22 +631,22 @@ func test_build_requests_counts_only_successful_gate_passes() -> void:
 
 	# Validate critical references
 	(
-		assert_object(_drag_manager)
-		. append_failure_message("DragManager should not be null")
+		assert_object(_drag_manager) \
+		. append_failure_message("DragManager should not be null") \
 		. is_not_null()
 	)
 
 	var drag_data: DragPathData = _drag_manager.start_drag()
 	(
-		assert_object(drag_data)
-		. append_failure_message("start_drag() should return valid DragPathData")
+		assert_object(drag_data) \
+		. append_failure_message("start_drag() should return valid DragPathData") \
 		. is_not_null()
 	)
 
 	var initial_requests: int = drag_data.build_requests
 	(
-		assert_int(initial_requests)
-		. append_failure_message("Initial build_requests should be 0, got %d" % initial_requests)
+		assert_int(initial_requests) \
+		. append_failure_message("Initial build_requests should be 0, got %d" % initial_requests) \
 		. is_equal(0)
 	)
 
@@ -667,8 +667,8 @@ func test_build_requests_counts_only_successful_gate_passes() -> void:
 		% [initial_requests, requests_after_first, first_delta, start_tile, drag_data.target_tile]
 	)
 	(
-		assert_int(first_delta)
-		. append_failure_message("Should count when all conditions met. %s" % diagnostic_1)
+		assert_int(first_delta) \
+		. append_failure_message("Should count when all conditions met. %s" % diagnostic_1) \
 		. is_equal(1)
 	)
 
@@ -677,13 +677,13 @@ func test_build_requests_counts_only_successful_gate_passes() -> void:
 	var requests_after_no_change: int = drag_data.build_requests
 	var no_change_delta: int = requests_after_no_change - requests_after_first
 	(
-		assert_int(no_change_delta)
+		assert_int(no_change_delta) \
 		. append_failure_message(
 			(
 				"Should NOT count when tile unchanged. After first: %d, After no change: %d, Delta: %d"
 				% [requests_after_first, requests_after_no_change, no_change_delta]
 			)
-		)
+		) \
 		. is_equal(0)
 	)
 
@@ -692,13 +692,13 @@ func test_build_requests_counts_only_successful_gate_passes() -> void:
 	var requests_after_duplicate: int = drag_data.build_requests
 	var duplicate_delta: int = requests_after_duplicate - requests_after_no_change
 	(
-		assert_int(duplicate_delta)
+		assert_int(duplicate_delta) \
 		. append_failure_message(
 			(
 				"Should NOT count duplicate tile. After no change: %d, After duplicate: %d, Delta: %d"
 				% [requests_after_no_change, requests_after_duplicate, duplicate_delta]
 			)
-		)
+		) \
 		. is_equal(0)
 	)
 
@@ -728,8 +728,8 @@ func test_build_requests_counts_only_successful_gate_passes() -> void:
 		]
 	)
 	(
-		assert_int(total_delta)
-		. append_failure_message("Should count new tile with all conditions met. %s" % diagnostic_2)
+		assert_int(total_delta) \
+		. append_failure_message("Should count new tile with all conditions met. %s" % diagnostic_2) \
 		. is_equal(2)
 	)
 

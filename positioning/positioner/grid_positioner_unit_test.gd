@@ -85,8 +85,8 @@ func _create_collision_env() -> CollisionTestEnvironment:
 	var env: CollisionTestEnvironment = runner.scene() as CollisionTestEnvironment
 
 	(
-		assert_object(env)
-		. append_failure_message("Failed to load CollisionTestEnvironment scene")
+		assert_object(env) \
+		. append_failure_message("Failed to load CollisionTestEnvironment scene") \
 		. is_not_null()
 	)
 
@@ -188,21 +188,21 @@ func test_visible_in_active_mode_when_mouse_disabled_and_no_events() -> void:
 
 	# Assert: should remain visible even with no mouse events and mouse features disabled
 	(
-		assert_bool(gp.should_be_visible())
+		assert_bool(gp.should_be_visible()) \
 		. append_failure_message(
 			_diag(
 				"In active mode, positioner should be visible when mouse is disabled and no events are present"
 			)
-		)
+		) \
 		. is_true()
 	)
 	(
-		assert_bool(gp.visible)
+		assert_bool(gp.visible) \
 		. append_failure_message(
 			_diag(
 				"GridPositioner2D.visible should be true in active mode without mouse dependencies"
 			)
-		)
+		) \
 		. is_true()
 	)
 
@@ -241,19 +241,19 @@ func test_input_processing_gate_toggle() -> void:
 	# Starts disabled in _ready, but _ready isn't called here; verify setter toggles the flag directly
 	gp.set_input_processing_enabled(false)
 	(
-		assert_bool(gp.input_processing_enabled)
+		assert_bool(gp.input_processing_enabled) \
 		. append_failure_message(
 			_diag("Input gate should be false after set_input_processing_enabled(false)")
-		)
+		) \
 		. is_false()
 	)
 
 	gp.set_input_processing_enabled(true)
 	(
-		assert_bool(gp.input_processing_enabled)
+		assert_bool(gp.input_processing_enabled) \
 		. append_failure_message(
 			_diag("Input gate should be true after set_input_processing_enabled(true)")
-		)
+		) \
 		. is_true()
 	)
 
@@ -270,10 +270,10 @@ func test_off_mode_visibility_override_when_enabled() -> void:
 
 	# Assert: visible should be true due to override
 	(
-		assert_bool(gp.visible)
+		assert_bool(gp.visible) \
 		. append_failure_message(
 			_diag("OFF mode should keep the positioner visible when remain_active_in_off_mode=true")
-		)
+		) \
 		. is_true()
 	)
 
@@ -307,7 +307,7 @@ func test_recenter_on_enable_prefers_cached_when_option_true() -> void:
 	var tile_center_local := map.map_to_local(cached_tile)
 	var expected_pos := map.to_global(tile_center_local)
 	(
-		assert_vector(gp.global_position)
+		assert_vector(gp.global_position) \
 		. append_failure_message(
 			_diag(
 				(
@@ -321,7 +321,7 @@ func test_recenter_on_enable_prefers_cached_when_option_true() -> void:
 					]
 				)
 			)
-		)
+		) \
 		. is_equal_approx(expected_pos, Vector2(8.0, 8.0))
 	)  # 8px tolerance for tile snapping
 
@@ -352,7 +352,7 @@ func test_recenter_on_enable_mouse_enabled_centers_on_mouse_else_fallbacks() -> 
 	var tile_center_local := map.map_to_local(cached_tile)
 	var expected_pos := map.to_global(tile_center_local)
 	(
-		assert_vector(gp.global_position)
+		assert_vector(gp.global_position) \
 		. append_failure_message(
 			_diag(
 				(
@@ -366,7 +366,7 @@ func test_recenter_on_enable_mouse_enabled_centers_on_mouse_else_fallbacks() -> 
 					]
 				)
 			)
-		)
+		) \
 		. is_equal_approx(expected_pos, Vector2(8.0, 8.0))
 	)  # 8px tolerance for tile snapping
 
@@ -387,7 +387,7 @@ func test_recenter_on_enable_keyboard_only_centers_view() -> void:
 
 	var expected_global_vc: Vector2 = _expected_view_center_position(map)
 	(
-		assert_vector(gp.global_position)
+		assert_vector(gp.global_position) \
 		. append_failure_message(
 			_diag(
 				(
@@ -395,7 +395,7 @@ func test_recenter_on_enable_keyboard_only_centers_view() -> void:
 					% [str(gp.global_position), str(expected_global_vc), str(map.global_position)]
 				)
 			)
-		)
+		) \
 		. is_equal_approx(expected_global_vc, Vector2(8.0, 8.0))
 	)
 
@@ -422,10 +422,10 @@ func test_restrict_to_map_area_respects_parent_transform() -> void:
 	GBPositioning2DUtils.move_to_closest_valid_tile_center(gp, target_tile, gp, map, settings)
 
 	(
-		assert_vector(gp.global_position)
+		assert_vector(gp.global_position) \
 		. append_failure_message(
 			_diag("restrict_to_map_area should honor parent transforms when snapping to tiles")
-		)
+		) \
 		. is_equal_approx(expected_global, Vector2.ONE)
 	)
 
@@ -492,30 +492,30 @@ func test_hide_on_handled_mouse_event_hides_positioner() -> void:
 	# Assert gate blocks input (this triggers hide_on_handled behavior)
 	var gate_blocks_input: bool = not stub.get_input_gate()
 	(
-		assert_bool(gate_blocks_input)
+		assert_bool(gate_blocks_input) \
 		. append_failure_message(
 			"Gate should block input to trigger hide_on_handled behavior. %s" % diagnostic_state
-		)
+		) \
 		. is_true()
 	)
 
 	# Assert hide_on_handled setting is active
 	(
-		assert_bool(settings.hide_on_handled)
-		. append_failure_message("hide_on_handled should be enabled. %s" % diagnostic_state)
+		assert_bool(settings.hide_on_handled) \
+		. append_failure_message("hide_on_handled should be enabled. %s" % diagnostic_state) \
 		. is_true()
 	)
 
 	# Assert actual system behavior: hide_on_handled takes effect when gate blocks input
 	# Current design: mouse_gate:blocked triggers visibility off
 	(
-		assert_bool(gp.visible)
+		assert_bool(gp.visible) \
 		. append_failure_message(
 			(
 				"System design: hide_on_handled should hide positioner when gate blocks input. %s"
 				% diagnostic_state
 			)
-		)
+		) \
 		. is_false()
 	)
 
@@ -548,7 +548,7 @@ func test_recenter_on_resolve_dependencies_mouse_enabled_and_cursor_on_screen() 
 	var expected_fail_safe_position: Vector2 = Vector2(8.0, 8.0)  # Tile (0,0) center
 
 	(
-		assert_vector(gp.global_position)
+		assert_vector(gp.global_position) \
 		. append_failure_message(
 			_diag(
 				(
@@ -556,7 +556,7 @@ func test_recenter_on_resolve_dependencies_mouse_enabled_and_cursor_on_screen() 
 					% str(gp.global_position)
 				)
 			)
-		)
+		) \
 		. is_equal(expected_fail_safe_position)
 	)
 
@@ -581,7 +581,7 @@ func test_recenter_on_resolve_dependencies_mouse_disabled_moves_to_center() -> v
 	# With fail-fast behavior, Vector2.ZERO maps to tile (0,0) which centers at (8.0, 8.0)
 	var expected_fail_safe_position: Vector2 = Vector2(8.0, 8.0)  # Tile (0,0) center
 	(
-		assert_vector(gp.global_position)
+		assert_vector(gp.global_position) \
 		. append_failure_message(
 			_diag(
 				(
@@ -589,7 +589,7 @@ func test_recenter_on_resolve_dependencies_mouse_disabled_moves_to_center() -> v
 					% str(gp.global_position)
 				)
 			)
-		)
+		) \
 		. is_equal(expected_fail_safe_position)
 	)
 
@@ -627,7 +627,7 @@ func test_recenter_on_resolve_dependencies_cursor_off_screen_moves_to_center() -
 	# With fail-fast behavior, Vector2.ZERO maps to tile (0,0) which centers at (8.0, 8.0)
 	var expected_fail_safe_position: Vector2 = Vector2(8.0, 8.0)  # Tile (0,0) center
 	(
-		assert_vector(gp.global_position)
+		assert_vector(gp.global_position) \
 		. append_failure_message(
 			_diag(
 				(
@@ -635,7 +635,7 @@ func test_recenter_on_resolve_dependencies_cursor_off_screen_moves_to_center() -
 					% str(gp.global_position)
 				)
 			)
-		)
+		) \
 		. is_equal(expected_fail_safe_position)
 	)
 
@@ -695,18 +695,18 @@ func _assert_hide_settings_configured(
 	settings: GridTargetingSettings, stub: _StubGateGridPositioner, states: GBStates
 ) -> void:
 	(
-		assert_bool(settings.hide_on_handled)
-		. append_failure_message("Settings hide_on_handled should be true")
+		assert_bool(settings.hide_on_handled) \
+		. append_failure_message("Settings hide_on_handled should be true") \
 		. is_true()
 	)
 	(
-		assert_bool(settings.enable_mouse_input)
-		. append_failure_message("Settings mouse input should be enabled")
+		assert_bool(settings.enable_mouse_input) \
+		. append_failure_message("Settings mouse input should be enabled") \
 		. is_true()
 	)
 	(
-		assert_bool(stub.get_input_gate())
-		. append_failure_message("Gate should block input (return false)")
+		assert_bool(stub.get_input_gate()) \
+		. append_failure_message("Gate should block input (return false)") \
 		. is_false()
 	)
 	assert_int(states.mode.current).append_failure_message("Mode should be MOVE (active)").is_equal(

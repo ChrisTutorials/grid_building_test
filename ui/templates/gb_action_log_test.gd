@@ -205,8 +205,8 @@ func test_append_validation_results_respects_disabled_failed_reasons() -> void:
 	# Assert: Failed reasons should not appear in log
 	var log_text: String = message_label.get_parsed_text()
 	(
-		assert_str(log_text)
-		. not_contains(HIDDEN_FAILURE_REASON)
+		assert_str(log_text) \
+		. not_contains(HIDDEN_FAILURE_REASON) \
 		. append_failure_message(
 			(
 				"Expected failed reason to be hidden when print_failed_reasons=false, but found in: '%s'"

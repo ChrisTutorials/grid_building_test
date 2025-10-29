@@ -61,20 +61,20 @@ func test_get_tile_polygon_for_all_shapes(
 
 	# Validate vertex count
 	(
-		assert_int(tile_polygon.size())
+		assert_int(tile_polygon.size()) \
 		. append_failure_message(
 			(
 				"Tile shape %s should have %d vertices, got %d"
 				% [tile_shape_name, expected_vertex_count, tile_polygon.size()]
 			)
-		)
+		) \
 		. is_equal(expected_vertex_count)
 	)
 
 	# Validate tile polygon is not empty
 	(
-		assert_array(tile_polygon)
-		. append_failure_message("Tile polygon for %s should not be empty" % tile_shape_name)
+		assert_array(tile_polygon) \
+		. append_failure_message("Tile polygon for %s should not be empty" % tile_shape_name) \
 		. is_not_empty()
 	)
 
@@ -83,33 +83,33 @@ func test_get_tile_polygon_for_all_shapes(
 	if tile_shape == TileSet.TILE_SHAPE_ISOMETRIC:
 		# Isometric diamonds should fit within the tile size bounding box
 		(
-			assert_float(bounds.size.x)
+			assert_float(bounds.size.x) \
 			. append_failure_message(
 				"Isometric tile width should be tile_size.x, got %.2f" % bounds.size.x
-			)
+			) \
 			. is_equal_approx(tile_size.x, 0.1)
 		)
 		(
-			assert_float(bounds.size.y)
+			assert_float(bounds.size.y) \
 			. append_failure_message(
 				"Isometric tile height should be tile_size.y, got %.2f" % bounds.size.y
-			)
+			) \
 			. is_equal_approx(tile_size.y, 0.1)
 		)
 	else:
 		# Square and half-offset square should exactly match tile size
 		(
-			assert_float(bounds.size.x)
+			assert_float(bounds.size.x) \
 			. append_failure_message(
 				"Square/half-offset tile width should match tile_size.x, got %.2f" % bounds.size.x
-			)
+			) \
 			. is_equal_approx(tile_size.x, 0.1)
 		)
 		(
-			assert_float(bounds.size.y)
+			assert_float(bounds.size.y) \
 			. append_failure_message(
 				"Square/half-offset tile height should match tile_size.y, got %.2f" % bounds.size.y
-			)
+			) \
 			. is_equal_approx(tile_size.y, 0.1)
 		)
 
@@ -259,25 +259,25 @@ func test_intersection_area_with_tile_for_all_shapes(
 
 	# Validate intersection area is within expected bounds
 	(
-		assert_float(intersection_area)
+		assert_float(intersection_area) \
 		. append_failure_message(
 			(
 				"Intersection area for %s should be between %.2f and %.2f, got %.2f"
 				% [test_case_name, expected_area_min, expected_area_max, intersection_area]
 			)
-		)
+		) \
 		. is_between(expected_area_min, expected_area_max)
 	)
 
 	# Validate area is non-negative
 	(
-		assert_float(intersection_area)
+		assert_float(intersection_area) \
 		. append_failure_message(
 			(
 				"Intersection area should never be negative, got %.2f for %s"
 				% [intersection_area, test_case_name]
 			)
-		)
+		) \
 		. is_greater_equal(0.0)
 	)
 
@@ -470,13 +470,13 @@ func test_does_polygon_overlap_tile_for_all_shapes(
 
 	# Validate overlap detection
 	(
-		assert_bool(overlaps)
+		assert_bool(overlaps) \
 		. append_failure_message(
 			(
 				"Overlap detection for %s should be %s, got %s"
 				% [test_case_name, expected_overlap, overlaps]
 			)
-		)
+		) \
 		. is_equal(expected_overlap)
 	)
 
@@ -634,8 +634,8 @@ func test_does_shape_overlap_tile_optimized_for_all_shapes(
 			shape = circle_shape
 		_:
 			(
-				assert_that(false)
-				. append_failure_message("Unknown shape type: %s" % shape_type)
+				assert_that(false) \
+				. append_failure_message("Unknown shape type: %s" % shape_type) \
 				. is_true()
 			)
 			return
@@ -646,13 +646,13 @@ func test_does_shape_overlap_tile_optimized_for_all_shapes(
 
 	# Validate overlap detection
 	(
-		assert_bool(overlaps)
+		assert_bool(overlaps) \
 		. append_failure_message(
 			(
 				"Optimized shape overlap for %s should be %s, got %s"
 				% [test_case_name, expected_overlap, overlaps]
 			)
-		)
+		) \
 		. is_equal(expected_overlap)
 	)
 
@@ -700,8 +700,8 @@ func test_convert_shape_to_polygon_for_all_types(
 			shape = capsule_shape
 		_:
 			(
-				assert_that(false)
-				. append_failure_message("Unknown shape type: %s" % shape_type)
+				assert_that(false) \
+				. append_failure_message("Unknown shape type: %s" % shape_type) \
 				. is_true()
 			)
 			return
@@ -710,33 +710,33 @@ func test_convert_shape_to_polygon_for_all_types(
 
 	# Validate polygon has expected minimum vertices
 	(
-		assert_int(polygon.size())
+		assert_int(polygon.size()) \
 		. append_failure_message(
 			(
 				"Shape %s should have at least %d vertices, got %d"
 				% [shape_type, expected_min_vertices, polygon.size()]
 			)
-		)
+		) \
 		. is_greater_equal(expected_min_vertices)
 	)
 
 	# Validate polygon is not empty
 	(
-		assert_array(polygon)
-		. append_failure_message("Converted polygon for %s should not be empty" % shape_type)
+		assert_array(polygon) \
+		. append_failure_message("Converted polygon for %s should not be empty" % shape_type) \
 		. is_not_empty()
 	)
 
 	# Validate polygon bounds are reasonable
 	var bounds: Rect2 = GBGeometryMath.get_polygon_bounds(polygon)
 	(
-		assert_float(bounds.size.x)
-		. append_failure_message("Polygon bounds width should be positive for %s" % shape_type)
+		assert_float(bounds.size.x) \
+		. append_failure_message("Polygon bounds width should be positive for %s" % shape_type) \
 		. is_greater(0.0)
 	)
 	(
-		assert_float(bounds.size.y)
-		. append_failure_message("Polygon bounds height should be positive for %s" % shape_type)
+		assert_float(bounds.size.y) \
+		. append_failure_message("Polygon bounds height should be positive for %s" % shape_type) \
 		. is_greater(0.0)
 	)
 
@@ -749,8 +749,8 @@ func test_get_polygon_bounds_edge_cases() -> void:
 	# Empty polygon
 	var empty_bounds: Rect2 = GBGeometryMath.get_polygon_bounds(PackedVector2Array())
 	(
-		assert_that(empty_bounds)
-		. append_failure_message("Empty polygon bounds should be zero rect")
+		assert_that(empty_bounds) \
+		. append_failure_message("Empty polygon bounds should be zero rect") \
 		. is_equal(Rect2())
 	)
 
@@ -759,13 +759,13 @@ func test_get_polygon_bounds_edge_cases() -> void:
 		PackedVector2Array([Vector2(5, 10)])
 	)
 	(
-		assert_that(single_point_bounds.position)
-		. append_failure_message("Single point bounds position should match point")
+		assert_that(single_point_bounds.position) \
+		. append_failure_message("Single point bounds position should match point") \
 		. is_equal_approx(Vector2(5, 10), Vector2(0.1, 0.1))
 	)
 	(
-		assert_that(single_point_bounds.size)
-		. append_failure_message("Single point bounds size should be zero")
+		assert_that(single_point_bounds.size) \
+		. append_failure_message("Single point bounds size should be zero") \
 		. is_equal_approx(Vector2.ZERO, Vector2(0.1, 0.1))
 	)
 
@@ -774,13 +774,13 @@ func test_get_polygon_bounds_edge_cases() -> void:
 		PackedVector2Array([Vector2(0, 0), Vector2(10, 0), Vector2(10, 10), Vector2(0, 10)])
 	)
 	(
-		assert_that(multi_point_bounds.position)
-		. append_failure_message("Multi-point bounds position should be at origin")
+		assert_that(multi_point_bounds.position) \
+		. append_failure_message("Multi-point bounds position should be at origin") \
 		. is_equal_approx(Vector2.ZERO, Vector2(0.1, 0.1))
 	)
 	(
-		assert_that(multi_point_bounds.size)
-		. append_failure_message("Multi-point bounds size should be 10x10")
+		assert_that(multi_point_bounds.size) \
+		. append_failure_message("Multi-point bounds size should be 10x10") \
 		. is_equal_approx(Vector2(10, 10), Vector2(0.1, 0.1))
 	)
 
@@ -793,8 +793,8 @@ func test_polygon_intersection_area_edge_cases() -> void:
 		PackedVector2Array([Vector2(0, 0), Vector2(10, 0), Vector2(10, 10), Vector2(0, 10)])
 	)
 	(
-		assert_that(area1)
-		. append_failure_message("Intersection with empty polygon should be 0")
+		assert_that(area1) \
+		. append_failure_message("Intersection with empty polygon should be 0") \
 		. is_equal(0.0)
 	)
 
@@ -804,8 +804,8 @@ func test_polygon_intersection_area_edge_cases() -> void:
 	)
 	var area2: float = GBGeometryMath.polygon_intersection_area(poly, poly)
 	(
-		assert_that(area2)
-		. append_failure_message("Intersection of identical polygons should equal polygon area")
+		assert_that(area2) \
+		. append_failure_message("Intersection of identical polygons should equal polygon area") \
 		. is_equal(100.0)
 	)
 
@@ -818,7 +818,7 @@ func test_polygon_intersection_area_edge_cases() -> void:
 	)
 	var area3: float = GBGeometryMath.polygon_intersection_area(poly1, poly2)
 	(
-		assert_that(area3)
-		. append_failure_message("Intersection of non-overlapping polygons should be 0")
+		assert_that(area3) \
+		. append_failure_message("Intersection of non-overlapping polygons should be 0") \
 		. is_equal(0.0)
 	)

@@ -30,8 +30,8 @@ func before_test() -> void:
 	assert_object(env).append_failure_message("Failed to create test environment").is_not_null()
 	var issues: Array[String] = env.get_issues()
 	(
-		assert_array(issues)
-		. append_failure_message("Environment has issues: %s" % str(issues))
+		assert_array(issues) \
+		. append_failure_message("Environment has issues: %s" % str(issues)) \
 		. is_empty()
 	)
 
@@ -43,18 +43,18 @@ func before_test() -> void:
 
 	# Validate required components
 	(
-		assert_object(_building_system)
-		. append_failure_message("BuildingSystem not available")
+		assert_object(_building_system) \
+		. append_failure_message("BuildingSystem not available") \
 		. is_not_null()
 	)
 	(
-		assert_object(_indicator_manager)
-		. append_failure_message("IndicatorManager not available")
+		assert_object(_indicator_manager) \
+		. append_failure_message("IndicatorManager not available") \
 		. is_not_null()
 	)
 	(
-		assert_object(_manipulation_parent)
-		. append_failure_message("ManipulationParent not available")
+		assert_object(_manipulation_parent) \
+		. append_failure_message("ManipulationParent not available") \
 		. is_not_null()
 	)
 
@@ -75,10 +75,10 @@ func test_indicators_cleared_when_switching_placeables() -> void:
 	var pillar_report: PlacementReport = _building_system.enter_build_mode(pillar)
 
 	(
-		assert_bool(pillar_report.is_successful())
+		assert_bool(pillar_report.is_successful()) \
 		. append_failure_message(
 			"Failed to enter build mode with pillar: %s" % str(pillar_report.get_issues())
-		)
+		) \
 		. is_true()
 	)
 
@@ -87,8 +87,8 @@ func test_indicators_cleared_when_switching_placeables() -> void:
 	var initial_count: int = initial_indicators.size()
 
 	(
-		assert_int(initial_count)
-		. append_failure_message("Expected indicators after entering build mode with pillar")
+		assert_int(initial_count) \
+		. append_failure_message("Expected indicators after entering build mode with pillar") \
 		. is_greater(0)
 	)
 
@@ -103,10 +103,10 @@ func test_indicators_cleared_when_switching_placeables() -> void:
 	var smithy_report: PlacementReport = _building_system.enter_build_mode(smithy)
 
 	(
-		assert_bool(smithy_report.is_successful())
+		assert_bool(smithy_report.is_successful()) \
 		. append_failure_message(
 			"Failed to enter build mode with smithy: %s" % str(smithy_report.get_issues())
-		)
+		) \
 		. is_true()
 	)
 
@@ -120,20 +120,20 @@ func test_indicators_cleared_when_switching_placeables() -> void:
 			old_indicators_still_valid += 1
 
 	(
-		assert_int(old_indicators_still_valid)
+		assert_int(old_indicators_still_valid) \
 		. append_failure_message(
 			(
 				"Old indicators should be freed when switching placeables. Found %d/%d still valid"
 				% [old_indicators_still_valid, initial_indicator_ids.size()]
 			)
-		)
+		) \
 		. is_equal(0)
 	)
 
 	# Step 4: Verify new indicators were created
 	(
-		assert_int(new_indicators.size())
-		. append_failure_message("Expected new indicators after switching to smithy placeable")
+		assert_int(new_indicators.size()) \
+		. append_failure_message("Expected new indicators after switching to smithy placeable") \
 		. is_greater(0)
 	)
 
@@ -146,10 +146,10 @@ func test_indicators_cleared_when_switching_placeables() -> void:
 	# Check that none of the new indicator IDs match old indicator IDs
 	for new_id in new_indicator_ids:
 		(
-			assert_bool(initial_indicator_ids.has(new_id))
+			assert_bool(initial_indicator_ids.has(new_id)) \
 			. append_failure_message(
 				"New indicators should be different instances, found old indicator ID: %d" % new_id
-			)
+			) \
 			. is_false()
 		)
 
@@ -162,19 +162,19 @@ func test_manipulation_parent_rotation_reset_on_placeable_switch() -> void:
 	var pillar_report: PlacementReport = _building_system.enter_build_mode(pillar)
 
 	(
-		assert_bool(pillar_report.is_successful())
+		assert_bool(pillar_report.is_successful()) \
 		. append_failure_message(
 			"Failed to enter build mode with pillar: %s" % str(pillar_report.get_issues())
-		)
+		) \
 		. is_true()
 	)
 
 	# Verify initial rotation is 0
 	(
-		assert_float(_manipulation_parent.rotation)
+		assert_float(_manipulation_parent.rotation) \
 		. append_failure_message(
 			"ManipulationParent should start at 0 rotation, got: %f" % _manipulation_parent.rotation
-		)
+		) \
 		. is_equal_approx(0.0, 0.01)
 	)
 
@@ -185,10 +185,10 @@ func test_manipulation_parent_rotation_reset_on_placeable_switch() -> void:
 	# Verify rotation was applied
 	var rotated_value: float = _manipulation_parent.rotation
 	(
-		assert_float(rotated_value)
+		assert_float(rotated_value) \
 		. append_failure_message(
 			"Rotation should be applied to ManipulationParent, got: %f" % rotated_value
-		)
+		) \
 		. is_greater(0.0)
 	)
 
@@ -197,22 +197,22 @@ func test_manipulation_parent_rotation_reset_on_placeable_switch() -> void:
 	var smithy_report: PlacementReport = _building_system.enter_build_mode(smithy)
 
 	(
-		assert_bool(smithy_report.is_successful())
+		assert_bool(smithy_report.is_successful()) \
 		. append_failure_message(
 			"Failed to enter build mode with smithy: %s" % str(smithy_report.get_issues())
-		)
+		) \
 		. is_true()
 	)
 
 	# Step 4: Verify rotation was reset to 0
 	(
-		assert_float(_manipulation_parent.rotation)
+		assert_float(_manipulation_parent.rotation) \
 		. append_failure_message(
 			(
 				"ManipulationParent rotation should reset to 0 when switching placeables. Was: %f, Now: %f"
 				% [rotated_value, _manipulation_parent.rotation]
 			)
-		)
+		) \
 		. is_equal_approx(0.0, 0.01)
 	)
 
@@ -224,8 +224,8 @@ func test_rotation_reset_and_indicators_cleared_together() -> void:
 	var pillar: Placeable = GBTestConstants.PLACEABLE_PILLAR_TD
 	var pillar_report: PlacementReport = _building_system.enter_build_mode(pillar)
 	(
-		assert_bool(pillar_report.is_successful())
-		. append_failure_message("Failed to enter build mode with pillar for rotation test")
+		assert_bool(pillar_report.is_successful()) \
+		. append_failure_message("Failed to enter build mode with pillar for rotation test") \
 		. is_true()
 	)
 
@@ -233,8 +233,8 @@ func test_rotation_reset_and_indicators_cleared_together() -> void:
 	var initial_indicators: Array[RuleCheckIndicator] = _indicator_manager.get_indicators()
 	var initial_indicator_count: int = initial_indicators.size()
 	(
-		assert_int(initial_indicator_count)
-		. append_failure_message("Expected indicators to be created for pillar placeable")
+		assert_int(initial_indicator_count) \
+		. append_failure_message("Expected indicators to be created for pillar placeable") \
 		. is_greater(0)
 	)
 
@@ -242,8 +242,8 @@ func test_rotation_reset_and_indicators_cleared_together() -> void:
 	_manipulation_parent.apply_rotation(90.0)
 	var rotated_value: float = _manipulation_parent.rotation
 	(
-		assert_float(rotated_value)
-		. append_failure_message("Rotation should be applied before placeable switch")
+		assert_float(rotated_value) \
+		. append_failure_message("Rotation should be applied before placeable switch") \
 		. is_greater(0.0)
 	)
 
@@ -257,8 +257,8 @@ func test_rotation_reset_and_indicators_cleared_together() -> void:
 	var smithy: Placeable = GBTestConstants.PLACEABLE_SMITHY_TD
 	var smithy_report: PlacementReport = _building_system.enter_build_mode(smithy)
 	(
-		assert_bool(smithy_report.is_successful())
-		. append_failure_message("Failed to switch to smithy placeable")
+		assert_bool(smithy_report.is_successful()) \
+		. append_failure_message("Failed to switch to smithy placeable") \
 		. is_true()
 	)
 
@@ -266,13 +266,13 @@ func test_rotation_reset_and_indicators_cleared_together() -> void:
 
 	# Check rotation reset
 	(
-		assert_float(_manipulation_parent.rotation)
+		assert_float(_manipulation_parent.rotation) \
 		. append_failure_message(
 			(
 				"Rotation should reset to 0 on placeable switch. Before: %f, After: %f"
 				% [rotated_value, _manipulation_parent.rotation]
 			)
-		)
+		) \
 		. is_equal_approx(0.0, 0.01)
 	)
 
@@ -283,21 +283,21 @@ func test_rotation_reset_and_indicators_cleared_together() -> void:
 			old_indicators_still_valid += 1
 
 	(
-		assert_int(old_indicators_still_valid)
+		assert_int(old_indicators_still_valid) \
 		. append_failure_message(
 			(
 				"Old indicators should be cleared on placeable switch. %d/%d still valid"
 				% [old_indicators_still_valid, initial_ids.size()]
 			)
-		)
+		) \
 		. is_equal(0)
 	)
 
 	# Check new indicators created
 	var new_indicators: Array[RuleCheckIndicator] = _indicator_manager.get_indicators()
 	(
-		assert_int(new_indicators.size())
-		. append_failure_message("New indicators should be created for new placeable")
+		assert_int(new_indicators.size()) \
+		. append_failure_message("New indicators should be created for new placeable") \
 		. is_greater(0)
 	)
 
@@ -322,30 +322,30 @@ func test_multiple_placeable_switches_maintain_reset_behavior() -> void:
 		# Switch placeable
 		var report: PlacementReport = _building_system.enter_build_mode(placeable)
 		(
-			assert_bool(report.is_successful())
+			assert_bool(report.is_successful()) \
 			. append_failure_message(
 				"Failed to enter build mode with placeable %d: %s" % [i, str(report.get_issues())]
-			)
+			) \
 			. is_true()
 		)
 
 		# Verify rotation reset
 		(
-			assert_float(_manipulation_parent.rotation)
+			assert_float(_manipulation_parent.rotation) \
 			. append_failure_message(
 				(
 					"Rotation should reset to 0 on switch %d, got: %f"
 					% [i, _manipulation_parent.rotation]
 				)
-			)
+			) \
 			. is_equal_approx(0.0, 0.01)
 		)
 
 		# Verify indicators exist
 		var indicators: Array[RuleCheckIndicator] = _indicator_manager.get_indicators()
 		(
-			assert_int(indicators.size())
-			. append_failure_message("Expected indicators after switch %d" % i)
+			assert_int(indicators.size()) \
+			. append_failure_message("Expected indicators after switch %d" % i) \
 			. is_greater(0)
 		)
 
@@ -362,36 +362,36 @@ func test_switching_to_same_placeable_still_resets() -> void:
 	var pillar: Placeable = GBTestConstants.PLACEABLE_PILLAR_TD
 	var first_report: PlacementReport = _building_system.enter_build_mode(pillar)
 	(
-		assert_bool(first_report.is_successful())
-		. append_failure_message("Failed to enter build mode with pillar for same-placeable test")
+		assert_bool(first_report.is_successful()) \
+		. append_failure_message("Failed to enter build mode with pillar for same-placeable test") \
 		. is_true()
 	)
 
 	# Apply rotation
 	_manipulation_parent.apply_rotation(90.0)
 	(
-		assert_float(_manipulation_parent.rotation)
-		. append_failure_message("Rotation should be applied before re-entering build mode")
+		assert_float(_manipulation_parent.rotation) \
+		. append_failure_message("Rotation should be applied before re-entering build mode") \
 		. is_greater(0.0)
 	)
 
 	# "Switch" to same placeable (re-enter build mode)
 	var second_report: PlacementReport = _building_system.enter_build_mode(pillar)
 	(
-		assert_bool(second_report.is_successful())
-		. append_failure_message("Failed to re-enter build mode with same placeable")
+		assert_bool(second_report.is_successful()) \
+		. append_failure_message("Failed to re-enter build mode with same placeable") \
 		. is_true()
 	)
 
 	# Verify rotation still reset
 	(
-		assert_float(_manipulation_parent.rotation)
+		assert_float(_manipulation_parent.rotation) \
 		. append_failure_message(
 			(
 				"Rotation should reset even when re-entering with same placeable, got: %f"
 				% _manipulation_parent.rotation
 			)
-		)
+		) \
 		. is_equal_approx(0.0, 0.01)
 	)
 
@@ -403,16 +403,16 @@ func test_exit_build_mode_clears_indicators() -> void:
 	var pillar: Placeable = GBTestConstants.PLACEABLE_PILLAR_TD
 	var report: PlacementReport = _building_system.enter_build_mode(pillar)
 	(
-		assert_bool(report.is_successful())
-		. append_failure_message("Failed to enter build mode for exit test")
+		assert_bool(report.is_successful()) \
+		. append_failure_message("Failed to enter build mode for exit test") \
 		. is_true()
 	)
 
 	# Verify indicators exist
 	var indicators_before: Array[RuleCheckIndicator] = _indicator_manager.get_indicators()
 	(
-		assert_int(indicators_before.size())
-		. append_failure_message("Expected indicators to exist before exiting build mode")
+		assert_int(indicators_before.size()) \
+		. append_failure_message("Expected indicators to exist before exiting build mode") \
 		. is_greater(0)
 	)
 
@@ -422,13 +422,13 @@ func test_exit_build_mode_clears_indicators() -> void:
 	# Verify indicators cleared
 	var indicators_after: Array[RuleCheckIndicator] = _indicator_manager.get_indicators()
 	(
-		assert_int(indicators_after.size())
+		assert_int(indicators_after.size()) \
 		. append_failure_message(
 			(
 				"Indicators should be cleared after exiting build mode, found: %d"
 				% indicators_after.size()
 			)
-		)
+		) \
 		. is_equal(0)
 	)
 

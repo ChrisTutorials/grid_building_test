@@ -25,14 +25,14 @@ func test_basic_targeting_state_creation() -> void:
 	# Test tile_set access - this should work
 	var retrieved_tile_set: TileSet = targeting_state.get_target_map_tile_set()
 	(
-		assert_that(retrieved_tile_set)
-		. append_failure_message("Expected tile set to be available")
+		assert_that(retrieved_tile_set) \
+		. append_failure_message("Expected tile set to be available") \
 		. is_not_null()
 	)
 	var diag: PackedStringArray = PackedStringArray()
 	diag.append("Basic GridTargetingState test completed")
 	(
-		assert_that(retrieved_tile_set.tile_size)
-		. append_failure_message("Expected tile size to be 16x16. Context: %s" % "\n".join(diag))
+		assert_that(retrieved_tile_set.tile_size) \
+		. append_failure_message("Expected tile size to be 16x16. Context: %s" % "\n".join(diag)) \
 		. is_equal(Vector2i(16, 16))
 	)

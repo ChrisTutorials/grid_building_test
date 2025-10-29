@@ -61,21 +61,21 @@ func before_test() -> void:
 
 	# Validate setup (include PIN marker for easier triage)
 	(
-		assert_that(_indicator_template)
+		assert_that(_indicator_template) \
 		. append_failure_message(
 			"PIN: Failed to load indicator template - template path = %s" % str(_indicator_template)
-		)
+		) \
 		. is_not_null()
 	)
 	# Additional PIN check so failing tests surface a clear marker in the middle of assertions
 	(
-		assert_that(_indicator_template)
-		. append_failure_message("PIN CHECK: indicator_template non-null")
+		assert_that(_indicator_template) \
+		. append_failure_message("PIN CHECK: indicator_template non-null") \
 		. is_not_null()
 	)
 	(
-		assert_that(_tile_map.tile_set)
-		. append_failure_message("PIN: TileSet not properly assigned")
+		assert_that(_tile_map.tile_set) \
+		. append_failure_message("PIN: TileSet not properly assigned") \
 		. is_not_null()
 	)
 
@@ -97,27 +97,27 @@ func test_coordinate_transformation_pipeline() -> void:
 
 	# Verify each step produces reasonable results
 	(
-		assert_that(positioner_tile)
-		. append_failure_message("Positioner tile calculation failed")
+		assert_that(positioner_tile) \
+		. append_failure_message("Positioner tile calculation failed") \
 		. is_not_null()
 	)
 	assert_that(target_tile).append_failure_message("Target tile calculation failed").is_not_null()
 	(
-		assert_that(expected_global_pos)
-		. append_failure_message("Global position calculation failed")
+		assert_that(expected_global_pos) \
+		. append_failure_message("Global position calculation failed") \
 		. is_not_null()
 	)
 
 	# Verify the offset was applied correctly
 	var expected_target: Vector2i = positioner_tile + test_position
 	(
-		assert_that(target_tile)
+		assert_that(target_tile) \
 		. append_failure_message(
 			(
 				"Target tile should equal positioner_tile + offset: %s + %s = %s, got %s"
 				% [positioner_tile, test_position, expected_target, target_tile]
 			)
-		)
+		) \
 		. is_equal(expected_target)
 	)
 
@@ -126,13 +126,13 @@ func test_coordinate_transformation_pipeline() -> void:
 		_positioner.global_position
 	)
 	(
-		assert_that(distance_from_positioner)
+		assert_that(distance_from_positioner) \
 		. append_failure_message(
 			(
 				"Expected global position %s should be different from positioner position %s (distance: %f)"
 				% [expected_global_pos, _positioner.global_position, distance_from_positioner]
 			)
-		)
+		) \
 		. is_greater(0.1)
 	)
 
@@ -150,13 +150,13 @@ func test_generate_indicators_positions_correctly() -> void:
 
 	# Verify correct number of indicators created
 	(
-		assert_that(indicators.size())
+		assert_that(indicators.size()) \
 		. append_failure_message(
 			(
 				"Expected %d indicators for %d positions"
 				% [TEST_POSITIONS.size(), TEST_POSITIONS.size()]
 			)
-		)
+		) \
 		. is_equal(TEST_POSITIONS.size())
 	)
 
@@ -166,13 +166,13 @@ func test_generate_indicators_positions_correctly() -> void:
 		indicator_positions.append(indicator.global_position)
 	# Convert debug prints into failure messages attached to a soft assertion so they appear on failure
 	(
-		assert_that(indicators.size())
+		assert_that(indicators.size()) \
 		. append_failure_message(
 			(
 				"[DEBUG] test_generate_indicators_positions_correctly: Positioner=%s TileSize=%s Indicators=%s"
 				% [str(_positioner.global_position), str(TILE_SIZE), str(indicator_positions)]
 			)
-		)
+		) \
 		. is_equal(indicators.size())
 	)
 	# Verify indicators are not clustered at same position
@@ -206,7 +206,7 @@ func test_positioner_position_affects_indicator_positions() -> void:
 
 	# Attach diagnostic summary to assertion for richer failure output
 	(
-		assert_that(origin_indicator_pos)
+		assert_that(origin_indicator_pos) \
 		. append_failure_message(
 			(
 				"[DEBUG] test_positioner_position_affects_indicator_positions: origin=%s offset=%s origin_indicator=%s offset_indicator=%s"
@@ -217,19 +217,19 @@ func test_positioner_position_affects_indicator_positions() -> void:
 					str(offset_indicator_pos)
 				]
 			)
-		)
+		) \
 		. is_not_null()
 	)
 	# Assert that indicator positions change as positioner moves
 	var position_difference: float = origin_indicator_pos.distance_to(offset_indicator_pos)
 	(
-		assert_that(position_difference)
+		assert_that(position_difference) \
 		. append_failure_message(
 			(
 				"Indicator positions should change when positioner moves: origin=%s, offset=%s, difference=%f"
 				% [origin_indicator_pos, offset_indicator_pos, position_difference]
 			)
-		)
+		) \
 		. is_greater(10.0)
 	)  # Should be significantly different
 
@@ -253,25 +253,25 @@ func test_indicators_use_global_positioning() -> void:
 	var pos2: Vector2 = indicators[1].global_position
 
 	(
-		assert_that(pos1)
-		. append_failure_message("First indicator should have valid global position")
+		assert_that(pos1) \
+		. append_failure_message("First indicator should have valid global position") \
 		. is_not_equal(Vector2.ZERO)
 	)
 
 	(
-		assert_that(pos2)
-		. append_failure_message("Second indicator should have valid global position")
+		assert_that(pos2) \
+		. append_failure_message("Second indicator should have valid global position") \
 		. is_not_equal(Vector2.ZERO)
 	)
 
 	(
-		assert_that(pos1.distance_to(pos2))
+		assert_that(pos1.distance_to(pos2)) \
 		. append_failure_message(
 			(
 				"Indicators should be positioned at different locations: pos1=%s, pos2=%s"
 				% [pos1, pos2]
 			)
-		)
+		) \
 		. is_greater(TILE_SIZE.x)
 	)  # Should be at least one tile apart
 
@@ -303,7 +303,7 @@ func test_parent_transforms_do_not_interfere() -> void:
 
 	# Attach diagnostic context to assertion
 	(
-		assert_that(position_error)
+		assert_that(position_error) \
 		. append_failure_message(
 			(
 				"[DEBUG] test_parent_transforms_do_not_interfere: parent_pos=%s rot=%s scale=%s expected=%s actual=%s error=%f"
@@ -316,18 +316,18 @@ func test_parent_transforms_do_not_interfere() -> void:
 					position_error
 				]
 			)
-		)
+		) \
 		. is_less(1.0)
 	)
 	# The global_position should match expected regardless of parent transform
 	(
-		assert_that(position_error)
+		assert_that(position_error) \
 		. append_failure_message(
 			(
 				"Indicator global_position should not be affected by parent transform: expected=%s, actual=%s, error=%f"
 				% [expected_global_pos, actual_global_pos, position_error]
 			)
-		)
+		) \
 		. is_less(1.0)
 	)  # Allow small floating point error
 
@@ -341,13 +341,13 @@ func _verify_indicators_not_clustered(positions: Array[Vector2]) -> void:
 		for j in range(i + 1, positions.size()):
 			var distance: float = positions[i].distance_to(positions[j])
 			(
-				assert_that(distance)
+				assert_that(distance) \
 				. append_failure_message(
 					(
 						"Indicators should not cluster: position[%d]=%s, position[%d]=%s, distance=%f"
 						% [i, positions[i], j, positions[j], distance]
 					)
-				)
+				) \
 				. is_greater(1.0)
 			)  # Should be more than 1 pixel apart
 
@@ -369,7 +369,7 @@ func _verify_indicators_distributed_on_grid(
 		var position_error: float = expected_world_pos.distance_to(actual_pos)
 		# Attach diagnostic context for each indicator assertion
 		(
-			assert_that(position_error)
+			assert_that(position_error) \
 			. append_failure_message(
 				(
 					"Indicator %d should be at grid position: expected_offset=%s, expected_tile=%s, expected_world=%s, actual=%s, error=%f"
@@ -382,6 +382,6 @@ func _verify_indicators_distributed_on_grid(
 						position_error
 					]
 				)
-			)
+			) \
 			. is_less(2.0)
 		)  # Allow small error for floating point precision

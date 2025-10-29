@@ -208,10 +208,10 @@ func test_exclusion_list_persists_across_positioner_movement() -> void:
 
 	# THEN: Exclusion list should remain the same (contain original)
 	assert_int(exclusions_inside.size())\
-		.append_failure_message("Collision exclusions should contain exactly 1 item when positioner is inside bounds")
+		.append_failure_message("Collision exclusions should contain exactly 1 item when positioner is inside bounds") \
 		.is_equal(1)
 	assert_int(exclusions_outside.size())\
-		.append_failure_message("Collision exclusions should contain exactly 1 item when positioner is outside bounds")
+		.append_failure_message("Collision exclusions should contain exactly 1 item when positioner is outside bounds") \
 		.is_equal(1)
 	assert_that(exclusions_inside[0]).append_failure_message("First exclusion inside bounds should be the original object").is_same(original)
 	assert_that(exclusions_outside[0]).append_failure_message("First exclusion outside bounds should be the original object").is_same(original)

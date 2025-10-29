@@ -57,14 +57,14 @@ func test_collision_mapping_produces_relative_offsets() -> void:
 	var diag: PackedStringArray = PackedStringArray()
 	diag.append("Positioning integration test context")
 	(
-		assert_that(test_env.positioner.global_position)
+		assert_that(test_env.positioner.global_position) \
 		. append_failure_message(
 			"Expected positioner at correct coordinates. Context: %s" % "\n".join(diag)
-		)
+		) \
 		. is_equal(Vector2(456.0, 552.0))
 	)
 	(
-		assert_that(collision_mapper)
-		. append_failure_message("Expected collision mapper to be available")
+		assert_that(collision_mapper) \
+		. append_failure_message("Expected collision mapper to be available") \
 		. is_not_null()
 	)

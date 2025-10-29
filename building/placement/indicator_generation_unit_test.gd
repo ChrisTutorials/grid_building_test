@@ -19,18 +19,18 @@ func before_test() -> void:
 	_container = _env.get_container()
 	_state = _env.grid_targeting_system.get_state()
 	(
-		assert_object(_manager)
-		. append_failure_message("IndicatorManager should be available in test environment")
+		assert_object(_manager) \
+		. append_failure_message("IndicatorManager should be available in test environment") \
 		. is_not_null()
 	)
 	(
-		assert_object(_container)
-		. append_failure_message("CompositionContainer should be available in test environment")
+		assert_object(_container) \
+		. append_failure_message("CompositionContainer should be available in test environment") \
 		. is_not_null()
 	)
 	(
-		assert_object(_state)
-		. append_failure_message("GridTargetingState should be available in test environment")
+		assert_object(_state) \
+		. append_failure_message("GridTargetingState should be available in test environment") \
 		. is_not_null()
 	)
 
@@ -131,10 +131,10 @@ func test_indicator_generation_from_container_rules() -> void:
 				)
 			)
 			(
-				assert_array(setup_issues)
+				assert_array(setup_issues) \
 				. append_failure_message(
 					"Rule setup failed for rule %d\n%s" % [idx, "\n".join(diag)]
-				)
+				) \
 				. is_empty()
 			)
 			(
@@ -156,18 +156,18 @@ func test_indicator_generation_from_container_rules() -> void:
 				)
 			)
 			(
-				assert_array(setup_issues)
+				assert_array(setup_issues) \
 				. append_failure_message(
 					"Rule setup failed for rule %d\n%s" % [idx, "\n".join(diag)]
-				)
+				) \
 				. is_empty()
 			)
 
 	# Act: Run try_setup
 	var report: PlacementReport = _manager.try_setup(rules, _state, true)
 	(
-		assert_object(report)
-		. append_failure_message("IndicatorManager.try_setup returned null")
+		assert_object(report) \
+		. append_failure_message("IndicatorManager.try_setup returned null") \
 		. is_not_null()
 	)
 
@@ -186,8 +186,8 @@ func test_indicator_generation_from_container_rules() -> void:
 
 	var indicators: Array[RuleCheckIndicator] = report.indicators_report.indicators
 	(
-		assert_array(indicators)
-		. append_failure_message("No indicators generated (unit test)\n%s" % "\n".join(diag))
+		assert_array(indicators) \
+		. append_failure_message("No indicators generated (unit test)\n%s" % "\n".join(diag)) \
 		. is_not_empty()
 	)
 
@@ -199,15 +199,15 @@ func test_indicators_are_freed_on_reset() -> void:
 	_manager.setup_indicators(shape_scene, col_checking_rules)
 
 	(
-		assert_array(_manager.get_indicators())
-		. append_failure_message("No indicators generated before reset (unit test)")
+		assert_array(_manager.get_indicators()) \
+		. append_failure_message("No indicators generated before reset (unit test)") \
 		. is_not_empty()
 	)
 
 	# Reset the indicator manager and verify indicators are freed
 	_manager.clear()
 	(
-		assert_array(_manager.get_indicators())
-		. append_failure_message("Indicators should be cleared after reset")
+		assert_array(_manager.get_indicators()) \
+		. append_failure_message("Indicators should be cleared after reset") \
 		. is_empty()
 	)

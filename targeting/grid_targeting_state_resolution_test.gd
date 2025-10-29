@@ -28,13 +28,13 @@ func test_setting_target_auto_resolves_target_root_with_metadata() -> void:
 	# Assert: target should be auto-resolved to root_node
 	var target: Node2D = _targeting_state.get_target()
 	(
-		assert_object(target)
+		assert_object(target) \
 		. append_failure_message(
 			(
 				"Target should be auto-resolved to root node via metadata. Got: %s, Expected: %s"
 				% [str(target.name) if target != null else "null", root_node.name]
 			)
-		)
+		) \
 		. is_same(root_node)
 	)
 
@@ -59,14 +59,14 @@ func test_setting_target_emits_both_signals() -> void:
 
 	# Assert: target_changed signal should be emitted
 	(
-		assert_bool(signal_data.target_changed)
-		. append_failure_message("target_changed signal should be emitted")
+		assert_bool(signal_data.target_changed) \
+		. append_failure_message("target_changed signal should be emitted") \
 		. is_true()
 	)
 
 	(
-		assert_object(signal_data.target_new)
-		. append_failure_message("target_changed signal should pass resolved target")
+		assert_object(signal_data.target_new) \
+		. append_failure_message("target_changed signal should pass resolved target") \
 		. is_same(collision_object)
 	)
 
@@ -82,8 +82,8 @@ func test_setting_non_collision_target_uses_self_as_root() -> void:
 
 	# Assert: target should be the same node (no resolution for manual targets)
 	(
-		assert_object(_targeting_state.get_target())
-		. append_failure_message("Target should be set to regular node")
+		assert_object(_targeting_state.get_target()) \
+		. append_failure_message("Target should be set to regular node") \
 		. is_same(regular_node)
 	)
 
@@ -101,8 +101,8 @@ func test_setting_null_target_clears_both_properties() -> void:
 
 	# Assert: target should be null
 	(
-		assert_object(_targeting_state.get_target())
-		. append_failure_message("target should be null after clearing")
+		assert_object(_targeting_state.get_target()) \
+		. append_failure_message("target should be null after clearing") \
 		. is_null()
 	)
 
@@ -130,8 +130,8 @@ func test_setting_same_target_twice_doesnt_emit_signals() -> void:
 	)
 
 	(
-		assert_int(second_count)
-		. append_failure_message("Setting same target again should not emit signal")
+		assert_int(second_count) \
+		. append_failure_message("Setting same target again should not emit signal") \
 		. is_equal(1)
 	)  # Should still be 1, not 2
 
@@ -156,12 +156,12 @@ func test_target_root_resolution_with_manipulatable() -> void:
 	# Assert: target should be resolved to Manipulatable.root
 	var target: Node2D = _targeting_state.get_target()
 	(
-		assert_object(target)
+		assert_object(target) \
 		. append_failure_message(
 			(
 				"target should be resolved via Manipulatable child. Got: %s, Expected: %s"
 				% [str(target.name) if target != null else "null", root_node.name]
 			)
-		)
+		) \
 		. is_same(root_node)
 	)
