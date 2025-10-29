@@ -171,7 +171,7 @@ func test_resolve_root_node_with_manipulatable_child() -> void:
 		. append_failure_message(
 			(
 				"Should resolve to Manipulatable.root from child search. Got: %s"
-				% (resolved.name if resolved else "null")
+				% (str(resolved.name) if resolved else "null")
 			)
 		)
 		. is_same(root_node)
@@ -209,7 +209,7 @@ func test_metadata_priority_over_manipulatable() -> void:
 		. append_failure_message(
 			(
 				"Metadata should have priority over Manipulatable. Got: %s, Expected: %s"
-				% [resolved.name if resolved else "null", metadata_root.name]
+				% [str(resolved.name) if resolved else "null", str(metadata_root.name)]
 			)
 		)
 		. is_same(metadata_root)
