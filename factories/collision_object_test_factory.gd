@@ -13,7 +13,9 @@ extends RefCounted
 ##
 ## ## Usage:
 ## ```gdscript
-## collision_body: Node = CollisionObjectTestFactory.create_static_body_with_diamond(self, Vector2(64, 32))
+## collision_body: Node = CollisionObjectTestFactory.create_static_body_with_diamond(
+##     self, Vector2(64, 32)
+## )
 ## var isometric_building = CollisionObjectTestFactory.create_isometric_blacksmith(self)
 ## ```
 
@@ -243,7 +245,8 @@ static func get_collision_tiles_for_objects(
 	objects: Array[StaticBody2D],
 	mask: int = DEFAULT_COLLISION_MASK
 ) -> Dictionary:
-	# Can include CollisionObject2D, Area2D, etc. Should have a CollisionShape2D or CollisionPolygon2D attached.
+	# Can include CollisionObject2D, Area2D, etc. Should have a CollisionShape2D
+	# or CollisionPolygon2D attached.
 	var collision_objects: Array[Node2D] = []
 	for obj in objects:
 		collision_objects.append(obj as Node2D)

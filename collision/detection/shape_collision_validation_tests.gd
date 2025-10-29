@@ -3,15 +3,14 @@ extends GdUnitTestSuite
 ## Comprehensive parameterized test suite for collision detection
 ## Consolidates functionality from multiple debug tests into a single, maintainable test file
 
+## Test data for different collision shapes
+enum TestShapeType { CAPSULE, TRAPEZOID }
+
 ## Constants for test configuration
 const TILE_SIZE: Vector2 = Vector2(16, 16)
 const BOUNDS_TOLERANCE: float = 1.0
 const OVERLAP_EPSILON_RATIO: float = 0.05
 const PERFORMANCE_TIMEOUT_MS: int = 100
-
-## Test data for different collision shapes
-
-enum TestShapeType { CAPSULE, TRAPEZOID }
 
 var test_container: GBCompositionContainer
 
@@ -72,7 +71,7 @@ func _generate_test_positions(
 	grid_size: int = 21, tile_size: Vector2 = TILE_SIZE
 ) -> Array[Vector2]:
 	var positions: Array[Vector2] = []
-	var half: int = int((grid_size - 1) / 2.0)  # Calculate grid center using float division then cast to int
+	var half: int = int((grid_size - 1) / 2.0)  # Calculate grid center
 	for x in range(-half, half + 1):
 		for y in range(-half, half + 1):
 			positions.append(Vector2(x * tile_size.x, y * tile_size.y))
