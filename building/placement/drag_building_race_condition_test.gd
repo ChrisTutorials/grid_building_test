@@ -161,6 +161,11 @@ func _format_drag_manager_state() -> String:
 		_drag_manager.is_dragging()
 	]
 
+## Helper function to position the positioner at a specific tile coordinate
+func _position_at_tile(tile_pos: Vector2i) -> void:
+	var world_pos: Vector2 = _map.to_global(_map.map_to_local(tile_pos))
+	_positioner.global_position = world_pos
+
 #endregion
 
 ## Test: Rapid tile changes should not cause double builds in same frame
@@ -353,7 +358,7 @@ func test_process_vs_physics_timing_analysis(
 	runner.simulate_frames(1)
 
 	var report: PlacementReport = _building_system.enter_build_mode(placeable)
-	var setup_issues := str(report.get_issues())
+	var _setup_issues := str(report.get_issues())
 
 	# Monitor timing during drag operation
 	var process_calls := 0
@@ -364,7 +369,7 @@ func test_process_vs_physics_timing_analysis(
 	runner.simulate_frames(10, 10)  # Run for several frames to collect timing data
 
 	var end_time := Time.get_ticks_msec()
-	var duration_ms := end_time - start_time
+	var _duration_ms := end_time - start_time
 
 	# Calculate ratio (this demonstrates the race condition window)
 	var ratio := float(process_calls) / float(max(physics_frames, 1))
