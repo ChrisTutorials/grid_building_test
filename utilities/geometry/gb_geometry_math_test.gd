@@ -288,8 +288,7 @@ func test_convert_shape_to_polygon_for_all_types(
 func test_get_polygon_bounds_edge_cases() -> void:
 	# Empty polygon
 	var empty_bounds: Rect2 = GBGeometryMath.get_polygon_bounds(PackedVector2Array())
-	assert_that(empty_bounds)
-  .append_failure_message("Empty polygon bounds should be zero rect").is_equal(Rect2())
+	assert_that(empty_bounds).append_failure_message("Empty polygon bounds should be zero rect").is_equal(Rect2())
 
 	# Single point
 	var single_point_bounds: Rect2 = GBGeometryMath.get_polygon_bounds(PackedVector2Array([Vector2(5, 10)]))
@@ -305,8 +304,7 @@ func test_get_polygon_bounds_edge_cases() -> void:
 func test_polygon_intersection_area_edge_cases() -> void:
 	# Empty polygons
 	var area1: float = GBGeometryMath.polygon_intersection_area(PackedVector2Array(), PackedVector2Array([Vector2(0, 0), Vector2(10, 0), Vector2(10, 10), Vector2(0, 10)]))
-	assert_that(area1)
-  .append_failure_message("Intersection with empty polygon should be 0").is_equal(0.0)
+	assert_that(area1).append_failure_message("Intersection with empty polygon should be 0").is_equal(0.0)
 
 	# Identical polygons
 	var poly: PackedVector2Array = PackedVector2Array([Vector2(0, 0), Vector2(10, 0), Vector2(10, 10), Vector2(0, 10)])
@@ -317,5 +315,4 @@ func test_polygon_intersection_area_edge_cases() -> void:
 	var poly1: PackedVector2Array = PackedVector2Array([Vector2(0, 0), Vector2(5, 0), Vector2(5, 5), Vector2(0, 5)])
 	var poly2: PackedVector2Array = PackedVector2Array([Vector2(10, 10), Vector2(15, 10), Vector2(15, 15), Vector2(10, 15)])
 	var area3: float = GBGeometryMath.polygon_intersection_area(poly1, poly2)
-	assert_that(area3)
-  .append_failure_message("Intersection of non-overlapping polygons should be 0").is_equal(0.0)
+	assert_that(area3).append_failure_message("Intersection of non-overlapping polygons should be 0").is_equal(0.0)
