@@ -202,10 +202,8 @@ func _test_single_packed_scene_scenario(object_type: String, collision_layer: in
 
 	# Assertions
 	assert_int(pack_result).append_failure_message("PackedScene.pack() failed").is_equal(OK)
-	assert_int(state.get_node_count())
-  .append_failure_message("Expected at least 2 nodes in packed scene").is_greater_equal(2)
-	assert_int(preview_obj.get_child_count())
-  .append_failure_message("Preview should have children").is_greater(0)
+	assert_int(state.get_node_count()).append_failure_message("Expected at least 2 nodes in packed scene").is_greater_equal(2)
+	assert_int(preview_obj.get_child_count()).append_failure_message("Preview should have children").is_greater(0)
 
 func _create_collision_object_for_packed_scene(object_type: String, collision_layer: int) -> CollisionObject2D:
 	var original_obj: CollisionObject2D
