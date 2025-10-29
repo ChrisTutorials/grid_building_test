@@ -1,7 +1,9 @@
 extends GdUnitTestSuite
 
-## Comprehensive debug test suite combining collision detection, shape detection, and PackedScene debugging
-## Consolidates debug_shape_detection_test.gd, packed_scene_debug_test.gd, and related debugging functionality
+## Comprehensive debug test suite combining collision detection, shape detection,
+## and PackedScene debugging
+## Consolidates debug_shape_detection_test.gd, packed_scene_debug_test.gd,
+## and related debugging functionality
 
 # Test constants
 const DEFAULT_RECT_SIZE: Vector2 = Vector2(32, 32)
@@ -62,7 +64,9 @@ func test_collision_object_debug_scenarios() -> void:
 		var shape_size: Vector2 = test_case[3]
 		var expected_shape_count: int = test_case[4]
 
-		_test_single_collision_object_scenario(object_type, collision_layer, shape_type, shape_size, expected_shape_count)
+		_test_single_collision_object_scenario(
+			object_type, collision_layer, shape_type, shape_size, expected_shape_count
+		)
 
 func _test_single_collision_object_scenario(
 	object_type: String,
@@ -86,22 +90,32 @@ func _test_single_collision_object_scenario(
 	collision_obj.add_child(collision_shape)
 
 	# Debug output
-	GBTestDiagnostics.buffer("1. %s.collision_layer: %d" % [object_type, collision_obj.collision_layer])
+	GBTestDiagnostics.buffer(
+		"1. %s.collision_layer: %d" % [object_type, collision_obj.collision_layer]
+	)
 	GBTestDiagnostics.buffer("2. %s.name: %s" % [object_type, collision_obj.name])
 	GBTestDiagnostics.buffer("3. CollisionShape2D.name: %s" % collision_shape.name)
 	GBTestDiagnostics.buffer("4. CollisionShape2D.shape: %s" % collision_shape.shape)
-	GBTestDiagnostics.buffer("5. %s.get_shape_owners(): %s" % [object_type, collision_obj.get_shape_owners()])
+	GBTestDiagnostics.buffer("5. %s.get_shape_owners(): %s" % [
+		object_type, collision_obj.get_shape_owners()
+	])
 
 	# Test shape detection utilities
 	var shapes_from_owner: Array[Shape2D] = GBGeometryUtils.get_shapes_from_owner(collision_obj)
 	GBTestDiagnostics.buffer("6. get_shapes_from_owner result: %d shapes" % shapes_from_owner.size())
 
-	var all_shapes: Dictionary[Node2D, Array] = GBGeometryUtils.get_all_collision_shapes_by_owner(collision_obj)
-	GBTestDiagnostics.buffer("7. get_all_collision_shapes_by_owner result: %d owners" % all_shapes.size())
+	var all_shapes: Dictionary[Node2D, Array] = GBGeometryUtils.get_all_collision_shapes_by_owner(
+		collision_obj
+	)
+	GBTestDiagnostics.buffer(
+		"7. get_all_collision_shapes_by_owner result: %d owners" % all_shapes.size()
+	)
 
 	# Assertions
 	assert_int(shapes_from_owner.size()).append_failure_message(
-		"Expected %d shapes from %s, got %d" % [expected_shape_count, object_type, shapes_from_owner.size()]
+		"Expected %d shapes from %s, got %d" % [
+			expected_shape_count, object_type, shapes_from_owner.size()
+		]
 	).is_equal(expected_shape_count)
 
 	assert_int(all_shapes.size()).append_failure_message(
@@ -159,7 +173,9 @@ func _test_single_packed_scene_scenario(object_type: String, collision_layer: in
 	GBTestDiagnostics.buffer("=== DEBUG PACKED SCENE: %s ===" % object_type)
 
 	# Create original collision object (NO auto_free for PackedScene nodes)
-	var original_obj: CollisionObject2D = _create_collision_object_for_packed_scene(object_type, collision_layer)
+	var original_obj: CollisionObject2D = _create_collision_object_for_packed_scene(
+		object_type, collision_layer
+	)
 	add_child(original_obj)
 
 	var collision_shape: CollisionShape2D = CollisionShape2D.new()  # NO auto_free for PackedScene
@@ -172,13 +188,17 @@ func _test_single_packed_scene_scenario(object_type: String, collision_layer: in
 	# CRITICAL: Set owner for PackedScene to include children
 	collision_shape.owner = original_obj
 
-	GBTestDiagnostics.buffer("1. Original %s children: %d" % [object_type, original_obj.get_child_count()])
+	GBTestDiagnostics.buffer(
+		"1. Original %s children: %d" % [object_type, original_obj.get_child_count()]
+	)
 	if original_obj.get_child_count() > 0:
 		var child: Node = original_obj.get_children()[0]
 		GBTestDiagnostics.buffer("1a. First child name: %s" % child.name)
 		GBTestDiagnostics.buffer("1b. First child type: %s" % child.get_class())
 
-	GBTestDiagnostics.buffer("2. Original %s shape_owners: %s" % [object_type, original_obj.get_shape_owners()])
+	GBTestDiagnostics.buffer(
+		"2. Original %s shape_owners: %s" % [object_type, original_obj.get_shape_owners()]
+	)
 	var original_shapes: Array[Shape2D] = GBGeometryUtils.get_shapes_from_owner(original_obj)
 	GBTestDiagnostics.buffer("3. Original shapes: %d" % original_shapes.size())
 
@@ -190,62 +210,76 @@ func _test_single_packed_scene_scenario(object_type: String, collision_layer: in
 	var state: SceneState = scene.get_state()
 	GBTestDiagnostics.buffer("5. Packed scene node count: %d" % state.get_node_count())
 	for i in range(state.get_node_count()):
-		GBTestDiagnostics.buffer("5a. Node %d: %s (type: %s)" % [i, state.get_node_name(i), state.get_node_type(i)])
+		GBTestDiagnostics.buffer(
+			"5a. Node %d: %s (type: %s)" % [i, state.get_node_name(i), state.get_node_type(i)]
+		)
 
 	# Instantiate and test
 	var preview_obj: CollisionObject2D = scene.instantiate() as CollisionObject2D
 	add_child(preview_obj)
 
-	GBTestDiagnostics.buffer("6. Preview %s children: %d" % [object_type, preview_obj.get_child_count()])
+	GBTestDiagnostics.buffer(
+		"6. Preview %s children: %d" % [object_type, preview_obj.get_child_count()]
+	)
 	var preview_shapes: Array[Shape2D] = GBGeometryUtils.get_shapes_from_owner(preview_obj)
 	GBTestDiagnostics.buffer("7. Preview shapes: %d" % preview_shapes.size())
 
 	# Assertions
 	assert_int(pack_result).append_failure_message("PackedScene.pack() failed").is_equal(OK)
-	assert_int(state.get_node_count()).append_failure_message("Expected at least 2 nodes in packed scene").is_greater_equal(2)
-	assert_int(preview_obj.get_child_count()).append_failure_message("Preview should have children").is_greater(0)
+	assert_int(state.get_node_count()).append_failure_message(
+		"Expected at least 2 nodes in packed scene"
+	).is_greater_equal(2)
+	assert_int(preview_obj.get_child_count()).append_failure_message(
+		"Preview should have children"
+	).is_greater(0)
 
-func _create_collision_object_for_packed_scene(object_type: String, collision_layer: int) -> CollisionObject2D:
-	var original_obj: CollisionObject2D
+func _create_collision_object_for_packed_scene(
+	object_type: String, collision_layer: int
+) -> CollisionObject2D:
+	var collision_obj: CollisionObject2D
 	match object_type:
 		"RigidBody2D":
-			original_obj = RigidBody2D.new()
+			collision_obj = RigidBody2D.new()
 		"StaticBody2D":
-			original_obj = StaticBody2D.new()
+			collision_obj = StaticBody2D.new()
 		"Area2D":
-			original_obj = Area2D.new()
+			collision_obj = Area2D.new()
 		_:
 			assert_that(object_type).append_failure_message("Unknown collision object type").is_equal("")
 			return null
 
-	original_obj.name = "Original%s" % object_type
-	original_obj.collision_layer = collision_layer
-	return original_obj
+	collision_obj.name = "Original%s" % object_type
+	collision_obj.collision_layer = collision_layer
+	return collision_obj
 
 ## Test polygon shape conversion and collision detection edge cases
 func test_polygon_collision_edge_cases() -> void:
-	GBTestDiagnostics.buffer("=== DEBUG POLYGON COLLISION EDGE CASES ===")
+		GBTestDiagnostics.buffer("=== DEBUG POLYGON COLLISION EDGE CASES ===")
 
-	for test_case: Dictionary in polygon_test_cases:
-		GBTestDiagnostics.buffer("--- Testing: %s ---" % test_case.name)
-		var points: PackedVector2Array = test_case.points as PackedVector2Array
-		var expected_valid: bool = test_case.expected_valid as bool
+		for test_case: Dictionary in polygon_test_cases:
+			GBTestDiagnostics.buffer("--- Testing: %s ---" % test_case.name)
+			var points: PackedVector2Array = test_case.points as PackedVector2Array
+			var expected_valid: bool = test_case.expected_valid as bool
 
-		GBTestDiagnostics.buffer("Input points: %s" % points)
+			GBTestDiagnostics.buffer("Input points: %s" % points)
 
-		# Test bounds calculation
-		var bounds: Rect2 = CollisionGeometryCalculator._get_polygon_bounds(points)
-		GBTestDiagnostics.buffer("Polygon bounds: %s" % bounds)
+			# Test bounds calculation
+			var bounds: Rect2 = CollisionGeometryCalculator._get_polygon_bounds(points)
+			GBTestDiagnostics.buffer("Polygon bounds: %s" % bounds)
 
-		# Test if polygon is considered valid (using points.size() >= 3)
-		var is_valid: bool = points.size() >= 3 and CollisionGeometryCalculator.polygon_area(points) > 0.001
-		GBTestDiagnostics.buffer("Is valid polygon: %s" % is_valid)
+			# Test if polygon is considered valid (using points.size() >= 3)
+			var is_valid: bool = points.size() >= 3 and CollisionGeometryCalculator.polygon_area(
+				points
+			) > 0.001
+			GBTestDiagnostics.buffer("Is valid polygon: %s" % is_valid)
 
-		# Test area calculation if valid
-		if is_valid:
-			var area: float = CollisionGeometryCalculator.polygon_area(points)
-			GBTestDiagnostics.buffer("Polygon area: %f" % area)
+			# Test area calculation if valid
+			if is_valid:
+				var area: float = CollisionGeometryCalculator.polygon_area(points)
+				GBTestDiagnostics.buffer("Polygon area: %f" % area)
 
-		assert_bool(is_valid).append_failure_message(
-			"Polygon validity mismatch for %s: expected %s, got %s" % [test_case.name, expected_valid, is_valid] + "\n" + GBTestDiagnostics.flush_for_assert()
-		).is_equal(expected_valid)
+			assert_bool(is_valid).append_failure_message(
+				"Polygon validity mismatch for %s: expected %s, got %s" % [
+					test_case.name, expected_valid, is_valid
+				] + "\n" + GBTestDiagnostics.flush_for_assert()
+			).is_equal(expected_valid)
