@@ -333,7 +333,7 @@ func _count_indicators(parent: Node) -> int:
 				# Optional debug - removed print, use assertions for debugging
 				var names: Array[String] = []
 				for ind: RuleCheckIndicator in indicators:
-					_names.append(ind.name)
+					names.append(ind.name)
 			return indicators.size()
 
 	# Fallback: name-based scan if API unavailable
@@ -345,7 +345,7 @@ func _count_indicators(parent: Node) -> int:
 			and String(child.name).begins_with("RuleCheckIndicator")
 		):
 			count += 1
-			_child_names.append(child.name + "(" + child.get_class() + ")")
+			child_names.append(child.name + "(" + child.get_class() + ")")
 	return count
 
 

@@ -210,8 +210,8 @@ func test_indicator_rule_validation() -> void:
 
 	# Set up rule parameters
 	var targeting_state: GridTargetingState = _container.get_states().targeting
-	var preview_root: Node2D = GodotTestFactory.create_node2d(self)
-	var manipulator_owner: Node2D = placer
+	var _preview_root: Node2D = GodotTestFactory.create_node2d(self)
+	var _manipulator_owner: Node2D = placer
 
 	# Setup the rule
 	var setup_issues: Array[String] = collision_rule.setup(targeting_state)
@@ -250,8 +250,8 @@ func test_indicator_rule_validation() -> void:
 	fail_parts.append("indicator_pos=%s" % [str(indicator.global_position)])
 	fail_parts.append("indicator_tile=%s" % [str(indicator.get_tile_position(map_layer))])
 	fail_parts.append("indicator_collision_mask=%s" % [str(indicator.collision_mask)])
-	fail_parts.append("collision_object_pos=%s" % [str(_collision_object.global_position)])
-	fail_parts.append("collision_object_layer=%s" % [str(_collision_object.collision_layer)])
+	fail_parts.append("collision_object_pos=%s" % [str(collision_object.global_position)])
+	fail_parts.append("collision_object_layer=%s" % [str(collision_object.collision_layer)])
 	fail_parts.append("indicator_get_collision_count=%s" % [str(indicator.get_collision_count())])
 	assert_bool(valid).append_failure_message("\n".join(fail_parts)).is_false()
 

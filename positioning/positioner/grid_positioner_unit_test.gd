@@ -437,7 +437,7 @@ func test_restrict_to_map_area_respects_parent_transform() -> void:
 
 class _StubGateGridPositioner:
 	extends GridPositioner2D
-	var next_gate_allowed: bool = true
+	var _next_gate_allowed: bool = true
 
 	func set_next_gate(allowed: bool) -> void:
 		_next_gate_allowed = allowed
@@ -649,8 +649,8 @@ func test_recenter_on_resolve_dependencies_cursor_off_screen_moves_to_center() -
 class TestPositionerWithMockCursor:
 	extends GridPositioner2D
 
-	var mock_cursor_on_screen: bool = false
-	var test_expected_cursor_position: Vector2 = Vector2.ZERO
+	var _mock_cursor_on_screen: bool = false
+	var _test_expected_cursor_position: Vector2 = Vector2.ZERO
 
 	func _is_mouse_cursor_on_screen() -> bool:
 		return _mock_cursor_on_screen
