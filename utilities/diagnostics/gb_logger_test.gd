@@ -134,10 +134,10 @@ func test_context_from_convenience_methods() -> void:
 
 	# Create detailed diagnostic information
 	var context: String = _received_logs[0]["context"]
-	var stack: Array = get_stack()
+	var stack: Array[Dictionary] = get_stack()
 	var stack_info: String = "Stack analysis: size=%d, stack[0-5]=" % stack.size()
 	for i in range(min(6, stack.size())):
-		var frame: Dictionary = stack[i] if i < stack.size() else {}
+		var frame: Dictionary[String, Variant] = stack[i] if i < stack.size() else {}
 		stack_info += " [%d]:%s:%s" % [i, frame.get("source", ""), frame.get("function", "")]
 
 	# The context should still point to this test method, not the logger internals
@@ -159,7 +159,7 @@ func test_lazy_provider_not_called_when_disabled() -> void:
 	_logger.get_debug_settings().level = DBG_LEVEL.WARNING
 
 	# use container to allow mutation inside lambda
-	var called_container: Dictionary = {"v": false}
+	var called_container: Dictionary[String, bool] = {"v": false}
 	var provider: Callable = func() -> String:
 		called_container["v"] = true
 		return "expensive"
