@@ -2,8 +2,6 @@ extends GdUnitTestSuite
 
 ## Consolidated performance tests using factory patterns
 
-const TEST_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
-
 # Use helper to load environment scene (UID first, then path fallback)
 var ALL_SYSTEMS_ENV_SCENE: PackedScene = GBTestConstants.get_environment_scene(
 	GBTestConstants.EnvironmentType.ALL_SYSTEMS
@@ -22,7 +20,7 @@ func before_test() -> void:
 
 func test_collision_mapping_performance() -> void:
 	var collision_mapper: CollisionMapper = test_hierarchy.indicator_manager.get_collision_mapper()
-	var tile_map: TileMapLayer = test_hierarchy.tile_map_layer
+	var _tile_map: TileMapLayer = test_hierarchy.tile_map_layer
 	var positioner: Node2D = test_hierarchy.positioner
 
 	# Get the properly configured targeting state from the test environment

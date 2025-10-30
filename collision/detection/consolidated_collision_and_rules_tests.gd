@@ -45,7 +45,7 @@ func test_collision_calculator_tile_overlap_empty() -> void:
 	var map := EnvironmentTestFactory.create_buildable_tilemap(self)
 
 	# Use shared test tile map layer to ensure consistent map-aware calculations
-	var test_tile_map_layer: TileMapLayer = GodotTestFactory.create_empty_tile_map_layer(self)
+	var _test_tile_map_layer: TileMapLayer = GodotTestFactory.create_empty_tile_map_layer(self)
 	var overlapped_tiles: Array[Vector2i] = CollisionGeometryCalculator.calculate_tile_overlap(
 		empty_polygon, tile_size, TileSet.TILE_SHAPE_SQUARE, map
 	)
@@ -62,7 +62,7 @@ func test_collision_calculator_single_point() -> void:
 	var tile_size: Vector2 = STANDARD_TILE_SIZE
 	var map := EnvironmentTestFactory.create_buildable_tilemap(self)
 
-	var test_tile_map_layer: TileMapLayer = GodotTestFactory.create_empty_tile_map_layer(self)
+	var _test_tile_map_layer: TileMapLayer = GodotTestFactory.create_empty_tile_map_layer(self)
 	var overlapped_tiles: Array[Vector2i] = CollisionGeometryCalculator.calculate_tile_overlap(
 		single_point, tile_size, TileSet.TILE_SHAPE_SQUARE, map
 	)

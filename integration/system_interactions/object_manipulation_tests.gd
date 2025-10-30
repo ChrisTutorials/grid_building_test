@@ -4,8 +4,6 @@ extends GdUnitTestSuite
 ## polygon tile mappers, and various placement-related components
 ## Uses placement system environment for comprehensive setup
 
-const TEST_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
-
 ## Isometric game RuleCheckIndicator (centralized)
 var RCI_ISOMETRIC: PackedScene = GBTestConstants.TEST_INDICATOR_ISOMETRIC
 
@@ -67,7 +65,7 @@ func _configure_collision_mapper_for_test_object(
 ) -> void:
 	# Use the targeting state from test environment instead of creating a new one
 	var targeting_state: GridTargetingState = test_env.targeting_state
-	var setups: Array[CollisionTestSetup2D] = (
+	var _setups: Array[CollisionTestSetup2D] = (
 		CollisionTestSetup2D.create_test_setups_from_test_node(_test_object, targeting_state)
 	)
 	# Note: Actual configuration would depend on collision mapper API
@@ -449,7 +447,7 @@ func test_placement_components_workflow() -> void:
 @warning_ignore("unused_parameter")
 func test_performance_placement_components() -> void:
 	var start_time: int = Time.get_ticks_usec()
-	var placement_manager: IndicatorManager = test_env.indicator_manager
+	var _placement_manager: IndicatorManager = test_env.indicator_manager
 
 	# Performance test creating multiple indicators
 	for i in range(50):

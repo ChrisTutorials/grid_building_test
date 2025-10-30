@@ -3,8 +3,6 @@ extends GdUnitTestSuite
 ## Consolidated rule tests
 ## Combines all rule-related tests into a single comprehensive suite
 
-const TEST_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
-
 # Test constants for magic number elimination
 const DEFAULT_TILE_MAP_SIZE: int = 8
 const MINIMAL_TILE_MAP_SIZE: int = 1
@@ -91,7 +89,7 @@ func test_tile_check_rule_basic_validation() -> void:
 
 	# Create test positioner and placer
 	var positioner: Node2D = GodotTestFactory.create_node2d(self)
-	var placer: Node2D = GodotTestFactory.create_node2d(self)
+	var _placer: Node2D = GodotTestFactory.create_node2d(self)
 
 	targeting_state.positioner = positioner
 
@@ -121,7 +119,7 @@ func test_collisions_check_rule_with_indicator() -> void:
 	auto_free(rule)
 
 	# Create a basic indicator for testing
-	var indicator_template: PackedScene = TEST_CONTAINER.get_templates().rule_check_indicator
+	var indicator_template: PackedScene = GBTestConstants.TEST_COMPOSITION_CONTAINER.get_templates().rule_check_indicator
 	if indicator_template:
 		var indicator: Node = indicator_template.instantiate()
 		auto_free(indicator)
@@ -164,8 +162,8 @@ func test_within_bounds_rule_boundary_checking() -> void:
 	auto_free(tile_map)
 
 	# Test positions within and outside bounds
-	var within_bounds_pos: Vector2i = Vector2i(CENTER_POSITION_X, CENTER_POSITION_Y)  # Center, should be valid
-	var outside_bounds_pos: Vector2i = Vector2i(OUTSIDE_BOUNDS_X, OUTSIDE_BOUNDS_Y)  # Outside, should be invalid
+	var _within_bounds_pos: Vector2i = Vector2i(CENTER_POSITION_X, CENTER_POSITION_Y)  # Center, should be valid
+	var _outside_bounds_pos: Vector2i = Vector2i(OUTSIDE_BOUNDS_X, OUTSIDE_BOUNDS_Y)  # Outside, should be invalid
 
 	# Note: Actual validation would require proper rule context setup
 	assert_that(rule).is_not_null()
@@ -240,7 +238,7 @@ func test_rule_error_handling() -> void:
 
 
 func test_rule_performance_single() -> void:
-	var rule: TileCheckRule = create_rule(TileCheckRule)
+	var _rule: TileCheckRule = create_rule(TileCheckRule)
 
 	# Time basic rule operations
 	var processing_time: int = time_execution(

@@ -85,8 +85,8 @@ func test_targeting_basic() -> void:
 
 func test_targeting_grid_alignment() -> void:
 	var targeting_system: GridTargetingSystem = env.grid_targeting_system
-	var tile_map: TileMapLayer = env.tile_map_layer
-	var targeting_state: GridTargetingState = targeting_system.get_state()
+	var _tile_map: TileMapLayer = env.tile_map_layer
+	var _targeting_state: GridTargetingState = targeting_system.get_state()
 
 	# Test grid-aligned targeting by setting position through state
 	var world_pos: Vector2 = Vector2(100, 100)  # Not grid-aligned
@@ -108,7 +108,7 @@ func test_targeting_grid_alignment() -> void:
 
 func test_targeting_validation() -> void:
 	var targeting_system: GridTargetingSystem = env.grid_targeting_system
-	var tile_map: TileMapLayer = env.tile_map_layer
+	var _tile_map: TileMapLayer = env.tile_map_layer
 	var targeting_state: GridTargetingState = targeting_system.get_state()
 
 	# Test valid position using factory's default target
@@ -758,27 +758,23 @@ func test_placed_object_becomes_targetable_after_manipulation() -> void:
 	runner.simulate_frames(1)
 
 	# THE REGRESSION: This should work but might fail if manipulation state interferes
+	var failure_msg: String = (
+		"Step 3 REGRESSION: After manipulation ends, placed object should be targetable. " +
+		"manipulation_active=%s, manipulation_target=%s, targeting_target=%s" % [
+			str(targeting_state.is_manual_targeting_active),
+			str(manipulation_state.active_manipulatable),
+			str(targeting_state.get_target())
+		]
+	)
 	(
 		assert_object(targeting_state.get_target()) \
-		. append_failure_message(
-			(
-				"Step 3 REGRESSION: After manipulation ends, placed object should be targetable. "
-				+ (
-					"manipulation_active=%s, manipulation_target=%s, targeting_target=%s"
-					% [
-						str(targeting_state.is_manual_targeting_active),
-						str(manipulation_state.active_manipulatable),
-						str(targeting_state.get_target())
-					]
-				)
-			)
-		) \
+		. append_failure_message(failure_msg) \
 		. is_same(manipulated_object)
 	)
 
 
 ## Test REGRESSION: Manipulation state active_target_node interferes with normal targeting
-func test_manipulation_state_doesnt_block_targeting_after_clear() -> void:
+func test_manipulation_state_does_not_block_targeting_after_clear() -> void:
 	# More specific test: If manipulation state isn't properly cleared,
 	# it might prevent TargetInformer or other systems from showing new targets
 

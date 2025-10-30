@@ -65,23 +65,23 @@ func test_validate_test_composition_container_subcomponents() -> void:
 	)
 
 	# Instantiate if it's a PackedScene-like resource that needs instantiation, otherwise it's a Resource
-	var container: GBCompositionContainer = null
+	var _instantiated_container: GBCompositionContainer = null
 	if _container is GBCompositionContainer:
-		container = _container
+		_instantiated_container = _container
 	else:
 		# Try loading as PackedScene or instancing - fallback to loading resource path used by tests
-		container = ResourceLoader.load(
+		_instantiated_container = ResourceLoader.load(
 			GBTestConstants.TEST_PATH_COMPOSITION_CONTAINER_TEST_RESOURCE
 		)
 
 	(
-		assert_that(container) \
+		assert_that(_instantiated_container) \
 		. append_failure_message("Test composition container not found or wrong type") \
 		. is_not_null()
 	)
 
 	# Assert GBConfig exists and its main subcomponents are present
-	var cfg: GBConfig = container.config
+	var cfg: GBConfig = _instantiated_container.config
 	(
 		assert_that(cfg) \
 		. append_failure_message("GBConfig is null on the test composition container") \
@@ -315,7 +315,7 @@ func test_trapezoid_collision_calculation_diagnostic() -> void:
 				var clipped: PackedVector2Array = CollisionGeometryCalculator.clip_polygon_to_rect(
 					trapezoid_points, tile_rect
 				)
-				var area: float = CollisionGeometryCalculator.polygon_area(clipped)
+				var _area: float = CollisionGeometryCalculator.polygon_area(clipped)
 
 				if overlaps_strict:
 					overlapping_tiles.append(tile_pos)

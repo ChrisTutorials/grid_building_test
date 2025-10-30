@@ -11,7 +11,7 @@ func before_test() -> void:
 	add_child(env)
 
 	# Injector is automatically set up by environment
-	var injector: GBInjectorSystem = env.injector
+	var _injector: GBInjectorSystem = env.injector
 
 # region Helper functions
 # Creates a standard collision rule for testing

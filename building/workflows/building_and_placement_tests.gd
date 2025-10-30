@@ -56,8 +56,6 @@ const BLOCKING_BODY_MASK: int = 0  # Don't detect anything itself
 
 #endregion
 
-const TEST_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
-
 #region DIAGNOSTICS HELPERS
 
 const DIAG_SUITE: String = "BuildingAndPlacementTests"
@@ -639,7 +637,7 @@ func test_placement_validation_with_rules(
 		_setup_blocking_collision()
 
 	# Setup and validate placement through IndicatorManager so indicators are generated
-	var report: PlacementReport = _indicator_manager.try_setup(test_rules, _targeting_state)
+	var _report: PlacementReport = _indicator_manager.try_setup(test_rules, _targeting_state)
 
 	# Allow physics to update after adding indicators
 	runner.simulate_frames(3, 60)  # Replaced await get_tree().physics_frame
@@ -707,7 +705,7 @@ func test_placement_validation_edge_cases(
 
 		"invalid_placeable":
 			var empty_rules: Array[PlacementRule] = []
-			var setup_issues: Dictionary = placement_validator.setup(empty_rules, _targeting_state)
+			var _setup_issues: Dictionary = placement_validator.setup(empty_rules, _targeting_state)
 			# With empty rules, validate() returns false because active_rules is empty
 			var result: ValidationResults = placement_validator.validate_placement()
 			(
@@ -744,7 +742,7 @@ func test_placement_validation_edge_cases(
 			runner.simulate_frames(2)  # Let position update take effect
 
 			var empty_rules: Array[PlacementRule] = []
-			var setup_issues: Dictionary = placement_validator.setup(empty_rules, _targeting_state)
+			var _setup_issues: Dictionary = placement_validator.setup(empty_rules, _targeting_state)
 			var result: ValidationResults = placement_validator.validate_placement()
 			# This might be valid or invalid depending on implementation
 			(

@@ -4,8 +4,6 @@
 ## instead of all being placed at (0,0).
 extends GdUnitTestSuite
 
-const TEST_CONTAINER: GBCompositionContainer = preload("uid://dy6e5p5d6ax6n")
-
 var container: GBCompositionContainer
 var test_targeting_state: GridTargetingState
 var test_indicator_template: PackedScene
@@ -15,7 +13,7 @@ var test_object: Node2D
 
 
 func before_test() -> void:
-	container = auto_free(TEST_CONTAINER.duplicate(true))
+	container = auto_free(GBTestConstants.TEST_COMPOSITION_CONTAINER.duplicate(true))
 	# Create test environment
 	test_parent = Node2D.new()
 	add_child(test_parent)

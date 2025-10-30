@@ -848,8 +848,8 @@ func test_rectangle_collision_coverage_48x64_pixels() -> void:
 	# Create the exact same rectangle from the failing integration test
 	var rect_width: float = 48.0  # 3 tiles × 16 pixels/tile
 	var rect_height: float = 64.0  # 4 tiles × 16 pixels/tile
-	var expected_tile_width: int = 3  # For reference - not used in shape-based detection
-	var expected_tile_height: int = 4  # For reference - not used in shape-based detection
+	var _expected_tile_width: int = 3  # For reference - not used in shape-based detection
+	var _expected_tile_height: int = 4  # For reference - not used in shape-based detection
 	# NOTE: Shape-based collision detection is more inclusive than simple rectangle calculation
 	# The collision processor detects 16 tiles vs direct utility's 12 tiles because it includes boundary overlaps
 	# This is geometrically correct behavior - shapes can partially overlap boundary tiles

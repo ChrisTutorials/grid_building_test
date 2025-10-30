@@ -313,7 +313,7 @@ func test_composition_container_factory_robustness() -> void:
 
 	# Test configuration access - should handle incomplete configs gracefully
 	var settings: GBSettings = container.get_settings()
-	var templates: Object = container.get_templates()
+	var _templates: Object = container.get_templates()
 
 	# Should handle incomplete configuration gracefully without crashing
 	(
@@ -562,7 +562,7 @@ func test_factory_error_recovery() -> void:
 func test_factory_memory_cleanup() -> void:
 	# Test that factory properly cleans up created objects
 	var temp_node: Node2D = GodotTestFactory.create_node2d(self)
-	var node_path: NodePath = temp_node.get_path()
+	var _node_path: NodePath = temp_node.get_path()
 
 	# Node should exist initially
 	assert_object(temp_node).is_not_null()

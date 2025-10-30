@@ -215,7 +215,7 @@ func test_multiple_tile_changes_across_frames() -> void:
 func test_last_attempted_tile_prevents_duplicate_requests() -> void:
 	# This tests the drag_data.last_attempted_tile check
 	var drag_data: DragPathData = _drag_manager.start_drag()
-	var initial_tile: Vector2i = drag_data.target_tile  # Store for potential debugging
+	var _initial_tile: Vector2i = drag_data.target_tile  # Store for potential debugging
 
 	# Move to new tile
 	_targeting_state.positioner.global_position += Vector2(32, 0)

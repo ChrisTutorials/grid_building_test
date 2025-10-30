@@ -51,7 +51,7 @@ extends Node
 ## Primary tilemap layer for placement validation and collision detection.
 @export var tile_map_layer: TileMapLayer
 
-## Parent node where test objects (buildings, manipulatables, etc) are instantiated.
+## Parent node where test objects (buildings, manipulatable, etc) are instantiated.
 @export var objects_parent: Node2D
 
 ## Node representing where objects should be placed (typically same as positioner).
@@ -62,20 +62,20 @@ extends Node
 #region Validation Helpers
 ## Validates a required component and appends issue if null.
 ## [param component] Component to validate
-## [param name] Display name for error message
+## [param component_name] Display name for error message
 ## [param issues] Array to append error to
-func _validate_required(component: Variant, name: String, issues: Array[String]) -> void:
+func _validate_required(component: Variant, component_name: String, issues: Array[String]) -> void:
 	if component == null:
-		issues.append("Missing %s" % name)
+		issues.append("Missing %s" % component_name)
 
 
 ## Validates a component with runtime issues method.
 ## [param component] Component to validate (must have get_runtime_issues())
-## [param name] Display name for error message
+## [param component_name] Display name for error message
 ## [param issues] Array to append errors to
-func _validate_with_runtime_issues(component: Variant, name: String, issues: Array[String]) -> void:
+func _validate_with_runtime_issues(component: Variant, component_name: String, issues: Array[String]) -> void:
 	if component == null:
-		issues.append("Missing %s" % name)
+		issues.append("Missing %s" % component_name)
 	else:
 		issues.append_array(component.get_runtime_issues())
 
