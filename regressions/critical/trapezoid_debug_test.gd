@@ -21,7 +21,7 @@ func test_trapezoid_debug() -> void:
 	# Expected tiles based on visual inspection of trapezoid:
 	# The trapezoid spans from x=-32 to x=32 (64 units) and y=-12 to y=12 (24 units)
 	# This should cover tiles: (-1,-1), (0,-1), (1,-1), (-1,0), (0,0), (1,0)
-	var expected_tiles: Array = [
+	var expected_tiles: Array[Vector2i] = [
 		Vector2i(-1, -1),
 		Vector2i(0, -1),
 		Vector2i(1, -1),

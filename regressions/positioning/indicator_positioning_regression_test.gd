@@ -55,7 +55,7 @@ func after_test() -> void:
 func test_indicator_positioning_at_multiple_offsets() -> void:
 	# Create position-rules map with multiple positions
 	var position_rules_map: Dictionary[Vector2i, Array] = {}
-	var test_setup: Dictionary = PlaceableTestFactory.create_polygon_test_setup(self)
+	var test_setup: Dictionary[String, Variant] = PlaceableTestFactory.create_polygon_test_setup(self)
 	var test_rule: TileCheckRule = null
 	for rule: TileCheckRule in test_setup.rules:
 		if rule is TileCheckRule:
@@ -122,7 +122,7 @@ func test_indicator_positioning_at_multiple_offsets() -> void:
 ## Test that indicators without targeting state are positioned at (0,0)
 func test_indicators_without_targeting_state_position_at_origin() -> void:
 	var position_rules_map: Dictionary[Vector2i, Array] = {}
-	var test_setup: Dictionary = PlaceableTestFactory.create_polygon_test_setup(self)
+	var test_setup: Dictionary[String, Variant] = PlaceableTestFactory.create_polygon_test_setup(self)
 	var test_rule: TileCheckRule = null
 	for rule: TileCheckRule in test_setup.rules:
 		if rule is TileCheckRule:

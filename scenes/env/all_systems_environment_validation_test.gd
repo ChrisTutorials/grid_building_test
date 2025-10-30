@@ -228,8 +228,8 @@ func test_placement_rules_available() -> void:
 		var placement_rules: Array[PlacementRule] = container.get_placement_rules()
 		# We don't necessarily need placement rules for the environment to work,
 		# but we should be able to check this without errors
-	(
-		assert_that(placement_rules) \
-		. append_failure_message("Placement rules collection should exist") \
-		. is_not_null()
-	)
+		(
+			assert_that(placement_rules) \
+			. append_failure_message("Placement rules collection should exist") \
+			. is_not_null()
+		)

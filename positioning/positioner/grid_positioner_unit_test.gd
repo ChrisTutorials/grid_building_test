@@ -68,8 +68,8 @@ func _expected_view_center_position(map: TileMapLayer) -> Vector2:
 	return _snap_world_to_map_global(map, center_world)
 
 
-func _create_recenter_env() -> Array:
-	var setup: Array = _create_positioner_env(null, false)
+func _create_recenter_env() -> Array[Variant]:
+	var setup: Array[Variant] = _create_positioner_env(null, false)
 	var settings: GridTargetingSettings = setup[_IDX_SETTINGS]
 	# Recenter-specific tests should not hide on handled events
 	settings.hide_on_handled = false
@@ -120,7 +120,7 @@ func _replace_positioner(
 
 func _create_positioner_env(
 	p_positioner: GridPositioner2D = null, hide_on_handled: bool = true
-) -> Array:
+) -> Array[Variant]:
 	var env: CollisionTestEnvironment = _create_collision_env()
 	runner.simulate_frames(1)
 
@@ -157,9 +157,11 @@ class _MouseProjectionTestMap:
 	var override_world: Vector2 = Vector2.ZERO
 
 	@warning_ignore("native_method_override")
+	## Mock implementation returning controlled mouse position for testing.
 	func get_global_mouse_position() -> Vector2:
 		return override_world
 
+	## Mock implementation returning null viewport for testing isolation.
 	@warning_ignore("native_method_override")
 	func get_viewport() -> Viewport:
 		return null
@@ -169,9 +171,10 @@ class _MouseProjectionTestMap:
 
 
 #region VISIBILITY REGRESSION: active mode without mouse events
+## Tests that positioner remains visible in active mode when mouse input is disabled and no events occur.
 func test_visible_in_active_mode_when_mouse_disabled_and_no_events() -> void:
 	# Arrange: create a minimal, valid environment
-	var setup: Array = _create_recenter_env()
+	var setup: Array[Variant] = _create_recenter_env()
 	var gp: GridPositioner2D = setup[_IDX_GP]
 	var settings: GridTargetingSettings = setup[_IDX_SETTINGS]
 	var states: GBStates = setup[_IDX_STATES]
@@ -221,7 +224,7 @@ func test_visibility_modes_scenarios(
 		[GBEnums.Mode.DEMOLISH, true]
 	]
 ) -> void:
-	var setup: Array = _create_positioner_env()
+	var setup: Array[Variant] = _create_positioner_env()
 	var gp: GridPositioner2D = setup[_IDX_GP]
 	gp._on_mode_changed(mode)
 	_assert_visible(
@@ -234,8 +237,9 @@ func test_visibility_modes_scenarios(
 #endregion
 
 
+## Tests that the input processing gate can be toggled on and off correctly.
 func test_input_processing_gate_toggle() -> void:
-	var setup: Array = _create_positioner_env()
+	var setup: Array[Variant] = _create_positioner_env()
 	var gp: GridPositioner2D = setup[_IDX_GP]
 	runner.simulate_frames(1)
 	# Starts disabled in _ready, but _ready isn't called here; verify setter toggles the flag directly
@@ -258,9 +262,10 @@ func test_input_processing_gate_toggle() -> void:
 	)
 
 
+## Tests that positioner can remain visible in OFF mode when remain_active_in_off_mode is enabled.
 func test_off_mode_visibility_override_when_enabled() -> void:
 	# Arrange: create positioner and settings that allow visibility when OFF
-	var setup: Array = _create_positioner_env()
+	var setup: Array[Variant] = _create_positioner_env()
 	var gp: GridPositioner2D = setup[_IDX_GP]
 	var settings: GridTargetingSettings = setup[_IDX_SETTINGS]
 	settings.remain_active_in_off_mode = true
@@ -282,7 +287,7 @@ func test_off_mode_visibility_override_when_enabled() -> void:
 
 
 func test_recenter_on_enable_prefers_cached_when_option_true() -> void:
-	var setup: Array = _create_recenter_env()
+	var setup: Array[Variant] = _create_recenter_env()
 	var gp: GRID_POSITIONER_SCRIPT = setup[_IDX_GP]
 	var settings: GridTargetingSettings = setup[_IDX_SETTINGS]
 	# Note: map variable removed - was unused and caused compiler warning
@@ -327,7 +332,7 @@ func test_recenter_on_enable_prefers_cached_when_option_true() -> void:
 
 
 func test_recenter_on_enable_mouse_enabled_centers_on_mouse_else_fallbacks() -> void:
-	var setup: Array = _create_recenter_env()
+	var setup: Array[Variant] = _create_recenter_env()
 	var gp: GRID_POSITIONER_SCRIPT = setup[_IDX_GP]
 	var settings: GridTargetingSettings = setup[_IDX_SETTINGS]
 	# Note: map variable removed - was unused and caused compiler warning
@@ -372,7 +377,7 @@ func test_recenter_on_enable_mouse_enabled_centers_on_mouse_else_fallbacks() -> 
 
 
 func test_recenter_on_enable_keyboard_only_centers_view() -> void:
-	var setup: Array = _create_recenter_env()
+	var setup: Array[Variant] = _create_recenter_env()
 	var gp: GRID_POSITIONER_SCRIPT = setup[_IDX_GP]
 	var settings: GridTargetingSettings = setup[_IDX_SETTINGS]
 	var map: TileMapLayer = setup[_IDX_MAP]
@@ -401,7 +406,7 @@ func test_recenter_on_enable_keyboard_only_centers_view() -> void:
 
 
 func test_restrict_to_map_area_respects_parent_transform() -> void:
-	var setup: Array = _create_recenter_env()
+	var setup: Array[Variant] = _create_recenter_env()
 	var gp: GRID_POSITIONER_SCRIPT = setup[_IDX_GP]
 	var settings: GridTargetingSettings = setup[_IDX_SETTINGS]
 	var map: TileMapLayer = setup[_IDX_MAP]
@@ -452,7 +457,7 @@ func test_hide_on_handled_mouse_event_hides_positioner() -> void:
 
 	# Create the stub positioner specifically for this test
 	var stub_positioner := _StubGateGridPositioner.new()
-	var setup: Array = _create_positioner_env(stub_positioner, true)
+	var setup: Array[Variant] = _create_positioner_env(stub_positioner, true)
 	var gp: GridPositioner2D = setup[_IDX_GP]
 	var settings: GridTargetingSettings = setup[_IDX_SETTINGS]
 	var states: GBStates = setup[_IDX_STATES]
@@ -521,7 +526,7 @@ func test_hide_on_handled_mouse_event_hides_positioner() -> void:
 
 
 func test_recenter_on_resolve_dependencies_mouse_enabled_and_cursor_on_screen() -> void:
-	var setup: Array = _create_recenter_env()
+	var setup: Array[Variant] = _create_recenter_env()
 	var gp: GRID_POSITIONER_SCRIPT = setup[_IDX_GP]
 	var settings: GridTargetingSettings = setup[_IDX_SETTINGS]
 	# Note: map variable not needed for this test (avoids unused variable warning)
@@ -562,7 +567,7 @@ func test_recenter_on_resolve_dependencies_mouse_enabled_and_cursor_on_screen() 
 
 
 func test_recenter_on_resolve_dependencies_mouse_disabled_moves_to_center() -> void:
-	var setup: Array = _create_recenter_env()
+	var setup: Array[Variant] = _create_recenter_env()
 	var gp: GRID_POSITIONER_SCRIPT = setup[_IDX_GP]
 	var settings: GridTargetingSettings = setup[_IDX_SETTINGS]
 
@@ -595,7 +600,7 @@ func test_recenter_on_resolve_dependencies_mouse_disabled_moves_to_center() -> v
 
 
 func test_recenter_on_resolve_dependencies_cursor_off_screen_moves_to_center() -> void:
-	var setup: Array = _create_recenter_env()
+	var setup: Array[Variant] = _create_recenter_env()
 	var gp: GRID_POSITIONER_SCRIPT = setup[_IDX_GP]
 	var settings: GridTargetingSettings = setup[_IDX_SETTINGS]
 

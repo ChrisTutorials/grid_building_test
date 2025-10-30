@@ -16,7 +16,7 @@ func before_test() -> void:
 
 # Helper to create minimal test setup using the SAME tilemap as test environments
 # This ensures we're testing against the actual tilemap configuration used in integration tests
-func _create_test_rule_setup() -> Dictionary:
+func _create_test_rule_setup() -> Dictionary[String, Variant]:
 	var setup: Dictionary = {}
 
 	# Use the SAME preloaded tilemap that the test environments use
@@ -137,7 +137,7 @@ func test_preloaded_tilemap_has_valid_tile_data() -> void:
 # Integration test shows: Positioner position: (8.0, 8.0), Map used rect: [P: (-15, -15), S: (31, 31)],
 # Position within bounds: true
 func test_within_tilemap_bounds_rule_at_valid_position() -> void:
-	var setup: Dictionary = _create_test_rule_setup()
+	var setup: Dictionary[String, Variant] = _create_test_rule_setup()
 	var targeting_state: GridTargetingState = setup["targeting_state"]
 	var positioner: Node2D = setup["positioner"]
 	var target: Node2D = setup["target"]
@@ -192,7 +192,7 @@ func test_within_tilemap_bounds_rule_at_valid_position() -> void:
 
 # Test rule with position outside bounds to verify it correctly fails
 func test_within_tilemap_bounds_rule_at_invalid_position() -> void:
-	var setup: Dictionary = _create_test_rule_setup()
+	var setup: Dictionary[String, Variant] = _create_test_rule_setup()
 	var tile_map: TileMapLayer = setup["tile_map"]
 	var targeting_state: GridTargetingState = setup["targeting_state"]
 
@@ -257,7 +257,7 @@ func test_within_tilemap_bounds_rule_boundary_positions(
 		["outside_bottom_right", Vector2i(16, 16), false]
 	]
 ) -> void:
-	var setup: Dictionary = _create_test_rule_setup()
+	var setup: Dictionary[String, Variant] = _create_test_rule_setup()
 	var tile_map: TileMapLayer = setup["tile_map"]
 	var targeting_state: GridTargetingState = setup["targeting_state"]
 
@@ -326,7 +326,7 @@ func test_within_tilemap_bounds_rule_boundary_positions(
 # This reproduces the multiple_rules_pass failure where individual rules pass but combination fails
 # Integration test shows: 4 indicators with valid=true and colliding=false, but overall validation fails
 func test_multiple_rules_validation_combination() -> void:
-	var setup: Dictionary = _create_test_rule_setup()
+	var setup: Dictionary[String, Variant] = _create_test_rule_setup()
 	var targeting_state: GridTargetingState = setup["targeting_state"]
 	var positioner: Node2D = setup["positioner"]
 	var target: Node2D = setup["target"]

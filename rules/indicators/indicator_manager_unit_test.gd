@@ -26,7 +26,7 @@ func test_build_failed_report_returns_expected_issues() -> void:
 	var dummy_target: Node2D = Node2D.new()
 	auto_free(dummy_target)
 	add_child(dummy_target)
-	var issues: Dictionary = {"RuleA": ["A failed"], "RuleB": ["B failed", "B extra"]}
+	var issues: Dictionary[String, Array] = {"RuleA": ["A failed"], "RuleB": ["B failed", "B extra"]}
 
 	# Act
 	var report: PlacementReport = manager._build_failed_report(issues, dummy_target)

@@ -44,9 +44,6 @@ func test_indicator_collision_test_setup_creation() -> void:
 	# Create a StaticBody2D with CollisionShape2D
 	var body := _create_body_with_rectangle_shape()
 
-	# Ensure the scene tree is ready
-	await get_tree().process_frame
-
 	# Create test setup
 	var test_setup := _create_minimal_test_setup(body)
 

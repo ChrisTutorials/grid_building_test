@@ -185,7 +185,7 @@ func test_rigid_body_with_collision_layer_513_generates_indicators() -> void:
 			detail += (
 				" [layer: %d, shape_owners: %s]" % [obj.collision_layer, obj.get_shape_owners()]
 			)
-			var shapes_from_owner: Array = GBGeometryUtils.get_shapes_from_owner(obj)
+			var shapes_from_owner: Array[Shape2D] = GBGeometryUtils.get_shapes_from_owner(obj)
 			detail += " [shapes: %d]" % shapes_from_owner.size()
 			# Debug children
 			var children_info: Array[String] = []

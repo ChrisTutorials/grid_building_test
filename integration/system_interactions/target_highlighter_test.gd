@@ -120,7 +120,6 @@ func test_target_modulate_clears_on_target_null() -> void:
 	assert_object(target).append_failure_message("Target should exist before clearing").is_not_null()
 	assert_that(target.modulate).append_failure_message("Target modulate should be set to aquamarine").is_not_equal(settings.reset_color)
 	targeting_state.clear()
-	await await_idle_frame()
 	assert_that(highlighter.current_target).is_null().append_failure_message("Highlighter's current_target should be null after targeting_state.clear()")
 	assert_that(target).is_not_null().append_failure_message("Original target reference should still be valid")
 	assert_color_equal(target.modulate, settings.reset_color, "Target modulate should reset to reset_color after targeting state cleared")

@@ -99,7 +99,7 @@ func test_polygon_preview_indicators_respect_min_overlap_ratio() -> void:
 	var world_points: PackedVector2Array = CollisionGeometryUtils.to_world_polygon(poly)
 	var tile_size: Vector2 = Vector2(_map.tile_set.tile_size)
 	# Compute absolute tiles meeting the min overlap using calculator (area-based)
-	var allowed_abs: Dictionary = {}
+	var allowed_abs: Dictionary[String, bool] = {}
 	var allowed_abs_tiles: Array[Vector2i] = CollisionGeometryCalculator.calculate_tile_overlap(
 		world_points, tile_size, TileSet.TILE_SHAPE_SQUARE, _map, 0.01, MIN_OVERLAP_RATIO
 	)

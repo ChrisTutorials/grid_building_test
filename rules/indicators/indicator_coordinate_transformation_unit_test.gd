@@ -37,7 +37,6 @@ func test_tile_to_global_position_logic() -> void:
 	# Arrange: Position the positioner at a known tile
 	var positioner_tile := Vector2i(10, 10)
 	_positioner.global_position = _tile_map.map_to_local(positioner_tile)
-	await await_idle_frame()
 
 	# The offset from the collision system that causes the bug
 	var suspicious_offset := Vector2i(51, 21)
@@ -45,7 +44,7 @@ func test_tile_to_global_position_logic() -> void:
 	var position_rules_map: Dictionary[Vector2i, Array] = {suspicious_offset: []}
 
 	# Act
-	var indicators: Array = IndicatorFactory.generate_indicators(
+	var indicators: Array[RuleCheckIndicator] = IndicatorFactory.generate_indicators(
 		position_rules_map, TestIndicatorScene, _positioner, _targeting_state, _positioner  # Parent node for the indicators  # Test object is the positioner itself for simplicity
 	)
 

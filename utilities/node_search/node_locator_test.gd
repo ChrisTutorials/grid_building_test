@@ -59,18 +59,18 @@ func test_search_by_script_name_with_extension() -> void:
 	var all_nodes: Array[Node] = [owner_node, item_container]
 	# NodeSearchLogic.get_script_name returns the script file name if resource_path set, else NodeName.gd fallback.
 	# Our in-memory script has no resource_path so expected synthetic fallback "<NodeName>.gd"
-		var expected_script_name := "%s.gd" % item_container.name
-		var found_nodes: Array[Node] = NodeSearchLogic.find_nodes_by_script(all_nodes, expected_script_name)
-		
-		assert_int(found_nodes.size()).append_failure_message(
-			"find_nodes_by_script('%s') expected 1 got %d -> %s (available=%s)" % [expected_script_name, found_nodes.size(), found_nodes, all_nodes]
-		).is_equal(1)
-		
-		if found_nodes.size() == 1:
-			assert_object(found_nodes[0]).append_failure_message(
-				"Result node was null despite size==1").is_not_null()
-			assert_object(found_nodes[0].get_script()).append_failure_message(
-				"Result node script should not be null").is_not_null()
+	var expected_script_name := "%s.gd" % item_container.name
+	var found_nodes: Array[Node] = NodeSearchLogic.find_nodes_by_script(all_nodes, expected_script_name)
+
+	assert_int(found_nodes.size()).append_failure_message(
+		"find_nodes_by_script('%s') expected 1 got %d -> %s (available=%s)" % [expected_script_name, found_nodes.size(), found_nodes, all_nodes]
+	).is_equal(1)
+
+	if found_nodes.size() == 1:
+		assert_object(found_nodes[0]).append_failure_message(
+			"Result node was null despite size==1").is_not_null()
+		assert_object(found_nodes[0].get_script()).append_failure_message(
+			"Result node script should not be null").is_not_null()
 
 @warning_ignore("unused_parameter")
 func test_get_script_name(

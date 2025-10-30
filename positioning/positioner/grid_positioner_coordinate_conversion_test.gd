@@ -124,7 +124,7 @@ func test_tile_center_positioning_accuracy() -> void:
 
 	for screen_pos: Vector2 in test_positions:
 		## Act: Get tile center calculation from screen position
-		var result: Dictionary = positioner._test_get_tile_center_from_screen(screen_pos)
+		var result: Dictionary[String, Variant] = positioner._test_get_tile_center_from_screen(screen_pos)
 
 		## Assert: Should get valid results
 		assert_object(result.get("tile")).append_failure_message(
@@ -165,7 +165,7 @@ func test_mouse_motion_tile_centering() -> void:
 		{"screen": Vector2(63, 63), "description": "Bottom-right area of tile"},
 	]
 
-	for test_case: Dictionary in test_cases:
+	for test_case: Dictionary[String, Variant] in test_cases:
 		var screen_pos: Vector2 = test_case.screen
 		var description: String = test_case.description
 
@@ -174,7 +174,7 @@ func test_mouse_motion_tile_centering() -> void:
 		motion_event.position = screen_pos
 
 		## Get expected tile and center before moving
-		var expected_result: Dictionary = positioner._test_get_tile_center_from_screen(
+		var expected_result: Dictionary[String, Variant] = positioner._test_get_tile_center_from_screen(
 			screen_pos
 		)
 		var expected_tile: Vector2i = expected_result.get("tile")
@@ -218,13 +218,13 @@ func test_coordinate_conversion_edge_cases() -> void:
 		{"screen": Vector2(31, 31), "description": "Almost next tile"},
 	]
 
-	for case: Dictionary in edge_cases:
+	for case: Dictionary[String, Variant] in edge_cases:
 		var screen_pos: Vector2 = case.screen
 		var description: String = case.description
 
 		## Act: Convert coordinates
 		var world_pos: Vector2 = positioner._test_convert_screen_to_world(screen_pos)
-		var tile_result: Dictionary = positioner._test_get_tile_center_from_screen(
+		var tile_result: Dictionary[String, Variant] = positioner._test_get_tile_center_from_screen(
 			screen_pos
 		)
 

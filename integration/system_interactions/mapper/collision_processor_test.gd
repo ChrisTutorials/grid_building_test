@@ -194,7 +194,7 @@ func test_collision_processor_multiple_shapes() -> void:
 	var test_data: CollisionTestSetup2D = _create_collision_test_setup(collision_obj)
 
 	# Act
-	var result: Dictionary[Vector2i, Array[Node2D]] = _processor.get_tile_offsets_for_collision(collision_obj, test_data, _test_env.top_down_map, _test_env.positioner)
+	var result: Dictionary[Vector2i, Array] = _processor.get_tile_offsets_for_collision(collision_obj, test_data, _test_env.top_down_map, _test_env.positioner)
 
 	# Assert - result is a Dictionary[Vector2i, Array[Node2D]]
 	assert_that(result.size()).append_failure_message("Expected collision processing to handle multiple shapes").is_greater(0)
@@ -259,7 +259,7 @@ func test_process_shape_offsets_rectangle() -> void:
 	var shape_epsilon: float = 0.1
 
 	# Act
-	var result: Dictionary[Vector2i, Array[Node2D]] = _processor.process_shape_offsets(rect_test_setup, test_data, _test_env.top_down_map, _test_env.center_tile, _test_env.tile_size, shape_epsilon, collision_obj)
+	var result: Dictionary[Vector2i, Array] = _processor.process_shape_offsets(rect_test_setup, test_data, _test_env.top_down_map, _test_env.center_tile, _test_env.tile_size, shape_epsilon, collision_obj)
 
 	# Assert - result is a Dictionary[Vector2i, Array[Node2D]]
 	assert_that(result).append_failure_message(

@@ -71,8 +71,8 @@ func test_positioner_eventually_connected() -> void:
 
 ## Test: Verify all runtime issues are resolved after initialization
 func test_final_state_has_no_issues() -> void:
-	# Wait a frame to ensure all initialization is complete
-	await get_tree().process_frame
+	# Force synchronous initialization completion
+	test_env.request_ready()
 
 	# After full initialization, there should be no runtime issues
 	var final_issues: Array[String] = test_env.get_issues()
@@ -173,8 +173,8 @@ func test_no_positioner_warnings_during_initialization() -> void:
 		self, GBTestConstants.ALL_SYSTEMS_ENV
 	)
 
-	# Wait for initialization to complete
-	await get_tree().process_frame
+	# Force synchronous initialization completion
+	fresh_env.request_ready()
 
 	# Verify that initialization completed successfully without positioner warnings
 	# The key fix: GBLevelContext.apply_to() no longer calls get_runtime_issues() immediately

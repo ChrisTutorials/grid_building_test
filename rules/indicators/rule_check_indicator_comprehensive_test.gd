@@ -144,7 +144,6 @@ func test_indicator_visual_state_updates() -> void:
 
 	# Test initial visual state
 	indicator.resolve_gb_dependencies(test_container)
-	await get_tree().process_frame
 
 	# Force recompute and re-apply visuals in case ordering left visuals unapplied
 	indicator._update_current_display_settings([], indicator.valid)
