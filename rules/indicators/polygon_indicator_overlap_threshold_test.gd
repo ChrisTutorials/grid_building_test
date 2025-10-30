@@ -69,7 +69,7 @@ func test_polygon_preview_indicators_respect_min_overlap_ratio() -> void:
 	_state.positioner.global_position = Vector2(64, 64)
 
 	# Use collision rule from constants
-	var rule: CollisionsCheckRule = GBTestConstants.COLLISIONS_CHECK_RULE.new()
+	var rule: CollisionsCheckRule = CollisionsCheckRule.new()
 	var rules: Array[PlacementRule] = [rule]
 
 	# Setup the rule

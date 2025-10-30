@@ -154,7 +154,7 @@ func test_indicator_visual_state_updates() -> void:
 	var cur := indicator.current_display_settings
 	var vs := indicator.valid_settings
 	var invs := indicator.invalid_settings
-	var diag_parts: Array = []
+	var diag_parts: Array[String] = []
 	diag_parts.append("Indicator diagnostics:")
 	diag_parts.append("validity_sprite: %s" % ["null" if not indicator.validity_sprite else str(indicator.validity_sprite.name)])
 	diag_parts.append("indicator.valid: %s" % [str(indicator.valid)])

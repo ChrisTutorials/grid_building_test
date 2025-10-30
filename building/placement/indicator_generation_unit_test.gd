@@ -56,7 +56,7 @@ func test_indicator_generation_from_container_rules() -> void:
 	var rules: Array[PlacementRule] = _container.get_placement_rules()
 	if rules.size() == 0:
 		# fallback to canonical collisions rule from GBTestConstants
-		var cr: CollisionsCheckRule = GBTestConstants.COLLISIONS_CHECK_RULE.new()
+		var cr: CollisionsCheckRule = CollisionsCheckRule.new()
 		rules = [cr]
 
 	# Enhanced diagnostics: trace rule identity and characteristics (use per-test local diag)
@@ -195,7 +195,7 @@ func test_indicator_generation_from_container_rules() -> void:
 func test_indicators_are_freed_on_reset() -> void:
 	var shape_scene: Node2D = CollisionObjectTestFactory.create_polygon_test_object(self, self)
 	shape_scene.global_position = DEFAULT_POSITION
-	var col_checking_rules: Array[TileCheckRule] = [GBTestConstants.COLLISIONS_CHECK_RULE.new()]
+	var col_checking_rules: Array[TileCheckRule] = [CollisionsCheckRule.new()]
 	_manager.setup_indicators(shape_scene, col_checking_rules)
 
 	(

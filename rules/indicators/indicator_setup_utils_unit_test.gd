@@ -129,7 +129,7 @@ func test_gather_collision_shapes_parameterized() -> void:
 				. append_failure_message("Owner should be Node2D for %s" % test_name) \
 				. is_instanceof(Node2D)
 			)
-			var shapes: Array = result[owner_node]
+			var shapes: Array[Shape2D] = result[owner_node]
 			(
 				assert_that(shapes) \
 				. append_failure_message("Shapes array should not be empty for %s" % test_name) \
@@ -160,7 +160,7 @@ func test_execute_indicator_setup_produces_zero_indicators_despite_collision_sha
 	var rules: Array[TileCheckRule] = [rule]
 
 	# Test collision shape gathering (this should work)
-	var collision_shapes: Dictionary = IndicatorSetupUtils.gather_collision_shapes(smithy_obj)
+	var collision_shapes: Dictionary[Node2D, Array] = IndicatorSetupUtils.gather_collision_shapes(smithy_obj)
 	var collision_shapes_count := collision_shapes.size()
 	(
 		assert_that(collision_shapes_count) \
