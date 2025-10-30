@@ -42,7 +42,8 @@ func _find_child_polygon(root: Node) -> CollisionPolygon2D:
 # endregion
 
 
-## Failing regression: with current mapper settings, indicators are created on tiles below a reasonable overlap threshold.
+## Failing regression: with current mapper settings, indicators are created on tiles
+## below a reasonable overlap threshold.
 func test_polygon_preview_indicators_respect_min_overlap_ratio() -> void:
 	# Arrange: create the preview under the active positioner like at runtime
 	# Create a simple polygon preview using the factory
@@ -68,7 +69,7 @@ func test_polygon_preview_indicators_respect_min_overlap_ratio() -> void:
 	_state.positioner.global_position = Vector2(64, 64)
 
 	# Use collision rule from constants
-	var rule: CollisionsCheckRule = GBTestConstants.COLLISIONS_CHECK_RULE
+	var rule: CollisionsCheckRule = GBTestConstants.COLLISIONS_CHECK_RULE.new()
 	var rules: Array[PlacementRule] = [rule]
 
 	# Setup the rule

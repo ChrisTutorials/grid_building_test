@@ -158,7 +158,7 @@ func test_null_targeting_state_components_handled_gracefully() -> void:
 	broken_targeting_state.positioner = null
 
 	var position_rules_map: Dictionary[Vector2i, Array] = {}
-	var test_setup: Dictionary = PlaceableTestFactory.create_polygon_test_setup(self)
+	var test_setup: Dictionary[String, Variant] = PlaceableTestFactory.create_polygon_test_setup(self)
 	var test_rule: TileCheckRule = null
 	for rule: TileCheckRule in test_setup.rules:
 		if rule is TileCheckRule:

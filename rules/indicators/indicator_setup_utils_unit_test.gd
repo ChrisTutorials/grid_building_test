@@ -113,7 +113,7 @@ func test_gather_collision_shapes_parameterized() -> void:
 		var test_object: Node2D = scene.instantiate() as Node2D
 		add_child(test_object)
 
-		var result: Dictionary = IndicatorSetupUtils.gather_collision_shapes(test_object)
+		var result: Dictionary[Node2D, Array] = IndicatorSetupUtils.gather_collision_shapes(test_object)
 
 		# Should find collision shapes
 		(
@@ -123,7 +123,7 @@ func test_gather_collision_shapes_parameterized() -> void:
 		)
 
 		# Check that we have the expected structure
-		for owner_node: Node in result.keys():
+		for owner_node: Node2D in result.keys():
 			(
 				assert_that(owner_node) \
 				. append_failure_message("Owner should be Node2D for %s" % test_name) \
@@ -146,7 +146,7 @@ func test_gather_collision_shapes_parameterized() -> void:
 # Expected failure: setup should create indicators but returns empty array despite finding collision shapes
 func test_execute_indicator_setup_produces_zero_indicators_despite_collision_shapes() -> void:
 	# Load smithy to match integration test pattern
-	var smithy_scene: PackedScene = load(GBTestConstants.SMITHY_PATH)
+	var smithy_scene: PackedScene = GBTestConstants.SMITHY_PATH
 	assert_object(smithy_scene).append_failure_message("Failed to load Smithy scene").is_not_null()
 
 	var smithy_obj: Node2D = smithy_scene.instantiate()
@@ -169,7 +169,7 @@ func test_execute_indicator_setup_produces_zero_indicators_despite_collision_sha
 	)
 
 	# Test collision test setups building with correct parameters
-	var test_setups: Dictionary = IndicatorSetupUtils.build_collision_test_setups(
+	var test_setups: Dictionary[Node2D, CollisionTestSetup2D] = IndicatorSetupUtils.build_collision_test_setups(
 		collision_shapes, DEFAULT_TILE_SIZE
 	)
 	(
@@ -195,7 +195,7 @@ func test_execute_indicator_setup_produces_zero_indicators_despite_collision_sha
 	)
 
 	# Calculate expected collision tiles for diagnostic
-	var collision_results: Dictionary = collision_mapper.get_collision_tile_positions_with_mask(
+	var collision_results: Dictionary[Vector2i, Array] = collision_mapper.get_collision_tile_positions_with_mask(
 		[smithy_obj] as Array[Node2D], COLLISION_MASK_MIXED
 	)
 	var expected_collision_tiles: int = collision_results.size()
@@ -283,7 +283,7 @@ func test_collision_mapping_works_but_indicator_creation_fails() -> void:
 		if child is CollisionShape2D:
 			collision_shapes_in_object += 1
 
-	var collision_results: Dictionary = collision_mapper.get_collision_tile_positions_with_mask(
+	var collision_results: Dictionary[Vector2i, Array] = collision_mapper.get_collision_tile_positions_with_mask(
 		[test_object] as Array[Node2D], COLLISION_MASK_SINGLE
 	)
 	var collision_tiles_found: int = collision_results.size()
@@ -920,7 +920,7 @@ func _validate_collision_mapping(
 		. is_not_null()
 	)
 
-	var collision_results: Dictionary = collision_mapper.get_collision_tile_positions_with_mask(
+	var collision_results: Dictionary[Vector2i, Array] = collision_mapper.get_collision_tile_positions_with_mask(
 		test_objects, mask
 	)
 	var tiles_found: int = collision_results.size()

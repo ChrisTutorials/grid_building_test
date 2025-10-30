@@ -19,7 +19,7 @@ const DEFAULT_COLUMNS: int = 3
 
 func before_test() -> void:
 	# Load templates
-	placeable_template = load(GBTestConstants.TEST_PATH_PLACEABLE_VIEW_UI)
+	placeable_template = GBTestConstants.TEST_PATH_PLACEABLE_VIEW_UI
 	sequence_template = load(GBTestConstants.TEST_PATH_PLACEABLE_LIST_ENTRY_UI)
 
 	# Create test placeables and sequence

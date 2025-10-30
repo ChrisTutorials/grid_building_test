@@ -265,7 +265,7 @@ func test_multiple_indicators_share_same_exclusion_list() -> void:
 
 	# WHEN: Body excluded via targeting state
 	_env.targeting_state.collision_exclusions = [excluded_body]
- runner.simulate_frames(1)
+	runner.simulate_frames(1)
 
 	# THEN: All indicators respect the exclusion
 	assert_bool(indicator1.valid).append_failure_message(
@@ -311,8 +311,8 @@ func test_indicator_handles_exclusion_of_nested_collision_objects() -> void:
 	indicator.add_rule(_rule)
 
 	# Wait for physics to detect collision
- runner.simulate_frames(1)
- runner.simulate_frames(1)
+	runner.simulate_frames(1)
+	runner.simulate_frames(1)
 
 	# DEBUG: Verify collision setup
 	var body_world_pos := parent.global_position
@@ -328,7 +328,7 @@ func test_indicator_handles_exclusion_of_nested_collision_objects() -> void:
 
 	# WHEN: Root excluded (should exclude all children)
 	_env.targeting_state.collision_exclusions = [root]
- runner.simulate_frames(1)
+	runner.simulate_frames(1)
 
 	# THEN: Indicator becomes valid (nested collision excluded)
 	var root_name: String = str(root.name) if is_instance_valid(root) else "null"
@@ -346,13 +346,13 @@ func test_indicator_validation_without_exclusions_baseline() -> void:
 	indicator.add_rule(_rule)
 
 	# WHEN: Multiple physics frames pass without exclusions
- runner.simulate_frames(1)
+	runner.simulate_frames(1)
 	var valid_f1 := indicator.valid
 
- runner.simulate_frames(1)
+	runner.simulate_frames(1)
 	var valid_f2 := indicator.valid
 
- runner.simulate_frames(1)
+	runner.simulate_frames(1)
 	var valid_f3 := indicator.valid
 
 	# THEN: Indicator consistently invalid (collision detected)

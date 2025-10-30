@@ -490,9 +490,7 @@ func _create_test_content() -> void:
 
 ## Creates a mock placeable entry template for testing (simplified PanelContainer that works as PlaceableView)
 func _create_mock_placeable_entry_template() -> PackedScene:
-	var placeable_scene: PackedScene = (
-		load(GBTestConstants.TEST_PATH_PLACEABLE_VIEW_UI) as PackedScene
-	)
+	var placeable_scene: PackedScene = GBTestConstants.TEST_PATH_PLACEABLE_VIEW_UI
 	(
 		assert_object(placeable_scene) \
 		. append_failure_message(

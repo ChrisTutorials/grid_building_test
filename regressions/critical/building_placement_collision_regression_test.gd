@@ -159,7 +159,7 @@ func test_collision_rule_configuration_validity() -> void:
 
 	# Check if collision detection is working as expected in clear area
 	var test_nodes: Array[Node2D] = [user_node as Node2D]
-	var collision_results: Dictionary = collision_mapper.get_collision_tile_positions_with_mask(
+	var collision_results: Dictionary[Vector2i, Array] = collision_mapper.get_collision_tile_positions_with_mask(
 		test_nodes, 1
 	)
 
