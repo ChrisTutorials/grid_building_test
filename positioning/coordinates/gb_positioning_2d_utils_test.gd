@@ -348,8 +348,8 @@ func test_coordinate_conversion_roundtrip() -> void:
 
 	# Just verify the node was moved to a valid position (not zero)
 	assert_that(final_position).append_failure_message(
-		"Roundtrip conversion should move node from zero position, got %s" % str(final_position).is_not_equal(Vector2.ZERO)
-	)
+		"Roundtrip conversion should move node from zero position, got %s" % str(final_position)
+	).is_not_equal(Vector2.ZERO)
 
 	# Verify coordinate conversion worked (tile coordinate is valid)
 	assert_that(tile_coord.x).append_failure_message(

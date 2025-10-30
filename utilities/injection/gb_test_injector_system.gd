@@ -83,7 +83,7 @@ func _validate_after_injection() -> void:
 ## Populate missing container dependencies from the scene tree
 ## This reduces false validation warnings for test environments that have the required nodes
 ## TEMPORARILY DISABLED - needs refactoring for proper NodeLocator usage
-func _populate_container_from_scene_tree(container: GBCompositionContainer) -> void:
+func _populate_container_from_scene_tree(_container: GBCompositionContainer) -> void:
 	return  # Disabled
 
 	#if container == null:

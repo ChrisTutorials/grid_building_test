@@ -171,14 +171,14 @@ func test_hide_on_handled_ignored_when_mouse_disabled() -> void:
 
 	var result := GridPositionerLogic.should_be_visible(GBEnums.Mode.BUILD, settings, blocked_mouse_status, false)
 	assert_bool(result).append_failure_message("visibility_on_mouse_event: should not apply when mouse is blocked").is_false()
-	var settings := _make_settings(true, true, true)
+	var targeting_settings := _make_settings(true, true, true)
 	var mouse_input_status := GBMouseInputStatus.new()
 	mouse_input_status.allowed = true
-	var result: Variant = GridPositionerLogic.visibility_reconcile(GBEnums.Mode.MOVE, targeting_settings, false, mouse_input_status, false)
-	assert_bool(result.apply).append_failure_message("visibility_reconcile: should apply when visibility differs").is_true()
-	assert_bool(result.visible).append_failure_message(
+	var reconcile_result: Variant = GridPositionerLogic.visibility_reconcile(GBEnums.Mode.MOVE, targeting_settings, false, mouse_input_status, false)
+	assert_bool(reconcile_result.apply).append_failure_message("visibility_reconcile: should apply when visibility differs").is_true()
+	assert_bool(reconcile_result.visible).append_failure_message(
 		"visibility_reconcile: should be visible when differs").is_true()
-	assert_str(result.reason).append_failure_message(
+	assert_str(reconcile_result.reason).append_failure_message(
 		"visibility_reconcile: reason should be 'reconcile_should_be_visible'").is_equal("reconcile_should_be_visible")
 
 func test_visibility_reconcile_noop_when_same() -> void:

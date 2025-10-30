@@ -120,7 +120,7 @@ func test_manipulation_system_environment_integration() -> void:
 func test_manipulation_system_result_object_creation() -> void:
 	"""Test that manipulation system properly creates result objects in environment context"""
 	# Test demolish operation result handling
-	var demolish_result: bool = await manipulation_system.demolish(test_manipulatable)
+	var demolish_result: bool = manipulation_system.demolish(test_manipulatable)
 
 	# Should return a valid boolean result
 	(
@@ -176,7 +176,7 @@ func test_manipulation_system_result_objects_not_null() -> void:
 	)
 
 	# Test demolish with null input
-	var demolish_result: bool = await manipulation_system.demolish(null)
+	var demolish_result: bool = manipulation_system.demolish(null)
 	(
 		assert_that(demolish_result) \
 		. append_failure_message("demolish(null) should return a valid boolean result") \

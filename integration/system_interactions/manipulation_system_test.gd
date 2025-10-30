@@ -230,7 +230,7 @@ func test_demolish(
 	monitor_signals(manipulation_state)
 
 	# Fix null reference issue: demolish should return valid result
-	var demolish_result: Variant = await system.demolish(target_manipulatable)
+	var demolish_result: Variant = system.demolish(target_manipulatable)
 
 	# Handle return value - demolish returns bool
 	var success: bool = demolish_result if demolish_result is bool else false

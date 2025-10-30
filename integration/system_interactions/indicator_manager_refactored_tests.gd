@@ -1,12 +1,5 @@
 extends GdUnitTestSuite
 
-## Ensure factory script is loaded so the `EnvironmentTestFactory` class_name
-## is available when the test suite is parsed. Some CI/test runners do not
-## guarantee global class registration at parse time, so preload explicitly.
-const EnvironmentTestFactory = preload(
-	"res://test/grid_building_test/factories/environment_test_factory.gd"
-)
-
 ## Refactored indicator manager tests using AllSystemsTestEnvironment
 
 var env: AllSystemsTestEnvironment

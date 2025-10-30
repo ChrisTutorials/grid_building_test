@@ -5,7 +5,7 @@ extends GdUnitTestSuite
 
 # Use constants from GBTestConstants for consistency
 const TILE_SIZE: Vector2 = GBTestConstants.DEFAULT_TILE_SIZE
-const DEFAULT_POSITION: Vector2 = GBTestConstants.CENTER
+const DEFAULT_POSITION: Vector2 = GBTestConstants.DEFAULT_POSITION
 const ORIGIN_POSITION: Vector2 = GBTestConstants.OFF_GRID
 const ORIGIN_TILE: Vector2i = Vector2i(0, 0)
 

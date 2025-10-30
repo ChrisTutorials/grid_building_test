@@ -35,7 +35,7 @@ func before_test() -> void:
 	auto_free(_positioner)
 
 	# Now position the positioner after it's created
-	_positioner.global_position = GBTestConstants.CENTER / 2  # Position at a non-zero baseline
+	_positioner.global_position = GBTestConstants.DEFAULT_POSITION / 2  # Position at a non-zero baseline
 
 	# Create targeting state - requires GBOwnerContext for constructor
 	var owner_context: GBOwnerContext = GBOwnerContext.new()

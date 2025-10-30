@@ -199,8 +199,8 @@ func test_indicator_positioning_regression_800_pixel_offset() -> void:
 		])
 
 		# This assertion should FAIL with current regression - indicators appearing 800+ pixels away
-	assert_that(distance).append_failure_message(
-		"Indicator at (%s) is %.1f pixels away from expected position (%s). " % [ indicator_pos, distance, expected_pos ] + "This indicates the 800+ pixel offset regression is present." 
+		assert_that(distance).append_failure_message(
+			"Indicator at (%s) is %.1f pixels away from expected position (%s). " % [ indicator_pos, distance, expected_pos ] + "This indicates the 800+ pixel offset regression is present."
 		) 
 
 #endregion 
@@ -211,7 +211,7 @@ func test_indicator_positioning_regression_800_pixel_offset() -> void:
 func test_setup_indicators_creates_indicators_when_collision_shapes_detected() -> void:
 	_service = _create_test_service()
 
-	var smithy_obj: Node2D = GBTestConstants.smithy.instantiate()
+	var smithy_obj: Node2D = GBTestConstants.PLACEABLE_SMITHY.packed_scene.instantiate()
 	add_child(smithy_obj)
 	auto_free(smithy_obj)
 	smithy_obj.global_position = Vector2(64, 64)

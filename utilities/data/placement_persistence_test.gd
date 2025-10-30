@@ -339,14 +339,14 @@ func test_instance_from_save_returns_null_for_invalid_data() -> void:
 					invalid_save_data, load_parent
 				)
 		) \
-		. is_push_error("GBPlacementPersistence: Save data missing placeable information")
+		.is_push_error("GBPlacementPersistence: Save data missing placeable information")
 	)
 
 	# Verify function returned null
 	(
 		assert_object(loaded_instance) \
-		. append_failure_message("instance_from_save() should return null for invalid save data") \
-		. is_null()
+		.append_failure_message("instance_from_save() should return null for invalid save data") \
+		.is_null()
 	)
 
 
