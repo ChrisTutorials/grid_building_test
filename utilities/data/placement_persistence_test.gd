@@ -297,7 +297,7 @@ func test_instance_from_save_marks_instance_as_placed() -> void:
 func test_instance_from_save_adds_instance_to_parent() -> void:
 	# Arrange
 	GBPlacementPersistence.mark_as_placed(test_object, test_placeable)
-	var save_data: Dictionary = GBPlacementPersistence.save_placement_data(test_object)
+	var save_data: Dictionary[String, Variant] = GBPlacementPersistence.save_placement_data(test_object)
 
 	var load_parent: Node2D = auto_free(Node2D.new())
 	add_child(load_parent)
@@ -325,7 +325,7 @@ func test_instance_from_save_adds_instance_to_parent() -> void:
 ## Test: instance_from_save() returns null for invalid save data
 func test_instance_from_save_returns_null_for_invalid_data() -> void:
 	# Arrange
-	var invalid_save_data: Dictionary = {"invalid": "data"}
+	var invalid_save_data: Dictionary[String, Variant] = {"invalid": "data"}
 	var load_parent: Node2D = auto_free(Node2D.new())
 	add_child(load_parent)
 

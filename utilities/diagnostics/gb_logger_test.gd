@@ -101,10 +101,10 @@ func test_context_from_get_stack() -> void:
 
 	# Create detailed diagnostic information
 	var context: String = _received_logs[0]["context"]
-	var stack: Array = get_stack()
+	var stack: Array[Dictionary] = get_stack()
 	var stack_info: String = "Stack analysis: size=%d, stack[0-5]=" % stack.size()
 	for i in range(min(6, stack.size())):
-		var frame: Dictionary = stack[i] if i < stack.size() else {}
+		var frame: Dictionary[String, Variant] = stack[i] if i < stack.size() else {}
 		stack_info += " [%d]:%s:%s" % [i, frame.get("source", ""), frame.get("function", "")]
 
 	# The context should either contain the filename and function name (if stack works)

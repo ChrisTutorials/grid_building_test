@@ -104,7 +104,7 @@ func test_validate_test_composition_container_subcomponents() -> void:
 	assert_array(rules).append_failure_message("placement_rules should be an array").is_not_null()
 
 	# Finally, run EDITOR validation to collect issues (tests can inspect reported issues)
-	var issues: Array = container.get_editor_issues()
+	var issues: Array[String] = container.get_editor_issues()
 	# Attach issues to assertion message for easy triage
 	assert_that(issues).append_failure_message("Editor issues: %s" % str(issues)).is_not_null()
 
@@ -349,7 +349,7 @@ func test_test_composition_container_loads_and_has_placement_rules() -> void:
 		) \
 		. is_not_null()
 	)
-	var pr: Array = repo_res.get_placement_rules()
+	var pr: Array[PlacementRule] = repo_res.get_placement_rules()
 	var pr_count: int = pr.size() if pr else 0
 	(
 		assert_int(pr_count) \
@@ -363,7 +363,7 @@ func test_test_composition_container_loads_and_has_placement_rules() -> void:
 		. append_failure_message("Duplicated container should not be null") \
 		. is_not_null()
 	)
-	var pr_dup: Array = dup.get_placement_rules()
+	var pr_dup: Array[PlacementRule] = dup.get_placement_rules()
 	var pr_dup_count: int = pr_dup.size() if pr_dup else 0
 	(
 		assert_int(pr_dup_count) \
@@ -378,7 +378,7 @@ func test_test_composition_container_loads_and_has_placement_rules() -> void:
 		. append_failure_message("ResourceLoader failed to load %s" % path) \
 		. is_not_null()
 	)
-	var pr_loaded: Array = (
+	var pr_loaded: Array[PlacementRule] = (
 		loaded.get_placement_rules() if loaded and loaded.has_method("get_placement_rules") else []
 	)
 	var pr_loaded_count: int = pr_loaded.size() if pr_loaded else 0
