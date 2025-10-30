@@ -152,7 +152,7 @@ func test_from_placeables_scenarios(
 
 
 func test_ensure_sequences_preserves_existing_sequences() -> void:
-	var mixed_input: Array = [test_sequence_1, test_placeable_1, test_sequence_2]
+	var mixed_input: Array[Variant] = [test_sequence_1, test_placeable_1, test_sequence_2]
 	var result: Array[PlaceableSequence] = PlaceableSequenceFactory.ensure_sequences(mixed_input)
 
 	(
@@ -221,7 +221,7 @@ func test_ensure_sequences_scenarios(
 		["complex_mixed", 2, 2, 1, 1, 4],
 	]
 ) -> void:
-	var mixed_input: Array = []
+	var mixed_input: Array[Variant] = []
 
 	# Add sequences
 	var available_sequences: Array[PlaceableSequence] = [test_sequence_1, test_sequence_2]
@@ -272,7 +272,7 @@ func test_ensure_sequences_scenarios(
 
 func test_ensure_sequences_preserves_original_properties() -> void:
 	var original_placeable: Placeable = test_placeable_1
-	var mixed_input: Array = [original_placeable]
+	var mixed_input: Array[Placeable] = [original_placeable]
 
 	var result: Array[PlaceableSequence] = PlaceableSequenceFactory.ensure_sequences(mixed_input)
 	var converted_sequence: PlaceableSequence = result[0]
@@ -314,7 +314,7 @@ func test_null_and_empty_input_handling() -> void:
 		. is_empty()
 	)
 
-	var empty_mixed: Array = []
+	var empty_mixed: Array[Variant] = []
 	var empty_mixed_result: Array[PlaceableSequence] = PlaceableSequenceFactory.ensure_sequences(
 		empty_mixed
 	)
@@ -333,7 +333,7 @@ func test_null_and_empty_input_handling() -> void:
 		. is_empty()
 	)
 
-	var mixed_nulls: Array = [null, null]
+	var mixed_nulls: Array[Variant] = [null, null]
 	var mixed_null_result: Array[PlaceableSequence] = PlaceableSequenceFactory.ensure_sequences(
 		mixed_nulls
 	)
@@ -347,7 +347,7 @@ func test_null_and_empty_input_handling() -> void:
 func test_large_array_performance() -> void:
 	# Test with larger arrays to ensure reasonable performance
 	var large_placeable_array: Array[Placeable] = []
-	var large_mixed_array: Array = []
+	var large_mixed_array: Array[Variant] = []
 
 	# Create 100 test items
 	for i in range(100):
@@ -410,7 +410,7 @@ func test_large_array_performance() -> void:
 
 func test_type_safety_and_validation() -> void:
 	# Test that factory methods handle various edge cases gracefully
-	var test_data: Array = [
+	var test_data: Array[Variant] = [
 		test_placeable_1, test_sequence_1, null, "string", 42, Vector2.ZERO, RefCounted.new()
 	]
 

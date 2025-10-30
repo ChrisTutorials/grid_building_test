@@ -60,7 +60,7 @@ func test_validate_test_composition_container_subcomponents() -> void:
 	assert_array(rules).append_failure_message("placement_rules should be an array").is_not_null()
 
 	# Run editor validation to collect issues
-	var issues: Array = container.get_editor_issues()
+	var issues: Array[String] = container.get_editor_issues()
 
 	# Note: IndicatorManager assignment is now properly classified as a runtime-only issue
 	# since the IndicatorManager is assigned during system initialization at runtime.

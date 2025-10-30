@@ -37,7 +37,7 @@ func test_backward_compatibility_with_placeable_loader() -> void:
 	var new_result: GBAssetResolver.LoadResult = GBAssetResolver.load_placeables_with_result(
 		TEST_ASSETS_FOLDER
 	)
-	var old_result: Array = PlaceableLoader.get_placeables(TEST_ASSETS_FOLDER)
+	var old_result: Array[Placeable] = PlaceableLoader.get_placeables(TEST_ASSETS_FOLDER)
 
 	if new_result.is_successful():
 		assert_int(new_result.assets.size()).is_equal(old_result.size()).append_failure_message(
@@ -61,7 +61,7 @@ func test_simple_placeable_loading_compatibility() -> void:
 		return  # Skip if test folder doesn't exist
 
 	var new_simple_result: Array[Placeable] = GBAssetResolver.load_placeables(TEST_ASSETS_FOLDER)
-	var old_result: Array = PlaceableLoader.get_placeables(TEST_ASSETS_FOLDER)
+	var old_result: Array[Placeable] = PlaceableLoader.get_placeables(TEST_ASSETS_FOLDER)
 
 	assert_int(new_simple_result.size()).is_equal(old_result.size()).append_failure_message(
 		(

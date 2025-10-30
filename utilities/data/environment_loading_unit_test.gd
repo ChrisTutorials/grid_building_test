@@ -30,7 +30,7 @@ extends GdUnitTestSuite
 
 func test_environment_scene_loading() -> void:
 	# Test that GBTestConstants can load each environment type
-	var env_types: Array = [
+	var env_types: Array[Array] = [
 		[GBTestConstants.EnvironmentType.ALL_SYSTEMS, "ALL_SYSTEMS"],
 		[GBTestConstants.EnvironmentType.BUILDING_TEST, "BUILDING_TEST"],
 		[GBTestConstants.EnvironmentType.COLLISION_TEST, "COLLISION_TEST"],
@@ -51,7 +51,7 @@ func test_environment_scene_loading() -> void:
 
 func test_environment_scene_instantiation() -> void:
 	# Test that the loaded scene can be instantiated
-	var env_types: Array = [
+	var env_types: Array[Array] = [
 		[GBTestConstants.EnvironmentType.ALL_SYSTEMS, "ALL_SYSTEMS"],
 		[GBTestConstants.EnvironmentType.BUILDING_TEST, "BUILDING_TEST"],
 		[GBTestConstants.EnvironmentType.COLLISION_TEST, "COLLISION_TEST"],
@@ -83,7 +83,7 @@ func test_environment_scene_instantiation() -> void:
 func test_environment_uses_same_test_container() -> void:
 	# Test that all environments use the same test composition container (single source of truth)
 	# Note: ISOMETRIC_TEST may use a different container (isometric-specific)
-	var env_types: Array = [
+	var env_types: Array[Array] = [
 		[GBTestConstants.EnvironmentType.ALL_SYSTEMS, "ALL_SYSTEMS"],
 		[GBTestConstants.EnvironmentType.BUILDING_TEST, "BUILDING_TEST"],
 		[GBTestConstants.EnvironmentType.COLLISION_TEST, "COLLISION_TEST"],
@@ -189,7 +189,7 @@ func test_environment_uses_same_test_container() -> void:
 ## Test: Environment tilemaps are correctly dimensioned (31x31 from -15 to +15)
 ## This ensures consistent test environments and prevents bounds validation issues
 func test_environment_tilemaps_have_correct_dimensions() -> void:
-	var env_types: Array = [
+	var env_types: Array[Array] = [
 		[GBTestConstants.EnvironmentType.ALL_SYSTEMS, "ALL_SYSTEMS"],
 		[GBTestConstants.EnvironmentType.BUILDING_TEST, "BUILDING_TEST"],
 		[GBTestConstants.EnvironmentType.COLLISION_TEST, "COLLISION_TEST"],

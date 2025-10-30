@@ -68,7 +68,7 @@ func test_mark_as_placed_stores_placeable_path() -> void:
 	GBPlacementPersistence.mark_as_placed(test_object, test_placeable)
 
 	# Assert
-	var placement_data: Dictionary = test_object.get_meta(GBPlacementPersistence.META_KEY)
+	var placement_data: Dictionary[String, Variant] = test_object.get_meta(GBPlacementPersistence.META_KEY)
 	(
 		assert_str(placement_data.get("placeable_path", "")) \
 		. append_failure_message("Placement data should contain placeable_path") \
@@ -147,7 +147,7 @@ func test_save_placement_data_includes_transform() -> void:
 	GBPlacementPersistence.mark_as_placed(test_object, test_placeable)
 
 	# Act
-	var save_data: Dictionary = GBPlacementPersistence.save_placement_data(test_object)
+	var save_data: Dictionary[String, Variant] = GBPlacementPersistence.save_placement_data(test_object)
 
 	# Assert
 	(
@@ -170,7 +170,7 @@ func test_save_placement_data_includes_instance_name() -> void:
 	GBPlacementPersistence.mark_as_placed(test_object, test_placeable)
 
 	# Act
-	var save_data: Dictionary = GBPlacementPersistence.save_placement_data(test_object)
+	var save_data: Dictionary[String, Variant] = GBPlacementPersistence.save_placement_data(test_object)
 
 	# Assert
 	(
@@ -186,7 +186,7 @@ func test_save_placement_data_includes_placeable_data() -> void:
 	GBPlacementPersistence.mark_as_placed(test_object, test_placeable)
 
 	# Act
-	var save_data: Dictionary = GBPlacementPersistence.save_placement_data(test_object)
+	var save_data: Dictionary[String, Variant] = GBPlacementPersistence.save_placement_data(test_object)
 
 	# Assert
 	(
@@ -212,7 +212,7 @@ func test_save_placement_data_includes_placeable_data() -> void:
 ## Test: save_placement_data() returns empty dict for unmarked objects
 func test_save_placement_data_returns_empty_for_unmarked_objects() -> void:
 	# Act
-	var save_data: Dictionary = GBPlacementPersistence.save_placement_data(test_object)
+	var save_data: Dictionary[String, Variant] = GBPlacementPersistence.save_placement_data(test_object)
 
 	# Assert
 	(
@@ -231,7 +231,7 @@ func test_save_placement_data_returns_empty_for_unmarked_objects() -> void:
 func test_instance_from_save_creates_node_with_correct_name() -> void:
 	# Arrange
 	GBPlacementPersistence.mark_as_placed(test_object, test_placeable)
-	var save_data: Dictionary = GBPlacementPersistence.save_placement_data(test_object)
+	var save_data: Dictionary[String, Variant] = GBPlacementPersistence.save_placement_data(test_object)
 
 	var load_parent: Node2D = auto_free(Node2D.new())
 	add_child(load_parent)
@@ -257,7 +257,7 @@ func test_instance_from_save_creates_node_with_correct_name() -> void:
 func test_instance_from_save_applies_correct_transform() -> void:
 	# Arrange
 	GBPlacementPersistence.mark_as_placed(test_object, test_placeable)
-	var save_data: Dictionary = GBPlacementPersistence.save_placement_data(test_object)
+	var save_data: Dictionary[String, Variant] = GBPlacementPersistence.save_placement_data(test_object)
 
 	var load_parent: Node2D = auto_free(Node2D.new())
 	add_child(load_parent)
@@ -277,7 +277,7 @@ func test_instance_from_save_applies_correct_transform() -> void:
 func test_instance_from_save_marks_instance_as_placed() -> void:
 	# Arrange
 	GBPlacementPersistence.mark_as_placed(test_object, test_placeable)
-	var save_data: Dictionary = GBPlacementPersistence.save_placement_data(test_object)
+	var save_data: Dictionary[String, Variant] = GBPlacementPersistence.save_placement_data(test_object)
 
 	var load_parent: Node2D = auto_free(Node2D.new())
 	add_child(load_parent)

@@ -17,7 +17,7 @@ func before_test() -> void:
 # Helper to create minimal test setup using the SAME tilemap as test environments
 # This ensures we're testing against the actual tilemap configuration used in integration tests
 func _create_test_rule_setup() -> Dictionary[String, Variant]:
-	var setup: Dictionary = {}
+	var setup: Dictionary[String, Variant] = {}
 
 	# Use the SAME preloaded tilemap that the test environments use
 	# This is critical for reproducing the actual integration test conditions

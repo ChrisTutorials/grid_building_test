@@ -352,7 +352,7 @@ func test_indicators_positioned_at_correct_tile_positions() -> void:
 	).is_greater(0)
 
 	# Check that indicators are positioned at different tile positions (not all at same location)
-	var unique_positions: Dictionary = {}
+	var unique_positions: Dictionary[Vector2i, bool] = {}
 	for indicator in indicators:
 		var tile_pos := _get_indicator_tile_position(indicator)
 		unique_positions[tile_pos] = true
