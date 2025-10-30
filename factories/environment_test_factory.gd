@@ -138,6 +138,15 @@ static func validate_environment_setup(
 
 	return true
 
+## Instances and returns the default buildable tilemap for tests
+## Handles parenting and auto-freeing automatically
+##
+## @param p_test_suite: The test suite to parent the tilemap to
+static func create_buildable_tilemap(p_test_suite : GdUnitTestSuite) -> TileMapLayer:
+	var tile_map_layer: TileMapLayer = GBTestConstants.TEST_TILE_MAP_LAYER_BUILDABLE.instantiate()
+	p_test_suite.add_child(tile_map_layer)
+	p_test_suite.auto_free(tile_map_layer)
+	return tile_map_layer
 
 ## Validates that required dependencies are available from environment
 ## @param env: The environment to validate

@@ -57,12 +57,13 @@ func test_debug_polygon_bounds() -> void:
 
 	# Test actual collision detection
 	# Create a temporary tile map layer for map-aware calculations
-	var test_tile_map_layer: TileMapLayer = GodotTestFactory.create_empty_tile_map_layer(self)
+	var map: TileMapLayer = EnvironmentTestFactory.create_buildable_tilemap(self)
+	
 	var tiles: Array[Vector2i] = CollisionGeometryCalculator.calculate_tile_overlap(
 		polygon,
 		tile_size,
 		TileSet.TILE_SHAPE_SQUARE,
-		_test_tile_map_layer,
+		map,
 		COLLISION_TOLERANCE,
 		COLLISION_TOLERANCE
 	)

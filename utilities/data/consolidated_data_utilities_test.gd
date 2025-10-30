@@ -12,7 +12,7 @@ const NODE_NAME_NUM_SEPARATOR: int = 2
 var _container: GBCompositionContainer = null
 var test_node: Node
 var building_node_script: Script = GBTestConstants.BUILDING_NODE_SCRIPT
-var project_name_num_seperator: int
+var project_name_num_separator: int
 var container: GBCompositionContainer
 #endregion
 
@@ -20,7 +20,7 @@ var container: GBCompositionContainer
 func before_test() -> void:
 	test_node = auto_free(Node.new())
 	add_child(test_node)
-	project_name_num_seperator = ProjectSettings.get_setting(
+	project_name_num_separator = ProjectSettings.get_setting(
 		"editor/naming/node_name_num_separator"
 	)
 	ProjectSettings.set_setting("editor/naming/node_name_num_separator", NODE_NAME_NUM_SEPARATOR)
@@ -33,7 +33,7 @@ func before_test() -> void:
 
 
 func after_test() -> void:
-	ProjectSettings.set_setting("editor/naming/node_name_num_separator", project_name_num_seperator)
+	ProjectSettings.set_setting("editor/naming/node_name_num_separator", project_name_num_separator)
 
 
 #region Helper Functions

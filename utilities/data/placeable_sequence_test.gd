@@ -90,7 +90,6 @@ func test_get_variant_scenarios(
 		assert_object(result).append_failure_message(
 			"get_variant(%d) should return null for invalid index" % index
 		).is_null()
-	else:
 		assert_object(result).append_failure_message(
 			"get_variant(%d) should return valid placeable" % index
 		).is_not_null()

@@ -23,7 +23,6 @@ const LINE_SEGMENT_LENGTH: float = 10.0
 const BOUNDARY_POINT_POS: Vector2 = Vector2(15.9, 15.9)
 const BOUNDARY_TOLERANCE: Vector2 = Vector2(0.01, 0.01)
 
-
 # 16x16 tile shape coordinates - defined as static helper functions
 static func get_tile_shape_16x16() -> PackedVector2Array:
 	return PackedVector2Array([Vector2(0, 0), Vector2(16, 0), Vector2(16, 16), Vector2(0, 16)])
@@ -43,11 +42,12 @@ static func get_overlapping_shape_16x16() -> PackedVector2Array:
 func test_collision_calculator_tile_overlap_empty() -> void:
 	var empty_polygon: PackedVector2Array = PackedVector2Array()
 	var tile_size: Vector2 = STANDARD_TILE_SIZE
+	var map := EnvironmentTestFactory.create_buildable_tilemap(self)
 
 	# Use shared test tile map layer to ensure consistent map-aware calculations
 	var test_tile_map_layer: TileMapLayer = GodotTestFactory.create_empty_tile_map_layer(self)
 	var overlapped_tiles: Array[Vector2i] = CollisionGeometryCalculator.calculate_tile_overlap(
-		empty_polygon, tile_size, TileSet.TILE_SHAPE_SQUARE, _test_tile_map_layer
+		empty_polygon, tile_size, TileSet.TILE_SHAPE_SQUARE, map
 	)
 
 	(
@@ -60,10 +60,11 @@ func test_collision_calculator_tile_overlap_empty() -> void:
 func test_collision_calculator_single_point() -> void:
 	var single_point: PackedVector2Array = PackedVector2Array([SINGLE_POINT_POS])
 	var tile_size: Vector2 = STANDARD_TILE_SIZE
+	var map := EnvironmentTestFactory.create_buildable_tilemap(self)
 
 	var test_tile_map_layer: TileMapLayer = GodotTestFactory.create_empty_tile_map_layer(self)
 	var overlapped_tiles: Array[Vector2i] = CollisionGeometryCalculator.calculate_tile_overlap(
-		single_point, tile_size, TileSet.TILE_SHAPE_SQUARE, _test_tile_map_layer
+		single_point, tile_size, TileSet.TILE_SHAPE_SQUARE, map
 	)
 
 	(
@@ -84,9 +85,9 @@ func test_collision_calculator_rectangle_overlap() -> void:
 	)
 	var tile_size: Vector2 = STANDARD_TILE_SIZE
 
-	var test_tile_map_layer: TileMapLayer = GodotTestFactory.create_empty_tile_map_layer(self)
+	var map := EnvironmentTestFactory.create_buildable_tilemap(self)
 	var overlapped_tiles: Array[Vector2i] = CollisionGeometryCalculator.calculate_tile_overlap(
-		rectangle, tile_size, TileSet.TILE_SHAPE_SQUARE, _test_tile_map_layer
+		rectangle, tile_size, TileSet.TILE_SHAPE_SQUARE, map
 	)
 
 	(

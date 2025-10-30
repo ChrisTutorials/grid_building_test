@@ -756,7 +756,7 @@ func test_build_and_move_multi_system_integration() -> void:
 		)
 
 	# Phase 3: Post-build manipulation - move the built object
-	var move_result: Variant = _manipulation_system.try_move(built_node)
+	var move_result: Variant = manipulation_system.try_move(built_node)
 	var manipulation_state := _container.get_states().manipulation
 	(
 		assert_object(building_system._states.manipulation) \

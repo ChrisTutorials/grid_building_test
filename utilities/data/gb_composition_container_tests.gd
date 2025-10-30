@@ -78,7 +78,7 @@ func test_dependency_resolution() -> void:
 
 func test_component_lifecycle() -> void:
 	# Test that the injector properly manages component lifecycle through dependency injection
-	var initial_injection_count: int = 0
+	var _initial_injection_count: int = 0
 
 	# Create a test node that should be injected
 	var test_node: Node2D = Node2D.new()

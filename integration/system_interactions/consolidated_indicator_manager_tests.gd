@@ -264,7 +264,6 @@ func test_indicator_manager_runtime_issues_guard() -> void:
 	var indicator_manager: IndicatorManager = env.indicator_manager
 
 	# Test that indicator manager handles runtime issues gracefully
-	var _invalid_params: Dictionary = env.rule_validation_parameters
 
 	# Ensure targeting state has a valid target
 	_ensure_targeting_state_has_target()
@@ -298,7 +297,6 @@ func test_indicator_manager_tree_integration() -> void:
 
 	# Test basic functionality
 	var test_rule: CollisionsCheckRule = CollisionsCheckRule.new()
-	var _valid_params: Dictionary = env.rule_validation_parameters
 
 	# Ensure targeting state has a valid target
 	_ensure_targeting_state_has_target()
@@ -412,8 +410,6 @@ func test_polygon_origin_indicator_regression() -> void:
 
 
 func test_real_world_indicator_scenarios() -> void:
-	var _indicator_manager: IndicatorManager = env.indicator_manager
-
 	# Test scenario 1: Small building
 	var small_building: StaticBody2D = CollisionObjectTestFactory.create_static_body_with_rect(
 		self, Vector2(16, 16)
@@ -561,7 +557,7 @@ func test_component_integration_workflow() -> void:
 	# Ensure targeting state has a valid target
 	_ensure_targeting_state_has_target()
 
-	var _indicator_result: PlacementReport = indicator_manager.try_setup(
+	indicator_manager.try_setup(
 		test_rules, env.targeting_state
 	)
 
@@ -589,7 +585,6 @@ func test_placement_component_error_handling() -> void:
 
 	# Test indicator manager with invalid rule
 	var invalid_rule: Variant = null
-	var _params: Dictionary = env.rule_validation_parameters
 
 	# Ensure targeting state has a valid target
 	_ensure_targeting_state_has_target()
@@ -809,7 +804,6 @@ func test_indicators_are_parented_and_inside_tree() -> void:
 
 		# Current architecture: indicators are parented under the IndicatorManager itself
 		var expected_parent: Node = env.indicator_manager
-		var _actual_parent: Node = ind.get_parent()
 
 		(
 			assert_object(ind.get_parent()) \
@@ -995,21 +989,19 @@ func _count_indicators(parent: Node) -> int:
 		if indicators != null:
 			if indicators.size() > 0:
 				# Optional debug - removed print, use assertions for debugging
-				var _names: Array[String] = []
+				var names: Array[String] = []
 				for ind: RuleCheckIndicator in indicators:
-					_names.append(ind.name)
+					names.append(ind.name)
 			return indicators.size()
 
 	# Fallback: name-based scan if API unavailable
 	var count: int = 0
-	var _child_names: Array[String] = []
 	for child in parent.get_children():
 		if (
 			typeof(child.name) == TYPE_STRING
 			and String(child.name).begins_with("RuleCheckIndicator")
 		):
 			count += 1
-			_child_names.append(child.name + "(" + child.get_class() + ")")
 	return count
 
 

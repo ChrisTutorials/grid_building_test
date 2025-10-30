@@ -223,7 +223,7 @@ func test_environment_tilemaps_have_correct_dimensions() -> void:
 			"%s environment should have a tile_map_layer" % type_name
 		)
 		var tile_map: TileMapLayer = env.tile_map_layer
-		var used_rect: Rect2i = tile_map.get_used_rect()
+		var _used_rect: Rect2i = tile_map.get_used_rect()
 
 
 ## Test: Isometric environment has appropriate dimensions for isometric testing
@@ -261,9 +261,9 @@ func test_isometric_environment_tilemap_dimensions() -> void:
 
 	# Document actual isometric dimensions (from test results: 14x14 from (-7, -6) to (6, 7))
 	# Note: Isometric environments may have different requirements due to tile shape
-	var actual_position: Vector2i = used_rect.position
+	var _actual_position: Vector2i = used_rect.position
 	var actual_size: Vector2i = used_rect.size
-	var actual_end: Vector2i = used_rect.position + used_rect.size - Vector2i(1, 1)
+	var _actual_end: Vector2i = used_rect.position + used_rect.size - Vector2i(1, 1)
 
 	# Verify tilemap has reasonable dimensions (not empty, has sufficient space)
 	(

@@ -338,14 +338,12 @@ func _count_indicators(parent: Node) -> int:
 
 	# Fallback: name-based scan if API unavailable
 	var count: int = 0
-	var child_names: Array[String] = []
 	for child in parent.get_children():
 		if (
 			typeof(child.name) == TYPE_STRING
 			and String(child.name).begins_with("RuleCheckIndicator")
 		):
 			count += 1
-			child_names.append(child.name + "(" + child.get_class() + ")")
 	return count
 
 
