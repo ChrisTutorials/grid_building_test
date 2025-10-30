@@ -33,15 +33,10 @@ const TEST_POSITION: Vector2 = Vector2(8.0, 8.0)
 const CANCEL_TEST_POSITION: Vector2i = Vector2i(100, -100)
 const ROTATION_ITERATIONS: int = 10
 
-# ManipulatableSettings UIDs extracted to local constants
-const MANIPULATABLE_SETTINGS_ALL_ALLOWED_UID: String = GBTestConstants.MANIPULATABLE_SETTINGS_ALL_ALLOWED_UID
-const MANIPULATABLE_SETTINGS_NONE_ALLOWED_UID: String = GBTestConstants.MANIPULATABLE_SETTINGS_NONE_ALLOWED_UID
-const RULES_2_RULES_1_TILE_CHECK_UID: String = GBTestConstants.RULES_2_RULES_1_TILE_CHECK_UID
-
-# Local constants for ManipulatableSettings (pulled from old TestSceneLibrary)
-var manipulatable_settings_all_allowed: ManipulatableSettings = load(MANIPULATABLE_SETTINGS_ALL_ALLOWED_UID)
-var manipulatable_settings_none_allowed: ManipulatableSettings = load(MANIPULATABLE_SETTINGS_NONE_ALLOWED_UID)
-var rules_2_rules_1_tile_check: ManipulatableSettings = load(RULES_2_RULES_1_TILE_CHECK_UID)
+# ManipulatableSettings - use preloaded resources directly
+var manipulatable_settings_all_allowed: ManipulatableSettings = GBTestConstants.MANIPULATABLE_SETTINGS_ALL_ALLOWED
+var manipulatable_settings_none_allowed: ManipulatableSettings = GBTestConstants.MANIPULATABLE_SETTINGS_NONE_ALLOWED
+var rules_2_rules_1_tile_check: ManipulatableSettings = GBTestConstants.RULES_2_RULES_1_TILE_CHECK
 #endregion
 
 #region Test Environment Variables
@@ -57,7 +52,7 @@ var _container: GBCompositionContainer
 #region Setup and Teardown
 func before_test() -> void:
 	# Use the premade AllSystemsTestEnvironment scene
-	runner = scene_runner(GBTestConstants.ALL_SYSTEMS_ENV_UID)
+	runner = scene_runner(GBTestConstants.ALL_SYSTEMS_ENV)
 	test_hierarchy = runner.scene() as AllSystemsTestEnvironment
 
 	assert_object(test_hierarchy).append_failure_message(
@@ -164,8 +159,7 @@ func test_cancel() -> void:
 
 	if move_result != null:
 		var valid_move: bool = move_result.status == GBEnums.Status.STARTED
-		assert_bool(valid_move) \\
-			.append_failure_message("Move should be successfully started for cancel test").is_true()
+		assert_bool(valid_move).append_failure_message("Move should be successfully started for cancel test").is_true()
 
 		# Get active manipulation data
 		var active_data: ManipulationData = _container.get_states().manipulation.data
@@ -263,8 +257,7 @@ func test_try_placement(
 
 	if move_result != null:
 		var started: bool = move_result.status == GBEnums.Status.STARTED
-		assert_bool(started) \\
-			.append_failure_message("Move should be successfully started for placement test").is_true()
+		assert_bool(started).append_failure_message("Move should be successfully started for placement test").is_true()
 
 		var move_data: ManipulationData = _container.get_states().manipulation.data
 		_validate_manipulation_data(move_data, "manipulation data for placement")
@@ -421,8 +414,7 @@ func test_rotate_node2d_target_rotates_correctly(
 
 	for i in range(ROTATION_ITERATIONS):
 		var success: bool = system.rotate(target, ROTATION_INCREMENT)
-		assert_bool(success) \\
-			.append_failure_message("Rotate operation should succeed on iteration %d" % i).is_true()
+		assert_bool(success).append_failure_message("Rotate operation should succeed on iteration %d" % i).is_true()
 
 		expected_rotation_degrees += ROTATION_INCREMENT
 		var normalized_expected: float = _normalize_rotation(expected_rotation_degrees)

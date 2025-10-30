@@ -81,7 +81,7 @@ func _diag(message: String) -> String:
 
 
 func _create_collision_env() -> CollisionTestEnvironment:
-	runner = scene_runner(GBTestConstants.COLLISION_TEST_ENV_UID)
+	runner = scene_runner(GBTestConstants.COLLISION_TEST_ENV)
 	var env: CollisionTestEnvironment = runner.scene() as CollisionTestEnvironment
 
 	(

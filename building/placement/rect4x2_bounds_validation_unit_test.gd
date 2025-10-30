@@ -26,7 +26,7 @@ var _isolation_state: Dictionary
 
 func before_test() -> void:
 	# MIGRATION: Use scene_runner WITHOUT frame simulation
-	runner = scene_runner(GBTestConstants.BUILDING_TEST_ENV_UID)
+	runner = scene_runner(GBTestConstants.BUILDING_TEST_ENV)
 	env = runner.scene() as BuildingTestEnvironment
 
 	(

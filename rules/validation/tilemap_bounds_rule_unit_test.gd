@@ -9,7 +9,7 @@ var _env: CollisionTestEnvironment
 
 
 func before_test() -> void:
-	runner = scene_runner(GBTestConstants.COLLISION_TEST_ENV_UID)
+	runner = scene_runner(GBTestConstants.COLLISION_TEST_ENV)
 	_env = runner.scene() as CollisionTestEnvironment
 	_logger = _env.get_container().get_logger()
 

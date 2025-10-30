@@ -14,7 +14,7 @@ var env: AllSystemsTestEnvironment
 
 func before_test() -> void:
 	# Use the all systems test environment
-	env = EnvironmentTestFactory.create_all_systems_env(self, GBTestConstants.ALL_SYSTEMS_ENV_UID)
+	env = EnvironmentTestFactory.create_all_systems_env(self, GBTestConstants.ALL_SYSTEMS_ENV)
 
 	# Set up targeting state with default target for indicator tests
 	_setup_targeting_state_for_tests()

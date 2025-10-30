@@ -189,7 +189,7 @@ func test_indicator_rule_assignment_during_creation() -> void:
 	# Assign the collision rule to the indicator
 	indicator.add_rule(collision_rule)
 
- assert_object(indicator).append_failure_message("Indicator should be created successfully").is_not_null()
+	assert_object(indicator).append_failure_message("Indicator should be created successfully").is_not_null()
 
 	# Verify rules are properly assigned
 	var assigned_rules: Array[TileCheckRule] = indicator.get_rules()
@@ -215,7 +215,7 @@ func test_indicator_rule_validation() -> void:
 
 	# Setup the rule
 	var setup_issues: Array[String] = collision_rule.setup(targeting_state)
- assert_array(setup_issues).append_failure_message("Collision rule setup should complete without issues").is_empty()
+	assert_array(setup_issues).append_failure_message("Collision rule setup should complete without issues").is_empty()
 
 	# Create indicator with the rule using DRY pattern with proper collision shape
 	var indicator: RuleCheckIndicator = RuleCheckIndicator.new()
@@ -237,7 +237,7 @@ func test_indicator_rule_validation() -> void:
 
 	indicator.force_shapecast_update()
 
- assert_bool(indicator.valid).append_failure_message("Indicator should be valid when no collision object is present").is_true()
+	assert_bool(indicator.valid).append_failure_message("Indicator should be valid when no collision object is present").is_true()
 
 	# Now create a collision object at the same position using DRY pattern
 	var _collision_object: StaticBody2D = create_collision_object_at(DEFAULT_POSITION)
@@ -275,8 +275,7 @@ func test_polygon_test_object_center_tile_filtering() -> void:
 	for rule: PlacementRule in rules:
 		if rule is CollisionsCheckRule:
 			var setup_issues: Array[String] = rule.setup(_container.get_targeting_state())
-   assert_array(setup_issues).append_failure_message("Collision rule setup should complete without issues for rule: %s" % rule.get_class()\
-	.is_empty()
+			assert_array(setup_issues).append_failure_message("Collision rule setup should complete without issues for rule: %s" % rule.get_class()).is_empty()
 
 	# Call try_setup directly on the IndicatorManager
 	# Ensure the targeting state has the test instance as the current target
@@ -293,7 +292,7 @@ func test_polygon_test_object_center_tile_filtering() -> void:
 	var indicators: Array[RuleCheckIndicator] = setup_report.indicators_report.indicators
 
 	# There should be indicators generated based on the polygon shape
- assert_array(indicators).append_failure_message("Setup should generate indicators for polygon shape").is_not_empty()
+	assert_array(indicators).append_failure_message("Setup should generate indicators for polygon shape").is_not_empty()
 
 	# Find center indicator (offset 0,0) using DRY pattern
 	var center_indicator: RuleCheckIndicator = find_center_indicator(indicators)

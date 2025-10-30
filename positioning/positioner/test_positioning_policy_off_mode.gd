@@ -4,19 +4,15 @@
 ## when remain_active_in_off_mode is true in GridTargetingSettings.
 extends GdUnitTestSuite
 
-## Verifies positioner visibility in OFF mode with remain_active_in_off_mode enabled.
-##
-## Setup: Load CollisionTestEnvironment via GBTestConstants.COLLISION_TEST_ENV_UID
-## Scenario: Set mode to OFF with remain_active_in_off_mode = true
-## Expected: Positioner remains visible and positioned according to CENTER_ON_MOUSE policy
+
 func test_positioning_policy_with_remain_active_in_off_mode() -> void:
-	var runner: GdUnitSceneRunner = scene_runner(GBTestConstants.COLLISION_TEST_ENV_UID)
+	var runner: GdUnitSceneRunner = scene_runner(GBTestConstants.COLLISION_TEST_ENV)
 	runner.simulate_frames(2)  # Allow initialization and dependency injection
 	
 	var env: CollisionTestEnvironment = runner.scene() as CollisionTestEnvironment
 	
 	assert_that(env).is_not_null().append_failure_message(
-		"CollisionTestEnvironment should be loaded from GBTestConstants.COLLISION_TEST_ENV_UID"
+		"CollisionTestEnvironment should be loaded from GBTestConstants.COLLISION_TEST_ENV"
 	)
 	
 	# Verify container is available

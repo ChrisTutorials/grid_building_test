@@ -13,7 +13,7 @@ func before_test() -> void:
 	warning_count = 0
 	# Load the AllSystemsTestEnvironment scene directly to observe initialization order
 	test_env = EnvironmentTestFactory.create_all_systems_env(
-		self, GBTestConstants.ALL_SYSTEMS_ENV_UID
+		self, GBTestConstants.ALL_SYSTEMS_ENV
 	)
 
 
@@ -170,7 +170,7 @@ func test_no_positioner_warnings_during_initialization() -> void:
 
 	# Create a fresh environment and monitor for warnings
 	var fresh_env: AllSystemsTestEnvironment = EnvironmentTestFactory.create_all_systems_env(
-		self, GBTestConstants.ALL_SYSTEMS_ENV_UID
+		self, GBTestConstants.ALL_SYSTEMS_ENV
 	)
 
 	# Wait for initialization to complete

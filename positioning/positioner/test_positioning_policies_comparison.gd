@@ -12,7 +12,7 @@ var container: GBCompositionContainer
 
 func before_test() -> void:
 	# Use scene runner for proper initialization
-	runner = scene_runner(GBTestConstants.COLLISION_TEST_ENV_UID)
+	runner = scene_runner(GBTestConstants.COLLISION_TEST_ENV)
 	runner.simulate_frames(2)  # Initial setup frames
 
 	env = runner.scene() as CollisionTestEnvironment

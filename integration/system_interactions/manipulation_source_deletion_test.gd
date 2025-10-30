@@ -13,7 +13,7 @@ var manipulatable: Manipulatable
 
 func before_test() -> void:
 	# Load test environment using scene_runner with ALL_SYSTEMS_ENV_UID
-	runner = scene_runner(GBTestConstants.ALL_SYSTEMS_ENV_UID)
+	runner = scene_runner(GBTestConstants.ALL_SYSTEMS_ENV)
 	test_env = runner.scene()
 
 	# Get systems from environment using AllSystemsTestEnvironment API

@@ -7,6 +7,7 @@ extends GdUnitTestSuite
 # Module-level constant(s) extracted from helper
 const HALF_TILE_SIZE: Vector2 = GBTestConstants.DEFAULT_TILE_SIZE / 2
 
+var env : AllSystemsTestEnvironment
 var _container: GBCompositionContainer
 var indicator_manager: IndicatorManager
 var targeting_state: GridTargetingState
@@ -15,19 +16,22 @@ var tile_map: TileMapLayer
 var _injector: GBInjectorSystem
 var manipulation_parent: Node2D
 
+# Use GBTestConstants for premade environment instead of UnifiedTestFactory
 func before_test() -> void:
-	# Use GBTestConstants for premade environment instead of UnifiedTestFactory
-	var test_env: AllSystemsTestEnvironment = load(GBTestConstants.ALL_SYSTEMS_ENV_UID).instantiate()
-	add_child(test_env)
+	env = scene_runner(GBTestConstants.ALL_SYSTEMS_ENV).scene() as AllSystemsTestEnvironment
+	assert_object(env).append_failure_message(
+		"Failed to load AllSystemsTestEnvironment via scene_runner"
+	).is_not_null()
+	
 
 	# Extract setup components for test access
-	_container = test_env.get_container()
+	_container = env.get_container()
 	targeting_state = _container.get_states().targeting
-	positioner = test_env.positioner
-	tile_map = test_env.tile_map_layer
-	manipulation_parent = test_env.objects_parent
-	_injector = test_env.injector
-	indicator_manager = test_env.indicator_manager
+	positioner = env.positioner
+	tile_map = env.tile_map_layer
+	manipulation_parent = env.objects_parent
+	_injector = env.injector
+	indicator_manager = env.indicator_manager
 
 	# Set up targeting state with default target for indicator tests
 	_setup_targeting_state_for_tests()

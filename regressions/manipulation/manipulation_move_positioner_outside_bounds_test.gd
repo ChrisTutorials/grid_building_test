@@ -17,7 +17,7 @@ var _env: CollisionTestEnvironment
 var _rule: CollisionsCheckRule
 
 func before_test() -> void:
-	runner = scene_runner(GBTestConstants.COLLISION_TEST_ENV_UID)
+	runner = scene_runner(GBTestConstants.COLLISION_TEST_ENV)
 	_env = runner.scene() as CollisionTestEnvironment
 
 	assert_object(_env).append_failure_message(
@@ -27,8 +27,10 @@ func before_test() -> void:
 	_rule = CollisionsCheckRule.new()
 	_rule.pass_on_collision = false
 	_rule.collision_mask = 1
-	var setup_issues := _rule.setup(_env.targeting_state)
- assert_array(setup_issues).append_failure_message("Collision rule setup should complete without issues").is_empty()
+	var setup_issues : Array[String] = _rule.setup(_env.targeting_state)
+	assert_array(setup_issues).append_failure_message(
+		"Collision rule setup should complete without issues"
+		).is_empty()
 
 func after_test() -> void:
 	# Clear collision exclusions to prevent test isolation issues
@@ -84,7 +86,7 @@ func test_exclusion_works_when_positioner_inside_original_bounds() -> void:
 	await get_tree().physics_frame
 
 	# THEN: Indicator should be valid (exclusion works)
- assert_bool(indicator.valid).append_failure_message("Indicator should be valid when collision body is excluded").is_true()
+	assert_bool(indicator.valid).append_failure_message("Indicator should be valid when collision body is excluded").is_true()
 
 func test_exclusion_fails_when_positioner_outside_original_bounds() -> void:
 	# GIVEN: Large body (64x64 simulating Smithy) at (100, 100)
@@ -103,8 +105,7 @@ func test_exclusion_fails_when_positioner_outside_original_bounds() -> void:
 
 	# THEN: Indicator should be valid (exclusion should work)
 	# BUG: This currently FAILS - indicator.valid = false
- assert_bool(indicator.valid).append_failure_message("Indicator should be valid when positioned outside original bounds with exclusion")\
-	.is_true()
+	assert_bool(indicator.valid).append_failure_message("Indicator should be valid when positioned outside original bounds with exclusion").is_true()
 
 func test_exclusion_works_at_edge_of_original_bounds() -> void:
 	# GIVEN: Large body at (100, 100), size 64x64
@@ -121,8 +122,7 @@ func test_exclusion_works_at_edge_of_original_bounds() -> void:
 	await get_tree().physics_frame
 
 	# THEN: Indicator should be valid
- assert_bool(indicator.valid).append_failure_message("Indicator at edge of original bounds should be valid when body is excluded")\
-	.is_true()
+	assert_bool(indicator.valid).append_failure_message("Indicator at edge of original bounds should be valid when body is excluded").is_true()
 
 func test_multiple_indicators_outside_bounds_all_excluded() -> void:
 	# GIVEN: Large body
@@ -146,10 +146,10 @@ func test_multiple_indicators_outside_bounds_all_excluded() -> void:
 	await get_tree().physics_frame
 
 	# THEN: All indicators should be valid regardless of position
- assert_bool(indicator_right.valid).append_failure_message("Right indicator should be valid when body is excluded").is_true()
- assert_bool(indicator_left.valid).append_failure_message("Left indicator should be valid when body is excluded").is_true()
- assert_bool(indicator_top.valid).append_failure_message("Top indicator should be valid when body is excluded").is_true()
- assert_bool(indicator_bottom.valid).append_failure_message("Bottom indicator should be valid when body is excluded").is_true()
+	assert_bool(indicator_right.valid).append_failure_message("Right indicator should be valid when body is excluded").is_true()
+	assert_bool(indicator_left.valid).append_failure_message("Left indicator should be valid when body is excluded").is_true()
+	assert_bool(indicator_top.valid).append_failure_message("Top indicator should be valid when body is excluded").is_true()
+	assert_bool(indicator_bottom.valid).append_failure_message("Bottom indicator should be valid when body is excluded").is_true()
 
 func test_exclusion_independent_of_positioner_movement() -> void:
 	# GIVEN: Large body
@@ -173,6 +173,5 @@ func test_exclusion_independent_of_positioner_movement() -> void:
 	var valid_outside := indicator.valid
 
 	# THEN: Exclusion should work in both positions
- assert_bool(valid_inside).append_failure_message("Indicator should be valid inside bounds when body is excluded").is_true()
- assert_bool(valid_outside).append_failure_message("Indicator should remain valid outside bounds when body is excluded")\
-	.is_true()
+	assert_bool(valid_inside).append_failure_message("Indicator should be valid inside bounds when body is excluded").is_true()
+	assert_bool(valid_outside).append_failure_message("Indicator should remain valid outside bounds when body is excluded").is_true()

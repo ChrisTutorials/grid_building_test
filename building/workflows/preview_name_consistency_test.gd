@@ -30,7 +30,7 @@ func before_test() -> void:
 	)
 
 	# Create complete all systems test environment
-	runner = scene_runner(GBTestConstants.ALL_SYSTEMS_ENV_UID)
+	runner = scene_runner(GBTestConstants.ALL_SYSTEMS_ENV)
 	env = runner.scene() as AllSystemsTestEnvironment
 	_container = env.get_container()
 	system = env.building_system

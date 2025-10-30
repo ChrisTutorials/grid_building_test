@@ -15,7 +15,7 @@ var _manipulation_system: ManipulationSystem
 
 
 func before_test() -> void:
-	runner = scene_runner(GBTestConstants.ALL_SYSTEMS_ENV_UID)
+	runner = scene_runner(GBTestConstants.ALL_SYSTEMS_ENV)
 	runner.simulate_frames(2)
 	_env = runner.scene() as AllSystemsTestEnvironment
 	_manipulation_system = _env.manipulation_system

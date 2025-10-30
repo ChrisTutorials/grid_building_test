@@ -64,7 +64,7 @@ func test_adjust_rect_to_testing_size() -> void:
 	)
 	add_child(skew)
 
-	var pillar: Node2D = auto_free(load(GBTestConstants.PILLAR_UID).instantiate())
+	var pillar: Node2D = auto_free(GBTestConstants.PILLAR_SCENE.instantiate())
 	add_child(pillar)
 
 	# Create test setups

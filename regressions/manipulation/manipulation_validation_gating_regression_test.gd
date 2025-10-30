@@ -34,7 +34,7 @@
 extends GdUnitTestSuite
 @warning_ignore("unused_parameter")
 
-const ManipulationHelpers := preload(GBTestConstants.TEST_PATH_MANIPULATION_TEST_HELPERS)
+const ManipulationHelpers := preload("uid://ba4o2x6ctbwr")
 
 #region Test Environment
 var runner: GdUnitSceneRunner
@@ -47,7 +47,7 @@ var collision_body: StaticBody2D
 #region Setup and Teardown
 func before_test() -> void:
 	# Use scene_runner for proper frame control
-	runner = scene_runner(GBTestConstants.ALL_SYSTEMS_ENV_UID)
+	runner = scene_runner(GBTestConstants.ALL_SYSTEMS_ENV)
 	env = runner.scene() as AllSystemsTestEnvironment
 
 	# Get systems from test environment properties

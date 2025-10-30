@@ -39,7 +39,7 @@ var _indicator_manager: IndicatorManager
 
 func before_test() -> void:
 	# Use ALL_SYSTEMS test environment (matches working test patterns)
-	runner = scene_runner(GBTestConstants.ALL_SYSTEMS_ENV_UID)
+	runner = scene_runner(GBTestConstants.ALL_SYSTEMS_ENV)
 	test_environment = runner.scene() as AllSystemsTestEnvironment
 
 	(

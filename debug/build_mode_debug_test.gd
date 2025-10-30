@@ -7,7 +7,7 @@ var placeable: Placeable = preload("uid://cqknt0ejxvq4m")
 
 func before_test() -> void:
 	test_env = EnvironmentTestFactory.create_all_systems_env(
-		self, GBTestConstants.ALL_SYSTEMS_ENV_UID
+		self, GBTestConstants.ALL_SYSTEMS_ENV
 	)
 
 

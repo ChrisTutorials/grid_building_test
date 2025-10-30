@@ -20,7 +20,7 @@ var _manipulation_parent: Node2D
 func before_test() -> void:
 	# Use the premade CollisionTestEnvironment for collision and indicator testing
 	test_env = EnvironmentTestFactory.create_all_systems_env(
-		self, GBTestConstants.ALL_SYSTEMS_ENV_UID
+		self, GBTestConstants.ALL_SYSTEMS_ENV
 	)
 	(
 		assert_object(test_env) \

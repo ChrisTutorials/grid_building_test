@@ -26,7 +26,7 @@ var _smithy: Manipulatable
 
 func before_test() -> void:
 	# Use AllSystemsTestEnvironment with scene_runner pattern
-	_runner = scene_runner(GBTestConstants.ALL_SYSTEMS_ENV_UID)
+	_runner = scene_runner(GBTestConstants.ALL_SYSTEMS_ENV)
 	_runner.simulate_frames(3)
 
 	# Get environment and systems

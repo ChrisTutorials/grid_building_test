@@ -58,7 +58,7 @@ var tile_map: TileMapLayer
 
 func before_test() -> void:
 	# Use the proper environment factory
-	env = EnvironmentTestFactory.create_all_systems_env(self, GBTestConstants.ALL_SYSTEMS_ENV_UID)
+	env = EnvironmentTestFactory.create_all_systems_env(self, GBTestConstants.ALL_SYSTEMS_ENV)
 
 	# Fail-fast validation of environment setup
 	if env == null:

@@ -15,7 +15,7 @@ var _targeting_state: GridTargetingState
 
 func before_test() -> void:
 	# Use scene_runner for reliable frame simulation
-	runner = scene_runner(GBTestConstants.COLLISION_TEST_ENV_UID)
+	runner = scene_runner(GBTestConstants.COLLISION_TEST_ENV)
 	runner.simulate_frames(2)  # Initial setup frames
 
 	_env = runner.scene() as CollisionTestEnvironment

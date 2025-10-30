@@ -31,7 +31,7 @@ var _gts: GridTargetingState
 
 
 func before_test() -> void:
-	_env = EnvironmentTestFactory.create_all_systems_env(self, GBTestConstants.ALL_SYSTEMS_ENV_UID)
+	_env = EnvironmentTestFactory.create_all_systems_env(self, GBTestConstants.ALL_SYSTEMS_ENV)
 	_container = _env.injector.composition_container
 	_gts = _container.get_states().targeting
 

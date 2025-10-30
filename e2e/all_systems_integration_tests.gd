@@ -240,7 +240,7 @@ var test_rect_4x2_placeable: Placeable = load(
 #region Setup and Teardown
 func before_test() -> void:
 	# Use scene_runner with UID - automatically instantiates and manages the scene
-	runner = scene_runner(GBTestConstants.ALL_SYSTEMS_ENV_UID)
+	runner = scene_runner(GBTestConstants.ALL_SYSTEMS_ENV)
 	# Get environment from runner instead of double instantiation
 	env = runner.scene() as AllSystemsTestEnvironment
 	_container = env.get_container()

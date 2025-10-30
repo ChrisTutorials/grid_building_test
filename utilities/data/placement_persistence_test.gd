@@ -14,7 +14,6 @@ extends GdUnitTestSuite
 
 #region TEST CONSTANTS
 
-const TEST_PLACEABLE_UID := "uid://dirh6mcrgdm3w"
 const TEST_TRANSFORM := Transform2D(0, Vector2(100, 200))
 const TEST_OBJECT_NAME := "TestBuilding"
 
@@ -28,8 +27,8 @@ var test_parent: Node2D
 
 
 func before_test() -> void:
-	# Load test placeable
-	test_placeable = load(TEST_PLACEABLE_UID)
+	# Load test placeable using preloaded constant
+	test_placeable = GBTestConstants.PLACEABLE_SMITHY
 	assert_object(test_placeable).is_not_null()
 
 	# Create test object hierarchy

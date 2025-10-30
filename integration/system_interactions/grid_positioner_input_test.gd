@@ -17,7 +17,7 @@ var tile_map: TileMapLayer
 
 
 func before_test() -> void:
-	runner = scene_runner(GBTestConstants.COLLISION_TEST_ENV_UID)
+	runner = scene_runner(GBTestConstants.COLLISION_TEST_ENV)
 	runner.simulate_frames(2)
 	env = runner.scene() as CollisionTestEnvironment
 

@@ -13,7 +13,7 @@
 ## 3. Move preview so grid positioner is OUTSIDE original bounds -> indicators RED ❌ BUG!
 extends GdUnitTestSuite
 
-const ManipulationHelpers := preload(GBTestConstants.TEST_PATH_MANIPULATION_TEST_HELPERS)
+const ManipulationHelpers := preload("uid://ba4o2x6ctbwr")
 
 var _runner: GdUnitSceneRunner
 var _env: AllSystemsTestEnvironment
@@ -21,8 +21,8 @@ var _manipulation_system: ManipulationSystem
 var _targeting_state: GridTargetingState
 
 func before_test() -> void:
-	# Use scene_runner with ALL_SYSTEMS_ENV_UID for complete system setup
-	_runner = scene_runner(GBTestConstants.ALL_SYSTEMS_ENV_UID)
+	# Use scene_runner with ALL_SYSTEMS_ENV for complete system setup
+	_runner = scene_runner(GBTestConstants.ALL_SYSTEMS_ENV)
 	_runner.simulate_frames(2)  # Initial setup frames
 
 	_env = _runner.scene() as AllSystemsTestEnvironment
@@ -59,8 +59,7 @@ func test_indicators_ignore_original_when_positioner_inside_bounds() -> void:
 		Vector2(32, 32)
 	)
 	var original: Node2D = manipulatable.root
-	assert_object(original) \\
-		.append_failure_message("Manipulatable root should not be null").is_not_null()
+	assert_object(original).append_failure_message("Manipulatable root should not be null").is_not_null()
 	_runner.simulate_frames(1)
 
 	# GIVEN: Start manipulation move
@@ -91,8 +90,7 @@ func test_indicators_ignore_original_when_positioner_outside_bounds() -> void:
 		Vector2(32, 32)
 	)
 	var original: Node2D = manipulatable.root
-	assert_object(original) \\
-		.append_failure_message("Manipulatable root should not be null").is_not_null()
+	assert_object(original).append_failure_message("Manipulatable root should not be null").is_not_null()
 	_runner.simulate_frames(1)
 
 	# GIVEN: Start manipulation move
@@ -124,8 +122,7 @@ func test_indicators_remain_valid_across_position_transitions() -> void:
 		Vector2(32, 32)
 	)
 	var original: Node2D = manipulatable.root
-	assert_object(original) \\
-		.append_failure_message("Manipulatable root should not be null").is_not_null()
+	assert_object(original).append_failure_message("Manipulatable root should not be null").is_not_null()
 	_runner.simulate_frames(1)
 
 	# GIVEN: Start manipulation move
@@ -165,8 +162,7 @@ func test_exclusion_list_contains_original_during_move() -> void:
 		Vector2(100, 100)
 	)
 	var original: Node2D = manipulatable.root
-	assert_object(original) \\
-		.append_failure_message("Manipulatable root should not be null").is_not_null()
+	assert_object(original).append_failure_message("Manipulatable root should not be null").is_not_null()
 	_runner.simulate_frames(1)
 
 	# WHEN: Start manipulation move
@@ -190,8 +186,7 @@ func test_exclusion_list_persists_across_positioner_movement() -> void:
 		Vector2(100, 100)
 	)
 	var original: Node2D = manipulatable.root
-	assert_object(original) \\
-		.append_failure_message("Manipulatable root should not be null").is_not_null()
+	assert_object(original).append_failure_message("Manipulatable root should not be null").is_not_null()
 	_runner.simulate_frames(1)
 
 	_manipulation_system.try_move(original)

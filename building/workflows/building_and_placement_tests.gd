@@ -102,7 +102,7 @@ var _last_build_was_dragging: bool
 
 func before_test() -> void:
 	# Use scene_runner to instantiate environment with input isolation
-	runner = scene_runner(GBTestConstants.BUILDING_TEST_ENV_UID)
+	runner = scene_runner(GBTestConstants.BUILDING_TEST_ENV)
 	runner.simulate_frames(2)  # Initial setup frames
 
 	env = runner.scene() as BuildingTestEnvironment

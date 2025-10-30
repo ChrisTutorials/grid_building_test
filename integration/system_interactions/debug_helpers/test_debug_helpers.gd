@@ -7,7 +7,7 @@ static func create_minimal_test_environment(
 	test_suite: GdUnitTestSuite
 ) -> AllSystemsTestEnvironment:
 	var env: AllSystemsTestEnvironment = EnvironmentTestFactory.create_all_systems_env(
-		test_suite, GBTestConstants.ALL_SYSTEMS_ENV_UID
+		test_suite, GBTestConstants.ALL_SYSTEMS_ENV
 	)
 	# Environment is already added to test_suite and auto_free is already called by the factory
 	return env
