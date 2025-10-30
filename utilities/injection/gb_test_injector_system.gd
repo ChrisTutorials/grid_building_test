@@ -1,6 +1,6 @@
 ## **TESTING ONLY**: Extended injector system with automatic test isolation.
 ##
-## This class extends [GBInjectorSystem] to automatically duplicate the composition
+## Thisclass extends [GBInjectorSystem] to automatically duplicate the composition
 ## container when loaded from scene files, ensuring test isolation without manual duplication.
 ##
 ## [b]Key Features:[/b]
@@ -24,7 +24,7 @@
 ## This is because GDScript doesn't allow overriding setters for inherited @export properties.
 ## If you need duplication for direct assignment, call [code]_duplicate_container_if_needed()[/code] manually.
 ##
-## [b]DO NOT use this class in production/runtime code.[/b] It exists solely for
+## [b]DO NOT use thisclass in production/runtime code.[/b] It exists solely for
 ## test isolation and should only be used in test environment scenes.
 class_name GBTestInjectorSystem
 extends GBInjectorSystem

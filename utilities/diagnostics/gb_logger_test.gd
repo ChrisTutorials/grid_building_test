@@ -39,21 +39,21 @@ func test_level_filtering() -> void:
 
 
 func test_instantiation() -> void:
- assert_that(_logger).append_failure_message("Logger should be instantiated successfully").is_not_null()
+	assert_that(_logger).append_failure_message("Logger should be instantiated successfully").is_not_null()
 
 
 func test_log_debug_once_logs_only_once() -> void:
 	_logger.log_debug_once(self, MSG_DEBUG_ONE)
 	_logger.log_debug_once(self, "This is another test debug message")
 	assert_that(_received_logs.size()).append_failure_message("Should only log once for the same object").is_equal(1)
- assert_that(_received_logs[0]["message"]).append_failure_message("First log message should match the expected debug message").is_equal(MSG_DEBUG_ONE)
+	assert_that(_received_logs[0]["message"]).append_failure_message("First log message should match the expected debug message").is_equal(MSG_DEBUG_ONE)
 
 
 func test_log_warning_once_logs_only_once() -> void:
 	_logger.log_warning_once(self, MSG_WARN_ONE)
 	_logger.log_warning_once(self, MSG_WARN_TWO)
 	assert_that(_received_logs.size()).append_failure_message("Should only log once for the same object").is_equal(1)
- assert_that(_received_logs[0]["message"]).append_failure_message("First log message should match the expected warning message").is_equal(MSG_WARN_ONE)
+	assert_that(_received_logs[0]["message"]).append_failure_message("First log message should match the expected warning message").is_equal(MSG_WARN_ONE)
 
 
 func test_log_warning_once_logs_multiple_times_for_different_objects() -> void:
@@ -61,9 +61,12 @@ func test_log_warning_once_logs_multiple_times_for_different_objects() -> void:
 	var obj2: Node = Node.new()
 	_logger.log_warning_once(obj1, MSG_WARN_ONE)
 	_logger.log_warning_once(obj2, MSG_WARN_TWO)
-	assert_that(_received_logs.size()).append_failure_message("Should log once for each different object").is_equal(2)
- assert_that(_received_logs[0]["message"]).append_failure_message("First log should contain the first object's message").is_equal(MSG_WARN_ONE)
- assert_that(_received_logs[1]["message"]).append_failure_message("Second log should contain the second object's message").is_equal(MSG_WARN_TWO)
+	assert_that(_received_logs.size()).append_failure_message(
+		"Should log once for each different object").is_equal(2)
+	assert_that(_received_logs[0]["message"]).append_failure_message(
+		"First log should contain the first object's message").is_equal(MSG_WARN_ONE)
+	assert_that(_received_logs[1]["message"]).append_failure_message(
+		"Second log should contain the second object's message").is_equal(MSG_WARN_TWO)
 	obj1.free()
 	obj2.free()
 
@@ -71,15 +74,18 @@ func test_log_warning_once_logs_multiple_times_for_different_objects() -> void:
 func test_log_error_once_logs_only_once() -> void:
 	_logger.log_error_once(self, MSG_ERR_ONE)
 	_logger.log_error_once(self, "This is another test error message")
-	assert_that(_received_logs.size()).append_failure_message("Should only log once for the same object").is_equal(1)
- assert_that(_received_logs[0]["message"]).append_failure_message("First log message should match the expected error message").is_equal(MSG_ERR_ONE)
-
+	assert_that(_received_logs.size()).append_failure_message(
+		"Should only log once for the same object").is_equal(1)
+	assert_that(_received_logs[0]["message"]).append_failure_message(
+		"First log message should match the expected error message").is_equal(MSG_ERR_ONE)
 
 func test_log_info_once_logs_only_once() -> void:
 	_logger.log_info_once(self, MSG_INFO_ONE)
 	_logger.log_info_once(self, "This is another test info message")
-	assert_that(_received_logs.size()).append_failure_message("Should only log once for the same object").is_equal(1)
- assert_that(_received_logs[0]["message"]).append_failure_message("First log message should match the expected info message").is_equal(MSG_INFO_ONE)
+	assert_that(_received_logs.size()).append_failure_message(
+		"Should only log once for the same object").is_equal(1)
+	assert_that(_received_logs[0]["message"]).append_failure_message(
+		"First log message should match the expected info message").is_equal(MSG_INFO_ONE)
 
 
 func test_context_from_get_stack() -> void:
@@ -109,8 +115,9 @@ func test_context_from_get_stack() -> void:
 	var has_proper_context: bool = context.contains("gb_logger_test") and context.contains("test_context_from_get_stack")
 	var has_test_fallback: bool = context == "test_environment"
 
-	assert_bool(has_proper_context or has_test_fallback).append_failure_message("Context '%s' should either contain test info or be 'test_environment'. %s" % [context, diagnostic])\
-		.is_true()
+	assert_bool(has_proper_context or has_test_fallback).append_failure_message(
+		"Context '%s' should either contain test info or be 'test_environment'. %s" % [context, diagnostic]
+	).is_true()
 
 func test_context_from_convenience_methods() -> void:
 	# Test that context works correctly when called through convenience methods like log_debug
@@ -118,9 +125,12 @@ func test_context_from_convenience_methods() -> void:
 	_logger.log_debug("debug message")
 
 	# Verify that context is properly set from get_stack()
-	assert_that(_received_logs.size()).append_failure_message("Should have exactly one log message. Received logs: %s" % str(_received_logs)).is_equal(1)
-	assert_that(_received_logs[0]["context"]).append_failure_message("Context should not be null. Received logs: %s" % str(_received_logs)).is_not_null()
-	assert_that(_received_logs[0]["context"]).append_failure_message("Context should not be empty. Actual context: '%s'" % _received_logs[0]["context"]).is_not_empty()
+	assert_that(_received_logs.size()).append_failure_message(
+		"Should have exactly one log message. Received logs: %s" % str(_received_logs)).is_equal(1)
+	assert_that(_received_logs[0]["context"]).append_failure_message(
+		"Context should not be null. Received logs: %s" % str(_received_logs)).is_not_null()
+	assert_that(_received_logs[0]["context"]).append_failure_message(
+		"Context should not be empty. Actual context: '%s'" % _received_logs[0]["context"]).is_not_empty()
 
 	# Create detailed diagnostic information
 	var context: String = _received_logs[0]["context"]
@@ -137,9 +147,11 @@ func test_context_from_convenience_methods() -> void:
 	var has_proper_context2: bool = context.contains("gb_logger_test") and context.contains("test_context_from_convenience_methods")
 	var has_test_fallback2: bool = context == "test_environment"
 
-	assert_bool(has_proper_context2 or has_test_fallback2).append_failure_message("Context '%s' should either contain test info or be 'test_environment'. %s" % [context, diagnostic2])\
-		.is_true()
+	assert_bool(has_proper_context2 or has_test_fallback2).append_failure_message(
+		"Context '%s' should either contain test info or be 'test_environment'. %s" % [context, diagnostic2]
+	).is_true()
 
+## Minimal helper for test callable
 func _call_me() -> void:
 	pass
 
@@ -154,7 +166,9 @@ func test_lazy_provider_not_called_when_disabled() -> void:
 
 	# DEBUG is disabled under WARNING level -> use lazy variant
 	_logger.log_debug_lazy(provider)
-	assert_that(called_container["v"]).append_failure_message("Provider should not be called when debug level disabled").is_false()
+	assert_that(called_container["v"]).append_failure_message(
+		"Provider should not be called when debug level disabled"
+		).is_false()
 
 func test_lazy_provider_called_when_enabled_and_sink_receives_message() -> void:
 	var called_container: Dictionary = {"v": false}
@@ -164,10 +178,13 @@ func test_lazy_provider_called_when_enabled_and_sink_receives_message() -> void:
 
 	_logger.log_debug_lazy(provider)
 
-	assert_that(called_container["v"]).append_failure_message("Provider should be called when DEBUG enabled").is_true()
-	assert_that(_received_logs.size()).append_failure_message("Sink should have received exactly one message").is_equal(1)
+	assert_that(called_container["v"]).append_failure_message(
+		"Provider should be called when DEBUG enabled").is_true()
+	assert_that(_received_logs.size()).append_failure_message(
+		"Sink should have received exactly one message").is_equal(1)
 	var entry: Dictionary = _received_logs[0]
-	assert_that(entry["message"]).append_failure_message("Message should match the provider result").is_equal(MSG_HEAVY_RESULT)
+	assert_that(entry["message"]).append_failure_message(
+		"Message should match the provider result").is_equal(MSG_HEAVY_RESULT)
 
 func test_set_log_sink_works_for_errors() -> void:
 	_logger.get_debug_settings().level = DBG_LEVEL.ERROR
@@ -189,7 +206,8 @@ func test_default_emission_without_sink_calls_provider_and_does_not_crash() -> v
 
 	# Do not set a sink. Should materialize provider and not throw.
 	_logger.log_debug_lazy(provider)
-	assert_that(called_container["v"]).append_failure_message("Provider should be called even when no sink is set").is_true()
+	assert_that(called_container["v"]).append_failure_message(
+		"Provider should be called even when no sink is set").is_true()
 
 func test_sink_cleared_is_handled_gracefully() -> void:
 	var called_container: Dictionary = {"v": false}
@@ -199,8 +217,10 @@ func test_sink_cleared_is_handled_gracefully() -> void:
 
 	# First call: sink should receive
 	_logger.log_debug_lazy(provider)
-	assert_that(called_container["v"]).append_failure_message("Provider should be called when sink target valid").is_true()
-	assert_that(_received_logs.size()).append_failure_message("Sink should receive the message when set").is_equal(1)
+	assert_that(called_container["v"]).append_failure_message(
+		"Provider should be called when sink target valid").is_true()
+	assert_that(_received_logs.size()).append_failure_message(
+		"Sink should receive the message when set").is_equal(1)
 
 	# Clear the sink and ensure no crash when logging again
 	_logger.set_log_sink(Callable())
@@ -212,21 +232,28 @@ func test_sink_cleared_is_handled_gracefully() -> void:
 
 	# This should not throw; provider should still be called even though sink cleared
 	_logger.log_debug_lazy(provider2)
-	assert_that(called_container2["v"]).append_failure_message("Provider should be called even when sink cleared").is_true()
+	assert_that(called_container2["v"]).append_failure_message(
+		"Provider should be called even when sink cleared").is_true()
 
 func test_is_level_enabled_filters_correctly() -> void:
 	_logger.get_debug_settings().level = DBG_LEVEL.WARNING
 
-	assert_that(_logger.is_level_enabled(DBG_LEVEL.ERROR)).append_failure_message("ERROR should be enabled when level is WARNING").is_true()
-	assert_that(_logger.is_level_enabled(DBG_LEVEL.WARNING)).append_failure_message("WARNING should be enabled when level is WARNING").is_true()
-	assert_that(_logger.is_level_enabled(DBG_LEVEL.INFO)).append_failure_message("INFO should be disabled when level is WARNING").is_false()
-	assert_that(_logger.is_level_enabled(DBG_LEVEL.DEBUG)).append_failure_message("DEBUG should be disabled when level is WARNING").is_false()
+	assert_that(_logger.is_level_enabled(DBG_LEVEL.ERROR)).append_failure_message(
+		"ERROR should be enabled when level is WARNING").is_true()
+	assert_that(_logger.is_level_enabled(DBG_LEVEL.WARNING)).append_failure_message(
+		"WARNING should be enabled when level is WARNING").is_true()
+	assert_that(_logger.is_level_enabled(DBG_LEVEL.INFO)).append_failure_message(
+		"INFO should be disabled when level is WARNING").is_false()
+	assert_that(_logger.is_level_enabled(DBG_LEVEL.DEBUG)).append_failure_message(
+		"DEBUG should be disabled when level is WARNING").is_false()
 
 func test_log_at_with_string_message() -> void:
 	_logger.log_at(DBG_LEVEL.DEBUG, MSG_DIRECT_STRING)
 
-	assert_that(_received_logs.size()).append_failure_message("Should receive one message").is_equal(1)
-	assert_that(_received_logs[0]["message"]).append_failure_message("Message should be the string").is_equal(MSG_DIRECT_STRING)
+	assert_that(_received_logs.size()).append_failure_message(
+		"Should receive one message").is_equal(1)
+	assert_that(_received_logs[0]["message"]).append_failure_message(
+		"Message should be the string").is_equal(MSG_DIRECT_STRING)
 
 func test_log_at_with_callable_message() -> void:
 	var called_container: Dictionary = {"v": false}
@@ -236,22 +263,29 @@ func test_log_at_with_callable_message() -> void:
 
 	_logger.log_at(DBG_LEVEL.DEBUG, provider)
 
-	assert_that(called_container["v"]).append_failure_message("Provider should be called").is_true()
-	assert_that(_received_logs[0]["message"]).append_failure_message("Message should be the result").is_equal(MSG_CALLABLE_RESULT)
+	assert_that(called_container["v"]).append_failure_message(
+		"Provider should be called").is_true()
+	assert_that(_received_logs[0]["message"]).append_failure_message(
+		"Message should be the result").is_equal(MSG_CALLABLE_RESULT)
 
 func test_invalid_callable_provider() -> void:
 	var invalid_provider: Callable = Callable()  # empty callable
 
 	_logger.log_at(DBG_LEVEL.DEBUG, invalid_provider)
 
-	assert_that(_received_logs[0]["message"]).append_failure_message("Invalid callable should result in empty message").is_equal("")
+	assert_that(_received_logs[0]["message"]).append_failure_message(
+		"Invalid callable should result in empty message").is_equal("")
 
 func test_multiple_logs() -> void:
 	_logger.log_debug(MSG_FIRST)
 	_logger.log_debug(MSG_SECOND)
 	_logger.log_debug(MSG_THIRD)
 
-	assert_that(_received_logs.size()).append_failure_message("Should receive 3 messages").is_equal(3)
-	assert_that(_received_logs[0]["message"]).append_failure_message("First message should be 'first'").is_equal(MSG_FIRST)
-	assert_that(_received_logs[1]["message"]).append_failure_message("Second message should be 'second'").is_equal(MSG_SECOND)
-	assert_that(_received_logs[2]["message"]).append_failure_message("Third message should be 'third'").is_equal(MSG_THIRD)
+	assert_that(_received_logs.size()).append_failure_message(
+		"Should receive 3 messages").is_equal(3)
+	assert_that(_received_logs[0]["message"]).append_failure_message(
+		"First message should be 'first'").is_equal(MSG_FIRST)
+	assert_that(_received_logs[1]["message"]).append_failure_message(
+		"Second message should be 'second'").is_equal(MSG_SECOND)
+	assert_that(_received_logs[2]["message"]).append_failure_message(
+		"Third message should be 'third'").is_equal(MSG_THIRD)

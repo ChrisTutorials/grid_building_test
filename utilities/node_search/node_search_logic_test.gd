@@ -3,7 +3,7 @@
 ## - Name-based node searching with exact and partial matches
 ## - Script-based searching by script file names
 ## - Group-based searching by group membership
-## - Class-based searching by node class types
+## - Class-based searching by nodeclass types
 ## - Property-based searching with custom property values
 ## - Method result-based searching with dynamic return values
 ## - Script name extraction and validation

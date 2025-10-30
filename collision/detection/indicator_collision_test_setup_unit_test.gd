@@ -89,7 +89,7 @@ func test_create_test_setups_for_collision_owners_with_valid_object() -> void:
 
 	assert_that(owner_collision_setups.size()).is_greater(0).append_failure_message("Expected at least one test setup for valid collision object")
 	assert_that(owner_collision_setups.has(body)).is_true().append_failure_message("Expected body to be in setups dictionary")
- assert_that(owner_collision_setups[body]).append_failure_message("Expected non-null setup for body").is_not_null()
+	 assert_that(owner_collision_setups[body]).append_failure_message("Expected non-null setup for body").is_not_null()
  assert_that(owner_collision_setups[body] is CollisionTestSetup2D).append_failure_message("Expected setup to be CollisionTestSetup2D instance").is_true()
 
 # Test: create_test_setups_for_collision_owners with empty dictionary
@@ -132,7 +132,7 @@ func test_create_test_setups_from_test_node_with_valid_object() -> void:
 		if setup is CollisionTestSetup2D:
 			has_valid_setup = true
 			break
- assert_that(has_valid_setup).append_failure_message("Expected at least one valid CollisionTestSetup2D in setups array").is_true()
+	 assert_that(has_valid_setup).append_failure_message("Expected at least one valid CollisionTestSetup2D in setups array").is_true()
 
 # Test: create_test_setups_from_test_node with empty body
 func test_create_test_setups_from_test_node_empty_body() -> void:
@@ -150,7 +150,7 @@ func test_create_test_setups_from_test_node_empty_body() -> void:
 	var node_collision_setups: Array[CollisionTestSetup2D] = CollisionTestSetup2D.create_test_setups_from_test_node(body, targeting_state)
 
 	# Even with no collision shapes, should return a dictionary (possibly empty or with null values)
- assert_that(node_collision_setups).append_failure_message("Expected non-null setups array even for empty body").is_not_null()
+	 assert_that(node_collision_setups).append_failure_message("Expected non-null setups array even for empty body").is_not_null()
 
 # Test: create_test_setups_from_test_node with null node (should handle gracefully)
 func test_create_test_setups_from_test_node_null_input() -> void:

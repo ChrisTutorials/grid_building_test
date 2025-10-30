@@ -53,7 +53,23 @@ func test_hide_on_handled_ignored_when_mouse_disabled() -> void:
 	var blocked_mouse_status := GBMouseInputStatus.new()
 	blocked_mouse_status.set_from_values(false, Vector2.ZERO, 0, "blocked", Vector2.ZERO)  # blocked input
 
-	var result := GridPositionerLogic.should_be_visible(GBEnums.Mode.BUILD, settings, blocked_mouse_status, false)
-
- assert_bool(result).append_failure_message( "When mouse input is disabled, hide_on_handled should not apply even with blocked mouse input status. " + "Settings: hide_on_handled=%s, mouse_enabled=%s, mouse_status.allowed=%s" % [str(settings.hide_on_handled), str(settings.enable_mouse_input), str(blocked_mouse_status.allowed)] ) # Test: hide_on_handled should still apply when mouse input is enabled (regression test) # Setup: hide_on_handled=true, mouse_enabled=true, blocked mouse input status # Act: Call should_be_visible in BUILD mode # Assert: Should be hidden due to blocked mouse input func test_hide_on_handled_applies_when_mouse_enabled() -> void: var settings := _make_settings(true, true, true) # active_when_off=true, hide_on_handled=true, mouse_enabled=true var blocked_mouse_status := GBMouseInputStatus.new() blocked_mouse_status.set_from_values(false, Vector2.ZERO, 0, "blocked", Vector2.ZERO) # blocked input var result := GridPositionerLogic.should_be_visible(GBEnums.Mode.BUILD, settings, blocked_mouse_status, false) assert_bool(result)\
-	.is_false().append_failure_message( "When mouse input is enabled, hide_on_handled should still apply with blocked mouse input status. " + "Settings: hide_on_handled=%s, mouse_enabled=%s, mouse_status.allowed=%s" % [str(settings.hide_on_handled), str(settings.enable_mouse_input), str(blocked_mouse_status.allowed)] ).is_true()
+	var result : bool = GridPositionerLogic.should_be_visible(GBEnums.Mode.BUILD, settings, blocked_mouse_status, false)
+	var result_failure_message := "When mouse input is disabled, hide_on_handled should not apply even with blocked mouse input status." + "Settings: hide_on_handled=%s, mouse_enabled=%s, mouse_status.allowed=%s" % [str(settings.hide_on_handled), str(settings.enable_mouse_input), str(blocked_mouse_status.allowed)]
+	assert_bool(result).append_failure_message(result_failure_message).is_true()
+	
+# Test: hide_on_handled should still apply when mouse input is enabled (regression test)
+# Setup: hide_on_handled=true, mouse_enabled=true, blocked mouse input status
+# Act: Call should_be_visible in BUILD mode
+# Assert: Should be hidden due to blocked mouse input
+func test_hide_on_handled_applies_when_mouse_enabled() -> void:
+	var settings : GridTargetingSettings = _make_settings(true, true, true)
+		
+	# active_when_off=true, hide_on_handled=true, mouse_enabled=true
+	var blocked_mouse_status := GBMouseInputStatus.new()
+	blocked_mouse_status.set_from_values(false, Vector2.ZERO, 0, "blocked", Vector2.ZERO)  # blocked input
+	var should_be_visible := GridPositionerLogic.should_be_visible(GBEnums.Mode.BUILD, settings, blocked_mouse_status, false)
+	assert_bool(should_be_visible)\
+		.is_false().append_failure_message(
+			"When mouse input is enabled, hide_on_handled should still apply with blocked mouse input status. " +
+			"Settings: hide_on_handled=%s, mouse_enabled=%s, mouse_status.allowed=%s" % [str(settings.hide_on_handled), str(settings.enable_mouse_input), str(blocked_mouse_status.allowed)]
+		).is_false()
