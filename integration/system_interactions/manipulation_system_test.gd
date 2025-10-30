@@ -327,7 +327,7 @@ func test_failed_placement_with_invalid_move_data_cleans_up() -> void:
 	move_data.source = null
 
 	# Act: Try placement with invalid move data (should fail and cleanup)
-	var _placement_results: ValidationResults = system.try_placement(move_data)
+	var placement_results: ValidationResults = system.try_placement(move_data)
 
 	# Restore source reference so we can verify it wasn't moved
 	move_data.source = saved_source
@@ -437,7 +437,7 @@ func test_rotate_negative(
 	var target: Node2D = p_manipulatable.root
 
 	var rotation_per_time: float = NEGATIVE_ROTATION_INCREMENT
-	var _total_rotation: float = 0.0
+	var total_rotation: float = 0.0
 
 	for i in range(ROTATION_ITERATIONS):
 		_total_rotation += rotation_per_time

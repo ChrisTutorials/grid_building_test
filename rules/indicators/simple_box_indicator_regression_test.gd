@@ -218,7 +218,7 @@ func test_rigid_body_with_collision_layer_513_generates_indicators() -> void:
 	assert_object(manager).append_failure_message("No placement manager available").is_not_null()
 
 	# Set up rule validation parameters (same as test)
-	var _manip_owner: Node = _container.get_states().manipulation.get_manipulator()
+	var manip_owner: Node = _container.get_states().manipulation.get_manipulator()
 
 	# Set up rules
 	var setup_success: PlacementReport = manager.try_setup(placeable.placement_rules, _gts, false)

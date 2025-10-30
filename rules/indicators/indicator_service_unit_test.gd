@@ -201,12 +201,12 @@ func test_indicator_positioning_regression_800_pixel_offset() -> void:
 		# This assertion should FAIL with current regression - indicators appearing 800+ pixels away
 		assert_that(distance).append_failure_message(
 			"Indicator at (%s) is %.1f pixels away from expected position (%s). " % [ indicator_pos, distance, expected_pos ] + "This indicates the 800+ pixel offset regression is present."
-		) 
+		)
 
-#endregion 
-#region FAILURE ISOLATION TESTS - Mirror Integration Test Failures 
-# SUCCESS TEST: Verify that setup_indicators creates indicators when collision detection finds collision shapes 
-# Expected success: setup_indicators returns indicators when collision detection finds collision shapes 
+#endregion
+#region FAILURE ISOLATION TESTS - Mirror Integration Test Failures
+# SUCCESS TEST: Verify that setup_indicators creates indicators when collision detection finds collision shapes
+# Expected success: setup_indicators returns indicators when collision detection finds collision shapes
 # This verifies that the core IndicatorService functionality works correctly
 func test_setup_indicators_creates_indicators_when_collision_shapes_detected() -> void:
 	_service = _create_test_service()

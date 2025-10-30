@@ -331,14 +331,14 @@ func _count_indicators(parent: Node) -> int:
 		if indicators != null:
 			if indicators.size() > 0:
 				# Optional debug - removed print, use assertions for debugging
-				var _names: Array[String] = []
+				var names: Array[String] = []
 				for ind: RuleCheckIndicator in indicators:
 					_names.append(ind.name)
 			return indicators.size()
 
 	# Fallback: name-based scan if API unavailable
 	var count: int = 0
-	var _child_names: Array[String] = []
+	var child_names: Array[String] = []
 	for child in parent.get_children():
 		if (
 			typeof(child.name) == TYPE_STRING

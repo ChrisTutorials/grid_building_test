@@ -639,7 +639,7 @@ func test_placement_validation_with_rules(
 		_setup_blocking_collision()
 
 	# Setup and validate placement through IndicatorManager so indicators are generated
-	var _report: PlacementReport = _indicator_manager.try_setup(test_rules, _targeting_state)
+	var report: PlacementReport = _indicator_manager.try_setup(test_rules, _targeting_state)
 
 	# Allow physics to update after adding indicators
 	runner.simulate_frames(3, 60)  # Replaced await get_tree().physics_frame
@@ -707,7 +707,7 @@ func test_placement_validation_edge_cases(
 
 		"invalid_placeable":
 			var empty_rules: Array[PlacementRule] = []
-			var _setup_issues: Dictionary = placement_validator.setup(empty_rules, _targeting_state)
+			var setup_issues: Dictionary = placement_validator.setup(empty_rules, _targeting_state)
 			# With empty rules, validate() returns false because active_rules is empty
 			var result: ValidationResults = placement_validator.validate_placement()
 			(
@@ -744,7 +744,7 @@ func test_placement_validation_edge_cases(
 			runner.simulate_frames(2)  # Let position update take effect
 
 			var empty_rules: Array[PlacementRule] = []
-			var _setup_issues: Dictionary = placement_validator.setup(empty_rules, _targeting_state)
+			var setup_issues: Dictionary = placement_validator.setup(empty_rules, _targeting_state)
 			var result: ValidationResults = placement_validator.validate_placement()
 			# This might be valid or invalid depending on implementation
 			(

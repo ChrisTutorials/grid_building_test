@@ -85,8 +85,8 @@ func test_targeting_basic() -> void:
 
 func test_targeting_grid_alignment() -> void:
 	var targeting_system: GridTargetingSystem = env.grid_targeting_system
-	var _tile_map: TileMapLayer = env.tile_map_layer
-	var _targeting_state: GridTargetingState = targeting_system.get_state()
+	var tile_map: TileMapLayer = env.tile_map_layer
+	var targeting_state: GridTargetingState = targeting_system.get_state()
 
 	# Test grid-aligned targeting by setting position through state
 	var world_pos: Vector2 = Vector2(100, 100)  # Not grid-aligned
@@ -108,7 +108,7 @@ func test_targeting_grid_alignment() -> void:
 
 func test_targeting_validation() -> void:
 	var targeting_system: GridTargetingSystem = env.grid_targeting_system
-	var _tile_map: TileMapLayer = env.tile_map_layer
+	var tile_map: TileMapLayer = env.tile_map_layer
 	var targeting_state: GridTargetingState = targeting_system.get_state()
 
 	# Test valid position using factory's default target

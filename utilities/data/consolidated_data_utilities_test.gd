@@ -315,7 +315,7 @@ func test_trapezoid_collision_calculation_diagnostic() -> void:
 				var clipped: PackedVector2Array = CollisionGeometryCalculator.clip_polygon_to_rect(
 					trapezoid_points, tile_rect
 				)
-				var _area: float = CollisionGeometryCalculator.polygon_area(clipped)
+				var area: float = CollisionGeometryCalculator.polygon_area(clipped)
 
 				if overlaps_strict:
 					overlapping_tiles.append(tile_pos)

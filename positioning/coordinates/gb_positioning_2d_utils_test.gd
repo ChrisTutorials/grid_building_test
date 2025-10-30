@@ -82,7 +82,7 @@ func test_move_to_tile_center_basic() -> void:
 	var result_tile: Vector2i = GBPositioning2DUtils.move_to_tile_center(test_node, target_tile, test_tile_map_layer)
 
 	assert_that(result_tile).is_equal(target_tile)
-	
+
 	# Verify node was positioned (not at zero) and the tile calculation works
 	assert_that(test_node.global_position).append_failure_message(
 		"Node should be moved from zero position after tile centering"

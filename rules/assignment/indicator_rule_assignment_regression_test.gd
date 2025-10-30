@@ -210,8 +210,8 @@ func test_indicator_rule_validation() -> void:
 
 	# Set up rule parameters
 	var targeting_state: GridTargetingState = _container.get_states().targeting
-	var _preview_root: Node2D = GodotTestFactory.create_node2d(self)
-	var _manipulator_owner: Node2D = placer
+	var preview_root: Node2D = GodotTestFactory.create_node2d(self)
+	var manipulator_owner: Node2D = placer
 
 	# Setup the rule
 	var setup_issues: Array[String] = collision_rule.setup(targeting_state)
@@ -240,7 +240,7 @@ func test_indicator_rule_validation() -> void:
 	assert_bool(indicator.valid).append_failure_message("Indicator should be valid when no collision object is present").is_true()
 
 	# Now create a collision object at the same position using DRY pattern
-	var _collision_object: StaticBody2D = create_collision_object_at(DEFAULT_POSITION)
+	var collision_object: StaticBody2D = create_collision_object_at(DEFAULT_POSITION)
 
 	var valid := indicator.force_validity_evaluation()
 

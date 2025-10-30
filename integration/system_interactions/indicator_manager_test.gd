@@ -224,7 +224,7 @@ func test_indicator_count_for_shapes(
 	shape_scene.global_position = global_snap_pos
 	assert_scene_has_collision_shapes(shape_scene, "; expected >0 for indicator generation")
 
-	var _overlap_ok: bool = _collision_layer_overlaps(shape_scene, col_checking_rules)
+	var overlap_ok: bool = _collision_layer_overlaps(shape_scene, col_checking_rules)
 	var report: IndicatorSetupReport = setup_scene_with_indicators(shape_scene)
 	var data: Dictionary[String, Variant] = get_indicators_and_summary(report)
 	var indicators: Array[RuleCheckIndicator] = data.indicators

@@ -219,7 +219,7 @@ func test_indicator_overlap_threshold(
 		[0.8, 8.0, 16.0, false],  # 50% overlap, 80% threshold - should fail
 	]
 ) -> void:
-	var _indicator: RuleCheckIndicator = _create_test_indicator("rectangle", {"size": Vector2(16, 16)})
+	var indicator: RuleCheckIndicator = _create_test_indicator("rectangle", {"size": Vector2(16, 16)})
 
 	# Create a mock overlap test
 	var rule: CollisionsCheckRule = PlacementRuleTestFactory.create_default_collision_rule()

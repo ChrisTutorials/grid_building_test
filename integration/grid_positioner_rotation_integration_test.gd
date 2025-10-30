@@ -87,7 +87,7 @@ func test_grid_aware_rotation_input_handling() -> void:
 	manipulation_parent.rotation = 0.0
 
 	# Apply grid-aware clockwise rotation directly (the method we're actually testing)
-	var _new_degrees: float = manipulation_parent.apply_grid_rotation_clockwise(test_map)
+	var new_degrees: float = manipulation_parent.apply_grid_rotation_clockwise(test_map)
 
 	# Verify rotation was applied using grid-aware rotation (should be 90 degrees = East)
 	var expected_rotation := deg_to_rad(90.0)
@@ -109,7 +109,7 @@ func test_grid_aware_rotation_counter_clockwise() -> void:
 	manipulation_parent.rotation = 0.0
 
 	# Apply grid-aware counter-clockwise rotation directly
-	var _new_degrees: float = manipulation_parent.apply_grid_rotation_counter_clockwise(test_map)
+	var new_degrees: float = manipulation_parent.apply_grid_rotation_counter_clockwise(test_map)
 
 	# Verify rotation was applied (should be 270 degrees = West)
 	var expected_rotation := deg_to_rad(270.0)

@@ -308,7 +308,7 @@ func test_real_world_indicator_positioning() -> void:
 	# Generate indicators using DRY pattern
 	var tile_check_rules: Array[TileCheckRule] = [tile_check_rule]
 	var report: IndicatorSetupReport = indicator_manager.setup_indicators(preview, tile_check_rules)
-	var _indicators: Array[RuleCheckIndicator] = report.indicators
+	var indicators: Array[RuleCheckIndicator] = report.indicators
 
 	# NOTE: Indicator generation is currently not working due to systemic issues in the collision mapping pipeline
 	# This test currently validates the setup process and component access patterns

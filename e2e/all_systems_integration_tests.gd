@@ -704,7 +704,7 @@ func test_smithy_collision_detection() -> void:
 func test_build_and_move_multi_system_integration() -> void:
 	var building_system: Object = env.building_system
 	var targeting_system: GridTargetingSystem = env.grid_targeting_system
-	var _manipulation_system: ManipulationSystem = env.manipulation_system
+	var manipulation_system: ManipulationSystem = env.manipulation_system
 	var test_placeable: Placeable = _create_test_placeable_with_rules()
 
 	# Phase 1: Target selection
@@ -808,7 +808,7 @@ func test_build_and_move_multi_system_integration() -> void:
 func test_enter_build_mode_state_consistency() -> void:
 	var building_system: Object = env.building_system
 	var targeting_system: GridTargetingSystem = env.grid_targeting_system
-	var _indicator_manager: IndicatorManager = env.indicator_manager
+	var indicator_manager: IndicatorManager = env.indicator_manager
 	var test_placeable: Placeable = _create_test_placeable_with_rules()
 
 	# Setup coordinated state across systems
@@ -994,7 +994,7 @@ func test_full_system_integration_workflow() -> void:
 	# Test complete workflow from targeting through building to manipulation
 	var building_system: Object = env.building_system
 	var indicator_manager: IndicatorManager = env.indicator_manager
-	var _manipulation_system: ManipulationSystem = env.manipulation_system
+	var manipulation_system: ManipulationSystem = env.manipulation_system
 	var test_placeable: Placeable = _create_test_placeable_with_rules()
 
 	# Step 1: Set target
@@ -1097,14 +1097,14 @@ func test_system_state_integration(
 
 	match system:
 		"building":
-			var _building_system: BuildingSystem = env.building_system
+			var building_system: BuildingSystem = env.building_system
 			var building_state: BuildingState = container.get_states().building
 			assert_that(building_state).is_not_null().append_failure_message(
 				"Building state should be properly configured"
 			)
 
 		"manipulation":
-			var _manipulation_system: ManipulationSystem = env.manipulation_system
+			var manipulation_system: ManipulationSystem = env.manipulation_system
 			var manipulation_state: ManipulationState = _container.get_states().manipulation
 			assert_that(manipulation_state).is_not_null().append_failure_message(
 				"Manipulation state should be properly configured"
@@ -1145,7 +1145,7 @@ func test_targeting_system_behavior(
 
 		"position_updates":
 			var positioner: Node2D = env.positioner
-			var _initial_pos: Vector2 = positioner.position
+			var initial_pos: Vector2 = positioner.position
 			positioner.position = TEST_POSITION_128
 
 			var targeting_state: GridTargetingState = _container.get_states().targeting

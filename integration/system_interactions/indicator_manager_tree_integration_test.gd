@@ -22,7 +22,7 @@ func before_test() -> void:
 	assert_object(env).append_failure_message(
 		"Failed to load AllSystemsTestEnvironment via scene_runner"
 	).is_not_null()
-	
+
 
 	# Extract setup components for test access
 	_container = env.get_container()
