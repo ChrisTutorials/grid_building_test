@@ -656,23 +656,15 @@ class TestPositionerWithMockCursor:
 
 #region PROJECTION STABILIZATION
 
-# DISABLED: test_mouse_event_global_reprojects_to_map_position() - ProjectionSnapshot API was simplified/removed
-# func test_mouse_event_global_reprojects_to_map_position() -> void:
-# 	var setup: Array = await _create_positioner_env(null, false)
-# 	var env: CollisionTestEnvironment = setup[_IDX_ENV]
-# 	var gp: GridPositioner2D = setup[_IDX_GP]
-# 	var targeting_state: GridTargetingState = setup[_IDX_TARGETING_STATE]
-# 	var mock_map: _MouseProjectionTestMap = auto_free(_MouseProjectionTestMap.new())
-# 	mock_map.override_world = Vector2(321, 654)
-# 	mock_map.tile_set = TileSet.new()
-# 	mock_map.set_meta("gb_mouse_world_override", mock_map.override_world)
-# 	targeting_state.target_map = mock_map
-# 	env.world.add_child(mock_map)
-# 	await get_tree().process_frame
-#
-# 	# This test used the removed ProjectionSnapshot API
-# 	# var raw: ProjectionSnapshot = ProjectionSnapshot.new(Vector2(10, 10), GBEnums.ProjectionMethod.EVENT_GLOBAL, "event.global_position")
-# 	# var stabilized: ProjectionSnapshot = gp._stabilize_projection(raw, Vector2(5, 5), Vector2(5, 5))
+## NOTE: A legacy test that validated ProjectionSnapshot-based reprojection was removed.
+## The old ProjectionSnapshot API and gp._stabilize_projection() are no longer available
+## in the current codebase. The reprojection logic was simplified to prefer viewport
+## projection, fall back to map-provided overrides, and use cached coordinates last
+## (see `docs_internal/archive/fixes/grid_positioner_viewport_projection_fix_2025_09_24.md`).
+##
+## If we need a replacement test, write a focused unit test that exercises the
+## current reprojection path (for example: feed an InputEventMouseMotion, ensure
+## the positioner uses the viewport location, and validate map override behavior).
 
 #endregion
 
