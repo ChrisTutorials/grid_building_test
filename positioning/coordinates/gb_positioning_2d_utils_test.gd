@@ -182,11 +182,15 @@ func test_is_region_valid_scenarios() -> void:
 	var negative_size_region: Rect2i = Rect2i(0, 0, -5, 10)
 	var zero_width_region: Rect2i = Rect2i(0, 0, 0, 10)
 
-	assert_bool(GBPositioning2DUtils.is_region_valid(valid_region)).is_true().append_failure_message(
-		"Valid region should return true"
+	(
+		assert_bool(GBPositioning2DUtils.is_region_valid(valid_region)) \
+		. append_failure_message("Valid region should return true") \
+		. is_true()
 	)
-	assert_bool(GBPositioning2DUtils.is_region_valid(zero_region)).is_false().append_failure_message(
-		"Zero region should return false"
+	(
+		assert_bool(GBPositioning2DUtils.is_region_valid(zero_region)) \
+		. append_failure_message("Zero region should return false") \
+		. is_false()
 	)
 	assert_bool(GBPositioning2DUtils.is_region_valid(negative_size_region)).append_failure_message(
 		"Negative size region should return false"
@@ -214,11 +218,19 @@ func test_snap_tile_to_region_basic() -> void:
 	).is_equal(inside_tile)
 	# Region (2,3,5,4) has max at (2+5-1, 3+4-1) = (6,6), but Y should clamp to (3+4-1)=6, X should clamp to (2+5-1)=6
 	# But outside_tile(10,1) Y=1 is below min Y=3, so should clamp to (6,3)
-	assert_that(snapped_outside).is_equal(Vector2i(6, 3)).append_failure_message(
-		"Tile outside region should snap to bounds: expected (6,3), got %s" % str(snapped_outside)
+	(
+		assert_that(snapped_outside) \
+		. append_failure_message(
+			"Tile outside region should snap to bounds: expected (6,3), got %s" % str(snapped_outside)
+		) \
+		. is_equal(Vector2i(6, 3))
 	)
-	assert_that(snapped_negative).is_equal(Vector2i(2, 3)).append_failure_message(
-		"Negative tile should snap to region minimum: expected (2,3), got %s" % str(snapped_negative)
+	(
+		assert_that(snapped_negative) \
+		. append_failure_message(
+			"Negative tile should snap to region minimum: expected (2,3), got %s" % str(snapped_negative)
+		) \
+		. is_equal(Vector2i(2, 3))
 	)
 
 func test_snap_tile_to_region_invalid_region() -> void:
@@ -319,11 +331,19 @@ func test_direction_to_tile_delta_threshold() -> void:
 	var result_above: Vector2i = GBPositioning2DUtils.direction_to_tile_delta(above_threshold, threshold)
 
 	# The normalized Vector2(0.2, 0.1) is approximately (0.89, 0.45), so both components exceed threshold
-	assert_that(result_below).is_equal(Vector2i(1, 0)).append_failure_message(
-		"Direction with normalized components above threshold should result in movement delta, got %s" % str(result_below)
+	(
+		assert_that(result_below) \
+		. append_failure_message(
+			"Direction with normalized components above threshold should result in movement delta, got %s" % str(result_below)
+		) \
+		. is_equal(Vector2i(1, 0))
 	)
-	assert_that(result_above).is_equal(Vector2i(1, 1)).append_failure_message(
-		"Direction above threshold should result in (1,1) delta, got %s" % str(result_above)
+	(
+		assert_that(result_above) \
+		. append_failure_message(
+			"Direction above threshold should result in (1,1) delta, got %s" % str(result_above)
+		) \
+		. is_equal(Vector2i(1, 1))
 	)
 
 #endregion
