@@ -294,12 +294,14 @@ func test_guard_returns_empty_without_setup() -> void:
 	var poly := CollisionPolygon2D.new()
 	body.add_child(poly)
 	poly.polygon = PackedVector2Array(
-		[Vector2(-8, -8), Vector2(8, -8), Vector2(8, 8), Vector2(-8, 8)]
+		[Vector2(-8, -8), Vector2(8, -8), Vector2(8, 8), Vector2(-8, 4)]
 	)
 	var rule := TileCheckRule.new()
 	var result := mapper.map_collision_positions_to_rules([poly], [rule])
-	assert_that(result.size()).is_equal(0).append_failure_message(
-		"Expected empty mapping when mapper.setup() not called"
+	(
+		assert_that(result.size()) \
+		. append_failure_message("Expected empty mapping when mapper.setup() not called") \
+		. is_equal(0)
 	)
 
 
@@ -350,8 +352,10 @@ func test_basic_collision_detection() -> void:
 	)
 
 	# Test the test_setup validation
-	assert_that(test_setup.validate_setup()).is_true().append_failure_message(
-		"Test setup should be valid"
+	(
+		assert_that(test_setup.validate_setup()) \
+		. append_failure_message("Test setup should be valid") \
+		. is_true()
 	)
 
 	# Test basic collision detection
@@ -665,8 +669,10 @@ func test_position_rules_mapping_produces_results() -> void:
 	debug_info += "================================\n"
 
 	# Debug: Verify the result structure
-	assert_that(typeof(position_rules_map)).is_equal(TYPE_DICTIONARY).append_failure_message(
-		"Position rules map should be a Dictionary"
+	(
+		assert_that(typeof(position_rules_map)) \
+		. append_failure_message("Position rules map should be a Dictionary") \
+		. is_equal(TYPE_DICTIONARY)
 	)
 
 	# Debug: Check mapper setup state for position-rules mapping
