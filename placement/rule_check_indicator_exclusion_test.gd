@@ -16,7 +16,7 @@ var _rule: CollisionsCheckRule
 
 func before_test() -> void:
 	# MIGRATION: Use scene_runner WITHOUT frame simulation
-	runner = scene_runner(GBTestConstants.COLLISION_TEST_ENV)
+	runner = scene_runner(GBTestConstants.COLLISION_TEST_ENV.resource_path)
 	_env = runner.scene() as CollisionTestEnvironment
 
 	assert_object(_env).append_failure_message(

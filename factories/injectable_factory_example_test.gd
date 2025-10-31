@@ -6,6 +6,7 @@ var container: GBCompositionContainer
 var targeting_state: GridTargetingState
 
 
+## Sets up test environment with composition container and targeting state.
 func before_test() -> void:
 	container = GBTestConstants.TEST_COMPOSITION_CONTAINER
 	# Create targeting state directly instead of using factory
@@ -22,6 +23,7 @@ func before_test() -> void:
 	targeting_state.maps = [layer1, layer2]
 
 
+## Tests that CollisionMapper static factory creates properly injected instances.
 func test_collision_mapper_static_factory() -> void:
 	# Test the new static factory method
 	var collision_mapper: CollisionMapper = CollisionMapper.create_with_injection(container)
@@ -46,6 +48,7 @@ func test_collision_mapper_static_factory() -> void:
 	)
 
 
+## Tests that PlacementValidator static factory creates properly injected instances.
 func test_placement_validator_static_factory() -> void:
 	# Test the new static factory method
 	var validator: PlacementValidator = PlacementValidator.create_with_injection(container)
@@ -70,6 +73,7 @@ func test_placement_validator_static_factory() -> void:
 	)
 
 
+## Tests that TestSetupFactory static factory creates properly injected instances.
 func test_test_setup_factory_static_factory() -> void:
 	# Test the new static factory method
 	var factory: TestSetupFactory = TestSetupFactory.create_with_injection(container)
@@ -94,6 +98,7 @@ func test_test_setup_factory_static_factory() -> void:
 	)
 
 
+## Tests that factory methods work correctly without wrapper methods.
 func test_unified_factory_wrapper_methods() -> void:
 	# Test direct static factory method calls instead of wrapper methods
 	var collision_mapper: CollisionMapper = CollisionMapper.create_with_injection(container)

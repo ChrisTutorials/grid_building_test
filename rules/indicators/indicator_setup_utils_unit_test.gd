@@ -52,7 +52,7 @@ var env: CollisionTestEnvironment
 
 func before_test() -> void:
 	# Setup common test dependencies using scene_runner
-	runner = scene_runner(GBTestConstants.COLLISION_TEST_ENV)
+	runner = scene_runner(GBTestConstants.COLLISION_TEST_ENV.resource_path)
 	env = runner.scene() as CollisionTestEnvironment
 
 	(

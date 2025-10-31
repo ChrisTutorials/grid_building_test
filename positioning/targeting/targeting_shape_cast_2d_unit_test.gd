@@ -12,7 +12,7 @@ var runner: GdUnitSceneRunner
 
 func before_test() -> void:
 	# Load collision test environment to provide physics frame simulation
-	runner = scene_runner(GBTestConstants.COLLISION_TEST_ENV)
+	runner = scene_runner(GBTestConstants.COLLISION_TEST_ENV.resource_path)
 
 
 func test_force_shapecast_update_no_crash() -> void:

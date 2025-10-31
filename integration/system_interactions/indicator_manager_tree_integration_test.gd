@@ -18,7 +18,7 @@ var manipulation_parent: Node2D
 
 # Use GBTestConstants for premade environment instead of UnifiedTestFactory
 func before_test() -> void:
-	env = scene_runner(GBTestConstants.ALL_SYSTEMS_ENV).scene() as AllSystemsTestEnvironment
+	env = scene_runner(GBTestConstants.ALL_SYSTEMS_ENV.resource_path).scene() as AllSystemsTestEnvironment
 	assert_object(env).append_failure_message(
 		"Failed to load AllSystemsTestEnvironment via scene_runner"
 	).is_not_null()

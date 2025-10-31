@@ -20,6 +20,7 @@ var test_container: GBCompositionContainer
 var _injector: GBInjectorSystem
 
 
+## Sets up test environment with injector system for factory testing.
 func before_test() -> void:
 	# Use test environment instead of factory method
 	var env_scene: PackedScene = GBTestConstants.get_environment_scene(
@@ -32,6 +33,7 @@ func before_test() -> void:
 	_injector = env.injector
 
 
+## Tests that create_node2d factory creates properly parented Node2D.
 func test_create_node2d() -> void:
 	var node: Node2D = GodotTestFactory.create_node2d(self)
 
@@ -47,6 +49,7 @@ func test_create_node2d() -> void:
 	)
 
 
+## Tests that create_node factory creates properly parented Node.
 func test_create_node() -> void:
 	var node: Node = GodotTestFactory.create_node(self)
 
@@ -58,6 +61,7 @@ func test_create_node() -> void:
 	)
 
 
+## Tests that create_canvas_item factory creates properly parented CanvasItem.
 func test_create_canvas_item() -> void:
 	var item: CanvasItem = GodotTestFactory.create_canvas_item(self)
 
@@ -73,6 +77,7 @@ func test_create_canvas_item() -> void:
 	)
 
 
+## Tests that create_tile_map_layer_with_grid factory creates properly configured TileMapLayer.
 func test_create_tile_map_layer_with_grid() -> void:
 	# Use premade 31x31 test tilemap instead of creating a small 10x10
 	var packed: PackedScene = GBTestConstants.TEST_TILE_MAP_LAYER_BUILDABLE
@@ -108,6 +113,7 @@ func test_create_tile_map_layer_with_grid() -> void:
 	)
 
 
+## Tests that create_empty_tile_map_layer factory creates properly configured empty TileMapLayer.
 func test_create_empty_tile_map_layer() -> void:
 	var layer: TileMapLayer = GodotTestFactory.create_empty_tile_map_layer(self)
 
@@ -130,6 +136,7 @@ func test_create_empty_tile_map_layer() -> void:
 	)
 
 
+## Tests that create_static_body_with_rect_shape factory creates properly configured StaticBody2D with default rectangle shape.
 func test_create_static_body_with_rect_shape_default() -> void:
 	var body: StaticBody2D = GodotTestFactory.create_static_body_with_rect_shape(self)
 
@@ -150,6 +157,7 @@ func test_create_static_body_with_rect_shape_default() -> void:
 	)
 
 
+## Tests that create_static_body_with_rect_shape factory creates properly configured StaticBody2D with custom rectangle shape.
 func test_create_static_body_with_rect_shape_custom() -> void:
 	var body: StaticBody2D = GodotTestFactory.create_static_body_with_rect_shape(
 		self, CUSTOM_RECT_EXTENTS
@@ -170,6 +178,7 @@ func test_create_static_body_with_rect_shape_custom() -> void:
 	)
 
 
+## Tests that create_area2d_with_circle_shape factory creates properly configured Area2D with circle shape.
 func test_create_area2d_with_circle_shape() -> void:
 	var area: Area2D = GodotTestFactory.create_area2d_with_circle_shape(self, DEFAULT_CIRCLE_RADIUS)
 
@@ -188,6 +197,7 @@ func test_create_area2d_with_circle_shape() -> void:
 	)
 
 
+## Tests that create_collision_polygon factory creates properly configured CollisionPolygon2D with default triangle shape.
 func test_create_collision_polygon_default() -> void:
 	var polygon: CollisionPolygon2D = GodotTestFactory.create_collision_polygon(self)
 
@@ -223,6 +233,7 @@ func test_create_collision_polygon_default() -> void:
 	)
 
 
+## Tests that create_collision_polygon factory creates properly configured CollisionPolygon2D with custom polygon shape.
 func test_create_collision_polygon_custom() -> void:
 	var custom_points: PackedVector2Array = PackedVector2Array(
 		[Vector2(0, 0), Vector2(10, 0), Vector2(10, 10), Vector2(0, 10)]
@@ -266,6 +277,7 @@ func test_create_collision_polygon_custom() -> void:
 	)
 
 
+## Tests that create_object_with_circle_shape factory creates properly configured Node2D with circle collision shape.
 func test_create_object_with_circle_shape() -> void:
 	var obj: Node2D = GodotTestFactory.create_object_with_circle_shape(self)
 
@@ -315,6 +327,7 @@ func test_create_object_with_circle_shape() -> void:
 	)
 
 
+## Tests that create_parent_with_body_and_polygon factory creates properly configured Node2D with StaticBody2D and CollisionPolygon2D children.
 func test_create_parent_with_body_and_polygon() -> void:
 	var parent: Node2D = GodotTestFactory.create_parent_with_body_and_polygon(self)
 
@@ -354,6 +367,7 @@ func test_create_parent_with_body_and_polygon() -> void:
 	)
 
 
+## Tests that create_rectangle_shape factory creates properly configured RectangleShape2D.
 func test_create_rectangle_shape() -> void:
 	var shape: RectangleShape2D = GodotTestFactory.create_rectangle_shape(Vector2(50, 60))
 
@@ -374,6 +388,7 @@ func test_create_rectangle_shape() -> void:
 	)
 
 
+## Tests that create_circle_shape factory creates properly configured CircleShape2D.
 func test_create_circle_shape() -> void:
 	var shape: CircleShape2D = GodotTestFactory.create_circle_shape(25.0)
 
@@ -394,6 +409,7 @@ func test_create_circle_shape() -> void:
 	)
 
 
+## Tests that RuleCheckIndicator can be created and configured with rectangle shape.
 func test_create_rule_check_indicator() -> void:
 	var indicator: RuleCheckIndicator = RuleCheckIndicator.new()
 	var default_shape: RectangleShape2D = RectangleShape2D.new()

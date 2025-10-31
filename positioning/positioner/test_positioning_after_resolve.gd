@@ -9,7 +9,7 @@ var positioner: GridPositioner2D
 
 func before_test() -> void:
 	# Use scene runner for proper initialization
-	runner = scene_runner(GBTestConstants.COLLISION_TEST_ENV)
+	runner = scene_runner(GBTestConstants.COLLISION_TEST_ENV.resource_path)
 	runner.simulate_frames(2)  # Initial setup frames
 
 	env = runner.scene() as CollisionTestEnvironment

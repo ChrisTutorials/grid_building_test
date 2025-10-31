@@ -17,7 +17,7 @@ var _env: CollisionTestEnvironment
 
 func before_test() -> void:
 	# Use scene_runner for test environment setup
-	runner = scene_runner(GBTestConstants.COLLISION_TEST_ENV)
+	runner = scene_runner(GBTestConstants.COLLISION_TEST_ENV.resource_path)
 
 	_env = runner.scene() as CollisionTestEnvironment
 	# Container is already duplicated by environment's _ready() for test isolation

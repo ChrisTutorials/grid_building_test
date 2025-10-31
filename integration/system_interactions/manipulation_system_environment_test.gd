@@ -34,7 +34,7 @@ var test_manipulatable: Manipulatable
 func before_test() -> void:
 	# MIGRATION: Use scene_runner WITHOUT frame simulation
 	# Scene is ready immediately - no async waits needed
-	runner = scene_runner(GBTestConstants.ALL_SYSTEMS_ENV)
+	runner = scene_runner(GBTestConstants.ALL_SYSTEMS_ENV.resource_path)
 	test_environment = runner.scene() as AllSystemsTestEnvironment
 
 	(

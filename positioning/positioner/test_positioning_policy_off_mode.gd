@@ -6,7 +6,7 @@ extends GdUnitTestSuite
 
 
 func test_positioning_policy_with_remain_active_in_off_mode() -> void:
-	var runner: GdUnitSceneRunner = scene_runner(GBTestConstants.COLLISION_TEST_ENV)
+	var runner: GdUnitSceneRunner = scene_runner(GBTestConstants.COLLISION_TEST_ENV.resource_path)
 	runner.simulate_frames(2)  # Allow initialization and dependency injection
 
 	var env: CollisionTestEnvironment = runner.scene() as CollisionTestEnvironment

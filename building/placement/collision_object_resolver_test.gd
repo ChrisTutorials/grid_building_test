@@ -44,10 +44,12 @@ class CollisionResolutionTestData:
 var _resolver: RefCounted
 
 
+## Sets up CollisionObjectResolver instance for each test.
 func before_test() -> void:
 	_resolver = _CollisionObjectResolver.new()
 
 
+## Cleans up CollisionObjectResolver instance after each test.
 func after_test() -> void:
 	_resolver = null
 
@@ -108,7 +110,7 @@ func collision_resolution_test_data() -> Array[Array]:
 	]
 
 
-## Parameterized test for collision object resolution
+## Parameterized test for collision object resolution with different node types.
 @warning_ignore("unused_parameter")
 func test_collision_object_resolution(
 	test_name: String,

@@ -47,7 +47,7 @@ var collision_body: StaticBody2D
 #region Setup and Teardown
 func before_test() -> void:
 	# Use scene_runner for proper frame control
-	runner = scene_runner(GBTestConstants.ALL_SYSTEMS_ENV)
+	runner = scene_runner(GBTestConstants.ALL_SYSTEMS_ENV.resource_path)
 	env = runner.scene() as AllSystemsTestEnvironment
 
 	# Get systems from test environment properties

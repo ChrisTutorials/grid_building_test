@@ -12,7 +12,7 @@ var test_container: GBCompositionContainer
 var env : CollisionTestEnvironment
 
 func before_test() -> void:
-	runner = scene_runner(GBTestConstants.COLLISION_TEST_ENV)
+	runner = scene_runner(GBTestConstants.COLLISION_TEST_ENV.resource_path)
 	env = runner.scene() as CollisionTestEnvironment
 
 	assert_object(env).append_failure_message(

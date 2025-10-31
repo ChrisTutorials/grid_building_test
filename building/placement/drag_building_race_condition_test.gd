@@ -27,7 +27,7 @@ const SAFE_TILE_E: Vector2i = Vector2i(10, 5)
 
 func before_test() -> void:
 	# Use scene_runner for deterministic frame control
-	runner = scene_runner(GBTestConstants.BUILDING_TEST_ENV)
+	runner = scene_runner(GBTestConstants.BUILDING_TEST_ENV.resource_path)
 	runner.simulate_frames(1)
 
 	env = runner.scene() as BuildingTestEnvironment

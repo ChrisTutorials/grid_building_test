@@ -14,7 +14,7 @@ var tile_map: TileMapLayer
 
 func before_test() -> void:
 	# Create test environment using scene_runner
-	runner = scene_runner(GBTestConstants.COLLISION_TEST_ENV)
+	runner = scene_runner(GBTestConstants.COLLISION_TEST_ENV.resource_path)
 	test_environment = runner.scene() as CollisionTestEnvironment
 
 	viewport = test_environment.get_viewport()

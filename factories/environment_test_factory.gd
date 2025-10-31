@@ -25,7 +25,7 @@
 ## **Frame simulation tests (use scene_runner):**
 ## [codeblock]
 ## func before_test() -> void:
-##     runner = scene_runner(GBTestConstants.COLLISION_TEST_ENV)
+##     runner = scene_runner(GBTestConstants.COLLISION_TEST_ENV.resource_path)
 ##     runner.simulate_frames(2)  # For physics initialization
 ##     env = runner.scene() as CollisionTestEnvironment
 ## [/codeblock]
@@ -70,7 +70,7 @@ static func create_building_system_test_environment(
 	return env
 
 
-## @deprecated Use scene_runner(GBTestConstants.COLLISION_TEST_ENV) instead
+## @deprecated Use scene_runner(GBTestConstants.COLLISION_TEST_ENV.resource_path) instead
 ## Creates an indicator manager test environment
 ## [param test]: Test instance for node management
 ## [param scene]: Preloaded scene for environment setup

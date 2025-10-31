@@ -193,7 +193,7 @@ func _create_test_tilemap_with_tracking() -> TileMapLayer:
 
 func _create_indicator_test_environment_with_tracking() -> CollisionTestEnvironment:
 	"""Create indicator test environment with automatic component tracking"""
-	var runner: GdUnitSceneRunner = scene_runner(GBTestConstants.COLLISION_TEST_ENV)
+	var runner: GdUnitSceneRunner = scene_runner(GBTestConstants.COLLISION_TEST_ENV.resource_path)
 	var env: CollisionTestEnvironment = runner.scene() as CollisionTestEnvironment
 	await_idle_frame()
 	_track_object(env)
@@ -407,7 +407,7 @@ func test_factory_edge_cases_invalid_configurations() -> void:
 	var max_environments: int = 10
 
 	for i in range(max_environments):
-		var runner: GdUnitSceneRunner = scene_runner(GBTestConstants.COLLISION_TEST_ENV)
+		var runner: GdUnitSceneRunner = scene_runner(GBTestConstants.COLLISION_TEST_ENV.resource_path)
 		# Simulate frames to allow full initialization and deferred validation
 		runner.simulate_frames(3)
 		var env: CollisionTestEnvironment = runner.scene() as CollisionTestEnvironment
@@ -433,7 +433,7 @@ func test_factory_performance_and_cleanup() -> void:
 	for i in range(STRESS_TEST_ITERATIONS):
 		# Use scene_runner with frame simulation instead of rapid creation
 		# This gives environments time to fully initialize and validate
-		var runner: GdUnitSceneRunner = scene_runner(GBTestConstants.COLLISION_TEST_ENV)
+		var runner: GdUnitSceneRunner = scene_runner(GBTestConstants.COLLISION_TEST_ENV.resource_path)
 		# Simulate frames to allow full initialization, validation, and cleanup of deferred calls
 		runner.simulate_frames(3)
 		var env: CollisionTestEnvironment = runner.scene() as CollisionTestEnvironment
@@ -673,7 +673,7 @@ func test_deprecated_factory_methods_usage() -> void:
 	"""Test deprecated factory methods to ensure they warn about deprecation"""
 
 	# Test deprecated indicator test environment method
-	var runner: GdUnitSceneRunner = scene_runner(GBTestConstants.COLLISION_TEST_ENV)
+	var runner: GdUnitSceneRunner = scene_runner(GBTestConstants.COLLISION_TEST_ENV.resource_path)
 	var deprecated_env: CollisionTestEnvironment = runner.scene() as CollisionTestEnvironment
 	await_idle_frame()
 	_track_object(deprecated_env)

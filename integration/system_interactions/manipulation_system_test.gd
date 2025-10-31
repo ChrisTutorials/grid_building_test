@@ -52,7 +52,7 @@ var _container: GBCompositionContainer
 #region Setup and Teardown
 func before_test() -> void:
 	# Use the premade AllSystemsTestEnvironment scene
-	runner = scene_runner(GBTestConstants.ALL_SYSTEMS_ENV)
+	runner = scene_runner(GBTestConstants.ALL_SYSTEMS_ENV.resource_path)
 	test_hierarchy = runner.scene() as AllSystemsTestEnvironment
 
 	assert_object(test_hierarchy).append_failure_message(

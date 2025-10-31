@@ -24,7 +24,7 @@ var _container: GBCompositionContainer
 
 func before_test() -> void:
 	# Create test environment using GBTestConstants
-	env = scene_runner(GBTestConstants.ALL_SYSTEMS_ENV).scene()
+	env = scene_runner(GBTestConstants.ALL_SYSTEMS_ENV.resource_path).scene()
 
 	# Validate environment setup
 	assert_object(env).append_failure_message("Failed to create test environment").is_not_null()

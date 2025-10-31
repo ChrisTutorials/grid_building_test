@@ -10,7 +10,7 @@ var _container: GBCompositionContainer
 
 func before_test() -> void:
 	# Use a basic test environment
-	var runner: GdUnitSceneRunner = scene_runner(GBTestConstants.BUILDING_TEST_ENV)
+	var runner: GdUnitSceneRunner = scene_runner(GBTestConstants.BUILDING_TEST_ENV.resource_path)
 	env = runner.scene() as BuildingTestEnvironment
 	await_idle_frame()
 	_container = env.get_container()

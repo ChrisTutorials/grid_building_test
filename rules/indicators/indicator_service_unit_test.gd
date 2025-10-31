@@ -41,7 +41,7 @@ func after_test() -> void:
 
 #region Test Setup Helpers
 func _setup_test_environment() -> void:
-	_test_env = scene_runner(GBTestConstants.ALL_SYSTEMS_ENV).scene()
+	_test_env = scene_runner(GBTestConstants.ALL_SYSTEMS_ENV.resource_path).scene()
 	add_child(_test_env)
 	auto_free(_test_env)
 

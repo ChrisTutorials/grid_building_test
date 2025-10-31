@@ -8,7 +8,7 @@ var env: CollisionTestEnvironment
 func before_test() -> void:
 	# Use scene_runner for proper test environment setup
 	# This ensures proper validation and avoids validation error floods
-	runner = scene_runner(GBTestConstants.COLLISION_TEST_ENV)
+	runner = scene_runner(GBTestConstants.COLLISION_TEST_ENV.resource_path)
 	runner.simulate_frames(2)  # Allow initialization
 	env = runner.scene() as CollisionTestEnvironment
 

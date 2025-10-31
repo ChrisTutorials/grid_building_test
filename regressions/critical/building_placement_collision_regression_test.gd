@@ -29,7 +29,7 @@ var logger: GBLogger
 
 func before_test() -> void:
 	# Use scene_runner for reliable frame simulation
-	runner = scene_runner(GBTestConstants.ALL_SYSTEMS_ENV)
+	runner = scene_runner(GBTestConstants.ALL_SYSTEMS_ENV.resource_path)
 	runner.simulate_frames(2)  # Initial setup frames
 
 	env = runner.scene() as AllSystemsTestEnvironment

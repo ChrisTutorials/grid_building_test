@@ -54,7 +54,7 @@ var _indicators_parent: Node2D
 
 func before_test() -> void:
 	# Setup for comprehensive tests using CollisionTestEnvironment
-	runner = scene_runner(GBTestConstants.COLLISION_TEST_ENV)
+	runner = scene_runner(GBTestConstants.COLLISION_TEST_ENV.resource_path)
 	env = runner.scene() as CollisionTestEnvironment
 
 	(

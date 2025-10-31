@@ -22,7 +22,7 @@ var _targeting_state: GridTargetingState
 
 func before_test() -> void:
 	# Use scene_runner with ALL_SYSTEMS_ENV for complete system setup
-	_runner = scene_runner(GBTestConstants.ALL_SYSTEMS_ENV)
+	_runner = scene_runner(GBTestConstants.ALL_SYSTEMS_ENV.resource_path)
 	_runner.simulate_frames(2)  # Initial setup frames
 
 	_env = _runner.scene() as AllSystemsTestEnvironment

@@ -33,6 +33,7 @@ const PORTABLE_ALLOWED_DEPENDENCIES: Array[String] = [
 ]
 
 
+## Validates that test resources don't depend on external folders like templates or demos.
 func test_no_test_resources_depend_on_templates_or_demos() -> void:
 	var test_files: Array[String] = _list_test_files(TEST_ROOT)
 
@@ -77,6 +78,7 @@ func test_no_test_resources_depend_on_templates_or_demos() -> void:
 	assert_int(violations.size()).append_failure_message(failure_msg).is_equal(0)
 
 
+## Validates that all test scenes can be instantiated without errors.
 func test_all_test_scenes_instantiate_without_errors() -> void:
 	var scene_files: Array[String] = _list_files_by_extension(TEST_ROOT, ".tscn")
 
@@ -113,6 +115,7 @@ func test_all_test_scenes_instantiate_without_errors() -> void:
 	assert_int(failures.size()).append_failure_message(failure_msg).is_equal(0)
 
 
+## Validates that all test resources can be loaded successfully.
 func test_all_test_resources_load_successfully() -> void:
 	var resource_files: Array[String] = _list_files_by_extension(TEST_ROOT, ".tres")
 
@@ -141,6 +144,7 @@ func test_all_test_resources_load_successfully() -> void:
 	assert_int(failures.size()).append_failure_message(failure_msg).is_equal(0)
 
 
+## Validates that the test folder is portable and only depends on allowed folders.
 func test_test_folder_is_portable() -> void:
 	# Verify test folder only needs plugin to function
 	var all_files: Array[String] = _list_test_files(TEST_ROOT)

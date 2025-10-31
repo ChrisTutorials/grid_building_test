@@ -11,7 +11,7 @@ var targeter: TargetingShapeCast2D
 
 func before_test() -> void:
 	# Use scene_runner for reliable frame simulation and automatic cleanup
-	runner = scene_runner(GBTestConstants.COLLISION_TEST_ENV)
+	runner = scene_runner(GBTestConstants.COLLISION_TEST_ENV.resource_path)
 	runner.simulate_frames(2)  # Initial setup frames
 
 	env = runner.scene() as CollisionTestEnvironment

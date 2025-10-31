@@ -34,7 +34,7 @@ var collision_rule: CollisionsCheckRule = preload("uid://du7xu07247202")
 
 
 func before_test() -> void:
-	env = scene_runner(GBTestConstants.ALL_SYSTEMS_ENV).scene()
+	env = scene_runner(GBTestConstants.ALL_SYSTEMS_ENV.resource_path).scene()
 	_validate_environment_setup()
 	_initialize_test_components()
 	_validate_required_dependencies()

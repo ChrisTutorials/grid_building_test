@@ -21,8 +21,9 @@ var _targeting_state: GridTargetingState
 var _building_system: BuildingSystem
 
 
+## Sets up test environment with DragManager and building systems for throttling tests.
 func before_test() -> void:
-	runner = scene_runner(GBTestConstants.BUILDING_TEST_ENV)
+	runner = scene_runner(GBTestConstants.BUILDING_TEST_ENV.resource_path)
 	runner.simulate_frames(2)  # Initial setup frames
 
 	env = runner.scene() as BuildingTestEnvironment
@@ -106,6 +107,7 @@ func before_test() -> void:
 	runner.simulate_frames(1)
 
 
+## Cleans up test environment after each test.
 func after_test() -> void:
 	_drag_manager = null
 	_building_system = null
@@ -118,6 +120,7 @@ func after_test() -> void:
 #region REQUEST THROTTLING TESTS
 
 
+## Tests that no build requests are made when drag has not been started.
 func test_no_requests_when_drag_not_started() -> void:
 	# No drag started - no requests should be made
 	runner.simulate_frames(5)
@@ -130,6 +133,7 @@ func test_no_requests_when_drag_not_started() -> void:
 	)
 
 
+## Tests that no build requests are made when tile position remains unchanged during drag.
 func test_no_requests_when_tile_unchanged() -> void:
 	# Start drag
 	var drag_data: DragPathData = _drag_manager.start_drag()
@@ -152,6 +156,7 @@ func test_no_requests_when_tile_unchanged() -> void:
 	)
 
 
+## Tests that exactly one build request is made when tile changes during drag.
 func test_single_request_on_tile_change() -> void:
 	# Validate drag manager state
 	(
@@ -198,6 +203,7 @@ func test_single_request_on_tile_change() -> void:
 	)
 
 
+## Tests that physics frame gate blocks multiple requests within the same frame.
 func test_physics_frame_gate_blocks_multiple_requests_same_frame() -> void:
 	# This tests the _last_signal_physics_frame gate
 	# Even if we artificially trigger tile changes multiple times in same frame,
@@ -258,6 +264,7 @@ func test_physics_frame_gate_blocks_multiple_requests_same_frame() -> void:
 	)
 
 
+## Tests that multiple tile changes across different frames generate separate requests.
 func test_multiple_tile_changes_across_frames() -> void:
 	# Validate critical references
 	(
@@ -332,6 +339,7 @@ func test_multiple_tile_changes_across_frames() -> void:
 	)
 
 
+## Tests that last_attempted_tile prevents duplicate requests for the same tile.
 func test_last_attempted_tile_prevents_duplicate_requests() -> void:
 	# This tests the drag_data.last_attempted_tile check
 	# Validate critical references
@@ -403,6 +411,7 @@ func test_last_attempted_tile_prevents_duplicate_requests() -> void:
 	)
 
 
+## Tests that drag sessions are properly isolated with independent request counters.
 func test_drag_session_isolation() -> void:
 	# Validate critical references
 	(
@@ -495,6 +504,7 @@ func test_drag_session_isolation() -> void:
 #region MODE/PREVIEW REQUIREMENTS TESTS
 
 
+## Tests that no build requests are made when not in build mode.
 func test_no_requests_when_not_in_build_mode() -> void:
 	# Validate critical references
 	(
@@ -553,6 +563,7 @@ func test_no_requests_when_not_in_build_mode() -> void:
 	)
 
 
+## Tests that no build requests are made when no preview exists.
 func test_no_requests_when_no_preview() -> void:
 	# Validate critical references
 	(
@@ -621,6 +632,7 @@ func test_no_requests_when_no_preview() -> void:
 #region REQUEST COUNTING ACCURACY
 
 
+## Tests that build_requests counter only increments when all gating conditions are met.
 func test_build_requests_counts_only_successful_gate_passes() -> void:
 	# This verifies that build_requests ONLY increments when ALL conditions are met:
 	# 1. Tile changed
