@@ -1,76 +1,88 @@
-[gd_scene load_steps=16 format=3 uid="uid://di15brful4nfb"]
+[gd_scene load_steps=13 format=3 uid="uid://ioucajhfxc8b"]
 
-[ext_resource type="Script" path="res://godot/test/grid_building_test/environments/all_systems_test_environment.gd" id="1_script"]
-[ext_resource type="Script" uid="uid://dil41nh8d4c3k" path="res://addons/grid_building/systems/injection/gb_injector_system.gd" id="2_injector"]
-[ext_resource type="Script" uid="uid://5q03tg" path="res://addons/grid_building/systems/grid_targeting/grid_targeting_system.gd" id="3_targeting"]
-[ext_resource type="Script" uid="uid://9_q7crs" path="res://addons/grid_building/systems/building/building_system.gd" id="4_building"]
-[ext_resource type="Script" uid="uid://denqpiufkek1l" path="res://demos/shared/world/world.gd" id="5_world"]
-[ext_resource type="Script" uid="uid://25_5jnje" path="res://templates/grid_building_templates/grid_positioner/grid_positioner_2d.gd" id="6_positioner"]
-[ext_resource type="Script" path="res://godot/test/grid_building_test/components/gb_test_level_context.gd" id="7_level_context"]
-[ext_resource type="Resource" uid="uid://dy6e5p5d6ax6n" path="res://godot/test/helpers/test_composition_container.tres" id="8_container"]
-[ext_resource type="Script" uid="uid://dil41nh8d4c3k" path="res://addons/grid_building/systems/building/components/drag_manager.gd" id="9_drag"]
-[ext_resource type="PackedScene" uid="uid://cfgpjxd1n8vk8" path="res://demos/shared/systems/demo_target_highlighter.tscn" id="10_highlighter"]
-[ext_resource type="PackedScene" uid="uid://ccb1l0jttdmup" path="res://demos/shared/systems/demo_manipulation_system.tscn" id="11_manipulation"]
-[ext_resource type="Script" uid="uid://c76d5u5d2o1vc" path="res://addons/grid_building/systems/collision/collision_mapper.gd" id="12_collision_mapper"]
-[ext_resource type="Script" uid="uid://dqvrvvf8fq7xr" path="res://addons/grid_building/placement/manager/indicator_manager.gd" id="13_indicator_manager"]
+[ext_resource type="Script" uid="uid://dm1i7ipyae8nx" path="res://test/grid_building_test/scenes/env/all_systems_test_environment.gd" id="1_6tut5"]
+[ext_resource type="Script" uid="uid://c2tafmcbbiujk" path="res://addons/grid_building/systems/manipulation/manipulation_system.gd" id="2_8ccnd"]
+[ext_resource type="Script" uid="uid://cg7xwag2jbf8k" path="res://test/grid_building_test/utilities/injection/gb_test_injector_system.gd" id="3_v6kfp"]
+[ext_resource type="Resource" uid="uid://dy6e5p5d6ax6n" path="res://test/grid_building_test/resources/composition_containers/test_composition_container.tres" id="4_vrxi3"]
+[ext_resource type="Script" uid="uid://dnl6gv8yc3how" path="res://addons/grid_building/systems/grid_targeting/grid_targeting_system.gd" id="5_culgp"]
+[ext_resource type="Script" uid="uid://b8uqw4y2hgns3" path="res://addons/grid_building/components/target_highlighter.gd" id="6_8ccnd"]
+[ext_resource type="Script" uid="uid://4mfr58yhmove" path="res://addons/grid_building/systems/building/building_system.gd" id="6_tepc3"]
+[ext_resource type="Script" uid="uid://ckwhivepsvl0n" path="res://addons/grid_building/components/gb_level_context.gd" id="7_tnep3"]
+[ext_resource type="PackedScene" uid="uid://dsaumst3yyp21" path="res://test/grid_building_test/scenes/tile_map/TEST_buildable_31x31_tile_map.tscn" id="8_8ccnd"]
+[ext_resource type="Script" uid="uid://cuo3o387gcfuu" path="res://addons/grid_building/systems/building/components/drag_manager.gd" id="8_v6kfp"]
+[ext_resource type="Script" uid="uid://dasmm18l8fxdo" path="res://addons/grid_building/user/gb_owner.gd" id="9_s5uet"]
+[ext_resource type="PackedScene" uid="uid://c5b5rr0g7nh51" path="res://test/grid_building_test/scenes/grid_positioner/grid_positioner_stack.tscn" id="10_6yyi1"]
 
-[node name="AllSystemsTestEnvironment" type="Node2D"]
-script = ExtResource("1_script")
+[node name="AllSystemsTestEnvironment" type="Node" node_paths=PackedStringArray("manipulation_system", "target_highlighter", "building_system", "gb_owner", "manipulation_parent", "indicator_manager", "drag_manager", "injector", "grid_targeting_system", "positioner", "targeter", "world", "level", "level_context", "tile_map_layer", "objects_parent", "placer")]
+script = ExtResource("1_6tut5")
+manipulation_system = NodePath("ManipulationSystem")
+target_highlighter = NodePath("GridTargetingSystem/TargetHighlighter")
+building_system = NodePath("BuildingSystem")
+gb_owner = NodePath("World/Level/Placer/GBOwner")
+manipulation_parent = NodePath("World/GridPositioner2D/ManipulationParent")
+indicator_manager = NodePath("World/GridPositioner2D/ManipulationParent/IndicatorManager")
+drag_manager = NodePath("BuildingSystem/DragManager")
+injector = NodePath("GBInjectorSystem")
+grid_targeting_system = NodePath("GridTargetingSystem")
+positioner = NodePath("World/GridPositioner2D")
+targeter = NodePath("World/GridPositioner2D/TargetingShapeCast2D")
+world = NodePath("World")
+level = NodePath("World/Level")
+level_context = NodePath("World/Level/GBLevelContext")
+tile_map_layer = NodePath("World/Level/TileMapLayer_31x31_Buildable")
+objects_parent = NodePath("World/Level/PlacedObjectsParent")
+placer = NodePath("World/Level/Placer")
 
-[node name="Systems" type="Node" parent="." node_paths=PackedStringArray("injection_roots")]
-script = ExtResource("2_injector")
-composition_container = ExtResource("8_container")
+[node name="Camera2D" type="Camera2D" parent="."]
+
+[node name="ManipulationSystem" type="Node" parent="."]
+script = ExtResource("2_8ccnd")
+metadata/_custom_type_script = "uid://c2tafmcbbiujk"
+
+[node name="GBInjectorSystem" type="Node" parent="." node_paths=PackedStringArray("injection_roots")]
+script = ExtResource("3_v6kfp")
+composition_container = ExtResource("4_vrxi3")
 injection_roots = [NodePath("..")]
+metadata/_custom_type_script = "uid://dil41nh8d4c3k"
 
-[node name="GBInjectorSystem" type="Node" parent="Systems"]
-script = ExtResource("2_injector")
-composition_container = ExtResource("8_container")
+[node name="GridTargetingSystem" type="Node" parent="."]
+script = ExtResource("5_culgp")
+metadata/_custom_type_script = "uid://dnl6gv8yc3how"
 
-[node name="BuildingSystem" type="Node" parent="Systems"]
-script = ExtResource("4_building")
+[node name="TargetHighlighter" type="Node" parent="GridTargetingSystem"]
+script = ExtResource("6_8ccnd")
+metadata/_custom_type_script = "uid://b8uqw4y2hgns3"
 
-[node name="DragManager" type="Node" parent="Systems/BuildingSystem"]
-script = ExtResource("9_drag")
+[node name="BuildingSystem" type="Node" parent="."]
+script = ExtResource("6_tepc3")
+metadata/_custom_type_script = "uid://4mfr58yhmove"
 
-[node name="GridTargetingSystem" type="Node" parent="Systems"]
-script = ExtResource("3_targeting")
-
-[node name="CollisionMapper" type="Node" parent="Systems"]
-script = ExtResource("12_collision_mapper")
-
-[node name="IndicatorManager" type="Node" parent="Systems"]
-script = ExtResource("13_indicator_manager")
-
-[node name="ManipulationSystem" parent="Systems" instance=ExtResource("11_manipulation")]
-
-[node name="TargetHighlighter" parent="Systems/ManipulationSystem" instance=ExtResource("10_highlighter")]
+[node name="DragManager" type="Node" parent="BuildingSystem"]
+script = ExtResource("8_v6kfp")
+metadata/_custom_type_script = "uid://cuo3o387gcfuu"
 
 [node name="World" type="Node2D" parent="."]
-script = ExtResource("5_world")
-
-[node name="GridPositioner" type="Node2D" parent="World"]
-script = ExtResource("6_positioner")
-
-[node name="TileMapLayer" type="TileMapLayer" parent="World"]
 
 [node name="Level" type="Node2D" parent="World"]
 
-[node name="LevelContext" type="Node" parent="World/Level"]
-script = ExtResource("7_level_context")
+[node name="TileMapLayer_31x31_Buildable" parent="World/Level" instance=ExtResource("8_8ccnd")]
 
-[node name="Objects" type="Node2D" parent="World/Level"]
+[node name="GBLevelContext" type="Node" parent="World/Level" node_paths=PackedStringArray("target_map", "maps", "objects_parent")]
+script = ExtResource("7_tnep3")
+target_map = NodePath("../TileMapLayer_31x31_Buildable")
+maps = [NodePath("../TileMapLayer_31x31_Buildable")]
+objects_parent = NodePath("../PlacedObjectsParent")
+metadata/_custom_type_script = "uid://ckwhivepsvl0n"
 
-[node name="GBCompositionContainer" type="Node" parent="."]
+[node name="PlacedObjectsParent" type="Node2D" parent="World/Level"]
 
-[node name="StaticBody2D" type="StaticBody2D" parent="."]
-collision_layer = 2048
-collision_mask = 0
+[node name="Placer" type="Node2D" parent="World/Level"]
 
-[node name="CharacterBody2D" type="CharacterBody2D" parent="."]
-collision_layer = 2048
-collision_mask = 0
+[node name="GBOwner" type="Node" parent="World/Level/Placer" node_paths=PackedStringArray("owner_root")]
+script = ExtResource("9_s5uet")
+owner_root = NodePath("..")
+metadata/_custom_type_script = "uid://dasmm18l8fxdo"
 
-[node name="Area2D" type="Area2D" parent="."]
-collision_layer = 2048
-collision_mask = 0
+[node name="GridPositioner2D" parent="World" instance=ExtResource("10_6yyi1")]
 
+[editable path="World/GridPositioner2D"]
