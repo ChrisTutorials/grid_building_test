@@ -24,6 +24,7 @@ var _positioner: Node2D
 var _isolation_state: Dictionary
 
 
+## Test setup and initialization.
 func before_test() -> void:
 	# MIGRATION: Use scene_runner WITHOUT frame simulation
 	runner = scene_runner(GBTestConstants.BUILDING_TEST_ENV.resource_path)
@@ -188,12 +189,13 @@ func _assert_validation_success(result: ValidationResults, context_message: Stri
 		else:
 			prefix += "├─ "
 		formatted_message += prefix + position_str
-		if i < indicator_tile_positions.size() - 1:
-			formatted_message += "\n"
+	if i < indicator_tile_positions.size() - 1:
+		formatted_message += "\n"
 
-	assert_bool(result.is_successful()).append_failure_message(formatted_message).is_true()
-
-
+	assert_bool(result.is_successful()).append_failure_message(
+		formatted_message
+	).is_true()
+## Pre validation is successful for rect4x2 start tile.
 func test_pre_validation_is_successful_for_rect4x2_start_tile() -> void:
 	# Arrange
 	# Reset positions to ensure consistent testing regardless of scene layout
@@ -284,6 +286,7 @@ func test_pre_validation_is_successful_for_rect4x2_start_tile() -> void:
 	_assert_validation_success(
 		result, "Pre-validation should pass at start_tile " + str(start_tile)
 	)
+## Bounds tiles have tile data.
 
 
 func test_bounds_tiles_have_tile_data() -> void:
@@ -300,6 +303,7 @@ func test_bounds_tiles_have_tile_data() -> void:
 			)
 		) \
 		. is_not_null()
+## Pre validation out of bounds outside used rect.
 	)
 
 
@@ -369,4 +373,6 @@ func test_pre_validation_out_of_bounds_outside_used_rect() -> void:
 
 	var failure_message: String = "\n" + "\n".join(failure_message_lines) + "\n"
 
-	assert_bool(result.is_successful()).append_failure_message(failure_message).is_false()
+	assert_bool(result.is_successful()).append_failure_message(
+		failure_message
+	).is_false()

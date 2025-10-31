@@ -139,11 +139,19 @@ func test_indicators_without_targeting_state_position_at_origin() -> void:
 		position_rules_map, test_indicator_template, test_parent, null, test_object  # No targeting state
 	)
 
-	assert_that(indicators.size()).is_equal(1).append_failure_message("Should generate 1 indicator")
+	(
+		assert_that(indicators.size()) \
+		. append_failure_message("Should generate 1 indicator") \
+		. is_equal(1)
+	)
 
 	var indicator: RuleCheckIndicator = indicators[0]
-	assert_that(indicator.global_position).is_equal(Vector2(0, 0)).append_failure_message(
-		"Indicator without targeting state should be at origin (0,0)"
+	(
+		assert_that(indicator.global_position) \
+		. append_failure_message(
+			"Indicator without targeting state should be at origin (0,0)"
+		) \
+		. is_equal(Vector2(0, 0))
 	)
 
 
@@ -179,11 +187,17 @@ func test_null_targeting_state_components_handled_gracefully() -> void:
 		test_object
 	)
 
-	assert_that(indicators.size()).is_equal(1).append_failure_message(
-		"Should generate 1 indicator despite null components"
+	(
+		assert_that(indicators.size()) \
+		. append_failure_message("Should generate 1 indicator despite null components") \
+		. is_equal(1)
 	)
 
 	var indicator: RuleCheckIndicator = indicators[0]
-	assert_that(indicator.global_position).is_equal(Vector2(0, 0)).append_failure_message(
-		"Indicator with null targeting components should be at origin (0,0)"
+	(
+		assert_that(indicator.global_position) \
+		. append_failure_message(
+			"Indicator with null targeting components should be at origin (0,0)"
+		) \
+		. is_equal(Vector2(0, 0))
 	)

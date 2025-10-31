@@ -279,7 +279,11 @@ func test_indicator_positioning_regression_800_pixel_offset() -> void:
 	)
 
 	# Validate basic generation
-	assert_that(indicators.size()).is_equal(1).append_failure_message("Expected exactly 1 indicator")
+	(
+		assert_that(indicators.size()) \
+		. append_failure_message("Expected exactly 1 indicator") \
+		. is_equal(1)
+	)
 
 	var indicator: RuleCheckIndicator = indicators[0]
 	var indicator_pos: Vector2 = indicator.global_position

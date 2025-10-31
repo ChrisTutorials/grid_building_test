@@ -263,7 +263,7 @@ func test_handle_build_result_shows_placement_report_issues() -> void:
 	# Assert
 	var log_text: String = message_label.get_parsed_text()
 	assert_str(log_text) \
-		.contains(HIGH_LEVEL_ISSUE) \
-		.append_failure_message("Expected high-level failure message in log text: '%s'" % log_text)
+		.append_failure_message("Expected high-level failure message in log text: '%s'" % log_text) \
+		.contains(HIGH_LEVEL_ISSUE)
 
 #endregion#endregion

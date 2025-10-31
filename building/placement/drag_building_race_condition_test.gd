@@ -317,12 +317,12 @@ func test_collision_state_synchronized_with_builds() -> void:
 
 	var report: PlacementReport = _building_system.enter_build_mode(placeable)
 	var issues_detail := str(report.get_issues())
-	assert_bool(report.is_successful()).is_true().append_failure_message(
+	assert_bool(report.is_successful()).append_failure_message(
 		(
 			"Enter build mode failed at tile (%d,%d): %s"
 			% [SAFE_TILE_D.x, SAFE_TILE_D.y, issues_detail]
 		)
-	)
+	).is_true()
 
 	# Wait for build mode setup to stabilize
 	runner.simulate_frames(3)
@@ -352,7 +352,7 @@ func test_collision_state_synchronized_with_builds() -> void:
 		+ "DragState=%s, " % [_format_drag_manager_state()]
 		+ "SystemState=%s" % [_format_system_state()]
 	)
-	assert_bool(first_build_report.is_successful()).is_true().append_failure_message(diagnostic_msg)
+	assert_bool(first_build_report.is_successful()).append_failure_message(diagnostic_msg).is_true()
 
 	var first_built_tile := SAFE_TILE_D
 
@@ -480,7 +480,7 @@ func test_drag_tile_deduplication_prevents_same_tile_rebuild() -> void:
 	var setup_issues := str(report.get_issues())
 	assert_bool(report.is_successful()).append_failure_message(
 		"Enter build mode failed at tile (%d,%d): %s" % [SAFE_TILE_D.x, SAFE_TILE_D.y, setup_issues]
-	)
+	).is_true()
 	_drag_manager.start_drag()
 	runner.simulate_frames(2, 2)  # Let drag start
 
