@@ -233,7 +233,7 @@ func _scan_directory_recursive(
 ## Catches "stampede failures" where one missing resource breaks 100+ tests
 func test_scene_external_references_resolve() -> void:
 	var test_files: Array[String] = _list_files_by_extension(TEST_ROOT, ".tscn")
-	var broken_refs: Dictionary = {}  # file_path -> Array[missing_dep]
+	var broken_refs: Dictionary[String, Array] = {}  # file_path -> Array[missing_dep]
 
 	for file_path: String in test_files:
 		var dependencies: PackedStringArray = ResourceLoader.get_dependencies(file_path)
@@ -305,7 +305,7 @@ func test_tres_resources_loadable() -> void:
 ## Catches script errors, missing scripts, or invalid node structures
 func test_scene_files_instantiable() -> void:
 	var tscn_files: Array[String] = _list_files_by_extension(TEST_ROOT, ".tscn")
-	var failed_instantiation: Dictionary = {}  # file_path -> error_msg
+	var failed_instantiation: Dictionary[String, String] = {}  # file_path -> error_msg
 
 	for file_path: String in tscn_files:
 		var packed_scene: PackedScene = load(file_path)
