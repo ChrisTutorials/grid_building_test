@@ -8,14 +8,17 @@ extends GdUnitTestSuite
 var _dummy_rule: PlacementRule
 
 
+## Sets up test fixtures before each test.
 func before_test() -> void:
 	_dummy_rule = PlacementRule.new()
 
 
+## Cleans up test fixtures after each test.
 func after_test() -> void:
 	_dummy_rule = null
 
 
+## Tests RuleResult backward compatibility with is_empty() method.
 func test_rule_result_backward_compatibility_is_empty() -> void:
 	var rr := RuleResult.new(_dummy_rule)
 	(
@@ -41,6 +44,7 @@ func test_rule_result_backward_compatibility_is_empty() -> void:
 	)
 
 
+## Tests ValidationResults mixed API support for rule result management.
 func test_validation_results_mixed_api_support() -> void:
 	var rr1 := RuleResult.new(_dummy_rule)  # empty success
 	var rr2 := RuleResult.new(_dummy_rule)
@@ -77,10 +81,10 @@ func test_validation_results_mixed_api_support() -> void:
 	)
 
 
+## Tests PlacementReport aggregation of indicator and primary validation issues.
 func test_placement_report_aggregates_indicator_and_primary_issues() -> void:
 	var rr := RuleResult.new(_dummy_rule)
 	rr.add_issue("rule collision fail")
-	var _vr := ValidationResults.new(false, "", {_dummy_rule: rr})
 	# Use real IndicatorSetupReport with no rules -> will produce built-in issues
 	var ind_report := IndicatorSetupReport.new([], null, null)
 	# Manually add an indicator-level issue
@@ -92,16 +96,19 @@ func test_placement_report_aggregates_indicator_and_primary_issues() -> void:
 	var report := PlacementReport.new(dummy_owner, preview, ind_report, GBEnums.Action.BUILD)
 	report.add_issue("primary fail")
 	var issues := report.get_issues()
-	# Expect at least the manually added and primary issue; rule collision fail comes via ValidationResults only if indicators_report exposes it.
+	# Expect at least the manually added and primary issue
+	# rule collision fail comes via ValidationResults only if indicators_report exposes it
 	(
 		assert_that(issues.size() > 1) \
 		. append_failure_message(
-			"PlacementReport should aggregate multiple issues from indicator and primary sources"
+			"PlacementReport should aggregate multiple issues from indicator and " \
+			+ "primary sources"
 		) \
 		. is_true()
 	)
 
 
+## Tests ValidationResults storage of both configuration errors and validation issues.
 func test_validation_results_stores_both_errors_and_issues() -> void:
 	# Test: ValidationResults should expose both configuration errors and rule validation failures
 	# Setup: Create ValidationResults with both error types
@@ -134,19 +141,26 @@ func test_validation_results_stores_both_errors_and_issues() -> void:
 	var expected_issues: Array[String] = [
 		"collision detected on tile (5,7)", "boundary violation at position X"
 	]
-	assert_array(validation_issues).contains_exactly(expected_issues).append_failure_message(
-		"Expected rule validation failures to be captured in get_issues()"
-	)
+	assert_array(validation_issues) \
+		.append_failure_message(
+			"Expected rule validation failures to be captured in get_issues()"
+		) \
+		.contains_exactly(expected_issues)
 
 	# Assert: Both collections should be non-empty when both error types exist
-	assert_bool(config_errors.is_empty()).is_false().append_failure_message(
-		"Configuration errors should not be empty"
-	)
-	assert_bool(validation_issues.is_empty()).is_false().append_failure_message(
-		"Validation issues should not be empty"
-	)
+	assert_bool(config_errors.is_empty()) \
+		.append_failure_message(
+			"Configuration errors should not be empty"
+		) \
+		.is_false()
+	assert_bool(validation_issues.is_empty()) \
+		.append_failure_message(
+			"Validation issues should not be empty"
+		) \
+		.is_false()
 
 
+## Tests PlacementReport comprehensive collection of both error types from ValidationResults.
 func test_placement_report_collects_validation_results_comprehensively() -> void:
 	# Test: PlacementReport should collect issues from ValidationResults.get_errors() AND get_issues()
 	# Setup: ValidationResults with both configuration errors and rule validation failures
@@ -195,15 +209,20 @@ func test_placement_report_collects_validation_results_comprehensively() -> void
 	var all_issues: Array[String] = placement_report.get_issues()
 
 	# Assert: Both configuration errors and validation issues are present
-	assert_bool(all_issues.has("Camera2D not found in viewport")).is_true().append_failure_message(
-		"Expected configuration error in PlacementReport. Got: %s" % str(all_issues)
-	)
+	assert_bool(all_issues.has("Camera2D not found in viewport")) \
+		.append_failure_message(
+			"Expected configuration error in PlacementReport. Got: %s" % str(all_issues)
+		) \
+		.is_true()
 
-	assert_bool(all_issues.has("Colliding on 8 tile(s)")).is_true().append_failure_message(
-		"Expected validation issue in PlacementReport. Got: %s" % str(all_issues)
+	assert_bool(all_issues.has("Colliding on 8 tile(s)")) \
+		.append_failure_message(
+			"Expected validation issue in PlacementReport. Got: %s" % str(all_issues)
 	)
 
 	# Assert: PlacementReport correctly reports failure status
-	assert_bool(placement_report.is_successful()).is_false().append_failure_message(
-		"PlacementReport should report failure when validation issues exist"
-	)
+	assert_bool(placement_report.is_successful()) \
+		.append_failure_message(
+			"PlacementReport should report failure when validation issues exist"
+		) \
+		.is_false()

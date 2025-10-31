@@ -9,6 +9,7 @@ var _container: GBCompositionContainer
 var _drag_manager: DragManager
 
 
+## Sets up DragManager test environment with scene runner and dependencies.
 func before_test() -> void:
 	runner = scene_runner(GBTestConstants.BUILDING_TEST_ENV.resource_path)
 	runner.simulate_frames(1)
@@ -22,10 +23,12 @@ func before_test() -> void:
 	runner.simulate_frames(1)
 
 
+## Cleans up test scene runner and references.
 func after_test() -> void:
 	runner = null
 
 
+## Tests that start_drag() creates and returns valid DragPathData.
 func test_start_drag_creates_drag_data() -> void:
 	_drag_manager.set_test_mode(true)
 	var drag_data: DragPathData = _drag_manager.start_drag()
@@ -41,6 +44,7 @@ func test_start_drag_creates_drag_data() -> void:
 	)
 
 
+## Tests that stop_drag() clears drag data and sets dragging to false.
 func test_stop_drag_clears_drag_data() -> void:
 	_drag_manager.set_test_mode(true)
 	_drag_manager.start_drag()
@@ -57,6 +61,7 @@ func test_stop_drag_clears_drag_data() -> void:
 	)
 
 
+## Tests that start_drag() returns null when already dragging.
 func test_cannot_start_drag_while_already_dragging() -> void:
 	_drag_manager.set_test_mode(true)
 	var first_drag: DragPathData = _drag_manager.start_drag()
@@ -73,6 +78,7 @@ func test_cannot_start_drag_while_already_dragging() -> void:
 	)
 
 
+## Tests that test_mode flag enables/disables input processing.
 func test_set_test_mode_controls_input_processing() -> void:
 	(
 		assert_bool(_drag_manager.is_processing_input()) \
