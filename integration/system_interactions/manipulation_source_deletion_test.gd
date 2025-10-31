@@ -61,13 +61,19 @@ func test_source_deletion_cancels_manipulation() -> void:
 
 	# Verify manipulation started successfully
 	assert_object(move_data).append_failure_message("Expected move_data to be created")
-	assert_int(move_data.status).is_equal(GBEnums.Status.STARTED).append_failure_message(
-		"Expected manipulation to start with STARTED status, got: %d" % move_data.status
+	(
+		assert_int(move_data.status) \
+		. append_failure_message(
+			"Expected manipulation to start with STARTED status, got: %d" % move_data.status
+		) \
+		. is_equal(GBEnums.Status.STARTED)
 	)
 
 	# Verify manipulation data is active
-	assert_object(manipulation_state.data).is_not_null().append_failure_message(
-		"Expected active manipulation data to be set"
+	(
+		assert_object(manipulation_state.data) \
+		. append_failure_message("Expected active manipulation data to be set") \
+		. is_not_null()
 	)
 
 	# Act: Delete the source object (simulating external deletion)
@@ -75,14 +81,18 @@ func test_source_deletion_cancels_manipulation() -> void:
 	await get_tree().process_frame
 
 	# Assert: Manipulation should be auto-canceled
-	assert_object(manipulation_state.data).is_null().append_failure_message(
-		"Expected manipulation data to be cleared after source deletion"
+	(
+		assert_object(manipulation_state.data) \
+		. append_failure_message("Expected manipulation data to be cleared after source deletion") \
+		. is_null()
 	)
 
 	# Verify no manipulation is active - use manipulation_state.data instead of is_manipulating()
 	var is_manipulating: bool = manipulation_state.data != null
-	assert_bool(is_manipulating).is_false().append_failure_message(
-		"Expected manipulation system to report no active manipulation after source deletion"
+	(
+		assert_bool(is_manipulating) \
+		. append_failure_message("Expected is_manipulating to be false after deletion") \
+		. is_false()
 	)
 
 
@@ -97,8 +107,10 @@ func test_multiple_source_deletions_handled_safely() -> void:
 
 	# Start move manipulation
 	var move_data: ManipulationData = manipulation_system.try_move(test_object)
-	assert_int(move_data.status).is_equal(GBEnums.Status.STARTED).append_failure_message(
-		"Expected manipulation to start successfully"
+	(
+		assert_int(move_data.status) \
+		. append_failure_message("Expected manipulation to start successfully") \
+		. is_equal(GBEnums.Status.STARTED)
 	)
 
 	# Act: Delete source and wait for processing
@@ -106,8 +118,10 @@ func test_multiple_source_deletions_handled_safely() -> void:
 	await get_tree().process_frame
 
 	# Assert: Manipulation canceled
-	assert_object(manipulation_state.data).is_null().append_failure_message(
-		"Expected manipulation to be canceled after first deletion"
+	(
+		assert_object(manipulation_state.data) \
+		. append_failure_message("Expected manipulation to be canceled after first deletion") \
+		. is_null()
 	)
 
 	# Act again: Attempt to trigger signal again (shouldn't crash)
@@ -115,8 +129,10 @@ func test_multiple_source_deletions_handled_safely() -> void:
 	await get_tree().process_frame
 
 	# Assert: Still no active manipulation, no crashes
-	assert_object(manipulation_state.data).is_null().append_failure_message(
-		"Expected manipulation to remain canceled"
+	(
+		assert_object(manipulation_state.data) \
+		. append_failure_message("Expected manipulation to remain canceled after second frame") \
+		. is_null()
 	)
 
 
@@ -161,6 +177,8 @@ func test_source_deletion_at_various_manipulation_phases() -> void:
 	# Now delete
 	test_object.queue_free()
 	await get_tree().process_frame
-	assert_object(manipulation_state.data).is_null().append_failure_message(
-		"Expected delayed deletion to cancel manipulation"
+	(
+		assert_object(manipulation_state.data) \
+		. append_failure_message("Expected delayed deletion to cancel manipulation") \
+		. is_null()
 	)
