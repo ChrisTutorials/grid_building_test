@@ -13,6 +13,8 @@ var _container: GBCompositionContainer
 var _state: GridTargetingState
 
 
+## Initializes the test environment with building system components.
+## Sets up indicator manager, composition container, and grid targeting state.
 func before_test() -> void:
 	_env = EnvironmentTestFactory.create_building_system_test_environment(self)
 	_manager = _env.indicator_manager
@@ -35,6 +37,9 @@ func before_test() -> void:
 	)
 
 
+## Tests that IndicatorManager generates indicators from container placement rules.
+## Verifies that when try_setup is called with rules from the composition container,
+## indicators are properly generated for the positioning context.
 func test_indicator_generation_from_container_rules() -> void:
 	# Arrange: create a polygon preview like integration tests do
 	var preview: Node2D = CollisionObjectTestFactory.create_polygon_test_object(self, self)
@@ -82,7 +87,10 @@ func test_indicator_generation_from_container_rules() -> void:
 			diag
 			. append(
 				(
-					"[RULE_TRACE] rule[%d] TYPE_INFO: typeof=%s, is_PlacementRule=%s, is_TileCheckRule=%s, is_CollisionsCheckRule=%s"
+					(
+						"[RULE_TRACE] rule[%d] TYPE_INFO: typeof=%s, is_PlacementRule=%s, "
+						+ "is_TileCheckRule=%s, is_CollisionsCheckRule=%s"
+					)
 					% [
 						i,
 						typeof(r),
@@ -192,6 +200,8 @@ func test_indicator_generation_from_container_rules() -> void:
 	)
 
 
+## Tests that indicator manager properly frees indicators when cleared.
+## Verifies that calling clear() removes all indicators from the manager.
 func test_indicators_are_freed_on_reset() -> void:
 	var shape_scene: Node2D = CollisionObjectTestFactory.create_polygon_test_object(self, self)
 	shape_scene.global_position = DEFAULT_POSITION
