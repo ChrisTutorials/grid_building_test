@@ -1,7 +1,7 @@
 [gd_scene load_steps=11 format=3 uid="uid://cdrtd538vrmun"]
 
 [ext_resource type="Script" uid="uid://dnl6gv8yc3how" path="res://addons/grid_building/systems/grid_targeting/grid_targeting_system.gd" id="1_1gfv7"]
-[ext_resource type="Script" uid="uid://b2lgu2pxu4x1d" path="res://test/grid_building_test/scenes/env/collision_test_environment.gd" id="1_bi4n4"]
+[ext_resource type="Script" uid="uid://b2lgu2pxu4x1d" path="res://test/grid_building_test/environments/collision_test_environment.gd" id="1_bi4n4"]
 [ext_resource type="Script" uid="uid://ckwhivepsvl0n" path="res://addons/grid_building/components/gb_level_context.gd" id="2_bi4n4"]
 [ext_resource type="Script" uid="uid://cg7xwag2jbf8k" path="res://test/grid_building_test/utilities/injection/gb_test_injector_system.gd" id="2_i48kh"]
 [ext_resource type="Script" uid="uid://dasmm18l8fxdo" path="res://addons/grid_building/user/gb_owner.gd" id="6_i48kh"]
