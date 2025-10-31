@@ -143,20 +143,32 @@ func _create_build_action_data(
 func _assert_failure_messages_present(
 	log_text: String, readable_name: String, expected_reasons: Array[String]
 ) -> void:
-	assert_str(log_text).append_failure_message(
-		"Expected main failure message for '%s' in log: '%s'" % [readable_name, log_text]
+	(
+		assert_str(log_text) \
+		. append_failure_message(
+			"Expected main failure message for '%s' in log: '%s'" % [readable_name, log_text]
+		) \
+		. is_not_empty()
 	)
 	for reason in expected_reasons:
-		assert_str(log_text).contains(reason).append_failure_message(
-			"Expected failure reason '%s' in log: '%s'" % [reason, log_text]
+		(
+			assert_str(log_text) \
+			. contains(reason) \
+			. append_failure_message(
+				"Expected failure reason '%s' in log: '%s'" % [reason, log_text]
+			)
 		)
 
 
 ## Asserts that log does not contain specified failure reasons
 func _assert_failure_messages_absent(log_text: String, absent_reasons: Array[String]) -> void:
 	for reason in absent_reasons:
-		assert_str(log_text).not_contains(reason).append_failure_message(
-			"Expected failure reason '%s' to be hidden in log: '%s'" % [reason, log_text]
+		(
+			assert_str(log_text) \
+			. not_contains(reason) \
+			. append_failure_message(
+				"Expected failure reason '%s' to be hidden in log: '%s'" % [reason, log_text]
+			)
 		)
 
 
@@ -180,14 +192,29 @@ func test_append_validation_results_shows_failed_reasons_when_enabled() -> void:
 	var log_text: String = message_label.get_parsed_text()
 
 	# Assert: Failed reasons should appear in log
-	assert_str(log_text).contains(COLLISION_FAILURE_REASON).append_failure_message(
-		"Expected collision failure reason in log text: '%s'" % log_text
+	(
+		assert_str(log_text) \
+		. contains(COLLISION_FAILURE_REASON) \
+		. append_failure_message(
+			"Expected collision failure reason in log text: '%s'" % log_text
+		) \
+		. is_true()
 	)
-	assert_str(log_text).contains(STRUCTURE_BLOCKING_REASON).append_failure_message(
-		"Expected structure blocking reason in log text: '%s'" % log_text
+	(
+		assert_str(log_text) \
+		. contains(STRUCTURE_BLOCKING_REASON) \
+		. append_failure_message(
+			"Expected structure blocking reason in log text: '%s'" % log_text
+		) \
+		. is_true()
 	)
-	assert_str(log_text).contains("Placement validation failed").append_failure_message(
-		"Expected validation message in log text: '%s'" % log_text
+	(
+		assert_str(log_text) \
+		. contains("Placement validation failed") \
+		. append_failure_message(
+			"Expected validation message in log text: '%s'" % log_text
+		) \
+		. is_true()
 	)
 
 
