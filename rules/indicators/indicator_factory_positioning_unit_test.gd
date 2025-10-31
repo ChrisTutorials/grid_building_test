@@ -346,11 +346,10 @@ func test_debug_collision_position_mapping() -> void:
 		fail("Realistic offset created unexpectedly large displacement: %.1f pixels\n%s" % [distance, "\n".join(diag)])
 	else:
 		diag.append("POSITIONING WORKING: Realistic offset creates reasonable displacement")
-
 	# Verify the offset creates displacement in the expected range
-	assert_that(distance).is_greater(expected_distance_range_min).is_less(expected_distance_range_max).append_failure_message(
+	assert_that(distance).append_failure_message(
 		"Realistic offset should create displacement in range %.1f-%.1f pixels, got %.1f pixels" % [expected_distance_range_min, expected_distance_range_max, distance]
-	)
+	).is_greater(expected_distance_range_min).is_less(expected_distance_range_max)
 
 	# Test with a small positive offset to ensure normal behavior still works
 	var small_offset := Vector2i(1, 0)  # Should create ~16 pixel offset
@@ -365,6 +364,6 @@ func test_debug_collision_position_mapping() -> void:
 	diag.append("Small offset test: %s creates %.1f pixel distance" % [small_offset, small_distance])
 
 	# Small offsets should create reasonable distances (~16 pixels for 1 tile)
-	assert_that(small_distance).is_greater(10.0).is_less(30.0).append_failure_message(
+	assert_that(small_distance).append_failure_message(
 		"Small offset should create reasonable distance, got %.1f pixels" % small_distance
-	).is_less(LARGE_DISTANCE_THRESHOLD)
+	).is_greater(10.0).is_less(30.0).is_less(LARGE_DISTANCE_THRESHOLD)
