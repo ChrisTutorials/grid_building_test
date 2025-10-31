@@ -25,6 +25,7 @@ const SAFE_TILE_D: Vector2i = Vector2i(-10, 5)
 const SAFE_TILE_E: Vector2i = Vector2i(10, 5)
 
 
+## Initializes test environment with BuildingSystem, DragManager, and scene runner for deterministic frame control.
 func before_test() -> void:
 	# Use scene_runner for deterministic frame control
 	runner = scene_runner(GBTestConstants.BUILDING_TEST_ENV.resource_path)
@@ -85,6 +86,7 @@ func before_test() -> void:
 	runner.simulate_frames(1)
 
 
+## Disconnects build event handlers; cleans up scene runner and test references.
 func after_test() -> void:
 	if _container:
 		if _container.get_states().building.success.is_connected(_on_build_success):
@@ -538,9 +540,9 @@ func test_drag_tile_deduplication_prevents_same_tile_rebuild() -> void:
 			% [final_builds_count, final_summary]
 		)
 	)
-	assert_int(final_builds_count).is_equal(expected_builds).append_failure_message(
+	assert_int(final_builds_count).append_failure_message(
 		"Deduplication test results:%s" % dedup_diagnostic
-	)
+	).is_equal(expected_builds)
 	(
 		assert_int(final_builds_count) \
 		. append_failure_message(
