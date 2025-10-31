@@ -48,9 +48,10 @@ func test_placeable_template_size_flags() -> void:
 	var entry_node: PlaceableView = placeable_template.instantiate()
 	add_child(entry_node)
 	await get_tree().process_frame
-
 	# Assert: Size flags configured for horizontal stretching
-	assert_object(entry_node).is_not_null().append_failure_message("Template should be a Control")
+	assert_object(entry_node).append_failure_message(
+		"Template should be a Control"
+	).is_not_null()
 
 	# Check width stretches to column width (allowing some margin for grid spacing)
 	var actual_width: float = entry_node.size.x
@@ -86,12 +87,11 @@ func test_sequence_templates_stretch_to_column_width() -> void:
 	entry_node.sequence = test_sequence
 	test_grid.add_child(entry_node)
 	await get_tree().process_frame
-
 	# Assert: Template stretches to column width
 	var template: Control = test_grid.get_child(0) as Control
-	assert_object(template).is_not_null().append_failure_message(
+	assert_object(template).append_failure_message(
 		"Sequence template should be a Control"
-	)
+	).is_not_null()
 
 	# Check width stretches to column width
 	var actual_width: float = template.size.x
@@ -164,16 +164,14 @@ func test_height_consistency_during_variant_cycling() -> void:
 				% [EXPECTED_SEQUENCE_HEIGHT, initial_height, post_cycle_height]
 			)
 		) \
-		. is_equal(initial_height)
+	. is_equal(initial_height)
+)
+assert_float(post_cycle_width).append_failure_message(
+	(
+		"Template width should remain %.1f pixels after cycling, now %.1f"
+		% [initial_width, post_cycle_width]
 	)
-	assert_float(post_cycle_width).is_equal(initial_width).append_failure_message(
-		(
-			"Template width should remain %.1f pixels after cycling, now %.1f"
-			% [initial_width, post_cycle_width]
-		)
-	)
-
-
+).is_equal(initial_width)
 ## Test: Mixed content grid maintains consistent sizing
 ## Setup: Grid with both placeable and sequence templates
 ## Act: Add mixed content to grid
@@ -201,9 +199,9 @@ func test_mixed_content_consistent_sizing() -> void:
 
 	for i in range(children.size()):
 		var template: Control = children[i] as Control
-		assert_object(template).is_not_null().append_failure_message(
+		assert_object(template).append_failure_message(
 			"Mixed content template %d should be a Control" % i
-		)
+		).is_not_null()
 
 		var actual_height: float = template.size.y
 		var actual_width: float = template.size.x
