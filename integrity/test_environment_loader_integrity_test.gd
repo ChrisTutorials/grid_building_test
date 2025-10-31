@@ -4,65 +4,47 @@
 ## This catches environment setup issues immediately rather than having them
 ## fail in dozens of actual tests.
 ##
-## Uses GdUnitSceneRunner directly (standard pattern) to ensure environments
-## load, instantiate, and initialize successfully.
+## Uses single test with loop to avoid parameterization complexity.
+## Each environment is validated for: loading, instantiation, type casting, and zero issues.
 
 extends GdUnitTestSuite
 
-## Test that all systems environment loads without errors
-func test_all_systems_environment_loads() -> void:
-	var runner: GdUnitSceneRunner = scene_runner(
-		GBTestConstants.ALL_SYSTEMS_ENV.resource_path
-	)
-	runner.simulate_frames(2)
-	var env: Node = runner.scene()
-	
-	assert_that(env).is_not_null().append_failure_message(
-		"AllSystemsTestEnvironment failed to load"
-	)
+#region Test Data
 
+## Environment test configurations
+const ENVIRONMENTS: Array[Dictionary] = [
+	{"name": "AllSystemsTestEnvironment", "scene": GBTestConstants.ALL_SYSTEMS_ENV},
+	{"name": "BuildingTestEnvironment", "scene": GBTestConstants.BUILDING_TEST_ENV},
+	{"name": "CollisionTestEnvironment", "scene": GBTestConstants.COLLISION_TEST_ENV},
+]
 
-## Test that building test environment loads without errors
-func test_building_environment_loads() -> void:
-	var runner: GdUnitSceneRunner = scene_runner(
-		GBTestConstants.BUILDING_TEST_ENV.resource_path
-	)
-	runner.simulate_frames(2)
-	var env: Node = runner.scene()
-	
-	assert_that(env).is_not_null().append_failure_message(
-		"BuildingTestEnvironment failed to load"
-	)
+#endregion
 
-
-## Test that collision test environment loads without errors
-func test_collision_environment_loads() -> void:
-	var runner: GdUnitSceneRunner = scene_runner(
-		GBTestConstants.COLLISION_TEST_ENV.resource_path
-	)
-	runner.simulate_frames(2)
-	var env: Node = runner.scene()
-	
-	assert_that(env).is_not_null().append_failure_message(
-		"CollisionTestEnvironment failed to load"
-	)
-
-
-## Test that environment resources in GBTestConstants are valid
-func test_environment_resources_are_valid() -> void:
-	var env_scenes: Array[PackedScene] = [
-		GBTestConstants.ALL_SYSTEMS_ENV,
-		GBTestConstants.BUILDING_TEST_ENV,
-		GBTestConstants.COLLISION_TEST_ENV,
-	]
-	
-	for scene in env_scenes:
-		assert_that(scene).is_not_null().append_failure_message(
-			"Environment PackedScene is null"
+## Test all environments load without issues
+## Iterates through all test environments validating each one
+func test_all_environments_load_without_issues() -> void:
+	for env_config in ENVIRONMENTS:
+		var env_name: String = env_config.name
+		var env_scene: PackedScene = env_config.scene
+		
+		# Load environment using standard GdUnitSceneRunner pattern
+		var runner: GdUnitSceneRunner = scene_runner(env_scene.resource_path)
+		runner.simulate_frames(2)
+		var env: Node = runner.scene()
+		
+		# Validate environment loaded
+		assert_that(env).is_not_null().append_failure_message(
+			"%s failed to load" % env_name
 		)
 		
-		# Verify it has a valid resource path
-		var path: String = scene.resource_path
-		assert_that(path.is_empty()).is_false().append_failure_message(
-			"Environment has no resource path"
+		# Validate environment is correct type and has get_issues() method
+		var test_env := env as GBTestEnvironment
+		assert_that(test_env).is_not_null().append_failure_message(
+			"%s is not a GBTestEnvironment" % env_name
+		)
+		
+		# Validate environment has no issues
+		var issues: Array[String] = test_env.get_issues()
+		assert_that(issues).is_empty().append_failure_message(
+			"%s has issues: %s" % [env_name, issues]
 		)
