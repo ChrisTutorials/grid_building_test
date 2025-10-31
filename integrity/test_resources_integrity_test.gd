@@ -224,3 +224,124 @@ func _scan_directory_recursive(
 		file_name = dir.get_next()
 
 	dir.list_dir_end()
+
+
+## PHASE C ENHANCEMENTS: Deeper resource validation
+
+
+## Validates that scene files don't reference missing external resources
+## Catches "stampede failures" where one missing resource breaks 100+ tests
+func test_scene_external_references_resolve() -> void:
+	var test_files: Array[String] = _list_files_by_extension(TEST_ROOT, ".tscn")
+	var broken_refs: Dictionary = {}  # file_path -> Array[missing_dep]
+
+	for file_path: String in test_files:
+		var dependencies: PackedStringArray = ResourceLoader.get_dependencies(file_path)
+		var missing: Array[String] = []
+
+		for dep_path: String in dependencies:
+			# Check if dependency exists
+			if not ResourceLoader.exists(dep_path):
+				missing.append(dep_path)
+
+		if missing.size() > 0:
+			broken_refs[file_path] = missing
+
+	var failure_msg := (
+		"Found %d scene(s) with broken external references"
+		% broken_refs.size()
+	)
+
+	if broken_refs.size() > 0:
+		failure_msg += "\n\nBroken references (missing resources):\n"
+		for file_path: String in broken_refs.keys():
+			failure_msg += "  Scene: %s\n" % file_path
+			for missing_dep: String in broken_refs[file_path]:
+				failure_msg += "    ❌ Missing: %s\n" % missing_dep
+
+		failure_msg += "\nWhy this matters:"
+		failure_msg += (
+			"\n  • One missing resource can cause 100+ test failures (stampede)"
+		)
+		failure_msg += "\n  • Fix by restoring the resource or removing the reference"
+
+	assert_int(broken_refs.size()).append_failure_message(failure_msg).is_equal(0)
+
+
+## Validates that .tres resource files can be loaded successfully
+## Catches corrupted or invalid resource files
+func test_tres_resources_loadable() -> void:
+	var tres_files: Array[String] = _list_files_by_extension(TEST_ROOT, ".tres")
+	var failed_loads: Array[String] = []
+
+	for file_path: String in tres_files:
+		var resource: Resource = load(file_path)
+		if resource == null:
+			failed_loads.append(file_path)
+
+	var failure_msg := (
+		"Found %d .tres file(s) that failed to load" % failed_loads.size()
+	)
+
+	if failed_loads.size() > 0:
+		failure_msg += "\n\nFailed to load:\n"
+		for file_path: String in failed_loads:
+			failure_msg += "  ❌ %s\n" % file_path
+
+		failure_msg += "\nPossible causes:"
+		failure_msg += "\n  • Corrupted resource file"
+		failure_msg += "\n  • Missing script attachment"
+		failure_msg += "\n  • Invalid property values"
+		failure_msg += "\n  • Circular dependencies"
+
+	(
+		assert_int(failed_loads.size())
+		. append_failure_message(failure_msg)
+		. is_equal(0)
+	)
+
+
+## Validates that scene files can be instantiated without errors
+## Catches script errors, missing scripts, or invalid node structures
+func test_scene_files_instantiable() -> void:
+	var tscn_files: Array[String] = _list_files_by_extension(TEST_ROOT, ".tscn")
+	var failed_instantiation: Dictionary = {}  # file_path -> error_msg
+
+	for file_path: String in tscn_files:
+		var packed_scene: PackedScene = load(file_path)
+
+		if packed_scene == null:
+			failed_instantiation[file_path] = "Failed to load PackedScene"
+			continue
+
+		# Try to instantiate
+		var instance: Node = packed_scene.instantiate()
+
+		if instance == null:
+			failed_instantiation[file_path] = "instantiate() returned null"
+		else:
+			# Success - clean up
+			instance.queue_free()
+
+	var failure_msg := (
+		"Found %d scene(s) that failed to instantiate"
+		% failed_instantiation.size()
+	)
+
+	if failed_instantiation.size() > 0:
+		failure_msg += "\n\nFailed to instantiate:\n"
+		for file_path: String in failed_instantiation.keys():
+			failure_msg += "  ❌ %s\n" % file_path
+			failure_msg += "     Reason: %s\n" % failed_instantiation[file_path]
+
+		failure_msg += "\nPossible causes:"
+		failure_msg += "\n  • Missing script file"
+		failure_msg += "\n  • Script compilation errors"
+		failure_msg += "\n  • Invalid node structure"
+		failure_msg += "\n  • RefCounted script on Node (should extend Node)"
+
+	(
+		assert_int(failed_instantiation.size())
+		. append_failure_message(failure_msg)
+		. is_equal(0)
+	)
