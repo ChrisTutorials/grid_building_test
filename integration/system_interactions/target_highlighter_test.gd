@@ -17,9 +17,7 @@ var data_source_is_target: ManipulationData
 var data_source_is_not_target: ManipulationData
 var composition_container: GBCompositionContainer
 
-# ================================
-# Helper Functions for DRY Patterns
-# ================================
+## Helper functions for DRY test patterns.
 
 func create_test_target_with_manipulatable() -> Node2D:
 	"""Create a test target Node2D with a manipulatable child for valid state testing."""

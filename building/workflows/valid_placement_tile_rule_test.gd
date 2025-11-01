@@ -144,8 +144,7 @@ func test_test_tile_data_for_all_matches(
 #endregion
 #region Helper methods
 
-
-# Helper function to create TileData at a specific tile position
+## Helper function to create TileData at a specific tile position.
 func _create_tile_data(coords: Vector2i, custom_data: Dictionary) -> TileData:
 	map_layer.set_cell(coords, TILE_SOURCE_ID, coords)
 	var tile_data: TileData = map_layer.get_cell_tile_data(coords)
