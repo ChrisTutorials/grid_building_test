@@ -65,13 +65,9 @@ func before_test() -> void:
 	_drag_manager = DragManager.new()
 	env.add_child(_drag_manager)
 	_drag_manager.resolve_gb_dependencies(_container)
-	# Enable test mode to disable input processing and allow manual drag control
+	## DragManager configured for test mode with one-way dependency on BuildingSystem.
+	## Test mode disables input processing; DragManager enabled by being in tree.
 	_drag_manager.set_test_mode(true)
-	# Note: DragManager no longer requires explicit connection to BuildingSystem
-	# It uses one-way dependency via try_build() calls
-
-	# DragManager is enabled by being in tree and processing
-	# No drag_multi_build setting needed anymore
 
 	runner.simulate_frames(2)  # Connect to build signals to track attempts
 	_container.get_states().building.success.connect(_on_build_success)
@@ -248,11 +244,9 @@ func test_rapid_tile_changes_no_double_build() -> void:
 
 	# Clear build tracking before test
 	_build_attempts.clear()
-
-	# Act: Simulate VERY rapid tile changes (3 tiles in single physics frame)
-	# This simulates the race condition where multiple position changes
-	# happen before _physics_process runs again.
-	# The gate mechanism in DragManager should only emit targeting_new_tile ONCE per frame.
+	## Tests race condition: rapid tile changes within single physics frame.
+	## DragManager gate mechanism should only emit targeting_new_tile once per frame.
+	## Each tile change followed by physics frame should trigger exactly 1 build.
 
 	# Move to tile B and process physics frame - this should trigger 1 build
 	_position_at_tile(SAFE_TILE_B)
@@ -302,17 +296,15 @@ func test_rapid_tile_changes_no_double_build() -> void:
 ## Act: Attempt build at B before physics frame completes
 ## Assert: Build at B should fail OR wait for physics update (no race condition)
 func test_collision_state_synchronized_with_builds() -> void:
-	# TEST ISOLATION FIX: Reset positioner to known state at test start
-	# Multiple tests use BUILDING_TEST_ENV_UID, causing cross-test contamination
-	# Reset to origin first, then move to intended position
+	## Test isolation: reset positioner to known state to prevent cross-test contamination.
+	## Multiple tests use same environment, requiring fresh state at each test start.
 	_positioner.global_position = Vector2.ZERO
 	runner.simulate_frames(1)
 
 	# Setup: Enter build mode and build first object at safe empty area
 	var placeable: Placeable = GBTestConstants.PLACEABLE_RECT_4X2
 
-	# CRITICAL: Position at safe tile BEFORE entering build mode
-	# The positioner must be at the correct position so indicators are set up properly
+	## Position at safe tile before entering build mode to set up indicators properly.
 	var target_world_pos: Vector2 = _map.to_global(_map.map_to_local(SAFE_TILE_D))
 	_positioner.global_position = target_world_pos
 	runner.simulate_frames(2)  # Let position stabilize
