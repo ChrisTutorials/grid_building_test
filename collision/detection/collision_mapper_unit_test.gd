@@ -338,28 +338,22 @@ func test_basic_collision_detection() -> void:
 	mapper.setup(test_indicator, setups)
 
 	# Validate setup first
-	(
-		assert_that(mapper.test_indicator) \
-		. append_failure_message("Test indicator should be set after setup") \
-		. is_not_null()
-	)
-	(
-		assert_that(mapper.test_setups) \
-		. append_failure_message("Collision setups should be initialized") \
-		. is_not_null()
-	)
-	(
-		assert_that(_get_test_setup_for_body(mapper, body)) \
-		. append_failure_message("Setup should contain the body") \
-		. is_not_null()
-	)
+	assert_that(mapper.test_indicator).append_failure_message(
+		"Test indicator should be set after setup"
+	).is_not_null()
 
-# Test the test_setup validation
-(
-	assert_that(test_setup.validate_setup()) \
-		. append_failure_message("Test setup should be valid") \
-		. is_true()
-	)
+	assert_that(mapper.test_setups).append_failure_message(
+		"Collision setups should be initialized"
+	).is_not_null()
+
+	assert_that(_get_test_setup_for_body(mapper, body)).append_failure_message(
+		"Setup should contain the body"
+	).is_not_null()
+
+	# Test the test_setup validation
+	assert_that(test_setup.validate_setup()).append_failure_message(
+		"Test setup should be valid"
+	).is_true()
 
 	# Test basic collision detection
 	var result: Dictionary[Vector2i, Array] = mapper.get_collision_tile_positions_with_mask(
