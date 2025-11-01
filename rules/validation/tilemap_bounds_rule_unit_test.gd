@@ -200,7 +200,7 @@ func test_within_tilemap_bounds_rule_at_invalid_position() -> void:
 	var rule: WithinTilemapBoundsRule = WithinTilemapBoundsRule.new()
 	rule.setup(targeting_state)
 
-	await get_tree().process_frame
+	runner.simulate_frames(1)  # Synchronous frame simulation replaces await
 
 	# Create indicator at position definitely outside bounds
 	var test_indicator: RuleCheckIndicator = auto_free(RuleCheckIndicator.new())
@@ -263,7 +263,7 @@ func test_within_tilemap_bounds_rule_boundary_positions(
 
 	var rule: WithinTilemapBoundsRule = WithinTilemapBoundsRule.new()
 	rule.setup(targeting_state)
-	await get_tree().process_frame
+	runner.simulate_frames(1)  # Synchronous frame simulation replaces await
 
 	# Create indicator at the boundary position
 	var test_indicator: RuleCheckIndicator = auto_free(RuleCheckIndicator.new())
@@ -345,7 +345,7 @@ func test_multiple_rules_validation_combination() -> void:
 	collision_rule.apply_to_objects_mask = 2  # Same as integration test
 	collision_rule.setup(targeting_state)
 
-	await get_tree().process_frame
+	runner.simulate_frames(1)  # Synchronous frame simulation replaces await
 
 	# Create test indicator like integration test
 	var test_indicator: RuleCheckIndicator = auto_free(RuleCheckIndicator.new())
