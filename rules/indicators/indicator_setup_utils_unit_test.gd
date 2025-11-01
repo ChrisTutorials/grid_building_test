@@ -261,11 +261,13 @@ func test_collision_mapping_works_but_indicator_creation_fails() -> void:
 
 	# CRITICAL FIX: Set up CollisionMapper with CollisionTestSetup2D for the test object
 	var test_setups: Array[CollisionTestSetup2D] = (
-	CollisionTestSetup2D.create_test_setups_from_test_node(test_object, _targeting_state)
-)
-assert_that(test_setups.size()).append_failure_message(
-	"Should create at least one CollisionTestSetup2D for the test object"
-).is_greater(0)	# Create test indicator for collision mapper setup
+		CollisionTestSetup2D.create_test_setups_from_test_node(test_object, _targeting_state)
+	)
+	assert_that(test_setups.size()).append_failure_message(
+		"Should create at least one CollisionTestSetup2D for the test object"
+	).is_greater(0)
+	
+	# Create test indicator for collision mapper setup
 	var test_indicator: RuleCheckIndicator = (
 		GBTestConstants.TEST_INDICATOR_TD_PLATFORMER.instantiate()
 	)

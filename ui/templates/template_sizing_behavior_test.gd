@@ -156,22 +156,24 @@ func test_height_consistency_during_variant_cycling() -> void:
 	# Assert: Dimensions remain consistent after cycling
 	var post_cycle_height: float = template.size.y
 	var post_cycle_width: float = template.size.x
-	(
-		assert_float(post_cycle_height) \
+	
+	assert_float(post_cycle_height) \
 		. append_failure_message(
 			(
 				"Template height should remain %d pixels after cycling, was %.1f, now %.1f"
 				% [EXPECTED_SEQUENCE_HEIGHT, initial_height, post_cycle_height]
 			)
 		) \
-	. is_equal(initial_height)
-)
-assert_float(post_cycle_width).append_failure_message(
-	(
-		"Template width should remain %.1f pixels after cycling, now %.1f"
-		% [initial_width, post_cycle_width]
-	)
-).is_equal(initial_width)
+		. is_equal(initial_height)
+	
+	assert_float(post_cycle_width).append_failure_message(
+		(
+			"Template width should remain %.1f pixels after cycling, now %.1f"
+			% [initial_width, post_cycle_width]
+		)
+	).is_equal(initial_width)
+
+
 ## Test: Mixed content grid maintains consistent sizing
 ## Setup: Grid with both placeable and sequence templates
 ## Act: Add mixed content to grid

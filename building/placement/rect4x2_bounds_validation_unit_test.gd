@@ -187,8 +187,8 @@ func _assert_validation_success(result: ValidationResults, context_message: Stri
 		else:
 			prefix += "├─ "
 		formatted_message += prefix + position_str
-	if i < indicator_tile_positions.size() - 1:
-		formatted_message += "\n"
+		if i < indicator_tile_positions.size() - 1:
+			formatted_message += "\n"
 
 	assert_bool(result.is_successful()).append_failure_message(
 		formatted_message
