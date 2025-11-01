@@ -3,7 +3,6 @@ extends GdUnitTestSuite
 
 ## DRY Constants - use canonical GBTestConstants where possible
 const DEFAULT_TILE_SIZE: Vector2i = Vector2i(int(GBTestConstants.DEFAULT_TILE_SIZE.x), int(GBTestConstants.DEFAULT_TILE_SIZE.y))
-const DEFAULT_TEST_POSITION: Vector2 = GBTestConstants.DEFAULT_POSITION
 const TEST_MAP_SIZE: int = 40
 
 ## DRY Helper: Create a properly configured TileMapLayer for testing
@@ -17,7 +16,7 @@ func _create_test_tile_map(tile_size: Vector2i = DEFAULT_TILE_SIZE) -> TileMapLa
 	return test_map
 
 ## DRY Helper: Create a StaticBody2D with proper collision hierarchy setup
-func _create_static_body(position: Vector2 = DEFAULT_TEST_POSITION) -> StaticBody2D:
+func _create_static_body(position: Vector2 = GBTestConstants.DEFAULT_POSITION) -> StaticBody2D:
 	var static_body: StaticBody2D = auto_free(StaticBody2D.new())
 	static_body.position = position
 	add_child(static_body)
@@ -38,7 +37,7 @@ func _run_polygon_test(
 	tile_type: String = "square",
 	expected_min: int = 1,
 	expected_max: int = -1,
-	position: Vector2 = DEFAULT_TEST_POSITION
+	position: Vector2 = GBTestConstants.DEFAULT_POSITION
 ) -> void:
 	var test_map: TileMapLayer
 
@@ -196,7 +195,7 @@ func test_process_polygon_with_diagnostics_convex() -> void:
 	Vector2(GBTestConstants.DOUBLE_TILE_PX, GBTestConstants.DOUBLE_TILE_PX),
 	Vector2(0, GBTestConstants.DOUBLE_TILE_PX)
 	])  # Rectangle (convex)
-	convex_polygon.position = DEFAULT_TEST_POSITION  # Center of 40x40 tilemap
+	convex_polygon.position = GBTestConstants.DEFAULT_POSITION  # Center of 40x40 tilemap
 
 	var result: PolygonTileMapper.ProcessingResult = PolygonTileMapper.process_polygon_with_diagnostics(convex_polygon, test_map)
 
@@ -216,7 +215,7 @@ func test_process_polygon_with_diagnostics_concave() -> void:
 		Vector2(GBTestConstants.DOUBLE_TILE_PX, GBTestConstants.DOUBLE_TILE_PX),
 		Vector2(0, GBTestConstants.DOUBLE_TILE_PX)
 	])
-	concave_polygon.position = DEFAULT_TEST_POSITION
+	concave_polygon.position = GBTestConstants.DEFAULT_POSITION
 
 	var result: PolygonTileMapper.ProcessingResult = PolygonTileMapper.process_polygon_with_diagnostics(concave_polygon, test_map)
 
@@ -239,7 +238,7 @@ func test_process_polygon_with_diagnostics_cases(
 	poly = auto_free(poly)
 	add_child(poly)
 	poly.polygon = points
-	poly.position = DEFAULT_TEST_POSITION
+	poly.position = GBTestConstants.DEFAULT_POSITION
 	var result: PolygonTileMapper.ProcessingResult = PolygonTileMapper.process_polygon_with_diagnostics(poly, test_map)
 	if expected_convex:
 		assert_that(result.was_convex).append_failure_message("Expected %s to be detected as convex" % case_name).is_true()
@@ -291,7 +290,7 @@ func test_tile_property_detection_diagnostics() -> void:
 	])
 	polygon = auto_free(polygon)
 	add_child(polygon)
-	polygon.position = DEFAULT_TEST_POSITION
+	polygon.position = GBTestConstants.DEFAULT_POSITION
 
 	# Test tile set existence
 	assert_that(test_map.tile_set).append_failure_message("TileMapLayer should have a tile_set").is_not_null()
@@ -355,7 +354,7 @@ func test_compute_tile_offsets_consistency() -> void:
 		Vector2(32, 0),
 		Vector2(16, 32)
 	])
-	triangle_polygon.position = DEFAULT_TEST_POSITION
+	triangle_polygon.position = GBTestConstants.DEFAULT_POSITION
 
 	var result1: Array[Vector2i] = PolygonTileMapper.compute_tile_offsets(triangle_polygon, test_map)
 	var result2: Array[Vector2i] = PolygonTileMapper.compute_tile_offsets(triangle_polygon, test_map)
@@ -372,7 +371,7 @@ func test_filter_area_diagnostics() -> void:
 	poly.polygon = points
 	poly = auto_free(poly)
 	add_child(poly)
-	poly.position = DEFAULT_TEST_POSITION
+	poly.position = GBTestConstants.DEFAULT_POSITION
 
 	# Reproduce initial offsets from the low-level util
 	var world_points: PackedVector2Array = CollisionGeometryUtils.to_world_polygon(poly)

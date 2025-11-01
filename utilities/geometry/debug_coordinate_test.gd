@@ -8,8 +8,6 @@ extends GdUnitTestSuite
 
 #region Constants
 const TILEMAP_SIZE: int = 40
-const TILE_SIZE: Vector2i = GBTestConstants.DEFAULT_TILE_SIZE_I
-const POLYGON_POSITION: Vector2 = GBTestConstants.DEFAULT_POSITION
 const CENTER_TILE: Vector2i = Vector2i(20, 20)
 #endregion
 
@@ -31,20 +29,20 @@ func test_debug_coordinate_transformation() -> void:
 	var polygon: CollisionPolygon2D = GodotTestFactory.create_collision_polygon(
 		self, polygon_points
 	)
-	polygon.position = POLYGON_POSITION
+	polygon.position = GBTestConstants.DEFAULT_POSITION
 
 	# Validate basic setup
 	(
 		assert_that(polygon.position) \
 		. append_failure_message("Polygon position should be set correctly") \
-		. is_equal(POLYGON_POSITION)
+		. is_equal(GBTestConstants.DEFAULT_POSITION)
 	)
 	(
 		assert_that(polygon.global_position) \
 		. append_failure_message(
 			"Polygon global_position should match position when no parent transform"
 		) \
-		. is_equal(POLYGON_POSITION)
+		. is_equal(GBTestConstants.DEFAULT_POSITION)
 	)
 	(
 		assert_that(polygon.polygon) \
@@ -54,7 +52,7 @@ func test_debug_coordinate_transformation() -> void:
 	(
 		assert_that(test_map.tile_set.tile_size) \
 		. append_failure_message("Tilemap should have 16x16 tile size") \
-		. is_equal(TILE_SIZE)
+		. is_equal(GBTestConstants.DEFAULT_TILE_SIZE_I)
 	)
 	assert_that(test_map.position).append_failure_message("Tilemap should be at origin").is_equal(
 		Vector2.ZERO
@@ -85,7 +83,7 @@ func test_debug_coordinate_transformation() -> void:
 	# Test CollisionGeometryUtils.compute_polygon_tile_offsets
 	var tile_size: Vector2 = Vector2(test_map.tile_set.tile_size)
 	var tile_shape_val: int = test_map.tile_set.tile_shape
-	assert_that(tile_size).is_equal(Vector2(TILE_SIZE)).append_failure_message(
+	assert_that(tile_size).is_equal(Vector2(GBTestConstants.DEFAULT_TILE_SIZE_I)).append_failure_message(
 		"Tile size should be 16x16"
 	)
 	assert_that(tile_shape_val).append_failure_message("Tile shape should be square").is_equal(

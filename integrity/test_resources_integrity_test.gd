@@ -11,7 +11,6 @@
 
 extends GdUnitTestSuite
 
-const TEST_ROOT: String = GBTestConstants.TEST_PATH_TEST
 const PLUGIN_ROOT: String = "res://addons/grid_building/"
 
 # Allowed dependency prefixes for test resources
@@ -34,11 +33,11 @@ const PORTABLE_ALLOWED_DEPENDENCIES: Array[String] = [
 
 
 func test_no_test_resources_depend_on_templates_or_demos() -> void:
-	var test_files: Array[String] = _list_test_files(TEST_ROOT)
+	var test_files: Array[String] = _list_test_files(GBTestConstants.TEST_PATH_TEST)
 
 	(
 		assert_int(test_files.size()) \
-		. append_failure_message("No test files found under %s" % TEST_ROOT) \
+		. append_failure_message("No test files found under %s" % GBTestConstants.TEST_PATH_TEST) \
 		. is_greater(0)
 	)
 
@@ -78,11 +77,11 @@ func test_no_test_resources_depend_on_templates_or_demos() -> void:
 
 
 func test_all_test_scenes_instantiate_without_errors() -> void:
-	var scene_files: Array[String] = _list_files_by_extension(TEST_ROOT, ".tscn")
+	var scene_files: Array[String] = _list_files_by_extension(GBTestConstants.TEST_PATH_TEST, ".tscn")
 
 	(
 		assert_int(scene_files.size()) \
-		. append_failure_message("No .tscn files found under %s" % TEST_ROOT) \
+		. append_failure_message("No .tscn files found under %s" % GBTestConstants.TEST_PATH_TEST) \
 		. is_greater(0)
 	)
 
@@ -114,11 +113,11 @@ func test_all_test_scenes_instantiate_without_errors() -> void:
 
 
 func test_all_test_resources_load_successfully() -> void:
-	var resource_files: Array[String] = _list_files_by_extension(TEST_ROOT, ".tres")
+	var resource_files: Array[String] = _list_files_by_extension(GBTestConstants.TEST_PATH_TEST, ".tres")
 
 	(
 		assert_int(resource_files.size()) \
-		. append_failure_message("No .tres files found under %s" % TEST_ROOT) \
+		. append_failure_message("No .tres files found under %s" % GBTestConstants.TEST_PATH_TEST) \
 		. is_greater(0)
 	)
 
@@ -143,7 +142,7 @@ func test_all_test_resources_load_successfully() -> void:
 
 func test_test_folder_is_portable() -> void:
 	# Verify test folder only needs plugin to function
-	var all_files: Array[String] = _list_test_files(TEST_ROOT)
+	var all_files: Array[String] = _list_test_files(GBTestConstants.TEST_PATH_TEST)
 
 	var external_deps: Dictionary[String, Array] = {}  # Path -> Array of external deps
 
@@ -232,7 +231,7 @@ func _scan_directory_recursive(
 ## Validates that scene files don't reference missing external resources
 ## Catches "stampede failures" where one missing resource breaks 100+ tests
 func test_scene_external_references_resolve() -> void:
-	var test_files: Array[String] = _list_files_by_extension(TEST_ROOT, ".tscn")
+	var test_files: Array[String] = _list_files_by_extension(GBTestConstants.TEST_PATH_TEST, ".tscn")
 	var broken_refs: Dictionary[String, Array] = {}  # file_path -> Array[missing_dep]
 
 	for file_path: String in test_files:
@@ -271,7 +270,7 @@ func test_scene_external_references_resolve() -> void:
 ## Validates that .tres resource files can be loaded successfully
 ## Catches corrupted or invalid resource files
 func test_tres_resources_loadable() -> void:
-	var tres_files: Array[String] = _list_files_by_extension(TEST_ROOT, ".tres")
+	var tres_files: Array[String] = _list_files_by_extension(GBTestConstants.TEST_PATH_TEST, ".tres")
 	var failed_loads: Array[String] = []
 
 	for file_path: String in tres_files:
@@ -304,7 +303,7 @@ func test_tres_resources_loadable() -> void:
 ## Validates that scene files can be instantiated without errors
 ## Catches script errors, missing scripts, or invalid node structures
 func test_scene_files_instantiable() -> void:
-	var tscn_files: Array[String] = _list_files_by_extension(TEST_ROOT, ".tscn")
+	var tscn_files: Array[String] = _list_files_by_extension(GBTestConstants.TEST_PATH_TEST, ".tscn")
 	var failed_instantiation: Dictionary[String, String] = {}  # file_path -> error_msg
 
 	for file_path: String in tscn_files:

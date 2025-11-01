@@ -11,6 +11,7 @@ var test_map: TileMapLayer
 var positioner: Node2D
 
 
+## Sets up minimal test environment: composition container, tile map, positioner, IndicatorManager, and test object with collision shapes.
 func before_test() -> void:
 	composition_container = GBTestConstants.TEST_COMPOSITION_CONTAINER
 
@@ -64,6 +65,7 @@ func before_test() -> void:
 	area.add_child(collision_shape)
 
 
+## Cleans up indicator manager state; GdUnit handles node cleanup via auto_free().
 func after_test() -> void:
 	# Let GdUnit handle cleanup via auto_free()
 	# Clean up indicator manager state explicitly

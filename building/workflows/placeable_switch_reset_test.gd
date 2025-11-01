@@ -22,6 +22,8 @@ var _manipulation_parent: ManipulationParent
 var _container: GBCompositionContainer
 
 
+## Initializes test environment (AllSystemsTestEnvironment) with BuildingSystem, IndicatorManager, ManipulationParent.
+## Validates all required components are available before tests run.
 func before_test() -> void:
 	# Create test environment using GBTestConstants
 	env = scene_runner(GBTestConstants.ALL_SYSTEMS_ENV.resource_path).scene()
@@ -59,6 +61,7 @@ func before_test() -> void:
 	)
 
 
+## Exits build mode if BuildingSystem is still in build mode; cleans up test state.
 func after_test() -> void:
 	if _building_system and _building_system.is_in_build_mode():
 		_building_system.exit_build_mode()
@@ -67,8 +70,8 @@ func after_test() -> void:
 #region PLACEABLE SWITCH RESET TESTS
 
 
+## Tests that old indicators are cleared when entering build mode with a new placeable.
 func test_indicators_cleared_when_switching_placeables() -> void:
-	"""Test that old indicators are cleared when entering build mode with new placeable"""
 
 	# Step 1: Enter build mode with first placeable (pillar)
 	var pillar: Placeable = GBTestConstants.PLACEABLE_PILLAR_TD
@@ -154,8 +157,8 @@ func test_indicators_cleared_when_switching_placeables() -> void:
 		)
 
 
+## Tests that ManipulationParent rotation resets to 0 when switching placeables.
 func test_manipulation_parent_rotation_reset_on_placeable_switch() -> void:
-	"""Test that ManipulationParent rotation resets to 0 when switching placeables"""
 
 	# Step 1: Enter build mode with pillar
 	var pillar: Placeable = GBTestConstants.PLACEABLE_PILLAR_TD
@@ -217,8 +220,8 @@ func test_manipulation_parent_rotation_reset_on_placeable_switch() -> void:
 	)
 
 
+## Tests that both rotation reset AND indicator cleanup occur together on placeable switch.
 func test_rotation_reset_and_indicators_cleared_together() -> void:
-	"""Combined test: Both rotation reset AND indicator cleanup happen on placeable switch"""
 
 	# Step 1: Enter build mode with first placeable and rotate
 	var pillar: Placeable = GBTestConstants.PLACEABLE_PILLAR_TD
@@ -302,8 +305,8 @@ func test_rotation_reset_and_indicators_cleared_together() -> void:
 	)
 
 
+## Tests that reset behavior (rotation, indicators) works correctly across multiple placeable switches.
 func test_multiple_placeable_switches_maintain_reset_behavior() -> void:
-	"""Test that reset behavior works correctly across multiple placeable switches"""
 
 	var placeables: Array[Placeable] = [
 		GBTestConstants.PLACEABLE_PILLAR_TD,
@@ -355,8 +358,8 @@ func test_multiple_placeable_switches_maintain_reset_behavior() -> void:
 #region EDGE CASE TESTS
 
 
+## Tests that entering build mode with the same placeable still resets state (rotation, indicators).
 func test_switching_to_same_placeable_still_resets() -> void:
-	"""Test that entering build mode with same placeable still resets state"""
 
 	# Enter build mode with pillar
 	var pillar: Placeable = GBTestConstants.PLACEABLE_PILLAR_TD
@@ -396,8 +399,8 @@ func test_switching_to_same_placeable_still_resets() -> void:
 	)
 
 
+## Tests that exiting build mode also clears all indicators.
 func test_exit_build_mode_clears_indicators() -> void:
-	"""Test that exiting build mode also clears indicators"""
 
 	# Enter build mode
 	var pillar: Placeable = GBTestConstants.PLACEABLE_PILLAR_TD

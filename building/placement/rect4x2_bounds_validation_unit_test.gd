@@ -289,6 +289,7 @@ func test_pre_validation_is_successful_for_rect4x2_start_tile() -> void:
 ## Bounds tiles have tile data.
 
 
+## Tests that bounds tiles have valid TileData.
 func test_bounds_tiles_have_tile_data() -> void:
 	var start_tile: Vector2i = SAFE_START_TILE
 	var td: TileData = _map.get_cell_tile_data(start_tile)
@@ -303,10 +304,10 @@ func test_bounds_tiles_have_tile_data() -> void:
 			)
 		) \
 		. is_not_null()
-## Pre validation out of bounds outside used rect.
 	)
 
 
+## Tests pre-validation correctly identifies tiles outside used rect as out of bounds.
 func test_pre_validation_out_of_bounds_outside_used_rect() -> void:
 	# Arrange: move clearly outside the used_rect to guarantee OOB
 	# Reset positions to ensure consistent testing regardless of scene layout

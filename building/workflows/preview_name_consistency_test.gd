@@ -21,6 +21,8 @@ var placeable_with_rules: Placeable
 
 
 #region Setup and Teardown
+## Initializes test environment: Creates AllSystemsTestEnvironment with scene_runner pattern.
+## Validates test resources and prepares placeable fixtures for name consistency tests.
 func before_test() -> void:
 	# Validate test resources are loaded
 	(
@@ -66,6 +68,7 @@ func before_test() -> void:
 
 
 #region Setup and Teardown
+## Exits build mode if active; ensures clean state for next test.
 func after_test() -> void:
 	# Ensure building system is in a clean state for next test
 	if system and system.is_in_build_mode():
@@ -76,10 +79,8 @@ func after_test() -> void:
 
 
 #region Preview Name Consistency Tests
+## Tests that when same placeable is entered twice, preview retains consistent name (issue #10).
 func test_same_placeable_twice_preserves_name() -> void:
-	# Test issue #10: When the same placeable is set twice in a row
-	# via enter_build_mode, the preview instance should retain the
-	# root PackedScene's name consistently.
 
 	var expected_name: String = _get_expected_preview_name(placeable_with_rules)
 
@@ -117,8 +118,8 @@ func test_same_placeable_twice_preserves_name() -> void:
 	)
 
 
+## Tests that different placeables get their correct respective names in previews.
 func test_different_placeables_have_correct_names() -> void:
-	# Verify that different placeables get their correct names
 	var placeable1: Placeable = placeable_with_rules
 	var placeable2: Placeable = _create_different_test_placeable_with_rules()
 

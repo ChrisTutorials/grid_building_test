@@ -188,6 +188,7 @@ func _cleanup_test_state() -> void:
 #endregion
 
 #region BUILDING WORKFLOW INTEGRATION
+## Tests complete building workflow: enter build mode, validate placement, build at position with different placeables.
 @warning_ignore("unused_parameter")
 func test_complete_building_workflow(
 	p_placeable: Placeable,
@@ -228,6 +229,7 @@ func test_complete_building_workflow(
 #region MULTI-RULE INDICATOR ATTACHMENT
 
 
+## Tests that indicators are properly attached and managed when multiple rules are applied.
 func test_multi_rule_indicator_attachment() -> void:
 	# Generated object must have a CollisionObject2D and a shape / polygon
 	var test_obj := CollisionObjectTestFactory.create_static_body_with_diamond(self, 32, 64)
@@ -259,6 +261,7 @@ func test_multi_rule_indicator_attachment() -> void:
 	)
 
 
+## Tests that indicators synchronize with rule state changes when target position changes.
 func test_rule_indicator_state_synchronization() -> void:
 	var static_body: StaticBody2D = CollisionObjectTestFactory.create_static_body_with_rect(
 		self, Vector2(32, 32)
@@ -284,6 +287,7 @@ func test_rule_indicator_state_synchronization() -> void:
 	_assert_setup_successful(update_result, "Rule state update")
 
 
+## Tests that indicators are properly parented to the scene tree and marked as inside tree.
 func test_indicators_are_parented_and_inside_tree() -> void:
 	# Assert environment provides required targeting setup
 	(
@@ -347,6 +351,7 @@ func test_indicators_are_parented_and_inside_tree() -> void:
 #region SMITHY INDICATOR GENERATION
 
 
+## Tests that smithy placeable correctly generates indicators for all placement rules.
 func test_smithy_indicator_generation() -> void:
 	var smithy_placeable := GBTestConstants.PLACEABLE_SMITHY
 	var test_rules: Array[PlacementRule] = smithy_placeable.placement_rules
@@ -365,6 +370,7 @@ func test_smithy_indicator_generation() -> void:
 	_assert_setup_successful(setup_result, "Test placeable indicator generation")
 
 
+## Tests that smithy collision detection correctly identifies collisions with placed objects.
 func test_smithy_collision_detection() -> void:
 	var collision_mapper: CollisionMapper = env.indicator_manager.get_collision_mapper()
 	(
@@ -395,7 +401,7 @@ func test_smithy_collision_detection() -> void:
 
 #region COMPLEX WORKFLOW INTEGRATION
 
-## Test build and then post build move manipulation
+## Tests complete complex workflow: build with multiple placeables, validate placement, build, then test post-build manipulation.
 @warning_ignore("unused_parameter")
 func test_complex_multi_system_workflow(
 	p_placeable: Placeable,
@@ -440,6 +446,7 @@ func test_complex_multi_system_workflow(
 #region POLYGON TEST OBJECT INTEGRATION
 
 
+## Tests that polygon-based collision objects generate indicators correctly.
 func test_polygon_test_object_indicator_generation() -> void:
 	var polygon_object_root: Node2D = CollisionObjectTestFactory.create_polygon_test_object(
 		self, env.positioner
@@ -459,6 +466,7 @@ func test_polygon_test_object_indicator_generation() -> void:
 	)
 
 
+## Tests that polygon collision integration correctly handles polygon-based collision shapes.
 func test_polygon_collision_integration() -> void:
 	var collision_mapper: CollisionMapper = env.indicator_manager.get_collision_mapper()
 	var polygon_test_object: Placeable = GBTestConstants.PLACEABLE_TRAPEZOID
@@ -512,6 +520,7 @@ func _assert_polygon_spans_coordinates(collision_tiles: Dictionary) -> void:
 #region GRID TARGETING HIGHLIGHT INTEGRATION
 
 
+## Tests that grid targeting highlight updates correctly when targeting position changes (if highlight manager available).
 func test_grid_targeting_highlight_integration() -> void:
 	var highlight_manager: Variant = env.get("highlight_manager")  # May not be available in all environments
 
@@ -531,6 +540,7 @@ func test_grid_targeting_highlight_integration() -> void:
 	)
 
 
+## Tests that targeting state correctly transitions when positioner position changes.
 func test_targeting_state_transitions() -> void:
 	var initial_pos: Vector2 = Vector2.ZERO
 	if _gts.positioner != null:
@@ -563,6 +573,7 @@ func test_targeting_state_transitions() -> void:
 
 #endregion
 #region COMPREHENSIVE INTEGRATION VALIDATION
+## Tests full system integration workflow: set target, enter build mode, setup indicators, build, validate state.
 @warning_ignore("unused_parameter")
 func test_full_system_integration_workflow(
 	p_placeable: Placeable,
@@ -609,6 +620,7 @@ func test_full_system_integration_workflow(
 	)
 
 
+## Tests system error recovery from invalid operations (null placeables, etc.).
 func test_system_error_recovery() -> void:
 	# Test recovery from invalid operations
 	var invalid_placeable: Variant = null

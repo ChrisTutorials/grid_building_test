@@ -58,7 +58,7 @@ func test_debug_polygon_bounds() -> void:
 	# Test actual collision detection
 	# Create a temporary tile map layer for map-aware calculations
 	var map: TileMapLayer = EnvironmentTestFactory.create_buildable_tilemap(self)
-	
+
 	var tiles: Array[Vector2i] = CollisionGeometryCalculator.calculate_tile_overlap(
 		polygon,
 		tile_size,
@@ -73,7 +73,8 @@ func test_debug_polygon_bounds() -> void:
 		assert_array(tiles) \
 		. append_failure_message(
 			(
-				"Polygon overlap detection should work. Polygon: %s, Bounds: %s, Tiles checked: %d, Actual overlapping tiles: %s"
+				"Polygon overlap detection should work. Polygon: %s, Bounds: %s, "
+				+ "Tiles checked: %d, Actual overlapping tiles: %s"
 				% [str(polygon), str(bounds), tiles_checked.size(), str(tiles)]
 			)
 		) \

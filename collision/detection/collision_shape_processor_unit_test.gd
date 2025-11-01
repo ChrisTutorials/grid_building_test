@@ -1,7 +1,8 @@
-# Test Suite: Collision Shape Processor Unit Tests
-# This test suite validates the CollisionShapeProcessor class initialization and
-# basic functionality. It focuses on catching geometry calculation issues that
-# could cause collision mapping failures in higher-level integration tests.
+## Tests for CollisionShapeProcessor class initialization and basic functionality.
+##
+## Validates the CollisionShapeProcessor class initialization and basic functionality.
+## Focuses on catching geometry calculation issues that could cause collision mapping
+## failures in higher-level integration tests.
 
 extends GdUnitTestSuite
 
@@ -26,7 +27,7 @@ func before_test() -> void:
 
 
 #region Test Functions
-# Test catches: CollisionShapeProcessor initialization failures
+## Tests that CollisionShapeProcessor initializes successfully without errors.
 func test_collision_shape_processor_initialization() -> void:
 	(
 		assert_that(_processor != null) \

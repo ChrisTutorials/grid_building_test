@@ -22,6 +22,8 @@ var _container: GBCompositionContainer
 var _positioner: Node2D
 
 
+## Initializes test environment with BuildingSystem, IndicatorManager, and GridTargetingState.
+## Sets up scene runner, clears collision exclusions from previous tests.
 func before_test() -> void:
 	# Use scene_runner for reliable frame simulation
 	runner = scene_runner(GBTestConstants.BUILDING_TEST_ENV.resource_path)
@@ -54,6 +56,7 @@ func before_test() -> void:
 	runner.simulate_frames(1)
 
 
+## Cleans up scene runner and test references.
 func after_test() -> void:
 	runner = null
 

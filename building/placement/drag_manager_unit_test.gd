@@ -99,6 +99,7 @@ func test_set_test_mode_controls_input_processing() -> void:
 	)
 
 
+## Tests that format_drag_state() returns non-empty string with "DragState" content.
 func test_format_drag_state_helper() -> void:
 	_drag_manager.set_test_mode(true)
 	var drag_data: DragPathData = _drag_manager.start_drag()
@@ -115,6 +116,7 @@ func test_format_drag_state_helper() -> void:
 	)
 
 
+## Tests that format_drag_state(null) returns graceful fallback string "[DragState: null]".
 func test_format_drag_state_handles_null() -> void:
 	var formatted: String = DragManager.format_drag_state(null)
 	(

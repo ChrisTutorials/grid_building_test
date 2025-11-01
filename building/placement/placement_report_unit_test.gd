@@ -1,9 +1,11 @@
-extends GdUnitTestSuite
+## Unit tests for PlacementReport, RuleResult, and ValidationResults.
+##
+## High-value tests targeting failures seen in integration:
+## - PlacementReport.is_successful and get_issues methods
+## - RuleResult backward compatibility (is_empty alias)
+## - ValidationResults aggregation using mixed RuleResult API
 
-# High-value unit tests targeting failures seen in integration:
-# - PlacementReport.is_successful / get_issues
-# - RuleResult backward compatibility (is_empty alias)
-# - ValidationResults aggregation using mixed RuleResult API
+extends GdUnitTestSuite
 
 var _dummy_rule: PlacementRule
 

@@ -1,9 +1,10 @@
 extends GdUnitTestSuite
 ## Test suite for validating collision-based placement rules and indicator generation
 ##
-## This suite tests the integration between collision objects, placement rules, and visual indicators
-## in the building system. It ensures that collision detection rules properly generate visual feedback
-## to users about valid/invalid placement locations based on collision layers and masks.
+## This suite tests the integration between collision objects, placement rules,
+## and visual indicators in the building system. It ensures that collision detection
+## rules properly generate visual feedback to users about valid/invalid placement
+## locations based on collision layers and masks.
 ##
 ## Key scenarios tested:
 ## - Collision objects with specific layers generate appropriate indicators

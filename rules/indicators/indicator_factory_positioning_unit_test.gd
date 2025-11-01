@@ -3,9 +3,6 @@
 ## to debug indicator clustering vs proper distribution issues
 extends GdUnitTestSuite
 
-## Use centralized GBTestConstants for shared test values
-# local convenience alias (keeps existing code readable)
-const TILE_SIZE: Vector2 = GBTestConstants.DEFAULT_TILE_SIZE
 ## Per-file constants to avoid magic literals
 const REGRESSION_EXPECTED_POS: Vector2 = Vector2(456.0, 552.0)
 const LARGE_DISTANCE_THRESHOLD: float = 100.0
@@ -190,7 +187,7 @@ func test_indicators_use_global_positioning() -> void:
 
 	assert_that(pos1.distance_to(pos2)).append_failure_message(
 		"Indicators should be positioned at different locations: pos1=%s, pos2=%s" % [pos1, pos2]
-	).is_greater(TILE_SIZE.x)  # Should be at least one tile apart
+	).is_greater(GBTestConstants.DEFAULT_TILE_SIZE.x)  # Should be at least one tile apart
 
 func test_parent_transforms_do_not_interfere() -> void:
 	# Apply transform to parent node to test if it interferes with indicator positioning

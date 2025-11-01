@@ -1,7 +1,9 @@
-extends GdUnitTestSuite
+## Unit tests for CollisionTestSetup2D creation and dependency isolation.
+##
+## Isolates CollisionTestSetup2D creation issues and tests the lowest level
+## dependency that's causing collision mapper tests to fail.
 
-# Unit test to isolate CollisionTestSetup2D creation issues
-# This tests the lowest level dependency that's causing the collision mapper tests to fail
+extends GdUnitTestSuite
 
 # Constants
 const TEST_TILE_SIZE := Vector2(16, 16)

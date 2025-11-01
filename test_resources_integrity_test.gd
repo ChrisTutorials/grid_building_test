@@ -11,7 +11,6 @@
 
 extends GdUnitTestSuite
 
-const TEST_ROOT: String = GBTestConstants.TEST_PATH_TEST
 const PLUGIN_ROOT: String = "res://addons/grid_building/"
 
 # Allowed dependency prefixes for test resources
@@ -35,11 +34,11 @@ const PORTABLE_ALLOWED_DEPENDENCIES: Array[String] = [
 
 ## Validates that test resources don't depend on external folders like templates or demos.
 func test_no_test_resources_depend_on_templates_or_demos() -> void:
-	var test_files: Array[String] = _list_test_files(TEST_ROOT)
+	var test_files: Array[String] = _list_test_files(GBTestConstants.TEST_PATH_TEST)
 
 	(
 		assert_int(test_files.size()) \
-		. append_failure_message("No test files found under %s" % TEST_ROOT) \
+		. append_failure_message("No test files found under %s" % GBTestConstants.TEST_PATH_TEST) \
 		. is_greater(0)
 	)
 
@@ -80,11 +79,11 @@ func test_no_test_resources_depend_on_templates_or_demos() -> void:
 
 ## Validates that all test scenes can be instantiated without errors.
 func test_all_test_scenes_instantiate_without_errors() -> void:
-	var scene_files: Array[String] = _list_files_by_extension(TEST_ROOT, ".tscn")
+	var scene_files: Array[String] = _list_files_by_extension(GBTestConstants.TEST_PATH_TEST, ".tscn")
 
 	(
 		assert_int(scene_files.size()) \
-		. append_failure_message("No .tscn files found under %s" % TEST_ROOT) \
+		. append_failure_message("No .tscn files found under %s" % GBTestConstants.TEST_PATH_TEST) \
 		. is_greater(0)
 	)
 
@@ -117,11 +116,11 @@ func test_all_test_scenes_instantiate_without_errors() -> void:
 
 ## Validates that all test resources can be loaded successfully.
 func test_all_test_resources_load_successfully() -> void:
-	var resource_files: Array[String] = _list_files_by_extension(TEST_ROOT, ".tres")
+	var resource_files: Array[String] = _list_files_by_extension(GBTestConstants.TEST_PATH_TEST, ".tres")
 
 	(
 		assert_int(resource_files.size()) \
-		. append_failure_message("No .tres files found under %s" % TEST_ROOT) \
+		. append_failure_message("No .tres files found under %s" % GBTestConstants.TEST_PATH_TEST) \
 		. is_greater(0)
 	)
 
@@ -147,7 +146,7 @@ func test_all_test_resources_load_successfully() -> void:
 ## Validates that the test folder is portable and only depends on allowed folders.
 func test_test_folder_is_portable() -> void:
 	# Verify test folder only needs plugin to function
-	var all_files: Array[String] = _list_test_files(TEST_ROOT)
+	var all_files: Array[String] = _list_test_files(GBTestConstants.TEST_PATH_TEST)
 
 	var external_deps: Dictionary[String, Array] = {}  # Path -> Array of external deps
 

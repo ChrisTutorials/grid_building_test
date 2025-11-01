@@ -4,9 +4,6 @@
 extends GdUnitTestSuite
 
 # Use constants from GBTestConstants for consistency
-const TILE_SIZE: Vector2 = GBTestConstants.DEFAULT_TILE_SIZE
-const DEFAULT_POSITION: Vector2 = GBTestConstants.DEFAULT_POSITION
-const ORIGIN_POSITION: Vector2 = GBTestConstants.OFF_GRID
 const ORIGIN_TILE: Vector2i = Vector2i(0, 0)
 
 var _env : BuildingTestEnvironment
@@ -54,7 +51,7 @@ func create_collision_object_at(position: Vector2) -> StaticBody2D:
 	var collision_shape: CollisionShape2D = CollisionShape2D.new()
 	auto_free(collision_shape)
 	var shape: RectangleShape2D = RectangleShape2D.new()
-	shape.size = TILE_SIZE
+	shape.size = GBTestConstants.DEFAULT_TILE_SIZE
 	collision_shape.shape = shape
 	collision_object.add_child(collision_shape)
 	collision_object.global_position = position
@@ -179,7 +176,7 @@ func test_indicator_rule_assignment_during_creation() -> void:
 	# Create indicator using DRY pattern with proper collision shape
 	var indicator: RuleCheckIndicator = RuleCheckIndicator.new()
 	var _rect_shape2 := RectangleShape2D.new()
-	_rect_shape2.size = TILE_SIZE
+	_rect_shape2.size = GBTestConstants.DEFAULT_TILE_SIZE
 	indicator.shape = _rect_shape2
 	indicator.target_position = Vector2.ZERO  # Set for proper test alignment
 	indicator.collision_mask = 1
@@ -221,7 +218,7 @@ func test_indicator_rule_validation() -> void:
 	var indicator: RuleCheckIndicator = RuleCheckIndicator.new()
 	# Assign a rectangle shape sized to one tile so collisions are detected correctly
 	var _rect_shape := RectangleShape2D.new()
-	_rect_shape.size = TILE_SIZE
+	_rect_shape.size = GBTestConstants.DEFAULT_TILE_SIZE
 	indicator.shape = _rect_shape
 	indicator.target_position = Vector2.ZERO  # Set for proper test alignment
 	# Ensure indicator queries the default collision layer used by test objects
@@ -233,14 +230,14 @@ func test_indicator_rule_validation() -> void:
 	indicator.add_rule(collision_rule)
 
 	# Position indicator at a location with no collisions
-	indicator.global_position = DEFAULT_POSITION
+	indicator.global_position = GBTestConstants.DEFAULT_POSITION
 
 	indicator.force_shapecast_update()
 
 	assert_bool(indicator.valid).append_failure_message("Indicator should be valid when no collision object is present").is_true()
 
 	# Now create a collision object at the same position using DRY pattern
-	var _collision_object: StaticBody2D = create_collision_object_at(DEFAULT_POSITION)
+	var _collision_object: StaticBody2D = create_collision_object_at(GBTestConstants.DEFAULT_POSITION)
 
 	var valid := indicator.force_validity_evaluation()
 

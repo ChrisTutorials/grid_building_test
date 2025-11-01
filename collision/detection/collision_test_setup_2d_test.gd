@@ -1,7 +1,8 @@
-# GdUnit generated TestSuite
-# TestSuite for CollisionTestSetup2D class functionality
-# Tests the _adjust_rect_to_testing_size method to ensure collision rectangles
-# are properly adjusted for testing scenarios with expected size increases
+## Tests for CollisionTestSetup2D class functionality.
+##
+## Tests the _adjust_rect_to_testing_size method to ensure collision rectangles
+## are properly adjusted for testing scenarios with expected size increases.
+
 extends GdUnitTestSuite
 @warning_ignore("unused_parameter")
 @warning_ignore("return_value_discarded")
