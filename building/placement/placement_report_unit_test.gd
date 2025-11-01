@@ -111,12 +111,10 @@ func test_placement_report_aggregates_indicator_and_primary_issues() -> void:
 
 
 ## Tests ValidationResults storage of both configuration errors and validation issues.
+##
+## Validates that ValidationResults properly exposes both configuration errors
+## and rule validation failures as separate categories.
 func test_validation_results_stores_both_errors_and_issues() -> void:
-	# Test: ValidationResults should expose both configuration errors and rule validation failures
-	# Setup: Create ValidationResults with both error types
-	# Act: Call get_errors() and get_issues()
-	# Assert: Both types of problems are captured separately
-
 	var validation_results := ValidationResults.new(false, "", {})
 
 	# Add configuration error
@@ -163,12 +161,10 @@ func test_validation_results_stores_both_errors_and_issues() -> void:
 
 
 ## Tests PlacementReport comprehensive collection of both error types from ValidationResults.
+##
+## Validates that PlacementReport collects both configuration errors and rule validation
+## failures from ValidationResults into a comprehensive issue list.
 func test_placement_report_collects_validation_results_comprehensively() -> void:
-	# Test: PlacementReport should collect issues from ValidationResults.get_errors() AND get_issues()
-	# Setup: ValidationResults with both configuration errors and rule validation failures
-	# Act: Create PlacementReport and check collected issues
-	# Assert: Both error types appear in PlacementReport.get_issues()
-
 	var validation_results := ValidationResults.new(false, "", {})
 
 	# Add configuration error

@@ -54,13 +54,11 @@ func before_test() -> void:
 	# Ensure test-friendly targeting settings (no auto snapping/restriction side-effects)
 	_apply_test_targeting_settings()
 
-	# Ensure any existing placement rules are configured with the test targeting state
-	# Prefer configuring the rule provided by the composition container (single source-of-truth)
-	# instead of creating a duplicate. Call `setup()` so the rules receive the GridTargetingState
-	# and are bound to the correct `TileMapLayer` used by the test environment.
+	## Sets up placement rules with test targeting state for validation.
+	## Configures rules with GridTargetingState and TileMapLayer used by test environment.
+	## Expected: Collisions Check Rule + Within Tilemaps Bound Rule (2 rules total).
 	var placement_rules: Array[PlacementRule] = _container.get_placement_rules()
 
-	## Collisions Check Rule + Within Tilemaps Bound Rule
 	(
 		assert_int(placement_rules.size()) \
 		. append_failure_message(
@@ -252,12 +250,11 @@ func test_pre_validation_is_successful_for_rect4x2_start_tile() -> void:
 
 	_enter_build_mode_for_placeable(placeable)
 
-	# Guard: Some runtime flows may recenter/snap the positioner on entering build mode
-	# (e.g., via input). For this unit test we explicitly restore the positioner to the intended
-	# start tile before validating.
+	## Ensures positioner is at start_tile before validation.
+	## Runtime flows may recenter/snap positioner on entering build mode, so we explicitly
+	## restore it to intended start tile and verify position before proceeding with test.
 	_move_positioner_to_tile(start_tile)
 
-	# DEBUG: Check positioner position after build mode
 	var positioner_tile_after: Vector2i = _map.local_to_map(
 		_map.to_local(_positioner.global_position)
 	)

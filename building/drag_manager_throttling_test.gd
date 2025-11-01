@@ -160,11 +160,10 @@ func test_single_request_on_tile_change() -> void:
 
 
 ## Tests that physics frame gate blocks multiple requests within the same frame.
+##
+## Validates that _last_signal_physics_frame gate only allows one request through
+## even when tile changes are triggered multiple times in the same frame.
 func test_physics_frame_gate_blocks_multiple_requests_same_frame() -> void:
-	# This tests the _last_signal_physics_frame gate
-	# Even if we artificially trigger tile changes multiple times in same frame,
-	# only ONE request should go through
-
 	var drag_data: DragPathData = _drag_manager.start_drag()
 	var initial_requests: int = drag_data.build_requests
 
@@ -341,14 +340,10 @@ func test_no_requests_when_no_preview() -> void:
 
 
 ## Tests that build_requests counter only increments when all gating conditions are met.
+##
+## Verifies build_requests increments only when: (1) tile changed, (2) physics frame gate
+## passed, (3) not duplicate tile, (4) in BUILD mode, (5) preview exists.
 func test_build_requests_counts_only_successful_gate_passes() -> void:
-	# This verifies that build_requests ONLY increments when ALL conditions are met:
-	# 1. Tile changed
-	# 2. Physics frame gate passed
-	# 3. Not duplicate tile
-	# 4. In BUILD mode
-	# 5. Preview exists
-
 	var drag_data: DragPathData = _drag_manager.start_drag()
 	(
 		assert_int(drag_data.build_requests) \

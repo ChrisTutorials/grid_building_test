@@ -305,13 +305,14 @@ func test_guard_returns_empty_without_setup() -> void:
 	)
 
 
+## Tests basic collision detection with simple geometric setup.
 func test_basic_collision_detection() -> void:
 	var gts := _create_minimal_targeting_state()
 
 	var mapper := CollisionMapper.new(gts, _logger)
 
-	# Note: Don't add gts.target_map to scene tree - it's managed by auto_free from factory
-	# The mapper uses the targeting state for coordinate transformations, not scene tree presence
+	# Don't add gts.target_map to scene tree - it's managed by auto_free from factory
+	# The mapper uses targeting state for coordinate transformations, not scene tree presence
 
 	# Create collision object at origin with a shape that should definitely overlap
 	var body := StaticBody2D.new()
@@ -345,11 +346,13 @@ func test_basic_collision_detection() -> void:
 	(
 		assert_that(mapper.test_setups) \
 		. append_failure_message("Collision setups should be initialized") \
-	. is_not_null()
-)
-assert_that(_get_test_setup_for_body(mapper, body)).append_failure_message(
-	"Setup should contain the body"
-).is_not_null()
+		. is_not_null()
+	)
+	(
+		assert_that(_get_test_setup_for_body(mapper, body)) \
+		. append_failure_message("Setup should contain the body") \
+		. is_not_null()
+	)
 
 # Test the test_setup validation
 (
@@ -538,10 +541,11 @@ func test_collision_layer_matching_for_tile_check_rules() -> void:
 	assert_that(result.size()).append_failure_message(failure_msg).is_greater(0)
 
 
-# Test catches: CollisionMapper failing to produce position-rules mapping for valid setup
-# EXPECTED FAILURE: Catches real issue where position-rules mapping fails despite valid setup
-# This test failure indicates the collision mapping system has issues that would cause
-# integration tests to show "0 indicators generated" despite valid collision objects
+## Tests that CollisionMapper produces position-rules mapping for valid setup.
+##
+## Catches real issue where position-rules mapping fails despite valid setup.
+## This test failure indicates the collision mapping system has issues that would cause
+## integration tests to show "0 indicators generated" despite valid collision objects.
 func test_position_rules_mapping_produces_results() -> void:
 	var gts := _create_minimal_targeting_state()
 
@@ -721,9 +725,10 @@ func test_position_rules_mapping_produces_results() -> void:
 	assert_that(position_rules_map.size()).append_failure_message(failure_msg).is_greater(0)
 
 
-# FOCUSED DEBUG TEST: Trapezoid CollisionMapper Setup Issues
-# Testing the exact trapezoid shape from simple_trapezoid.tscn to debug why only 11 of 13 indicators generate
-# Coordinates: PackedVector2Array(-32, 12, -16, -12, 17, -12, 32, 12)
+## Debug test for trapezoid CollisionMapper setup issues.
+##
+## Tests the exact trapezoid shape from simple_trapezoid.tscn to debug why only
+## 11 of 13 indicators generate. Coordinates: PackedVector2Array(-32, 12, -16, -12, 17, -12, 32, 12)
 func test_trapezoid_collision_mapper_setup_debug() -> void:
 	# Arrange: Create trapezoid shape matching simple_trapezoid.tscn
 	var body: StaticBody2D = StaticBody2D.new()
@@ -840,13 +845,10 @@ func test_trapezoid_collision_mapper_setup_debug() -> void:
 		. is_greater(0)
 	)
 
-	# Final Debug: If we reach here but integration tests fail, the issue is likely in the
-	# indicator generation pipeline after CollisionMapper, not in CollisionMapper setup itself
-
-
-# UNIT TEST TO REPRODUCE INTEGRATION FAILURE: Rectangle collision coverage
-# This reproduces the issue from test_large_rectangle_generates_full_grid_of_indicators
-# Expected: 48x64 pixel rectangle (3x4 tiles) should produce 12 tiles, actual was 4
+	## Tests that rectangle collision coverage produces the correct tile count.
+	## Reproduces issue: 48x64 pixel rectangle (3x4 tiles) should produce 12 tiles.
+	## If this passes but integration tests fail, issue is in indicator generation pipeline,
+	## not in CollisionMapper setup.
 func test_rectangle_collision_coverage_48x64_pixels() -> void:
 	var state: GridTargetingState = _create_minimal_targeting_state()
 	var mapper: CollisionMapper = CollisionMapper.new(state, _logger)
