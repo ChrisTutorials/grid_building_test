@@ -298,11 +298,9 @@ func test_guard_returns_empty_without_setup() -> void:
 	)
 	var rule := TileCheckRule.new()
 	var result := mapper.map_collision_positions_to_rules([poly], [rule])
-	(
-		assert_that(result.size()) \
-		. append_failure_message("Expected empty mapping when mapper.setup() not called") \
-		. is_equal(0)
-	)
+	assert_that(result.size()).append_failure_message(
+		"Expected empty mapping when mapper.setup() not called"
+	).is_equal(0)
 
 
 ## Tests basic collision detection with simple geometric setup.
@@ -390,17 +388,13 @@ func test_collision_layer_matching_for_tile_check_rules() -> void:
 
 	# Verify collision object setup
 	var shape_owner_count: int = body.get_shape_owners().size()
-	(
-		assert_that(shape_owner_count) \
-		. append_failure_message("Collision object must have shape owners for collision detection") \
-		. is_greater(0)
-	)
+	assert_that(shape_owner_count).append_failure_message(
+		"Collision object must have shape owners for collision detection"
+	).is_greater(0)
 
-	(
-		assert_that(body.collision_layer) \
-		. append_failure_message("Collision layer must be set to 513 for this test") \
-		. is_equal(513)
-	)
+	assert_that(body.collision_layer).append_failure_message(
+		"Collision layer must be set to 513 for this test"
+	).is_equal(513)
 
 	# Create testing indicator and setup mapper
 	var test_indicator: RuleCheckIndicator = indicator_template.instantiate() as RuleCheckIndicator
@@ -408,11 +402,9 @@ func test_collision_layer_matching_for_tile_check_rules() -> void:
 
 	# Create test setup and validate it
 	var test_setup := CollisionTestSetup2D.new(body, Vector2(16, 16))
-	(
-		assert_that(test_setup.validate_setup()) \
-		. append_failure_message(_generate_test_setup_diagnostics(test_setup)) \
-		. is_true()
-	)
+	assert_that(test_setup.validate_setup()).append_failure_message(
+		_generate_test_setup_diagnostics(test_setup)
+	).is_true()
 
 	var setups: Array[CollisionTestSetup2D] = [test_setup]
 	mapper.setup(test_indicator, setups)
@@ -421,41 +413,32 @@ func test_collision_layer_matching_for_tile_check_rules() -> void:
 	var rule := TileCheckRule.new()
 	rule.apply_to_objects_mask = 1  # bit 0 should match with layer bit 0
 
-	(
-		assert_that(rule.apply_to_objects_mask) \
-		. append_failure_message("Rule mask must be 1 for this test") \
-		. is_equal(1)
-	)
+	assert_that(rule.apply_to_objects_mask).append_failure_message(
+		"Rule mask must be 1 for this test"
+	).is_equal(1)
 
 	# Verify layer and mask compatibility
 	var layer_matches_mask: bool = (body.collision_layer & rule.apply_to_objects_mask) != 0
-	(
-		assert_that(layer_matches_mask) \
-		. append_failure_message(_generate_layer_mask_diagnostics(body, rule.apply_to_objects_mask)) \
-		. is_true()
-	)
+	assert_that(layer_matches_mask).append_failure_message(
+		_generate_layer_mask_diagnostics(body, rule.apply_to_objects_mask)
+	).is_true()
 
 	# Verify mapper setup is complete
-	(
-		assert_that(mapper.test_indicator) \
-		. append_failure_message("Mapper test indicator must be set after setup") \
-		. is_not_null()
-	)
-	(
-		assert_that(mapper.test_setups) \
-		. append_failure_message("Mapper collision setups must be initialized") \
-		. is_not_null()
-	)
-	(
-		assert_that(mapper.test_setups.is_empty()) \
-		. append_failure_message("Mapper collision setups must not be empty") \
-		. is_false()
-	)
-	(
-		assert_that(_get_test_setup_for_body(mapper, body)) \
-		. append_failure_message("Mapper must have setup for the collision body") \
-		. is_not_null()
-	)
+	assert_that(mapper.test_indicator).append_failure_message(
+		"Mapper test indicator must be set after setup"
+	).is_not_null()
+
+	assert_that(mapper.test_setups).append_failure_message(
+		"Mapper collision setups must be initialized"
+	).is_not_null()
+
+	assert_that(mapper.test_setups.is_empty()).append_failure_message(
+		"Mapper collision setups must not be empty"
+	).is_false()
+
+	assert_that(_get_test_setup_for_body(mapper, body)).append_failure_message(
+		"Mapper must have setup for the collision body"
+	).is_not_null()
 
 	var result := mapper.get_collision_tile_positions_with_mask([body], rule.apply_to_objects_mask)
 
@@ -570,11 +553,9 @@ func test_position_rules_mapping_produces_results() -> void:
 	)
 
 	# Verify collision layer is set correctly
-	(
-		assert_that(body.collision_layer) \
-		. append_failure_message("Collision layer should be 1") \
-		. is_equal(1)
-	)
+	assert_that(body.collision_layer).append_failure_message(
+		"Collision layer should be 1"
+	).is_equal(1)
 
 	# Setup mapper
 	var test_indicator: RuleCheckIndicator = indicator_template.instantiate() as RuleCheckIndicator
@@ -582,11 +563,9 @@ func test_position_rules_mapping_produces_results() -> void:
 
 	# Create test setup and validate it
 	var test_setup := CollisionTestSetup2D.new(body, Vector2(16, 16))
-	(
-		assert_that(test_setup.validate_setup()) \
-		. append_failure_message("Test setup should be valid") \
-		. is_true()
-	)
+	assert_that(test_setup.validate_setup()).append_failure_message(
+		"Test setup should be valid"
+	).is_true()
 
 	var setups: Array[CollisionTestSetup2D] = [test_setup]
 	mapper.setup(test_indicator, setups)
@@ -596,22 +575,15 @@ func test_position_rules_mapping_produces_results() -> void:
 	rule.apply_to_objects_mask = 1  # bit 0
 
 	# Verify rule mask matches collision layer
-	(
-		assert_that(rule.apply_to_objects_mask) \
-		. append_failure_message("Rule mask should be 1") \
-		. is_equal(1)
-	)
+	assert_that(rule.apply_to_objects_mask).append_failure_message(
+		"Rule mask should be 1"
+	).is_equal(1)
+
 	var layer_matches: bool = (body.collision_layer & rule.apply_to_objects_mask) != 0
-	(
-		assert_bool(layer_matches) \
-		. append_failure_message(
-			(
-				"Layer %d should match mask %d (bitwise AND should be non-zero)"
-				% [body.collision_layer, rule.apply_to_objects_mask]
-			)
-		) \
-		. is_true()
-	)
+	assert_bool(layer_matches).append_failure_message(
+		"Layer %d should match mask %d (bitwise AND should be non-zero)"
+		% [body.collision_layer, rule.apply_to_objects_mask]
+	).is_true()
 
 	var position_rules_map := mapper.map_collision_positions_to_rules([body], [rule])
 
