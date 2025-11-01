@@ -868,24 +868,12 @@ func test_rectangle_collision_coverage_48x64_pixels() -> void:
 		if actual_tile not in expected_tiles:
 			extra_tiles.append(actual_tile)
 
-	(
-		assert_array(missing_tiles) \
-		. append_failure_message(
-			(
-				"Missing tiles from 4×4 grid collision coverage. Expected: %s, Actual: %s, Missing: %s, Extra: %s"
-				% [str(expected_tiles), str(tile_positions), str(missing_tiles), str(extra_tiles)]
-			)
-		) \
-		. is_empty()
-	)
+	assert_array(missing_tiles).append_failure_message(
+		"Missing tiles from 4×4 grid collision coverage. Expected: %s, Actual: %s, Missing: %s, Extra: %s"
+		% [str(expected_tiles), str(tile_positions), str(missing_tiles), str(extra_tiles)]
+	).is_empty()
 
-	(
-		assert_array(extra_tiles) \
-		. append_failure_message(
-			(
-				"Extra tiles found beyond expected 4×4 grid. Expected: %s, Actual: %s, Extra: %s"
-				% [str(expected_tiles), str(tile_positions), str(extra_tiles)]
-			)
-		) \
-		. is_empty()
-	)
+	assert_array(extra_tiles).append_failure_message(
+		"Extra tiles found beyond expected 4×4 grid. Expected: %s, Actual: %s, Extra: %s"
+		% [str(expected_tiles), str(tile_positions), str(extra_tiles)]
+	).is_empty()
