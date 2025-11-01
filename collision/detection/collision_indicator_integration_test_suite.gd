@@ -55,7 +55,7 @@ func test_collision_mapper_basic_functionality() -> void:
 	)
 
 	# Create a collision object using premade scene
-	var test_scene: PackedScene = GBTestConstants.RECT_15_TILES_PATH
+	var test_scene: PackedScene = GBTestConstants.SCENE_RECT_15_TILES
 	assert_that(test_scene).is_not_null().append_failure_message(
 		"Test rectangle scene must load successfully"
 	)
@@ -416,7 +416,7 @@ func test_systems_integration_environment_validation() -> void:
 	assert_that(test_hierarchy.manipulation_parent is Node2D).is_true()
 
 	# Test integration: collision mapper should work with the environment
-	var test_scene: PackedScene = GBTestConstants.RECT_15_TILES_PATH
+	var test_scene: PackedScene = GBTestConstants.SCENE_RECT_15_TILES
 	var test_static_body: Node2D = test_scene.instantiate()
 	test_hierarchy.positioner.add_child(test_static_body)
 	auto_free(test_static_body)
@@ -456,7 +456,7 @@ func test_systems_environment_consolidation_validation() -> void:
 	# This validates the consolidation benefit of AllSystemsTestEnvironment
 
 	# Create test object using premade scene
-	var test_scene: PackedScene = GBTestConstants.RECT_15_TILES_PATH
+	var test_scene: PackedScene = GBTestConstants.SCENE_RECT_15_TILES
 	var test_static_body: Node2D = test_scene.instantiate()
 	test_hierarchy.positioner.add_child(test_static_body)
 	auto_free(test_static_body)

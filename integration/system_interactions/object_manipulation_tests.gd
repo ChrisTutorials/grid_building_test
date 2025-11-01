@@ -5,7 +5,7 @@ extends GdUnitTestSuite
 ## Uses placement system environment for comprehensive setup
 
 ## Isometric game RuleCheckIndicator (centralized)
-var RCI_ISOMETRIC: PackedScene = GBTestConstants.TEST_INDICATOR_ISOMETRIC
+var RCI_ISOMETRIC: PackedScene = GBTestConstants.INDICATOR_ISOMETRIC
 
 ## Top-down sidescroller square shape RuleCheckIndicator (centralized)
 var RCI_TD_SIDE: PackedScene = GBTestConstants.TEST_INDICATOR_TD_PLATFORMER
