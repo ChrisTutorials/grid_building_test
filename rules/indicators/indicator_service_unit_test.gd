@@ -25,6 +25,7 @@ const HALF_TILE_SIZE: float = GBTestConstants.DEFAULT_TILE_SIZE.x * 0.5
 #endregion
 
 #region Test State
+var runner: GdUnitSceneRunner
 var _logger: GBLogger
 var _test_env: AllSystemsTestEnvironment
 var _service: IndicatorService
@@ -41,7 +42,9 @@ func after_test() -> void:
 
 #region Test Setup Helpers
 func _setup_test_environment() -> void:
-	_test_env = scene_runner(GBTestConstants.ALL_SYSTEMS_ENV.resource_path).scene()
+	runner = scene_runner(GBTestConstants.ALL_SYSTEMS_ENV.resource_path)
+	runner.simulate_frames(1)  # Initialize scene synchronously
+	_test_env = runner.scene() as AllSystemsTestEnvironment
 	add_child(_test_env)
 	auto_free(_test_env)
 
@@ -400,7 +403,7 @@ func test_testing_indicator_freed_after_setup() -> void:
 	assert_that(report.issues).append_failure_message("Expected no setup issues but got: %s" % str(report.issues)).is_empty()
 
 	# Give some time for cleanup operations
-	await get_tree().process_frame
+	runner.simulate_frames(1)  # Synchronous frame simulation replaces await
 
 	# The testing indicator should be freed after setup to prevent memory leaks
 	# IndicatorSetupUtils calls queue_free() on the testing indicator after use
@@ -463,8 +466,7 @@ func test_rule_check_indicator_validity_timing_with_no_rules() -> void:
 	).is_true()
 
 	# After tree entry and frame processing
-	await get_tree().process_frame
-	await get_tree().physics_frame
+	runner.simulate_frames(2)  # Synchronous frame simulation replaces await get_tree().process_frame; await get_tree().physics_frame
 
 	# Should still be valid after processing since no rules to evaluate
 	assert_bool(indicator.valid).append_failure_message(
@@ -489,13 +491,13 @@ func test_rule_check_indicator_validity_timing_with_rules() -> void:
 	# Position indicator at a valid location (center of test environment)
 	indicator.global_position = Vector2(0, 0)
 
-	await get_tree().process_frame
+	runner.simulate_frames(1)  # Synchronous frame simulation replaces await
 
 	# Add rule to indicator
 	indicator.add_rule(bounds_rule)
 
 	# Force evaluation since add_rule should trigger validation when inside tree
-	await get_tree().physics_frame
+	runner.simulate_frames(1)  # Synchronous frame simulation replaces await
 
 	var diagnostics: String = _generate_indicator_validity_diagnostics(indicator, bounds_rule)
 
@@ -524,7 +526,7 @@ func test_rule_check_indicator_force_validity_evaluation() -> void:
 	indicator.global_position = Vector2(1000, 1000)
 	indicator.add_rule(bounds_rule)
 
-	await get_tree().process_frame
+	runner.simulate_frames(1)  # Synchronous frame simulation replaces await
 
 	# Force evaluation - should be invalid
 	indicator.force_validity_evaluation()
@@ -567,13 +569,13 @@ func test_rule_check_indicator_reproduces_bounds_rule_failure() -> void:
 	bounds_rule.setup(_test_env.grid_targeting_system.get_state())
 	auto_free(bounds_rule)
 
-	await get_tree().process_frame
+	runner.simulate_frames(1)  # Synchronous frame simulation replaces await
 
 	# Add rule after positioning (like our unit test does)
 	indicator.add_rule(bounds_rule)
 
 	# Allow physics processing like our failing test
-	await get_tree().physics_frame
+	runner.simulate_frames(1)  # Synchronous frame simulation replaces await
 
 	# Force evaluation to ensure timing isn't the issue
 	indicator.force_validity_evaluation()
