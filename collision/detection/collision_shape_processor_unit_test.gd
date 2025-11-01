@@ -55,65 +55,49 @@ func test_collision_shape_processor_null_dependencies() -> void:
 		pass
 
 
-# Test catches: CollisionShapeProcessor tile offset calculation for basic rectangle
-# Note: This test focuses on initialization and basic validation since the processor
-# requires complex test setup infrastructure that may not be available
+## Tests CollisionShapeProcessor initialization and basic validation.
+##
+## Verifies processor initializes correctly with required dependencies.
+## Note: Full processor testing requires complex CollisionTestSetup2D infrastructure.
 func test_collision_shape_processor_basic_rectangle() -> void:
-	# Test that processor initializes correctly
-	(
-		assert_that(_processor != null) \
-		. append_failure_message("CollisionShapeProcessor should initialize successfully") \
-		. is_true()
-	)
+	assert_that(_processor != null).append_failure_message(
+		"CollisionShapeProcessor should initialize successfully"
+	).is_true()
 
-	# Test that processor has required dependencies
-	(
-		assert_that(_cache_manager != null) \
-		. append_failure_message("GeometryCacheManager should be available") \
-		. is_true()
-	)
+	assert_that(_cache_manager != null).append_failure_message(
+		"GeometryCacheManager should be available"
+	).is_true()
 
-	# Since the processor requires CollisionTestSetup2D which doesn't exist,
-	# we focus on testing that the processor can be created and has valid dependencies
-	# This catches initialization failures that would prevent the processor from working
+	## Validates processor can be created with valid dependencies.
+	## Full testing deferred due to CollisionTestSetup2D infrastructure requirements.
 
 
 # Test catches: CollisionShapeProcessor handling invalid tile map
 func test_collision_shape_processor_invalid_tile_map() -> void:
 	var processor: CollisionShapeProcessor = CollisionShapeProcessor.new(_cache_manager)
 
-	# Test that processor can handle basic validation
-	(
-		assert_that(processor != null) \
-		. append_failure_message("CollisionShapeProcessor should initialize successfully") \
-		. is_true()
-	)
+	assert_that(processor != null).append_failure_message(
+		"CollisionShapeProcessor should initialize successfully"
+	).is_true()
 
-	# Since the processor requires complex setup, we test that it can be created
-	# with valid dependencies, which catches basic initialization issues
+	## Tests processor with mock tile map to catch initialization issues.
 	var test_map: TileMapLayer = auto_free(TileMapLayer.new())
-	(
-		assert_that(test_map != null) \
-		. append_failure_message("Should be able to create mock tile map") \
-		. is_true()
-	)
+	assert_that(test_map != null).append_failure_message(
+		"Should be able to create mock tile map"
+	).is_true()
 
 
 # Test catches: CollisionShapeProcessor handling null positioner
 func test_collision_shape_processor_null_positioner() -> void:
 	var processor: CollisionShapeProcessor = CollisionShapeProcessor.new(_cache_manager)
 
-	# Test that processor can be created and has valid dependencies
-	(
-		assert_that(processor != null) \
-		. append_failure_message("CollisionShapeProcessor should initialize successfully") \
-		. is_true()
-	)
-	(
-		assert_that(_cache_manager != null) \
-		. append_failure_message("Should have valid cache manager") \
-		. is_true()
-	)
+	assert_that(processor != null).append_failure_message(
+		"CollisionShapeProcessor should initialize successfully"
+	).is_true()
+
+	assert_that(_cache_manager != null).append_failure_message(
+		"Should have valid cache manager"
+	).is_true()
 
 	# Since the processor requires complex setup, we focus on testing the basic
 	# initialization that would be needed for any collision processing
