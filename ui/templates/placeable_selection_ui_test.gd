@@ -27,9 +27,14 @@ var test_building_system: BuildingSystem
 var test_placeables: Array[Placeable] = []
 var test_sequences: Array[PlaceableSequence] = []
 var test_category_tags: Array[CategoricalTag] = []
+var runner: GdUnitSceneRunner
 
 
 func before_test() -> void:
+	# Initialize scene runner for synchronous frame simulation
+	runner = scene_runner(GBTestConstants.ALL_SYSTEMS_ENV.resource_path)
+	runner.simulate_frames(1)
+
 	# Create test UI component with auto_free
 	selection_ui = auto_free(PlaceableSelectionUI.new())
 
@@ -51,7 +56,7 @@ func before_test() -> void:
 	selection_ui.tab_container = tab_container
 
 	add_child(selection_ui)
-	await get_tree().process_frame
+	runner.simulate_frames(1)  # Synchronous frame simulation replaces await
 
 	# Create test dependency container using tested composition container
 	test_container = auto_free(GBTestConstants.TEST_COMPOSITION_CONTAINER.duplicate(true))
@@ -94,7 +99,7 @@ func test_mixed_content_initialization() -> void:
 	# Act: Initialize dependencies and rebuild UI
 	selection_ui.resolve_gb_dependencies(test_container)
 	selection_ui.rebuild()
-	await get_tree().process_frame
+	runner.simulate_frames(1)  # Synchronous frame simulation replaces await
 
 	# Assert: UI correctly configured for mixed content
 	var tab_container: TabContainer = selection_ui.tab_container
@@ -124,7 +129,7 @@ func test_mixed_grid_structure_creation() -> void:
 	# Act: Rebuild UI with mixed content
 	selection_ui.resolve_gb_dependencies(test_container)
 	selection_ui.rebuild()
-	await get_tree().process_frame
+	runner.simulate_frames(1)  # Synchronous frame simulation replaces await
 
 	# Assert: Grid structure accommodates both content types
 	var tab_container: TabContainer = selection_ui.tab_container
@@ -186,7 +191,7 @@ func test_sequences_mixed_content_functionality() -> void:
 	# Act: Initialize and rebuild
 	selection_ui.resolve_gb_dependencies(test_container)
 	selection_ui.rebuild()
-	await get_tree().process_frame
+	runner.simulate_frames(1)  # Synchronous frame simulation replaces await
 
 	# Assert: UI configured for sequences within mixed content
 	var tab_container: TabContainer = selection_ui.tab_container
@@ -221,7 +226,7 @@ func test_sequences_grid_structure_with_variant_cycling() -> void:
 	# Act: Initialize and rebuild
 	selection_ui.resolve_gb_dependencies(test_container)
 	selection_ui.rebuild()
-	await get_tree().process_frame
+	runner.simulate_frames(1)  # Synchronous frame simulation replaces await
 
 	# Assert: Verify sequence grid structure
 	var tab_container: TabContainer = selection_ui.tab_container
@@ -364,7 +369,7 @@ func test_content_loading_and_validation() -> void:
 	# Act: Load and validate content
 	selection_ui.resolve_gb_dependencies(test_container)
 	selection_ui.rebuild()
-	await get_tree().process_frame
+	runner.simulate_frames(1)  # Synchronous frame simulation replaces await
 
 	# Assert: Valid content loaded properly
 	(
@@ -404,7 +409,7 @@ func test_null_placeable_validation_handling() -> void:
 	# Act: Load content - this will generate validation errors for null entries
 	selection_ui.resolve_gb_dependencies(test_container)
 	selection_ui.rebuild()
-	await get_tree().process_frame
+	runner.simulate_frames(1)  # Synchronous frame simulation replaces await
 
 	# Assert: UI still functions despite validation errors
 	var tab_container: TabContainer = selection_ui.tab_container
