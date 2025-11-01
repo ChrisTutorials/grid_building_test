@@ -27,6 +27,8 @@ extends GdUnitTestSuite
 ## - ISOMETRIC_TEST uses different dimensions due to isometric tile requirements
 ## - Provides margins for drag-building tests and collision separation
 
+var runner: GdUnitSceneRunner
+
 
 func test_environment_scene_loading() -> void:
 	# Test that GBTestConstants can load each environment type
@@ -247,7 +249,8 @@ func test_isometric_environment_tilemap_dimensions() -> void:
 		. is_not_null()
 	)
 	add_child(env)
-	await get_tree().process_frame  # Let the environment initialize
+	runner = scene_runner(GBTestConstants.ALL_SYSTEMS_ENV.resource_path)
+	runner.simulate_frames(1)  # Let the environment initialize synchronously
 
 	# Verify tilemap layer exists
 	(
