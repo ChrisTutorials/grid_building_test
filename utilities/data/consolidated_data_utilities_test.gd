@@ -42,8 +42,7 @@ func _assert_object_initializes(obj: Object) -> void:
 
 
 func _make_test_logger_with_settings(p_settings: GBDebugSettings) -> GBLogger:
-	var LoggerScript := preload("res://addons/grid_building/logging/gb_logger.gd")
-	var logger: GBLogger = LoggerScript.new(p_settings)
+	var logger: GBLogger = GBLogger.new(p_settings)
 	return logger
 
 
@@ -173,8 +172,7 @@ func test_building_node_get_display_name(
 func test_debug_setting_float_and_color_are_read() -> void:
 	"""Test: RuleCheckIndicator reads values from GBDebugSettings"""
 	# Create a GBDebugSettings resource with known values
-	var SettingsScript := preload("res://addons/grid_building/debug/gb_debug_settings.gd")
-	var settings: GBDebugSettings = SettingsScript.new()
+	var settings: GBDebugSettings = GBDebugSettings.new()
 	settings.indicator_collision_point_min_radius = 7.5
 	settings.indicator_connection_line_scale = 0.33
 	settings.indicator_connection_line_color = Color(0.1, 0.2, 0.3, 1.0)

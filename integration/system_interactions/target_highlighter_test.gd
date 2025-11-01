@@ -42,8 +42,7 @@ func create_test_preview_object() -> Node2D:
 
 	# Add building_node script to make it a preview object
 	var building_node: Node = auto_free(Node.new())
-	var building_node_script: Script = load("res://addons/grid_building/components/building_node.gd")
-	building_node.set_script(building_node_script)
+	building_node.set_script(GBTestConstants.BUILDING_NODE_SCRIPT)
 	preview_object.add_child(building_node)
 
 	return preview_object
