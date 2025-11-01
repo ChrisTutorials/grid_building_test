@@ -546,11 +546,9 @@ func test_position_rules_mapping_produces_results() -> void:
 
 	# Debug: Check if collision object has shape owners
 	var shape_owner_count: int = body.get_shape_owners().size()
-	(
-		assert_that(shape_owner_count) \
-		. append_failure_message("Collision object should have shape owners") \
-		. is_greater(0)
-	)
+	assert_that(shape_owner_count).append_failure_message(
+		"Collision object should have shape owners"
+	).is_greater(0)
 
 	# Verify collision layer is set correctly
 	assert_that(body.collision_layer).append_failure_message(
@@ -639,42 +637,28 @@ func test_position_rules_mapping_produces_results() -> void:
 	debug_info += "================================\n"
 
 	# Debug: Verify the result structure
-	(
-		assert_that(typeof(position_rules_map)) \
-		. append_failure_message("Position rules map should be a Dictionary") \
-		. is_equal(TYPE_DICTIONARY)
-	)
+	assert_that(typeof(position_rules_map)).append_failure_message(
+		"Position rules map should be a Dictionary"
+	).is_equal(TYPE_DICTIONARY)
 
 	# Debug: Check mapper setup state for position-rules mapping
 	var guard_complete: bool = mapper._guard_setup_complete()
-	(
-		assert_that(guard_complete) \
-		. append_failure_message("Mapper guard setup must be complete for position-rules mapping") \
-		. is_true()
-	)
+	assert_that(guard_complete).append_failure_message(
+		"Mapper guard setup must be complete for position-rules mapping"
+	).is_true()
 
 	if not guard_complete:
-		(
-			assert_that(mapper.test_indicator) \
-			. append_failure_message(
-				"Test indicator must not be null when guard setup is incomplete"
-			) \
-			. is_not_null()
-		)
-		(
-			assert_that(mapper.test_setups) \
-			. append_failure_message(
-				"Collision setups must not be null when guard setup is incomplete"
-			) \
-			. is_not_null()
-		)
-		(
-			assert_that(mapper.test_setups.is_empty()) \
-			. append_failure_message(
-				"Collision setups must not be empty when guard setup is incomplete"
-			) \
-			. is_not_true()
-		)
+		assert_that(mapper.test_indicator).append_failure_message(
+			"Test indicator must not be null when guard setup is incomplete"
+		).is_not_null()
+
+		assert_that(mapper.test_setups).append_failure_message(
+			"Collision setups must not be null when guard setup is incomplete"
+		).is_not_null()
+
+		assert_that(mapper.test_setups.is_empty()).append_failure_message(
+			"Collision setups must not be empty when guard setup is incomplete"
+		).is_not_true()
 
 	# Concise failure message with debug info
 	var failure_msg: String = (
@@ -736,46 +720,26 @@ func test_trapezoid_collision_mapper_setup_debug() -> void:
 	var setup_diagnostics: String = _generate_mapper_setup_diagnostics(mapper, body)
 
 	# Assert 1: Mapper should have non-null test indicator
-	(
-		assert_that(mapper.test_indicator) \
-		. append_failure_message(
-			(
-				"CollisionMapper should have non-null test_indicator after setup. Diagnostics:\n%s"
-				% setup_diagnostics
-			)
-		) \
-		. is_not_null()
-	)
+	assert_that(mapper.test_indicator).append_failure_message(
+		"CollisionMapper should have non-null test_indicator after setup. Diagnostics:\n%s"
+		% setup_diagnostics
+	).is_not_null()
 
 	# Assert 2: Mapper should have non-empty test setups
-	(
-		assert_that(mapper.test_setups) \
-		. append_failure_message(
-			"CollisionMapper should have non-null test_setups. Diagnostics:\n%s" % setup_diagnostics
-		) \
-		. is_not_null()
-	)
+	assert_that(mapper.test_setups).append_failure_message(
+		"CollisionMapper should have non-null test_setups. Diagnostics:\n%s" % setup_diagnostics
+	).is_not_null()
 
-	(
-		assert_that(mapper.test_setups.is_empty()) \
-		. append_failure_message(
-			"CollisionMapper test_setups should not be empty. Diagnostics:\n%s" % setup_diagnostics
-		) \
-		. is_false()
-	)
+	assert_that(mapper.test_setups.is_empty()).append_failure_message(
+		"CollisionMapper test_setups should not be empty. Diagnostics:\n%s" % setup_diagnostics
+	).is_false()
 
 	# Assert 3: Should have specific setup for our trapezoid body
 	var body_setup: CollisionTestSetup2D = _get_test_setup_for_body(mapper, body)
-	(
-		assert_that(body_setup) \
-		. append_failure_message(
-			(
-				"Should have CollisionTestSetup2D for trapezoid body. Available setups: %d. Diagnostics:\n%s"
-				% [mapper.test_setups.size(), setup_diagnostics]
-			)
-		) \
-		. is_not_null()
-	)
+	assert_that(body_setup).append_failure_message(
+		"Should have CollisionTestSetup2D for trapezoid body. Available setups: %d. Diagnostics:\n%s"
+		% [mapper.test_setups.size(), setup_diagnostics]
+	).is_not_null()
 
 	# Debug: Test collision detection with mask 1
 	var tile_check_rule: TileCheckRule = TileCheckRule.new()
@@ -795,21 +759,15 @@ func test_trapezoid_collision_mapper_setup_debug() -> void:
 	)
 
 	# Assert 4: Should find collision positions for trapezoid
-	(
-		assert_that(collision_positions.size()) \
-		. append_failure_message(
-			(
-				"Expected collision positions for trapezoid shape with mask 1. Body layer: %d, Mask: %d.\n%s\n%s"
-				% [
-					body.collision_layer,
-					tile_check_rule.apply_to_objects_mask,
-					trapezoid_diagnostics,
-					geometry_comparison
-				]
-			)
-		) \
-		. is_greater(0)
-	)
+	assert_that(collision_positions.size()).append_failure_message(
+		"Expected collision positions for trapezoid shape with mask 1. Body layer: %d, Mask: %d.\n%s\n%s"
+		% [
+			body.collision_layer,
+			tile_check_rule.apply_to_objects_mask,
+			trapezoid_diagnostics,
+			geometry_comparison
+		]
+	).is_greater(0)
 
 	## Tests that rectangle collision coverage produces the correct tile count.
 	## Reproduces issue: 48x64 pixel rectangle (3x4 tiles) should produce 12 tiles.
