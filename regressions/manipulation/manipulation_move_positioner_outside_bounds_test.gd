@@ -82,8 +82,7 @@ func test_exclusion_works_when_positioner_inside_original_bounds() -> void:
 	# GIVEN: Body is excluded (simulating manipulation move)
 	_env.targeting_state.collision_exclusions = [original_body]
 
-	await get_tree().physics_frame
-	await get_tree().physics_frame
+	runner.simulate_frames(2)  # Synchronous frame simulation replaces await
 
 	# THEN: Indicator should be valid (exclusion works)
 	assert_bool(indicator.valid).append_failure_message("Indicator should be valid when collision body is excluded").is_true()
@@ -100,8 +99,7 @@ func test_exclusion_fails_when_positioner_outside_original_bounds() -> void:
 	# GIVEN: Body is excluded (simulating manipulation move)
 	_env.targeting_state.collision_exclusions = [original_body]
 
-	await get_tree().physics_frame
-	await get_tree().physics_frame
+	runner.simulate_frames(2)  # Synchronous frame simulation replaces await
 
 	# THEN: Indicator should be valid (exclusion should work)
 	# BUG: This currently FAILS - indicator.valid = false
@@ -118,8 +116,7 @@ func test_exclusion_works_at_edge_of_original_bounds() -> void:
 	# GIVEN: Body is excluded
 	_env.targeting_state.collision_exclusions = [original_body]
 
-	await get_tree().physics_frame
-	await get_tree().physics_frame
+	runner.simulate_frames(2)  # Synchronous frame simulation replaces await
 
 	# THEN: Indicator should be valid
 	assert_bool(indicator.valid).append_failure_message("Indicator at edge of original bounds should be valid when body is excluded").is_true()
@@ -142,8 +139,7 @@ func test_multiple_indicators_outside_bounds_all_excluded() -> void:
 	# GIVEN: Body is excluded
 	_env.targeting_state.collision_exclusions = [original_body]
 
-	await get_tree().physics_frame
-	await get_tree().physics_frame
+	runner.simulate_frames(2)  # Synchronous frame simulation replaces await
 
 	# THEN: All indicators should be valid regardless of position
 	assert_bool(indicator_right.valid).append_failure_message("Right indicator should be valid when body is excluded").is_true()
@@ -162,14 +158,14 @@ func test_exclusion_independent_of_positioner_movement() -> void:
 	# GIVEN: Body is excluded
 	_env.targeting_state.collision_exclusions = [original_body]
 
-	await get_tree().physics_frame
+	runner.simulate_frames(1)  # Synchronous frame simulation replaces await
 	var valid_inside := indicator.valid
 
 	# WHEN: Indicator moves outside bounds
 	indicator.position = Vector2(150, 100)
 	indicator.force_shapecast_update()
 
-	await get_tree().physics_frame
+	runner.simulate_frames(1)  # Synchronous frame simulation replaces await
 	var valid_outside := indicator.valid
 
 	# THEN: Exclusion should work in both positions
