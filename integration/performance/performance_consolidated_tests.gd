@@ -31,15 +31,14 @@ func test_collision_mapping_performance() -> void:
 	var collision_objects: Array[Area2D] = []
 	var test_setups: Array[CollisionTestSetup2D] = []
 	for i in range(10):
-		var area: Area2D = Area2D.new()
-		var shape: CollisionShape2D = CollisionShape2D.new()
+		var area: Area2D = auto_free(Area2D.new())
+		var shape: CollisionShape2D = auto_free(CollisionShape2D.new())
 		shape.shape = RectangleShape2D.new()
 		shape.shape.size = Vector2(32, 32)
 		area.add_child(shape)
 		area.position = Vector2(64, 64)
 		positioner.add_child(area)
 		collision_objects.append(area)
-		auto_free(area)
 
 		# Create proper test setup for each collision object using the configured targeting state
 		var setups: Array[CollisionTestSetup2D] = (
@@ -195,13 +194,12 @@ func test_concurrent_operations_performance() -> void:
 	var targeting_state: GridTargetingState = container.get_states().targeting
 
 	# Create test objects
-	var test_area: Area2D = Area2D.new()
-	var shape: CollisionShape2D = CollisionShape2D.new()
+	var test_area: Area2D = auto_free(Area2D.new())
+	var shape: CollisionShape2D = auto_free(CollisionShape2D.new())
 	shape.shape = RectangleShape2D.new()
 	shape.shape.size = Vector2(32, 32)
 	test_area.add_child(shape)
 	positioner.add_child(test_area)
-	auto_free(test_area)
 
 	# Create proper test setup for collision mapping using the configured targeting state
 	var setups: Array[CollisionTestSetup2D] = (

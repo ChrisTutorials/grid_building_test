@@ -124,7 +124,6 @@ func _get_tile_position_count_for_polygon(polygon: PackedVector2Array) -> int:
 
 	# Add building to the environment level (required for collision detection)
 	_test_env.environment.level.add_child(building)
-	auto_free(building)  # Still auto-free for cleanup
 
 	# Create collision test setups using proper API
 	var collision_object_test_setups: Array[CollisionTestSetup2D] = (

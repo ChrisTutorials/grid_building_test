@@ -76,11 +76,11 @@ static var CONCAVE_POLYGON_POINTS: PackedVector2Array = PackedVector2Array(
 static func create_static_body_with_rect(
 	test_suite: GdUnitTestSuite, size: Vector2, position: Vector2 = Vector2.ZERO
 ) -> StaticBody2D:
-	var collision_body: StaticBody2D = StaticBody2D.new()
+	var collision_body: StaticBody2D = auto_free(StaticBody2D.new())
 	test_suite.add_child(collision_body)
 	test_suite.auto_free(collision_body)
 
-	var collision_shape: CollisionShape2D = CollisionShape2D.new()
+	var collision_shape: CollisionShape2D = auto_free(CollisionShape2D.new())
 	collision_body.add_child(collision_shape)
 	test_suite.auto_free(collision_shape)
 	var rect_shape: RectangleShape2D = RectangleShape2D.new()
@@ -98,11 +98,11 @@ static func create_static_body_with_rect(
 static func create_static_body_with_circle(
 	test_suite: GdUnitTestSuite, radius: float, position: Vector2 = Vector2.ZERO
 ) -> StaticBody2D:
-	var collision_body: StaticBody2D = StaticBody2D.new()
+	var collision_body: StaticBody2D = auto_free(StaticBody2D.new())
 	test_suite.add_child(collision_body)
 	test_suite.auto_free(collision_body)
 
-	var collision_shape: CollisionShape2D = CollisionShape2D.new()
+	var collision_shape: CollisionShape2D = auto_free(CollisionShape2D.new())
 	var circle_shape: CircleShape2D = CircleShape2D.new()
 	circle_shape.radius = radius
 	collision_shape.shape = circle_shape
@@ -122,11 +122,11 @@ static func create_static_body_with_capsule(
 	height: float = DEFAULT_CAPSULE_HEIGHT,
 	position: Vector2 = Vector2.ZERO
 ) -> StaticBody2D:
-	var collision_body: StaticBody2D = StaticBody2D.new()
+	var collision_body: StaticBody2D = auto_free(StaticBody2D.new())
 	test_suite.add_child(collision_body)
 	test_suite.auto_free(collision_body)
 
-	var collision_shape: CollisionShape2D = CollisionShape2D.new()
+	var collision_shape: CollisionShape2D = auto_free(CollisionShape2D.new())
 	var capsule_shape: CapsuleShape2D = CapsuleShape2D.new()
 	capsule_shape.radius = radius
 	capsule_shape.height = height
@@ -146,7 +146,7 @@ static func create_static_body_with_polygon(
 	polygon_points: PackedVector2Array,
 	position: Vector2 = Vector2.ZERO
 ) -> StaticBody2D:
-	var collision_body: StaticBody2D = StaticBody2D.new()
+	var collision_body: StaticBody2D = auto_free(StaticBody2D.new())
 	test_suite.add_child(collision_body)
 	test_suite.auto_free(collision_body)
 
@@ -167,7 +167,7 @@ static func create_area_with_polygon(
 	polygon_points: PackedVector2Array,
 	position: Vector2 = Vector2.ZERO
 ) -> Area2D:
-	var area: Area2D = Area2D.new()
+	var area: Area2D = auto_free(Area2D.new())
 	test_suite.add_child(area)
 	test_suite.auto_free(area)
 
@@ -189,12 +189,12 @@ static func create_complex_collision_object(
 	circle_radius: float,
 	circle_offset: Vector2 = Vector2(16, 0)
 ) -> StaticBody2D:
-	var collision_body: StaticBody2D = StaticBody2D.new()
+	var collision_body: StaticBody2D = auto_free(StaticBody2D.new())
 	test_suite.add_child(collision_body)
 	test_suite.auto_free(collision_body)
 
 	# Add rectangular collision shape
-	var rect_collision: CollisionShape2D = CollisionShape2D.new()
+	var rect_collision: CollisionShape2D = auto_free(CollisionShape2D.new())
 	var rect_shape: RectangleShape2D = RectangleShape2D.new()
 	rect_shape.size = rect_size
 	rect_collision.shape = rect_shape
@@ -202,7 +202,7 @@ static func create_complex_collision_object(
 	collision_body.add_child(rect_collision)
 
 	# Add circular collision shape
-	var circle_collision: CollisionShape2D = CollisionShape2D.new()
+	var circle_collision: CollisionShape2D = auto_free(CollisionShape2D.new())
 	var circle_shape: CircleShape2D = CircleShape2D.new()
 	circle_shape.radius = circle_radius
 	circle_collision.shape = circle_shape
@@ -288,13 +288,13 @@ static func check_collsion_tiles_at_position(
 static func create_area_with_rect(
 	test_suite: GdUnitTestSuite, size: Vector2, position: Vector2 = Vector2.ZERO
 ) -> Area2D:
-	var area: Area2D = Area2D.new()
+	var area: Area2D = auto_free(Area2D.new())
 	test_suite.add_child(area)
 	test_suite.auto_free(area)
 
 	area.collision_layer = DEFAULT_COLLISION_LAYER
 
-	var collision_shape: CollisionShape2D = CollisionShape2D.new()
+	var collision_shape: CollisionShape2D = auto_free(CollisionShape2D.new())
 	var rect_shape: RectangleShape2D = RectangleShape2D.new()
 	rect_shape.size = size
 	collision_shape.shape = rect_shape
@@ -308,13 +308,13 @@ static func create_area_with_rect(
 static func create_area_with_circle(
 	test_suite: GdUnitTestSuite, radius: float, position: Vector2 = Vector2.ZERO
 ) -> Area2D:
-	var area: Area2D = Area2D.new()
+	var area: Area2D = auto_free(Area2D.new())
 	test_suite.add_child(area)
 	test_suite.auto_free(area)
 
 	area.collision_layer = DEFAULT_COLLISION_LAYER
 
-	var collision_shape: CollisionShape2D = CollisionShape2D.new()
+	var collision_shape: CollisionShape2D = auto_free(CollisionShape2D.new())
 	var circle_shape: CircleShape2D = CircleShape2D.new()
 	circle_shape.radius = radius
 	collision_shape.shape = circle_shape
@@ -328,8 +328,8 @@ static func create_area_with_circle(
 static func create_area_with_circle_collision(
 	test_suite: GdUnitTestSuite, positioner: Node2D, radius: float = SMALL_CIRCLE_RADIUS
 ) -> Area2D:
-	var area: Area2D = Area2D.new()
-	var shape: CollisionShape2D = CollisionShape2D.new()
+	var area: Area2D = auto_free(Area2D.new())
+	var shape: CollisionShape2D = auto_free(CollisionShape2D.new())
 	shape.shape = CircleShape2D.new()
 	shape.shape.radius = radius
 	shape.position = Vector2.ZERO  # Explicitly set position
@@ -344,8 +344,8 @@ static func create_area_with_circle_collision(
 static func create_area_with_rect_collision(
 	test_suite: GdUnitTestSuite, positioner: Node2D, size: Vector2 = DEFAULT_TEST_SIZE
 ) -> Area2D:
-	var area: Area2D = Area2D.new()
-	var shape: CollisionShape2D = CollisionShape2D.new()
+	var area: Area2D = auto_free(Area2D.new())
+	var shape: CollisionShape2D = auto_free(CollisionShape2D.new())
 	shape.shape = RectangleShape2D.new()
 	shape.shape.size = size
 	shape.position = Vector2.ZERO  # Explicitly set position
@@ -368,7 +368,7 @@ static func create_static_body_with_diamond(
 	height: float = DIAMOND_DEFAULT_HEIGHT,
 	position: Vector2 = Vector2.ZERO
 ) -> StaticBody2D:
-	var collision_body: StaticBody2D = StaticBody2D.new()
+	var collision_body: StaticBody2D = auto_free(StaticBody2D.new())
 	test_suite.add_child(collision_body)
 	test_suite.auto_free(collision_body)
 
@@ -478,25 +478,25 @@ static func check_collision_generation_with_rotation(
 static func create_test_object_with_shape(
 	test_suite: GdUnitTestSuite, shape_type: String, position: Vector2 = Vector2.ZERO
 ) -> StaticBody2D:
-	var collision_body: StaticBody2D = StaticBody2D.new()
+	var collision_body: StaticBody2D = auto_free(StaticBody2D.new())
 	test_suite.add_child(collision_body)
 	test_suite.auto_free(collision_body)
 	collision_body.global_position = position
 
 	if shape_type == "rectangle":
-		var collision_shape: CollisionShape2D = CollisionShape2D.new()
+		var collision_shape: CollisionShape2D = auto_free(CollisionShape2D.new())
 		var rect_shape: RectangleShape2D = RectangleShape2D.new()
 		rect_shape.size = DEFAULT_TEST_SIZE
 		collision_shape.shape = rect_shape
 		collision_body.add_child(collision_shape)
 	elif shape_type == "circle":
-		var collision_shape: CollisionShape2D = CollisionShape2D.new()
+		var collision_shape: CollisionShape2D = auto_free(CollisionShape2D.new())
 		var circle_shape: CircleShape2D = CircleShape2D.new()
 		circle_shape.radius = DEFAULT_CIRCLE_RADIUS
 		collision_shape.shape = circle_shape
 		collision_body.add_child(collision_shape)
 	elif shape_type == "capsule":
-		var collision_shape: CollisionShape2D = CollisionShape2D.new()
+		var collision_shape: CollisionShape2D = auto_free(CollisionShape2D.new())
 		var capsule_shape: CapsuleShape2D = CapsuleShape2D.new()
 		capsule_shape.radius = DEFAULT_CAPSULE_RADIUS
 		capsule_shape.height = DEFAULT_CAPSULE_HEIGHT

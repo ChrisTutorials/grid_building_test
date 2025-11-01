@@ -17,7 +17,7 @@ func _create_env_and_service() -> Dictionary[String, Variant]:
     add_child(env)
 
     # Prepare a parent node for indicators
-    var parent: Node2D = Node2D.new()
+    var parent: Node2D = auto_free(Node2D.new())
     add_child(parent)
 
     # Do not bind positioner here; caller will use env.positioner at runtime to avoid parse-time resolution

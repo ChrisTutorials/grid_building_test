@@ -17,7 +17,7 @@ func before_test() -> void:
 
 func test_force_shapecast_update_no_crash() -> void:
 	# Create a TargetingShapeCast2D instance with a valid shape and ensure update_target() is safe
-	var sc: TargetingShapeCast2D = TargetingShapeCast2D.new()
+	var sc: TargetingShapeCast2D = auto_free(TargetingShapeCast2D.new())
 	var shape := CircleShape2D.new()
 	shape.radius = 8.0
 	sc.shape = shape
@@ -27,7 +27,7 @@ func test_force_shapecast_update_no_crash() -> void:
 
 
 func test_is_colliding_and_get_collider_behavior() -> void:
-	var sc: TargetingShapeCast2D = TargetingShapeCast2D.new()
+	var sc: TargetingShapeCast2D = auto_free(TargetingShapeCast2D.new())
 	var shape := RectangleShape2D.new()
 	shape.size = Vector2(16, 16)
 	sc.shape = shape
@@ -63,7 +63,7 @@ func test_targeting_detects_static_body_with_matching_collision_layers() -> void
 	var target_body: StaticBody2D = auto_free(StaticBody2D.new())
 	target_body.collision_layer = 513  # Bits 1+9: 1 + 512
 	target_body.collision_mask = 0  # Body doesn't need to detect anything
-	var target_shape: CollisionShape2D = CollisionShape2D.new()
+	var target_shape: CollisionShape2D = auto_free(CollisionShape2D.new())
 	var target_rect := RectangleShape2D.new()
 	target_rect.size = Vector2(64, 64)
 	target_shape.shape = target_rect
@@ -137,7 +137,7 @@ func test_targeting_continuous_update_via_physics_process() -> void:
 	# Create target StaticBody2D
 	var target_body: StaticBody2D = auto_free(StaticBody2D.new())
 	target_body.collision_layer = 513  # Direct match
-	var target_shape: CollisionShape2D = CollisionShape2D.new()
+	var target_shape: CollisionShape2D = auto_free(CollisionShape2D.new())
 	var target_rect := RectangleShape2D.new()
 	target_rect.size = Vector2(32, 32)
 	target_shape.shape = target_rect
@@ -194,7 +194,7 @@ func test_targeting_detects_object_without_leaving_collision_area() -> void:
 	# Create target object
 	var target_body: StaticBody2D = auto_free(StaticBody2D.new())
 	target_body.collision_layer = 513
-	var target_shape: CollisionShape2D = CollisionShape2D.new()
+	var target_shape: CollisionShape2D = auto_free(CollisionShape2D.new())
 	var target_rect := RectangleShape2D.new()
 	target_rect.size = Vector2(64, 64)
 	target_shape.shape = target_rect
@@ -283,7 +283,7 @@ func test_targeting_updates_when_target_changes_to_null() -> void:
 	var object_a: StaticBody2D = auto_free(StaticBody2D.new())
 	object_a.collision_layer = 513
 	object_a.name = "ObjectA"
-	var shape_a: CollisionShape2D = CollisionShape2D.new()
+	var shape_a: CollisionShape2D = auto_free(CollisionShape2D.new())
 	var rect_a := RectangleShape2D.new()
 	rect_a.size = Vector2(64, 64)
 	shape_a.shape = rect_a
@@ -294,7 +294,7 @@ func test_targeting_updates_when_target_changes_to_null() -> void:
 	var object_b: StaticBody2D = auto_free(StaticBody2D.new())
 	object_b.collision_layer = 513
 	object_b.name = "ObjectB"
-	var shape_b: CollisionShape2D = CollisionShape2D.new()
+	var shape_b: CollisionShape2D = auto_free(CollisionShape2D.new())
 	var rect_b := RectangleShape2D.new()
 	rect_b.size = Vector2(64, 64)
 	shape_b.shape = rect_b
@@ -383,7 +383,7 @@ func test_targeting_after_external_target_clear_while_hovering() -> void:
 	var persistent_obj: StaticBody2D = auto_free(StaticBody2D.new())
 	persistent_obj.collision_layer = 513
 	persistent_obj.name = "PersistentObject"
-	var obj_shape: CollisionShape2D = CollisionShape2D.new()
+	var obj_shape: CollisionShape2D = auto_free(CollisionShape2D.new())
 	var obj_rect := RectangleShape2D.new()
 	obj_rect.size = Vector2(64, 64)
 	obj_shape.shape = obj_rect
@@ -471,10 +471,10 @@ func test_root_node_metadata_on_collision_object_redirects_to_root() -> void:
 	root_node.global_position = Vector2(100, 100)
 	add_child(root_node)
 
-	var collision_body: StaticBody2D = StaticBody2D.new()
+	var collision_body: StaticBody2D = auto_free(StaticBody2D.new())
 	collision_body.name = "CollisionChild"
 	collision_body.collision_layer = 513
-	var body_shape: CollisionShape2D = CollisionShape2D.new()
+	var body_shape: CollisionShape2D = auto_free(CollisionShape2D.new())
 	var body_rect := RectangleShape2D.new()
 	body_rect.size = Vector2(32, 32)
 	body_shape.shape = body_rect
@@ -533,7 +533,7 @@ func test_root_node_metadata_hierarchical_search() -> void:
 	parent_node.global_position = Vector2(200, 200)
 	add_child(parent_node)
 
-	var root_node: Node2D = Node2D.new()
+	var root_node: Node2D = auto_free(Node2D.new())
 	root_node.name = "ActualRoot"
 	parent_node.add_child(root_node)
 
@@ -542,10 +542,10 @@ func test_root_node_metadata_hierarchical_search() -> void:
 	manipulatable.root = root_node
 	parent_node.add_child(manipulatable)
 
-	var collision_body: StaticBody2D = StaticBody2D.new()
+	var collision_body: StaticBody2D = auto_free(StaticBody2D.new())
 	collision_body.name = "CollisionSibling"
 	collision_body.collision_layer = 513
-	var body_shape: CollisionShape2D = CollisionShape2D.new()
+	var body_shape: CollisionShape2D = auto_free(CollisionShape2D.new())
 	var body_rect := RectangleShape2D.new()
 	body_rect.size = Vector2(32, 32)
 	body_shape.shape = body_rect
@@ -597,7 +597,7 @@ func test_root_node_metadata_max_depth_limit() -> void:
 	collision_body.name = "ParentCollision"
 	collision_body.collision_layer = 513
 	collision_body.global_position = Vector2(300, 300)
-	var body_shape: CollisionShape2D = CollisionShape2D.new()
+	var body_shape: CollisionShape2D = auto_free(CollisionShape2D.new())
 	var body_rect := RectangleShape2D.new()
 	body_rect.size = Vector2(32, 32)
 	body_shape.shape = body_rect
@@ -605,7 +605,7 @@ func test_root_node_metadata_max_depth_limit() -> void:
 	add_child(collision_body)
 
 	# Add a direct child Manipulatable (1 level deep - should be found)
-	var root_node: Node2D = Node2D.new()
+	var root_node: Node2D = auto_free(Node2D.new())
 	root_node.name = "DirectChildRoot"
 	collision_body.add_child(root_node)
 
@@ -615,11 +615,11 @@ func test_root_node_metadata_max_depth_limit() -> void:
 	collision_body.add_child(direct_manipulatable)
 
 	# Add a nested grandchild Manipulatable (2 levels deep - should NOT be found)
-	var intermediate: Node2D = Node2D.new()
+	var intermediate: Node2D = auto_free(Node2D.new())
 	intermediate.name = "IntermediateNode"
 	collision_body.add_child(intermediate)
 
-	var deep_root: Node2D = Node2D.new()
+	var deep_root: Node2D = auto_free(Node2D.new())
 	deep_root.name = "DeepRoot"
 	intermediate.add_child(deep_root)
 
@@ -673,7 +673,7 @@ func test_root_node_metadata_invalid_value_fallback() -> void:
 	collision_body.name = "InvalidMetadataBody"
 	collision_body.collision_layer = 513
 	collision_body.global_position = Vector2(400, 400)
-	var body_shape: CollisionShape2D = CollisionShape2D.new()
+	var body_shape: CollisionShape2D = auto_free(CollisionShape2D.new())
 	var body_rect := RectangleShape2D.new()
 	body_rect.size = Vector2(32, 32)
 	body_shape.shape = body_rect
@@ -719,7 +719,7 @@ func test_root_node_metadata_wrong_type_fallback() -> void:
 	collision_body.name = "WrongTypeMetadata"
 	collision_body.collision_layer = 513
 	collision_body.global_position = Vector2(500, 500)
-	var body_shape: CollisionShape2D = CollisionShape2D.new()
+	var body_shape: CollisionShape2D = auto_free(CollisionShape2D.new())
 	var body_rect := RectangleShape2D.new()
 	body_rect.size = Vector2(32, 32)
 	body_shape.shape = body_rect
@@ -769,7 +769,7 @@ func test_root_node_metadata_backward_compatibility() -> void:
 	area_root.name = "TraditionalStaticBody"
 	area_root.collision_layer = 513
 	area_root.global_position = Vector2(600, 600)
-	var area_shape: CollisionShape2D = CollisionShape2D.new()
+	var area_shape: CollisionShape2D = auto_free(CollisionShape2D.new())
 	var area_rect := RectangleShape2D.new()
 	area_rect.size = Vector2(32, 32)
 	area_shape.shape = area_rect
@@ -812,7 +812,7 @@ func test_root_node_metadata_self_reference() -> void:
 	self_root.name = "SelfReferencingRoot"
 	self_root.collision_layer = 513
 	self_root.global_position = Vector2(700, 700)
-	var self_shape: CollisionShape2D = CollisionShape2D.new()
+	var self_shape: CollisionShape2D = auto_free(CollisionShape2D.new())
 	var self_rect := RectangleShape2D.new()
 	self_rect.size = Vector2(32, 32)
 	self_shape.shape = self_rect

@@ -23,8 +23,7 @@ func _create_test_collision_rule() -> CollisionsCheckRule:
 
 # Creates a parent node for indicator testing
 func _create_test_parent_node() -> Node2D:
-	var parent_node: Node2D = Node2D.new()
-	auto_free(parent_node)
+	var parent_node: Node2D = auto_free(Node2D.new())
 	add_child(parent_node)
 	return parent_node
 

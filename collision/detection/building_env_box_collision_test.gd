@@ -217,7 +217,7 @@ func _create_test_collision_box() -> RigidBody2D:
 	test_box.collision_layer = TEST_COLLISION_LAYER
 
 	# Add collision shape
-	var shape: CollisionShape2D = CollisionShape2D.new()
+	var shape: CollisionShape2D = auto_free(CollisionShape2D.new())
 	var rect: RectangleShape2D = RectangleShape2D.new()
 	rect.size = TEST_BOX_SIZE
 	shape.shape = rect

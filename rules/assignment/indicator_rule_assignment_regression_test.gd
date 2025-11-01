@@ -46,10 +46,8 @@ func find_center_indicator(indicators: Array[RuleCheckIndicator]) -> RuleCheckIn
 
 func create_collision_object_at(position: Vector2) -> StaticBody2D:
 	"""Create a collision object with a rectangle shape at the specified position."""
-	var collision_object: StaticBody2D = StaticBody2D.new()
-	auto_free(collision_object)
-	var collision_shape: CollisionShape2D = CollisionShape2D.new()
-	auto_free(collision_shape)
+	var collision_object: StaticBody2D = auto_free(StaticBody2D.new())
+	var collision_shape: CollisionShape2D = auto_free(CollisionShape2D.new())
 	var shape: RectangleShape2D = RectangleShape2D.new()
 	shape.size = GBTestConstants.DEFAULT_TILE_SIZE
 	collision_shape.shape = shape

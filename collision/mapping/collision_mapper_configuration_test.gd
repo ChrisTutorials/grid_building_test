@@ -50,37 +50,35 @@ func before_test() -> void:
 
 # Helper method to create minimal test object with square collision shape
 func _create_minimal_test_object() -> StaticBody2D:
-	var test_object: StaticBody2D = StaticBody2D.new()
+	var test_object: StaticBody2D = auto_free(StaticBody2D.new())
 	test_object.name = MINIMAL_TEST_OBJECT_NAME
 	test_object.global_position = TEST_POSITION_MINIMAL
 	test_object.collision_layer = COLLISION_LAYER_DEFAULT
 
-	var collision_shape: CollisionShape2D = CollisionShape2D.new()
+	var collision_shape: CollisionShape2D = auto_free(CollisionShape2D.new())
 	var shape: RectangleShape2D = RectangleShape2D.new()
 	shape.size = SHAPE_SIZE_SQUARE
 	collision_shape.shape = shape
 	test_object.add_child(collision_shape)
 
 	_env.objects_parent.add_child(test_object)
-	auto_free(test_object)
 
 	return test_object
 
 
 # Helper method to create trapezoid test object
 func _create_trapezoid_test_object() -> StaticBody2D:
-	var test_object: StaticBody2D = StaticBody2D.new()
+	var test_object: StaticBody2D = auto_free(StaticBody2D.new())
 	test_object.name = PROPER_TEST_OBJECT_NAME
 	test_object.global_position = TEST_POSITION_TRAPEZOID
 
-	var collision_shape: CollisionShape2D = CollisionShape2D.new()
+	var collision_shape: CollisionShape2D = auto_free(CollisionShape2D.new())
 	var shape: ConvexPolygonShape2D = ConvexPolygonShape2D.new()
 	shape.points = _trapezoid_points
 	collision_shape.shape = shape
 	test_object.add_child(collision_shape)
 
 	_env.add_child(test_object)
-	auto_free(test_object)
 
 	return test_object
 

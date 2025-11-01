@@ -234,8 +234,7 @@ func test_complex_polygon_shapes_handle_edge_cases_from_debug_tests() -> void:
 	]
 
 	for polygon_data in complex_polygons:
-		var test_object: Area2D = Area2D.new()
-		auto_free(test_object)
+		var test_object: Area2D = auto_free(Area2D.new())
 		add_child(test_object)
 		test_object.global_position = targeting_state.positioner.global_position
 
@@ -314,14 +313,13 @@ func test_collision_mapper_transform_consistency_across_different_transforms() -
 
 
 func _create_test_object_with_shape(shape_type: String, shape_data: Dictionary) -> Node2D:
-	var test_object: Area2D = Area2D.new()
-	auto_free(test_object)
+	var test_object: Area2D = auto_free(Area2D.new())
 	add_child(test_object)
 	test_object.global_position = targeting_state.positioner.global_position
 
 	match shape_type:
 		"rectangle":
-			var collision_shape: CollisionShape2D = CollisionShape2D.new()
+			var collision_shape: CollisionShape2D = auto_free(CollisionShape2D.new())
 			collision_shape.position = shape_data.get("position", Vector2.ZERO)
 			var rect: RectangleShape2D = RectangleShape2D.new()
 			rect.size = shape_data.size
@@ -329,7 +327,7 @@ func _create_test_object_with_shape(shape_type: String, shape_data: Dictionary) 
 			test_object.add_child(collision_shape)
 
 		"circle":
-			var collision_shape: CollisionShape2D = CollisionShape2D.new()
+			var collision_shape: CollisionShape2D = auto_free(CollisionShape2D.new())
 			collision_shape.position = shape_data.get("position", Vector2.ZERO)
 			var circle: CircleShape2D = CircleShape2D.new()
 			circle.radius = shape_data.radius
@@ -356,10 +354,9 @@ func test_rules_and_collision_integration() -> void:
 
 	# Set up collision mapper with test object and proper positioner
 	var indicator_manager: IndicatorManager = env.indicator_manager
-	var test_parent: Node2D = Node2D.new()
+	var test_parent: Node2D = auto_free(Node2D.new())
 	test_parent.name = "TestParent2"
 	add_child(test_parent)
-	auto_free(test_parent)
 
 	# Use the collision mapper from the indicator manager
 	var configured_collision_mapper: CollisionMapper = indicator_manager.get_collision_mapper()
@@ -430,10 +427,9 @@ func test_collision_mapper_shape_processing() -> void:
 	var test_object: Node2D = GodotTestFactory.create_static_body_with_rect_shape(self)
 
 	# Set up collision mapper with test object
-	var test_parent: Node2D = Node2D.new()
+	var test_parent: Node2D = auto_free(Node2D.new())
 	test_parent.name = "TestParent"
 	add_child(test_parent)
-	auto_free(test_parent)
 
 	# Manually create collision test setup for the StaticBody2D
 	var test_setup: CollisionTestSetup2D = CollisionTestSetup2D.new(test_object, Vector2(16, 16))

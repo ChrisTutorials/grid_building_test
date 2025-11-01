@@ -873,7 +873,7 @@ func test_parented_polygon_offsets_stable_when_positioner_moves() -> void:
 func _setup_blocking_collision() -> void:
 	# Create a blocking object at the target position but NOT as a child of the target
 	# This ensures it won't be ignored by the collision rule's target exceptions
-	var blocking_body: StaticBody2D = StaticBody2D.new()
+	var blocking_body: StaticBody2D = auto_free(StaticBody2D.new())
 	blocking_body.name = "BlockingCollisionBody"
 	# Set collision layer to match what collision detection expects
 	# Layer 1 should be detected by collision rules (bit 0)
@@ -881,7 +881,7 @@ func _setup_blocking_collision() -> void:
 	blocking_body.collision_mask = BLOCKING_BODY_MASK  # Don't detect anything itself
 
 	# Create collision shape
-	var collision_shape: CollisionShape2D = CollisionShape2D.new()
+	var collision_shape: CollisionShape2D = auto_free(CollisionShape2D.new())
 	var rect_shape: RectangleShape2D = RectangleShape2D.new()
 	rect_shape.size = BLOCKING_BODY_SIZE  # Match tile size
 	collision_shape.shape = rect_shape
@@ -890,7 +890,6 @@ func _setup_blocking_collision() -> void:
 	# Add to the scene tree but NOT as a child of the target
 	# This way the collision rule won't ignore it via target exceptions
 	_map.get_parent().add_child(blocking_body)  # Add to World node
-	auto_free(blocking_body)  # Ensure cleanup
 
 	# Set position AFTER adding to scene tree to ensure proper transform
 	blocking_body.global_position = _positioner.global_position
@@ -1408,7 +1407,7 @@ func test_large_rectangle_generates_full_grid_of_indicators() -> void:
 	# Create a factory-generated rectangular collision object with known dimensions
 	# DOCUMENTED: Creates a 48x64 pixel rectangle = 3x4 tiles (with 16x16 tile size) = 12 total tiles
 	var test_building: StaticBody2D = auto_free(StaticBody2D.new())
-	var collision_shape: CollisionShape2D = CollisionShape2D.new()
+	var collision_shape: CollisionShape2D = auto_free(CollisionShape2D.new())
 	var rect_shape: RectangleShape2D = RectangleShape2D.new()
 	rect_shape.size = Vector2(RECT_WIDTH_PX, RECT_HEIGHT_PX)
 	collision_shape.shape = rect_shape
@@ -2254,13 +2253,13 @@ func _setup_test_object_collision_shapes() -> void:
 		return
 
 	# Create a StaticBody2D child to hold collision shapes since user_node is just Node2D
-	var collision_body: StaticBody2D = StaticBody2D.new()
+	var collision_body: StaticBody2D = auto_free(StaticBody2D.new())
 	collision_body.name = "TestCollisionBody"
 	collision_body.collision_layer = TEST_COLLISION_LAYER
 	collision_body.collision_mask = BLOCKING_BODY_MASK
 
 	# Add a CollisionShape2D with a RectangleShape2D to the collision body
-	var collision_shape: CollisionShape2D = CollisionShape2D.new()
+	var collision_shape: CollisionShape2D = auto_free(CollisionShape2D.new())
 	var rectangle_shape: RectangleShape2D = RectangleShape2D.new()
 	rectangle_shape.size = TILE_SIZE_PX
 	collision_shape.shape = rectangle_shape
@@ -2295,13 +2294,13 @@ func _setup_target_collision_shape_for_validation() -> void:
 		return  # Already set up
 
 	# Create StaticBody2D for collision detection (CollisionShape2D requires CollisionObject2D parent)
-	var collision_body: StaticBody2D = StaticBody2D.new()
+	var collision_body: StaticBody2D = auto_free(StaticBody2D.new())
 	collision_body.name = "ValidationCollisionBody"
 	collision_body.collision_layer = 1  # Default layer for collision detection
 	collision_body.collision_mask = 0  # Don't detect others, just be detected
 
 	# Create CollisionShape2D as child of StaticBody2D
-	var collision_shape: CollisionShape2D = CollisionShape2D.new()
+	var collision_shape: CollisionShape2D = auto_free(CollisionShape2D.new())
 	collision_shape.name = "ValidationCollisionShape"
 
 	# Use a simple rectangle shape matching tile size
@@ -2312,7 +2311,6 @@ func _setup_target_collision_shape_for_validation() -> void:
 	# Proper hierarchy: StaticBody2D -> CollisionShape2D
 	collision_body.add_child(collision_shape)
 	_targeting_state.get_target().add_child(collision_body)
-	auto_free(collision_body)  # Ensure cleanup (child will be freed automatically)
 
 	logger.log_verbose(
 		(
@@ -2450,7 +2448,7 @@ func _on_build_failed(build_action_data: BuildActionData) -> void:
 func _create_placeable_with_no_rules() -> Placeable:
 	"""Create a simple placeable with no placement rules to test the issue"""
 	# Create a simple Node2D scene
-	var simple_node: Node2D = Node2D.new()
+	var simple_node: Node2D = auto_free(Node2D.new())
 	simple_node.name = "SimpleBox"
 
 	# Create PackedScene and pack the node

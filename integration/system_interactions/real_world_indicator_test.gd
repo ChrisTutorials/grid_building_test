@@ -213,20 +213,19 @@ func after_test() -> void:
 ##  This codifies a "real world" integration slice focused on indicator placement semantics while staying
 ##  resilient to missing higher-level systems. The explicit spread + proximity constraints give early signal
 ##  if collision-to-indicator mapping regresses, offsets break, or manager setup silently fails.
+##
+## NOTE: Indicator generation is currently not working due to systemic issues in the collision mapping pipeline.
+## This test currently validates the setup process and component access patterns.
+## TODO: Re-enable indicator generation assertions once collision mapping issues are resolved.
 func test_real_world_indicator_positioning() -> void:
+	"""Test real world indicator positioning using the IndicatorManager pipeline.
+
+	NOTE: ELLIPSE_UID is not a valid UID, so we skip real scene loading and use
+	the DRY factory for synthetic preview creation instead.
+	"""
 	# Use DRY factory pattern for preview creation
 	var preview: Node2D
 	var used_real_placeable := false
-
-	# Try to use real placeable from test library, fallback to DRY factory
-	# Note: ELLIPSE_UID is not a valid UID, so skip real scene loading
-	# if GBTestConstants.validate_test_object_scene(GBTestConstants.ELLIPSE_UID):
-	# 	var ellipse_scene: PackedScene = load(GBTestConstants.ELLIPSE_UID)
-	# 	if ellipse_scene:
-	# 		preview = _instantiate_preview(ellipse_scene)
-	# 		used_real_placeable = true
-
-	# Use DRY factory for synthetic preview (ellipse scene UID is invalid)
 	preview = CollisionObjectTestFactory.create_polygon_test_object(self, self)
 	# Add secondary collision shape for multiple indicator testing
 	var body: StaticBody2D = preview.get_child(0) as StaticBody2D
@@ -320,9 +319,8 @@ func test_real_world_indicator_positioning() -> void:
 	)
 
 	# For now, just verify the setup process works (report is created, no crashes)
-	# When indicator generation is fixed, uncomment the assertions below:
-	# assert_int(indicators.size()).append_failure_message(
-	#     "No indicators generated for preview"
-	# ).is_greater(0)
-	#
-	# _validate_indicator_positions(indicators, preview)
+	(
+		assert_object(report) \
+		. append_failure_message("IndicatorManager.setup_indicators should return a valid report") \
+		. is_not_null()
+	)

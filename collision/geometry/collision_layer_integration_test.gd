@@ -25,7 +25,7 @@ func test_layer_mask_2561_matches_collision_layer_513() -> void:
 	)
 
 	# Create a test collision object with layer 513
-	var area: Area2D = Area2D.new()
+	var area: Area2D = auto_free(Area2D.new())
 	area.collision_layer = collision_layer
 	add_child(area)
 
@@ -43,7 +43,7 @@ func test_regression_collision_layer_513_mask_2561_debug() -> void:
 	# This test reproduces the exact scenario from the failing integration tests
 
 	# Create collision object similar to integration test setup
-	var test_area: Area2D = Area2D.new()
+	var test_area: Area2D = auto_free(Area2D.new())
 	test_area.collision_layer = 513
 	test_area.name = "TestIndicatorSetupArea"
 
@@ -103,12 +103,12 @@ func test_debug_layer_conversion_consistency() -> void:
 func test_specific_integration_error_scenario() -> void:
 	# Reproduce the exact error: "Collision object IndicatorSetupTestingArea does not match layer mask 2561"
 
-	var setup_area: Area2D = Area2D.new()
+	var setup_area: Area2D = auto_free(Area2D.new())
 	setup_area.name = "IndicatorSetupTestingArea"
 	setup_area.collision_layer = 513  # This should match mask 2561
 
 	# Add collision shape to make it realistic
-	var collision_shape: CollisionShape2D = CollisionShape2D.new()
+	var collision_shape: CollisionShape2D = auto_free(CollisionShape2D.new())
 	var rect_shape: RectangleShape2D = RectangleShape2D.new()
 	rect_shape.size = Vector2(32, 32)
 	collision_shape.shape = rect_shape

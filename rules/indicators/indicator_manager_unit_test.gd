@@ -23,8 +23,7 @@ func test_build_failed_report_returns_expected_issues() -> void:
 	var gb_owner: GBOwner = GBOwner.new()
 	manager._owner_context = GBOwnerContext.new(gb_owner)
 	auto_free(gb_owner)
-	var dummy_target: Node2D = Node2D.new()
-	auto_free(dummy_target)
+	var dummy_target: Node2D = auto_free(Node2D.new())
 	add_child(dummy_target)
 	var issues: Dictionary[String, Array] = {"RuleA": ["A failed"], "RuleB": ["B failed", "B extra"]}
 

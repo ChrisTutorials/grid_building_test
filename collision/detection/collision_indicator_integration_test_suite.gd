@@ -102,20 +102,19 @@ func test_collision_mapper_multiple_shapes() -> void:
 	)
 
 	# Create an object with multiple collision shapes
-	var area: Area2D = Area2D.new()
+	var area: Area2D = auto_free(Area2D.new())
 	var circle_shape: CircleShape2D = CircleShape2D.new()
 	circle_shape.radius = GBTestConstants.DEFAULT_TILE_SIZE.x / 2.0  # 16.0
-	var collision_shape1: CollisionShape2D = CollisionShape2D.new()
+	var collision_shape1: CollisionShape2D = auto_free(CollisionShape2D.new())
 	collision_shape1.shape = circle_shape
 	area.add_child(collision_shape1)
 
 	test_hierarchy.positioner.add_child(area)
-	auto_free(area)
 
 	# Add additional collision shapes
 	var rect_shape: RectangleShape2D = RectangleShape2D.new()
 	rect_shape.size = GBTestConstants.DEFAULT_TILE_SIZE  # Vector2(32, 32)
-	var collision_shape2: CollisionShape2D = CollisionShape2D.new()
+	var collision_shape2: CollisionShape2D = auto_free(CollisionShape2D.new())
 	collision_shape2.shape = rect_shape
 	collision_shape2.position = GBTestConstants.ORIGIN
 	area.add_child(collision_shape2)
@@ -170,12 +169,11 @@ func test_indicator_manager_setup_basic() -> void:
 	var rect_shape: RectangleShape2D = RectangleShape2D.new()
 	rect_shape.size = Vector2(32, 32)
 	var area := Area2D.new()
-	var collision_shape: CollisionShape2D = CollisionShape2D.new()
+	var collision_shape: CollisionShape2D = auto_free(CollisionShape2D.new())
 	collision_shape.shape = rect_shape
 	area.add_child(collision_shape)
 	manipulation_parent.add_child(area)
 
-	auto_free(area)
 
 	# Test indicator setup
 	var report: IndicatorSetupReport = indicator_manager.setup_indicators(area, rules)
@@ -216,12 +214,11 @@ func test_collision_performance_large_tilemap() -> void:
 		LARGE_TILEMAP_SIZE * GBTestConstants.DEFAULT_TILE_SIZE.x,
 		LARGE_TILEMAP_SIZE * GBTestConstants.DEFAULT_TILE_SIZE.y
 	)
-	var area: Area2D = Area2D.new()
-	var collision_shape: CollisionShape2D = CollisionShape2D.new()
+	var area: Area2D = auto_free(Area2D.new())
+	var collision_shape: CollisionShape2D = auto_free(CollisionShape2D.new())
 	collision_shape.shape = rect_shape
 	area.add_child(collision_shape)
 	test_hierarchy.positioner.add_child(area)
-	auto_free(area)
 
 	# Get the properly configured targeting state from the test environment
 	var container: GBCompositionContainer = test_hierarchy.get_container()
@@ -280,14 +277,13 @@ func test_collision_performance_multiple_objects() -> void:
 	for i in range(PERFORMANCE_TEST_ITERATIONS):
 		var rect_shape: RectangleShape2D = RectangleShape2D.new()
 		rect_shape.size = GBTestConstants.DEFAULT_TILE_SIZE
-		var area: Area2D = Area2D.new()
-		var collision_shape: CollisionShape2D = CollisionShape2D.new()
+		var area: Area2D = auto_free(Area2D.new())
+		var collision_shape: CollisionShape2D = auto_free(CollisionShape2D.new())
 		collision_shape.shape = rect_shape
 		area.position = GBTestConstants.ORIGIN
 		area.add_child(collision_shape)
 		test_hierarchy.positioner.add_child(area)
 		areas.append(area)
-		auto_free(area)
 
 		# Create proper test setup for each collision object using the configured targeting state
 		var setups: Array[CollisionTestSetup2D] = (
@@ -338,12 +334,11 @@ func test_indicator_positioning_basic() -> void:
 	# Create object and rules
 	var rect_shape: RectangleShape2D = RectangleShape2D.new()
 	rect_shape.size = Vector2(32, 32)
-	var area: Area2D = Area2D.new()
-	var collision_shape: CollisionShape2D = CollisionShape2D.new()
+	var area: Area2D = auto_free(Area2D.new())
+	var collision_shape: CollisionShape2D = auto_free(CollisionShape2D.new())
 	collision_shape.shape = rect_shape
 	area.add_child(collision_shape)
 	manipulation_parent.add_child(area)
-	auto_free(area)
 
 	var rules: Array[TileCheckRule] = [TileCheckRule.new()]
 
@@ -370,12 +365,11 @@ func test_indicator_positioning_grid_alignment() -> void:
 	# Create simple test object
 	var rect_shape: RectangleShape2D = RectangleShape2D.new()
 	rect_shape.size = Vector2(tile_size.x, tile_size.y)
-	var area: Area2D = Area2D.new()
-	var collision_shape: CollisionShape2D = CollisionShape2D.new()
+	var area: Area2D = auto_free(Area2D.new())
+	var collision_shape: CollisionShape2D = auto_free(CollisionShape2D.new())
 	collision_shape.shape = rect_shape
 	area.add_child(collision_shape)
 	test_hierarchy.manipulation_parent.add_child(area)
-	auto_free(area)
 
 	var rules: Array[TileCheckRule] = [TileCheckRule.new()]
 	var report: IndicatorSetupReport = indicator_manager.setup_indicators(area, rules)

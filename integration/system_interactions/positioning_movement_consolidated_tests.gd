@@ -257,11 +257,10 @@ func test_multi_object_positioning() -> void:
 	var relative_positions: Array[Vector2] = RELATIVE_POSITION_OFFSETS
 
 	for i in range(3):
-		var obj: Area2D = Area2D.new()
+		var obj: Area2D = auto_free(Area2D.new())
 		obj.position = relative_positions[i]
 		positioner.add_child(obj)
 		objects.append(obj)
-		auto_free(obj)
 
 	# Test positioner movement affects all children
 	var positioner_offset: Vector2 = TEST_POSITIONER_OFFSET
@@ -302,7 +301,6 @@ func test_positioner_performance_bulk_moves() -> void:
 		obj.size = Vector2.ONE * 32
 		positioner.add_child(obj)
 		objects.append(obj)
-		auto_free(obj)
 
 	# Measure bulk movement performance
 	var start_time: int = Time.get_ticks_msec()

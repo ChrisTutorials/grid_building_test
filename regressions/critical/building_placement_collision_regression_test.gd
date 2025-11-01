@@ -195,8 +195,8 @@ func _position_target_at_tile(tile_coords: Vector2i) -> void:
 func _setup_minimal_collision_shape_on_target() -> void:
 	## Add minimal collision shape to target for indicator generation
 	## Without this, rules that depend on indicators will fail with "no indicators"
-	var static_body: StaticBody2D = StaticBody2D.new()
-	var collision_shape: CollisionShape2D = CollisionShape2D.new()
+	var static_body: StaticBody2D = auto_free(StaticBody2D.new())
+	var collision_shape: CollisionShape2D = auto_free(CollisionShape2D.new())
 	var shape: RectangleShape2D = RectangleShape2D.new()
 	shape.size = Vector2(16, 16)  # Single tile size
 	collision_shape.shape = shape

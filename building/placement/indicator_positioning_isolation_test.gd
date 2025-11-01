@@ -51,14 +51,12 @@ func before_test() -> void:
 	test_object.position = GBTestConstants.OFF_GRID  # Set a specific non-zero position
 	add_child(auto_free(test_object))  # Add to scene tree and auto_free it
 
-	var area: Area2D = Area2D.new()
-	auto_free(area)
+	var area: Area2D = auto_free(Area2D.new())
 	area.collision_layer = GBTestConstants.TEST_COLLISION_LAYER
 	area.collision_mask = GBTestConstants.TEST_COLLISION_MASK
 	test_object.add_child(area)
 
-	var collision_shape: CollisionShape2D = CollisionShape2D.new()
-	auto_free(collision_shape)
+	var collision_shape: CollisionShape2D = auto_free(CollisionShape2D.new())
 	var rectangle_shape: RectangleShape2D = RectangleShape2D.new()
 	rectangle_shape.size = GBTestConstants.DEFAULT_TILE_SIZE * 2  # 2x2 tiles (32x32)
 	collision_shape.shape = rectangle_shape
@@ -72,45 +70,3 @@ func after_test() -> void:
 	if indicator_manager:
 		indicator_manager.tear_down()
 	pass
-
-# BROKEN TEST - Commented out due to undefined variables (initial_indicators_data, moved_indicators_data, diag)
-# This test appears to be incomplete/corrupted and cannot compile
-# func test_indicator_positions_are_relative_to_parent() -> void:
-# 	"""Test that indicators are positioned relative to their parent, not globally"""
-
-# 	# Create a placement rule
-# 	var placement_rule: CollisionsCheckRule = CollisionsCheckRule.new()
-# 	placement_rule.apply_to_objects_mask = GBTestConstants.TEST_COLLISION_MASK
-
-# 	# Set up the rule with targeting state - THIS IS CRITICAL!
-# 	var rule_setup_issues: Array[String] = placement_rule.setup(targeting_state)
-# 	if not rule_setup_issues.is_empty():
-# 		push_warning("Rule setup issues: %s" % str(rule_setup_issues))
-
-# 	var rules: Array[TileCheckRule] = [placement_rule]
-
-# 	# Set up indicators - this should create indicators relative to test_object position
-# 	indicator_manager.setup_indicators(test_object, rules)
-
-# 	# Get the created indicators
-# 	var indicators: Array[RuleCheckIndicator] = indicator_manager.get_indicators()
-
-# 	assert_that(moved_indicators_data).append_failure_message(
-# 		"Should have created indicators at second position\nContext: %s" % "\n".join(diag) )
-
-# 	# Verify that some indicators have moved (basic sanity check)
-# 	var indicators_moved: bool = false
-# 	var min_count : int = min(initial_indicators_data.size(), moved_indicators_data.size())
-# 	for i : int in range(min_count):
-# 		var initial_pos : Vector2 = initial_indicators_data[i]["global_pos"]
-# 		var moved_pos : Vector2 = moved_indicators_data[i]["global_pos"]
-# 		var actual_offset : Vector2 = moved_pos - initial_pos
-# 		diag.append("Indicator %d: initial=%s, moved=%s, actual_offset=%s" % [i, initial_pos, moved_pos, actual_offset])
-# 		# Check if indicator moved at all (not necessarily by exact test_object movement)
-# 		if actual_offset.length() > 1.0: # Moved by more than 1 pixel
-# 			indicators_moved = true
-# 		# Verify indicators are positioned reasonably (within the map bounds)
-# 		var max_reasonable_distance: float = 1000.0 # Max reasonable distance from origin
-# 		assert_that(moved_pos.length()).append_failure_message(
-# 			"Indicator position seems unreasonable: %s (distance from origin: %f)" % [moved_pos, moved_pos.length()]
-# 		).is_less_equal(max_reasonable_distance) # At minimum, verify that the indicator creation system responds to test_object position changes # (This is a weaker assertion but more aligned with actual system behavior) diag.append("Indicators moved: %s" % [indicators_moved]) # Consume diag for static-analysis: include diagnostic context in a benign assertion so the local # diagnostic buffer is not reported as unused by the code-smell detector. var __diag_context := "\n".join(diag) assert_that(__diag_context).append_failure_message("Diag context (truncated).is_not_null().is_not_empty()

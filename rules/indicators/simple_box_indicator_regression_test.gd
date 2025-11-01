@@ -103,7 +103,7 @@ func test_rigid_body_with_collision_layer_513_generates_indicators() -> void:
 	test_box.collision_layer = TEST_COLLISION_LAYER  # Bits 0 and 9 (layers 1 and 10)
 
 	# Add collision shape
-	var shape: CollisionShape2D = CollisionShape2D.new()
+	var shape: CollisionShape2D = auto_free(CollisionShape2D.new())
 	var rect: RectangleShape2D = RectangleShape2D.new()
 	rect.size = COLLISION_SHAPE_SIZE
 	shape.shape = rect

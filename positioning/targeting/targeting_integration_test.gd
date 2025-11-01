@@ -68,7 +68,7 @@ func test_env_injection_wires_targeting_state() -> void:
 
 	# Create a test collision body to use as a target
 	var collision_body: StaticBody2D = auto_free(StaticBody2D.new())
-	var collision_shape: CollisionShape2D = CollisionShape2D.new()
+	var collision_shape: CollisionShape2D = auto_free(CollisionShape2D.new())
 	var shape: CircleShape2D = CircleShape2D.new()
 	shape.radius = 16.0
 	collision_shape.shape = shape

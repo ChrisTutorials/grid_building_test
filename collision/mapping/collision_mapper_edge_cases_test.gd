@@ -131,18 +131,17 @@ func test_collision_mapper_polygon_edge_cases(
 	details += "  Expected minimum tiles: " + str(expected_min_tiles) + "\n"
 
 	# Create test object with the specified polygon
-	var test_object: StaticBody2D = StaticBody2D.new()
+	var test_object: StaticBody2D = auto_free(StaticBody2D.new())
 	test_object.name = "EdgeCase_%s" % test_name
 	test_object.global_position = TEST_POSITION
 
-	var collision_shape: CollisionShape2D = CollisionShape2D.new()
+	var collision_shape: CollisionShape2D = auto_free(CollisionShape2D.new())
 	var shape: ConvexPolygonShape2D = ConvexPolygonShape2D.new()
 	shape.points = polygon
 	collision_shape.shape = shape
 	test_object.add_child(collision_shape)
 
 	_env.add_child(test_object)
-	auto_free(test_object)
 
 	# Set targeting state
 	_targeting_state.set_manual_target(test_object)
@@ -259,18 +258,17 @@ func test_collision_mapper_position_independence(
 	)
 
 	# Create test object at specified position
-	var test_object: StaticBody2D = StaticBody2D.new()
+	var test_object: StaticBody2D = auto_free(StaticBody2D.new())
 	test_object.name = "PositionTest_%s" % test_name
 	test_object.global_position = position
 
-	var collision_shape: CollisionShape2D = CollisionShape2D.new()
+	var collision_shape: CollisionShape2D = auto_free(CollisionShape2D.new())
 	var shape: ConvexPolygonShape2D = ConvexPolygonShape2D.new()
 	shape.points = test_polygon
 	collision_shape.shape = shape
 	test_object.add_child(collision_shape)
 
 	_env.add_child(test_object)
-	auto_free(test_object)
 
 	# Calculate expected tiles using CollisionGeometryUtils
 	var center_tile: Vector2i = Vector2i(
@@ -360,18 +358,17 @@ func test_collision_mapper_size_extremes() -> void:
 		[Vector2(-4, -4), Vector2(4, -4), Vector2(4, 4), Vector2(-4, 4)]
 	)
 
-	var test_object: StaticBody2D = StaticBody2D.new()
+	var test_object: StaticBody2D = auto_free(StaticBody2D.new())
 	test_object.name = "MicroPolygonTest"
 	test_object.global_position = TEST_POSITION
 
-	var collision_shape: CollisionShape2D = CollisionShape2D.new()
+	var collision_shape: CollisionShape2D = auto_free(CollisionShape2D.new())
 	var shape: ConvexPolygonShape2D = ConvexPolygonShape2D.new()
 	shape.points = micro_polygon
 	collision_shape.shape = shape
 	test_object.add_child(collision_shape)
 
 	_env.add_child(test_object)
-	auto_free(test_object)
 
 	# Calculate expected tiles
 	var center_tile: Vector2i = Vector2i(

@@ -196,12 +196,12 @@ func _create_collision_obstacle_at_position(
 	position: Vector2, name_suffix: String = ""
 ) -> StaticBody2D:
 	"""Standardized collision obstacle creation with consistent configuration"""
-	var collision_obstacle: StaticBody2D = StaticBody2D.new()
+	var collision_obstacle: StaticBody2D = auto_free(StaticBody2D.new())
 	collision_obstacle.name = "TestCollisionObstacle" + name_suffix
 	collision_obstacle.collision_layer = DEFAULT_COLLISION_LAYER
 	collision_obstacle.collision_mask = DEFAULT_COLLISION_LAYER
 
-	var collision_shape: CollisionShape2D = CollisionShape2D.new()
+	var collision_shape: CollisionShape2D = auto_free(CollisionShape2D.new())
 	var rect_shape: RectangleShape2D = RectangleShape2D.new()
 	rect_shape.size = DEFAULT_COLLISION_SHAPE_SIZE
 	collision_shape.shape = rect_shape
@@ -1168,13 +1168,12 @@ func test_system_cleanup_integration() -> void:
 	var manipulation_parent: Node2D = env.manipulation_parent
 
 	# Create test indicators
-	var test_area: Area2D = Area2D.new()
-	var collision_shape: CollisionShape2D = CollisionShape2D.new()
+	var test_area: Area2D = auto_free(Area2D.new())
+	var collision_shape: CollisionShape2D = auto_free(CollisionShape2D.new())
 	collision_shape.shape = RectangleShape2D.new()
 	collision_shape.shape.size = Vector2(32, 32)
 	test_area.add_child(collision_shape)
 	manipulation_parent.add_child(test_area)
-	auto_free(test_area)
 
 	var rules: Array[TileCheckRule] = [TileCheckRule.new()]
 	indicator_manager.setup_indicators(test_area, rules)
@@ -1220,16 +1219,15 @@ func test_system_performance_under_load() -> void:
 	# Create multiple test objects
 	var test_areas: Array[Area2D] = []
 	for i in range(5):
-		var test_area: Area2D = Area2D.new()
+		var test_area: Area2D = auto_free(Area2D.new())
 		test_area.name = "TestArea_" + str(i)
-		var collision_shape: CollisionShape2D = CollisionShape2D.new()
+		var collision_shape: CollisionShape2D = auto_free(CollisionShape2D.new())
 		collision_shape.shape = RectangleShape2D.new()
 		collision_shape.shape.size = Vector2(32, 32)
 		test_area.add_child(collision_shape)
 		test_area.position = Vector2(64, 64)
 		manipulation_parent.add_child(test_area)
 		test_areas.append(test_area)
-		auto_free(test_area)
 
 	var rules: Array[TileCheckRule] = [TileCheckRule.new()]
 

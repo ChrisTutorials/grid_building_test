@@ -30,6 +30,7 @@ var _gts: GridTargetingState
 #region Test setup and teardown
 
 
+## Initializes test environment with ValidPlacementTileRule and indicator setup.
 func before_test() -> void:
 	_env = EnvironmentTestFactory.create_all_systems_env(self, GBTestConstants.ALL_SYSTEMS_ENV)
 	_container = _env.injector.composition_container
@@ -87,6 +88,7 @@ func before_test() -> void:
 #endregion
 #region Test suite methods
 
+## Tests ValidPlacementTileRule.does_tile_have_valid_data with various indicator setups.
 @warning_ignore("unused_parameter")
 func test_does_tile_have_valid_data(
 	p_indicator: RuleCheckIndicator,
@@ -107,6 +109,7 @@ func test_does_tile_have_valid_data(
 	)
 
 
+## Tests ValidPlacementTileRule._test_tile_data_for_all_matches with various tile data scenarios.
 @warning_ignore("unused_parameter")
 func test_test_tile_data_for_all_matches(
 	p_tile_data: TileData,

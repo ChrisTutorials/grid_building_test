@@ -53,16 +53,14 @@ func create_mock_indicator(position: Vector2 = DEFAULT_POSITION) -> RuleCheckInd
 
 
 func create_mock_shape_owner(position: Vector2 = DEFAULT_POSITION) -> Node2D:
-	var shape_owner: Node2D = Node2D.new()
-	auto_free(shape_owner)
+	var shape_owner: Node2D = auto_free(Node2D.new())
 	shape_owner.position = position
 	add_child(shape_owner)
 	return shape_owner
 
 
 func create_rectangle_shape(size: Vector2 = TILE_SIZE) -> RectangleShape2D:
-	var rect_shape: RectangleShape2D = RectangleShape2D.new()
-	auto_free(rect_shape)
+	var rect_shape: RectangleShape2D = auto_free(RectangleShape2D.new())
 	rect_shape.size = size
 	return rect_shape
 

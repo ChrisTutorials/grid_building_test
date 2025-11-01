@@ -95,7 +95,7 @@ func after_test() -> void:
 ## CRITICAL: Collision shapes are REQUIRED for indicator generation during placement
 ## Follows pattern from manipulation_system_test.gd
 func _create_test_manipulatable() -> Manipulatable:
-	var root: Node2D = Node2D.new()
+	var root: Node2D = auto_free(Node2D.new())
 	root.name = "SmithyRoot"
 	root.global_position = TEST_POSITION
 	add_child(root)

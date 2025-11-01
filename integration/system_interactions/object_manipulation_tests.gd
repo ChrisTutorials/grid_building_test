@@ -242,12 +242,11 @@ func test_polygon_tile_mapper_offsets() -> void:
 
 @warning_ignore("unused_parameter")
 func test_area2d_rotation_indicator_basic() -> void:
-	var area: Area2D = Area2D.new()
+	var area: Area2D = auto_free(Area2D.new())
 	area.name = "TestRotationArea"
-	auto_free(area)
 	add_child(area)
 
-	var collision_shape: CollisionShape2D = CollisionShape2D.new()
+	var collision_shape: CollisionShape2D = auto_free(CollisionShape2D.new())
 	var rect_shape: RectangleShape2D = RectangleShape2D.new()
 	rect_shape.size = GBTestConstants.DEFAULT_TILE_SIZE
 	collision_shape.shape = rect_shape
@@ -264,10 +263,9 @@ func test_area2d_rotation_indicator_basic() -> void:
 
 @warning_ignore("unused_parameter")
 func test_area2d_rotation_indicator_collision() -> void:
-	var area: Area2D = Area2D.new()
+	var area: Area2D = auto_free(Area2D.new())
 	area.collision_layer = 2
 	area.collision_mask = 2
-	auto_free(area)
 	add_child(area)
 
 	(

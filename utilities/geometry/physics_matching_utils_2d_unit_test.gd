@@ -73,7 +73,7 @@ func test_get_layers_from_bitmask_edge_cases() -> void:
 
 func test_object_has_matching_layer() -> void:
 	# Create mock collision object
-	var test_area: Area2D = Area2D.new()
+	var test_area: Area2D = auto_free(Area2D.new())
 
 	# Test exact match: collision layer 513 (bits 0,9) with mask 513 (bits 0,9)
 	test_area.collision_layer = 513
@@ -121,7 +121,7 @@ func test_object_has_matching_layer() -> void:
 
 
 func test_object_has_matching_layer_complex_cases() -> void:
-	var test_area: Area2D = Area2D.new()
+	var test_area: Area2D = auto_free(Area2D.new())
 
 	# Test multiple overlapping bits
 	test_area.collision_layer = 0b110011  # bits 0,1,4,5
@@ -166,7 +166,7 @@ func test_get_physics_layer_names() -> void:
 
 func test_regression_collision_layer_513_matches_mask_2561() -> void:
 	# This is the specific issue from the failing tests
-	var test_area: Area2D = Area2D.new()
+	var test_area: Area2D = auto_free(Area2D.new())
 	test_area.collision_layer = 513  # TEST_COLLISION_LAYER from tests
 
 	# This should return true since both have bits 0 and 9 set

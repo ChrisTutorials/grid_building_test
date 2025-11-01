@@ -122,10 +122,9 @@ func test_targeting_validation() -> void:
 	)
 
 	# Test invalid position (out of bounds) by creating a specific target
-	var invalid_target: Node2D = Node2D.new()
+	var invalid_target: Node2D = auto_free(Node2D.new())
 	invalid_target.position = Vector2(1000, 1000)
 	env.level.add_child(invalid_target)
-	auto_free(invalid_target)
 
 	# Store original target before setting invalid one
 	var original_target: Node2D = targeting_state.get_target()
@@ -143,7 +142,6 @@ func test_targeting_validation() -> void:
 	# Restore original target before invalid target is freed
 	targeting_state.set_manual_target(original_target)
 
-	auto_free(invalid_target)
 
 
 func test_targeting_with_rules() -> void:
@@ -194,11 +192,10 @@ func test_targeting_multiple_objects() -> void:
 	# Add multiple objects
 	var objects: Array = []
 	for i: int in range(3):
-		var obj: Area2D = Area2D.new()
+		var obj: Area2D = auto_free(Area2D.new())
 		obj.position = Vector2(i * 32, i * 32)
 		positioner.add_child(obj)
 		objects.append(obj)
-		auto_free(obj)
 
 	# Test that the system can handle multiple objects using factory's default target
 	var targeting_state: GridTargetingState = targeting_system.get_state()

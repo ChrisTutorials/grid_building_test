@@ -71,7 +71,7 @@ func _initialize_test_components() -> void:
 
 ## Validate all required dependencies are available
 func _validate_required_dependencies() -> void:
-	var dependencies: Dictionary[String, Variant] = {
+	var dependencies: Dictionary[String, Object] = {
 		"container": _container,
 		"building_system": _building_system,
 		"indicator_manager": _indicator_manager,
@@ -732,8 +732,8 @@ func test_building_system_reports_success_failure_correctly() -> void:
 
 	# Test Case 2: Position with collision should have failed PlacementReport with issues
 	# Create collision body at target position
-	var collision_body: StaticBody2D = StaticBody2D.new()
-	var collision_shape: CollisionShape2D = CollisionShape2D.new()
+	var collision_body: StaticBody2D = auto_free(StaticBody2D.new())
+	var collision_shape: CollisionShape2D = auto_free(CollisionShape2D.new())
 	var rect_shape: RectangleShape2D = RectangleShape2D.new()
 	rect_shape.size = COLLISION_SHAPE_SIZE
 	collision_shape.shape = rect_shape
@@ -741,7 +741,6 @@ func test_building_system_reports_success_failure_correctly() -> void:
 	collision_body.collision_layer = DEFAULT_COLLISION_LAYER
 	collision_body.global_position = TARGET_POS
 	add_child(collision_body)
-	auto_free(collision_body)
 
 	var collision_result: PlacementReport = _building_system.try_build_at_position(TARGET_POS)
 	(

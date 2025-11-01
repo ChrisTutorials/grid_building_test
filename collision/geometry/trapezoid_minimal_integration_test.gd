@@ -42,11 +42,11 @@ func test_trapezoid_full_pipeline_integration() -> void:
 
 	# 1) Create the trapezoid test object
 	var trapezoid_polygon: PackedVector2Array = create_trapezoid_from_runtime()
-	var test_object: StaticBody2D = StaticBody2D.new()
+	var test_object: StaticBody2D = auto_free(StaticBody2D.new())
 	test_object.name = "TrapezoidFullTest"
 	test_object.global_position = TRAPEZOID_POSITION
 
-	var collision_shape: CollisionShape2D = CollisionShape2D.new()
+	var collision_shape: CollisionShape2D = auto_free(CollisionShape2D.new())
 	var shape: ConvexPolygonShape2D = ConvexPolygonShape2D.new()
 	shape.points = trapezoid_polygon
 	collision_shape.shape = shape
@@ -54,7 +54,6 @@ func test_trapezoid_full_pipeline_integration() -> void:
 
 	# Add to scene tree
 	_env.add_child(test_object)
-	auto_free(test_object)
 
 	# 2) Set targeting state
 	_targeting_state.set_manual_target(test_object)

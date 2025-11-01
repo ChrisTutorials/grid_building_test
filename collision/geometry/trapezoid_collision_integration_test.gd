@@ -49,11 +49,11 @@ func test_trapezoid_collision_detection_integration() -> void:
 	GBTestDiagnostics.log_verbose("[TRAPEZOID_TRACE] Trapezoid polygon: %s" % str(trapezoid_polygon))
 
 	# 2) Create test object with collision shape (needs to be a physics body)
-	var test_object: StaticBody2D = StaticBody2D.new()
+	var test_object: StaticBody2D = auto_free(StaticBody2D.new())
 	test_object.name = "TrapezoidTestObject"
 	test_object.global_position = TRAPEZOID_POSITION
 
-	var collision_shape: CollisionShape2D = CollisionShape2D.new()
+	var collision_shape: CollisionShape2D = auto_free(CollisionShape2D.new())
 	var shape: ConvexPolygonShape2D = ConvexPolygonShape2D.new()
 	shape.points = trapezoid_polygon
 	collision_shape.shape = shape
@@ -63,7 +63,6 @@ func test_trapezoid_collision_detection_integration() -> void:
 
 	# Add to scene tree so it's properly detected
 	_env.add_child(test_object)
-	auto_free(test_object)
 
 	# 3) Set targeting state
 	_targeting_state.set_manual_target(test_object)
@@ -144,11 +143,11 @@ func test_collision_mapper_integration() -> void:
 
 	# Create trapezoid test object with proper physics body
 	var trapezoid_polygon: PackedVector2Array = create_trapezoid_from_runtime()
-	var test_object: StaticBody2D = StaticBody2D.new()
+	var test_object: StaticBody2D = auto_free(StaticBody2D.new())
 	test_object.name = "TrapezoidMapperTest"
 	test_object.global_position = TRAPEZOID_POSITION
 
-	var collision_shape: CollisionShape2D = CollisionShape2D.new()
+	var collision_shape: CollisionShape2D = auto_free(CollisionShape2D.new())
 	var shape: ConvexPolygonShape2D = ConvexPolygonShape2D.new()
 	shape.points = trapezoid_polygon
 	collision_shape.shape = shape
@@ -156,7 +155,6 @@ func test_collision_mapper_integration() -> void:
 
 	# Add to scene tree
 	_env.add_child(test_object)
-	auto_free(test_object)
 
 	# Get collision shapes
 	var owner_shapes: Dictionary[Node2D, Array] = GBGeometryUtils.get_all_collision_shapes_by_owner(test_object)
@@ -204,11 +202,11 @@ func test_full_indicator_generation_integration() -> void:
 
 	# Create trapezoid with exact runtime setup
 	var trapezoid_polygon: PackedVector2Array = create_trapezoid_from_runtime()
-	var test_object: StaticBody2D = StaticBody2D.new()
+	var test_object: StaticBody2D = auto_free(StaticBody2D.new())
 	test_object.name = "TrapezoidFullTest"
 	test_object.global_position = TRAPEZOID_POSITION
 
-	var collision_shape: CollisionShape2D = CollisionShape2D.new()
+	var collision_shape: CollisionShape2D = auto_free(CollisionShape2D.new())
 	var shape: ConvexPolygonShape2D = ConvexPolygonShape2D.new()
 	shape.points = trapezoid_polygon
 	collision_shape.shape = shape
@@ -216,7 +214,6 @@ func test_full_indicator_generation_integration() -> void:
 
 	# Add to scene tree
 	_env.add_child(test_object)
-	auto_free(test_object)
 
 	# Set targeting state
 	_targeting_state.set_manual_target(test_object)

@@ -288,8 +288,8 @@ func _get_indicator_tile(indicator: RuleCheckIndicator, tm: TileMapLayer) -> Vec
 
 
 func _create_test_area() -> Area2D:
-	var area: Area2D = Area2D.new()
-	var collision_shape: CollisionShape2D = CollisionShape2D.new()
+	var area: Area2D = auto_free(Area2D.new())
+	var collision_shape: CollisionShape2D = auto_free(CollisionShape2D.new())
 	collision_shape.shape = RectangleShape2D.new()
 	collision_shape.shape.size = Vector2(16, 16)
 	area.add_child(collision_shape)
@@ -320,7 +320,6 @@ func _create_test_rules() -> Array[TileCheckRule]:
 func _setup_test_area(area: Area2D) -> void:
 	var manipulation_parent: Node2D = env.manipulation_parent
 	manipulation_parent.add_child(area)
-	auto_free(area)
 
 
 func _count_indicators(parent: Node) -> int:

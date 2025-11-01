@@ -6,7 +6,7 @@
 ## - CollisionPolygon2D (via parent CollisionObject2D)
 extends GdUnitTestSuite
 
-var _CollisionObjectResolver: GDScript = preload(
+var _collision_object_resolver_script: GDScript = preload(
 	"res://addons/grid_building/placement/manager/components/mapper/collision_object_resolver.gd"
 )
 
@@ -46,7 +46,7 @@ var _resolver: RefCounted
 
 ## Sets up CollisionObjectResolver instance for each test.
 func before_test() -> void:
-	_resolver = _CollisionObjectResolver.new()
+	_resolver = _collision_object_resolver_script.new()
 
 
 ## Cleans up CollisionObjectResolver instance after each test.
@@ -112,6 +112,7 @@ func collision_resolution_test_data() -> Array[Array]:
 
 ## Parameterized test for collision object resolution with different node types.
 @warning_ignore("unused_parameter")
+## Tests collision object resolution with various node types and setups.
 func test_collision_object_resolution(
 	test_name: String,
 	setup_func: Callable,
@@ -126,7 +127,7 @@ func test_collision_object_resolution(
 	var expected_test_setup: CollisionTestSetup2D = test_data.expected_test_setup
 
 	# Resolve
-	var result: Variant = _resolver.resolve_collision_object(collision_node, test_setups)
+	var result: ResolutionResult = _resolver.resolve_collision_object(collision_node, test_setups)
 
 	# Assert
 	(
@@ -175,7 +176,7 @@ func test_collision_object_resolution(
 
 ## Test layer mask matching
 func test_object_matches_layer_mask() -> void:
-	var collision_obj: CollisionObject2D = StaticBody2D.new()
+	var collision_obj: CollisionObject2D = auto_free(StaticBody2D.new())
 	collision_obj.collision_layer = 5  # Binary: 101
 
 	# Test matching masks
@@ -202,15 +203,12 @@ func test_object_matches_layer_mask() -> void:
 		. is_false()
 	)
 
-	# Cleanup
-	collision_obj.queue_free()
-
 
 ## Setup functions for test data
 
 
 func _setup_direct_collision_object() -> CollisionResolutionTestData:
-	var collision_obj: CollisionObject2D = StaticBody2D.new()
+	var collision_obj: CollisionObject2D = auto_free(StaticBody2D.new())
 	collision_obj.collision_layer = 1
 	var test_setup := CollisionTestSetup2D.new(collision_obj, Vector2(32, 32))
 	var test_setups: Array[CollisionTestSetup2D] = [test_setup]
@@ -221,10 +219,10 @@ func _setup_direct_collision_object() -> CollisionResolutionTestData:
 
 
 func _setup_collision_shape_with_parent() -> CollisionResolutionTestData:
-	var parent_obj: CollisionObject2D = StaticBody2D.new()
+	var parent_obj: CollisionObject2D = auto_free(StaticBody2D.new())
 	parent_obj.collision_layer = 2
 
-	var shape := CollisionShape2D.new()
+	var shape: CollisionShape2D = auto_free(CollisionShape2D.new())
 	var rect_shape := RectangleShape2D.new()
 	rect_shape.size = Vector2(32, 32)
 	shape.shape = rect_shape
@@ -237,23 +235,21 @@ func _setup_collision_shape_with_parent() -> CollisionResolutionTestData:
 
 
 func _setup_collision_polygon_with_parent() -> CollisionResolutionTestData:
-	var parent_obj: CollisionObject2D = StaticBody2D.new()
+	var parent_obj: CollisionObject2D = auto_free(StaticBody2D.new())
 	parent_obj.collision_layer = 4
 
-	var polygon := CollisionPolygon2D.new()
+	var polygon: CollisionPolygon2D = auto_free(CollisionPolygon2D.new())
 	polygon.polygon = [Vector2(-16, -16), Vector2(16, -16), Vector2(0, 16)]
 	parent_obj.add_child(polygon)
 
 	var test_setup := CollisionTestSetup2D.new(parent_obj, Vector2(32, 32))
 	var test_setups: Array[CollisionTestSetup2D] = [test_setup]
 
-	return CollisionResolutionTestData.new(
-		polygon, test_setups, parent_obj, test_setup, [parent_obj]
-	)
+	return CollisionResolutionTestData.new(polygon, test_setups, parent_obj, test_setup, [parent_obj])
 
 
 func _setup_collision_shape_without_parent() -> CollisionResolutionTestData:
-	var shape := CollisionShape2D.new()
+	var shape: CollisionShape2D = auto_free(CollisionShape2D.new())
 	var circle_shape := CircleShape2D.new()
 	circle_shape.radius = 16
 	shape.shape = circle_shape
@@ -264,7 +260,7 @@ func _setup_collision_shape_without_parent() -> CollisionResolutionTestData:
 
 
 func _setup_collision_polygon_without_parent() -> CollisionResolutionTestData:
-	var polygon := CollisionPolygon2D.new()
+	var polygon: CollisionPolygon2D = auto_free(CollisionPolygon2D.new())
 	polygon.polygon = [Vector2(-8, -8), Vector2(8, -8), Vector2(0, 8)]
 
 	var test_setups: Array[CollisionTestSetup2D] = []
@@ -273,7 +269,7 @@ func _setup_collision_polygon_without_parent() -> CollisionResolutionTestData:
 
 
 func _setup_unsupported_node() -> CollisionResolutionTestData:
-	var node := Node2D.new()
+	var node: Node2D = auto_free(Node2D.new())
 	var test_setups: Array[CollisionTestSetup2D] = []
 
 	return CollisionResolutionTestData.new(node, test_setups, null, null, [node])
@@ -286,7 +282,7 @@ func _setup_null_node() -> CollisionResolutionTestData:
 
 
 func _setup_collision_object_without_test_setup() -> CollisionResolutionTestData:
-	var collision_obj: CollisionObject2D = StaticBody2D.new()
+	var collision_obj: CollisionObject2D = auto_free(StaticBody2D.new())
 	collision_obj.collision_layer = 1
 
 	var test_setups: Array[CollisionTestSetup2D] = []  # Empty test setups

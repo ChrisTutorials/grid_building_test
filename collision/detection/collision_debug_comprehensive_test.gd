@@ -199,7 +199,7 @@ func _test_single_packed_scene_scenario(object_type: String, collision_layer: in
 	)
 	add_child(original_obj)
 
-	var collision_shape: CollisionShape2D = CollisionShape2D.new()  # NO auto_free for PackedScene
+	var collision_shape: CollisionShape2D = auto_free(CollisionShape2D.new())  # NO auto_free for PackedScene
 	collision_shape.name = "OriginalCollisionShape"
 	var rect_shape: RectangleShape2D = RectangleShape2D.new()
 	rect_shape.size = DEFAULT_RECT_SIZE

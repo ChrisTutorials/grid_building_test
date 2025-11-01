@@ -92,10 +92,12 @@ func test_move_to_tile_center_basic() -> void:
 	assert_that(result_tile).is_equal(target_tile)
 
 func test_get_tile_from_node_position_basic() -> void:
-	# Test: Convert node position to tile coordinate
-	# Setup: Node at known position
-	# Act: Get tile coordinate using unified function
-	# Assert: Correct tile coordinate returned
+	"""Test converting node position to tile coordinate.
+
+	Setup: Node at known position (72, 56) which should be tile (4, 3)
+	Act: Get tile coordinate using unified function
+	Assert: Correct tile coordinate returned
+	"""
 	test_node.global_position = Vector2(72, 56)  # Should be tile (4, 3)
 	var expected_tile: Vector2i = Vector2i(4, 3)
 
@@ -129,10 +131,12 @@ func test_get_tile_from_node_position_null_safety() -> void:
 #region Tile Delta Movement Tests
 
 func test_move_node_by_tiles_basic() -> void:
-	# Test: Move node by tile delta
-	# Setup: Node at starting position
-	# Act: Move by tile delta
-	# Assert: Node moved to correct tile
+	"""Test moving node by tile delta.
+
+	Setup: Node at starting position (40, 40) approximately tile (2, 2)
+	Act: Move by tile delta (2, -1) - right 2 tiles, up 1 tile
+	Assert: Node moved to correct tile (4, 1)
+	"""
 	test_node.global_position = Vector2(40, 40)  # Starting at approximately tile (2, 2)
 	var tile_delta: Vector2i = Vector2i(2, -1)  # Move right 2 tiles, up 1 tile
 
@@ -252,10 +256,12 @@ func test_snap_tile_to_region_invalid_region() -> void:
 #region Viewport to World Conversion Tests
 
 func test_viewport_center_to_world_position_with_camera() -> void:
-	# Test: Viewport center to world conversion with Camera2D
-	# Setup: Camera at specific position and zoom
-	# Act: Convert viewport center to world position
-	# Assert: Correct world position accounting for camera transform
+	"""Test viewport center to world conversion with Camera2D.
+
+	Setup: Camera at position (200, 150) with zoom (1.0, 1.0)
+	Act: Convert viewport center to world position
+	Assert: Correct world position accounting for camera transform
+	"""
 	test_camera.global_position = Vector2(200, 150)
 	test_camera.zoom = Vector2(1.0, 1.0)
 

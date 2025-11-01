@@ -48,13 +48,13 @@ func _setup_targeting_state_for_tests() -> void:
 
 # region Helper functions
 func _create_preview_with_collision() -> Node2D:
-	var root: Node2D = Node2D.new()
+	var root: Node2D = auto_free(Node2D.new())
 	root.name = "PreviewRoot"
 	# Simple body with collision on layer 1
-	var area: Area2D = Area2D.new()
+	var area: Area2D = auto_free(Area2D.new())
 	area.collision_layer = GBTestConstants.TEST_COLLISION_LAYER
 	area.collision_mask = GBTestConstants.TEST_COLLISION_MASK
-	var shape: CollisionShape2D = CollisionShape2D.new()
+	var shape: CollisionShape2D = auto_free(CollisionShape2D.new())
 	var rect: RectangleShape2D = RectangleShape2D.new()
 	# Use half tile size for smaller collision shape
 	rect.size = HALF_TILE_SIZE

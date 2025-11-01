@@ -101,11 +101,10 @@ func test_collision_shape_processor_null_positioner() -> void:
 
 	# Since the processor requires complex setup, we focus on testing the basic
 	# initialization that would be needed for any collision processing
-	var positioner: Node2D = Node2D.new()
+	var positioner: Node2D = auto_free(Node2D.new())
 	(
 		assert_that(positioner != null) \
 		. append_failure_message("Should be able to create positioner") \
 		. is_true()
 	)
-	auto_free(positioner)
 #endregion

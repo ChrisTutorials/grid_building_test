@@ -681,12 +681,11 @@ func test_position_rules_mapping_produces_results() -> void:
 ## 11 of 13 indicators generate. Coordinates: PackedVector2Array(-32, 12, -16, -12, 17, -12, 32, 12)
 func test_trapezoid_collision_mapper_setup_debug() -> void:
 	# Arrange: Create trapezoid shape matching simple_trapezoid.tscn
-	var body: StaticBody2D = StaticBody2D.new()
-	auto_free(body)
+	var body: StaticBody2D = auto_free(StaticBody2D.new())
 	add_child(body)
 	body.collision_layer = 1
 
-	var collision_shape: CollisionShape2D = CollisionShape2D.new()
+	var collision_shape: CollisionShape2D = auto_free(CollisionShape2D.new())
 	body.add_child(collision_shape)
 
 	# Exact trapezoid coordinates from simple_trapezoid.tscn

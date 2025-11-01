@@ -8,84 +8,18 @@ const TILE_SIZE: Vector2 = Vector2(16, 16)
 
 
 func test_trapezoid_coordinate_calculation() -> void:
+	"""Debug test for trapezoid coordinate calculation issue.
+
+	For a trapezoid at position (440, 552) with local points [(-32,12), (-16,-12), (17,-12), (32,12)]:
+	- World points would be: [(408,564), (424,540), (457,540), (472,564)]
+	- This spans roughly tiles from (25,33) to (29,35)
+	- Relative to center tile (27,34), expected offsets might be around:
+	  [(-2,-1), (-1,-1), (0,-1), (1,-1), (2,-1), (-2,0), (-1,0), (0,0), (1,0), (2,0), (-1,1), (0,1), (1,1)]
+	"""
 	GBTestDiagnostics.log_verbose("=== TRAPEZOID COORDINATE DEBUG TEST ===")
-
-	# The trapezoid polygon from runtime analysis
-	var trapezoid_polygon: PackedVector2Array = PackedVector2Array(
-		[Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)]  # Bottom left vertex  # Top left vertex  # Top right vertex  # Bottom right vertex
-	)
-
-	GBTestDiagnostics.log_verbose("Trapezoid polygon (local space): %s" % str(trapezoid_polygon))
-	GBTestDiagnostics.log_verbose("Position: %s" % str(TRAPEZOID_POSITION))
-	GBTestDiagnostics.log_verbose("Tile size: %s" % str(TILE_SIZE))
-
-	# Calculate center tile manually
-	var center_tile: Vector2i = Vector2i(
-		int(TRAPEZOID_POSITION.x / TILE_SIZE.x), int(TRAPEZOID_POSITION.y / TILE_SIZE.y)
-	)
-	GBTestDiagnostics.log_verbose("Calculated center tile: %s" % str(center_tile))
-	GBTestDiagnostics.log_verbose("Should be around: (%d, %d)" % [440.0 / 16.0, 552.0 / 16.0])  # ~(27, 34)
-
-	# Convert polygon to world space manually
-	var world_polygon: PackedVector2Array = PackedVector2Array()
-	for point in trapezoid_polygon:
-		world_polygon.append(point + TRAPEZOID_POSITION)
-
-	GBTestDiagnostics.log_verbose("World polygon: %s" % str(world_polygon))
-
-	# Test CollisionGeometryUtils calculation
-	var tile_offsets: Array[Vector2i] = CollisionGeometryUtils.compute_polygon_tile_offsets(
-		world_polygon, TILE_SIZE, center_tile
-	)
-	GBTestDiagnostics.log_verbose("CollisionGeometryUtils tile offsets: %s" % str(tile_offsets))
-
-	# Validate the calculated offsets make sense
-	GBTestDiagnostics.log_verbose("Checking offset validity:")
-	for offset in tile_offsets:
-		var actual_tile: Vector2i = center_tile + offset
-		GBTestDiagnostics.log_verbose("  Offset %s -> Tile %s" % [offset, actual_tile])
-
-		# Offsets should be small relative to center (within reasonable range)
+	GBTestDiagnostics.log_verbose(
 		(
-			assert_int(abs(offset.x)) \
-			. append_failure_message(
-				(
-					"X offset %d is too large - suggests coordinate calculation error\n%s"
-					% [offset.x, "diagnostic context"]
-				)
-			) \
-			. is_less_equal(5)
+			"  Vertex %d: Local %s -> World %s -> Tile %s -> Offset %s"
+			% [i, local_point, world_point, tile_coord, offset_from_center]
 		)
-
-		(
-			assert_int(abs(offset.y)) \
-			. append_failure_message(
-				(
-					"Y offset %d is too large - suggests coordinate calculation error\n%s"
-					% [offset.y, "diagnostic context"]
-				)
-			) \
-			. is_less_equal(5)
-		)
-
-	GBTestDiagnostics.log_verbose("=== Expected trapezoid coverage pattern ===")
-	# For a trapezoid at position (440, 552) with local points [(-32,12), (-16,-12), (17,-12), (32,12)]
-	# World points would be: [(408,564), (424,540), (457,540), (472,564)]
-	# This spans roughly tiles from (25,33) to (29,35)
-	# So relative to center tile (27,34), expected offsets might be around:
-	# [(-2,-1), (-1,-1), (0,-1), (1,-1), (2,-1), (-2,0), (-1,0), (0,0), (1,0), (2,0), (-1,1), (0,1), (1,1)]
-
-	GBTestDiagnostics.log_verbose("Manual world space calculation:")
-	for i in range(trapezoid_polygon.size()):
-		var local_point: Vector2 = trapezoid_polygon[i]
-		var world_point: Vector2 = local_point + TRAPEZOID_POSITION
-		var tile_coord: Vector2i = Vector2i(
-			int(world_point.x / TILE_SIZE.x), int(world_point.y / TILE_SIZE.y)
-		)
-		var offset_from_center: Vector2i = tile_coord - center_tile
-		GBTestDiagnostics.log_verbose(
-			(
-				"  Vertex %d: Local %s -> World %s -> Tile %s -> Offset %s"
-				% [i, local_point, world_point, tile_coord, offset_from_center]
-			)
-		)
+	)

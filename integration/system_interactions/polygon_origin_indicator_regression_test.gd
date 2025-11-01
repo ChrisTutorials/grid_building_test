@@ -68,7 +68,7 @@ func test_polygon_test_object_no_indicator_at_origin_when_centered() -> void:
 	polygon_obj.position = Vector2.ZERO  # Ensure it's centered
 
 	# Create proper StaticBody2D with CollisionPolygon2D child
-	var static_body: StaticBody2D = StaticBody2D.new()
+	var static_body: StaticBody2D = auto_free(StaticBody2D.new())
 	static_body.name = "StaticBody2D"
 	static_body.collision_layer = 1  # Match the rule's apply_to_objects_mask
 	static_body.collision_mask = 1
@@ -156,7 +156,14 @@ func test_polygon_test_object_no_indicator_at_origin_when_centered() -> void:
 
 
 func test_polygon_test_object_valid_indicators_generated() -> void:
-	"""Sanity check: Ensure polygon test object generates some valid indicators, just not at (0,0)."""
+	"""Sanity check: Ensure polygon test object generates some valid indicators, just not at (0,0).
+
+	NOTE: Indicator generation is currently not working due to systemic issues.
+	For now, just verify the setup process works. When indicator generation is fixed,
+	uncomment the assertions below to verify reasonable indicator generation:
+	- Should have reasonable number of indicators (not zero, not excessive)
+	- Should not generate excessive indicators (regression prevention, max 15)
+	"""
 	if test_env == null:
 		return
 
@@ -194,21 +201,15 @@ func test_polygon_test_object_valid_indicators_generated() -> void:
 		. is_not_null()
 	)
 
-	# When indicator generation is fixed, uncomment the assertions below:
-	# # Assert: Should have reasonable number of indicators (not zero, not excessive)
-	# assert_int(report.indicators.size()).append_failure_message(
-	#     "Expected polygon test object to generate indicators. Report: %s" % report.to_summary_string()
-	# ).is_greater(0)
-	#
-	# # Should not generate excessive indicators (regression prevention)
-	# assert_int(report.indicators.size()).append_failure_message(
-	#     "Too many indicators generated for polygon test object (possible over-generation bug). " +
-	#     "Count: %d, Report: %s" % [report.indicators.size(), report.to_summary_string()]
-	# ).is_less_equal(15)  # Reasonable upper bound
-
 
 func test_polygon_test_object_centered_preview_flag() -> void:
-	"""Verify that the polygon test object correctly triggers the centered_preview flag in the report."""
+	"""Verify that the polygon test object correctly triggers the centered_preview flag in the report.
+
+	NOTE: Indicator generation is currently not working due to systemic issues.
+	For now, just verify the setup process works. When indicator generation is fixed,
+	uncomment the assertions below to verify that notes should reflect the centering
+	with a 'preview_centered' note in the report.
+	"""
 	if test_env == null:
 		return
 
@@ -245,21 +246,17 @@ func test_polygon_test_object_centered_preview_flag() -> void:
 		. is_not_null()
 	)
 
-	# When indicator generation is fixed, uncomment the assertions below:
-	# # Assert: notes should reflect the centering
-	# var notes_contain_centered: bool = false
-	# for note in report.notes:
-	#     if "preview_centered" in note:
-	#         notes_contain_centered = true
-	#         break
-	#
-	# assert_bool(notes_contain_centered).append_failure_message(
-	#     "Expected 'preview_centered' note in report when object is centered. Notes: %s" % [report.notes]
-	# ).is_true()
-
 
 func test_proper_parent_architecture_maintained() -> void:
-	"""Verify that the correct parent node architecture is maintained during indicator generation."""
+	"""Verify that the correct parent node architecture is maintained during indicator generation.
+
+	NOTE: Indicator generation is currently not working due to systemic issues.
+	For now, just verify the setup process works. When indicator generation is fixed,
+	uncomment the assertions below to verify:
+	- Preview object should be child of manipulation parent
+	- All indicators should be children of indicator manager
+	- IndicatorManager should be child of manipulation parent
+	"""
 	if test_env == null:
 		return
 
@@ -295,20 +292,3 @@ func test_proper_parent_architecture_maintained() -> void:
 		. append_failure_message("IndicatorManager.setup_indicators should return a valid report") \
 		. is_not_null()
 	)
-
-	# When indicator generation is fixed, uncomment the assertions below:
-	# # Assert: Preview object should be child of manipulation parent
-	# assert_object(polygon_obj.get_parent()).append_failure_message(
-	# 	"Preview object should be child of ManipulationParent, not %s" % polygon_obj.get_parent().name
-	# ).is_equal(_manipulation_parent)
-	#
-	# # Assert: All indicators should be children of indicator manager
-	# for indicator in report.indicators:
-	# 	assert_object(indicator.get_parent()).append_failure_message(
-	# 		"Indicator should be child of IndicatorManager, not %s. This violates the parent architecture." % indicator.get_parent().name
-	# 	).is_equal(_indicator_manager)
-	#
-	# # Assert: IndicatorManager should be child of manipulation parent
-	# assert_object(_indicator_manager.get_parent()).append_failure_message(
-	# 	"IndicatorManager should be child of ManipulationParent, not %s" % _indicator_manager.get_parent().name
-	# ).is_equal(_manipulation_parent)

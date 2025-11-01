@@ -81,7 +81,7 @@ func test_component_lifecycle() -> void:
 	var _initial_injection_count: int = 0
 
 	# Create a test node that should be injected
-	var test_node: Node2D = Node2D.new()
+	var test_node: Node2D = auto_free(Node2D.new())
 	test_node.name = "TestInjectableNode"
 	test_node.set_script(GDScript.new())  # Add a script so it can have resolve_gb_dependencies
 	add_child(test_node)
@@ -93,7 +93,6 @@ func test_component_lifecycle() -> void:
 		. is_not_null()
 	)
 
-	auto_free(test_node)
 
 
 func test_component_defaults() -> void:
