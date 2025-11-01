@@ -5,6 +5,7 @@
 
 extends GdUnitTestSuite
 @warning_ignore("unused_parameter") var test_grid: GridContainer
+var runner: GdUnitSceneRunner
 var placeable_template: PackedScene
 var sequence_template: PackedScene
 var test_placeables: Array[Placeable]
@@ -18,6 +19,10 @@ const DEFAULT_COLUMNS: int = 3
 
 
 func before_test() -> void:
+	# Initialize scene runner for synchronous frame simulation
+	runner = scene_runner(GBTestConstants.ALL_SYSTEMS_ENV.resource_path)
+	runner.simulate_frames(1)
+
 	# Load templates
 	placeable_template = GBTestConstants.TEST_PATH_PLACEABLE_VIEW_UI
 	sequence_template = load(GBTestConstants.TEST_PATH_PLACEABLE_LIST_ENTRY_UI)
@@ -31,7 +36,7 @@ func before_test() -> void:
 	test_grid.custom_minimum_size = Vector2(GRID_WIDTH, 300)
 	test_grid.columns = DEFAULT_COLUMNS
 	add_child(test_grid)
-	await get_tree().process_frame
+	runner.simulate_frames(1)  # Synchronous frame simulation replaces await
 
 
 func after_test() -> void:
@@ -47,7 +52,7 @@ func test_placeable_template_size_flags() -> void:
 	# Act: Create placeable template instance
 	var entry_node: PlaceableView = placeable_template.instantiate()
 	add_child(entry_node)
-	await get_tree().process_frame
+	runner.simulate_frames(1)  # Synchronous frame simulation replaces await
 	# Assert: Size flags configured for horizontal stretching
 	assert_object(entry_node).append_failure_message(
 		"Template should be a Control"
@@ -86,7 +91,7 @@ func test_sequence_templates_stretch_to_column_width() -> void:
 	var entry_node: PlaceableListEntry = sequence_template.instantiate()
 	entry_node.sequence = test_sequence
 	test_grid.add_child(entry_node)
-	await get_tree().process_frame
+	runner.simulate_frames(1)  # Synchronous frame simulation replaces await
 	# Assert: Template stretches to column width
 	var template: Control = test_grid.get_child(0) as Control
 	assert_object(template).append_failure_message(
@@ -126,7 +131,7 @@ func test_height_consistency_during_variant_cycling() -> void:
 	var entry_node: PlaceableListEntry = sequence_template.instantiate()
 	entry_node.sequence = test_sequence
 	test_grid.add_child(entry_node)
-	await get_tree().process_frame
+	runner.simulate_frames(1)  # Synchronous frame simulation replaces await
 
 	# Get initial dimensions
 	var template: Control = test_grid.get_child(0) as Control
@@ -146,12 +151,12 @@ func test_height_consistency_during_variant_cycling() -> void:
 	# Act: Cycle through variants (simulate user interaction)
 	if entry_node.has_method("cycle_to_next"):
 		entry_node.cycle_to_next()
-		await get_tree().process_frame
+		runner.simulate_frames(1)  # Synchronous frame simulation replaces await
 	else:
 		# Manually trigger variant change if method not available
 		if entry_node.has_signal("variant_changed"):
 			entry_node.emit_signal("variant_changed", test_placeables[1])
-			await get_tree().process_frame
+			runner.simulate_frames(1)  # Synchronous frame simulation replaces await
 
 	# Assert: Dimensions remain consistent after cycling
 	var post_cycle_height: float = template.size.y
@@ -192,7 +197,7 @@ func test_mixed_content_consistent_sizing() -> void:
 	placeable_entry2.placeable = test_placeables[1]
 	test_grid.add_child(placeable_entry2)
 
-	await get_tree().process_frame
+	runner.simulate_frames(1)  # Synchronous frame simulation replaces await
 
 	# Assert: All templates have consistent sizing
 	var children: Array[Node] = test_grid.get_children()
