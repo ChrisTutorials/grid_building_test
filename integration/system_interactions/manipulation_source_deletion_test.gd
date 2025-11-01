@@ -14,6 +14,7 @@ var manipulatable: Manipulatable
 func before_test() -> void:
 	# Load test environment using scene_runner with ALL_SYSTEMS_ENV_UID
 	runner = scene_runner(GBTestConstants.ALL_SYSTEMS_ENV.resource_path)
+	runner.simulate_frames(1)  # Synchronous frame simulation replaces await
 	test_env = runner.scene()
 
 	# Get systems from environment using AllSystemsTestEnvironment API
@@ -24,8 +25,6 @@ func before_test() -> void:
 
 	# Create initial test object - tests will recreate as needed
 	_create_test_object()
-
-	await get_tree().process_frame
 
 
 func after_test() -> void:
@@ -78,7 +77,7 @@ func test_source_deletion_cancels_manipulation() -> void:
 
 	# Act: Delete the source object (simulating external deletion)
 	test_object.queue_free()
-	await get_tree().process_frame
+	runner.simulate_frames(1)  # Synchronous frame simulation replaces await
 
 	# Assert: Manipulation should be auto-canceled
 	(
@@ -103,7 +102,7 @@ func test_source_deletion_cancels_manipulation() -> void:
 func test_multiple_source_deletions_handled_safely() -> void:
 	# Arrange: Create fresh test object
 	_create_test_object()
-	await get_tree().process_frame
+	runner.simulate_frames(1)  # Synchronous frame simulation replaces await
 
 	# Start move manipulation
 	var move_data: ManipulationData = manipulation_system.try_move(test_object)
@@ -115,7 +114,7 @@ func test_multiple_source_deletions_handled_safely() -> void:
 
 	# Act: Delete source and wait for processing
 	test_object.queue_free()
-	await get_tree().process_frame
+	runner.simulate_frames(1)  # Synchronous frame simulation replaces await
 
 	# Assert: Manipulation canceled
 	(
@@ -126,7 +125,7 @@ func test_multiple_source_deletions_handled_safely() -> void:
 
 	# Act again: Attempt to trigger signal again (shouldn't crash)
 	# The signal should already be disconnected
-	await get_tree().process_frame
+	runner.simulate_frames(1)  # Synchronous frame simulation replaces await
 
 	# Assert: Still no active manipulation, no crashes
 	(
@@ -143,11 +142,11 @@ func test_multiple_source_deletions_handled_safely() -> void:
 func test_source_deletion_at_various_manipulation_phases() -> void:
 	# Phase 1: Delete immediately after start
 	_create_test_object()
-	await get_tree().process_frame
+	runner.simulate_frames(1)  # Synchronous frame simulation replaces await
 	var move_data1: ManipulationData = manipulation_system.try_move(test_object)
 	assert_int(move_data1.status).is_equal(GBEnums.Status.STARTED)
 	test_object.queue_free()
-	await get_tree().process_frame
+	runner.simulate_frames(1)  # Synchronous frame simulation replaces await
 	assert_object(manipulation_state.data).is_null().append_failure_message(
 		"Expected immediate deletion to cancel manipulation"
 	)
@@ -162,21 +161,21 @@ func test_source_deletion_at_various_manipulation_phases() -> void:
 	manipulatable.settings.movable = true
 	test_object.add_child(manipulatable)
 	manipulatable.resolve_gb_dependencies(container)
-	await get_tree().process_frame
+	runner.simulate_frames(1)  # Synchronous frame simulation replaces await
 
 	# Phase 2: Delete after some processing time
 	_create_test_object()  # Create fresh object for phase 2
-	await get_tree().process_frame
+	runner.simulate_frames(1)  # Synchronous frame simulation replaces await
 	var move_data2: ManipulationData = manipulation_system.try_move(test_object)
 	assert_int(move_data2.status).is_equal(GBEnums.Status.STARTED)
 
 	# Let some frames pass
-	for i in range(3):
-		await get_tree().process_frame
+	for _i in range(3):
+		runner.simulate_frames(1)  # Synchronous frame simulation replaces await
 
 	# Now delete
 	test_object.queue_free()
-	await get_tree().process_frame
+	runner.simulate_frames(1)  # Synchronous frame simulation replaces await
 	(
 		assert_object(manipulation_state.data) \
 		. append_failure_message("Expected delayed deletion to cancel manipulation") \
