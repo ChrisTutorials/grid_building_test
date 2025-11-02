@@ -11,14 +11,6 @@ var _collision_object_resolver_script: GDScript = preload(
 )
 
 
-## Local copy of ResolutionResult for testing
-class ResolutionResult:
-	var collision_object: CollisionObject2D = null
-	var test_setup: CollisionTestSetup2D = null
-	var is_valid: bool = false
-	var error_message: String = ""
-
-
 ## Test data object for collision resolution tests
 class CollisionResolutionTestData:
 	var collision_node: Node2D
@@ -118,16 +110,18 @@ func test_collision_object_resolution(
 	setup_func: Callable,
 	expected_valid: bool,
 	expected_error_contains: String,
-	test_parameters := collision_resolution_test_data()
+	test_parameters: Array = collision_resolution_test_data()
 ) -> void:
 	var test_data: CollisionResolutionTestData = setup_func.call()
 	var collision_node: Node2D = test_data.collision_node
-	var test_setups: Array[CollisionTestSetup2D] = test_data.test_setups
+	var test_setups: Array = test_data.test_setups
 	var expected_collision_obj: CollisionObject2D = test_data.expected_collision_obj
 	var expected_test_setup: CollisionTestSetup2D = test_data.expected_test_setup
 
 	# Resolve
-	var result: ResolutionResult = _resolver.resolve_collision_object(collision_node, test_setups)
+	var result: CollisionObjectResolver.ResolutionResult = _resolver.resolve_collision_object(
+		collision_node, test_setups
+	)
 
 	# Assert
 	(

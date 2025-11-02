@@ -78,7 +78,9 @@ func before_test() -> void:
 	tile_data_partial_match = _create_tile_data.call(
 		TILE_COORD_PARTIAL_MATCH, {"type": "grass", "color": Color.BLUE}
 	)
-	tile_data_missing_key = _create_tile_data.call(TILE_COORD_MISSING_KEY, {"missing": "key"})
+	# Use a known custom data layer but omit one required key to simulate a missing key scenario
+	# This avoids runtime errors from undefined TileSet custom data layers
+	tile_data_missing_key = _create_tile_data.call(TILE_COORD_MISSING_KEY, {"type": "grass"})
 	tile_data_none = _create_tile_data.call(TILE_COORD_NONE, {})
 	tile_data_extra = _create_tile_data.call(
 		TILE_COORD_EXTRA, {"type": "grass", "color": Color.GREEN, "height": 10}

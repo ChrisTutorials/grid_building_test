@@ -69,15 +69,15 @@ func test_debug_polygon_bounds() -> void:
 	)
 
 	# Verify polygon overlap detection
+	var message := (
+		"Polygon overlap detection should work. Polygon: " + str(polygon) + 
+		", Bounds: " + str(bounds) + 
+		", Tiles checked: " + str(tiles_checked.size()) + 
+		", Actual overlapping tiles: " + str(tiles)
+	)
 	(
 		assert_array(tiles) \
-		. append_failure_message(
-			(
-				"Polygon overlap detection should work. Polygon: %s, Bounds: %s, "
-				+ "Tiles checked: %d, Actual overlapping tiles: %s"
-				% [str(polygon), str(bounds), tiles_checked.size(), str(tiles)]
-			)
-		) \
+		. append_failure_message(message) \
 		. is_not_empty()
 	)
 #endregion

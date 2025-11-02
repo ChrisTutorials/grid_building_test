@@ -12,7 +12,6 @@ const BOUNDS_TOLERANCE: float = 1.0
 const OVERLAP_EPSILON_RATIO: float = 0.05
 const PERFORMANCE_TIMEOUT_MS: int = 100
 
-var test_container: GBCompositionContainer
 
 ## Helper functions for test maintainability
 
@@ -79,9 +78,7 @@ func _generate_test_positions(
 
 
 func before_test() -> void:
-	# Create test injector to get isolated container for this test
-	var temp_injector := GBInjectorSystem.new(GBTestConstants.TEST_COMPOSITION_CONTAINER)
-	test_container = temp_injector.get_container()
+	pass
 
 
 ## Test capsule shape bounds and tile coverage
@@ -182,8 +179,7 @@ func test_shape_tile_collision_detection(
 			"Trapezoid Center Tile",
 			TestShapeType.TRAPEZOID,
 			{
-				"points":
-				PackedVector2Array(
+				"points": PackedVector2Array(
 					[Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)]
 				)
 			},
@@ -195,8 +191,7 @@ func test_shape_tile_collision_detection(
 			"Trapezoid Edge Tile",
 			TestShapeType.TRAPEZOID,
 			{
-				"points":
-				PackedVector2Array(
+				"points": PackedVector2Array(
 					[Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)]
 				)
 			},
@@ -251,8 +246,7 @@ func test_shape_symmetry_validation(
 			"Standard Trapezoid",
 			TestShapeType.TRAPEZOID,
 			{
-				"points":
-				PackedVector2Array(
+				"points": PackedVector2Array(
 					[Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)]
 				)
 			}
@@ -324,8 +318,7 @@ func test_shape_positioning_validation(
 			"Trapezoid at Position",
 			TestShapeType.TRAPEZOID,
 			{
-				"points":
-				PackedVector2Array(
+				"points": PackedVector2Array(
 					[Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)]
 				)
 			},

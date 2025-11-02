@@ -80,9 +80,12 @@ func _generate_test_positions(
 
 
 func before_test() -> void:
-	# Create test injector to get isolated container for this test
-	var temp_injector := GBInjectorSystem.new(GBTestConstants.TEST_COMPOSITION_CONTAINER)
-	test_container = temp_injector.get_container()
+	# No scene environment needed for these pure geometry tests
+	pass
+
+func after_test() -> void:
+	# Ensure container reference is released between tests
+	test_container = null
 
 
 ## Test capsule shape bounds and tile coverage
@@ -182,12 +185,7 @@ func test_shape_tile_collision_detection(
 		[
 			"Trapezoid Center Tile",
 			TestShapeType.TRAPEZOID,
-			{
-				"points":
-				PackedVector2Array(
-					[Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)]
-				)
-			},
+			{"points": PackedVector2Array([Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)])},
 			Vector2i(0, 0),
 			0,
 			true
@@ -195,12 +193,7 @@ func test_shape_tile_collision_detection(
 		[
 			"Trapezoid Edge Tile",
 			TestShapeType.TRAPEZOID,
-			{
-				"points":
-				PackedVector2Array(
-					[Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)]
-				)
-			},
+			{"points": PackedVector2Array([Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)])},
 			Vector2i(1, 0),
 			0,
 			true
@@ -251,12 +244,7 @@ func test_shape_symmetry_validation(
 		[
 			"Standard Trapezoid",
 			TestShapeType.TRAPEZOID,
-			{
-				"points":
-				PackedVector2Array(
-					[Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)]
-				)
-			}
+			{"points": PackedVector2Array([Vector2(-32, 12), Vector2(-16, -12), Vector2(17, -12), Vector2(32, 12)])}
 		]
 	]
 ) -> void:

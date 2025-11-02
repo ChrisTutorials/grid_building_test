@@ -261,7 +261,7 @@ func test_complex_polygon_shapes_handle_edge_cases_from_debug_tests() -> void:
 
 func test_collision_mapper_transform_consistency_across_different_transforms() -> void:
 	var base_position: Vector2 = ORIGIN_POSITION
-	var test_transforms: Array[Dictionary] = [
+	var test_transforms = [
 		{"position": base_position, "rotation": 0.0, "scale": Vector2.ONE},
 		{"position": base_position, "rotation": PI / 4, "scale": Vector2.ONE},
 		{"position": base_position, "rotation": 0.0, "scale": Vector2(2, 1)},
@@ -273,7 +273,7 @@ func test_collision_mapper_transform_consistency_across_different_transforms() -
 	}
 
 	for i in range(test_transforms.size()):
-		var transform_data: Dictionary[String, Variant] = test_transforms[i]
+		var transform_data = test_transforms[i]
 
 		# Set up positioner with transform
 		targeting_state.positioner.global_position = transform_data.position
@@ -344,7 +344,7 @@ func _create_test_object_with_shape(shape_type: String, shape_data: Dictionary) 
 
 
 func test_rules_and_collision_integration() -> void:
-	var rule: CollisionsCheckRule = GBTestConstants.COLLISIONS_CHECK_RULE.duplicate()
+	var rule: CollisionsCheckRule = CollisionsCheckRule.new()
 	auto_free(rule)  # Clean up rule instance
 	var setup_issues: Array[String] = rule.setup(targeting_state)
 	assert_array(setup_issues).append_failure_message(

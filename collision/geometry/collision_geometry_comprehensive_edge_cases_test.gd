@@ -394,7 +394,7 @@ func test_winding_order_edge_cases() -> void:
 
 
 ## Helper function to calculate pattern bounds for consistency checking
-func _calculate_pattern_bounds(offsets: Array[Vector2i]) -> Dictionary:
+func _calculate_pattern_bounds(offsets: Array[Vector2i]) -> Dictionary[String, int]:
 	if offsets.is_empty():
 		return {"width": 0, "height": 0}
 

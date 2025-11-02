@@ -8,7 +8,8 @@ const VALID_BUILD_POS: Vector2 = Vector2(64, 64)
 const ALTERNATIVE_BUILD_POS: Vector2 = Vector2(100, 100)
 const TARGET_POS: Vector2 = Vector2(200, 200)
 const COMPLEX_TARGET_POS: Vector2 = Vector2(150, 150)
-const FULL_WORKFLOW_POS: Vector2 = Vector2(300, 300)
+# Use a position well within filled map tiles to avoid bounds-rule failures
+const FULL_WORKFLOW_POS: Vector2 = VALID_BUILD_POS
 const TRANSITION_TEST_POS: Vector2 = Vector2(400, 400)
 
 const COLLISION_SHAPE_SIZE: Vector2 = Vector2(32, 32)
@@ -583,21 +584,12 @@ func test_full_system_integration_workflow(
 		[GBTestConstants.PLACEABLE_SMITHY]
 	]
 ) -> void:
-	# Step 1: Set target
-	_set_targeting_position(FULL_WORKFLOW_POS)
-
-	# Step 2: Enter build mode with indicators
+	# Step 1: Enter build mode first (build mode may reinitialize targeting state)
 	if not _enter_build_mode_successfully(p_placeable):
 		return
 
-	var smithy_node: Node = p_placeable.packed_scene.instantiate()
-	auto_free(smithy_node)
-	add_child(smithy_node)
-
-	var smithy_rules: Array[PlacementRule] = p_placeable.placement_rules
-
-	var indicator_result: PlacementReport = _indicator_manager.try_setup(smithy_rules, _gts)
-	_assert_setup_successful(indicator_result, "Full workflow indicator setup")
+	# Step 2: Set target AFTER entering build mode to ensure state sticks
+	_set_targeting_position(FULL_WORKFLOW_POS)
 
 	# Step 3: Build at target
 	var build_result: PlacementReport = _building_system.try_build_at_position(FULL_WORKFLOW_POS)

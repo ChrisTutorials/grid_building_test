@@ -82,15 +82,15 @@ func test_trapezoid_collision_detection_integration() -> void:
 	).is_greater(0)
 
 	for shape_owner: Node2D in owner_shapes.keys():
-		var shapes: Array[Dictionary] = owner_shapes[shape_owner]
+		var shapes: Array[Shape2D] = owner_shapes[shape_owner] as Array[Shape2D]
 		GBTestDiagnostics.log_verbose("[TRAPEZOID_TRACE] Owner '%s' has %d shapes" % [shape_owner.name, shapes.size()])
 		for i in range(shapes.size()):
-			var shape_info: Variant = shapes[i]  # Use Variant to handle any type returned
-			GBTestDiagnostics.log_verbose("[TRAPEZOID_TRACE] Shape[%d]: type=%s, polygon_size=%s" % [
-				i,
-				shape_info.get("type", "unknown") if shape_info is Dictionary else "object_type",
-				shape_info.get("polygon", PackedVector2Array()).size() if shape_info is Dictionary else "N/A"
-			])
+			var owned_shape_2d: Shape2D = shapes[i] as Shape2D
+			if owned_shape_2d:
+				GBTestDiagnostics.log_verbose("[TRAPEZOID_TRACE] Shape[%d]: type=%s" % [
+					i,
+					owned_shape_2d.get_class()
+				])
 
 	# 5) Test CollisionGeometryUtils directly with the trapezoid polygon
 	var tile_size: Vector2 = Vector2(16, 16)
