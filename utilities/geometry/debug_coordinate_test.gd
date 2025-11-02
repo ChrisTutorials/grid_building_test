@@ -83,16 +83,16 @@ func test_debug_coordinate_transformation() -> void:
 	# Test CollisionGeometryUtils.compute_polygon_tile_offsets
 	var tile_size: Vector2 = Vector2(test_map.tile_set.tile_size)
 	var tile_shape_val: int = test_map.tile_set.tile_shape
-	assert_that(tile_size).is_equal(Vector2(GBTestConstants.DEFAULT_TILE_SIZE_I)).append_failure_message(
+	assert_that(tile_size).append_failure_message(
 		"Tile size should be 16x16"
-	)
+	).is_equal(Vector2(GBTestConstants.DEFAULT_TILE_SIZE_I))
 	assert_that(tile_shape_val).append_failure_message("Tile shape should be square").is_equal(
 		TileSet.TILE_SHAPE_SQUARE
 	)
 	var offsets: Array[Vector2i] = CollisionGeometryUtils.compute_polygon_tile_offsets(
 		world_points, tile_size, center_tile, tile_shape_val, test_map
 	)
-	assert_that(offsets.size()).is_greater_equal(1).append_failure_message(
+	assert_that(offsets.size()).append_failure_message(
 		(
 			"Should produce tile offsets for 32x32 polygon at center of tilemap. "
 			+ (
@@ -100,4 +100,4 @@ func test_debug_coordinate_transformation() -> void:
 				% [world_points, tile_size, center_tile, offsets]
 			)
 		)
-	)
+	).is_greater_equal(1)

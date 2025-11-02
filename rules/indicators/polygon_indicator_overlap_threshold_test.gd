@@ -74,7 +74,9 @@ func test_polygon_preview_indicators_respect_min_overlap_ratio() -> void:
 
 	# Setup the rule
 	var setup_issues: Array[String] = rule.setup(_state)
-	assert_array(setup_issues).is_empty()
+	assert_array(setup_issues).append_failure_message(
+		"Rule setup should complete without issues"
+	).is_empty()
 
 	var setup_ok: PlacementReport = _manager.try_setup(rules, _state, true)
 	(

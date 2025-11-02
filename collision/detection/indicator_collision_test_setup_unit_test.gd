@@ -86,7 +86,7 @@ func test_create_test_setups_for_collision_owners_with_valid_object() -> void:
 
 	var owner_collision_setups: Dictionary[Node2D, CollisionTestSetup2D] = CollisionTestSetup2D.create_test_setups_for_collision_owners(owner_shapes, targeting_state)
 
-	assert_that(owner_collision_setups.size()).is_greater(0).append_failure_message("Expected at least one test setup for valid collision object")
+	assert_that(owner_collision_setups.size()).append_failure_message("Expected at least one test setup for valid collision object").is_greater(0)
 	(
 		assert_that(owner_collision_setups.has(body)) \
 		. append_failure_message("Expected body to be in setups dictionary") \
@@ -132,7 +132,7 @@ func test_create_test_setups_from_test_node_with_valid_object() -> void:
 
 	var node_collision_setups: Array[CollisionTestSetup2D] = CollisionTestSetup2D.create_test_setups_from_test_node(body, targeting_state)
 
-	assert_that(node_collision_setups.size()).is_greater(0).append_failure_message("Expected at least one setup from valid test node")
+	assert_that(node_collision_setups.size()).append_failure_message("Expected at least one setup from valid test node").is_greater(0)
 	# Should have at least one setup for the body itself or its collision shapes
 	var has_valid_setup := false
 	for setup: CollisionTestSetup2D in node_collision_setups:
@@ -176,4 +176,6 @@ func test_create_test_setups_from_test_node_null_input() -> void:
 	var node_collision_setups: Array[CollisionTestSetup2D] = CollisionTestSetup2D.create_test_setups_from_test_node(null, targeting_state)
 
 	# Should return empty dictionary for null input
-	assert_that(node_collision_setups.size()).is_equal(0)
+	assert_that(node_collision_setups.size()).append_failure_message(
+		"Expected empty array for null input"
+	).is_equal(0)

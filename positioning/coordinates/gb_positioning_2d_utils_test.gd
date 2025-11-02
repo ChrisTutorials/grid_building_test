@@ -81,7 +81,9 @@ func test_move_to_tile_center_basic() -> void:
 
 	var result_tile: Vector2i = GBPositioning2DUtils.move_to_tile_center(test_node, target_tile, test_tile_map_layer)
 
-	assert_that(result_tile).is_equal(target_tile)
+	assert_that(result_tile).append_failure_message(
+		"Function should return the target tile"
+	).is_equal(target_tile)
 
 	# Verify node was positioned (not at zero) and the tile calculation works
 	assert_that(test_node.global_position).append_failure_message(
@@ -89,7 +91,9 @@ func test_move_to_tile_center_basic() -> void:
 	).is_not_equal(Vector2.ZERO)
 
 	# Test that the function returned the expected tile (which is the input tile)
-	assert_that(result_tile).is_equal(target_tile)
+	assert_that(result_tile).append_failure_message(
+		"Function should return the same tile it moved to"
+	).is_equal(target_tile)
 
 func test_get_tile_from_node_position_basic() -> void:
 	"""Test converting node position to tile coordinate.

@@ -94,7 +94,9 @@ func test_setting_null_target_clears_both_properties() -> void:
 	add_child(test_target)
 	_targeting_state.set_manual_target(test_target)
 
-	assert_object(_targeting_state.get_target()).is_not_null()
+	assert_object(_targeting_state.get_target()).append_failure_message(
+		"Target should be set after manual targeting"
+	).is_not_null()
 
 	# Act: Clear target using clear() method
 	_targeting_state.clear()

@@ -187,7 +187,7 @@ func test_indicator_positioning_regression_800_pixel_offset() -> void:
 	)
 
 	# Validate that indicators exist
-	assert_that(indicators.size()).is_greater(0).append_failure_message("Expected indicators to be generated")
+	assert_that(indicators.size()).append_failure_message("Expected indicators to be generated").is_greater(0)
 
 	# CRITICAL ASSERTION: Check that indicators are positioned near the expected position
 	# This should fail with current regression, showing ~800+ pixel offset
@@ -466,7 +466,7 @@ func test_rule_check_indicator_validity_timing_with_no_rules() -> void:
 	).is_true()
 
 	# After tree entry and frame processing
-	runner.simulate_frames(2)  # Synchronous frame simulation replaces await get_tree().process_frame; await get_tree().physics_frame
+	runner.simulate_frames(2)
 
 	# Should still be valid after processing since no rules to evaluate
 	assert_bool(indicator.valid).append_failure_message(

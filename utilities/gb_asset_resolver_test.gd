@@ -17,15 +17,9 @@ func test_load_placeables_from_folder() -> void:
 	# Get summary from result
 	var summary: String = result.get_summary()
 
-	assert_str(summary).append_failure_message("Summary should include asset count").contains(
-		"Loaded:"
-	)
-	assert_str(summary).append_failure_message("Summary should include error count").contains(
-		"Errors:"
-	)
-	assert_str(summary).append_failure_message("Summary should include warning count").contains(
-		"Warnings:"
-	)
+	assert_str(summary).append_failure_message("Summary should include asset count").contains("Loaded:")
+	assert_str(summary).append_failure_message("Summary should include error count").contains("Errors:")
+	assert_str(summary).append_failure_message("Summary should include warning count").contains("Warnings:")
 
 
 func test_backward_compatibility_with_placeable_loader() -> void:
@@ -40,18 +34,18 @@ func test_backward_compatibility_with_placeable_loader() -> void:
 	var old_result: Array[Placeable] = PlaceableLoader.get_placeables(TEST_ASSETS_FOLDER)
 
 	if new_result.is_successful():
-		assert_int(new_result.assets.size()).is_equal(old_result.size()).append_failure_message(
+		assert_int(new_result.assets.size()).append_failure_message(
 			(
 				"GBAssetResolver should load same number of placeables as PlaceableLoader. "
 				+ "New: %d, Old: %d" % [new_result.assets.size(), old_result.size()]
 			)
-		)
+		).is_equal(old_result.size())
 
 		# Verify all loaded assets are Placeable resources
 		for asset: Variant in new_result.assets:
-			assert_object(asset).is_not_null().append_failure_message(
+			assert_object(asset).append_failure_message(
 				"All loaded assets should be valid"
-			)
+			).is_not_null()
 			# Note: Type checking depends on Placeable implementation
 
 
@@ -63,9 +57,9 @@ func test_simple_placeable_loading_compatibility() -> void:
 	var new_simple_result: Array[Placeable] = GBAssetResolver.load_placeables(TEST_ASSETS_FOLDER)
 	var old_result: Array[Placeable] = PlaceableLoader.get_placeables(TEST_ASSETS_FOLDER)
 
-	assert_int(new_simple_result.size()).is_equal(old_result.size()).append_failure_message(
+	assert_int(new_simple_result.size()).append_failure_message(
 		(
 			"Simple GBAssetResolver.load_placeables should return same count as PlaceableLoader. "
 			+ "New: %d, Old: %d" % [new_simple_result.size(), old_result.size()]
 		)
-	)
+	).is_equal(old_result.size())

@@ -61,9 +61,9 @@ func test_camera_2d_validation_skipped_when_disabled() -> void:
 		if "Camera2D not found in viewport" in issue:
 			has_camera_issue = true
 			break
-	assert_bool(has_camera_issue).is_false().append_failure_message(
+	assert_bool(has_camera_issue).append_failure_message(
 		"Camera2D validation should be skipped when disabled. Issues: %s" % [str(issues)]
-	)
+	).is_false()
 
 
 ## Test: Camera2D detection helper handles missing viewport gracefully
@@ -73,9 +73,9 @@ func test_camera_2d_validation_skipped_when_disabled() -> void:
 func test_camera_2d_helper_handles_missing_viewport() -> void:
 	# This should not crash and should return false
 	var has_camera: bool = test_context._has_camera_2d_in_viewport()
-	assert_bool(has_camera).is_false().append_failure_message(
+	assert_bool(has_camera).append_failure_message(
 		"Expected _has_camera_2d_in_viewport to return false when no viewport is available"
-	)
+	).is_false()
 
 
 ## Test: Runtime checks validation with all systems disabled
@@ -96,9 +96,9 @@ func test_runtime_checks_with_all_systems_disabled() -> void:
 			camera_issue_count += 1
 		elif "system is not set" in issue:
 			system_issue_count += 1
-	assert_int(camera_issue_count).is_equal(1).append_failure_message(
+	assert_int(camera_issue_count).append_failure_message(
 		"Expected exactly one Camera2D issue. Issues: %s" % [str(issues)]
-	)
-	assert_int(system_issue_count).is_equal(0).append_failure_message(
+	).is_equal(1)
+	assert_int(system_issue_count).append_failure_message(
 		"Expected no system issues when all system checks are disabled. Issues: %s" % [str(issues)]
-	)
+	).is_equal(0)

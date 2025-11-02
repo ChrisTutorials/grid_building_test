@@ -347,7 +347,9 @@ func test_rules_and_collision_integration() -> void:
 	var rule: CollisionsCheckRule = GBTestConstants.COLLISIONS_CHECK_RULE.duplicate()
 	auto_free(rule)  # Clean up rule instance
 	var setup_issues: Array[String] = rule.setup(targeting_state)
-	assert_array(setup_issues).is_empty()
+	assert_array(setup_issues).append_failure_message(
+		"Rule setup should complete without issues"
+	).is_empty()
 
 	# Test that collision mapper and rules work together
 	var test_object: Node2D = GodotTestFactory.create_static_body_with_rect_shape(self)
@@ -415,7 +417,9 @@ func test_tile_check_rule_basic() -> void:
 	)
 
 	var validation_result: Variant = rule.validate_placement()
-	assert_object(validation_result).is_not_null()
+	assert_object(validation_result).append_failure_message(
+		"Rule validation should return a result"
+	).is_not_null()
 
 
 #endregion

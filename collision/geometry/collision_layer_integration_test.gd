@@ -14,14 +14,14 @@ func test_layer_mask_2561_matches_collision_layer_513() -> void:
 	(
 		assert_that(layers_from_mask) \
 		. contains_exactly_in_any_order([0, 9, 11]) \
-		. override_failure_message("Layer mask 2561 should contain layers [0, 9, 11]")
+		. append_failure_message("Layer mask 2561 should contain layers [0, 9, 11]")
 	)
 
 	var layers_from_collision: Array[int] = PhysicsUtils.get_layers_from_bitmask(collision_layer)
 	(
 		assert_that(layers_from_collision) \
 		. contains_exactly_in_any_order([0, 9]) \
-		. override_failure_message("Collision layer 513 should contain layers [0, 9]")
+		. append_failure_message("Collision layer 513 should contain layers [0, 9]")
 	)
 
 	# Create a test collision object with layer 513
@@ -31,12 +31,12 @@ func test_layer_mask_2561_matches_collision_layer_513() -> void:
 
 	# Test the matching logic
 	var matches: bool = PhysicsUtils.object_has_matching_layer(area, layer_mask)
-	assert_bool(matches).is_true().override_failure_message(
+	assert_bool(matches).append_failure_message(
 		(
 			"Area2D with collision layer 513 should match layer mask 2561. "
 			+ "Mask layers: %s, Object layers: %s" % [layers_from_mask, layers_from_collision]
 		)
-	)
+	).is_true()
 
 
 func test_regression_collision_layer_513_mask_2561_debug() -> void:
@@ -84,20 +84,20 @@ func test_debug_layer_conversion_consistency() -> void:
 		# Verify each layer in the result
 		for layer in layers:
 			var expected_bit: int = 1 << layer
-			assert_that(mask & expected_bit).is_not_equal(0).override_failure_message(
+			assert_that(mask & expected_bit).append_failure_message(
 				"Layer %d should be present in mask %d (bit check failed)" % [layer, mask]
-			)
+			).is_not_equal(0)
 
 		# Verify no extra layers
 		for i in range(32):
 			var bit_set: bool = (mask & (1 << i)) != 0
 			var layer_in_result: bool = layers.has(i)
-			assert_bool(bit_set == layer_in_result).is_true().override_failure_message(
+			assert_bool(bit_set == layer_in_result).append_failure_message(
 				(
 					"Layer %d presence mismatch in mask %d: bit_set=%s, in_result=%s"
 					% [i, mask, bit_set, layer_in_result]
 				)
-			)
+			).is_true()
 
 
 func test_specific_integration_error_scenario() -> void:
@@ -120,13 +120,13 @@ func test_specific_integration_error_scenario() -> void:
 	var should_match: bool = PhysicsUtils.object_has_matching_layer(setup_area, 2561)
 	(
 		assert_bool(should_match) \
-		. is_true() \
-		. override_failure_message(
+		. append_failure_message(
 			(
 				"CRITICAL: IndicatorSetupTestingArea with collision layer 513 must match layer mask 2561. "
 				+ "This is the exact error from integration tests."
 			)
-		)
+		) \
+		. is_true()
 	)
 
 	# Additional verification: check the binary representation

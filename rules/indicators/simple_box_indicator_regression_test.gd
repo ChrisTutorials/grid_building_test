@@ -30,7 +30,9 @@ func before_test() -> void:
 	var env_scene: PackedScene = GBTestConstants.get_environment_scene(
 		GBTestConstants.EnvironmentType.ALL_SYSTEMS
 	)
-	assert_that(env_scene).is_not_null()
+	assert_that(env_scene).append_failure_message(
+		"Environment scene should be available from constants"
+	).is_not_null()
 	var env: AllSystemsTestEnvironment = env_scene.instantiate()
 	add_child(env)
 

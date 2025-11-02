@@ -299,7 +299,6 @@ func test_multiple_placeables_all_exclude_previews(
 	# Exit build mode for next iteration
 	_building_system.exit_build_mode()
 	runner.simulate_frames(1)
-	await get_tree().process_frame
 
 
 ## Test: Exiting build mode clears collision_exclusions

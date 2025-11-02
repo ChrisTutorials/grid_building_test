@@ -183,7 +183,7 @@ func test_trapezoid_world_transform_and_tile_offsets() -> void:
 
 	# Assert - we currently expect EITHER legacy 8-tile or improved 13-tile coverage until fix lands.
 	var count := offsets.size()
-	assert_bool(count == 8 or count == 13).override_failure_message(
+	assert_bool(count == 8 or count == 13).append_failure_message(
 		"Expected 8 or 13 tile offsets for trapezoid, got %s: %s" % [count, str(offsets)]
 	)
 
@@ -361,7 +361,7 @@ func test_compute_polygon_tile_offsets(
 	var actual_count := offsets.size()
 	(
 		assert_bool(actual_count >= expected_min_offsets) \
-		. override_failure_message(
+		. append_failure_message(
 			(
 				"Test '%s': %s. Expected at least %d tile offsets, got %d. World points: %s, Center tile: %s, Offsets: %s"
 				% [
@@ -380,7 +380,7 @@ func test_compute_polygon_tile_offsets(
 	# Additional validation - offsets should be reasonable (not too far from center)
 	for offset in offsets:
 		var distance := offset.length()
-		assert_bool(distance <= 10).override_failure_message(
+		assert_bool(distance <= 10).append_failure_message(
 			(
 				"Test '%s': Offset %s is unreasonably far from center tile (distance: %f)"
 				% [test_name, str(offset), distance]
@@ -610,7 +610,7 @@ func test_failing_mapper_case() -> void:
 	)
 
 	# This should definitely return at least 1 offset since the polygon overlaps the center tile
-	assert_bool(offsets.size() > 0).override_failure_message(
+	assert_bool(offsets.size() > 0).append_failure_message(
 		(
 			"Failing mapper case: 40x40 square at (300,300)-(340,340) should overlap tiles. "
 			+ (
@@ -627,7 +627,7 @@ func test_failing_mapper_case() -> void:
 			has_center_offset = true
 			break
 
-	assert_bool(has_center_offset).override_failure_message(
+	assert_bool(has_center_offset).append_failure_message(
 		(
 			"Failing mapper case: Should include center tile offset (0,0). Got offsets: %s"
 			% str(offsets)

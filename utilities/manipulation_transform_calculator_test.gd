@@ -42,14 +42,16 @@ func test_calculate_final_transform_basic() -> void:
 	).is_equal(Vector2.ZERO)
 	assert_float(result["rotation"]).append_failure_message(
 		"Float assertion failed"
-	).is_equal(0.0).append_failure_message(
+	).is_equal(0.0)
+	assert_float(result["rotation"]).append_failure_message(
 		"Null preview should return 0.0 rotation, got %.2f" % result["rotation"]
-	)
+	).is_equal(0.0)
 	assert_vector(result["scale"]).append_failure_message(
 		"Vector assertion failed"
-	).is_equal(Vector2.ONE).append_failure_message(
+	).is_equal(Vector2.ONE)
+	assert_vector(result["scale"]).append_failure_message(
 		"Null preview should return ONE scale, got %s" % str(result["scale"])
-	)
+	).is_equal(Vector2.ONE)
 
 ## Test: Null parent returns safe defaults
 func test_calculate_final_transform_null_parent() -> void:
@@ -60,19 +62,22 @@ func test_calculate_final_transform_null_parent() -> void:
 	# Assert: Should return safe default values
 	assert_vector(result["position"]).append_failure_message(
 		"Vector assertion failed"
-	).is_equal(Vector2.ZERO).append_failure_message(
+	).is_equal(Vector2.ZERO)
+	assert_vector(result["position"]).append_failure_message(
 		"Null parent should return ZERO position, got %s" % str(result["position"])
-	)
+	).is_equal(Vector2.ZERO)
 	assert_float(result["rotation"]).append_failure_message(
 		"Float assertion failed"
-	).is_equal(0.0).append_failure_message(
+	).is_equal(0.0)
+	assert_float(result["rotation"]).append_failure_message(
 		"Null parent should return 0.0 rotation, got %.2f" % result["rotation"]
-	)
+	).is_equal(0.0)
 	assert_vector(result["scale"]).append_failure_message(
 		"Vector assertion failed"
-	).is_equal(Vector2.ONE).append_failure_message(
+	).is_equal(Vector2.ONE)
+	assert_vector(result["scale"]).append_failure_message(
 		"Null parent should return ONE scale, got %s" % str(result["scale"])
-	)
+	).is_equal(Vector2.ONE)
 
 #endregion
 
@@ -91,12 +96,13 @@ func test_validate_transform_preservation_valid() -> void:
 	# Assert
 	assert_bool(result["is_valid"]).append_failure_message(
 		"Boolean assertion failed"
-	).is_true().append_failure_message(
+	).is_true()
+	assert_bool(result["is_valid"]).append_failure_message(
 		"Valid transforms should pass validation. Issues: %s" % str(result["issues"])
-	)
-	assert_array(result["issues"]).is_empty().append_failure_message(
+	).is_true()
+	assert_array(result["issues"]).append_failure_message(
 		"Valid transforms should have no validation issues"
-	)
+	).is_empty()
 
 ## Test: Negative scale (flips) pass validation
 func test_validate_transform_preservation_negative_scale_valid() -> void:
@@ -111,9 +117,10 @@ func test_validate_transform_preservation_negative_scale_valid() -> void:
 	# Assert: Negative scale should be VALID (it's a flip, not an error)
 	assert_bool(result["is_valid"]).append_failure_message(
 		"Boolean assertion failed"
-	).is_true().append_failure_message(
+	).is_true()
+	assert_bool(result["is_valid"]).append_failure_message(
 		"Negative scale (flip) should be valid. Issues: %s" % str(result["issues"])
-	)
+	).is_true()
 
 ## Test: Near-zero scale fails validation
 func test_validate_transform_preservation_zero_scale_invalid() -> void:
@@ -128,12 +135,13 @@ func test_validate_transform_preservation_zero_scale_invalid() -> void:
 	# Assert: Near-zero scale should fail validation
 	assert_bool(result["is_valid"]).append_failure_message(
 		"Boolean assertion failed"
-	).is_false().append_failure_message(
+	).is_false()
+	assert_bool(result["is_valid"]).append_failure_message(
 		"Near-zero scale should fail validation"
-	)
-	assert_array(result["issues"]).is_not_empty().append_failure_message(
+	).is_false()
+	assert_array(result["issues"]).append_failure_message(
 		"Near-zero scale should produce validation issues"
-	)
+	).is_not_empty()
 
 ## Test: Missing keys fail validation
 func test_validate_transform_preservation_missing_keys() -> void:
@@ -147,12 +155,13 @@ func test_validate_transform_preservation_missing_keys() -> void:
 	# Assert
 	assert_bool(result["is_valid"]).append_failure_message(
 		"Boolean assertion failed"
-	).is_false().append_failure_message(
+	).is_false()
+	assert_bool(result["is_valid"]).append_failure_message(
 		"Missing keys should fail validation"
-	)
-	assert_array(result["issues"]).is_not_empty().append_failure_message(
+	).is_false()
+	assert_array(result["issues"]).append_failure_message(
 		"Missing keys should produce validation issues"
-	)
+	).is_not_empty()
 
 #endregion
 
@@ -176,12 +185,13 @@ func test_compare_transforms_identical() -> void:
 	# Assert
 	assert_bool(result["matches"]).append_failure_message(
 		"Boolean assertion failed"
-	).is_true().append_failure_message(
+	).is_true()
+	assert_bool(result["matches"]).append_failure_message(
 		"Identical transforms should match. Differences: %s" % str(result["differences"])
-	)
-	assert_that(result["differences"]).is_empty().append_failure_message(
+	).is_true()
+	assert_that(result["differences"]).append_failure_message(
 		"Identical transforms should have no differences"
-	)
+	).is_empty()
 
 ## Test: Small differences within tolerance match
 func test_compare_transforms_within_tolerance() -> void:
@@ -201,9 +211,10 @@ func test_compare_transforms_within_tolerance() -> void:
 	# Assert
 	assert_bool(result["matches"]).append_failure_message(
 		"Boolean assertion failed"
-	).is_true().append_failure_message(
+	).is_true()
+	assert_bool(result["matches"]).append_failure_message(
 		"Transforms within tolerance should match. Differences: %s" % str(result["differences"])
-	)
+	).is_true()
 
 ## Test: Differences beyond tolerance are detected
 func test_compare_transforms_beyond_tolerance() -> void:
@@ -223,21 +234,22 @@ func test_compare_transforms_beyond_tolerance() -> void:
 	# Assert
 	assert_bool(result["matches"]).append_failure_message(
 		"Boolean assertion failed"
-	).is_false().append_failure_message(
+	).is_false()
+	assert_bool(result["matches"]).append_failure_message(
 		"Transforms beyond tolerance should not match"
-	)
-	assert_that(result["differences"]).is_not_empty().append_failure_message(
+	).is_false()
+	assert_that(result["differences"]).append_failure_message(
 		"Differences array should contain detected differences"
-	)
-	assert_that(result["differences"].has("position")).is_true().append_failure_message(
+	).is_not_empty()
+	assert_that(result["differences"].has("position")).append_failure_message(
 		"Position difference should be detected when beyond tolerance"
-	)
-	assert_that(result["differences"].has("rotation")).is_true().append_failure_message(
+	).is_true()
+	assert_that(result["differences"].has("rotation")).append_failure_message(
 		"Rotation difference should be detected when beyond tolerance"
-	)
-	assert_that(result["differences"].has("scale")).is_true().append_failure_message(
+	).is_true()
+	assert_that(result["differences"].has("scale")).append_failure_message(
 		"Scale difference should be detected when beyond tolerance"
-	)
+	).is_true()
 
 #endregion
 

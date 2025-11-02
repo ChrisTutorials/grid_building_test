@@ -125,9 +125,9 @@ func test_indicator_manager_registration() -> void:
 	# IndicatorManager should be registered with BuildingSystem's context
 	var indicator_context: Variant = test_env.building_system._indicator_context
 	if indicator_context != null:
-		assert_that(indicator_context.has_manager()).is_true().append_failure_message(
+		assert_that(indicator_context.has_manager()).append_failure_message(
 			"IndicatorContext should have IndicatorManager registered"
-		)
+		).is_true()
 
 
 ## Test: Scene hierarchy is correct

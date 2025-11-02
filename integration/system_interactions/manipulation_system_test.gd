@@ -303,7 +303,9 @@ func test_failed_placement_with_invalid_move_data_cleans_up() -> void:
 	# Setup: Create a manipulatable source object
 	var source: Manipulatable = _create_test_manipulatable(manipulatable_settings_all_allowed)
 	var original_source_position: Vector2 = source.root.global_position
-	assert_vector(original_source_position).is_equal(TEST_POSITION)
+	assert_vector(original_source_position).append_failure_message(
+		"Source position should match test position initially"
+	).is_equal(TEST_POSITION)
 
 	# Set the targeting state to target this manipulatable's root
 	_container.get_states().targeting.set_manual_target(source.root)
@@ -347,8 +349,7 @@ func test_failed_placement_with_invalid_move_data_cleans_up() -> void:
 
 	# Assert: CRITICAL - Move copy should be cleaned up (freed or removed from tree)
 	# After failed placement, the move copy should be cleaned up to prevent orphaned objects
-	# Wait a frame for queue_free() to process
-	await get_tree().process_frame
+	# Check immediately without frame wait (synchronous validation)
 	if is_instance_valid(move_copy_root):
 		assert_bool(move_copy_root.is_inside_tree()).append_failure_message(
 			"Move copy should be removed from scene tree after failed placement"
@@ -441,7 +442,9 @@ func test_rotate_negative(
 
 	for i in range(ROTATION_ITERATIONS):
 		_total_rotation += rotation_per_time
-		assert_bool(system.rotate(target, rotation_per_time)).is_equal(p_expected)
+		assert_bool(system.rotate(target, rotation_per_time)).append_failure_message(
+			"Rotate operation should match expected result on iteration %d" % i
+		).is_equal(p_expected)
 
 		var remainder_preview: float = fmod(preview.rotation_degrees, rotation_per_time)
 		var remainder_rci: float = fmod(placement_manager.rotation_degrees, rotation_per_time)

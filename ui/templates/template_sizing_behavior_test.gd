@@ -5,11 +5,11 @@
 
 extends GdUnitTestSuite
 @warning_ignore("unused_parameter") var test_grid: GridContainer
-var runner: GdUnitSceneRunner
 var placeable_template: PackedScene
 var sequence_template: PackedScene
 var test_placeables: Array[Placeable]
 var test_sequence: PlaceableSequence
+var runner: GdUnitSceneRunner
 
 const GRID_WIDTH: int = 400
 const EXPECTED_PLACEABLE_HEIGHT: int = 48  # PlaceableView height
@@ -19,8 +19,8 @@ const DEFAULT_COLUMNS: int = 3
 
 
 func before_test() -> void:
-	# Initialize scene runner for synchronous frame simulation
-	runner = scene_runner(GBTestConstants.ALL_SYSTEMS_ENV.resource_path)
+	# Initialize scene runner for synchronous frame simulation (replaces async await)
+	runner = scene_runner("res://godot/test/helpers/test_setup.tscn")
 	runner.simulate_frames(1)
 
 	# Load templates
@@ -36,7 +36,7 @@ func before_test() -> void:
 	test_grid.custom_minimum_size = Vector2(GRID_WIDTH, 300)
 	test_grid.columns = DEFAULT_COLUMNS
 	add_child(test_grid)
-	runner.simulate_frames(1)  # Synchronous frame simulation replaces await
+	runner.simulate_frames(1)
 
 
 func after_test() -> void:
@@ -52,7 +52,7 @@ func test_placeable_template_size_flags() -> void:
 	# Act: Create placeable template instance
 	var entry_node: PlaceableView = placeable_template.instantiate()
 	add_child(entry_node)
-	runner.simulate_frames(1)  # Synchronous frame simulation replaces await
+	runner.simulate_frames(1)
 	# Assert: Size flags configured for horizontal stretching
 	assert_object(entry_node).append_failure_message(
 		"Template should be a Control"
@@ -91,7 +91,7 @@ func test_sequence_templates_stretch_to_column_width() -> void:
 	var entry_node: PlaceableListEntry = sequence_template.instantiate()
 	entry_node.sequence = test_sequence
 	test_grid.add_child(entry_node)
-	runner.simulate_frames(1)  # Synchronous frame simulation replaces await
+	runner.simulate_frames(1)
 	# Assert: Template stretches to column width
 	var template: Control = test_grid.get_child(0) as Control
 	assert_object(template).append_failure_message(
@@ -131,7 +131,7 @@ func test_height_consistency_during_variant_cycling() -> void:
 	var entry_node: PlaceableListEntry = sequence_template.instantiate()
 	entry_node.sequence = test_sequence
 	test_grid.add_child(entry_node)
-	runner.simulate_frames(1)  # Synchronous frame simulation replaces await
+	runner.simulate_frames(1)
 
 	# Get initial dimensions
 	var template: Control = test_grid.get_child(0) as Control
@@ -151,34 +151,32 @@ func test_height_consistency_during_variant_cycling() -> void:
 	# Act: Cycle through variants (simulate user interaction)
 	if entry_node.has_method("cycle_to_next"):
 		entry_node.cycle_to_next()
-		runner.simulate_frames(1)  # Synchronous frame simulation replaces await
+		runner.simulate_frames(1)
 	else:
 		# Manually trigger variant change if method not available
 		if entry_node.has_signal("variant_changed"):
 			entry_node.emit_signal("variant_changed", test_placeables[1])
-			runner.simulate_frames(1)  # Synchronous frame simulation replaces await
+			runner.simulate_frames(1)
 
 	# Assert: Dimensions remain consistent after cycling
 	var post_cycle_height: float = template.size.y
 	var post_cycle_width: float = template.size.x
-	
-	assert_float(post_cycle_height) \
+	(
+		assert_float(post_cycle_height) \
 		. append_failure_message(
 			(
 				"Template height should remain %d pixels after cycling, was %.1f, now %.1f"
 				% [EXPECTED_SEQUENCE_HEIGHT, initial_height, post_cycle_height]
 			)
 		) \
-		. is_equal(initial_height)
-	
-	assert_float(post_cycle_width).append_failure_message(
-		(
-			"Template width should remain %.1f pixels after cycling, now %.1f"
-			% [initial_width, post_cycle_width]
-		)
-	).is_equal(initial_width)
-
-
+	. is_equal(initial_height)
+)
+assert_float(post_cycle_width).append_failure_message(
+	(
+		"Template width should remain %.1f pixels after cycling, now %.1f"
+		% [initial_width, post_cycle_width]
+	)
+).is_equal(initial_width)
 ## Test: Mixed content grid maintains consistent sizing
 ## Setup: Grid with both placeable and sequence templates
 ## Act: Add mixed content to grid
@@ -197,7 +195,7 @@ func test_mixed_content_consistent_sizing() -> void:
 	placeable_entry2.placeable = test_placeables[1]
 	test_grid.add_child(placeable_entry2)
 
-	runner.simulate_frames(1)  # Synchronous frame simulation replaces await
+	runner.simulate_frames(1)
 
 	# Assert: All templates have consistent sizing
 	var children: Array[Node] = test_grid.get_children()

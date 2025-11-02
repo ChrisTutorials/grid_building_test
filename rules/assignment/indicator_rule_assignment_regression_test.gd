@@ -29,7 +29,7 @@ func before_test() -> void:
 	building_system = _env.building_system
 	indicator_manager = _env.indicator_manager
 
-	assert_array(_env.get_issues()).is_empty().append_failure_message("Test environment should initialize without issues")
+	assert_array(_env.get_issues()).append_failure_message("Test environment should initialize without issues").is_empty()
 
 #region Helper Functions
 
@@ -188,12 +188,12 @@ func test_indicator_rule_assignment_during_creation() -> void:
 
 	# Verify rules are properly assigned
 	var assigned_rules: Array[TileCheckRule] = indicator.get_rules()
-	assert_array(assigned_rules).has_size(1)
+	assert_array(assigned_rules).append_failure_message("Indicator should have exactly one assigned rule").has_size(1)
 
-	assert_object(assigned_rules.get(0)).is_same(collision_rule).append_failure_message("First assigned rule should be the collision rule")
+	assert_object(assigned_rules.get(0)).append_failure_message("First assigned rule should be the collision rule").is_same(collision_rule)
 
 	# Verify bidirectional relationship - rule should have indicator in its indicators array
-	assert_array(collision_rule.indicators).contains([indicator])
+	assert_array(collision_rule.indicators).append_failure_message("Collision rule should contain the indicator in its indicators array").contains([indicator])
 
 ## Test that indicators properly validate rules when updated
 func test_indicator_rule_validation() -> void:

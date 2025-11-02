@@ -260,9 +260,7 @@ func test_validation_scenarios(
 	]
 ) -> void:
 	var issues: Array[String] = NodeSearchLogic.validate_search_params(search_method, search_string)
-	assert_bool(issues\
-		.is_empty()).append_failure_message("Validation result should match expected_valid for method %d and string '%s'" % [search_method, search_string]) \
-		.is_equal(expected_valid)
+	assert_bool(issues.is_empty()).append_failure_message("Validation result should match expected_valid for method %d and string '%s'" % [search_method, search_string]).is_equal(expected_valid)
 
 	if not expected_valid:
 		assert_str(issues[0]).append_failure_message("Validation error should contain expected text").contains(expected_error_contains)
@@ -288,7 +286,7 @@ func test_filter_search_results() -> void:
 
 	assert_int(filtered.size()).append_failure_message("Filter expected 3 got %d" % filtered.size()).is_equal(3)
 	for node: Node in filtered:
-		assert_str(node.name).contains(TEST_NODE_PREFIX)
+		assert_str(node.name).append_failure_message("Filtered node name should contain TEST_NODE_PREFIX").contains(TEST_NODE_PREFIX)
 
 func test_sort_search_results() -> void:
 	var sort_func: Callable = func(a: Node, b: Node) -> bool: return a.name < b.name

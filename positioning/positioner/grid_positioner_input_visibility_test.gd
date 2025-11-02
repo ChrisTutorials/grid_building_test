@@ -27,7 +27,9 @@ func test_mouse_event_gate_allowed_off_active_shows() -> void:
 	var res: Variant = GridPositionerLogic.visibility_on_mouse_event(GBEnums.Mode.OFF, s, true)
 	assert_bool(res.apply).append_failure_message("Allowed mouse event in OFF mode should apply visibility change").is_true()
 	assert_bool(res.visible).append_failure_message("Allowed mouse event in OFF mode should show positioner").is_true()
-	assert_str(res.reason).contains("allowed")
+	assert_str(res.reason).append_failure_message(
+		"Reason should indicate allowed mouse event"
+	).contains("allowed")
 
 func test_mouse_event_gate_blocked_off_inactive_hides() -> void:
 	var s := _make_settings(false, true, true)
@@ -35,7 +37,9 @@ func test_mouse_event_gate_blocked_off_inactive_hides() -> void:
 	var res: Variant = GridPositionerLogic.visibility_on_mouse_event(GBEnums.Mode.OFF, s, false)
 	assert_bool(res.apply).append_failure_message("Blocked mouse event in OFF mode should apply visibility change").is_true()
 	assert_bool(res.visible).append_failure_message("Blocked mouse event in OFF mode should hide positioner").is_false()
-	assert_str(res.reason).contains("blocked")
+	assert_str(res.reason).append_failure_message(
+		"Reason should indicate blocked mouse event"
+	).contains("blocked")
 
 func test_mouse_event_noop_when_hide_on_handled_false() -> void:
 	var s := _make_settings(true, false, true)
@@ -68,8 +72,7 @@ func test_hide_on_handled_applies_when_mouse_enabled() -> void:
 	var blocked_mouse_status := GBMouseInputStatus.new()
 	blocked_mouse_status.set_from_values(false, Vector2.ZERO, 0, "blocked", Vector2.ZERO)  # blocked input
 	var should_be_visible := GridPositionerLogic.should_be_visible(GBEnums.Mode.BUILD, settings, blocked_mouse_status, false)
-	assert_bool(should_be_visible)\
-		.is_false().append_failure_message(
-			"When mouse input is enabled, hide_on_handled should still apply with blocked mouse input status. " +
-			"Settings: hide_on_handled=%s, mouse_enabled=%s, mouse_status.allowed=%s" % [str(settings.hide_on_handled), str(settings.enable_mouse_input), str(blocked_mouse_status.allowed)]
-		).is_false()
+	assert_bool(should_be_visible).append_failure_message(
+		"When mouse input is enabled, hide_on_handled should still apply with blocked mouse input status. " +
+		"Settings: hide_on_handled=%s, mouse_enabled=%s, mouse_status.allowed=%s" % [str(settings.hide_on_handled), str(settings.enable_mouse_input), str(blocked_mouse_status.allowed)]
+	).is_false()

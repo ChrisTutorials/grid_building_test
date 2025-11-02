@@ -37,10 +37,10 @@ const TILE_POS_WRONG := Vector2i(5, 5)
 
 ## Test data for parameterized tests
 const TEST_SCENE_DATA = [
-	{"scene_path": GBTestConstants.SMITHY_SCENE, "expected_count": 48, "name": "smithy"},  # 8x6 tiles (112x80 pixels + 8px centering offset with 16x16 tiles)
-	{"scene_path": GBTestConstants.SCENE_RECT_15_TILES, "expected_count": 15, "name": "rectangle"},  # 5x3 tiles (64x32 pixels + 8px centering offset with 16x16 tiles)
-	{"scene_path": GBTestConstants.PILLAR_SCENE, "expected_count": 2, "name": "pillar"},  # 2x1 tiles (capsule 14x22 pixels + 8px centering offset needs 2 tiles)
-	{"scene_path": GBTestConstants.GIGANTIC_EGG_SCENE, "expected_count": 63, "name": "egg"}  # 7x9 tiles (96x128 pixel capsule + 8px centering offset with 16x16 tiles)
+	{"scene_path": GBTestConstants.SMITHY_PATH, "expected_count": 48, "name": "smithy"},  # 8x6 tiles (112x80 pixels + 8px centering offset with 16x16 tiles)
+	{"scene_path": GBTestConstants.RECT_15_TILES_PATH, "expected_count": 15, "name": "rectangle"},  # 5x3 tiles (64x32 pixels + 8px centering offset with 16x16 tiles)
+	{"scene_path": GBTestConstants.PILLAR_PATH, "expected_count": 2, "name": "pillar"},  # 2x1 tiles (capsule 14x22 pixels + 8px centering offset needs 2 tiles)
+	{"scene_path": GBTestConstants.GIGANTIC_EGG_PATH, "expected_count": 63, "name": "egg"}  # 7x9 tiles (96x128 pixel capsule + 8px centering offset with 16x16 tiles)
 ]
 
 var runner: GdUnitSceneRunner
@@ -146,7 +146,7 @@ func test_gather_collision_shapes_parameterized() -> void:
 # Expected failure: setup should create indicators but returns empty array despite finding collision shapes
 func test_execute_indicator_setup_produces_zero_indicators_despite_collision_shapes() -> void:
 	# Load smithy to match integration test pattern
-	var smithy_scene: PackedScene = GBTestConstants.SMITHY_SCENE
+	var smithy_scene: PackedScene = GBTestConstants.SMITHY_PATH
 	assert_object(smithy_scene).append_failure_message("Failed to load Smithy scene").is_not_null()
 
 	var smithy_obj: Node2D = smithy_scene.instantiate()
@@ -261,13 +261,11 @@ func test_collision_mapping_works_but_indicator_creation_fails() -> void:
 
 	# CRITICAL FIX: Set up CollisionMapper with CollisionTestSetup2D for the test object
 	var test_setups: Array[CollisionTestSetup2D] = (
-		CollisionTestSetup2D.create_test_setups_from_test_node(test_object, _targeting_state)
-	)
-	assert_that(test_setups.size()).append_failure_message(
-		"Should create at least one CollisionTestSetup2D for the test object"
-	).is_greater(0)
-	
-	# Create test indicator for collision mapper setup
+	CollisionTestSetup2D.create_test_setups_from_test_node(test_object, _targeting_state)
+)
+assert_that(test_setups.size()).append_failure_message(
+	"Should create at least one CollisionTestSetup2D for the test object"
+).is_greater(0)	# Create test indicator for collision mapper setup
 	var test_indicator: RuleCheckIndicator = (
 		GBTestConstants.TEST_INDICATOR_TD_PLATFORMER.instantiate()
 	)

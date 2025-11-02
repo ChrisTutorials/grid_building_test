@@ -22,8 +22,6 @@ func before_test() -> void:
 	tile_map.add_child(camera)
 	camera.make_current()
 
-	await get_tree().process_frame
-
 
 func test_debug_recenter_operations() -> void:
 	var diag: PackedStringArray = PackedStringArray()

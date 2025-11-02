@@ -199,9 +199,9 @@ func test_collision_mapper_configuration_requirements() -> void:
 			"CollisionMapper.setup(...) should set the test_indicator reference provided."
 		)
 	)
-	assert_object(_collision_mapper.get("test_setups")).is_same(mock_setups).append_failure_message(
+	assert_object(_collision_mapper.get("test_setups")).append_failure_message(
 		"CollisionMapper.setup(...) should set the test_setups array provided."
-	)
+	).is_same(mock_setups)
 
 
 ## Test creating proper collision mapper configuration
@@ -287,4 +287,4 @@ func test_proper_collision_mapper_setup() -> void:
 			str(mapped_positions)
 		]
 	)
-	assert_int(missing_positions.size()).is_equal(0).append_failure_message(failure_msg)
+	assert_int(missing_positions.size()).append_failure_message(failure_msg).is_equal(0)

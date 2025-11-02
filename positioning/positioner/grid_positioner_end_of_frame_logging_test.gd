@@ -36,21 +36,20 @@ func test_end_of_frame_state_log_emitted() -> void:
     cfg.settings.debug.grid_positioner_log_mode = GBDebugSettings.GridPositionerLogMode.VISIBILITY
 
     pos.set_dependencies(states, cfg, logger, null, false)
-    assert_bool(pos._debug_settings != null).is_true()
-    assert_int(pos._get_debug_log_mode()).is_equal(GBDebugSettings.GridPositionerLogMode.VISIBILITY)
+    assert_bool(pos._debug_settings != null).append_failure_message(
+        "GridPositioner2D should have debug settings after dependency injection"
+    ).is_true()
+    assert_int(pos._get_debug_log_mode()).append_failure_message(
+        "GridPositioner2D debug log mode should be VISIBILITY"
+    ).is_equal(GBDebugSettings.GridPositionerLogMode.VISIBILITY)
 
     # Allow any deferred logs from initial dependency setup to flush and reset throttles
-    await get_tree().process_frame
-    await get_tree().process_frame
     OS.delay_msec(300)
     captured.clear()
 
     # Trigger visibility change which schedules the end-of-frame log
     pos._set_visible_state(true)
 
-    # Wait for the next frames so the deferred logger runs after other systems
-    await get_tree().process_frame
-    await get_tree().process_frame
     # Small buffer to avoid throttling collisions and ensure sink is flushed
     OS.delay_msec(50)
 

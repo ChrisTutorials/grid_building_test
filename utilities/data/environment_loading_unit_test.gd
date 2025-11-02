@@ -218,7 +218,6 @@ func test_environment_tilemaps_have_correct_dimensions() -> void:
 			. is_not_null()
 		)
 		add_child(env)
-		await get_tree().process_frame  # Let the environment initialize
 
 		# Verify tilemap layer exists
 		assert_that(env.tile_map_layer).append_failure_message(

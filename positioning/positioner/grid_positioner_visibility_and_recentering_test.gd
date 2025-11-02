@@ -66,7 +66,9 @@ func test_process_tick_retain_from_cached_mouse() -> void:
 		.append_failure_message("Expected process tick to apply visibility for cached mouse.").is_true()
     assert_bool(res.visible)\
 		.append_failure_message("Expected process tick to show positioner for cached mouse.").is_true()
-    assert_str(res.reason).is_equal("retain_from_cached_mouse_world")
+    assert_str(res.reason).append_failure_message(
+		"Expected reason to indicate cached mouse world retention"
+	).is_equal("retain_from_cached_mouse_world")
 
 func test_process_tick_noop_when_hide_on_handled_false() -> void:
     var s := _settings(false, true)

@@ -353,17 +353,12 @@ func test_end_of_frame_state_log_emitted() -> void:
 		.is_equal(GBDebugSettings.GridPositionerLogMode.VISIBILITY)
 
 	# Allow any deferred logs from initial dependency setup to flush and reset throttles
-	await get_tree().process_frame
-	await get_tree().process_frame
 	OS.delay_msec(300)
 	captured.clear()
 
 	# Trigger visibility change which schedules the end-of-frame log
 	pos._set_visible_state(true)
 
-	# Wait for the next frames so the deferred logger runs after other systems
-	await get_tree().process_frame
-	await get_tree().process_frame
 	# Small buffer to avoid throttling collisions and ensure sink is flushed
 	OS.delay_msec(50)
 

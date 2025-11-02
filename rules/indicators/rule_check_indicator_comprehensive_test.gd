@@ -74,13 +74,10 @@ func test_indicator_validity_dynamics(pass_on_collision: bool, simulate_collisio
 	var validity_states: Array[bool] = []
 	indicator.valid_changed.connect(func(is_valid: bool) -> void: validity_states.append(is_valid))
 
-	await get_tree().physics_frame
-
 	# Optionally simulate a collision and assert expected validity
 	if simulate_collision:
 		var body: StaticBody2D = _create_test_collision_body()
 		body.global_position = indicator.global_position
-		await get_tree().physics_frame
 
 		assert_bool(indicator.valid).append_failure_message(
 			"Indicator validity should be %s after collision in scenario" % [expected_valid]
@@ -89,7 +86,6 @@ func test_indicator_validity_dynamics(pass_on_collision: bool, simulate_collisio
 		# Clean up temporary collision body to avoid affecting subsequent parameter runs
 		if is_instance_valid(body):
 			body.queue_free()
-			await get_tree().physics_frame
 	else:
 		# No collision case
 		assert_bool(indicator.valid).append_failure_message(
@@ -124,8 +120,6 @@ func test_indicator_collision_layers(indicator_mask: int, body_layer: int, shoul
 	var body: StaticBody2D = _create_test_collision_body()
 	body.collision_layer = body_layer
 	body.global_position = indicator.global_position
-
-	await get_tree().physics_frame
 
 	var expected_validity: bool = not should_detect  # Invalid if collision detected
 	assert_bool(indicator.valid).append_failure_message(

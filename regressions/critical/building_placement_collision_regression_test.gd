@@ -33,15 +33,15 @@ func before_test() -> void:
 	runner.simulate_frames(2)  # Initial setup frames
 
 	env = runner.scene() as AllSystemsTestEnvironment
-	assert_that(env).is_not_null().append_failure_message(
+	assert_that(env).append_failure_message(
 		"All Systems environment must instantiate successfully"
-	)
+	).is_not_null()
 
 	# Validate environment setup
 	var issues: Array[String] = env.get_issues()
-	assert_array(issues).is_empty().append_failure_message(
+	assert_array(issues).append_failure_message(
 		"Environment setup has issues: %s" % str(issues)
-	)
+	).is_empty()
 
 	building_system = env.building_system
 	targeting_state = env.grid_targeting_system.get_state()
@@ -147,7 +147,9 @@ func test_collision_rule_configuration_validity() -> void:
 	var enter_report: PlacementReport = building_system.enter_build_mode(
 		GBTestConstants.PLACEABLE_SMITHY
 	)
-	assert_bool(enter_report.is_successful()).is_true()
+	assert_bool(enter_report.is_successful()).append_failure_message(
+		"Should successfully enter build mode for collision testing"
+	).is_true()
 
 	# Validate that collision detection is working as expected in clear area
 	var collision_mapper: CollisionMapper = env.indicator_manager.get_collision_mapper()

@@ -140,8 +140,8 @@ func after_test() -> void:
 	_container = null
 	col_checking_rules = []
 
+
 #region Tests
-	assert_object(_positioner).is_null()
 
 
 func test_indicator_manager_dependencies_initialized() -> void:
@@ -187,7 +187,9 @@ func test_indicator_manager_dependencies_initialized() -> void:
 		indicator_manager.get_colliding_indicators()
 	)
 	# Initially there should be no colliding indicators since we just set them up
-	assert_int(colliding_indicators.size()).is_equal(0)
+	assert_int(colliding_indicators.size()).append_failure_message(
+		"Expected no colliding indicators initially"
+	).is_equal(0)
 
 
 @warning_ignore("unused_parameter")

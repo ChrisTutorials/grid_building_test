@@ -30,7 +30,6 @@ func before_test() -> void:
 	# Ensure a clean state for each test
 	_tile_map.global_position = Vector2.ZERO
 	_positioner.global_position = Vector2.ZERO
-	await await_idle_frame()
 
 
 func test_tile_to_global_position_logic() -> void:

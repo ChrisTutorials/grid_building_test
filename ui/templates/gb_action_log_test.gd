@@ -153,10 +153,10 @@ func _assert_failure_messages_present(
 	for reason in expected_reasons:
 		(
 			assert_str(log_text) \
-			. contains(reason) \
 			. append_failure_message(
 				"Expected failure reason '%s' in log: '%s'" % [reason, log_text]
-			)
+			) \
+			. contains(reason)
 		)
 
 
@@ -165,10 +165,10 @@ func _assert_failure_messages_absent(log_text: String, absent_reasons: Array[Str
 	for reason in absent_reasons:
 		(
 			assert_str(log_text) \
-			. not_contains(reason) \
 			. append_failure_message(
 				"Expected failure reason '%s' to be hidden in log: '%s'" % [reason, log_text]
-			)
+			) \
+			. not_contains(reason)
 		)
 
 
@@ -194,27 +194,24 @@ func test_append_validation_results_shows_failed_reasons_when_enabled() -> void:
 	# Assert: Failed reasons should appear in log
 	(
 		assert_str(log_text) \
-		. contains(COLLISION_FAILURE_REASON) \
 		. append_failure_message(
 			"Expected collision failure reason in log text: '%s'" % log_text
 		) \
-		. is_true()
+		. contains(COLLISION_FAILURE_REASON)
 	)
 	(
 		assert_str(log_text) \
-		. contains(STRUCTURE_BLOCKING_REASON) \
 		. append_failure_message(
 			"Expected structure blocking reason in log text: '%s'" % log_text
 		) \
-		. is_true()
+		. contains(STRUCTURE_BLOCKING_REASON)
 	)
 	(
 		assert_str(log_text) \
-		. contains("Placement validation failed") \
 		. append_failure_message(
 			"Expected validation message in log text: '%s'" % log_text
 		) \
-		. is_true()
+		. contains("Placement validation failed")
 	)
 
 
@@ -236,13 +233,13 @@ func test_append_validation_results_respects_disabled_failed_reasons() -> void:
 	var log_text: String = message_label.get_parsed_text()
 	(
 		assert_str(log_text) \
-		. not_contains(HIDDEN_FAILURE_REASON) \
 		. append_failure_message(
 			(
 				"Expected failed reason to be hidden when print_failed_reasons=false, but found in: '%s'"
 				% log_text
 			)
-		)
+		) \
+		. not_contains(HIDDEN_FAILURE_REASON)
 	)
 
 #endregion

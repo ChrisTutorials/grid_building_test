@@ -78,9 +78,9 @@ func test_final_state_has_no_issues() -> void:
 	var final_issues: Array[String] = test_env.get_issues()
 
 	# Assert with diagnostic context
-	assert_array(final_issues).is_empty().append_failure_message(
+	assert_array(final_issues).append_failure_message(
 		"All systems should be properly initialized. Issues: %s" % str(final_issues)
-	)
+	).is_empty()
 
 
 ## Test: Demonstrate the exact timing of when positioner gets set

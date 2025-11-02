@@ -29,7 +29,7 @@ var test_parent: Node2D
 func before_test() -> void:
 	# Load test placeable using preloaded constant
 	test_placeable = GBTestConstants.PLACEABLE_SMITHY
-	assert_object(test_placeable).is_not_null()
+	assert_object(test_placeable).append_failure_message("Failed to load test placeable from GBTestConstants.PLACEABLE_SMITHY").is_not_null()
 
 	# Create test object hierarchy
 	test_parent = auto_free(Node2D.new())

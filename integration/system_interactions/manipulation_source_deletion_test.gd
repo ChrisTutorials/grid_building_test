@@ -59,7 +59,9 @@ func test_source_deletion_cancels_manipulation() -> void:
 	var move_data: ManipulationData = manipulation_system.try_move(test_object)
 
 	# Verify manipulation started successfully
-	assert_object(move_data).append_failure_message("Expected move_data to be created")
+	assert_object(move_data).append_failure_message(
+		"Expected move_data to be created"
+	).is_not_null()
 	(
 		assert_int(move_data.status) \
 		. append_failure_message(
@@ -144,12 +146,14 @@ func test_source_deletion_at_various_manipulation_phases() -> void:
 	_create_test_object()
 	runner.simulate_frames(1)  # Synchronous frame simulation replaces await
 	var move_data1: ManipulationData = manipulation_system.try_move(test_object)
-	assert_int(move_data1.status).is_equal(GBEnums.Status.STARTED)
+	assert_int(move_data1.status).append_failure_message(
+		"Manipulation should start with STARTED status"
+	).is_equal(GBEnums.Status.STARTED)
 	test_object.queue_free()
 	runner.simulate_frames(1)  # Synchronous frame simulation replaces await
-	assert_object(manipulation_state.data).is_null().append_failure_message(
+	assert_object(manipulation_state.data).append_failure_message(
 		"Expected immediate deletion to cancel manipulation"
-	)
+	).is_null()
 
 	# Setup for phase 2: Recreate test object
 	test_object = auto_free(Node2D.new())
@@ -167,7 +171,9 @@ func test_source_deletion_at_various_manipulation_phases() -> void:
 	_create_test_object()  # Create fresh object for phase 2
 	runner.simulate_frames(1)  # Synchronous frame simulation replaces await
 	var move_data2: ManipulationData = manipulation_system.try_move(test_object)
-	assert_int(move_data2.status).is_equal(GBEnums.Status.STARTED)
+	assert_int(move_data2.status).append_failure_message(
+		"Second manipulation should also start with STARTED status"
+	).is_equal(GBEnums.Status.STARTED)
 
 	# Let some frames pass
 	for _i in range(3):

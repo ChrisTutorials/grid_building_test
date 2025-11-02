@@ -86,9 +86,9 @@ func before_test() -> void:
 	## Ensure tile map layer meets expectations
 	var used_rect: Rect2i = _map.get_used_rect()
 	var expected_size: Vector2i = Vector2i(31, 31)
-	assert_vector(Vector2(used_rect.size)).is_equal(Vector2(expected_size)).append_failure_message(
+	assert_vector(Vector2(used_rect.size)).append_failure_message(
 		"Tilemap used_rect.size should be %s but was %s" % [expected_size, used_rect.size]
-	)
+	).is_equal(Vector2(expected_size))
 
 	# Set up test isolation to prevent mouse interference
 	_isolation_state = GBTestIsolation.setup_building_test_isolation(
@@ -187,13 +187,14 @@ func _assert_validation_success(result: ValidationResults, context_message: Stri
 		else:
 			prefix += "├─ "
 		formatted_message += prefix + position_str
-		if i < indicator_tile_positions.size() - 1:
-			formatted_message += "\n"
+	if i < indicator_tile_positions.size() - 1:
+		formatted_message += "\n"
 
 	assert_bool(result.is_successful()).append_failure_message(
 		formatted_message
 	).is_true()
-## Pre validation is successful for rect4x2 start tile.
+
+## Tests pre-validation success for RECT_4X2 at start tile.
 func test_pre_validation_is_successful_for_rect4x2_start_tile() -> void:
 	# Arrange
 	# Reset positions to ensure consistent testing regardless of scene layout

@@ -11,22 +11,22 @@ func test_positioning_policy_with_remain_active_in_off_mode() -> void:
 
 	var env: CollisionTestEnvironment = runner.scene() as CollisionTestEnvironment
 
-	assert_that(env).is_not_null().append_failure_message(
+	assert_that(env).append_failure_message(
 		"CollisionTestEnvironment should be loaded from GBTestConstants.COLLISION_TEST_ENV"
-	)
+	).is_not_null()
 
 	# Verify container is available
 	var container: GBCompositionContainer = env.get_container()
-	assert_that(container).is_not_null().append_failure_message(
+	assert_that(container).append_failure_message(
 		"Container should be initialized from CollisionTestEnvironment"
-	)
+	).is_not_null()
 
 	# Get positioner
 	var positioner: GridPositioner2D = env.positioner
 
-	assert_that(positioner).is_not_null().append_failure_message(
+	assert_that(positioner).append_failure_message(
 		"GridPositioner2D must be available in environment"
-	)
+	).is_not_null()
 
 	# Test: Positioner visibility check
 	# Verify positioner is present and accessible

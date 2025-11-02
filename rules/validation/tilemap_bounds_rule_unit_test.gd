@@ -97,12 +97,12 @@ func test_preloaded_tilemap_has_valid_tile_data() -> void:
 	)
 	var tile_size: Vector2i = tile_map.tile_set.tile_size
 	var expected_tile_size: Vector2i = Vector2i(16, 16)
-	assert_vector(Vector2(tile_size)).is_equal(Vector2(expected_tile_size)).append_failure_message(
+	assert_vector(Vector2(tile_size)).append_failure_message(
 		(
 			"Tilemap tile_size should match integration test: expected %s, got %s"
 			% [expected_tile_size, tile_size]
 		)
-	)
+	).is_equal(Vector2(expected_tile_size))
 
 	# Test the exact position from the failing integration test
 	var integration_test_world_pos: Vector2 = Vector2(8.0, 8.0)  # "Positioner position: (8.0, 8.0)"

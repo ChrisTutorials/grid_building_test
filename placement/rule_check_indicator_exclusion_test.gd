@@ -249,7 +249,9 @@ func test_indicator_emits_valid_changed_signal_when_exclusion_changes() -> void:
 
 	# THEN: Signal emitted with true and indicator becomes valid
 	assert_signal(indicator).is_emitted("valid_changed")
-	assert_bool(indicator.valid).is_true()
+	assert_bool(indicator.valid).append_failure_message(
+		"Indicator should be valid after collision exclusion"
+	).is_true()
 
 func test_multiple_indicators_share_same_exclusion_list() -> void:
 	# GIVEN: One body, multiple indicators at same position

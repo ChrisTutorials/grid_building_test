@@ -287,7 +287,9 @@ func test_compute_shape_tile_offsets_rectangle() -> void:
 	var result: Array[Vector2i] = _processor.compute_shape_tile_offsets(shape, shape_transform, _test_env.top_down_map, _test_env.tile_size, shape_epsilon, start_tile, end_exclusive, _test_env.center_tile, shape_polygon)
 
 	# Assert
-	assert_that(result).is_not_null()
+	assert_that(result).append_failure_message(
+		"Shape tile offsets calculation should return a result"
+	).is_not_null()
 	assert_that(result.size()).append_failure_message("Expected tile offsets to be calculated for rectangle shape, got %d results" % result.size()).is_greater(0)
 
 	# Verify result contains Vector2i offsets

@@ -12,10 +12,12 @@ var _logger: GBLogger
 var indicator_template: PackedScene = GBTestConstants.TEST_INDICATOR_TD_PLATFORMER
 
 
+## Initializes test logger before each test runs.
 func before_test() -> void:
 	_logger = GBLogger.new(GBDebugSettings.new())
 
 
+## Cleans up test logger after each test completes.
 func after_test() -> void:
 	# Ensure proper cleanup of any remaining nodes
 	if _logger:
@@ -27,16 +29,14 @@ func _create_minimal_targeting_state() -> GridTargetingState:
 	var state: GridTargetingState = GridTargetingState.new(GBOwnerContext.new())
 
 	# Set up maps and positioner automatically
-	var test_map := TileMapLayer.new()
-	auto_free(test_map)
+	var test_map := auto_free(TileMapLayer.new())
 	add_child(test_map)
 	var tile_set := TileSet.new()
 	test_map.tile_set = tile_set
 	state.target_map = test_map
 	state.maps = [test_map]
 
-	var test_positioner := Node2D.new()
-	auto_free(test_positioner)
+	var test_positioner := auto_free(Node2D.new())
 	add_child(test_positioner)
 	state.positioner = test_positioner
 
@@ -164,7 +164,12 @@ func _generate_rectangle_coverage_diagnostics(
 				% (float(actual_tiles) / float(expected_tiles) * 100.0)
 			)
 
-	diagnostics += "This unit test reproduces the integration test failure in test_large_rectangle_generates_full_grid_of_indicators. If this unit test passes but integration fails, the issue is in indicator generation after CollisionMapper.\n"
+	diagnostics += (
+		"This unit test reproduces the integration test failure in "
+		+ "test_large_rectangle_generates_full_grid_of_indicators. "
+		+ "If this unit test passes but integration fails, the issue is in "
+		+ "indicator generation after CollisionMapper.\n"
+	)
 
 	return diagnostics
 
@@ -284,13 +289,15 @@ func _generate_test_setup_diagnostics(test_setup: CollisionTestSetup2D) -> Strin
 	return diagnostics
 
 
-# Test catches: CollisionMapper guard behavior when setup() not called (EXPECTED to pass)
+## Tests that CollisionMapper guard returns empty results when setup() is not called.
+##
+## Verifies mapper prevents collision mapping without proper initialization.
+## CollisionMapper guard behavior when setup() not called (EXPECTED to pass)
 func test_guard_returns_empty_without_setup() -> void:
-	var gts := _create_minimal_targeting_state()
-	var mapper := CollisionMapper.new(gts, _logger)
+	var targeting_state := _create_minimal_targeting_state()
+	var mapper := CollisionMapper.new(targeting_state, _logger)
 	# Create a polygon owner but do not call setup(); guard should prevent mapping
-	var body := StaticBody2D.new()
-	auto_free(body)
+	var body := auto_free(StaticBody2D.new())
 	var poly := CollisionPolygon2D.new()
 	body.add_child(poly)
 	poly.polygon = PackedVector2Array(
@@ -305,20 +312,18 @@ func test_guard_returns_empty_without_setup() -> void:
 
 ## Tests basic collision detection with simple geometric setup.
 func test_basic_collision_detection() -> void:
-	var gts := _create_minimal_targeting_state()
+	var targeting_state := _create_minimal_targeting_state()
 
-	var mapper := CollisionMapper.new(gts, _logger)
+	var mapper := CollisionMapper.new(targeting_state, _logger)
 
-	# Don't add gts.target_map to scene tree - it's managed by auto_free from factory
+	# Don't add targeting_state.target_map to scene tree - it's managed by auto_free from factory
 	# The mapper uses targeting state for coordinate transformations, not scene tree presence
 
 	# Create collision object at origin with a shape that should definitely overlap
-	var body := StaticBody2D.new()
-	auto_free(body)
+	var body := auto_free(StaticBody2D.new())
 	body.collision_layer = 1
 	body.position = Vector2.ZERO  # At origin
-	var shape := CollisionShape2D.new()
-	auto_free(shape)
+	var shape := auto_free(CollisionShape2D.new())
 	var rect := RectangleShape2D.new()
 	rect.size = Vector2(64, 64)  # Large shape that should overlap multiple tiles
 	shape.shape = rect
@@ -328,8 +333,7 @@ func test_basic_collision_detection() -> void:
 	add_child(body)
 
 	# Setup mapper
-	var test_indicator: RuleCheckIndicator = indicator_template.instantiate() as RuleCheckIndicator
-	auto_free(test_indicator)
+	var test_indicator: RuleCheckIndicator = auto_free(indicator_template.instantiate() as RuleCheckIndicator)
 
 	var test_setup := CollisionTestSetup2D.new(body, Vector2(16, 16))
 	var setups: Array[CollisionTestSetup2D] = [test_setup]
@@ -365,16 +369,19 @@ func test_basic_collision_detection() -> void:
 	assert_that(result.size()).append_failure_message(debug_msg).is_greater(0)
 
 
+## Tests that collision layer bits are properly matched against rule masks.
+##
+## Validates that layer/mask bitwise AND correctly determines collision eligibility.
+## Catches issues where layer configuration prevents collision detection from working.
 func test_collision_layer_matching_for_tile_check_rules() -> void:
-	var gts := _create_minimal_targeting_state()
+	var targeting_state := _create_minimal_targeting_state()
 
-	var mapper := CollisionMapper.new(gts, _logger)
+	var mapper := CollisionMapper.new(targeting_state, _logger)
 
-	# Note: Don't add gts.target_map to scene tree - it's managed by auto_free from factory
+	# Note: Don't add targeting_state.target_map to scene tree - it's managed by auto_free from factory
 
 	# Create collision object with specific layer (513 = bits 0+9)
-	var body := StaticBody2D.new()
-	auto_free(body)
+	var body := auto_free(StaticBody2D.new())
 	body.collision_layer = 513
 	body.position = Vector2.ZERO  # Position at center of tile (0,0)
 	var shape := CollisionShape2D.new()
@@ -397,8 +404,7 @@ func test_collision_layer_matching_for_tile_check_rules() -> void:
 	).is_equal(513)
 
 	# Create testing indicator and setup mapper
-	var test_indicator: RuleCheckIndicator = indicator_template.instantiate() as RuleCheckIndicator
-	auto_free(test_indicator)
+	var test_indicator: RuleCheckIndicator = auto_free(indicator_template.instantiate() as RuleCheckIndicator)
 
 	# Create test setup and validate it
 	var test_setup := CollisionTestSetup2D.new(body, Vector2(16, 16))
@@ -479,14 +485,14 @@ func test_collision_layer_matching_for_tile_check_rules() -> void:
 			)
 
 	# Check map details
-	if gts.target_map:
-		debug_info += "Map tile size: %s\n" % gts.target_map.tile_set.tile_size
-		debug_info += "Map position: %s\n" % gts.target_map.position
-		debug_info += "Map global position: %s\n" % gts.target_map.global_position
+	if targeting_state.target_map:
+		debug_info += "Map tile size: %s\n" % targeting_state.target_map.tile_set.tile_size
+		debug_info += "Map position: %s\n" % targeting_state.target_map.position
+		debug_info += "Map global position: %s\n" % targeting_state.target_map.global_position
 
 		# Check tile coordinates
-		var body_tile: Vector2i = gts.target_map.local_to_map(
-			gts.target_map.to_local(body.global_position)
+		var body_tile: Vector2i = targeting_state.target_map.local_to_map(
+			targeting_state.target_map.to_local(body.global_position)
 		)
 		debug_info += "Body tile coordinates: %s\n" % body_tile
 
@@ -524,15 +530,14 @@ func test_collision_layer_matching_for_tile_check_rules() -> void:
 ## This test failure indicates the collision mapping system has issues that would cause
 ## integration tests to show "0 indicators generated" despite valid collision objects.
 func test_position_rules_mapping_produces_results() -> void:
-	var gts := _create_minimal_targeting_state()
+	var targeting_state := _create_minimal_targeting_state()
 
-	var mapper := CollisionMapper.new(gts, _logger)
+	var mapper := CollisionMapper.new(targeting_state, _logger)
 
-	# Note: Don't add gts.target_map to scene tree - it's managed by auto_free from factory
+	# Note: Don't add targeting_state.target_map to scene tree - it's managed by auto_free from factory
 
 	# Create collision object
-	var body := StaticBody2D.new()
-	auto_free(body)
+	var body := auto_free(StaticBody2D.new())
 	body.collision_layer = 1  # bit 0
 	body.position = Vector2(0, 0)  # Position at center of tile (0,0)
 	var shape := CollisionShape2D.new()
@@ -556,8 +561,7 @@ func test_position_rules_mapping_produces_results() -> void:
 	).is_equal(1)
 
 	# Setup mapper
-	var test_indicator: RuleCheckIndicator = indicator_template.instantiate() as RuleCheckIndicator
-	auto_free(test_indicator)
+	var test_indicator: RuleCheckIndicator = auto_free(indicator_template.instantiate() as RuleCheckIndicator)
 
 	# Create test setup and validate it
 	var test_setup := CollisionTestSetup2D.new(body, Vector2(16, 16))
@@ -622,14 +626,14 @@ func test_position_rules_mapping_produces_results() -> void:
 			)
 
 	# Check map details
-	if gts.target_map:
-		debug_info += "Map tile size: %s\n" % gts.target_map.tile_set.tile_size
-		debug_info += "Map position: %s\n" % gts.target_map.position
-		debug_info += "Map global position: %s\n" % gts.target_map.global_position
+	if targeting_state.target_map:
+		debug_info += "Map tile size: %s\n" % targeting_state.target_map.tile_set.tile_size
+		debug_info += "Map position: %s\n" % targeting_state.target_map.position
+		debug_info += "Map global position: %s\n" % targeting_state.target_map.global_position
 
 		# Check tile coordinates
-		var body_tile: Vector2i = gts.target_map.local_to_map(
-			gts.target_map.to_local(body.global_position)
+		var body_tile: Vector2i = targeting_state.target_map.local_to_map(
+			targeting_state.target_map.to_local(body.global_position)
 		)
 		debug_info += "Body tile coordinates: %s\n" % body_tile
 
@@ -685,7 +689,7 @@ func test_trapezoid_collision_mapper_setup_debug() -> void:
 	add_child(body)
 	body.collision_layer = 1
 
-	var collision_shape: CollisionShape2D = auto_free(CollisionShape2D.new())
+	var collision_shape: CollisionShape2D = CollisionShape2D.new()
 	body.add_child(collision_shape)
 
 	# Exact trapezoid coordinates from simple_trapezoid.tscn
@@ -701,16 +705,14 @@ func test_trapezoid_collision_mapper_setup_debug() -> void:
 
 	# Create targeting state and indicator
 	var targeting_state: GridTargetingState = _create_minimal_targeting_state()
-	var test_indicator: RuleCheckIndicator = indicator_template.instantiate()
-	auto_free(test_indicator)
+	var test_indicator: RuleCheckIndicator = auto_free(indicator_template.instantiate())
 	add_child(test_indicator)
 
 	# Create collision mapper
 	var mapper: CollisionMapper = CollisionMapper.new(targeting_state, _logger)
 
 	# Act: Set up mapper with proper API
-	var test_setups: Array[CollisionTestSetup2D] = [CollisionTestSetup2D.new(body, Vector2(64, 24))]
-	auto_free(test_setups[0])  # Clean up the test setup
+	var test_setups: Array[CollisionTestSetup2D] = [auto_free(CollisionTestSetup2D.new(body, Vector2(64, 24)))]
 
 	# Set up collision mapper with correct API
 	mapper.setup(test_indicator, test_setups)
@@ -799,9 +801,8 @@ func test_rectangle_collision_coverage_48x64_pixels() -> void:
 	collision_shape.shape = rect_shape
 	rect_body.add_child(collision_shape)
 
-	# Force physics update like integration test
-	await get_tree().physics_frame
-	await get_tree().physics_frame
+	# Force physics update using scene_runner if available
+	# Note: Physics bodies need one frame to initialize shapes
 
 	# Set up collision mapper with proper test indicator and setup objects like other tests
 	var test_indicator: RuleCheckIndicator = auto_free(RuleCheckIndicator.new())

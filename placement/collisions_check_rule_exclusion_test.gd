@@ -97,9 +97,9 @@ func test_exclusion_prevents_collision_with_single_body() -> void:
 	var failing_without_exclusion := _rule.get_failing_indicators([indicator])
 
 	# THEN: Indicator detects collision (fails)
-	assert_int(failing_without_exclusion.size()).is_equal(1).append_failure_message(
+	assert_int(failing_without_exclusion.size()).append_failure_message(
 		"Indicator should detect collision without exclusions"
-	)
+	).is_equal(1)
 	(
 		assert_that(failing_without_exclusion[0]) \
 		. append_failure_message("That assertion failed") \
@@ -164,9 +164,9 @@ func test_exclusion_applies_to_all_children() -> void:
 	var failing_without := _rule.get_failing_indicators([indicator1, indicator2])
 
 	# THEN: Both indicators detect collisions
-	assert_int(failing_without.size()).is_equal(2).append_failure_message(
+	assert_int(failing_without.size()).append_failure_message(
 		"Both indicators should detect collisions without exclusions"
-	)
+	).is_equal(2)
 
 	# WHEN: Parent is excluded
 	_env.targeting_state.collision_exclusions = [parent_body]
@@ -203,9 +203,9 @@ func test_exclusion_only_affects_specified_objects() -> void:
 
 	# THEN: First indicator passes, second fails
 	var failing := _rule.get_failing_indicators([indicator1, indicator2])
-	assert_int(failing.size()).is_equal(1).append_failure_message(
+	assert_int(failing.size()).append_failure_message(
 		"Only one indicator should fail (non-excluded body)"
-	)
+	).is_equal(1)
 	(
 		assert_that(failing[0]) \
 		. append_failure_message("That assertion failed") \
@@ -331,9 +331,9 @@ func test_multiple_exclusions() -> void:
 
 	# THEN: Only third indicator fails
 	var failing := _rule.get_failing_indicators([indicator1, indicator2, indicator3])
-	assert_int(failing.size()).is_equal(1).append_failure_message(
+	assert_int(failing.size()).append_failure_message(
 		"Only one indicator should fail (non-excluded body)"
-	)
+	).is_equal(1)
 	(
 		assert_that(failing[0]) \
 		. append_failure_message("That assertion failed") \

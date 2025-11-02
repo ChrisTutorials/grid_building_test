@@ -33,18 +33,18 @@ func test_all_environments_load_without_issues() -> void:
 		var env: Node = runner.scene()
 		
 		# Validate environment loaded
-		assert_that(env).is_not_null().append_failure_message(
+		assert_that(env).append_failure_message(
 			"%s failed to load" % env_name
-		)
+		).is_not_null()
 		
 		# Validate environment is correct type and has get_issues() method
 		var test_env := env as GBTestEnvironment
-		assert_that(test_env).is_not_null().append_failure_message(
+		assert_that(test_env).append_failure_message(
 			"%s is not a GBTestEnvironment" % env_name
-		)
+		).is_not_null()
 		
 		# Validate environment has no issues
 		var issues: Array[String] = test_env.get_issues()
-		assert_that(issues).is_empty().append_failure_message(
+		assert_that(issues).append_failure_message(
 			"%s has issues: %s" % [env_name, issues]
-		)
+		).is_empty()

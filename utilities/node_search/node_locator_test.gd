@@ -30,8 +30,8 @@ func before_test() -> void:
 	owner_node.add_child(item_container)
 	# Ensure both parent and child share the search group for group search test expectations
 	item_container.add_to_group(owner_group)
-	assert_object(item_container).is_not_null()
-	assert_object(item_container.get_script()).is_not_null()
+	assert_object(item_container).append_failure_message("Item container should be created successfully").is_not_null()
+	assert_object(item_container.get_script()).append_failure_message("Item container should have a script attached").is_not_null()
 
 
 func after_test() -> void:

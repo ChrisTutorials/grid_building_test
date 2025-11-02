@@ -14,13 +14,13 @@ func before_test() -> void:
 func test_remain_active_in_off_mode_visibility() -> void:
 	# Get the container and its states/settings
 	var container: GBCompositionContainer = env.get_container()
-	assert_that(container).is_not_null().append_failure_message("Container should be available")
+	assert_that(container).append_failure_message("Container should be available").is_not_null()
 
 	var states: GBStates = container.get_states()
-	assert_that(states).is_not_null().append_failure_message("States should be available")
+	assert_that(states).append_failure_message("States should be available").is_not_null()
 
 	var settings: GridTargetingSettings = container.config.settings.targeting
-	assert_that(settings).is_not_null().append_failure_message("Targeting settings should be available")
+	assert_that(settings).append_failure_message("Targeting settings should be available").is_not_null()
 
 	# Set remain_active_in_off_mode to true
 	settings.remain_active_in_off_mode = true
@@ -30,7 +30,7 @@ func test_remain_active_in_off_mode_visibility() -> void:
 
 	# Get the positioner
 	var positioner: GridPositioner2D = env.positioner
-	assert_that(positioner).is_not_null().append_failure_message("Positioner should be available")
+	assert_that(positioner).append_failure_message("Positioner should be available").is_not_null()
 
 	# Test that positioner should be visible in OFF mode when remain_active_in_off_mode is true
 	var should_be_visible: bool = positioner.should_be_visible()

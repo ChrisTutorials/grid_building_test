@@ -19,9 +19,6 @@ func before_test() -> void:
 	camera = Camera2D.new()
 	add_child(camera)
 
-	# Wait for scene setup
-	await get_tree().process_frame
-
 
 func after_test() -> void:
 	if camera:
@@ -79,7 +76,6 @@ func test_debug_viewport_center_calculation() -> void:
 
 	# Test camera setup
 	camera.make_current()
-	await get_tree().process_frame
 
 	var current_camera: Camera2D = viewport.get_camera_2d()
 	var diag_context := "\n".join(diag)

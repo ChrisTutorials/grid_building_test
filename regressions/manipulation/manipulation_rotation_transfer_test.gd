@@ -202,7 +202,7 @@ func test_indicators_inherit_rotation_from_manipulation_parent() -> void:
 
 	# Get indicators
 	var indicators: Array[RuleCheckIndicator] = _indicator_manager.get_indicators()
-	assert_array(indicators).is_not_empty().append_failure_message("Should have indicators")
+	assert_array(indicators).append_failure_message("Should have indicators").is_not_empty()
 
 	# Assert: Each indicator should have inherited the rotation from ManipulationParent
 	var expected_global_rotation: float = _manipulation_parent.global_rotation
@@ -248,7 +248,6 @@ func test_indicator_count_consistent_across_rotations() -> void:
 
 	# Cancel move and reset
 	_manipulation_system.cancel()
-	await get_tree().physics_frame
 
 	# Test 2: Smithy at 90 degrees
 	_smithy.root.rotation = deg_to_rad(90)
@@ -416,9 +415,9 @@ func test_rotation_transferred_to_parent_after_indicator_generation() -> void:
 
 	# Assert 3: Indicators should have been generated
 	var indicators: Array[RuleCheckIndicator] = _indicator_manager.get_indicators()
-	assert_array(indicators).is_not_empty().append_failure_message(
+	assert_array(indicators).append_failure_message(
 		"Indicators should be generated after move starts. Count: %d" % indicators.size()
-	)
+	).is_not_empty()
 
 	# Assert 4: Copy's GLOBAL transform should match original (via parent inheritance)
 	var copy_global_rotation: float = copy_root.global_rotation

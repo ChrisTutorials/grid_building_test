@@ -276,11 +276,7 @@ func test_indicator_positioning_regression_800_pixel_offset() -> void:
 	)
 
 	# Validate basic generation
-	(
-		assert_that(indicators.size()) \
-		. append_failure_message("Expected exactly 1 indicator") \
-		. is_equal(1)
-	)
+	assert_that(indicators.size()).append_failure_message("Expected exactly 1 indicator").is_equal(1)
 
 	var indicator: RuleCheckIndicator = indicators[0]
 	var indicator_pos: Vector2 = indicator.global_position
@@ -319,7 +315,9 @@ func test_debug_collision_position_mapping() -> void:
 	var indicators: Array[RuleCheckIndicator] = IndicatorFactory.generate_indicators(
 		position_rules_map, _indicator_template, _parent_node, _targeting_state, _test_object
 	)
-	assert_that(indicators.size()).is_equal(1)
+	assert_that(indicators.size()).append_failure_message(
+		"Should generate exactly one indicator for single position"
+	).is_equal(1)
 	var indicator: RuleCheckIndicator = indicators[0]
 	var expected_pos := Vector2(456.0, 552.0)
 	var actual_pos := indicator.global_position
@@ -346,7 +344,7 @@ func test_debug_collision_position_mapping() -> void:
 	# Verify the offset creates displacement in the expected range
 	assert_that(distance).append_failure_message(
 		"Realistic offset should create displacement in range %.1f-%.1f pixels, got %.1f pixels" % [expected_distance_range_min, expected_distance_range_max, distance]
-	).is_greater(expected_distance_range_min).is_less(expected_distance_range_max)
+	).is_between(expected_distance_range_min, expected_distance_range_max)
 
 	# Test with a small positive offset to ensure normal behavior still works
 	var small_offset := Vector2i(1, 0)  # Should create ~16 pixel offset
@@ -355,7 +353,9 @@ func test_debug_collision_position_mapping() -> void:
 	var small_indicators: Array[RuleCheckIndicator] = IndicatorFactory.generate_indicators(
 		small_position_rules_map, _indicator_template, _parent_node, _targeting_state, _test_object
 	)
-	assert_that(small_indicators.size()).is_equal(1)
+	assert_that(small_indicators.size()).append_failure_message(
+		"Should generate exactly one indicator for small offset"
+	).is_equal(1)
 	var small_indicator := small_indicators[0]
 	var small_distance := small_indicator.global_position.distance_to(expected_pos)
 	diag.append("Small offset test: %s creates %.1f pixel distance" % [small_offset, small_distance])
@@ -363,4 +363,4 @@ func test_debug_collision_position_mapping() -> void:
 	# Small offsets should create reasonable distances (~16 pixels for 1 tile)
 	assert_that(small_distance).append_failure_message(
 		"Small offset should create reasonable distance, got %.1f pixels" % small_distance
-	).is_greater(10.0).is_less(30.0).is_less(LARGE_DISTANCE_THRESHOLD)
+	).is_between(10.0, 30.0)

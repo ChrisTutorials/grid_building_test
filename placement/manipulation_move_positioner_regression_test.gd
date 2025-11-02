@@ -211,8 +211,12 @@ func test_move_exclusion_fails_when_positioner_outside_original_bounds() -> void
 
 	# THEN: All indicators should STILL be valid (original should be excluded)
 	# BUG: This currently FAILS - indicators incorrectly detect collision with original
-	assert_bool(result_outside.all_valid).is_true()
-	assert_int(result_outside.invalid_count).is_equal(0)
+	assert_bool(result_outside.all_valid).append_failure_message(
+		"All indicators should be valid when original is excluded"
+	).is_true()
+	assert_int(result_outside.invalid_count).append_failure_message(
+		"No indicators should be invalid when original is excluded"
+	).is_equal(0)
 
 
 func test_move_exclusion_consistent_across_multiple_positions() -> void:

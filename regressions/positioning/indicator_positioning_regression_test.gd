@@ -77,9 +77,9 @@ func test_indicator_positioning_at_multiple_offsets() -> void:
 	)
 
 	# Verify we got the expected number of indicators
-	assert_that(indicators.size()).is_equal(4).append_failure_message(
+	assert_that(indicators.size()).append_failure_message(
 		"Should generate 4 indicators for 4 positions"
-	)
+	).is_equal(4)
 
 	# Verify each indicator is positioned correctly
 	var positioner_tile_pos: Vector2i = test_tile_map.local_to_map(
