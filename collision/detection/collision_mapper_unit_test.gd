@@ -29,14 +29,14 @@ func _create_minimal_targeting_state() -> GridTargetingState:
 	var state: GridTargetingState = GridTargetingState.new(GBOwnerContext.new())
 
 	# Set up maps and positioner automatically
-	var test_map := auto_free(TileMapLayer.new())
+	var test_map: TileMapLayer = auto_free(TileMapLayer.new())
 	add_child(test_map)
 	var tile_set := TileSet.new()
 	test_map.tile_set = tile_set
 	state.target_map = test_map
 	state.maps = [test_map]
 
-	var test_positioner := auto_free(Node2D.new())
+	var test_positioner: Node2D = auto_free(Node2D.new())
 	add_child(test_positioner)
 	state.positioner = test_positioner
 
@@ -297,7 +297,7 @@ func test_guard_returns_empty_without_setup() -> void:
 	var targeting_state := _create_minimal_targeting_state()
 	var mapper := CollisionMapper.new(targeting_state, _logger)
 	# Create a polygon owner but do not call setup(); guard should prevent mapping
-	var body := auto_free(StaticBody2D.new())
+	var body: StaticBody2D = auto_free(StaticBody2D.new())
 	var poly := CollisionPolygon2D.new()
 	body.add_child(poly)
 	poly.polygon = PackedVector2Array(
@@ -305,9 +305,11 @@ func test_guard_returns_empty_without_setup() -> void:
 	)
 	var rule := TileCheckRule.new()
 	var result := mapper.map_collision_positions_to_rules([poly], [rule])
-	assert_that(result.size()).append_failure_message(
-		"Expected empty mapping when mapper.setup() not called"
-	).is_equal(0)
+	(
+		assert_that(result.size())
+		. append_failure_message("Expected empty mapping when mapper.setup() not called")
+		. is_equal(0)
+	)
 
 
 ## Tests basic collision detection with simple geometric setup.
@@ -320,10 +322,10 @@ func test_basic_collision_detection() -> void:
 	# The mapper uses targeting state for coordinate transformations, not scene tree presence
 
 	# Create collision object at origin with a shape that should definitely overlap
-	var body := auto_free(StaticBody2D.new())
+	var body: StaticBody2D = auto_free(StaticBody2D.new())
 	body.collision_layer = 1
 	body.position = Vector2.ZERO  # At origin
-	var shape := auto_free(CollisionShape2D.new())
+	var shape: CollisionShape2D = auto_free(CollisionShape2D.new())
 	var rect := RectangleShape2D.new()
 	rect.size = Vector2(64, 64)  # Large shape that should overlap multiple tiles
 	shape.shape = rect
@@ -333,29 +335,39 @@ func test_basic_collision_detection() -> void:
 	add_child(body)
 
 	# Setup mapper
-	var test_indicator: RuleCheckIndicator = auto_free(indicator_template.instantiate() as RuleCheckIndicator)
+	var test_indicator: RuleCheckIndicator = auto_free(
+		indicator_template.instantiate() as RuleCheckIndicator
+	)
 
 	var test_setup := CollisionTestSetup2D.new(body, Vector2(16, 16))
 	var setups: Array[CollisionTestSetup2D] = [test_setup]
 	mapper.setup(test_indicator, setups)
 
 	# Validate setup first
-	assert_that(mapper.test_indicator).append_failure_message(
-		"Test indicator should be set after setup"
-	).is_not_null()
+	(
+		assert_that(mapper.test_indicator)
+		. append_failure_message("Test indicator should be set after setup")
+		. is_not_null()
+	)
 
-	assert_that(mapper.test_setups).append_failure_message(
-		"Collision setups should be initialized"
-	).is_not_null()
+	(
+		assert_that(mapper.test_setups)
+		. append_failure_message("Collision setups should be initialized")
+		. is_not_null()
+	)
 
-	assert_that(_get_test_setup_for_body(mapper, body)).append_failure_message(
-		"Setup should contain the body"
-	).is_not_null()
+	(
+		assert_that(_get_test_setup_for_body(mapper, body))
+		. append_failure_message("Setup should contain the body")
+		. is_not_null()
+	)
 
 	# Test the test_setup validation
-	assert_that(test_setup.validate_setup()).append_failure_message(
-		"Test setup should be valid"
-	).is_true()
+	(
+		assert_that(test_setup.validate_setup())
+		. append_failure_message("Test setup should be valid")
+		. is_true()
+	)
 
 	# Test basic collision detection
 	var result: Dictionary[Vector2i, Array] = mapper.get_collision_tile_positions_with_mask(
@@ -381,10 +393,10 @@ func test_collision_layer_matching_for_tile_check_rules() -> void:
 	# Note: Don't add targeting_state.target_map to scene tree - it's managed by auto_free from factory
 
 	# Create collision object with specific layer (513 = bits 0+9)
-	var body := auto_free(StaticBody2D.new())
+	var body: StaticBody2D = auto_free(StaticBody2D.new())
 	body.collision_layer = 513
 	body.position = Vector2.ZERO  # Position at center of tile (0,0)
-	var shape := CollisionShape2D.new()
+	var shape: CollisionShape2D = auto_free(CollisionShape2D.new())
 	var rect := RectangleShape2D.new()
 	rect.size = Vector2(16, 16)  # Small shape that fits within one tile
 	shape.shape = rect
@@ -395,22 +407,30 @@ func test_collision_layer_matching_for_tile_check_rules() -> void:
 
 	# Verify collision object setup
 	var shape_owner_count: int = body.get_shape_owners().size()
-	assert_that(shape_owner_count).append_failure_message(
-		"Collision object must have shape owners for collision detection"
-	).is_greater(0)
+	(
+		assert_that(shape_owner_count)
+		. append_failure_message("Collision object must have shape owners for collision detection")
+		. is_greater(0)
+	)
 
-	assert_that(body.collision_layer).append_failure_message(
-		"Collision layer must be set to 513 for this test"
-	).is_equal(513)
+	(
+		assert_that(body.collision_layer)
+		. append_failure_message("Collision layer must be set to 513 for this test")
+		. is_equal(513)
+	)
 
 	# Create testing indicator and setup mapper
-	var test_indicator: RuleCheckIndicator = auto_free(indicator_template.instantiate() as RuleCheckIndicator)
+	var test_indicator: RuleCheckIndicator = auto_free(
+		indicator_template.instantiate() as RuleCheckIndicator
+	)
 
 	# Create test setup and validate it
 	var test_setup := CollisionTestSetup2D.new(body, Vector2(16, 16))
-	assert_that(test_setup.validate_setup()).append_failure_message(
-		_generate_test_setup_diagnostics(test_setup)
-	).is_true()
+	(
+		assert_that(test_setup.validate_setup())
+		. append_failure_message(_generate_test_setup_diagnostics(test_setup))
+		. is_true()
+	)
 
 	var setups: Array[CollisionTestSetup2D] = [test_setup]
 	mapper.setup(test_indicator, setups)
@@ -419,32 +439,44 @@ func test_collision_layer_matching_for_tile_check_rules() -> void:
 	var rule := TileCheckRule.new()
 	rule.apply_to_objects_mask = 1  # bit 0 should match with layer bit 0
 
-	assert_that(rule.apply_to_objects_mask).append_failure_message(
-		"Rule mask must be 1 for this test"
-	).is_equal(1)
+	(
+		assert_that(rule.apply_to_objects_mask)
+		. append_failure_message("Rule mask must be 1 for this test")
+		. is_equal(1)
+	)
 
 	# Verify layer and mask compatibility
 	var layer_matches_mask: bool = (body.collision_layer & rule.apply_to_objects_mask) != 0
-	assert_that(layer_matches_mask).append_failure_message(
-		_generate_layer_mask_diagnostics(body, rule.apply_to_objects_mask)
-	).is_true()
+	(
+		assert_that(layer_matches_mask)
+		. append_failure_message(_generate_layer_mask_diagnostics(body, rule.apply_to_objects_mask))
+		. is_true()
+	)
 
 	# Verify mapper setup is complete
-	assert_that(mapper.test_indicator).append_failure_message(
-		"Mapper test indicator must be set after setup"
-	).is_not_null()
+	(
+		assert_that(mapper.test_indicator)
+		. append_failure_message("Mapper test indicator must be set after setup")
+		. is_not_null()
+	)
 
-	assert_that(mapper.test_setups).append_failure_message(
-		"Mapper collision setups must be initialized"
-	).is_not_null()
+	(
+		assert_that(mapper.test_setups)
+		. append_failure_message("Mapper collision setups must be initialized")
+		. is_not_null()
+	)
 
-	assert_that(mapper.test_setups.is_empty()).append_failure_message(
-		"Mapper collision setups must not be empty"
-	).is_false()
+	(
+		assert_that(mapper.test_setups.is_empty())
+		. append_failure_message("Mapper collision setups must not be empty")
+		. is_false()
+	)
 
-	assert_that(_get_test_setup_for_body(mapper, body)).append_failure_message(
-		"Mapper must have setup for the collision body"
-	).is_not_null()
+	(
+		assert_that(_get_test_setup_for_body(mapper, body))
+		. append_failure_message("Mapper must have setup for the collision body")
+		. is_not_null()
+	)
 
 	var result := mapper.get_collision_tile_positions_with_mask([body], rule.apply_to_objects_mask)
 
@@ -537,10 +569,10 @@ func test_position_rules_mapping_produces_results() -> void:
 	# Note: Don't add targeting_state.target_map to scene tree - it's managed by auto_free from factory
 
 	# Create collision object
-	var body := auto_free(StaticBody2D.new())
+	var body: StaticBody2D = auto_free(StaticBody2D.new())
 	body.collision_layer = 1  # bit 0
 	body.position = Vector2(0, 0)  # Position at center of tile (0,0)
-	var shape := CollisionShape2D.new()
+	var shape: CollisionShape2D = auto_free(CollisionShape2D.new())
 	var rect := RectangleShape2D.new()
 	rect.size = Vector2(16, 16)
 	shape.shape = rect
@@ -551,23 +583,31 @@ func test_position_rules_mapping_produces_results() -> void:
 
 	# Debug: Check if collision object has shape owners
 	var shape_owner_count: int = body.get_shape_owners().size()
-	assert_that(shape_owner_count).append_failure_message(
-		"Collision object should have shape owners"
-	).is_greater(0)
+	(
+		assert_that(shape_owner_count)
+		. append_failure_message("Collision object should have shape owners")
+		. is_greater(0)
+	)
 
 	# Verify collision layer is set correctly
-	assert_that(body.collision_layer).append_failure_message(
-		"Collision layer should be 1"
-	).is_equal(1)
+	(
+		assert_that(body.collision_layer)
+		. append_failure_message("Collision layer should be 1")
+		. is_equal(1)
+	)
 
 	# Setup mapper
-	var test_indicator: RuleCheckIndicator = auto_free(indicator_template.instantiate() as RuleCheckIndicator)
+	var test_indicator: RuleCheckIndicator = auto_free(
+		indicator_template.instantiate() as RuleCheckIndicator
+	)
 
 	# Create test setup and validate it
 	var test_setup := CollisionTestSetup2D.new(body, Vector2(16, 16))
-	assert_that(test_setup.validate_setup()).append_failure_message(
-		"Test setup should be valid"
-	).is_true()
+	(
+		assert_that(test_setup.validate_setup())
+		. append_failure_message("Test setup should be valid")
+		. is_true()
+	)
 
 	var setups: Array[CollisionTestSetup2D] = [test_setup]
 	mapper.setup(test_indicator, setups)
@@ -577,15 +617,23 @@ func test_position_rules_mapping_produces_results() -> void:
 	rule.apply_to_objects_mask = 1  # bit 0
 
 	# Verify rule mask matches collision layer
-	assert_that(rule.apply_to_objects_mask).append_failure_message(
-		"Rule mask should be 1"
-	).is_equal(1)
+	(
+		assert_that(rule.apply_to_objects_mask)
+		. append_failure_message("Rule mask should be 1")
+		. is_equal(1)
+	)
 
 	var layer_matches: bool = (body.collision_layer & rule.apply_to_objects_mask) != 0
-	assert_bool(layer_matches).append_failure_message(
-		"Layer %d should match mask %d (bitwise AND should be non-zero)"
-		% [body.collision_layer, rule.apply_to_objects_mask]
-	).is_true()
+	(
+		assert_bool(layer_matches)
+		. append_failure_message(
+			(
+				"Layer %d should match mask %d (bitwise AND should be non-zero)"
+				% [body.collision_layer, rule.apply_to_objects_mask]
+			)
+		)
+		. is_true()
+	)
 
 	var position_rules_map := mapper.map_collision_positions_to_rules([body], [rule])
 
@@ -641,28 +689,44 @@ func test_position_rules_mapping_produces_results() -> void:
 	debug_info += "================================\n"
 
 	# Debug: Verify the result structure
-	assert_that(typeof(position_rules_map)).append_failure_message(
-		"Position rules map should be a Dictionary"
-	).is_equal(TYPE_DICTIONARY)
+	(
+		assert_that(typeof(position_rules_map))
+		. append_failure_message("Position rules map should be a Dictionary")
+		. is_equal(TYPE_DICTIONARY)
+	)
 
 	# Debug: Check mapper setup state for position-rules mapping
 	var guard_complete: bool = mapper._guard_setup_complete()
-	assert_that(guard_complete).append_failure_message(
-		"Mapper guard setup must be complete for position-rules mapping"
-	).is_true()
+	(
+		assert_that(guard_complete)
+		. append_failure_message("Mapper guard setup must be complete for position-rules mapping")
+		. is_true()
+	)
 
 	if not guard_complete:
-		assert_that(mapper.test_indicator).append_failure_message(
-			"Test indicator must not be null when guard setup is incomplete"
-		).is_not_null()
+		(
+			assert_that(mapper.test_indicator)
+			. append_failure_message(
+				"Test indicator must not be null when guard setup is incomplete"
+			)
+			. is_not_null()
+		)
 
-		assert_that(mapper.test_setups).append_failure_message(
-			"Collision setups must not be null when guard setup is incomplete"
-		).is_not_null()
+		(
+			assert_that(mapper.test_setups)
+			. append_failure_message(
+				"Collision setups must not be null when guard setup is incomplete"
+			)
+			. is_not_null()
+		)
 
-		assert_that(mapper.test_setups.is_empty()).append_failure_message(
-			"Collision setups must not be empty when guard setup is incomplete"
-		).is_not_true()
+		(
+			assert_that(mapper.test_setups.is_empty())
+			. append_failure_message(
+				"Collision setups must not be empty when guard setup is incomplete"
+			)
+			. is_not_true()
+		)
 
 	# Concise failure message with debug info
 	var failure_msg: String = (
@@ -712,7 +776,9 @@ func test_trapezoid_collision_mapper_setup_debug() -> void:
 	var mapper: CollisionMapper = CollisionMapper.new(targeting_state, _logger)
 
 	# Act: Set up mapper with proper API
-	var test_setups: Array[CollisionTestSetup2D] = [auto_free(CollisionTestSetup2D.new(body, Vector2(64, 24)))]
+	var test_setups: Array[CollisionTestSetup2D] = [
+		auto_free(CollisionTestSetup2D.new(body, Vector2(64, 24)))
+	]
 
 	# Set up collision mapper with correct API
 	mapper.setup(test_indicator, test_setups)
@@ -721,26 +787,46 @@ func test_trapezoid_collision_mapper_setup_debug() -> void:
 	var setup_diagnostics: String = _generate_mapper_setup_diagnostics(mapper, body)
 
 	# Assert 1: Mapper should have non-null test indicator
-	assert_that(mapper.test_indicator).append_failure_message(
-		"CollisionMapper should have non-null test_indicator after setup. Diagnostics:\n%s"
-		% setup_diagnostics
-	).is_not_null()
+	(
+		assert_that(mapper.test_indicator)
+		. append_failure_message(
+			(
+				"CollisionMapper should have non-null test_indicator after setup. Diagnostics:\n%s"
+				% setup_diagnostics
+			)
+		)
+		. is_not_null()
+	)
 
 	# Assert 2: Mapper should have non-empty test setups
-	assert_that(mapper.test_setups).append_failure_message(
-		"CollisionMapper should have non-null test_setups. Diagnostics:\n%s" % setup_diagnostics
-	).is_not_null()
+	(
+		assert_that(mapper.test_setups)
+		. append_failure_message(
+			"CollisionMapper should have non-null test_setups. Diagnostics:\n%s" % setup_diagnostics
+		)
+		. is_not_null()
+	)
 
-	assert_that(mapper.test_setups.is_empty()).append_failure_message(
-		"CollisionMapper test_setups should not be empty. Diagnostics:\n%s" % setup_diagnostics
-	).is_false()
+	(
+		assert_that(mapper.test_setups.is_empty())
+		. append_failure_message(
+			"CollisionMapper test_setups should not be empty. Diagnostics:\n%s" % setup_diagnostics
+		)
+		. is_false()
+	)
 
 	# Assert 3: Should have specific setup for our trapezoid body
 	var body_setup: CollisionTestSetup2D = _get_test_setup_for_body(mapper, body)
-	assert_that(body_setup).append_failure_message(
-		"Should have CollisionTestSetup2D for trapezoid body. Available setups: %d. Diagnostics:\n%s"
-		% [mapper.test_setups.size(), setup_diagnostics]
-	).is_not_null()
+	(
+		assert_that(body_setup)
+		. append_failure_message(
+			(
+				"Should have CollisionTestSetup2D for trapezoid body. Available setups: %d. Diagnostics:\n%s"
+				% [mapper.test_setups.size(), setup_diagnostics]
+			)
+		)
+		. is_not_null()
+	)
 
 	# Debug: Test collision detection with mask 1
 	var tile_check_rule: TileCheckRule = TileCheckRule.new()
@@ -760,20 +846,28 @@ func test_trapezoid_collision_mapper_setup_debug() -> void:
 	)
 
 	# Assert 4: Should find collision positions for trapezoid
-	assert_that(collision_positions.size()).append_failure_message(
-		"Expected collision positions for trapezoid shape with mask 1. Body layer: %d, Mask: %d.\n%s\n%s"
-		% [
-			body.collision_layer,
-			tile_check_rule.apply_to_objects_mask,
-			trapezoid_diagnostics,
-			geometry_comparison
-		]
-	).is_greater(0)
+	(
+		assert_that(collision_positions.size())
+		. append_failure_message(
+			(
+				"Expected collision positions for trapezoid shape with mask 1. Body layer: %d, Mask: %d.\n%s\n%s"
+				% [
+					body.collision_layer,
+					tile_check_rule.apply_to_objects_mask,
+					trapezoid_diagnostics,
+					geometry_comparison
+				]
+			)
+		)
+		. is_greater(0)
+	)
 
 	## Tests that rectangle collision coverage produces the correct tile count.
 	## Reproduces issue: 48x64 pixel rectangle (3x4 tiles) should produce 12 tiles.
 	## If this passes but integration tests fail, issue is in indicator generation pipeline,
 	## not in CollisionMapper setup.
+
+
 func test_rectangle_collision_coverage_48x64_pixels() -> void:
 	var state: GridTargetingState = _create_minimal_targeting_state()
 	var mapper: CollisionMapper = CollisionMapper.new(state, _logger)
@@ -868,12 +962,24 @@ func test_rectangle_collision_coverage_48x64_pixels() -> void:
 		if actual_tile not in expected_tiles:
 			extra_tiles.append(actual_tile)
 
-	assert_array(missing_tiles).append_failure_message(
-		"Missing tiles from 4×4 grid collision coverage. Expected: %s, Actual: %s, Missing: %s, Extra: %s"
-		% [str(expected_tiles), str(tile_positions), str(missing_tiles), str(extra_tiles)]
-	).is_empty()
+	(
+		assert_array(missing_tiles)
+		. append_failure_message(
+			(
+				"Missing tiles from 4×4 grid collision coverage. Expected: %s, Actual: %s, Missing: %s, Extra: %s"
+				% [str(expected_tiles), str(tile_positions), str(missing_tiles), str(extra_tiles)]
+			)
+		)
+		. is_empty()
+	)
 
-	assert_array(extra_tiles).append_failure_message(
-		"Extra tiles found beyond expected 4×4 grid. Expected: %s, Actual: %s, Extra: %s"
-		% [str(expected_tiles), str(tile_positions), str(extra_tiles)]
-	).is_empty()
+	(
+		assert_array(extra_tiles)
+		. append_failure_message(
+			(
+				"Extra tiles found beyond expected 4×4 grid. Expected: %s, Actual: %s, Extra: %s"
+				% [str(expected_tiles), str(tile_positions), str(extra_tiles)]
+			)
+		)
+		. is_empty()
+	)

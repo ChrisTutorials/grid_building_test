@@ -29,8 +29,10 @@
 class_name GBTestInjectorSystem
 extends GBInjectorSystem
 
-## Track if we've already duplicated to avoid double-duplication
+## Track if we've already duplicated to avoid double-duplication within a single frame
 var _has_duplicated: bool = false
+## Track the original container to detect when a new test resets it
+var _last_original_container: GBCompositionContainer = null
 
 
 ## Intercept NOTIFICATION_POSTINITIALIZE which is called after scene properties are set
@@ -42,12 +44,28 @@ func _notification(what: int) -> void:
 
 ## Duplicate the composition_container for test isolation
 ## Called after properties are initialized from scene file
+##
+## CRITICAL FIX (Nov 3, 2025): Between tests, the scene_runner may reset the
+## composition_container back to the original. We detect this and re-enable duplication.
+## This ensures EACH test gets its own fresh duplicated container, preventing
+## stale state from previous tests from bleeding into new tests.
 func _duplicate_container_if_needed() -> void:
+	# Check if the container was reset (new test or scene reload)
+	if composition_container != _last_original_container:
+		_has_duplicated = false
+		_last_original_container = composition_container
+
 	if composition_container != null and not _has_duplicated:
 		_has_duplicated = true
 
 		# Duplicate the container for test isolation
 		var duplicated: GBCompositionContainer = composition_container.duplicate(true)
+
+		# CRITICAL FIX: Clear cached dependencies in duplicated container
+		# When we duplicate(true), the cached fields (_states, _contexts, _logger) get deep-copied
+		# from the original. We need to reset these to null so they'll be recreated fresh
+		# from the NEW container's dependencies, not stale copies from the original.
+		duplicated.reset_cache()
 
 		# Configure runtime checks before anything uses the container
 		_configure_runtime_checks(duplicated)
@@ -55,7 +73,15 @@ func _duplicate_container_if_needed() -> void:
 		# Log the duplication for debugging
 		var logger := duplicated.get_logger()
 		if logger:
-			logger.log_debug("GBTestInjectorSystem: Auto-duplicated container for test isolation")
+			(
+				logger
+				. log_debug(
+					(
+						"GBTestInjectorSystem: Auto-duplicated container for test isolation (original=%s, duplicated=%s)"
+						% [composition_container, duplicated]
+					)
+				)
+			)
 
 		# Replace with duplicated container
 		composition_container = duplicated

@@ -51,7 +51,7 @@ static func _setup_targeting_state_for_tests(
 
 	# Create a default target for the targeting state if none exists
 	if targeting_state.get_target() == null:
-		var default_target: Node2D = auto_free(Node2D.new())
+		var default_target : Node2D = test_suite.auto_free(Node2D.new())
 		default_target.position = Vector2(64, 64)
 		default_target.name = "DefaultTarget"
 		test_suite.add_child(default_target)

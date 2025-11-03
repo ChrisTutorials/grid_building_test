@@ -103,8 +103,10 @@ func test_multiple_try_move_calls_should_not_silently_overwrite_data() -> void:
 	(
 		assert_object(second_move_data)
 		. append_failure_message(
-			"CURRENT BUG: Second try_move() creates NEW ManipulationData "
-			+ "(should return error or cancel first)"
+			(
+				"CURRENT BUG: Second try_move() creates NEW ManipulationData "
+				+ "(should return error or cancel first)"
+			)
 		)
 		. is_not_null()
 	)

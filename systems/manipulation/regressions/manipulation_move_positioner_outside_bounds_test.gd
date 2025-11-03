@@ -16,21 +16,27 @@ var runner: GdUnitSceneRunner
 var _env: CollisionTestEnvironment
 var _rule: CollisionsCheckRule
 
+
 func before_test() -> void:
 	runner = scene_runner(GBTestConstants.COLLISION_TEST_ENV.resource_path)
 	_env = runner.scene() as CollisionTestEnvironment
 
-	assert_object(_env).append_failure_message(
-		"Failed to load CollisionTestEnvironment scene"
-	).is_not_null()
+	(
+		assert_object(_env)
+		. append_failure_message("Failed to load CollisionTestEnvironment scene")
+		. is_not_null()
+	)
 
 	_rule = CollisionsCheckRule.new()
 	_rule.pass_on_collision = false
 	_rule.collision_mask = 1
-	var setup_issues : Array[String] = _rule.setup(_env.targeting_state)
-	assert_array(setup_issues).append_failure_message(
-		"Collision rule setup should complete without issues"
-		).is_empty()
+	var setup_issues: Array[String] = _rule.setup(_env.targeting_state)
+	(
+		assert_array(setup_issues)
+		. append_failure_message("Collision rule setup should complete without issues")
+		. is_empty()
+	)
+
 
 func after_test() -> void:
 	# Clear collision exclusions to prevent test isolation issues
@@ -38,8 +44,11 @@ func after_test() -> void:
 		_env.targeting_state.collision_exclusions = []
 	_rule = null
 
+
 ## Helper to create a large collision body (simulating Smithy building)
-func _create_large_body(p_name: String, p_position: Vector2, p_size: Vector2 = Vector2(64, 64)) -> CharacterBody2D:
+func _create_large_body(
+	p_name: String, p_position: Vector2, p_size: Vector2 = Vector2(64, 64)
+) -> CharacterBody2D:
 	var body := CharacterBody2D.new()
 	body.name = p_name
 	body.position = p_position
@@ -56,6 +65,7 @@ func _create_large_body(p_name: String, p_position: Vector2, p_size: Vector2 = V
 	_env.add_child(body)
 	return body
 
+
 ## Helper to create an indicator
 func _create_indicator(p_position: Vector2) -> RuleCheckIndicator:
 	var indicator := RuleCheckIndicator.new()
@@ -71,6 +81,7 @@ func _create_indicator(p_position: Vector2) -> RuleCheckIndicator:
 
 	return indicator
 
+
 func test_exclusion_works_when_positioner_inside_original_bounds() -> void:
 	# GIVEN: Large body (64x64 simulating Smithy)
 	var original_body := _create_large_body("OriginalSmithy", Vector2(100, 100), Vector2(64, 64))
@@ -85,7 +96,12 @@ func test_exclusion_works_when_positioner_inside_original_bounds() -> void:
 	runner.simulate_frames(2)  # Synchronous frame simulation replaces await
 
 	# THEN: Indicator should be valid (exclusion works)
-	assert_bool(indicator.valid).append_failure_message("Indicator should be valid when collision body is excluded").is_true()
+	(
+		assert_bool(indicator.valid)
+		. append_failure_message("Indicator should be valid when collision body is excluded")
+		. is_true()
+	)
+
 
 func test_exclusion_fails_when_positioner_outside_original_bounds() -> void:
 	# GIVEN: Large body (64x64 simulating Smithy) at (100, 100)
@@ -103,7 +119,14 @@ func test_exclusion_fails_when_positioner_outside_original_bounds() -> void:
 
 	# THEN: Indicator should be valid (exclusion should work)
 	# BUG: This currently FAILS - indicator.valid = false
-	assert_bool(indicator.valid).append_failure_message("Indicator should be valid when positioned outside original bounds with exclusion").is_true()
+	(
+		assert_bool(indicator.valid)
+		. append_failure_message(
+			"Indicator should be valid when positioned outside original bounds with exclusion"
+		)
+		. is_true()
+	)
+
 
 func test_exclusion_works_at_edge_of_original_bounds() -> void:
 	# GIVEN: Large body at (100, 100), size 64x64
@@ -119,7 +142,14 @@ func test_exclusion_works_at_edge_of_original_bounds() -> void:
 	runner.simulate_frames(2)  # Synchronous frame simulation replaces await
 
 	# THEN: Indicator should be valid
-	assert_bool(indicator.valid).append_failure_message("Indicator at edge of original bounds should be valid when body is excluded").is_true()
+	(
+		assert_bool(indicator.valid)
+		. append_failure_message(
+			"Indicator at edge of original bounds should be valid when body is excluded"
+		)
+		. is_true()
+	)
+
 
 func test_multiple_indicators_outside_bounds_all_excluded() -> void:
 	# GIVEN: Large body
@@ -127,9 +157,9 @@ func test_multiple_indicators_outside_bounds_all_excluded() -> void:
 
 	# GIVEN: Multiple indicators outside bounds in different directions
 	var indicator_right := _create_indicator(Vector2(150, 100))  # Right of body
-	var indicator_left := _create_indicator(Vector2(50, 100))    # Left of body
-	var indicator_top := _create_indicator(Vector2(100, 50))     # Above body
-	var indicator_bottom := _create_indicator(Vector2(100, 150)) # Below body
+	var indicator_left := _create_indicator(Vector2(50, 100))  # Left of body
+	var indicator_top := _create_indicator(Vector2(100, 50))  # Above body
+	var indicator_bottom := _create_indicator(Vector2(100, 150))  # Below body
 
 	indicator_right.add_rule(_rule)
 	indicator_left.add_rule(_rule)
@@ -142,10 +172,27 @@ func test_multiple_indicators_outside_bounds_all_excluded() -> void:
 	runner.simulate_frames(2)  # Synchronous frame simulation replaces await
 
 	# THEN: All indicators should be valid regardless of position
-	assert_bool(indicator_right.valid).append_failure_message("Right indicator should be valid when body is excluded").is_true()
-	assert_bool(indicator_left.valid).append_failure_message("Left indicator should be valid when body is excluded").is_true()
-	assert_bool(indicator_top.valid).append_failure_message("Top indicator should be valid when body is excluded").is_true()
-	assert_bool(indicator_bottom.valid).append_failure_message("Bottom indicator should be valid when body is excluded").is_true()
+	(
+		assert_bool(indicator_right.valid)
+		. append_failure_message("Right indicator should be valid when body is excluded")
+		. is_true()
+	)
+	(
+		assert_bool(indicator_left.valid)
+		. append_failure_message("Left indicator should be valid when body is excluded")
+		. is_true()
+	)
+	(
+		assert_bool(indicator_top.valid)
+		. append_failure_message("Top indicator should be valid when body is excluded")
+		. is_true()
+	)
+	(
+		assert_bool(indicator_bottom.valid)
+		. append_failure_message("Bottom indicator should be valid when body is excluded")
+		. is_true()
+	)
+
 
 func test_exclusion_independent_of_positioner_movement() -> void:
 	# GIVEN: Large body
@@ -169,5 +216,15 @@ func test_exclusion_independent_of_positioner_movement() -> void:
 	var valid_outside := indicator.valid
 
 	# THEN: Exclusion should work in both positions
-	assert_bool(valid_inside).append_failure_message("Indicator should be valid inside bounds when body is excluded").is_true()
-	assert_bool(valid_outside).append_failure_message("Indicator should remain valid outside bounds when body is excluded").is_true()
+	(
+		assert_bool(valid_inside)
+		. append_failure_message("Indicator should be valid inside bounds when body is excluded")
+		. is_true()
+	)
+	(
+		assert_bool(valid_outside)
+		. append_failure_message(
+			"Indicator should remain valid outside bounds when body is excluded"
+		)
+		. is_true()
+	)

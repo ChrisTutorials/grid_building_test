@@ -41,25 +41,25 @@ func before_test() -> void:
 		"ManipulationSystem should be initialized in AllSystemsTestEnvironment"
 	)
 	(
-		assert_object(_indicator_manager) \
-		. append_failure_message("Object assertion failed") \
-		. is_not_null() \
+		assert_object(_indicator_manager)
+		. append_failure_message("Object assertion failed")
+		. is_not_null()
 		. append_failure_message(
 			"IndicatorManager should be initialized in AllSystemsTestEnvironment"
 		)
 	)
 	(
-		assert_object(_manipulation_parent) \
-		. append_failure_message("Object assertion failed") \
-		. is_not_null() \
+		assert_object(_manipulation_parent)
+		. append_failure_message("Object assertion failed")
+		. is_not_null()
 		. append_failure_message(
 			"ManipulationParent should be initialized in AllSystemsTestEnvironment"
 		)
 	)
 	(
-		assert_object(_container) \
-		. append_failure_message("Object assertion failed") \
-		. is_not_null() \
+		assert_object(_container)
+		. append_failure_message("Object assertion failed")
+		. is_not_null()
 		. append_failure_message(
 			"GBCompositionContainer should be accessible from AllSystemsTestEnvironment"
 		)
@@ -103,26 +103,26 @@ func test_indicator_manager_is_child_of_manipulation_parent() -> void:
 
 	# Assert: IndicatorManager exists
 	(
-		assert_object(_indicator_manager) \
-		. append_failure_message("Object assertion failed") \
-		. is_not_null() \
+		assert_object(_indicator_manager)
+		. append_failure_message("Object assertion failed")
+		. is_not_null()
 		. append_failure_message("IndicatorManager should exist in container")
 	)
 
 	# Assert: ManipulationParent exists
 	(
-		assert_object(_manipulation_parent) \
-		. append_failure_message("Object assertion failed") \
-		. is_not_null() \
+		assert_object(_manipulation_parent)
+		. append_failure_message("Object assertion failed")
+		. is_not_null()
 		. append_failure_message("ManipulationParent should exist in container")
 	)
 
 	# Assert: IndicatorManager is child of ManipulationParent
 	var manager_parent: Node = _indicator_manager.get_parent()
 	(
-		assert_object(manager_parent) \
-		. append_failure_message("Object assertion failed") \
-		. is_equal(_manipulation_parent) \
+		assert_object(manager_parent)
+		. append_failure_message("Object assertion failed")
+		. is_equal(_manipulation_parent)
 		. append_failure_message(
 			(
 				"IndicatorManager MUST be child of ManipulationParent for rotation inheritance. "
@@ -144,9 +144,9 @@ func test_manipulation_parent_starts_at_zero_rotation() -> void:
 	## Act: Check initial rotation
 	## Assert: ManipulationParent rotation is 0
 	(
-		assert_float(_manipulation_parent.rotation) \
-		. append_failure_message("Float assertion failed") \
-		. is_equal(0.0) \
+		assert_float(_manipulation_parent.rotation)
+		. append_failure_message("Float assertion failed")
+		. is_equal(0.0)
 		. append_failure_message(
 			(
 				"ManipulationParent should start at rotation=0, actual: %f"
@@ -165,10 +165,10 @@ func test_rotation_transferred_after_indicator_generation() -> void:
 	# Record initial state
 	var initial_smithy_rotation: float = _smithy.root.rotation
 	(
-		assert_float(initial_smithy_rotation) \
-		. append_failure_message("Float assertion failed") \
-		. is_not_null() \
-		. append_failure_message("Smithy should start at %d degrees" % TEST_ROTATION_DEGREES) \
+		assert_float(initial_smithy_rotation)
+		. append_failure_message("Float assertion failed")
+		. is_not_null()
+		. append_failure_message("Smithy should start at %d degrees" % TEST_ROTATION_DEGREES)
 		. is_equal_approx(deg_to_rad(TEST_ROTATION_DEGREES), ROTATION_TOLERANCE)
 	)
 
@@ -178,8 +178,8 @@ func test_rotation_transferred_after_indicator_generation() -> void:
 	# Assert: Move started successfully
 	var expected_status: int = GBEnums.Status.STARTED
 	(
-		assert_bool(move_result.status == expected_status) \
-		. append_failure_message("Move should start successfully") \
+		assert_bool(move_result.status == expected_status)
+		. append_failure_message("Move should start successfully")
 		. is_true()
 	)
 
@@ -193,10 +193,10 @@ func test_indicators_inherit_rotation_from_manipulation_parent() -> void:
 	# Act: Start move operation
 	var move_result: ManipulationData = _manipulation_system.try_move(_smithy.root)
 	(
-		assert_bool(move_result.status == GBEnums.Status.STARTED) \
+		assert_bool(move_result.status == GBEnums.Status.STARTED)
 		. append_failure_message(
 			"Move should succeed. Status: %s" % GBEnums.Status.keys()[move_result.status]
-		) \
+		)
 		. is_true()
 	)
 
@@ -212,7 +212,7 @@ func test_indicators_inherit_rotation_from_manipulation_parent() -> void:
 		# Allow small floating point tolerance
 		var rotation_diff: float = abs(indicator_global_rotation - expected_global_rotation)
 		(
-			assert_bool(rotation_diff < 0.01) \
+			assert_bool(rotation_diff < 0.01)
 			. append_failure_message(
 				(
 					(
@@ -221,7 +221,7 @@ func test_indicators_inherit_rotation_from_manipulation_parent() -> void:
 					)
 					% [i, expected_global_rotation, indicator_global_rotation, rotation_diff]
 				)
-			) \
+			)
 			. is_true()
 		)
 
@@ -236,10 +236,10 @@ func test_indicator_count_consistent_across_rotations() -> void:
 	_smithy.root.rotation = 0.0
 	var move_result_0: ManipulationData = _manipulation_system.try_move(_smithy.root)
 	(
-		assert_bool(move_result_0.status == GBEnums.Status.STARTED) \
+		assert_bool(move_result_0.status == GBEnums.Status.STARTED)
 		. append_failure_message(
 			"Move operation should start successfully for smithy at 0° rotation"
-		) \
+		)
 		. is_true()
 	)
 
@@ -253,10 +253,10 @@ func test_indicator_count_consistent_across_rotations() -> void:
 	_smithy.root.rotation = deg_to_rad(90)
 	var move_result_90: ManipulationData = _manipulation_system.try_move(_smithy.root)
 	(
-		assert_bool(move_result_90.status == GBEnums.Status.STARTED) \
+		assert_bool(move_result_90.status == GBEnums.Status.STARTED)
 		. append_failure_message(
 			"Move operation should start successfully for smithy at 90° rotation"
-		) \
+		)
 		. is_true()
 	)
 
@@ -265,9 +265,9 @@ func test_indicator_count_consistent_across_rotations() -> void:
 
 	# CRITICAL: Indicator counts MUST be the same
 	(
-		assert_int(count_90deg) \
-		. append_failure_message("Integer assertion failed") \
-		. is_equal(count_0deg) \
+		assert_int(count_90deg)
+		. append_failure_message("Integer assertion failed")
+		. is_equal(count_0deg)
 		. append_failure_message(
 			(
 				"Indicator count should be IDENTICAL for 0° and 90° rotations (proves canonical geometry). "
@@ -287,8 +287,8 @@ func test_preview_shows_correct_rotation_visually() -> void:
 	# Act: Start move
 	var move_result: ManipulationData = _manipulation_system.try_move(_smithy.root)
 	(
-		assert_bool(move_result.status == GBEnums.Status.STARTED) \
-		. append_failure_message("Move operation should start successfully") \
+		assert_bool(move_result.status == GBEnums.Status.STARTED)
+		. append_failure_message("Move operation should start successfully")
 		. is_true()
 	)
 
@@ -302,7 +302,7 @@ func test_preview_shows_correct_rotation_visually() -> void:
 	# Assert: Copy's global rotation should match original (via parent transform)
 	var rotation_diff: float = abs(copy_global_rotation - original_rotation)
 	(
-		assert_bool(rotation_diff < 0.01) \
+		assert_bool(rotation_diff < 0.01)
 		. append_failure_message(
 			(
 				"Preview should appear at original rotation visually. "
@@ -311,7 +311,7 @@ func test_preview_shows_correct_rotation_visually() -> void:
 					% [original_rotation, copy_root.rotation, copy_global_rotation, rotation_diff]
 				)
 			)
-		) \
+		)
 		. is_true()
 	)
 
@@ -333,16 +333,16 @@ func test_rotation_transferred_to_parent_after_indicator_generation() -> void:
 	# Act: Start move (this should normalize copy, generate indicators, then transfer to parent)
 	var move_result: ManipulationData = _manipulation_system.try_move(_smithy.root)
 	(
-		assert_object(move_result) \
-		. append_failure_message("Object assertion failed") \
-		. is_not_null() \
+		assert_object(move_result)
+		. append_failure_message("Object assertion failed")
+		. is_not_null()
 		. append_failure_message("Move should return valid ManipulationData")
 	)
 	(
-		assert_int(move_result.status) \
+		assert_int(move_result.status)
 		. append_failure_message(
 			"Move should start successfully. Status: %s" % GBEnums.Status.keys()[move_result.status]
-		) \
+		)
 		. is_equal(GBEnums.Status.STARTED)
 	)
 
@@ -352,9 +352,9 @@ func test_rotation_transferred_to_parent_after_indicator_generation() -> void:
 
 	# Assert 1: Copy should be normalized (rotation=0, scale=1.0) for canonical geometry
 	(
-		assert_float(copy_root.rotation) \
-		. append_failure_message("Float assertion failed") \
-		. is_equal_approx(0.0, 0.01) \
+		assert_float(copy_root.rotation)
+		. append_failure_message("Float assertion failed")
+		. is_equal_approx(0.0, 0.01)
 		. append_failure_message(
 			(
 				"Copy rotation should be normalized to 0 for indicator generation. "
@@ -363,9 +363,9 @@ func test_rotation_transferred_to_parent_after_indicator_generation() -> void:
 		)
 	)
 	(
-		assert_vector(copy_root.scale) \
-		. append_failure_message("Vector assertion failed") \
-		. is_equal_approx(Vector2.ONE, Vector2(0.01, 0.01)) \
+		assert_vector(copy_root.scale)
+		. append_failure_message("Vector assertion failed")
+		. is_equal_approx(Vector2.ONE, Vector2(0.01, 0.01))
 		. append_failure_message(
 			(
 				"Copy scale should be normalized to (1,1) for indicator generation. "
@@ -385,9 +385,9 @@ func test_rotation_transferred_to_parent_after_indicator_generation() -> void:
 		)
 	)
 	(
-		assert_float(_manipulation_parent.rotation) \
-		. append_failure_message("Float assertion failed") \
-		. is_equal_approx(original_rotation, 0.01) \
+		assert_float(_manipulation_parent.rotation)
+		. append_failure_message("Float assertion failed")
+		. is_equal_approx(original_rotation, 0.01)
 		. append_failure_message(
 			(
 				"ManipulationParent should have original rotation after indicator generation. "
@@ -399,9 +399,9 @@ func test_rotation_transferred_to_parent_after_indicator_generation() -> void:
 		)
 	)
 	(
-		assert_vector(_manipulation_parent.scale) \
-		. append_failure_message("Vector assertion failed") \
-		. is_equal_approx(original_scale, Vector2(0.01, 0.01)) \
+		assert_vector(_manipulation_parent.scale)
+		. append_failure_message("Vector assertion failed")
+		. is_equal_approx(original_scale, Vector2(0.01, 0.01))
 		. append_failure_message(
 			(
 				"ManipulationParent should have original scale after indicator generation. "
@@ -415,18 +415,22 @@ func test_rotation_transferred_to_parent_after_indicator_generation() -> void:
 
 	# Assert 3: Indicators should have been generated
 	var indicators: Array[RuleCheckIndicator] = _indicator_manager.get_indicators()
-	assert_array(indicators).append_failure_message(
-		"Indicators should be generated after move starts. Count: %d" % indicators.size()
-	).is_not_empty()
+	(
+		assert_array(indicators)
+		. append_failure_message(
+			"Indicators should be generated after move starts. Count: %d" % indicators.size()
+		)
+		. is_not_empty()
+	)
 
 	# Assert 4: Copy's GLOBAL transform should match original (via parent inheritance)
 	var copy_global_rotation: float = copy_root.global_rotation
 	var copy_global_scale: Vector2 = copy_root.global_scale
 	var rotation_diff: float = abs(copy_global_rotation - original_rotation)
 	(
-		assert_bool(rotation_diff < 0.1) \
-		. append_failure_message("Boolean assertion failed") \
-		. is_true() \
+		assert_bool(rotation_diff < 0.1)
+		. append_failure_message("Boolean assertion failed")
+		. is_true()
 		. append_failure_message(
 			(
 				"Copy's global rotation (via parent) should match original. "
@@ -440,9 +444,9 @@ func test_rotation_transferred_to_parent_after_indicator_generation() -> void:
 
 	# Note: Global scale comparison is approximate due to transform composition
 	(
-		assert_vector(copy_global_scale) \
-		. append_failure_message("Vector assertion failed") \
-		. is_equal_approx(original_scale, Vector2(0.1, 0.1)) \
+		assert_vector(copy_global_scale)
+		. append_failure_message("Vector assertion failed")
+		. is_equal_approx(original_scale, Vector2(0.1, 0.1))
 		. append_failure_message(
 			(
 				"Copy's global scale (via parent) should approximately match original. "
