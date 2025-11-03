@@ -1,5 +1,12 @@
 ## Test: ManipulationSystem handles source object deletion gracefully
 ## Validates that manipulation auto-cancels when the source object is deleted mid-operation
+##
+## CRITICAL NOTE on Container Duplication:
+## GBTestInjectorSystem auto-duplicates the composition container for test isolation.
+## This happens AFTER before_test() completes. Therefore, we MUST fetch manipulation_state
+## fresh from container.get_states() at the START of each test, not cache it in before_test().
+## Caching in before_test() would reference the OLD container's states before duplication,
+## causing the test to check the wrong object while the system uses the duplicated container.
 extends GdUnitTestSuite
 
 var runner: GdUnitSceneRunner
@@ -58,26 +65,28 @@ func test_source_deletion_cancels_manipulation() -> void:
 	# Ensure no existing manipulation (clean state)
 	if manipulation_state.data != null:
 		manipulation_system.cancel()
-	
+
 	# Arrange: Start move manipulation
 	var move_data: ManipulationData = manipulation_system.try_move(test_object)
 
 	# Verify manipulation started successfully
-	assert_object(move_data).append_failure_message(
-		"Expected move_data to be created"
-	).is_not_null()
 	(
-		assert_int(move_data.status) \
+		assert_object(move_data)
+		. append_failure_message("Expected move_data to be created")
+		. is_not_null()
+	)
+	(
+		assert_int(move_data.status)
 		. append_failure_message(
 			"Expected manipulation to start with STARTED status, got: %d" % move_data.status
-		) \
+		)
 		. is_equal(GBEnums.Status.STARTED)
 	)
 
 	# Verify manipulation data is active
 	(
-		assert_object(manipulation_state.data) \
-		. append_failure_message("Expected active manipulation data to be set") \
+		assert_object(manipulation_state.data)
+		. append_failure_message("Expected active manipulation data to be set")
 		. is_not_null()
 	)
 
@@ -85,33 +94,35 @@ func test_source_deletion_cancels_manipulation() -> void:
 	var initial_data: ManipulationData = manipulation_state.data
 
 	# Act: Delete the source object (simulating external deletion)
-	test_object.queue_free()
-	# Wait for the canceled signal to fire - this ensures all cleanup completes before assertions
-	runner.simulate_until_object_signal(manipulation_state, "canceled", [initial_data])
-	# One more frame to ensure data reference is cleared after signal
+	# CRITICAL: Use free() instead of queue_free() to ensure tree_exiting fires immediately
+	# queue_free() defers deletion to end of frame, causing tree_exiting to fire AFTER
+	# the test checks manipulation_state.data, even though we wait for the signal
+	test_object.free()
+	# Note: No need for simulate_until_object_signal since free() is synchronous
+	# But we still do one frame to let any deferred cleanup complete
 	runner.simulate_frames(1)
 
 	# Assert: Manipulation should be auto-canceled (verified by signal firing)
 	# The signal already confirms the status changed to CANCELED
 	(
-		assert_object(manipulation_state.data) \
-		. append_failure_message("Expected manipulation data to be cleared after source deletion") \
+		assert_object(manipulation_state.data)
+		. append_failure_message("Expected manipulation data to be cleared after source deletion")
 		. is_null()
 	)
 
 	# Verify no manipulation is active
 	var is_manipulating: bool = manipulation_state.data != null
 	(
-		assert_bool(is_manipulating) \
-		. append_failure_message("Expected is_manipulating to be false after deletion") \
+		assert_bool(is_manipulating)
+		. append_failure_message("Expected is_manipulating to be false after deletion")
 		. is_false()
 	)
-	
+
 	# Verify the canceled signal fired with correct data reference
 	(
-		assert_object(initial_data).append_failure_message(
-			"Signal should have been emitted with the manipulation data"
-		).is_not_null()
+		assert_object(initial_data)
+		. append_failure_message("Signal should have been emitted with the manipulation data")
+		. is_not_null()
 	)
 
 
@@ -122,11 +133,11 @@ func test_source_deletion_cancels_manipulation() -> void:
 func test_multiple_source_deletions_handled_safely() -> void:
 	# Get fresh state reference
 	var current_state: ManipulationState = container.get_states().manipulation
-	
+
 	# Ensure clean state before test
 	if current_state.data != null:
 		manipulation_system.cancel()
-	
+
 	# Arrange: Create fresh test object
 	_create_test_object()
 	runner.simulate_frames(1)  # Synchronous frame simulation replaces await
@@ -134,22 +145,20 @@ func test_multiple_source_deletions_handled_safely() -> void:
 	# Start move manipulation
 	var move_data: ManipulationData = manipulation_system.try_move(test_object)
 	(
-		assert_int(move_data.status) \
-		. append_failure_message("Expected manipulation to start successfully") \
+		assert_int(move_data.status)
+		. append_failure_message("Expected manipulation to start successfully")
 		. is_equal(GBEnums.Status.STARTED)
 	)
-	
-	var initial_data: ManipulationData = move_data
 
-	# Act: Delete source and wait for the canceled signal
-	test_object.queue_free()
-	runner.simulate_until_object_signal(current_state, "canceled", [initial_data])
+	# Act: Delete source (synchronous with free())
+	test_object.free()
+	runner.simulate_frames(1)
 
 	# Assert: Manipulation canceled (re-fetch state)
 	current_state = container.get_states().manipulation
 	(
-		assert_object(current_state.data) \
-		. append_failure_message("Expected manipulation to be canceled after first deletion") \
+		assert_object(current_state.data)
+		. append_failure_message("Expected manipulation to be canceled after first deletion")
 		. is_null()
 	)
 
@@ -160,8 +169,8 @@ func test_multiple_source_deletions_handled_safely() -> void:
 	# Assert: Still no active manipulation, no crashes (re-fetch state)
 	current_state = container.get_states().manipulation
 	(
-		assert_object(current_state.data) \
-		. append_failure_message("Expected manipulation to remain canceled after second frame") \
+		assert_object(current_state.data)
+		. append_failure_message("Expected manipulation to remain canceled after second frame")
 		. is_null()
 	)
 
@@ -173,58 +182,61 @@ func test_multiple_source_deletions_handled_safely() -> void:
 func test_source_deletion_at_various_manipulation_phases() -> void:
 	# Get fresh state reference
 	var current_state: ManipulationState = container.get_states().manipulation
-	
+
 	# Ensure clean state
 	if current_state.data != null:
 		manipulation_system.cancel()
-	
+
 	# Phase 1: Delete immediately after start
 	_create_test_object()
 	runner.simulate_frames(1)  # Synchronous frame simulation replaces await
 	var move_data1: ManipulationData = manipulation_system.try_move(test_object)
-	assert_int(move_data1.status).append_failure_message(
-		"Manipulation should start with STARTED status"
-	).is_equal(GBEnums.Status.STARTED)
-	
-	var phase1_data: ManipulationData = move_data1
-	test_object.queue_free()
-	# Wait for canceled signal before checking state
-	runner.simulate_until_object_signal(current_state, "canceled", [phase1_data])
-	
-	# Re-fetch state after signal fires
+	(
+		assert_int(move_data1.status)
+		. append_failure_message("Manipulation should start with STARTED status")
+		. is_equal(GBEnums.Status.STARTED)
+	)
+
+	test_object.free()
+	runner.simulate_frames(1)
+
+	# Re-fetch state after deletion
 	current_state = container.get_states().manipulation
-	assert_object(current_state.data).append_failure_message(
-		"Expected immediate deletion to cancel manipulation"
-	).is_null()
+	(
+		assert_object(current_state.data)
+		. append_failure_message("Expected immediate deletion to cancel manipulation")
+		. is_null()
+	)
 
 	# Phase 2: Delete after some processing time
 	# Cancel any residual state before starting new manipulation
 	current_state = container.get_states().manipulation
 	if current_state.data != null:
 		manipulation_system.cancel()
-	
+
 	# Create fresh object for phase 2
 	_create_test_object()
 	runner.simulate_frames(1)  # Synchronous frame simulation replaces await
 	var move_data2: ManipulationData = manipulation_system.try_move(test_object)
-	assert_int(move_data2.status).append_failure_message(
-		"Second manipulation should also start with STARTED status"
-	).is_equal(GBEnums.Status.STARTED)
+	(
+		assert_int(move_data2.status)
+		. append_failure_message("Second manipulation should also start with STARTED status")
+		. is_equal(GBEnums.Status.STARTED)
+	)
 
 	# Let some frames pass
 	for _i in range(3):
 		runner.simulate_frames(1)  # Synchronous frame simulation replaces await
 
-	# Now delete and wait for signal
-	var phase2_data: ManipulationData = move_data2
-	test_object.queue_free()
-	runner.simulate_until_object_signal(current_state, "canceled", [phase2_data])
-	
-	# Re-fetch state after deletion signal fires
+	# Now delete (synchronous)
+	test_object.free()
+	runner.simulate_frames(1)
+
+	# Re-fetch state after deletion
 	current_state = container.get_states().manipulation
 	(
-		assert_object(current_state.data) \
-		. append_failure_message("Expected delayed deletion to cancel manipulation") \
+		assert_object(current_state.data)
+		. append_failure_message("Expected delayed deletion to cancel manipulation")
 		. is_null()
 	)
 
@@ -239,16 +251,16 @@ func test_canceled_signal_contains_correct_data_reference() -> void:
 
 	# Arrange: Start manipulation
 	var move_data: ManipulationData = manipulation_system.try_move(test_object)
-	assert_object(move_data).append_failure_message(
-		"Expected manipulation data to be created"
-	).is_not_null()
+	(
+		assert_object(move_data)
+		. append_failure_message("Expected manipulation data to be created")
+		. is_not_null()
+	)
 
 	var original_data_reference: ManipulationData = move_data
-	
+
 	# Create wrapper to capture signal data without reassignment issues
-	var signal_capture: Dictionary = {
-		"data": null
-	}
+	var signal_capture: Dictionary = {"data": null}
 
 	# Connect to signal to capture the data passed in signal
 	var signal_captured: Callable = func(data: ManipulationData) -> void:
@@ -256,21 +268,21 @@ func test_canceled_signal_contains_correct_data_reference() -> void:
 
 	manipulation_state.canceled.connect(signal_captured)
 
-	# Act: Delete source and wait for signal
-	test_object.queue_free()
-	runner.simulate_until_object_signal(manipulation_state, "canceled", [original_data_reference])
+	# Act: Delete source (synchronous)
+	test_object.free()
+	runner.simulate_frames(1)
 
 	# Assert: Signal carried the correct data reference
 	(
-		assert_object(signal_capture["data"]) \
-		. append_failure_message("Expected signal to contain manipulation data") \
+		assert_object(signal_capture["data"])
+		. append_failure_message("Expected signal to contain manipulation data")
 		. is_equal(original_data_reference)
 	)
 
 	# Verify signal data is the same object we started with
 	(
-		assert_bool(signal_capture["data"] == original_data_reference) \
-		. append_failure_message("Signal should carry the exact data object reference") \
+		assert_bool(signal_capture["data"] == original_data_reference)
+		. append_failure_message("Signal should carry the exact data object reference")
 		. is_true()
 	)
 
@@ -288,35 +300,32 @@ func test_cancellation_idempotent_safe() -> void:
 
 	# Arrange: Start manipulation
 	var move_data: ManipulationData = manipulation_system.try_move(test_object)
-	assert_int(move_data.status).append_failure_message(
-		"Expected manipulation to start"
-	).is_equal(GBEnums.Status.STARTED)
+	assert_int(move_data.status).append_failure_message("Expected manipulation to start").is_equal(
+		GBEnums.Status.STARTED
+	)
 
 	# Track cancellation count via signal - use dict wrapper to avoid capture issues
-	var signal_capture: Dictionary = {
-		"count": 0
-	}
+	var signal_capture: Dictionary = {"count": 0}
 	var cancellation_callback: Callable = func(_data: ManipulationData) -> void:
 		signal_capture["count"] += 1
 
 	manipulation_state.canceled.connect(cancellation_callback)
 
-	# Act 1: Delete source triggers auto-cancel
-	test_object.queue_free()
-	runner.simulate_until_object_signal(manipulation_state, "canceled")
+	# Act 1: Delete source triggers auto-cancel (synchronous)
+	test_object.free()
+	runner.simulate_frames(1)
 
 	# Verify first cancellation
 	(
-		assert_int(signal_capture["count"]) \
-		. append_failure_message("Expected one cancellation from source deletion") \
+		assert_int(signal_capture["count"])
+		. append_failure_message("Expected one cancellation from source deletion")
 		. is_equal(1)
 	)
 	(
-		assert_object(manipulation_state.data) \
-		. append_failure_message("Expected data cleared after first cancellation") \
+		assert_object(manipulation_state.data)
+		. append_failure_message("Expected data cleared after first cancellation")
 		. is_null()
 	)
-
 	# Act 2: Call cancel() again on already-canceled state
 	# This should be idempotent (no second signal)
 	manipulation_system.cancel()
@@ -324,20 +333,19 @@ func test_cancellation_idempotent_safe() -> void:
 
 	# Assert: No additional cancellation signal (idempotent)
 	(
-		assert_int(signal_capture["count"]) \
+		assert_int(signal_capture["count"])
 		. append_failure_message(
 			"Expected idempotent cancel - no second signal when already canceled"
-		) \
+		)
 		. is_equal(1)
 	)
 	(
-		assert_object(manipulation_state.data) \
-		. append_failure_message("Expected data still null after second cancel") \
+		assert_object(manipulation_state.data)
+		. append_failure_message("Expected data still null after second cancel")
 		. is_null()
 	)
 
 	manipulation_state.canceled.disconnect(cancellation_callback)
-
 
 
 ## Test: Indicators properly torn down on source deletion
@@ -351,35 +359,35 @@ func test_indicators_torn_down_on_source_deletion() -> void:
 
 	# Arrange: Start manipulation on test object
 	var move_data: ManipulationData = manipulation_system.try_move(test_object)
-	assert_int(move_data.status).append_failure_message(
-		"Expected manipulation to start"
-	).is_equal(GBEnums.Status.STARTED)
+	assert_int(move_data.status).append_failure_message("Expected manipulation to start").is_equal(
+		GBEnums.Status.STARTED
+	)
 
 	# Wait a frame to let indicators set up
 	runner.simulate_frames(1)
 
 	# Verify manipulation data exists before deletion
 	(
-		assert_object(manipulation_state.data) \
-		. append_failure_message("Expected active manipulation data") \
+		assert_object(manipulation_state.data)
+		. append_failure_message("Expected active manipulation data")
 		. is_not_null()
 	)
 
-	# Act: Delete source - triggers indicator teardown via _on_source_tree_exiting
-	test_object.queue_free()
-	runner.simulate_until_object_signal(manipulation_state, "canceled")
+	# Act: Delete source - triggers indicator teardown via _on_source_tree_exiting (synchronous)
+	test_object.free()
+	runner.simulate_frames(1)
 
 	# Assert: Indicators should be torn down (no residual indicator references)
 	(
-		assert_object(manipulation_state.data) \
-		. append_failure_message("Expected data cleared including all indicators") \
+		assert_object(manipulation_state.data)
+		. append_failure_message("Expected data cleared including all indicators")
 		. is_null()
 	)
 
 	# Verify state cleanup is complete
 	(
-		assert_bool(manipulation_state.active_manipulatable == null) \
-		. append_failure_message("Expected active_manipulatable cleared on cancellation") \
+		assert_bool(manipulation_state.active_manipulatable == null)
+		. append_failure_message("Expected active_manipulatable cleared on cancellation")
 		. is_true()
 	)
 
@@ -395,30 +403,27 @@ func test_targeting_cleared_on_source_deletion() -> void:
 
 	# Arrange: Start manipulation
 	var move_data: ManipulationData = manipulation_system.try_move(test_object)
-	assert_int(move_data.status).append_failure_message(
-		"Expected manipulation to start"
-	).is_equal(GBEnums.Status.STARTED)
+	assert_int(move_data.status).append_failure_message("Expected manipulation to start").is_equal(
+		GBEnums.Status.STARTED
+	)
 
 	# Wait a frame for targeting to settle
 	runner.simulate_frames(1)
 
 	var targeting_state: GridTargetingState = container.get_states().targeting
 	(
-		assert_object(targeting_state) \
-		. append_failure_message("Expected targeting state to exist") \
+		assert_object(targeting_state)
+		. append_failure_message("Expected targeting state to exist")
 		. is_not_null()
 	)
 
-	var initial_data: ManipulationData = move_data
-
-	# Act: Delete source
-	test_object.queue_free()
-	runner.simulate_until_object_signal(manipulation_state, "canceled", [initial_data])
+	# Act: Delete source (synchronous)
+	test_object.free()
+	runner.simulate_frames(1)
 
 	# Assert: Manipulation cancelled successfully
 	(
-		assert_object(manipulation_state.data) \
-		. append_failure_message("Expected manipulation to be cleared after targeting test") \
+		assert_object(manipulation_state.data)
+		. append_failure_message("Expected manipulation to be cleared after targeting test")
 		. is_null()
 	)
-

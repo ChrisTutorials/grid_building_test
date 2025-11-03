@@ -29,14 +29,14 @@ func _create_minimal_targeting_state() -> GridTargetingState:
 	var state: GridTargetingState = GridTargetingState.new(GBOwnerContext.new())
 
 	# Set up maps and positioner automatically
-	var test_map := auto_free(TileMapLayer.new())
+	var test_map : TileMapLayer = auto_free(TileMapLayer.new())
 	add_child(test_map)
 	var tile_set := TileSet.new()
 	test_map.tile_set = tile_set
 	state.target_map = test_map
 	state.maps = [test_map]
 
-	var test_positioner := auto_free(Node2D.new())
+	var test_positioner : Node2D = auto_free(Node2D.new())
 	add_child(test_positioner)
 	state.positioner = test_positioner
 
@@ -297,7 +297,7 @@ func test_guard_returns_empty_without_setup() -> void:
 	var targeting_state := _create_minimal_targeting_state()
 	var mapper := CollisionMapper.new(targeting_state, _logger)
 	# Create a polygon owner but do not call setup(); guard should prevent mapping
-	var body := auto_free(StaticBody2D.new())
+	var body : StaticBody2D = auto_free(StaticBody2D.new())
 	var poly := CollisionPolygon2D.new()
 	body.add_child(poly)
 	poly.polygon = PackedVector2Array(
@@ -320,10 +320,10 @@ func test_basic_collision_detection() -> void:
 	# The mapper uses targeting state for coordinate transformations, not scene tree presence
 
 	# Create collision object at origin with a shape that should definitely overlap
-	var body := auto_free(StaticBody2D.new())
+	var body : StaticBody2D = auto_free(StaticBody2D.new())
 	body.collision_layer = 1
 	body.position = Vector2.ZERO  # At origin
-	var shape := auto_free(CollisionShape2D.new())
+	var shape : CollisionShape2D = auto_free(CollisionShape2D.new())
 	var rect := RectangleShape2D.new()
 	rect.size = Vector2(64, 64)  # Large shape that should overlap multiple tiles
 	shape.shape = rect
@@ -381,10 +381,10 @@ func test_collision_layer_matching_for_tile_check_rules() -> void:
 	# Note: Don't add targeting_state.target_map to scene tree - it's managed by auto_free from factory
 
 	# Create collision object with specific layer (513 = bits 0+9)
-	var body := auto_free(StaticBody2D.new())
+	var body : StaticBody2D = auto_free(StaticBody2D.new())
 	body.collision_layer = 513
 	body.position = Vector2.ZERO  # Position at center of tile (0,0)
-	var shape := CollisionShape2D.new()
+	var shape : CollisionShape2D = auto_free(CollisionShape2D.new())
 	var rect := RectangleShape2D.new()
 	rect.size = Vector2(16, 16)  # Small shape that fits within one tile
 	shape.shape = rect
@@ -537,10 +537,10 @@ func test_position_rules_mapping_produces_results() -> void:
 	# Note: Don't add targeting_state.target_map to scene tree - it's managed by auto_free from factory
 
 	# Create collision object
-	var body := auto_free(StaticBody2D.new())
+	var body : StaticBody2D = auto_free(StaticBody2D.new())
 	body.collision_layer = 1  # bit 0
 	body.position = Vector2(0, 0)  # Position at center of tile (0,0)
-	var shape := CollisionShape2D.new()
+	var shape : CollisionShape2D = auto_free(CollisionShape2D.new())
 	var rect := RectangleShape2D.new()
 	rect.size = Vector2(16, 16)
 	shape.shape = rect

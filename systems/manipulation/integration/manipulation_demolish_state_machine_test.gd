@@ -37,7 +37,7 @@ func _create_test_settings(p_enable_demolish: bool = true) -> ManipulationSettin
 func test_demolish_null_target_returns_failed() -> void:
 	var settings := _create_test_settings()
 	var commands := ManipulationStateMachine.try_demolish_target(null, null, settings)
-	
+
 	assert_int(commands.status).is_equal(GBEnums.Status.FAILED)
 	assert_bool(commands.should_demolish).is_false()
 	assert_str(commands.message).contains("No target")
@@ -48,7 +48,7 @@ func test_demolish_target_with_null_root_returns_deleted_message() -> void:
 	var manip := _create_test_manipulatable(null)
 	var settings := _create_test_settings()
 	var commands := ManipulationStateMachine.try_demolish_target(manip, null, settings)
-	
+
 	assert_int(commands.status).is_equal(GBEnums.Status.FAILED)
 	assert_bool(commands.should_demolish).is_false()
 	assert_str(commands.message).contains("deleted")
@@ -59,9 +59,9 @@ func test_demolish_disabled_returns_failed() -> void:
 	var root: Node = auto_free(Node.new())
 	var manip := _create_test_manipulatable(root, true)  # demolishable=true
 	var settings := _create_test_settings(false)  # enable_demolish=false
-	
+
 	var commands := ManipulationStateMachine.try_demolish_target(manip, null, settings)
-	
+
 	assert_int(commands.status).is_equal(GBEnums.Status.FAILED)
 	assert_bool(commands.should_demolish).is_false()
 
@@ -71,9 +71,9 @@ func test_demolish_non_demolishable_target_returns_failed() -> void:
 	var root: Node = auto_free(Node.new())
 	var manip := _create_test_manipulatable(root, false)  # demolishable=false
 	var settings := _create_test_settings(true)
-	
+
 	var commands := ManipulationStateMachine.try_demolish_target(manip, null, settings)
-	
+
 	assert_int(commands.status).is_equal(GBEnums.Status.FAILED)
 	assert_bool(commands.should_demolish).is_false()
 	assert_str(commands.message).contains("Not demolishable")
@@ -84,9 +84,9 @@ func test_demolish_valid_target_returns_finished() -> void:
 	var root: Node = auto_free(Node.new())
 	var manip := _create_test_manipulatable(root, true)  # demolishable=true
 	var settings := _create_test_settings(true)
-	
+
 	var commands := ManipulationStateMachine.try_demolish_target(manip, null, settings)
-	
+
 	assert_int(commands.status).is_equal(GBEnums.Status.FINISHED)
 	assert_bool(commands.should_demolish).is_true()
 	assert_str(commands.message).contains("Demolished")
@@ -97,9 +97,9 @@ func test_demolish_valid_target_sets_cleanup_flags() -> void:
 	var root: Node = auto_free(Node.new())
 	var manip := _create_test_manipulatable(root, true)
 	var settings := _create_test_settings(true)
-	
+
 	var commands := ManipulationStateMachine.try_demolish_target(manip, null, settings)
-	
+
 	assert_bool(commands.clear_data).is_true()
 	assert_bool(commands.clear_manipulatable).is_true()
 
@@ -109,9 +109,9 @@ func test_demolish_uses_active_target_when_target_null() -> void:
 	var root: Node = auto_free(Node.new())
 	var active_manip := _create_test_manipulatable(root, true)
 	var settings := _create_test_settings(true)
-	
+
 	var commands := ManipulationStateMachine.try_demolish_target(null, active_manip, settings)
-	
+
 	assert_int(commands.status).is_equal(GBEnums.Status.FINISHED)
 	assert_bool(commands.should_demolish).is_true()
 
@@ -121,15 +121,15 @@ func test_demolish_prefers_explicit_target() -> void:
 	var root1: Node = auto_free(Node.new())
 	root1.name = "target"
 	var manip1 := _create_test_manipulatable(root1, true)
-	
+
 	var root2: Node = auto_free(Node.new())
 	root2.name = "active"
 	var active_manip := _create_test_manipulatable(root2, false)  # Not demolishable
-	
+
 	var settings := _create_test_settings(true)
-	
+
 	var commands := ManipulationStateMachine.try_demolish_target(manip1, active_manip, settings)
-	
+
 	# Should use manip1 (the explicit target), not active_manip
 	assert_int(commands.status).is_equal(GBEnums.Status.FINISHED)
 	assert_bool(commands.should_demolish).is_true()
@@ -139,7 +139,7 @@ func test_demolish_prefers_explicit_target() -> void:
 func test_demolish_null_settings_uses_defaults() -> void:
 	# With null settings, should still return FAILED status
 	var commands := ManipulationStateMachine.try_demolish_target(null, null, null)
-	
+
 	assert_int(commands.status).is_equal(GBEnums.Status.FAILED)
 	assert_bool(commands.should_demolish).is_false()
 
@@ -149,12 +149,12 @@ func test_demolish_freed_root_returns_failed() -> void:
 	var root: Node = Node.new()
 	var manip := _create_test_manipulatable(root, true)
 	var settings := _create_test_settings(true)
-	
+
 	# Free the root node
 	root.queue_free()
-	
+
 	var commands := ManipulationStateMachine.try_demolish_target(manip, null, settings)
-	
+
 	# After queue_free, should still be valid in same frame, but test the behavior
 	# This tests the guard against freed objects
 	if not is_instance_valid(root):
@@ -166,10 +166,10 @@ func test_demolish_is_deterministic() -> void:
 	var root: Node = auto_free(Node.new())
 	var manip := _create_test_manipulatable(root, true)
 	var settings := _create_test_settings(true)
-	
+
 	var commands1 := ManipulationStateMachine.try_demolish_target(manip, null, settings)
 	var commands2 := ManipulationStateMachine.try_demolish_target(manip, null, settings)
-	
+
 	assert_int(commands1.status).is_equal(commands2.status)
 	assert_bool(commands1.should_demolish).is_equal(commands2.should_demolish)
 	assert_str(commands1.message).is_equal(commands2.message)

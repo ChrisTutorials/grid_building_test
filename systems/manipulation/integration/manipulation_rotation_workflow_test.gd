@@ -43,8 +43,8 @@ func before_test() -> void:
 	test_environment = runner.scene() as AllSystemsTestEnvironment
 
 	(
-		assert_object(test_environment) \
-		. append_failure_message("Failed to load AllSystemsTestEnvironment scene") \
+		assert_object(test_environment)
+		. append_failure_message("Failed to load AllSystemsTestEnvironment scene")
 		. is_not_null()
 	)
 
@@ -238,13 +238,13 @@ func test_manipulation_workflow_succeeds_after_rotation() -> void:
 		grid_target_info = "%s@%s" % [grid_target.name, str(grid_target.global_position)]
 
 	(
-		assert_bool(pickup_success) \
+		assert_bool(pickup_success)
 		. append_failure_message(
 			(
 				"Pickup failed - Expected: true, Actual: false | %s | GridTarget: %s"
 				% [_format_manipulation_data(move_data), grid_target_info]
 			)
-		) \
+		)
 		. is_true()
 	)
 
@@ -255,13 +255,13 @@ func test_manipulation_workflow_succeeds_after_rotation() -> void:
 		root_rotation = manipulatable.root.rotation_degrees
 
 	(
-		assert_bool(rotation_success) \
+		assert_bool(rotation_success)
 		. append_failure_message(
 			(
 				"Rotation failed - Expected: true, Actual: false, Rotation: %.1f° | %s"
 				% [root_rotation, _format_manipulation_data(move_data)]
 			)
-		) \
+		)
 		. is_true()
 	)
 
@@ -269,25 +269,25 @@ func test_manipulation_workflow_succeeds_after_rotation() -> void:
 	var placement_results: ValidationResults = _place_manipulated_object()
 
 	(
-		assert_object(placement_results) \
+		assert_object(placement_results)
 		. append_failure_message(
 			(
 				"Placement returned null - Expected: ValidationResults, Actual: null | %s | GridTarget: %s"
 				% [_format_manipulation_data(move_data), grid_target_info]
 			)
-		) \
+		)
 		. is_not_null()
 	)
 
 	if placement_results != null:
 		(
-			assert_bool(placement_results.is_successful()) \
+			assert_bool(placement_results.is_successful())
 			. append_failure_message(
 				(
 					"REGRESSION: Placement failed after rotation - Expected: success, Actual: failed | %s"
 					% _format_validation_results(placement_results)
 				)
-			) \
+			)
 			. is_true()
 		)
 
@@ -296,13 +296,13 @@ func test_manipulation_workflow_succeeds_after_rotation() -> void:
 	var move_data2: ManipulationData = _manipulation_state.data
 
 	(
-		assert_bool(pickup_again_success) \
+		assert_bool(pickup_again_success)
 		. append_failure_message(
 			(
 				"Second pickup failed - Expected: true, Actual: false | %s"
 				% _format_manipulation_data(move_data2)
 			)
-		) \
+		)
 		. is_true()
 	)
 
@@ -331,13 +331,13 @@ func test_multiple_rotations_maintain_workflow() -> void:
 			grid_target_info = "%s@%s" % [grid_target.name, str(grid_target.global_position)]
 
 		(
-			assert_bool(pickup_success) \
+			assert_bool(pickup_success)
 			. append_failure_message(
 				(
 					"Pickup failed at %d° - Expected: true, Actual: false | %s | GridTarget: %s"
 					% [angle, _format_manipulation_data(move_data), grid_target_info]
 				)
-			) \
+			)
 			. is_true()
 		)
 
@@ -348,13 +348,13 @@ func test_multiple_rotations_maintain_workflow() -> void:
 			root_rotation = manipulatable.root.rotation_degrees
 
 		(
-			assert_bool(rotation_success) \
+			assert_bool(rotation_success)
 			. append_failure_message(
 				(
 					"Rotation to %d° failed - Expected: true, Actual: false, Current: %.1f° | %s"
 					% [angle, root_rotation, _format_manipulation_data(move_data)]
 				)
-			) \
+			)
 			. is_true()
 		)
 
@@ -362,25 +362,25 @@ func test_multiple_rotations_maintain_workflow() -> void:
 		var placement_results: ValidationResults = _place_manipulated_object()
 
 		(
-			assert_object(placement_results) \
+			assert_object(placement_results)
 			. append_failure_message(
 				(
 					"Placement returned null at %d° - Expected: ValidationResults, Actual: null | %s | GridTarget: %s"
 					% [angle, _format_manipulation_data(move_data), grid_target_info]
 				)
-			) \
+			)
 			. is_not_null()
 		)
 
 		if placement_results != null:
 			(
-				assert_bool(placement_results.is_successful()) \
+				assert_bool(placement_results.is_successful())
 				. append_failure_message(
 					(
 						"REGRESSION at %d°: Placement failed - Expected: success, Actual: failed | %s"
 						% [angle, _format_validation_results(placement_results)]
 					)
-				) \
+				)
 				. is_true()
 			)
 
@@ -401,13 +401,13 @@ func test_rotate_then_flip_workflow() -> void:
 		grid_target_info = "%s@%s" % [grid_target.name, str(grid_target.global_position)]
 
 	(
-		assert_bool(pickup_success) \
+		assert_bool(pickup_success)
 		. append_failure_message(
 			(
 				"Pickup failed - Expected: true, Actual: false | %s | GridTarget: %s"
 				% [_format_manipulation_data(move_data), grid_target_info]
 			)
-		) \
+		)
 		. is_true()
 	)
 
@@ -418,13 +418,13 @@ func test_rotate_then_flip_workflow() -> void:
 		root_rotation = manipulatable.root.rotation_degrees
 
 	(
-		assert_bool(rotation_success) \
+		assert_bool(rotation_success)
 		. append_failure_message(
 			(
 				"Rotation to 45° failed - Expected: true, Actual: false, Current: %.1f° | %s"
 				% [root_rotation, _format_manipulation_data(move_data)]
 			)
-		) \
+		)
 		. is_true()
 	)
 
@@ -439,7 +439,7 @@ func test_rotate_then_flip_workflow() -> void:
 	var placement_results: ValidationResults = _place_manipulated_object()
 
 	(
-		assert_object(placement_results) \
+		assert_object(placement_results)
 		. append_failure_message(
 			(
 				"Placement returned null after rotation+flip - Expected: ValidationResults, Actual: null | Rotation: %.1f°, Scale: %s | %s | GridTarget: %s"
@@ -450,13 +450,13 @@ func test_rotate_then_flip_workflow() -> void:
 					grid_target_info
 				]
 			)
-		) \
+		)
 		. is_not_null()
 	)
 
 	if placement_results != null:
 		(
-			assert_bool(placement_results.is_successful()) \
+			assert_bool(placement_results.is_successful())
 			. append_failure_message(
 				(
 					"Placement failed after rotation+flip - Expected: success, Actual: failed | Rotation: %.1f°, Scale: %s | %s"
@@ -466,7 +466,7 @@ func test_rotate_then_flip_workflow() -> void:
 						_format_validation_results(placement_results)
 					]
 				)
-			) \
+			)
 			. is_true()
 		)
 

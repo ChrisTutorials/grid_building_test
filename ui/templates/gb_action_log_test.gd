@@ -144,18 +144,18 @@ func _assert_failure_messages_present(
 	log_text: String, readable_name: String, expected_reasons: Array[String]
 ) -> void:
 	(
-		assert_str(log_text) \
+		assert_str(log_text)
 		. append_failure_message(
 			"Expected main failure message for '%s' in log: '%s'" % [readable_name, log_text]
-		) \
+		)
 		. is_not_empty()
 	)
 	for reason in expected_reasons:
 		(
-			assert_str(log_text) \
+			assert_str(log_text)
 			. append_failure_message(
 				"Expected failure reason '%s' in log: '%s'" % [reason, log_text]
-			) \
+			)
 			. contains(reason)
 		)
 
@@ -164,10 +164,10 @@ func _assert_failure_messages_present(
 func _assert_failure_messages_absent(log_text: String, absent_reasons: Array[String]) -> void:
 	for reason in absent_reasons:
 		(
-			assert_str(log_text) \
+			assert_str(log_text)
 			. append_failure_message(
 				"Expected failure reason '%s' to be hidden in log: '%s'" % [reason, log_text]
-			) \
+			)
 			. not_contains(reason)
 		)
 
@@ -193,24 +193,18 @@ func test_append_validation_results_shows_failed_reasons_when_enabled() -> void:
 
 	# Assert: Failed reasons should appear in log
 	(
-		assert_str(log_text) \
-		. append_failure_message(
-			"Expected collision failure reason in log text: '%s'" % log_text
-		) \
+		assert_str(log_text)
+		. append_failure_message("Expected collision failure reason in log text: '%s'" % log_text)
 		. contains(COLLISION_FAILURE_REASON)
 	)
 	(
-		assert_str(log_text) \
-		. append_failure_message(
-			"Expected structure blocking reason in log text: '%s'" % log_text
-		) \
+		assert_str(log_text)
+		. append_failure_message("Expected structure blocking reason in log text: '%s'" % log_text)
 		. contains(STRUCTURE_BLOCKING_REASON)
 	)
 	(
-		assert_str(log_text) \
-		. append_failure_message(
-			"Expected validation message in log text: '%s'" % log_text
-		) \
+		assert_str(log_text)
+		. append_failure_message("Expected validation message in log text: '%s'" % log_text)
 		. contains("Placement validation failed")
 	)
 
@@ -232,35 +226,89 @@ func test_append_validation_results_respects_disabled_failed_reasons() -> void:
 	# Assert: Failed reasons should not appear in log
 	var log_text: String = message_label.get_parsed_text()
 	(
-		assert_str(log_text) \
+		assert_str(log_text)
 		. append_failure_message(
 			(
 				"Expected failed reason to be hidden when print_failed_reasons=false, but found in: '%s'"
 				% log_text
 			)
-		) \
+		)
 		. not_contains(HIDDEN_FAILURE_REASON)
 	)
+
 
 #endregion
 
 #region Build Result Handler Tests
 
+
 ## Test: _handle_build_result shows high-level placement report issues
 func test_handle_build_result_shows_placement_report_issues() -> void:
 	# Setup
-	var placement_report: PlacementReport = \
-		_create_placement_report_with_issues([HIGH_LEVEL_ISSUE])
-	var build_data: BuildActionData = \
-		_create_build_action_data(DEFAULT_BUILDING_NAME, placement_report)
+	var placement_report: PlacementReport = _create_placement_report_with_issues([HIGH_LEVEL_ISSUE])
+	var build_data: BuildActionData = _create_build_action_data(
+		DEFAULT_BUILDING_NAME, placement_report
+	)
 
 	# Act
 	action_log._handle_build_result(build_data, false)
 
 	# Assert
 	var log_text: String = message_label.get_parsed_text()
-	assert_str(log_text) \
-		.append_failure_message("Expected high-level failure message in log text: '%s'" % log_text) \
-		.contains(HIGH_LEVEL_ISSUE)
+	(
+		assert_str(log_text)
+		. append_failure_message("Expected high-level failure message in log text: '%s'" % log_text)
+		. contains(HIGH_LEVEL_ISSUE)
+	)
 
-#endregion#endregion
+
+## Test: Action log messages properly format newlines (not literal 'n' characters)
+##
+## REGRESSION TEST: Messages in action log were being appended with literal "n"
+## instead of escaped newline "\n", causing output like:
+##   "Mode changed to: BUILDnBuilt Pillar.nUnable to build a Pillar.n- Colliding on 2 tile(s)n..."
+##
+## Expected behavior: Each message appears on a new line (with actual line breaks)
+## Bug behavior: Literal 'n' characters concatenated into single line
+##
+## STATUS: ✅ GREEN TEST - Bug has been fixed!
+## The literal 'n' characters have been replaced with proper "\n" escape sequences
+## in gb_action_log.gd (lines 92, 139, 165, 169, 246, 256, 329).
+func test_action_log_messages_format_newlines_properly() -> void:
+	# Arrange: Set up validation results with multiple messages
+	var failed_validation: ValidationResults = _create_failed_validation_results()
+	test_settings.show_validation_message = true
+	test_settings.print_failed_reasons = true
+
+	# Act: Append validation results which should output multiple lines
+	# Now uses proper "\n" escape sequences instead of literal "n"
+	action_log.append_validation_results(failed_validation)
+
+	# Get the parsed text (how it's rendered)
+	var parsed_text: String = message_label.get_parsed_text()
+
+	# Assert: Verify NO literal 'n' characters between messages
+	# Fixed: newlines are now properly escaped as "\n"
+	# and the parsed text shows actual line breaks (not literal 'n' chars)
+	#
+	# BEFORE FIX: "Placement validation failedn- Colliding on..."
+	# (literal 'n' character visible)
+	#
+	# AFTER FIX: "Placement validation failed\n- Colliding on..."
+	# (actual newlines, proper formatting)
+
+	# This assertion now passes because the bug is fixed
+	(
+		assert_str(parsed_text)
+		. append_failure_message(
+			(
+				"Newline formatting fixed! Messages should NOT contain literal 'n' after 'failed'. "
+				+ "Full output: '%s'" % parsed_text
+			)
+		)
+		. not_contains("failedn")
+	)  # Should NOT have literal 'n' after "failed"
+
+#endregion
+
+#endregion
