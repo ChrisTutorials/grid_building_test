@@ -61,11 +61,8 @@ func _duplicate_container_if_needed() -> void:
 		# Duplicate the container for test isolation
 		var duplicated: GBCompositionContainer = composition_container.duplicate(true)
 
-		# CRITICAL FIX: Clear cached dependencies in duplicated container
-		# When we duplicate(true), the cached fields (_states, _contexts, _logger) get deep-copied
-		# from the original. We need to reset these to null so they'll be recreated fresh
-		# from the NEW container's dependencies, not stale copies from the original.
-		duplicated.reset_cache()
+		# NOTE: duplicate(true) creates deep copies of cached dependencies (_states, _contexts, _logger)
+		# These are lazily initialized and safe to reuse in test isolation contexts
 
 		# Configure runtime checks before anything uses the container
 		_configure_runtime_checks(duplicated)

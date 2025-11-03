@@ -266,17 +266,12 @@ func test_pre_validation_is_successful_for_rect4x2_start_tile() -> void:
 	(
 		assert_bool(positioner_tile_after == start_tile)
 		. append_failure_message(
-			(
-				"Positioner must be on start_tile after setup; positioner_tile_after=%s "
-				+ (
-					"global_pos=%s start_tile=%s"
-					% [
-						str(positioner_tile_after),
-						str(_positioner.global_position),
-						str(start_tile)
-					]
-				)
-			)
+			"Positioner must be on start_tile after setup; positioner_tile_after=%s global_pos=%s start_tile=%s"
+			% [
+				str(positioner_tile_after),
+				str(_positioner.global_position),
+				str(start_tile)
+			]
 		)
 		. is_true()
 	)
