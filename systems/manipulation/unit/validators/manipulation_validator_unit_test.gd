@@ -7,7 +7,7 @@ extends GdUnitTestSuite
 
 const ManipulationValidator = preload("uid://7nwcaiy7n3hw")
 
-var _validator: RefCounted
+var _validator: ManipulationValidator
 var _mock_settings: ManipulationSettings
 var _mock_states: GBStates
 var _mock_indicator_context: IndicatorContext
